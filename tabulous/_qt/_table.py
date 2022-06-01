@@ -1,10 +1,10 @@
 from __future__ import annotations
-from typing import Any, Callable, NamedTuple, Sequence, TYPE_CHECKING
+from typing import Any, NamedTuple, TYPE_CHECKING
 import weakref
-from qtpy import QtWidgets as QtW, QtGui
-from qtpy.QtCore import QPoint, Signal, Qt, QModelIndex
+from qtpy import QtWidgets as QtW, QtGui, QtCore
+from qtpy.QtCore import Signal, Qt
 
-from magicgui.backends._qtpy.widgets import _QTableExtended
+from ._utils import show_messagebox
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -15,8 +15,6 @@ class ItemInfo(NamedTuple):
     column: int
     value: Any
     updated: bool
-
-
 
 _EDITABLE = QtW.QTableWidget.EditKeyPressed | QtW.QTableWidget.DoubleClicked
 _READ_ONLY = QtW.QTableWidget.NoEditTriggers
@@ -33,18 +31,57 @@ class QTableLayer(QtW.QTableWidget):
         self._editable = False
     
     def editability(self) -> bool:
+        """Return the editability of the table."""
         return self._editable
     
     def setEditability(self, editable: bool):
+        """Set the editability of the table."""
         if editable:
             self.setEditTriggers(_EDITABLE)
         else:
             self.setEditTriggers(_READ_ONLY)
         self._editable = editable
+    
+    def connectItemChangedSignal(self, slot):
+        self.itemChangedSignal.connect(slot)
+        return slot
+    
+    def getSelections(self) -> list[tuple[slice, slice]]:
+        selections = self.selectedRanges()
+        out: list[tuple[slice, slice]] = []
+        for sel in selections:
+            r0 = sel.topRow()
+            r1 = sel.bottomRow() + 1
+            c0 = sel.leftColumn()
+            c1 = sel.rightColumn() + 1
+            out.append((slice(r0, r1), slice(c0, c1)))
+        
+        return out
+
+    def setSelections(self, selections: list[tuple[slice, slice]]):
+        self.clearSelection()
+        data = self._data_ref()
+        nr, nc = data.shape
+        try:
+            for sel in selections:
+                r, c = sel
+                r0, r1, _ = r.indices(nr)
+                c0, c1, _ = c.indices(nc)
+                self.setRangeSelected(
+                    QtW.QTableWidgetSelectionRange(r0, c0, r1 - 1, c1 - 1), 
+                    True,
+                )
+        except Exception as e:
+            self.clearSelection()
+            raise e
         
     def _update_data(self, row: int, col: int):
         item = self.item(row, col)
-        r, c, text = self._item_info(item)
+
+        r = item.row()
+        c = item.column()
+        text = item.text()
+        
         data = self._data_ref()
         dtype = data.dtypes[c]
         try:
@@ -80,34 +117,40 @@ class QTableLayer(QtW.QTableWidget):
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
         if e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_C:
-            return self._copy_to_clipboard()
+            headers = e.modifiers() & Qt.ShiftModifier
+            return self.copyToClipboard(headers)
         if e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_V:
             # TODO
             return 
         
         return super().keyPressEvent(e)
     
-    def _copy_to_clipboard(self):
-        selranges = self.selectedRanges()
-        if not selranges:
+    def copyToClipboard(self, headers: bool = True):
+        import pandas as pd
+        selections = self.getSelections()
+        if len(selections) == 0:
             return
-        if len(selranges) > 1:
-            import warnings
-
-            warnings.warn(
-                "Multiple table selections detected: "
-                "only the first (upper left) selection will be copied"
+        r_ranges = set()
+        c_ranges = set()
+        for rsel, csel in selections:
+            r_ranges.add((rsel.start, rsel.stop))
+            c_ranges.add((csel.start, csel.stop))
+        
+        nr = len(r_ranges)
+        nc = len(c_ranges)
+        if nr > 1 and nc > 1:
+            show_messagebox(
+                mode="error", title="Error", text="Wrong selection range.", parent=self
             )
-
-        # copy first selection range
-        sel = selranges[0]
-        
-        r0 = sel.topRow()
-        r1 = sel.bottomRow() + 1
-        c0 = sel.leftColumn()
-        c1 = sel.rightColumn() + 1
-        
-        self._data_ref().iloc[r0:r1, c0:c1].to_clipboard()
+            return
+        else:
+            data = self._data_ref()
+            if nr == 1:
+                axis = 1
+            else:
+                axis = 0
+            ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
+            ref.to_clipboard(index=headers, header=headers)
     
     def _set_data_to_items(self):
         data = self._data_ref()
@@ -158,14 +201,6 @@ class QTableLayer(QtW.QTableWidget):
                 hitem.setText(text)
             else:
                 self.setHorizontalHeaderItem(c, QtW.QTableWidgetItem(text))
-                
-            
-            
-    def _item_info(self, item: QtW.QTableWidgetItem) -> tuple[int, int, str]:
-        r = item.row()
-        c = item.column()
-        text = item.text()
-        return r, c, text
     
     def _get_square(self) -> tuple[int, int, int, int]:
         """Get index range of (row_start, column_start, row_end, column_end)."""
@@ -198,7 +233,7 @@ class _ItemDelegate(QtW.QStyledItemDelegate):
     def displayText(self, value, locale):
         return super().displayText(_format_number(value, 4), locale)
 
-    def setEditorData(self, editor: QtW.QWidget, index: QModelIndex) -> None:
+    def setEditorData(self, editor: QtW.QWidget, index: QtCore.QModelIndex) -> None:
         super().setEditorData(editor, index)
         self.edited.emit((index.row(), index.column()))
         

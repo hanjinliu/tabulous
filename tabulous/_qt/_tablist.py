@@ -12,11 +12,18 @@ class QTabList(QtW.QListWidget):
         super().__init__(parent)
         self.setSelectionMode(QtW.QAbstractItemView.SingleSelection)
     
-    def addTable(self, table: QTableLayer):
-        self.addItem(QTabListItem(table, parent=self))
+    def addTable(self, table: QTableLayer, name: str = "None"):
+        item = QTabListItem(table, parent=self)
+        self.addItem(item)
+        item.setText(name)
     
-    def item(self, index: int) -> QTabListItem:
-        return super().item(index)
+    def takeTable(self, index: int) -> QTableLayer:
+        item = self.takeItem(index)
+        return item.table
+    
+    if TYPE_CHECKING:
+        def item(self, index: int) -> QTabListItem: ...
+        def takeItem(self, index: int) -> QTabListItem: ...
     
     def selectionChanged(self, selected: QtCore.QItemSelection, deselected: QtCore.QItemSelection) -> None:
         index = selected.indexes()[0].row()

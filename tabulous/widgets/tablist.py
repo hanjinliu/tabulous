@@ -16,9 +16,7 @@ class TabList(EventedList[TableLayer]):
         self._parent = parent
         self.events.inserted.connect(self._on_inserted)
         self.events.removed.connect
-        
-        
-    
+
     def insert(self, index: int, table: TableLayer):
         if not isinstance(table, TableLayer):
             raise TypeError(f"Cannot insert {type(table)} to {self.__class__.__name__}.")

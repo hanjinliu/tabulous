@@ -10,9 +10,11 @@ from .table import TableLayer
 from .tablist import TabList
 
 class MainWindow:
-    def __init__(self):
+    def __init__(self, *, show: bool = True):
         self._qwidget = QMainWindow()
         self._tablist = TabList(parent=self)
+        if show:
+            self.show()
     
     @property
     def tabs(self) -> TabList:

@@ -23,13 +23,12 @@ class QMainWindow(QtW.QMainWindow):
     def addTable(self, table: QTableLayer, name: str) -> QTableLayer:
         if not isinstance(table, QTableLayer):
             raise TypeError(f"Cannot add {type(table)}.")
-        self._tablist.addItem(str(name))
+        self._tablist.addTable(table, name)
         self._tablestack.addWidget(table)
     
     def removeTable(self, index: int):
-        item = self._tablist.item(index)
-        self._tablist.removeItemWidget(item)
-        self._tablestack.removeWidget(item.table)
+        table = self._tablist.takeTable(index)
+        self._tablestack.removeWidget(table)
         
     def setStackIndex(self, index: int) -> None:
         self._tablestack.setCurrentIndex(index)
