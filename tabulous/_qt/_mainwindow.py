@@ -65,6 +65,9 @@ class QMainWindow(QtW.QMainWindow):
 
         return super().addDockWidget(QtDockWidget.areas[area], dock)
             
+    def stackIndex(self) -> int:
+        return self._tablestack.currentIndex()
+    
     def setStackIndex(self, index: int) -> None:
         self._tablestack.setCurrentIndex(index)
     

@@ -1,8 +1,5 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Any, Callable, NamedTuple, TYPE_CHECKING
-from psygnal import SignalGroup, Signal
-import numpy as np
 import pandas as pd
 
 from .._qt import QMainWindow, get_app
@@ -24,6 +21,24 @@ class TableViewer:
     def tables(self) -> TableList:
         return self._tablist
     
+    @property
+    def current_table(self) -> TableLayer:
+        """Return the currently visible table."""
+        return self.tables[self.current_index]
+    
+    @property
+    def current_index(self) -> int:
+        """Return the index of currently visible table."""
+        return self._qwidget.stackIndex()
+    
+    @current_index.setter
+    def current_index(self, value: int | str):
+        if isinstance(value, str):
+            value = self.tables.index(value)
+        elif value < 0:
+            value += len(self.tables)
+        return self._qwidget.setStackIndex(value)
+    
     def show(self):
         self._qwidget.show()
     
@@ -33,6 +48,7 @@ class TableViewer:
     
     def add_layer(self, layer):
         self.tables.append(layer)
+        self.current_index = -1  # activate the last table
         return layer
     
     def add_dock_widget(

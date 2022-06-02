@@ -37,6 +37,19 @@ class QTableLayer(QtW.QTableWidget):
             raise ValueError("DataFrame is deleted.")
         return data
     
+    if TYPE_CHECKING:
+        def itemDelegate(self) -> TableItemDelegate: ...
+        
+    def precision(self) -> int:
+        return self.itemDelegate().ndigits
+    
+    def setPrecision(self, ndigits: int) -> None:
+        ndigits = int(ndigits)
+        if ndigits <= 0:
+            raise ValueError("Cannot set negative precision.")
+        self.itemDelegate().ndigits = ndigits
+        self.refreshTable()
+    
     def editability(self) -> bool:
         """Return the editability of the table."""
         return self._editable
@@ -104,7 +117,7 @@ class QTableLayer(QtW.QTableWidget):
         try:
             value = _DTYPE_KIND_TO_CONVERTER[dtype.kind](text)
         except Exception as e:
-            self._set_data_to_items()
+            self.refreshTable()
             updated = False
         else:
             data.iloc[r, c] = value
@@ -113,23 +126,23 @@ class QTableLayer(QtW.QTableWidget):
         
     
     def verticalScrollbarValueChanged(self, value: int) -> None:
-        self._set_data_to_items()
+        self.refreshTable()
         return super().verticalScrollbarValueChanged(value)
 
     def horizontalScrollbarValueChanged(self, value: int) -> None:
-        self._set_data_to_items()
+        self.refreshTable()
         return super().horizontalScrollbarValueChanged(value)
     
     def rowResized(self, row: int, oldHeight: int, newHeight: int) -> None:
-        self._set_data_to_items()
+        self.refreshTable()
         return super().rowResized(row, oldHeight, newHeight)
     
     def columnResized(self, column: int, oldWidth: int, newWidth: int) -> None:
-        self._set_data_to_items()
+        self.refreshTable()
         return super().columnResized(column, oldWidth, newWidth)
     
     def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
-        self._set_data_to_items()
+        self.refreshTable()
         return super().resizeEvent(e)
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
@@ -169,7 +182,7 @@ class QTableLayer(QtW.QTableWidget):
             ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
             ref.to_clipboard(index=headers, header=headers)
     
-    def _set_data_to_items(self):
+    def refreshTable(self):
         data = self.getDataFrame()
         r0, c0, r1, c1 = self._get_square()
         
@@ -248,9 +261,13 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
     """Displays table widget items with properly formatted numbers."""
     
     edited = Signal(tuple)
+    
+    def __init__(self, parent: QtCore.QObject | None = None, ndigits: int = 4) -> None:
+        super().__init__(parent)
+        self.ndigits = ndigits
 
     def displayText(self, value, locale):
-        return super().displayText(_format_number(value, 4), locale)
+        return super().displayText(self._format_number(value), locale)
 
     def setEditorData(self, editor: QtW.QLineEdit, index: QtCore.QModelIndex) -> None:
         super().setEditorData(editor, index)
@@ -262,23 +279,25 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
     def paint(self, painter: QtGui.QPainter, option, index: QtCore.QModelIndex) -> None:
         return super().paint(painter, option, index)
         
-def _format_number(text: str, ndigits: int = 4) -> str:
-    """convert string to int or float if possible"""
-    try:
-        value: int | float | None = int(text)
-    except ValueError:
+    def _format_number(self, text: str) -> str:
+        """convert string to int or float if possible"""
         try:
-            value = float(text)
+            value: int | float | None = int(text)
         except ValueError:
-            value = None
+            try:
+                value = float(text)
+            except ValueError:
+                value = None
+        
+        ndigits = self.ndigits
+        
+        if isinstance(value, (int, float)):
+            if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+                text = str(value) if isinstance(value, int) else f"{value:.{ndigits}f}"
+            else:
+                text = f"{value:.{ndigits-1}e}"
 
-    if isinstance(value, (int, float)):
-        if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
-            text = str(value) if isinstance(value, int) else f"{value:.{ndigits}f}"
-        else:
-            text = f"{value:.{ndigits-1}e}"
-
-    return text
+        return text
 
 _DTYPE_KIND_TO_CONVERTER = {
     "i": int,

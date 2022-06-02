@@ -5,7 +5,7 @@ import pandas as pd
 
 from ..types import SelectionRanges
 from .._protocols import BackendTableProtocol
-from .._qt import QTableLayer
+from .._qt import QTableLayer, get_app
 
 
 class TableSignals(SignalGroup):
@@ -17,8 +17,11 @@ class TableLayerBase(ABC):
     signals = TableSignals()
     
     def __init__(self, data, name=None, editable: bool = True):
-        self._data = pd.DataFrame(data)
-        self._name = name
+        if not isinstance(data, pd.DataFrame):
+            self._data = pd.DataFrame(data)
+        else:
+            self._data = data
+        self._name = str(name)
         self._qwidget = self._create_backend(self._data)
         self._qwidget.setEditability(editable)
         self._qwidget.connectItemChangedSignal(self.signals.data.emit)
@@ -38,15 +41,27 @@ class TableLayerBase(ABC):
     @property
     def shape(self) -> tuple[int, int]:
         return self._qwidget.rowCount(), self._qwidget.columnCount()
+    
+    def refresh(self) -> None:
+        self._qwidget.refreshTable()
+    
+    @property
+    def precision(self) -> int:
+        return self._qwidget.precision()
+    
+    @precision.setter
+    def precision(self, value: int) -> None:
+        self._qwidget.setPrecision(value)
 
     # TODO: connect name signal
     @property
     def name(self) -> str:
-        return str(self._name)
+        return self._name
     
     @name.setter
     def name(self, value: str):
-        self.signals.name_.emit(value)
+        self._name = str(value)
+        # self.signals.name_.emit(value)
 
     @property
     def editable(self) -> bool:
@@ -72,8 +87,15 @@ class TableLayerBase(ABC):
         return rngs
     
     @selections.setter
-    def selections(self, value):
+    def selections(self, value) -> None:
         self._qwidget.setSelections(value)
+    
+    def show(self, run: bool = True):
+        # if run:
+        #     app = get_app()
+        self._qwidget.show()
+        return self
+
 
 class TableLayer(TableLayerBase):
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
