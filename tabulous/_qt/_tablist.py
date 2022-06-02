@@ -34,6 +34,18 @@ class QTabList(QtW.QListWidget):
     def selectionChanged(self, selected: QtCore.QItemSelection, deselected: QtCore.QItemSelection) -> None:
         index = selected.indexes()[0].row()
         self.selectionChangedSignal.emit(index)
+        item = self.item(index)
+        widget = self.itemWidget(item)
+        font = widget.font()
+        font.setBold(True)
+        widget.setFont(font)
+        
+        for i in deselected.indexes():
+            item = self.item(i.row())
+            widget = self.itemWidget(item)
+            font = widget.font()
+            font.setBold(False)
+            widget.setFont(font)
         return super().selectionChanged(selected, deselected)
 
 class QTabListItem(QtW.QListWidgetItem):

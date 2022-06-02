@@ -24,7 +24,7 @@ class QMainWindow(QtW.QMainWindow):
         self._split.addWidget(self._tablist)
         self._split.addWidget(self._tablestack)
         
-        self._tablist.selectionChangedSignal.connect(self.setStackIndex)
+        self._tablist.selectionChangedSignal.connect(self._tablestack.setCurrentIndex)
         
         QMainWindow._instances.append(self)
     
@@ -69,7 +69,7 @@ class QMainWindow(QtW.QMainWindow):
         return self._tablestack.currentIndex()
     
     def setStackIndex(self, index: int) -> None:
-        self._tablestack.setCurrentIndex(index)
+        self._tablist.setCurrentRow(index)
     
     @classmethod
     def currentViewer(cls):
