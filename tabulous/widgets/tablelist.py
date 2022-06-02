@@ -8,10 +8,10 @@ import pandas as pd
 from .table import TableLayer
 
 if TYPE_CHECKING:
-    from .mainwindow import MainWindow
+    from .mainwindow import TableViewer
 
 class TableList(EventedList[TableLayer]):
-    def __init__(self, parent: MainWindow):
+    def __init__(self, parent: TableViewer):
         super().__init__()
         self._parent = parent
         self.events.inserted.connect(self._on_inserted)

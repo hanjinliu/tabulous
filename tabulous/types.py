@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Iterable, TYPE_CHECKING
+from typing import Any, Iterable, TYPE_CHECKING, NewType
 from psygnal import Signal
 from psygnal.containers import EventedList
 
@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
 # class DataFrameType(Protocol):
 #     iloc: 
+
+
 
 def _check_tuple_of_slices(value: Any) -> tuple[slice, slice]:
     v0, v1 = value

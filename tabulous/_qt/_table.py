@@ -26,7 +26,7 @@ class QTableLayer(QtW.QTableWidget):
     def __init__(self, parent=None, data: pd.DataFrame = None):
         self._data_ref: weakref.ReferenceType[pd.DataFrame] = weakref.ref(data)
         super().__init__(*data.shape, parent)
-        delegate = _ItemDelegate(parent=self)
+        delegate = TableItemDelegate(parent=self)
         self.setItemDelegate(delegate)
         delegate.edited.connect(lambda x: self.itemChangedSignal.emit(self._update_data(*x)))
         self._editable = False
@@ -56,6 +56,7 @@ class QTableLayer(QtW.QTableWidget):
         return super().selectionChanged(selected, deselected)
     
     def getSelections(self) -> list[tuple[slice, slice]]:
+        """Get list of selections as slicable tuples"""
         selections = self.selectedRanges()
         out: list[tuple[slice, slice]] = []
         for sel in selections:
@@ -68,6 +69,7 @@ class QTableLayer(QtW.QTableWidget):
         return out
 
     def setSelections(self, selections: list[tuple[slice, slice]]):
+        """Set list of selections."""
         self.clearSelection()
         data = self._data_ref()
         nr, nc = data.shape
@@ -201,7 +203,9 @@ class QTableLayer(QtW.QTableWidget):
                 if item is not None:
                     self.item(r, c).setText(text)
                 else:
-                    self.setItem(r, c, QtW.QTableWidgetItem(text))
+                    item = QtW.QTableWidgetItem(text)
+                    self.setItem(r, c, item)
+                # item.setBackground()
         
         for c in range(c0, c1):
             hitem = self.horizontalHeaderItem(c)
@@ -234,7 +238,7 @@ class QTableLayer(QtW.QTableWidget):
 
 
 # modified from magicgui
-class _ItemDelegate(QtW.QStyledItemDelegate):
+class TableItemDelegate(QtW.QStyledItemDelegate):
     """Displays table widget items with properly formatted numbers."""
     
     edited = Signal(tuple)
@@ -245,6 +249,9 @@ class _ItemDelegate(QtW.QStyledItemDelegate):
     def setEditorData(self, editor: QtW.QWidget, index: QtCore.QModelIndex) -> None:
         super().setEditorData(editor, index)
         self.edited.emit((index.row(), index.column()))
+    
+    def paint(self, painter: QtGui.QPainter, option, index: QtCore.QModelIndex) -> None:
+        return super().paint(painter, option, index)
         
 def _format_number(text: str, ndigits: int = 4) -> str:
     """convert string to int or float if possible"""
