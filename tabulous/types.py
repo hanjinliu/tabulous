@@ -2,14 +2,12 @@ from __future__ import annotations
 from typing import Any, Iterable, TYPE_CHECKING, NewType
 from psygnal import Signal
 from psygnal.containers import EventedList
-
-if TYPE_CHECKING:
-    import pandas as pd
+import pandas as pd
 
 # class DataFrameType(Protocol):
 #     iloc: 
 
-
+TableData = NewType("TableData", pd.DataFrame)
 
 def _check_tuple_of_slices(value: Any) -> tuple[slice, slice]:
     v0, v1 = value

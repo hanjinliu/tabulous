@@ -9,3 +9,5 @@ __all__ = [
     "read_csv",
     "read_excel",
 ]
+
+from . import _magicgui

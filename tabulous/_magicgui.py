@@ -1,11 +1,11 @@
 from __future__ import annotations
-from typing import NewType
+from typing import Any
 from qtpy.QtWidgets import QWidget
 from magicgui import register_type
 from magicgui.widgets import Widget
-import pandas as pd
 
 from .widgets import TableViewer, TableLayer
+from .types import TableData
 
 def find_table_viewer_ancestor(widget: Widget | QWidget) -> TableViewer | None:
     if isinstance(widget, Widget):
@@ -16,9 +16,10 @@ def find_table_viewer_ancestor(widget: Widget | QWidget) -> TableViewer | None:
         raise TypeError(f"Cannot use {type(widget)} as an input.")
     qwidget: QWidget
     parent = qwidget.parent()
-    while parent is not None:
-        parent = parent.parent()
-    return getattr(parent, "_mainwindow", None)
+    while (parent := qwidget.parent()) is not None:
+        qwidget = parent
+    
+    return getattr(qwidget, "_table_viewer", None)
 
 def get_tables(widget: Widget | QWidget):
     v = find_table_viewer_ancestor(widget)
@@ -32,8 +33,21 @@ def get_table_data(widget: Widget | QWidget):
         return []
     return [table.data for table in v.tables]
 
-TableData = NewType("TableData", pd.DataFrame)
+def open_viewer(gui, result: Any, return_type: type):
+    result.show()
+    
+def add_table_to_viewer(gui, result: Any, return_type: type):
+    viewer = find_table_viewer_ancestor(gui)
+    if viewer is None:
+        return
+    viewer.add_layer(result)
+    
+def add_table_data_to_viewer(gui, result: Any, return_type: type):
+    viewer = find_table_viewer_ancestor(gui)
+    if viewer is None:
+        return
+    viewer.add_table(result)
 
-register_type(TableViewer, choices=find_table_viewer_ancestor)
-register_type(TableLayer, choices=get_tables)
-register_type(TableData, choices=get_table_data)
+register_type(TableViewer, return_callback=open_viewer, choices=find_table_viewer_ancestor)
+register_type(TableLayer, return_callback=add_table_to_viewer, choices=get_tables)
+register_type(TableData, return_callback=add_table_data_to_viewer, choices=get_table_data)

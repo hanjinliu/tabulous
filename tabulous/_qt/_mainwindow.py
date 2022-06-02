@@ -43,7 +43,28 @@ class QMainWindow(QtW.QMainWindow):
         item = self._tablist.item(index)
         tab = self._tablist.itemWidget(item)
         tab.rename(name)
-        
+    
+    def addDockWidget(
+        self, 
+        qwidget: QtW.QWidget,
+        *,
+        name: str = "",
+        area: str = "right",
+        allowed_areas: list[str] = None,
+    ):
+        from .._qt._dockwidget import QtDockWidget
+
+        name = name or qwidget.objectName()
+        dock = QtDockWidget(
+            self,
+            qwidget,
+            name=name.replace("_", " "),
+            area=area,
+            allowed_areas=allowed_areas,
+        )
+
+        return super().addDockWidget(QtDockWidget.areas[area], dock)
+            
     def setStackIndex(self, index: int) -> None:
         self._tablestack.setCurrentIndex(index)
     

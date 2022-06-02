@@ -252,9 +252,12 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
     def displayText(self, value, locale):
         return super().displayText(_format_number(value, 4), locale)
 
-    def setEditorData(self, editor: QtW.QWidget, index: QtCore.QModelIndex) -> None:
+    def setEditorData(self, editor: QtW.QLineEdit, index: QtCore.QModelIndex) -> None:
         super().setEditorData(editor, index)
-        self.edited.emit((index.row(), index.column()))
+        # NOTE: This method is evoked when editing started and editing finished.
+        # The editor widget has focus only when editing is finished.
+        if editor.hasFocus():
+            self.edited.emit((index.row(), index.column()))
     
     def paint(self, painter: QtGui.QPainter, option, index: QtCore.QModelIndex) -> None:
         return super().paint(painter, option, index)
