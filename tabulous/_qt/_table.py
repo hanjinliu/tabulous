@@ -26,10 +26,48 @@ class QTableLayer(QtW.QTableWidget):
     def __init__(self, parent=None, data: pd.DataFrame = None):
         self._data_ref: weakref.ReferenceType[pd.DataFrame] = weakref.ref(data)
         super().__init__(*data.shape, parent)
+        self.setVerticalScrollMode(QtW.QAbstractItemView.ScrollPerPixel)
+        self.setHorizontalScrollMode(QtW.QAbstractItemView.ScrollPerPixel)
         delegate = TableItemDelegate(parent=self)
         self.setItemDelegate(delegate)
         delegate.edited.connect(lambda x: self.itemChangedSignal.emit(self._update_data(*x)))
         self._editable = False
+        self._zoom = 1.0
+        self._initial_font_size = self.font().pointSize()
+        self._default_h_size = self.horizontalHeader().defaultSectionSize()
+        self._default_v_size = self.verticalHeader().defaultSectionSize()
+        
+    def zoom(self) -> float:
+        """Get current zoom factor."""
+        return self._zoom
+    
+    def setZoom(self, value: float) -> None:
+        if not 0.25 <= value <= 2.0:
+            raise ValueError("Zoom factor must between 0.25 and 2.0.")
+        # To keep table at the same position.
+        zoom_ratio = 1 / self._zoom * value
+        pos = self.verticalScrollBar().sliderPosition()
+        self.verticalScrollBar().setSliderPosition(pos * zoom_ratio)
+        pos = self.horizontalScrollBar().sliderPosition()
+        self.horizontalScrollBar().setSliderPosition(pos * zoom_ratio)
+        
+        # Zoom font size
+        font = self.font()
+        font.setPointSize(self._initial_font_size*value)
+        self.setFont(font)
+        
+        # Zoom section size of headers
+        self.horizontalHeader().setDefaultSectionSize(self._default_h_size*value)
+        self.verticalHeader().setDefaultSectionSize(self._default_v_size*value)
+        
+        # Update stuff
+        self._zoom = value
+        self.refreshTable()
+    
+    def indexUnderCursor(self) -> tuple[int, int]:
+        pos = self.mapFromGlobal(QtGui.QCursor().pos())
+        item = self.itemAt(pos)
+        return item.row(), item.column()
     
     def getDataFrame(self) -> pd.DataFrame:
         data = self._data_ref()
@@ -71,10 +109,10 @@ class QTableLayer(QtW.QTableWidget):
         return slot
     
     def selectionChanged(self, selected: QtCore.QItemSelection, deselected: QtCore.QItemSelection) -> None:
-        self.selectionChangedSignal.emit(self.getSelections())
+        self.selectionChangedSignal.emit(self.selections())
         return super().selectionChanged(selected, deselected)
     
-    def getSelections(self) -> list[tuple[slice, slice]]:
+    def selections(self) -> list[tuple[slice, slice]]:
         """Get list of selections as slicable tuples"""
         selections = self.selectedRanges()
         out: list[tuple[slice, slice]] = []
@@ -154,10 +192,19 @@ class QTableLayer(QtW.QTableWidget):
             return 
         
         return super().keyPressEvent(e)
+
+    def wheelEvent(self, a0: QtGui.QWheelEvent) -> None:
+        if a0.modifiers() & Qt.ControlModifier:
+            dt = a0.angleDelta().y() / 120
+            zoom = self.zoom() + 0.15 * dt
+            self.setZoom(min(max(zoom, 0.25), 2.0))
+            return None
+                
+        return super().wheelEvent(a0)
     
     def copyToClipboard(self, headers: bool = True):
         import pandas as pd
-        selections = self.getSelections()
+        selections = self.selections()
         if len(selections) == 0:
             return
         r_ranges = set()
@@ -246,8 +293,6 @@ class QTableLayer(QtW.QTableWidget):
             c1 = self.columnCount() - 1
         return r0, c0, r1 + 1, c1 + 1
 
-        
-        
     def addFilter(self, f):
         # TODO
         ...

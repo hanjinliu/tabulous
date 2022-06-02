@@ -5,12 +5,13 @@ import pandas as pd
 
 from ..types import SelectionRanges
 from .._protocols import BackendTableProtocol
-from .._qt import QTableLayer, get_app
+from .._qt import QTableLayer
 
 
 class TableSignals(SignalGroup):
     data = Signal(object)
     selections = Signal(object)
+    zoom = Signal(float)
     name_ = Signal(str)
 
 class TableLayerBase(ABC):
@@ -52,6 +53,14 @@ class TableLayerBase(ABC):
     @precision.setter
     def precision(self, value: int) -> None:
         self._qwidget.setPrecision(value)
+    
+    @property
+    def zoom(self) -> float:
+        return self._qwidget.zoom()
+    
+    @zoom.setter
+    def zoom(self, value: float):
+        self._qwidget.setZoom(value)
 
     # TODO: connect name signal
     @property
@@ -81,7 +90,7 @@ class TableLayerBase(ABC):
     
     @property
     def selections(self):
-        rngs = SelectionRanges(self._qwidget.getSelections())
+        rngs = SelectionRanges(self._qwidget.selections())
         rngs.updated.connect(self._qwidget.setSelections)
         rngs.events.removed.connect(lambda i, value: self._qwidget.setSelections(rngs))
         return rngs
@@ -89,12 +98,6 @@ class TableLayerBase(ABC):
     @selections.setter
     def selections(self, value) -> None:
         self._qwidget.setSelections(value)
-    
-    def show(self, run: bool = True):
-        # if run:
-        #     app = get_app()
-        self._qwidget.show()
-        return self
 
 
 class TableLayer(TableLayerBase):
