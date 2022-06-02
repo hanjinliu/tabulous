@@ -10,17 +10,29 @@ from .table import TableLayer
 if TYPE_CHECKING:
     from .mainwindow import MainWindow
 
-class TabList(EventedList[TableLayer]):
+class TableList(EventedList[TableLayer]):
     def __init__(self, parent: MainWindow):
         super().__init__()
         self._parent = parent
         self.events.inserted.connect(self._on_inserted)
-        self.events.removed.connect
+        self.events.removed.connect(self._on_removed)
 
     def insert(self, index: int, table: TableLayer):
         if not isinstance(table, TableLayer):
             raise TypeError(f"Cannot insert {type(table)} to {self.__class__.__name__}.")
         super().insert(index, table)
+    
+    def rename(self, index: int, name: str):
+        self._parent._qwidget.renameTable(index, name)
+    
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            for content in self:
+                if content.name == key:
+                    return key
+            else:
+                raise ValueError(f"No table named {key!r}.")
+        return super().__getitem__(key)
     
     def _on_inserted(self, index):
         table = self[index]

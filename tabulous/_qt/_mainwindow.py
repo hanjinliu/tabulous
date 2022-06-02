@@ -25,10 +25,16 @@ class QMainWindow(QtW.QMainWindow):
             raise TypeError(f"Cannot add {type(table)}.")
         self._tablist.addTable(table, name)
         self._tablestack.addWidget(table)
+        return table
     
     def removeTable(self, index: int):
         table = self._tablist.takeTable(index)
         self._tablestack.removeWidget(table)
+    
+    def renameTable(self, index: int, name: str):
+        item = self._tablist.item(index)
+        tab = self._tablist.itemWidget(item)
+        tab.rename(name)
         
     def setStackIndex(self, index: int) -> None:
         self._tablestack.setCurrentIndex(index)

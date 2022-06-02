@@ -1,8 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, Callable, NamedTuple, TYPE_CHECKING
 from psygnal import SignalGroup, Signal
-import numpy as np
 import pandas as pd
 
 from ..types import SelectionRanges
@@ -12,7 +10,8 @@ from .._qt import QTableLayer
 
 class TableSignals(SignalGroup):
     data = Signal(object)
-    selection = Signal(object)
+    selections = Signal(object)
+    name_ = Signal(str)
 
 class TableLayerBase(ABC):
     signals = TableSignals()
@@ -23,6 +22,10 @@ class TableLayerBase(ABC):
         self._qwidget = self._create_backend(self._data)
         self._qwidget.setEditability(editable)
         self._qwidget.connectItemChangedSignal(self.signals.data.emit)
+        self._qwidget.connectSelectionChangedSignal(self.signals.selections.emit)
+    
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}[{self.name}]"
     
     @abstractmethod
     def _create_backend(self, data: pd.DataFrame) -> BackendTableProtocol:
@@ -36,9 +39,14 @@ class TableLayerBase(ABC):
     def shape(self) -> tuple[int, int]:
         return self._qwidget.rowCount(), self._qwidget.columnCount()
 
+    # TODO: connect name signal
     @property
     def name(self) -> str:
         return str(self._name)
+    
+    @name.setter
+    def name(self, value: str):
+        self.signals.name_.emit(value)
 
     @property
     def editable(self) -> bool:

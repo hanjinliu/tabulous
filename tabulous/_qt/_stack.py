@@ -8,3 +8,5 @@ class QTableStack(QtW.QStackedWidget):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setMinimumSize(600, 400)
+    
+    

@@ -21,6 +21,7 @@ _READ_ONLY = QtW.QTableWidget.NoEditTriggers
 
 class QTableLayer(QtW.QTableWidget):
     itemChangedSignal = Signal(ItemInfo)
+    selectionChangedSignal = Signal(list)
     
     def __init__(self, parent=None, data: pd.DataFrame = None):
         self._data_ref: weakref.ReferenceType[pd.DataFrame] = weakref.ref(data)
@@ -45,6 +46,14 @@ class QTableLayer(QtW.QTableWidget):
     def connectItemChangedSignal(self, slot):
         self.itemChangedSignal.connect(slot)
         return slot
+    
+    def connectSelectionChangedSignal(self, slot):
+        self.selectionChangedSignal.connect(slot)
+        return slot
+    
+    def selectionChanged(self, selected: QtCore.QItemSelection, deselected: QtCore.QItemSelection) -> None:
+        self.selectionChangedSignal.emit(self.getSelections())
+        return super().selectionChanged(selected, deselected)
     
     def getSelections(self) -> list[tuple[slice, slice]]:
         selections = self.selectedRanges()

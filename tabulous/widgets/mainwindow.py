@@ -7,17 +7,17 @@ import pandas as pd
 from .._qt import QMainWindow
 
 from .table import TableLayer
-from .tablist import TabList
+from .tablelist import TableList
 
 class MainWindow:
     def __init__(self, *, show: bool = True):
         self._qwidget = QMainWindow()
-        self._tablist = TabList(parent=self)
+        self._tablist = TableList(parent=self)
         if show:
             self.show()
     
     @property
-    def tabs(self) -> TabList:
+    def tables(self) -> TableList:
         return self._tablist
     
     def show(self):
@@ -25,4 +25,4 @@ class MainWindow:
     
     def add_data(self, data, *, name: str = None, editable: bool = False):
         table = TableLayer(data, name=name, editable=editable)
-        self.tabs.append(table)
+        self.tables.append(table)
