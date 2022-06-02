@@ -5,7 +5,7 @@ from psygnal import SignalGroup, Signal
 import numpy as np
 import pandas as pd
 
-from .._qt import QMainWindow
+from .._qt import QMainWindow, get_app
 
 from .table import TableLayer
 from .tablelist import TableList
@@ -13,6 +13,7 @@ from .tablelist import TableList
 class TableViewer:
     
     def __init__(self, *, show: bool = True):
+        app = get_app()
         self._qwidget = QMainWindow()
         self._qwidget._table_viewer = self
         self._tablist = TableList(parent=self)

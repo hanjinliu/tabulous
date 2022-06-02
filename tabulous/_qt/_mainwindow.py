@@ -6,6 +6,7 @@ from qtpy.QtCore import Qt, QEvent
 from ._stack import QTableStack
 from ._tablist import QTabList
 from ._table import QTableLayer
+from ._app import gui_qt
 
 if TYPE_CHECKING:
     from ..widgets import TableViewer

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, NamedTuple, TYPE_CHECKING
+from typing import Any, Callable, NamedTuple, TYPE_CHECKING
 import weakref
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -30,6 +30,12 @@ class QTableLayer(QtW.QTableWidget):
         self.setItemDelegate(delegate)
         delegate.edited.connect(lambda x: self.itemChangedSignal.emit(self._update_data(*x)))
         self._editable = False
+    
+    def getDataFrame(self) -> pd.DataFrame:
+        data = self._data_ref()
+        if data is None:
+            raise ValueError("DataFrame is deleted.")
+        return data
     
     def editability(self) -> bool:
         """Return the editability of the table."""
@@ -71,7 +77,7 @@ class QTableLayer(QtW.QTableWidget):
     def setSelections(self, selections: list[tuple[slice, slice]]):
         """Set list of selections."""
         self.clearSelection()
-        data = self._data_ref()
+        data = self.getDataFrame()
         nr, nc = data.shape
         try:
             for sel in selections:
@@ -93,7 +99,7 @@ class QTableLayer(QtW.QTableWidget):
         c = item.column()
         text = item.text()
         
-        data = self._data_ref()
+        data = self.getDataFrame()
         dtype = data.dtypes[c]
         try:
             value = _DTYPE_KIND_TO_CONVERTER[dtype.kind](text)
@@ -155,7 +161,7 @@ class QTableLayer(QtW.QTableWidget):
             )
             return
         else:
-            data = self._data_ref()
+            data = self.getDataFrame()
             if nr == 1:
                 axis = 1
             else:
@@ -164,7 +170,7 @@ class QTableLayer(QtW.QTableWidget):
             ref.to_clipboard(index=headers, header=headers)
     
     def _set_data_to_items(self):
-        data = self._data_ref()
+        data = self.getDataFrame()
         r0, c0, r1, c1 = self._get_square()
         
         # If DataFrame is partially deleted, table shape should also be updated.
