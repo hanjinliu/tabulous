@@ -79,6 +79,7 @@ class QTabList(QtW.QListWidget):
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         self._drag_src = self.indexAt(e.pos()).row()
+        self._moving_item = self.item(self._drag_src)
         return super().mousePressEvent(e)
     
     def dragMoveEvent(self, event: QtGui.QDragMoveEvent):
@@ -105,15 +106,15 @@ class QTabList(QtW.QListWidget):
         else:
             dest = self.itemWidget(item)
         if dest is None:
-            if isinstance(item, QTabListItem):
-                self.setItemWidget(item, widget)
-            print(item, widget)
+            if item is None:
+                item = self._moving_item
+            self.setItemWidget(item, widget)
+            print(self.indexAt(event.pos()).row(), widget)
         else:
             self._drag_dst = self.indexAt(event.pos()).row()
             if self._drag_dst >= 0 and self._drag_src >= 0:
                 self.itemMoved.emit(self._drag_src, self._drag_dst)
                 self._drag_src = self._drag_dst = -1
-
                 
 class QTabListItem(QtW.QListWidgetItem):
     def __init__(self, table: QTableLayer, parent=None):
