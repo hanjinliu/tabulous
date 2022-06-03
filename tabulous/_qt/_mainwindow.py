@@ -16,7 +16,7 @@ class QMainWindow(QtW.QMainWindow):
     
     def __init__(self):
         super().__init__()
-        self._split = QtW.QSplitter(orientation=Qt.Horizontal, parent=self)
+        self._split = QtW.QSplitter(orientation=Qt.Orientation.Horizontal, parent=self)
         self.setCentralWidget(self._split)
         self._tablist = QTabList(self._split)
         self._tablestack = QTableStack(parent=self)

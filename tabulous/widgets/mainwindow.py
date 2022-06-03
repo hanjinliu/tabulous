@@ -17,29 +17,44 @@ class TableViewer:
         self._tablist = TableList(parent=self)
         self._tablist.events.inserted.connect(self._link_name)
         self._tablist.events.removed.connect(self._disconnect_backend_table)
+        self._tablist.events.moved.connect(self._move_backend_widget)
+        self._qwidget._tablist.itemMoved.connect(self._move_table)
+        
         if show:
             self.show()
     
+    def _move_table(self, src: int, dst: int):
+        with self._tablist.events.blocked():
+            self._tablist.move(src, dst)
+            self._qwidget._tablestack.moveWidget(src, dst)
+        self._qwidget._tablestack.setCurrentIndex(dst)
+    
+    def _move_backend_widget(self, indices: tuple[int, int], item: TableLayer):
+        src, dst = indices
+        self._qwidget._tablist.moveTable(src, dst)
+        self._qwidget._tablestack.moveWidget(src, dst)
+
     def _link_name(self, i: int):
         table = self._tablist[i]
         qtab = self._qwidget.addTable(table._qwidget, table.name)
-        qtab.renamed.connect(partial(self._coerce_and_rename, table=table))
-        table.events.renamed.connect(partial(self._coerce_and_set_text, table=table))
+        qtab.renamed.connect(partial(self._coerce_table_name_and_emit, table=table))
+        qtab.buttonClicked.connect(partial(self._remove_table, table=table))
+        table.events.renamed.connect(partial(self._coerce_table_name, table=table))
         
     def _disconnect_backend_table(self, index: int, table: TableLayer):
         self._qwidget.removeTable(index)
-        del table._qwidget, table
     
-    def _coerce_and_rename(self, name: str, table: TableLayer):
-        name = self._tablist._coerce_name(name, except_for=table)
-        table._set_name(name)
+    def _coerce_table_name_and_emit(self, name: str, table: TableLayer):
+        self._coerce_table_name(name, table)
         table.events.renamed.emit(name)
-        self._qwidget.renameTable(table._qwidget, name)
     
-    def _coerce_and_set_text(self, name: str, table: TableLayer):
+    def _coerce_table_name(self, name: str, table: TableLayer):
         name = self._tablist._coerce_name(name, except_for=table)
         table._name = name
         self._qwidget.renameTable(table._qwidget, name)
+    
+    def _remove_table(self, table: TableLayer, _=None):
+        self._tablist.remove(table)
         
     @property
     def tables(self) -> TableList:

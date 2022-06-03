@@ -17,7 +17,6 @@ class TableSignals(SignalGroup):
     renamed = Signal(str)
 
 class TableLayerBase(ABC):
-    
     def __init__(self, data, name=None, editable: bool = True):
         if not isinstance(data, pd.DataFrame):
             self._data = pd.DataFrame(data)

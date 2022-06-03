@@ -9,4 +9,10 @@ class QTableStack(QtW.QStackedWidget):
         super().__init__(parent)
         self.setMinimumSize(600, 400)
     
-    
+    def moveWidget(self, src: int, dst: int) -> None:
+        """Move (reorder) child widgets"""
+        w = self.widget(src)
+        self.removeWidget(w)
+        self.insertWidget(dst, w)
+        
+        return None
