@@ -9,24 +9,26 @@ from .._qt import QTableLayer
 
 
 class TableSignals(SignalGroup):
+    """Signal group for a Table."""
+    
     data = Signal(object)
     selections = Signal(object)
     zoom = Signal(float)
-    name_ = Signal(str)
+    renamed = Signal(str)
 
 class TableLayerBase(ABC):
-    signals = TableSignals()
     
     def __init__(self, data, name=None, editable: bool = True):
         if not isinstance(data, pd.DataFrame):
             self._data = pd.DataFrame(data)
         else:
             self._data = data
+        self.events = TableSignals()
         self._name = str(name)
         self._qwidget = self._create_backend(self._data)
         self._qwidget.setEditability(editable)
-        self._qwidget.connectItemChangedSignal(self.signals.data.emit)
-        self._qwidget.connectSelectionChangedSignal(self.signals.selections.emit)
+        self._qwidget.connectItemChangedSignal(self.events.data.emit)
+        self._qwidget.connectSelectionChangedSignal(self.events.selections.emit)
     
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}[{self.name}]"
@@ -63,6 +65,10 @@ class TableLayerBase(ABC):
         self._qwidget.setZoom(value)
 
     # TODO: connect name signal
+    def _set_name(self, value: str):
+        with self.events.renamed.blocked():
+            self.name = value
+        
     @property
     def name(self) -> str:
         return self._name
@@ -70,7 +76,7 @@ class TableLayerBase(ABC):
     @name.setter
     def name(self, value: str):
         self._name = str(value)
-        # self.signals.name_.emit(value)
+        self.events.renamed.emit(self._name)
 
     @property
     def editable(self) -> bool:

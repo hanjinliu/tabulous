@@ -7,7 +7,6 @@ from ._table import QTableLayer
 
 class QTabList(QtW.QListWidget):
     selectionChangedSignal = Signal(int)
-    renamedSignal = Signal(tuple)
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -19,12 +18,24 @@ class QTabList(QtW.QListWidget):
         self.addItem(item)
         tab = QTab(parent=self, text=name)
         self.setItemWidget(item, tab)
-        tab.renamed.connect(lambda text: self.renamedSignal.emit(text))
         return tab
         
     def takeTable(self, index: int) -> QTableLayer:
         item = self.takeItem(index)
         return item.table
+    
+    def renameTable(self, index: int, name: str):
+        item = self.item(index)
+        tab = self.itemWidget(item)
+        tab.setText(name)
+        return None
+    
+    def tableIndex(self, table: QTableLayer) -> int:
+        for i in range(self.count()):
+            if table is self.item(i).table:
+                return i
+        else:
+            raise ValueError("Table not found.")
     
     if TYPE_CHECKING:
         def item(self, index: int) -> QTabListItem: ...
@@ -36,16 +47,11 @@ class QTabList(QtW.QListWidget):
         self.selectionChangedSignal.emit(index)
         item = self.item(index)
         widget = self.itemWidget(item)
-        font = widget.font()
-        font.setBold(True)
-        widget.setFont(font)
-        
+        widget.setHighlight(True)
         for i in deselected.indexes():
             item = self.item(i.row())
             widget = self.itemWidget(item)
-            font = widget.font()
-            font.setBold(False)
-            widget.setFont(font)
+            widget.setHighlight(False)
         return super().selectionChanged(selected, deselected)
 
 class QTabListItem(QtW.QListWidgetItem):
@@ -69,9 +75,13 @@ class QTab(QtW.QLabel):
         super().__init__(parent=parent)
         self.setText(text)
     
-    def rename(self, text: str):
-        self.setText(text)
-        self.renamed.emit(text)
+    def setHighlight(self, value: bool):
+        font = self.font()
+        font.setBold(value)
+        self.setFont(font)
+    
+    def setText(self, text: str) -> None:
+        super().setText(text)
     
     def mouseDoubleClickEvent(self, a0: QtGui.QMouseEvent) -> None:
         line = QtW.QLineEdit(parent=self)
@@ -79,7 +89,6 @@ class QTab(QtW.QLabel):
         # set geometry
         edit_geometry = line.geometry()
         edit_geometry.setWidth(self.width())
-        # edit_geometry.moveLeft(self.header.sectionViewportPosition(i))
         line.setGeometry(edit_geometry)
         
         line.setText(self.text())
@@ -92,6 +101,6 @@ class QTab(QtW.QLabel):
         @self._line.editingFinished.connect
         def _():
             self._line.setHidden(True)
-            self.rename(self._line.text())
+            self.renamed.emit(self._line.text())
         
         return super().mouseDoubleClickEvent(a0)

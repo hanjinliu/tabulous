@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import partial
 from pathlib import Path
 import pandas as pd
 
@@ -14,11 +15,35 @@ class TableViewer:
         self._qwidget = QMainWindow()
         self._qwidget._table_viewer = self
         self._tablist = TableList(parent=self)
+        self._tablist.events.inserted.connect(self._link_name)
+        self._tablist.events.removed.connect(self._disconnect_backend_table)
         if show:
             self.show()
     
+    def _link_name(self, i: int):
+        table = self._tablist[i]
+        qtab = self._qwidget.addTable(table._qwidget, table.name)
+        qtab.renamed.connect(partial(self._coerce_and_rename, table=table))
+        table.events.renamed.connect(partial(self._coerce_and_set_text, table=table))
+        
+    def _disconnect_backend_table(self, index: int, table: TableLayer):
+        self._qwidget.removeTable(index)
+        del table._qwidget, table
+    
+    def _coerce_and_rename(self, name: str, table: TableLayer):
+        name = self._tablist._coerce_name(name, except_for=table)
+        table._set_name(name)
+        table.events.renamed.emit(name)
+        self._qwidget.renameTable(table._qwidget, name)
+    
+    def _coerce_and_set_text(self, name: str, table: TableLayer):
+        name = self._tablist._coerce_name(name, except_for=table)
+        table._name = name
+        self._qwidget.renameTable(table._qwidget, name)
+        
     @property
     def tables(self) -> TableList:
+        """Return the table list object."""
         return self._tablist
     
     @property

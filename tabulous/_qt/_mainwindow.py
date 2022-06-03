@@ -6,7 +6,6 @@ from qtpy.QtCore import Qt, QEvent
 from ._stack import QTableStack
 from ._tablist import QTabList
 from ._table import QTableLayer
-from ._app import gui_qt
 
 if TYPE_CHECKING:
     from ..widgets import TableViewer
@@ -28,21 +27,22 @@ class QMainWindow(QtW.QMainWindow):
         
         QMainWindow._instances.append(self)
     
-    def addTable(self, table: QTableLayer, name: str) -> QTableLayer:
+    def addTable(self, table: QTableLayer, name: str):
         if not isinstance(table, QTableLayer):
             raise TypeError(f"Cannot add {type(table)}.")
-        self._tablist.addTable(table, name)
+        qtab = self._tablist.addTable(table=table, name=name)
         self._tablestack.addWidget(table)
-        return table
+        return qtab
     
     def removeTable(self, index: int):
         table = self._tablist.takeTable(index)
         self._tablestack.removeWidget(table)
     
-    def renameTable(self, index: int, name: str):
+    def renameTable(self, table: QTableLayer, name: str):
+        index = self._tablist.tableIndex(table)
         item = self._tablist.item(index)
         tab = self._tablist.itemWidget(item)
-        tab.rename(name)
+        tab.setText(name)
     
     def addDockWidget(
         self, 
