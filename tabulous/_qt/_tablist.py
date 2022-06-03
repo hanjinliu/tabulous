@@ -84,12 +84,13 @@ class QTabList(QtW.QListWidget):
     def dragMoveEvent(self, event: QtGui.QDragMoveEvent):
         if event.keyboardModifiers():
             event.ignore()
-            return
-        super().dragMoveEvent(event)
+        else:
+            return super().dragMoveEvent(event)
 
     def dropEvent(self, event: QtGui.QDropEvent):
         if event.keyboardModifiers():
             event.ignore()
+            return
     
         widget = self.itemWidget(self.currentItem())
         super().dropEvent(event)
@@ -104,7 +105,9 @@ class QTabList(QtW.QListWidget):
         else:
             dest = self.itemWidget(item)
         if dest is None:
-            self.setItemWidget(item, widget)
+            if isinstance(item, QTabListItem):
+                self.setItemWidget(item, widget)
+            print(item, widget)
         else:
             self._drag_dst = self.indexAt(event.pos()).row()
             if self._drag_dst >= 0 and self._drag_src >= 0:

@@ -63,13 +63,13 @@ class TableLayerBase(ABC):
     def zoom(self, value: float):
         self._qwidget.setZoom(value)
 
-    # TODO: connect name signal
     def _set_name(self, value: str):
         with self.events.renamed.blocked():
             self.name = value
         
     @property
     def name(self) -> str:
+        """Table name."""
         return self._name
     
     @name.setter
@@ -79,6 +79,7 @@ class TableLayerBase(ABC):
 
     @property
     def editable(self) -> bool:
+        """Editability of table."""
         return self._qwidget.editability()
     
     @editable.setter
