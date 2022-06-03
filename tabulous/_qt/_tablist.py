@@ -47,7 +47,6 @@ class QTabList(QtW.QListWidget):
         self.insertItem(dst, self.takeItem(src))
     
     def tableIndex(self, table: QTableLayer) -> int:
-        # self.indexFromItem
         for i in range(self.count()):
             if table is self.tableAtIndex(i):
                 return i
@@ -112,12 +111,10 @@ class QTabList(QtW.QListWidget):
             item = self.item(self._drag_dst)
             if self.itemWidget(item) is None:
                 self.setItemWidget(item, widget)
-            self._drag_dst = self.currentIndex()
+            self._drag_dst = self.indexFromItem(self.selectedItems()[0]).row()
             if self._drag_src != self._drag_dst:
                 self.itemMoved.emit(self._drag_src, self._drag_dst)
             self._drag_src = self._drag_dst = -1
-            # self.selectionChangedSignal.emit(self.currentIndex())
-            # self.selectedItems()
                 
 class QTabListItem(QtW.QListWidgetItem):
     def __init__(self, table: QTableLayer, parent=None):

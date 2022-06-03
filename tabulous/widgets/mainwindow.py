@@ -69,7 +69,7 @@ class TableViewer:
     @property
     def current_index(self) -> int:
         """Return the index of currently visible table."""
-        return self._qwidget.stackIndex()
+        return self._qwidget._tablist.currentIndex().row()
     
     @current_index.setter
     def current_index(self, value: int | str):
@@ -77,7 +77,7 @@ class TableViewer:
             value = self.tables.index(value)
         elif value < 0:
             value += len(self.tables)
-        return self._qwidget.setStackIndex(value)
+        return self._qwidget._tablist.setCurrentRow(value)
     
     def show(self):
         self._qwidget.show()
