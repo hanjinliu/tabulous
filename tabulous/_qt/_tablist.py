@@ -27,14 +27,15 @@ class QTabList(QtW.QListWidget):
     def addTable(self, table: QTableLayer, name: str = "None"):
         item = QTabListItem(table, parent=self)
         self.addItem(item)
-        tab = QTab(parent=self, text=name)
+        tab = QTab(parent=self, text=name, table=table)
         item.setSizeHint(tab.sizeHint())
         self.setItemWidget(item, tab)
         return tab
         
     def takeTable(self, index: int) -> QTableLayer:
         item = self.takeItem(index)
-        return item.table
+        qtab = self.itemWidget(item)
+        return qtab.table
     
     def renameTable(self, index: int, name: str):
         item = self.item(index)
@@ -48,15 +49,18 @@ class QTabList(QtW.QListWidget):
     def tableIndex(self, table: QTableLayer) -> int:
         # self.indexFromItem
         for i in range(self.count()):
-            if table is self.item(i).table:
+            if table is self.tableAtIndex(i):
                 return i
         else:
             raise ValueError("Table not found.")
     
+    def tableAtIndex(self, i: int) -> QTableLayer:
+        item = self.item(i)
+        qtab = self.itemWidget(item)
+        return qtab.table
+    
     if TYPE_CHECKING:
-        def item(self, index: int) -> QTabListItem: ...
-        def takeItem(self, index: int) -> QTabListItem: ...
-        def itemWidget(self, item: QTabListItem) -> QTab: ...
+        def itemWidget(self, item: QtW.QListWidgetItem) -> QTab: ...
     
     def selectionChanged(
         self,
@@ -94,27 +98,26 @@ class QTabList(QtW.QListWidget):
             return
     
         widget = self.itemWidget(self.currentItem())
-        super().dropEvent(event)
         
         # It seems that QListView has a bug in drag-and-drop.
         # When we tried to move the first item to the upper half region of the
         # second item, the inner widget of the first item dissapears.
         # This bug seemed to be solved to set the inner widget again.
-        item = self.itemAt(event.pos())
-        if item is None:
-            dest = None
-        else:
-            dest = self.itemWidget(item)
-        if dest is None:
-            if item is None:
-                item = self._moving_item
-            self.setItemWidget(item, widget)
-            print(self.indexAt(event.pos()).row(), widget)
-        else:
-            self._drag_dst = self.indexAt(event.pos()).row()
-            if self._drag_dst >= 0 and self._drag_src >= 0:
+    
+        self._drag_dst = self.indexAt(event.pos()).row()
+        if self._drag_dst < 0:
+            self._drag_dst += self.count()
+        if self._drag_src >= 0 and self._drag_src != self._drag_dst:
+            super().dropEvent(event)
+            item = self.item(self._drag_dst)
+            if self.itemWidget(item) is None:
+                self.setItemWidget(item, widget)
+            self._drag_dst = self.currentIndex()
+            if self._drag_src != self._drag_dst:
                 self.itemMoved.emit(self._drag_src, self._drag_dst)
-                self._drag_src = self._drag_dst = -1
+            self._drag_src = self._drag_dst = -1
+            # self.selectionChangedSignal.emit(self.currentIndex())
+            # self.selectedItems()
                 
 class QTabListItem(QtW.QListWidgetItem):
     def __init__(self, table: QTableLayer, parent=None):
@@ -131,7 +134,11 @@ class QTabListItem(QtW.QListWidgetItem):
         return out
 
 class QTab(QtW.QFrame):
-    def __init__(self, parent=None, text: str = ""):
+    def __init__(self, parent=None, text: str = "", table: QTableLayer = None):
+        if not isinstance(table, QTableLayer):
+            raise TypeError(f"Cannot add {type(table)}")
+        
+        self._table_ref = weakref.ref(table)
         super().__init__(parent=parent)
         self.setFrameStyle(QtW.QFrame.Shape.StyledPanel)
         self.setLineWidth(1)
@@ -145,6 +152,13 @@ class QTab(QtW.QFrame):
         _layout.setAlignment(self._close_btn, Qt.AlignmentFlag.AlignRight)
         self.setLayout(_layout)
         self.setText(text)
+    
+    @property
+    def table(self) -> QTableLayer:
+        out = self._table_ref()
+        if out is None:
+            raise ValueError("QTableLayer object is deleted.")
+        return out
     
     def setText(self, text: str) -> None:
         """Set label text."""

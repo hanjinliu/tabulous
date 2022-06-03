@@ -23,9 +23,22 @@ class QMainWindow(QtW.QMainWindow):
         self._split.addWidget(self._tablist)
         self._split.addWidget(self._tablestack)
         
-        self._tablist.selectionChangedSignal.connect(self._tablestack.setCurrentIndex)
+        self._tablist.selectionChangedSignal.connect(self._on_selection_change)
         
         QMainWindow._instances.append(self)
+    
+    def _on_selection_change(self, i: int):
+        qtable = self._tablist.tableAtIndex(i)
+        self._tablestack.setCurrentWidget(qtable)
+        # i = 0
+        # for child in self._tablestack.children():
+        #     if isinstance(child, QTableLayer):
+        #         if child is qtable:
+        #             self._tablestack.setCurrentIndex(i)
+        #             break
+        #         i += 1
+        # else:
+        #     raise RuntimeError("Mismatch in stack widget and table list.")
     
     def addTable(self, table: QTableLayer, name: str):
         if not isinstance(table, QTableLayer):
