@@ -15,8 +15,8 @@ class TableViewer:
         self._qwidget = QMainWindow()
         self._qwidget._table_viewer = self
         self._tablist = TableList(parent=self)
-        self._tablist.events.inserted.connect(self._link_name)
-        self._tablist.events.removed.connect(self._disconnect_backend_table)
+        self._tablist.events.inserted.connect(self._link_renamed_signals)
+        self._tablist.events.removed.connect(self._remove_backend_table)
         self._tablist.events.moved.connect(self._move_backend_widget)
         self._qwidget._tablist.itemMoved.connect(self._move_table)
         
@@ -24,24 +24,26 @@ class TableViewer:
             self.show()
     
     def _move_table(self, src: int, dst: int):
+        """Move evented list when list is moved in GUI."""
         with self._tablist.events.blocked():
             self._tablist.move(src, dst)
             self._qwidget._tablestack.moveWidget(src, dst)
         self._qwidget._tablestack.setCurrentIndex(dst)
     
-    def _move_backend_widget(self, indices: tuple[int, int], item: TableLayer):
-        src, dst = indices
+    def _move_backend_widget(self, src: int, dst: int):
+        """Move backend tab list widget when programmatically moved."""
         self._qwidget._tablist.moveTable(src, dst)
         self._qwidget._tablestack.moveWidget(src, dst)
 
-    def _link_name(self, i: int):
+    def _link_renamed_signals(self, i: int):
+        """Link `name` property and tab text."""
         table = self._tablist[i]
         qtab = self._qwidget.addTable(table._qwidget, table.name)
         qtab.renamed.connect(partial(self._coerce_table_name_and_emit, table=table))
         qtab.buttonClicked.connect(partial(self._remove_table, table=table))
         table.events.renamed.connect(partial(self._coerce_table_name, table=table))
         
-    def _disconnect_backend_table(self, index: int, table: TableLayer):
+    def _remove_backend_table(self, index: int, table: TableLayer):
         self._qwidget.removeTable(index)
     
     def _coerce_table_name_and_emit(self, name: str, table: TableLayer):

@@ -25,7 +25,7 @@ class QTabList(QtW.QListWidget):
         self.setMinimumWidth(150)
     
     def addTable(self, table: QTableLayer, name: str = "None"):
-        item = QTabListItem(table, parent=self)
+        item = QtW.QListWidgetItem(self)
         self.addItem(item)
         tab = QTab(parent=self, text=name, table=table)
         item.setSizeHint(tab.sizeHint())
@@ -44,7 +44,16 @@ class QTabList(QtW.QListWidget):
         return None
 
     def moveTable(self, src: int, dst: int) -> None:
-        self.insertItem(dst, self.takeItem(src))
+        # item = self.item(src)
+        # widget = self.itemWidget(item)
+        # self.takeItem(src)
+        # print(item)
+        # print(widget)
+        # self.insertItem(dst, item)
+        # self.setItemWidget(self.item(dst), widget)
+        if src < dst:
+            dst += 1
+        self.model().moveRow(QtCore.QModelIndex(), src, QtCore.QModelIndex(), dst);
     
     def tableIndex(self, table: QTableLayer) -> int:
         for i in range(self.count()):
@@ -115,20 +124,7 @@ class QTabList(QtW.QListWidget):
             if self._drag_src != self._drag_dst:
                 self.itemMoved.emit(self._drag_src, self._drag_dst)
             self._drag_src = self._drag_dst = -1
-                
-class QTabListItem(QtW.QListWidgetItem):
-    def __init__(self, table: QTableLayer, parent=None):
-        if not isinstance(table, QTableLayer):
-            raise TypeError(f"Cannot add {type(table)}")
-        super().__init__(parent=parent)
-        self._table_ref = weakref.ref(table)
-    
-    @property
-    def table(self) -> QTableLayer:
-        out = self._table_ref()
-        if out is None:
-            raise ValueError("QTableLayer object is deleted.")
-        return out
+
 
 class QTab(QtW.QFrame):
     def __init__(self, parent=None, text: str = "", table: QTableLayer = None):
