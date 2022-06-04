@@ -8,6 +8,7 @@ import pandas as pd
 #     iloc: 
 
 TableData = NewType("TableData", pd.DataFrame)
+TableColumn = NewType("Series", pd.Series)
 
 def _check_tuple_of_slices(value: Any) -> tuple[slice, slice]:
     v0, v1 = value

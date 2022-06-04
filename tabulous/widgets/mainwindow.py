@@ -1,12 +1,16 @@
 from __future__ import annotations
 from functools import partial
 from pathlib import Path
-import pandas as pd
+import weakref
+from typing import TYPE_CHECKING
 
 from .._qt import QMainWindow, get_app
 
 from .table import TableLayer
 from .tablelist import TableList
+
+if TYPE_CHECKING:
+    from .._qt._dockwidget import QtDockWidget
 
 class TableViewer:
     
@@ -20,6 +24,13 @@ class TableViewer:
         self._tablist.events.moved.connect(self._move_backend_widget)
         self._qwidget._tablist.itemMoved.connect(self._move_table)
         self._qwidget._tablestack.dropped.connect(self.open)
+        
+        self._dock_widgets: weakref.WeakValueDictionary[str, QtDockWidget] = weakref.WeakValueDictionary()
+        
+        self._tablist.events.inserted.connect(self.reset_choices)
+        self._tablist.events.removed.connect(self.reset_choices)
+        self._tablist.events.moved.connect(self.reset_choices)
+        self._tablist.events.changed.connect(self.reset_choices)
         
         if show:
             self.show()
@@ -43,6 +54,7 @@ class TableViewer:
         qtab.renamed.connect(partial(self._coerce_table_name_and_emit, table=table))
         qtab.buttonClicked.connect(partial(self._remove_table, table=table))
         table.events.renamed.connect(partial(self._coerce_table_name, table=table))
+        table.events.renamed.connect(self.reset_choices)
         
     def _remove_backend_table(self, index: int, table: TableLayer):
         self._qwidget.removeTable(index)
@@ -112,18 +124,28 @@ class TableViewer:
         else:
             backend_widget = widget
             
-        self._qwidget.addDockWidget(
+        dock = self._qwidget.addDockWidget(
             backend_widget, name=name, area=area, allowed_areas=allowed_areas
         )
-
+        dock.setSourceObject(widget)
+        self._dock_widgets[name] = dock
+        return dock
+    
+    def reset_choices(self, *_):
+        for dock in self._dock_widgets.values():
+            widget = dock.widget
+            if hasattr(widget, "reset_choices"):
+                widget.reset_choices()
     
     def read_csv(self, path, *args, **kwargs):
+        import pandas as pd
         df = pd.read_csv(path, *args, **kwargs)
         name = Path(path).stem
         self.add_table(df, name=name)
         return df
     
     def read_excel(self, path, *args, **kwargs):
+        import pandas as pd
         df_dict = pd.read_excel(path, *args, **kwargs)
         
         for sheet_name, df in df_dict.items():

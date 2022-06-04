@@ -75,7 +75,8 @@ class QMainWindow(QtW.QMainWindow):
             allowed_areas=allowed_areas,
         )
 
-        return super().addDockWidget(QtDockWidget.areas[area], dock)
+        super().addDockWidget(QtDockWidget.areas[area], dock)
+        return dock
             
     def stackIndex(self) -> int:
         return self._tablestack.currentIndex()

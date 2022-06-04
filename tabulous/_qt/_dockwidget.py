@@ -41,3 +41,10 @@ class QtDockWidget(_QDockWidget):
         self.setWidget(widget)
         self.setMinimumHeight(50)
         self.setMinimumWidth(50)
+
+    def setSourceObject(self, obj):
+        self._widget = obj
+    
+    @property
+    def widget(self):
+        return self._widget

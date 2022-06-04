@@ -16,8 +16,9 @@ class ItemInfo(NamedTuple):
     value: Any
     updated: bool
 
-_EDITABLE = QtW.QTableWidget.EditKeyPressed | QtW.QTableWidget.DoubleClicked
-_READ_ONLY = QtW.QTableWidget.NoEditTriggers
+_EDITABLE = QtW.QAbstractItemView.EditTrigger.EditKeyPressed | QtW.QAbstractItemView.EditTrigger.DoubleClicked
+_READ_ONLY = QtW.QAbstractItemView.EditTrigger.NoEditTriggers
+_SCROLL_PRE_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
 class QTableLayer(QtW.QTableWidget):
     itemChangedSignal = Signal(ItemInfo)
@@ -26,8 +27,8 @@ class QTableLayer(QtW.QTableWidget):
     def __init__(self, parent=None, data: pd.DataFrame = None):
         self._data_ref: weakref.ReferenceType[pd.DataFrame] = weakref.ref(data)
         super().__init__(*data.shape, parent)
-        self.setVerticalScrollMode(QtW.QAbstractItemView.ScrollPerPixel)
-        self.setHorizontalScrollMode(QtW.QAbstractItemView.ScrollPerPixel)
+        self.setVerticalScrollMode(_SCROLL_PRE_PIXEL)
+        self.setHorizontalScrollMode(_SCROLL_PRE_PIXEL)
         delegate = TableItemDelegate(parent=self)
         self.setItemDelegate(delegate)
         delegate.edited.connect(lambda x: self.itemChangedSignal.emit(self._update_data(*x)))
@@ -79,9 +80,11 @@ class QTableLayer(QtW.QTableWidget):
         def itemDelegate(self) -> TableItemDelegate: ...
         
     def precision(self) -> int:
+        """Return table value precision."""
         return self.itemDelegate().ndigits
     
     def setPrecision(self, ndigits: int) -> None:
+        """Set table value precision."""
         ndigits = int(ndigits)
         if ndigits <= 0:
             raise ValueError("Cannot set negative precision.")
