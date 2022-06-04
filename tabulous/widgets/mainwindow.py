@@ -11,6 +11,8 @@ from .tablelist import TableList
 
 if TYPE_CHECKING:
     from .._qt._dockwidget import QtDockWidget
+    from qtpy.QtWidgets import QWidget
+    from magicgui.widgets import Widget
 
 class TableViewer:
     
@@ -98,6 +100,7 @@ class TableViewer:
         return self._qwidget.registerAction(location)
     
     def show(self):
+        """Show the widget."""
         self._qwidget.show()
     
     def add_table(self, data, *, name: str = None, editable: bool = False) -> TableLayer:
@@ -111,7 +114,7 @@ class TableViewer:
     
     def add_dock_widget(
         self, 
-        widget,
+        widget: Widget | QWidget,
         *,
         name: str = "",
         area: str = "right",
@@ -123,6 +126,8 @@ class TableViewer:
                 name = widget.name
         else:
             backend_widget = widget
+            if not name:
+                name = backend_widget.objectName()
             
         dock = self._qwidget.addDockWidget(
             backend_widget, name=name, area=area, allowed_areas=allowed_areas
@@ -130,6 +135,22 @@ class TableViewer:
         dock.setSourceObject(widget)
         self._dock_widgets[name] = dock
         return dock
+    
+    def remove_dock_widget(self, name_or_widget):
+        if isinstance(name_or_widget, str):
+            name = name_or_widget
+            dock = self._dock_widgets[name_or_widget]
+        else:
+            for k, v in self._dock_widgets.items():
+                if v is name_or_widget:
+                    name = k
+                    dock = v
+                    break
+            else:
+                raise ValueError(f"Widget {name_or_widget} not found.")
+        self._qwidget.removeDockWidget(dock)
+        self._dock_widgets.pop(name)
+        return None
     
     def reset_choices(self, *_):
         for dock in self._dock_widgets.values():

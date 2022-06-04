@@ -5,7 +5,7 @@ from magicgui import register_type
 from magicgui.widgets import Widget, Container, ComboBox, Label
 
 from .widgets import TableViewer, TableLayer
-from .types import TableColumn, TableData
+from .types import TableColumn, TableData, TableInfoInstance
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -94,3 +94,52 @@ class ColumnChoice(Container):
         return df[self._column_choices.value]
 
 register_type(TableColumn, widget_type=ColumnChoice, data_choices=get_table_data)
+
+class ColumnNameChoice(Container):
+    """
+    A container widget with a DataFrame selection and multiple column name selections.
+    
+    This widget is composed of two or more ComboBox widgets. The top one is to choose a
+    DataFrame and the rest are to choose column names from the DataFrame. When the DataFrame
+    selection changed, the column name selections will also changed accordingly.
+    """
+    def __init__(
+        self,
+        data_choices: Iterable[pd.DataFrame] | Callable[[Widget], Iterable[pd.DataFrame]],
+        column_choice_names: Iterable[str],
+        value=None,
+        **kwargs,
+    ):
+        self._dataframe_choices = ComboBox(choices=data_choices, value=value, **kwargs)
+        self._column_names: list[ComboBox] = []
+        for cn in column_choice_names:
+            self._column_names.append(ComboBox(choices=self._get_available_columns, name=cn))
+        self._child_container = Container(widgets=self._column_names, layout="vertical")
+        self._child_container.margins = (0, 0, 0, 0)
+        super().__init__(
+            layout="vertical",
+            widgets=[self._dataframe_choices, self._child_container], 
+            labels=False,
+            name=kwargs.get("name"),
+        )
+        self.margins = (0, 0, 0, 0)
+        self._dataframe_choices.changed.connect(self._set_available_columns)
+
+    def _get_available_columns(self, w=None):
+        df: pd.DataFrame = self._dataframe_choices.value
+        cols = getattr(df, "columns", [])
+        return cols
+    
+    def _set_available_columns(self, w=None):
+        cols = self._get_available_columns()
+        for cbox in self._column_names:
+            cbox.choices = cols
+        return None
+
+    @property
+    def value(self) -> tuple[pd.DataFrame, list[str]]:
+        df = self._dataframe_choices.value
+        colnames = [cbox.value for cbox in self._column_names]
+        return (df, colnames)
+
+register_type(TableInfoInstance, widget_type=ColumnNameChoice, data_choices=get_table_data)
