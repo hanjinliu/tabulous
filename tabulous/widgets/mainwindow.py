@@ -82,6 +82,9 @@ class TableViewer:
             value += len(self.tables)
         return self._qwidget._tablist.setCurrentRow(value)
     
+    def register_action(self, location: str):
+        return self._qwidget.registerAction(location)
+    
     def show(self):
         self._qwidget.show()
     

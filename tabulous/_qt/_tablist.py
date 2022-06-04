@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 import weakref
 from qtpy import QtWidgets as QtW, QtGui, QtCore
+from qtpy.QtWidgets import QAction, QMenu
 from qtpy.QtCore import Qt, Signal
 from ._table import QTableLayer
 
@@ -16,13 +17,17 @@ class QTabList(QtW.QListWidget):
         super().__init__(parent)
         self._drag_src: int | None = None
         self._drag_dst: int | None = None
+        
+        # settings
         self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.SingleSelection)
         self.setVerticalScrollMode(QtW.QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
         self.setDropIndicatorShown(False)
         self.setDragDropMode(QtW.QAbstractItemView.DragDropMode.InternalMove)
-        self.setMinimumWidth(150)
+        self.setMinimumWidth(200)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.showContextMenu)
     
     def addTable(self, table: QTableLayer, name: str = "None"):
         item = QtW.QListWidgetItem(self)
@@ -113,6 +118,19 @@ class QTabList(QtW.QListWidget):
             if self._drag_src != self._drag_dst:
                 self.itemMoved.emit(self._drag_src, self._drag_dst)
             self._drag_src = self._drag_dst = None
+
+    
+    def showContextMenu(self, pos: QtCore.QPoint) -> None:
+        """Execute contextmenu."""
+        qmenu = QMenu()
+        item = self.itemAt(pos)
+        if item is None:
+            return
+        qtab = self.itemWidget(item)
+        qmenu.addAction("Rename", qtab._label.enterEditingMode)
+        qmenu.addAction("Delete", qtab._close_btn.click)
+        qmenu.exec_(self.mapToGlobal(pos))
+        return 
 
 
 class QTab(QtW.QFrame):

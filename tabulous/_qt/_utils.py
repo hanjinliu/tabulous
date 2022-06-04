@@ -1,5 +1,6 @@
 from __future__ import annotations
-from qtpy.QtWidgets import QApplication, QMessageBox, QWidget
+from typing import Callable
+from qtpy.QtWidgets import QApplication, QMessageBox, QWidget, QAction
 from enum import Enum
 
 
@@ -48,3 +49,8 @@ def show_messagebox(
     show_dialog = _QMESSAGE_MODES[MessageBoxMode(mode)]
     result = show_dialog(parent, title, text)
     return result in (QMessageBox.Ok, QMessageBox.Yes)
+
+def to_action(f: Callable, parent=None) -> QAction:
+    action = QAction(f.__name__.replace("_", " "), parent)
+    action.triggered.connect(f)
+    return action

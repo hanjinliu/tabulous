@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-from qtpy import QtWidgets as QtW
+from typing import TYPE_CHECKING, Callable, TypeVar
+from qtpy import QtWidgets as QtW, QtGui
+from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, QEvent
 
 from ._stack import QTableStack
@@ -9,6 +10,10 @@ from ._table import QTableLayer
 
 if TYPE_CHECKING:
     from ..widgets import TableViewer
+    from typing_extensions import ParamSpec
+    _P = ParamSpec("_P")
+
+_R = TypeVar("_R")
 
 class QMainWindow(QtW.QMainWindow):
     _table_viewer: TableViewer
@@ -98,3 +103,32 @@ class QMainWindow(QtW.QMainWindow):
             except ValueError:
                 pass
         return super().event(e)
+
+    def registerAction(self, location: str) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
+        locs = location.split(">")
+        if len(locs) < 2:
+            raise ValueError("Location must be 'XXX>YYY>ZZZ' format.")
+        menu = self.menuBar()
+        for loc in locs[:-1]:
+            a = search_name_from_qmenu(menu, loc)
+            if a is None:
+                menu = menu.addMenu(loc)
+            else:
+                menu = a.menu()
+                if menu is None:
+                    i = locs.index(loc)
+                    err_loc = ">".join(locs[:i])
+                    raise TypeError(f"{err_loc} is not a menu.")
+                
+        def wrapper(f: Callable):
+            action = QAction(locs[-1], self)
+            action.triggered.connect(f)
+            menu.addAction(action)
+            return f
+        return wrapper
+
+def search_name_from_qmenu(qmenu: QtW.QMenu | QtW.QMenuBar, name: str):
+    for a in qmenu.children():
+        if isinstance(a, QAction) and a.text() == name:
+            return a
+    return None
