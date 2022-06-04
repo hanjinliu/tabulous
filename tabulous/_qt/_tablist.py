@@ -33,8 +33,9 @@ class QTabList(QtW.QListWidget):
         return tab
         
     def takeTable(self, index: int) -> QTableLayer:
-        item = self.takeItem(index)
+        item = self.item(index)
         qtab = self.itemWidget(item)
+        self.takeItem(index)
         return qtab.table
     
     def renameTable(self, index: int, name: str):
@@ -80,7 +81,8 @@ class QTabList(QtW.QListWidget):
         for i in deselected.indexes():
             item = self.item(i.row())
             widget = self.itemWidget(item)
-            widget.setHighlight(False)
+            if widget is not None:
+                widget.setHighlight(False)
         return super().selectionChanged(selected, deselected)
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:

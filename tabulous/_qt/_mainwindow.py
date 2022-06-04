@@ -30,15 +30,7 @@ class QMainWindow(QtW.QMainWindow):
     def _on_selection_change(self, i: int):
         qtable = self._tablist.tableAtIndex(i)
         self._tablestack.setCurrentWidget(qtable)
-        # i = 0
-        # for child in self._tablestack.children():
-        #     if isinstance(child, QTableLayer):
-        #         if child is qtable:
-        #             self._tablestack.setCurrentIndex(i)
-        #             break
-        #         i += 1
-        # else:
-        #     raise RuntimeError("Mismatch in stack widget and table list.")
+        return None
     
     def addTable(self, table: QTableLayer, name: str):
         if not isinstance(table, QTableLayer):
@@ -49,7 +41,9 @@ class QMainWindow(QtW.QMainWindow):
     
     def removeTable(self, index: int):
         table = self._tablist.takeTable(index)
-        self._tablestack.removeWidget(table)
+        for child in self._tablestack.children():
+            if child is table:
+                child.setParent(None)
     
     def renameTable(self, table: QTableLayer, name: str):
         index = self._tablist.tableIndex(table)
