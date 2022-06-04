@@ -30,7 +30,7 @@ class TableLayerBase(ABC):
         self._qwidget.connectSelectionChangedSignal(self.events.selections.emit)
     
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}[{self.name}]"
+        return f"{self.__class__.__name__}<{self.name!r}>"
     
     @abstractmethod
     def _create_backend(self, data: pd.DataFrame) -> BackendTableProtocol:

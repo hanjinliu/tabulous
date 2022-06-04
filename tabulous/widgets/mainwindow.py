@@ -19,6 +19,7 @@ class TableViewer:
         self._tablist.events.removed.connect(self._remove_backend_table)
         self._tablist.events.moved.connect(self._move_backend_widget)
         self._qwidget._tablist.itemMoved.connect(self._move_table)
+        self._qwidget._tablestack.dropped.connect(self.open)
         
         if show:
             self.show()
@@ -125,3 +126,13 @@ class TableViewer:
         for sheet_name, df in df_dict.items():
             self.add_table(df, name=sheet_name)
         return df_dict
+
+    def open(self, path: str | Path | bytes) -> None:
+        path = Path(path)
+        suf = path.suffix
+        if suf in (".csv", ".txt", ".dat"):
+            self.read_csv(path)
+        elif suf in (".xlsx", ".xls", "xml"):
+            self.read_excel(path)
+        else:
+            raise ValueError(f"Extension {suf} not supported.")

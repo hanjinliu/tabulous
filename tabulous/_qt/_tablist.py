@@ -14,13 +14,13 @@ class QTabList(QtW.QListWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._drag_src = -1
-        self._drag_dst = -1
+        self._drag_src: int | None = None
+        self._drag_dst: int | None = None
         self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.SingleSelection)
         self.setVerticalScrollMode(QtW.QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
-        self.setDropIndicatorShown(True)
+        self.setDropIndicatorShown(False)
         self.setDragDropMode(QtW.QAbstractItemView.DragDropMode.InternalMove)
         self.setMinimumWidth(150)
     
@@ -44,16 +44,10 @@ class QTabList(QtW.QListWidget):
         return None
 
     def moveTable(self, src: int, dst: int) -> None:
-        # item = self.item(src)
-        # widget = self.itemWidget(item)
-        # self.takeItem(src)
-        # print(item)
-        # print(widget)
-        # self.insertItem(dst, item)
-        # self.setItemWidget(self.item(dst), widget)
+        """Move table from index `src` to `dst`."""
         if src < dst:
             dst += 1
-        self.model().moveRow(QtCore.QModelIndex(), src, QtCore.QModelIndex(), dst);
+        self.model().moveRow(QtCore.QModelIndex(), src, QtCore.QModelIndex(), dst)
     
     def tableIndex(self, table: QTableLayer) -> int:
         for i in range(self.count()):
@@ -91,7 +85,6 @@ class QTabList(QtW.QListWidget):
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         self._drag_src = self.indexAt(e.pos()).row()
-        self._moving_item = self.item(self._drag_src)
         return super().mousePressEvent(e)
     
     def dragMoveEvent(self, event: QtGui.QDragMoveEvent):
@@ -99,14 +92,11 @@ class QTabList(QtW.QListWidget):
             event.ignore()
         else:
             return super().dragMoveEvent(event)
-
+    
     def dropEvent(self, event: QtGui.QDropEvent):
-        if event.keyboardModifiers():
+        if event.keyboardModifiers() or self._drag_src is None:
             event.ignore()
             return
-    
-        widget = self.itemWidget(self.currentItem())
-        
         # It seems that QListView has a bug in drag-and-drop.
         # When we tried to move the first item to the upper half region of the
         # second item, the inner widget of the first item dissapears.
@@ -116,14 +106,11 @@ class QTabList(QtW.QListWidget):
         if self._drag_dst < 0:
             self._drag_dst += self.count()
         if self._drag_src >= 0 and self._drag_src != self._drag_dst:
-            super().dropEvent(event)
-            item = self.item(self._drag_dst)
-            if self.itemWidget(item) is None:
-                self.setItemWidget(item, widget)
-            self._drag_dst = self.indexFromItem(self.selectedItems()[0]).row()
+            self.moveTable(self._drag_src, self._drag_dst)
+            self.setCurrentRow(self._drag_dst)
             if self._drag_src != self._drag_dst:
                 self.itemMoved.emit(self._drag_src, self._drag_dst)
-            self._drag_src = self._drag_dst = -1
+            self._drag_src = self._drag_dst = None
 
 
 class QTab(QtW.QFrame):
@@ -152,6 +139,10 @@ class QTab(QtW.QFrame):
         if out is None:
             raise ValueError("QTableLayer object is deleted.")
         return out
+    
+    def text(self) -> str:
+        """Get label text."""
+        return self._label.text()
     
     def setText(self, text: str) -> None:
         """Set label text."""

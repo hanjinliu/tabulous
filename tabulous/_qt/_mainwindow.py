@@ -24,7 +24,7 @@ class QMainWindow(QtW.QMainWindow):
         self._split.addWidget(self._tablestack)
         
         self._tablist.selectionChangedSignal.connect(self._on_selection_change)
-        
+
         QMainWindow._instances.append(self)
     
     def _on_selection_change(self, i: int):
