@@ -122,7 +122,7 @@ class QTab(QtW.QFrame):
         
         self._table_ref = weakref.ref(table)
         super().__init__(parent=parent)
-        self.setFrameStyle(QtW.QFrame.Shape.StyledPanel)
+        self.setFrameStyle(QtW.QFrame.Shape.Box)
         self.setLineWidth(1)
         _layout = QtW.QHBoxLayout(self)
         _layout.setContentsMargins(3, 3, 3, 3)
@@ -153,10 +153,14 @@ class QTab(QtW.QFrame):
     def setHighlight(self, value: bool):
         """Set highlight state of the tab."""
         if value:
-            self.setFrameStyle(QtW.QFrame.Shadow.Sunken)
+            font = self._label.font()
+            font.setBold(True)
+            self._label.setFont(font)
             self.setLineWidth(2)
         else:
-            self.setFrameStyle(QtW.QFrame.Shadow.Raised)
+            font = self._label.font()
+            font.setBold(False)
+            self._label.setFont(font)
             self.setLineWidth(1)
 
     @property
