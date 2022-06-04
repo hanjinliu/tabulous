@@ -49,7 +49,7 @@ def add_table_data_to_viewer(gui, result: Any, return_type: type):
     viewer = find_table_viewer_ancestor(gui)
     if viewer is None:
         return
-    viewer.add_table(result)
+    viewer.add_table(result, name="Result")
 
 register_type(TableViewer, return_callback=open_viewer, choices=find_table_viewer_ancestor)
 register_type(TableLayer, return_callback=add_table_to_viewer, choices=get_tables)
@@ -93,7 +93,12 @@ class ColumnChoice(Container):
         df = self._dataframe_choices.value
         return df[self._column_choices.value]
 
-register_type(TableColumn, widget_type=ColumnChoice, data_choices=get_table_data)
+register_type(
+    TableColumn,
+    widget_type=ColumnChoice, 
+    return_callback=add_table_data_to_viewer, 
+    data_choices=get_table_data,
+)
 
 class ColumnNameChoice(Container):
     """
@@ -113,7 +118,9 @@ class ColumnNameChoice(Container):
         self._dataframe_choices = ComboBox(choices=data_choices, value=value, **kwargs)
         self._column_names: list[ComboBox] = []
         for cn in column_choice_names:
-            self._column_names.append(ComboBox(choices=self._get_available_columns, name=cn))
+            self._column_names.append(
+                ComboBox(choices=self._get_available_columns, name=cn, nullable=True)
+            )
         self._child_container = Container(widgets=self._column_names, layout="vertical")
         self._child_container.margins = (0, 0, 0, 0)
         super().__init__(
