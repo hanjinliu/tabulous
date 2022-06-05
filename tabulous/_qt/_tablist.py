@@ -25,7 +25,7 @@ class QTabList(QtW.QListWidget):
         self.setDragEnabled(True)
         self.setDropIndicatorShown(False)
         self.setDragDropMode(QtW.QAbstractItemView.DragDropMode.InternalMove)
-        self.setMinimumWidth(200)
+        self.setMinimumWidth(190)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
     

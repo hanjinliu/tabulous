@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any, Callable, NamedTuple, TYPE_CHECKING
 import weakref
+import numpy as np
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
@@ -24,7 +25,7 @@ class QTableLayer(QtW.QTableWidget):
     itemChangedSignal = Signal(ItemInfo)
     selectionChangedSignal = Signal(list)
     
-    def __init__(self, parent=None, data: pd.DataFrame = None):
+    def __init__(self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None):
         self._data_ref: weakref.ReferenceType[pd.DataFrame] = weakref.ref(data)
         super().__init__(*data.shape, parent)
         self.setVerticalScrollMode(_SCROLL_PRE_PIXEL)
@@ -37,6 +38,7 @@ class QTableLayer(QtW.QTableWidget):
         self._initial_font_size = self.font().pointSize()
         self._default_h_size = self.horizontalHeader().defaultSectionSize()
         self._default_v_size = self.verticalHeader().defaultSectionSize()
+        self._filter_slice: pd.Series | None = None
         
     def zoom(self) -> float:
         """Get current zoom factor."""
@@ -74,8 +76,38 @@ class QTableLayer(QtW.QTableWidget):
         data = self._data_ref()
         if data is None:
             raise ValueError("DataFrame is deleted.")
-        return data
+        
+        if self._filter_slice is None:
+            return data
+        return data[self._filter_slice]
     
+    def setDataFrameValue(self, r, c, value: Any, absolute: bool = True) -> None:
+        data = self._data_ref()
+        if self._filter_slice is None:
+            data.iloc[r, c] = value
+            return
+        
+        cum = np.cumsum(self._filter_slice)  # NOTE: this is not efficient if table is large
+        if np.isscalar(r):
+            r0 = np.where(cum == r + 1)[0]
+            
+        elif isinstance(r, slice):
+            r_start, r_stop, r_step = r.indices(cum.shape[0])
+            if r_step != 1:
+                raise ValueError("step must not be >1.")
+            start = np.where(cum == r_start + 1)[0][0]
+            stop = np.where(cum == r_stop + 1)[0][0]
+        
+            r0 = self._filter_slice.copy()
+            r0[:start] = False
+            r0[stop:] = False
+            
+        else:
+            raise TypeError(type(r))
+        
+        data.iloc[r0, c] = value
+        return None
+
     if TYPE_CHECKING:
         def itemDelegate(self) -> TableItemDelegate: ...
         
@@ -161,7 +193,7 @@ class QTableLayer(QtW.QTableWidget):
             self.refreshTable()
             updated = False
         else:
-            data.iloc[r, c] = value
+            self.setDataFrameValue(r, c, value)
             updated = True
         return ItemInfo(r, c, value, updated)
         
@@ -192,11 +224,12 @@ class QTableLayer(QtW.QTableWidget):
             return self.copyToClipboard(headers)
         if e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_V:
             # TODO
-            return 
+            return self.pasteFromClipBoard()
         
         return super().keyPressEvent(e)
 
     def wheelEvent(self, a0: QtGui.QWheelEvent) -> None:
+        """Zoom in/out table."""
         if a0.modifiers() & Qt.ControlModifier:
             dt = a0.angleDelta().y() / 120
             zoom = self.zoom() + 0.15 * dt
@@ -232,6 +265,54 @@ class QTableLayer(QtW.QTableWidget):
             ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
             ref.to_clipboard(index=headers, header=headers)
     
+    def pasteFromClipBoard(self):
+        selections = self.selections()
+        n_selections = len(selections)
+        if n_selections == 0:
+            return
+        elif n_selections > 1:
+            show_messagebox(
+                mode="error",
+                title="Error",
+                text="Cannot paste with multiple selections.", 
+                parent=self,
+            )
+            return
+        
+        import pandas as pd
+        df = pd.read_clipboard(header=None)
+        
+        # check size
+        sel = selections[0]
+        rrange, crange = sel
+        rlen = rrange.stop - rrange.start
+        clen = crange.stop - crange.start
+        dr, dc = df.shape
+        size = dr * dc
+        if rlen * clen == 1 and size > 1:
+            sel = (slice(rrange.start, rrange.start + dr), slice(crange.start, crange.start + dc))
+        elif size > 1 and dc(rlen, clen) != (dr, dc):
+            show_messagebox(
+                mode="error",
+                title="Error",
+                text=f"Shape mismatch between data in clipboard {(rlen, clen)} and destination {(dr, dc)}.", 
+                parent=self,
+            )
+            return
+        try:
+            self.setDataFrameValue(sel[0], sel[1], df.values, absolute=False)
+        except Exception as e:
+            show_messagebox(
+                mode="error",
+                title=e.__class__.__name__,
+                text=str(e), 
+                parent=self,
+            )
+            return
+            
+        self.refreshTable()
+        return None
+        
     def refreshTable(self):
         data = self.getDataFrame()
         r0, c0, r1, c1 = self._get_square()
@@ -296,9 +377,12 @@ class QTableLayer(QtW.QTableWidget):
             c1 = self.columnCount() - 1
         return r0, c0, r1 + 1, c1 + 1
 
-    def addFilter(self, f):
-        # TODO
-        ...
+    def setFilter(self, sl):
+        data = self._data_ref()
+        if sl is not None and len(sl) != data.shape[0]:
+            raise ValueError(f"Shape mismatch between data {data.shape} and input slice {len(sl)}.")
+        self._filter_slice = sl
+        self.refreshTable()
     
     # def addFinder(self, finder: Callable[]):
     #     self.findItems()

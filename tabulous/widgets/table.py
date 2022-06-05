@@ -1,12 +1,14 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 from psygnal import SignalGroup, Signal
-import pandas as pd
 
 from ..types import SelectionRanges
 from .._protocols import BackendTableProtocol
 from .._qt import QTableLayer
 
+if TYPE_CHECKING:
+    import pandas as pd
 
 class TableSignals(SignalGroup):
     """Signal group for a Table."""
@@ -18,6 +20,7 @@ class TableSignals(SignalGroup):
 
 class TableLayerBase(ABC):
     def __init__(self, data, name=None, editable: bool = True):
+        import pandas as pd
         if not isinstance(data, pd.DataFrame):
             self._data = pd.DataFrame(data)
         else:
@@ -104,6 +107,15 @@ class TableLayerBase(ABC):
     @selections.setter
     def selections(self, value) -> None:
         self._qwidget.setSelections(value)
+    
+    @property
+    def filter(self):
+        # return self._qwidget
+        ...
+    
+    @filter.setter
+    def filter(self, value):
+        self._qwidget.setFilter(value)
 
 
 class TableLayer(TableLayerBase):

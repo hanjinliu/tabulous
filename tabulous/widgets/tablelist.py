@@ -1,10 +1,7 @@
 from __future__ import annotations
 import re
-from typing import Any, Callable, NamedTuple, TYPE_CHECKING
-from psygnal import SignalGroup, Signal
+from typing import Any, TYPE_CHECKING
 from psygnal.containers import EventedList
-import numpy as np
-import pandas as pd
 
 from .table import TableLayer
 
