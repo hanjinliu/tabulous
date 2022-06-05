@@ -5,10 +5,12 @@ from magicgui import register_type
 from magicgui.widgets import Widget, Container, ComboBox, Label
 
 from .widgets import TableViewer, TableLayer
-from .types import TableColumn, TableData, TableInfoInstance
+from .types import TableColumn, TableData, TableDataTuple, TableInfoInstance
 
 if TYPE_CHECKING:
     import pandas as pd
+
+_DEFAULT_NAME = "Result"
 
 def find_table_viewer_ancestor(widget: Widget | QWidget) -> TableViewer | None:
     if isinstance(widget, Widget):
@@ -49,11 +51,31 @@ def add_table_data_to_viewer(gui, result: Any, return_type: type):
     viewer = find_table_viewer_ancestor(gui)
     if viewer is None:
         return
-    viewer.add_table(result, name="Result")
+    viewer.add_table(result, name=_DEFAULT_NAME)
+
+def add_table_data_tuple_to_viewer(gui, result: tuple, return_type: type):
+    viewer = find_table_viewer_ancestor(gui)
+    if viewer is None:
+        return
+    n = len(result)
+    if n == 1:
+        data = (result[0], _DEFAULT_NAME, {})
+    elif n == 2:
+        if isinstance(result[1], dict):
+            name = result[1].pop("name", _DEFAULT_NAME)
+            data = (result[0], name, result[1])
+        else:
+            data = (result[0], result[1], {})
+    elif n == 3:
+        data = result
+    else:
+        raise ValueError(f"Length of TableDataTuple must be < 4, got {n}.")
+    viewer.add_table(data[0], name=data[1], **data[2])
 
 register_type(TableViewer, return_callback=open_viewer, choices=find_table_viewer_ancestor)
 register_type(TableLayer, return_callback=add_table_to_viewer, choices=get_tables)
 register_type(TableData, return_callback=add_table_data_to_viewer, choices=get_table_data)
+register_type(TableDataTuple, return_callback=add_table_data_tuple_to_viewer)
 
 # Widget
 class ColumnChoice(Container):

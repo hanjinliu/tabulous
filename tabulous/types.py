@@ -7,8 +7,17 @@ import pandas as pd
 # class DataFrameType(Protocol):
 #     iloc: 
 
+__all__ = [
+    "TableData",
+    "TableColumn",
+    "TableDataTuple",
+    "TableInfo",
+    "SelectionRanges",
+]
+
 TableData = NewType("TableData", pd.DataFrame)
 TableColumn = NewType("TableColumn", pd.Series)
+TableDataTuple = NewType("TableDataTuple", tuple)
 
 class TableInfoAlias(type):    
     def __getitem__(cls, names: str | tuple[str, ...]):
