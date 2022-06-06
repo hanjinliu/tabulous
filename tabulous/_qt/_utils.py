@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Callable
-from qtpy.QtWidgets import QApplication, QMessageBox, QWidget, QAction
+from qtpy.QtWidgets import QMessageBox, QAction
+from qtpy import QtWidgets as QtW
 from enum import Enum
 
 
@@ -54,3 +55,9 @@ def to_action(f: Callable, parent=None) -> QAction:
     action = QAction(f.__name__.replace("_", " "), parent)
     action.triggered.connect(f)
     return action
+
+def search_name_from_qmenu(qmenu: QtW.QMenu | QtW.QMenuBar, name: str):
+    for a in qmenu.children():
+        if isinstance(a, QAction) and a.text() == name:
+            return a
+    return None

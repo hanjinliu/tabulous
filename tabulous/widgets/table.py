@@ -18,6 +18,14 @@ class TableSignals(SignalGroup):
     zoom = Signal(float)
     renamed = Signal(str)
 
+class FilterArray:
+    def __init__(self, arr, name: str):
+        self._arr = arr
+        self._name = name
+    
+    def __array__(self):
+        return self._arr
+
 class TableLayerBase(ABC):
     def __init__(self, data, name=None, editable: bool = True):
         import pandas as pd
@@ -100,7 +108,7 @@ class TableLayerBase(ABC):
     @property
     def selections(self):
         rngs = SelectionRanges(self._qwidget.selections())
-        rngs.updated.connect(self._qwidget.setSelections)
+        rngs.changed.connect(self._qwidget.setSelections)
         rngs.events.removed.connect(lambda i, value: self._qwidget.setSelections(rngs))
         return rngs
     
@@ -108,13 +116,11 @@ class TableLayerBase(ABC):
     def selections(self, value) -> None:
         self._qwidget.setSelections(value)
     
-    @property
-    def filter(self):
-        # return self._qwidget
-        ...
+    
+    filter = property()
     
     @filter.setter
-    def filter(self, value):
+    def filter(self, value) -> None:
         self._qwidget.setFilter(value)
 
 

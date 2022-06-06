@@ -3,6 +3,7 @@ from functools import partial
 from pathlib import Path
 import weakref
 from typing import TYPE_CHECKING
+from psygnal import Signal, SignalGroup
 
 from .._qt import QMainWindow, get_app
 
@@ -13,8 +14,13 @@ if TYPE_CHECKING:
     from .._qt._dockwidget import QtDockWidget
     from qtpy.QtWidgets import QWidget
     from magicgui.widgets import Widget
+    
+class TableViewerSignal(SignalGroup):
+    current_index = Signal(int)
 
 class TableViewer:
+    events: TableViewerSignal
+    _dock_widgets: weakref.WeakValueDictionary[str, QtDockWidget]
     
     def __init__(self, *, show: bool = True):
         app = get_app()
@@ -27,12 +33,14 @@ class TableViewer:
         self._qwidget._tablist.itemMoved.connect(self._move_table)
         self._qwidget._tablestack.dropped.connect(self.open)
         
-        self._dock_widgets: weakref.WeakValueDictionary[str, QtDockWidget] = weakref.WeakValueDictionary()
+        self._dock_widgets = weakref.WeakValueDictionary()
         
         self._tablist.events.inserted.connect(self.reset_choices)
         self._tablist.events.removed.connect(self.reset_choices)
         self._tablist.events.moved.connect(self.reset_choices)
         self._tablist.events.changed.connect(self.reset_choices)
+        
+        self.events = TableViewerSignal()
         
         if show:
             self.show()

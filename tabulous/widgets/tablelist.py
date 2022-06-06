@@ -8,6 +8,7 @@ from .table import TableLayer
 if TYPE_CHECKING:
     from .mainwindow import TableViewer
 
+
 class TableList(EventedList[TableLayer]):
     def __init__(self, parent: TableViewer):
         super().__init__()
@@ -32,12 +33,14 @@ class TableList(EventedList[TableLayer]):
             return super().index(value, start, stop)
     
     def rename(self, index_or_name: int | str, name: str) -> None:
+        """Rename a table name."""
         table = self[index_or_name]
         name = self._coerce_name(name, except_for=table)
         table.name = name
         return None
     
     def get(self, name: str, default: Any | None = None) -> TableLayer | None:
+        """Get a table with name `name` if exists."""
         for content in self:
             if content.name == name:
                 return content
@@ -70,3 +73,6 @@ class TableList(EventedList[TableLayer]):
             i += 1
             
         return new_name
+    
+    def register_action(self, location: str):
+        return self._parent._qwidget._tablist.registerAction(location)

@@ -7,6 +7,7 @@ from qtpy.QtCore import Qt, QEvent
 from ._stack import QTableStack
 from ._tablist import QTabList
 from ._table import QTableLayer
+from ._utils import search_name_from_qmenu
 
 if TYPE_CHECKING:
     from ..widgets import TableViewer
@@ -127,9 +128,3 @@ class QMainWindow(QtW.QMainWindow):
             menu.addAction(action)
             return f
         return wrapper
-
-def search_name_from_qmenu(qmenu: QtW.QMenu | QtW.QMenuBar, name: str):
-    for a in qmenu.children():
-        if isinstance(a, QAction) and a.text() == name:
-            return a
-    return None

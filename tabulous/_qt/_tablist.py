@@ -1,10 +1,11 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 import weakref
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtWidgets import QAction, QMenu
 from qtpy.QtCore import Qt, Signal
 from ._table import QTableLayer
+from ._utils import search_name_from_qmenu
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
@@ -28,6 +29,11 @@ class QTabList(QtW.QListWidget):
         self.setMinimumWidth(190)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
+        
+        self._qt_context_menu = QMenu()
+        self.registerAction("Rename")(self._enter_editing_mode)
+        self.registerAction("Delete")(self._close_layer)
+        
     
     def addTable(self, table: QTableLayer, name: str = "None"):
         item = QtW.QListWidgetItem(self)
@@ -120,18 +126,48 @@ class QTabList(QtW.QListWidget):
             self._drag_src = self._drag_dst = None
 
     
+    def registerAction(self, location: str):
+        # TODO: how to pass current table to the registered function?
+        locs = location.split(">")
+        menu = self._qt_context_menu
+        for loc in locs[:-1]:
+            a = search_name_from_qmenu(menu, loc)
+            if a is None:
+                menu = menu.addMenu(loc)
+            else:
+                menu = a.menu()
+                if menu is None:
+                    i = locs.index(loc)
+                    err_loc = ">".join(locs[:i])
+                    raise TypeError(f"{err_loc} is not a menu.")
+                
+        def wrapper(f: Callable):
+            action = QAction(locs[-1], self)
+            action.triggered.connect(f)
+            menu.addAction(action)
+            return f
+        return wrapper
+    
     def showContextMenu(self, pos: QtCore.QPoint) -> None:
         """Execute contextmenu."""
-        qmenu = QMenu()
         item = self.itemAt(pos)
         if item is None:
             return
-        qtab = self.itemWidget(item)
-        qmenu.addAction("Rename", qtab._label.enterEditingMode)
-        qmenu.addAction("Delete", qtab._close_btn.click)
-        qmenu.exec_(self.mapToGlobal(pos))
+        self._qt_context_menu.exec_(self.mapToGlobal(pos))
         return 
 
+    def _enter_editing_mode(self):
+        item = self.item(self.currentRow())
+        qtab = self.itemWidget(item)
+        qtab._label.enterEditingMode()
+        return None
+    
+    def _close_layer(self):
+        item = self.item(self.currentRow())
+        qtab = self.itemWidget(item)
+        qtab._close_btn.click()
+        return None
+    
 
 class QTab(QtW.QFrame):
     def __init__(self, parent=None, text: str = "", table: QTableLayer = None):
@@ -192,6 +228,8 @@ class QTab(QtW.QFrame):
         return self._close_btn.clicked
 
 class _QHoverPushButton(QtW.QPushButton):
+    """A push button widget that disappears when mouse leaves."""
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setStyleSheet("border: none;")
@@ -221,6 +259,11 @@ class _QTabLabel(QtW.QLabel):
     def mouseDoubleClickEvent(self, a0: QtGui.QMouseEvent) -> None:
         self.enterEditingMode()
         return super().mouseDoubleClickEvent(a0)
+    
+    def keyPressEvent(self, ev: QtGui.QKeyEvent) -> None:
+        if ev.key() == Qt.Key.Key_F2:
+            return self.enterEditingMode()
+        return super().keyPressEvent(ev)
     
     def enterEditingMode(self):
         line = QtW.QLineEdit(parent=self)
