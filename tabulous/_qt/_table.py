@@ -27,8 +27,8 @@ class QTableLayer(QtW.QTableWidget):
     selectionChangedSignal = Signal(list)
     
     def __init__(self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None):
-        self.updateDataFrame(data)
         super().__init__(*data.shape, parent)
+        self.updateDataFrame(data)
         self.setVerticalScrollMode(_SCROLL_PRE_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PRE_PIXEL)
         delegate = TableItemDelegate(parent=self)
@@ -86,8 +86,25 @@ class QTableLayer(QtW.QTableWidget):
             sl = self._filter_slice
         return data[sl]
     
-    def updateDataFrame(self, value):
+    def updateDataFrame(self, value: pd.DataFrame):
         self._data_ref: weakref.ReferenceType[pd.DataFrame] = weakref.ref(value)
+        nr = self.rowCount()
+        nc = self.columnCount()
+        
+        nr_data, nc_data = value.shape
+        
+        # check shape mismatch between DataFrame and table widget.
+        if nr > nr_data:
+            [self.removeRow(nr_data) for _ in range(nr - nr_data)]
+        elif nr < nr_data:
+            [self.insertRow(i) for i in range(nr_data - nr)]
+            
+        if nc > nc_data:
+            [self.removeColumn(nc_data) for _ in range(nc - nc_data)]
+        elif nc < nc_data:
+            [self.insertColumn(i) for i in range(nc_data - nc)]
+        
+        return None
     
     def setDataFrameValue(self, r, c, value: Any, absolute: bool = True) -> None:
         data = self._data_ref()

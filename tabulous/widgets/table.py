@@ -48,10 +48,11 @@ class TableLayerBase(ABC):
     
     @abstractmethod
     def _create_backend(self, data: pd.DataFrame) -> BackendTableProtocol:
-        ...
+        """This function creates a backend widget that follows BackendTableProtocol."""
 
     @property
     def data(self) -> pd.DataFrame:
+        """Table data."""
         return self._data
     
     @data.setter
@@ -62,13 +63,16 @@ class TableLayerBase(ABC):
     
     @property
     def shape(self) -> tuple[int, int]:
+        """Shape of table."""
         return self._qwidget.rowCount(), self._qwidget.columnCount()
     
     def refresh(self) -> None:
+        """Refresh table display."""
         self._qwidget.refreshTable()
     
     @property
     def precision(self) -> int:
+        """Precision (displayed digits) of table."""
         return self._qwidget.precision()
     
     @precision.setter
@@ -77,6 +81,7 @@ class TableLayerBase(ABC):
     
     @property
     def zoom(self) -> float:
+        """Zoom factor of table."""
         return self._qwidget.zoom()
     
     @zoom.setter
