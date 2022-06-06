@@ -2,13 +2,14 @@ from __future__ import annotations
 from functools import partial
 from pathlib import Path
 import weakref
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 from psygnal import Signal, SignalGroup
 
 from .._qt import QMainWindow, get_app
 
 from .table import TableLayer
 from .tablelist import TableList
+from .keybindings import register_shortcut
 
 if TYPE_CHECKING:
     from .._qt._dockwidget import QtDockWidget
@@ -106,6 +107,11 @@ class TableViewer:
     
     def register_action(self, location: str):
         return self._qwidget.registerAction(location)
+    
+    def bind_key(self, *seq) -> Callable[[TableViewer], Any | None]:
+        def register(f):
+            register_shortcut(seq, self._qwidget, partial(f, self))
+        return register
     
     def show(self):
         """Show the widget."""

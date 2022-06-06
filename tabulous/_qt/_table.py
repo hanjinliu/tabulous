@@ -6,6 +6,7 @@ from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
 from ._utils import show_messagebox
+from ..types import FilterType
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -26,7 +27,7 @@ class QTableLayer(QtW.QTableWidget):
     selectionChangedSignal = Signal(list)
     
     def __init__(self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None):
-        self._data_ref: weakref.ReferenceType[pd.DataFrame] = weakref.ref(data)
+        self.updateDataFrame(data)
         super().__init__(*data.shape, parent)
         self.setVerticalScrollMode(_SCROLL_PRE_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PRE_PIXEL)
@@ -38,7 +39,7 @@ class QTableLayer(QtW.QTableWidget):
         self._initial_font_size = self.font().pointSize()
         self._default_h_size = self.horizontalHeader().defaultSectionSize()
         self._default_v_size = self.verticalHeader().defaultSectionSize()
-        self._filter_slice: pd.Series | None = None
+        self._filter_slice: FilterType | None = None
         
     def zoom(self) -> float:
         """Get current zoom factor."""
@@ -79,15 +80,26 @@ class QTableLayer(QtW.QTableWidget):
         
         if self._filter_slice is None:
             return data
-        return data[self._filter_slice]
+        elif callable(self._filter_slice):
+            sl = self._filter_slice(data)
+        else:
+            sl = self._filter_slice
+        return data[sl]
+    
+    def updateDataFrame(self, value):
+        self._data_ref: weakref.ReferenceType[pd.DataFrame] = weakref.ref(value)
     
     def setDataFrameValue(self, r, c, value: Any, absolute: bool = True) -> None:
         data = self._data_ref()
         if self._filter_slice is None:
             data.iloc[r, c] = value
             return
+        elif callable(self._filter_slice):
+            sl = self._filter_slice(data)
+        else:
+            sl = self._filter_slice
         
-        cum = np.cumsum(self._filter_slice)  # NOTE: this is not efficient if table is large
+        cum = np.cumsum(sl)  # NOTE: this is not efficient if table is large
         if np.isscalar(r):
             r0 = np.where(cum == r + 1)[0]
             
@@ -98,7 +110,7 @@ class QTableLayer(QtW.QTableWidget):
             start = np.where(cum == r_start + 1)[0][0]
             stop = np.where(cum == r_stop + 1)[0][0]
         
-            r0 = self._filter_slice.copy()
+            r0 = np.array(sl, copy=True)
             r0[:start] = False
             r0[stop:] = False
             
@@ -377,9 +389,23 @@ class QTableLayer(QtW.QTableWidget):
             c1 = self.columnCount() - 1
         return r0, c0, r1 + 1, c1 + 1
 
-    def setFilter(self, sl):
+    def filter(self) -> FilterType | None:
+        return self._filter_slice
+
+    def setFilter(self, sl: FilterType):
         data = self._data_ref()
-        if sl is not None and len(sl) != data.shape[0]:
+        if callable(sl):
+            # dry run
+            try:
+                df = data.head(3)
+                filt = sl(df)
+            except Exception as e:
+                raise ValueError(
+                    f"Dry run failed with filter function {sl} due to following error:\n"
+                    f"{type(e).__name__}: {e}"
+                ) from None
+            
+        elif sl is not None and len(sl) != data.shape[0]:
             raise ValueError(f"Shape mismatch between data {data.shape} and input slice {len(sl)}.")
         self._filter_slice = sl
         self.refreshTable()

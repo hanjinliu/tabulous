@@ -1,9 +1,12 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
+from functools import partial
 from psygnal import SignalGroup, Signal
 
-from ..types import SelectionRanges
+from .keybindings import register_shortcut
+
+from ..types import SelectionRanges, FilterType
 from .._protocols import BackendTableProtocol
 from .._qt import QTableLayer
 
@@ -50,6 +53,12 @@ class TableLayerBase(ABC):
     @property
     def data(self) -> pd.DataFrame:
         return self._data
+    
+    @data.setter
+    def data(self, value):
+        self._data = value
+        self._qwidget.updateDataFrame(value)
+        self.refresh()
     
     @property
     def shape(self) -> tuple[int, int]:
@@ -116,13 +125,20 @@ class TableLayerBase(ABC):
     def selections(self, value) -> None:
         self._qwidget.setSelections(value)
     
-    
-    filter = property()
+    @property
+    def filter(self) -> FilterType | None:
+        """Table filtering array (a boolean array or a function that returns is)."""
+        return self._qwidget.filter()
     
     @filter.setter
-    def filter(self, value) -> None:
+    def filter(self, value: FilterType) -> None:
         self._qwidget.setFilter(value)
 
+    
+    def bind_key(self, *seq) -> Callable[[TableLayerBase], Any | None]:
+        def register(f):
+            register_shortcut(seq, self._qwidget, partial(f, self))
+        return register
 
 class TableLayer(TableLayerBase):
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:

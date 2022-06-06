@@ -1,8 +1,14 @@
 from __future__ import annotations
-from typing import Any, Iterable, NewType, Annotated, Tuple, List
+from typing import Any, Callable, Iterable, NewType, Annotated, Tuple, List, Union, TYPE_CHECKING
 from psygnal import Signal
 from psygnal.containers import EventedList
-import pandas as pd
+
+import numpy as np
+from numpy.typing import ArrayLike
+
+if TYPE_CHECKING:
+    import pandas as pd
+    
 
 # class DataFrameType(Protocol):
 #     iloc: 
@@ -15,8 +21,13 @@ __all__ = [
     "SelectionRanges",
 ]
 
-TableData = NewType("TableData", pd.DataFrame)
-TableColumn = NewType("TableColumn", pd.Series)
+if TYPE_CHECKING:
+    TableData = NewType("TableData", pd.DataFrame)
+    TableColumn = NewType("TableColumn", pd.Series)
+else:
+    TableData = NewType("TableData", Any)
+    TableColumn = NewType("TableColumn", Any)
+
 TableDataTuple = NewType("TableDataTuple", tuple)
 
 class TableInfoAlias(type):    
@@ -34,7 +45,7 @@ class TableInfo(metaclass=TableInfoAlias):
     def __new__(cls, *args, **kwargs):
         raise TypeError(f"Type {cls.__name__} cannot be instantiated.")
 
-class TableInfoInstance(Tuple[pd.DataFrame, List[str]]):
+class TableInfoInstance(Tuple["pd.DataFrame", List[str]]):
     def __new__(cls, *args, **kwargs):
         raise TypeError(f"Type {cls.__name__} cannot be instantiated.")
 
@@ -64,3 +75,5 @@ class SelectionRanges(EventedList[tuple[slice, slice]]):
     def _post_insert(self, value) -> None:
         self.changed.emit(self)
         return value
+
+FilterType = Union[Callable[["pd.DataFrame"], ArrayLike], ArrayLike]
