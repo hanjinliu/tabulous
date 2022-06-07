@@ -295,6 +295,17 @@ class QTableLayer(QtW.QTableWidget):
             ref.to_clipboard(index=headers, header=headers)
     
     def pasteFromClipBoard(self):
+        """
+        Paste data to table.
+        
+        This function supports many types of pasting.
+        1. Single selection, single data in clipboard -> just paste
+        2. Single selection, multiple data in clipboard -> paste starts from the selection position.
+        3. Multiple selection, single data in clipboard -> paste the same value for all the selection.
+        4. Multiple selection, multiple data in clipboard -> paste only if their shape is identical.
+        
+        Also, if data is filtrated, pasted data also follows the filtration.
+        """
         selections = self.selections()
         n_selections = len(selections)
         if n_selections == 0:
@@ -346,26 +357,24 @@ class QTableLayer(QtW.QTableWidget):
         data = self.getDataFrame()
         r0, c0, r1, c1 = self._get_square()
         
-        # If DataFrame is partially deleted, table shape should also be updated.
-        rmax, cmax = data.shape
-        if r1 > rmax:
-            for r in range(rmax, r1):
-                self.removeRow(rmax)
-            r1 = rmax
-        if c1 > cmax:
-            for c in range(cmax, c1):
-                self.removeColumn(cmax)
-            c1 = cmax
+        nr = self.rowCount()
+        nc = self.columnCount()
         
-        # If new columns are created, table shape should also be updated
-        nrows = self.rowCount()
-        ncols = self.columnCount()
-        if rmax > nrows:
-            for r in range(nrows, rmax):
-                self.insertRow(nrows)
-        if cmax > ncols:
-            for c in range(ncols, cmax):
-                self.insertColumn(ncols)
+        nr_data, nc_data = self.getDataFrame().shape
+        
+        # check shape mismatch between DataFrame and table widget.
+        if nr > nr_data:
+            [self.removeRow(nr_data) for _ in range(nr - nr_data)]
+        elif nr < nr_data:
+            [self.insertRow(i) for i in range(nr_data - nr)]
+        
+        if nc > nc_data:
+            [self.removeColumn(nc_data) for _ in range(nc - nc_data)]
+        elif nc < nc_data:
+            [self.insertColumn(i) for i in range(nc_data - nc)]
+            
+        r1 = min(r1, nr_data)
+        c1 = min(c1, nc_data)
             
         vindex = data.index
         hindex = data.columns
@@ -410,20 +419,6 @@ class QTableLayer(QtW.QTableWidget):
         return self._filter_slice
 
     def setFilter(self, sl: FilterType):
-        data = self._data_ref()
-        if callable(sl):
-            # dry run
-            try:
-                df = data.head(3)
-                filt = sl(df)
-            except Exception as e:
-                raise ValueError(
-                    f"Dry run failed with filter function {sl} due to following error:\n"
-                    f"{type(e).__name__}: {e}"
-                ) from None
-            
-        elif sl is not None and len(sl) != data.shape[0]:
-            raise ValueError(f"Shape mismatch between data {data.shape} and input slice {len(sl)}.")
         self._filter_slice = sl
         self.refreshTable()
     

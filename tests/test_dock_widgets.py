@@ -3,6 +3,7 @@ from tabulous import TableViewer
 from magicgui.widgets import PushButton
 
 def dataframe_equal(a, b):
+    """Check two DataFrame (or tuple of DataFrames) are equal."""
     if isinstance(a, tuple):
         if a == ():
             return a == b
