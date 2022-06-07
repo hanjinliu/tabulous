@@ -2,58 +2,17 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Callable
 from functools import partial
-import weakref
 from psygnal import SignalGroup, Signal
 
 from .keybindings import register_shortcut
+from .filtering import FilterProperty
 
-from ..types import SelectionRanges, FilterType
+from ..types import SelectionRanges
 from .._protocols import BackendTableProtocol
 from .._qt import QTableLayer
 
 if TYPE_CHECKING:
     import pandas as pd
-
-
-class FilterProperty:
-    
-    def __init__(self, obj=None):
-        self._obj = obj
-    
-    def __repr__(self) -> str:
-        return f"{type(self).__name__} of {self._obj!r}"
-        
-    def __get__(self, obj: TableLayerBase | None, type=None):
-        return self.__class__(obj)
-        
-    
-    def __set__(self, obj: TableLayerBase | None, value: FilterType):
-        if obj is None:
-            return None
-        data = obj.data
-        if callable(value):
-            # dry run
-            try:
-                df = data.head(3)
-                filt = value(df)
-            except Exception as e:
-                raise ValueError(
-                    f"Dry run failed with filter function {value} due to following error:\n"
-                    f"{type(e).__name__}: {e}"
-                ) from None
-            
-        elif value is not None and len(value) != data.shape[0]:
-            raise ValueError(f"Shape mismatch between data {data.shape} and input slice {len(value)}.")
-        obj._qwidget.setFilter(value)
-    
-    def __delete__(self, obj: TableLayerBase):
-        if isinstance(obj, TableLayerBase):
-            obj.filter = None
-        raise AttributeError(f"Cannot delete {type(self).__name__}.")
-        
-    
-    def __getitem__(self, key):
-        return FilterIndexer(self._obj, key)
 
 
 class TableSignals(SignalGroup):
@@ -182,43 +141,3 @@ class TableLayerBase(ABC):
 class TableLayer(TableLayerBase):
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
         return QTableLayer(data=data)
-
-
-import operator as op_
-
-class FilterIndexer:
-    def __init__(self, layer: TableLayerBase, key: Any):
-        if not isinstance(layer, TableLayerBase):
-            raise TypeError(f"Cannot create {type(self).__name__} with {type(layer)}.")
-        self.layer = layer
-        self._key = key
-    
-    def __repr__(self) -> str:
-        return f"<{type(self).__name__} of {self.layer!r} at column {self._key!r}>"
-    
-    def __eq__(self, other) -> bool:
-        fil = BinaryColumnFilter(
-            lambda df: op_.eq(df[self._key], other),
-            key=self._key,
-            repr=f"df[{self._key!r}] == {other!r}",
-        )
-        self.layer._qwidget.setFilter(fil)
-
-
-class BinaryColumnFilter:
-    def __init__(
-        self,
-        func: Callable[[pd.DataFrame], pd.Series], 
-        key: Any,
-        repr: str | None = None,
-    ):
-        self._func = func
-        self._key = key
-        self._repr = repr
-    
-    def __call__(self, df: pd.DataFrame) -> pd.Series:
-        series = self._func(df)
-        if self._repr is not None:
-            series.name = self._repr.format(self._key)
-        return series
-        
