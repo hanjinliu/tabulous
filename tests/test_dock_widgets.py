@@ -2,6 +2,13 @@ from magicgui import magicgui
 from tabulous import TableViewer
 from magicgui.widgets import PushButton
 
+def dataframe_equal(a, b):
+    if isinstance(a, tuple):
+        if a == ():
+            return a == b
+        return all(dataframe_equal(a0, b0) for a0, b0 in zip(a, b))
+    return a.equals(b)
+
 def test_add_and_remove():
     viewer = TableViewer(show=False)
     name = "NAME"
@@ -22,21 +29,21 @@ def test_table_choice():
     
     viewer.add_dock_widget(f)
     
-    assert len(f["df"].choices) == 0
+    assert f["df"].choices == ()
     
-    viewer.add_table({"a": [0, 0], "b": [1, 1]}, name="table-0")
+    table0 = viewer.add_table({"a": [0, 0], "b": [1, 1]}, name="table-0")
     
-    assert len(f["df"].choices) == 1
+    assert dataframe_equal(f["df"].choices, (table0.data,))
     value = f["df"].value 
     assert all(value["a"] == [0, 0])
     assert all(value["b"] == [1, 1])
     
-    viewer.add_table({"a": [0, 0], "b": [1, 1]}, name="table-1")
-    assert len(f["df"].choices) == 2
+    table1 = viewer.add_table({"a": [0, 0], "b": [1, 1]}, name="table-1")
+    assert dataframe_equal(f["df"].choices, (table0.data, table1.data))
     viewer.tables.pop()
-    assert len(f["df"].choices) == 1
+    assert dataframe_equal(f["df"].choices, (table0.data,))
     viewer.tables.pop()
-    assert len(f["df"].choices) == 0
+    assert dataframe_equal(f["df"].choices, ())
     
 
 def test_table_column_choice():
@@ -49,20 +56,22 @@ def test_table_column_choice():
     
     viewer.add_dock_widget(f)
     
-    assert f["df"].choices == ()
+    assert f["df"]._dataframe_choices.choices == ()
+    assert f["df"]._column_choices.choices == ()
     
-    viewer.add_table({"a": [0, 0], "b": [1, 1]}, name="table-0")
+    table0 = viewer.add_table({"a": [0, 0], "b": [1, 1]}, name="table-0")
     
     assert len(f["df"]._dataframe_choices.choices) == 1
     assert len(f["df"]._column_choices.choices) == 2
-    value = f["df"].value
-    assert all(value == [0, 0])
+    assert all(f["df"].value == [0, 0])
 
-    viewer.add_table({"a": [0, 0, 1]}, name="table-1")
+    table1 = viewer.add_table({"a": [0, 0, 1]}, name="table-1")
     assert len(f["df"]._dataframe_choices.choices) == 2
     assert len(f["df"]._column_choices.choices) == 2
     
-    f["df"]._dataframe_choices.value = "table-1"
+    assert dataframe_equal(f["df"]._dataframe_choices.value, table0.data)
+    
+    del viewer.tables["table-0"]
     
     assert len(f["df"]._column_choices.choices) == 1
-    assert all(value == [0, 0, 1])
+    assert all(f["df"].value == [0, 0, 1])

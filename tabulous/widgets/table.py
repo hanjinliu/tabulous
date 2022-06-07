@@ -57,6 +57,10 @@ class TableLayerBase(ABC):
     
     @data.setter
     def data(self, value):
+        import pandas as pd
+        if not isinstance(value, pd.DataFrame):
+            value = pd.DataFrame(value)
+                
         self._data = value
         self._qwidget.updateDataFrame(value)
         self.refresh()

@@ -3,6 +3,7 @@ from typing import Any, Callable, Iterable, TYPE_CHECKING
 from qtpy.QtWidgets import QWidget
 from magicgui import register_type
 from magicgui.widgets import Widget, Container, ComboBox, Label
+from magicgui.widgets._bases import CategoricalWidget
 
 from .widgets import TableViewer, TableLayer
 from .types import TableColumn, TableData, TableDataTuple, TableInfoInstance
@@ -26,13 +27,13 @@ def find_table_viewer_ancestor(widget: Widget | QWidget) -> TableViewer | None:
     
     return getattr(qwidget, "_table_viewer", None)
 
-def get_tables(widget: Widget | QWidget):
+def get_tables(widget: CategoricalWidget) -> list[tuple[str, Any]]:
     v = find_table_viewer_ancestor(widget)
     if v is None:
         return []
     return v.tables
 
-def get_table_data(widget: Widget | QWidget):
+def get_table_data(widget: CategoricalWidget) -> list[tuple[str, Any]]:
     v = find_table_viewer_ancestor(widget)
     if v is None:
         return []
@@ -74,7 +75,7 @@ def add_table_data_tuple_to_viewer(gui, result: tuple, return_type: type):
 
 register_type(TableViewer, return_callback=open_viewer, choices=find_table_viewer_ancestor)
 register_type(TableLayer, return_callback=add_table_to_viewer, choices=get_tables)
-register_type(TableData, return_callback=add_table_data_to_viewer, choices=get_table_data)
+register_type(TableData, return_callback=add_table_data_to_viewer, choices=get_table_data, nullable=False)
 register_type(TableDataTuple, return_callback=add_table_data_tuple_to_viewer)
 
 # Widget
@@ -120,6 +121,7 @@ register_type(
     widget_type=ColumnChoice, 
     return_callback=add_table_data_to_viewer, 
     data_choices=get_table_data,
+    nullable=False,
 )
 
 class ColumnNameChoice(Container):

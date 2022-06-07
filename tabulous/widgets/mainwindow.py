@@ -20,6 +20,7 @@ class TableViewerSignal(SignalGroup):
     current_index = Signal(int)
 
 class TableViewer:
+    """The main table viewer widget."""
     events: TableViewerSignal
     _dock_widgets: weakref.WeakValueDictionary[str, QtDockWidget]
     

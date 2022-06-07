@@ -49,12 +49,13 @@ class TableList(EventedList[TableLayer]):
     
     def __getitem__(self, key):
         if isinstance(key, str):
-            for content in self:
-                if content.name == key:
-                    return content
-            else:
-                raise ValueError(f"No table named {key!r}.")
+            key = self.index(key)
         return super().__getitem__(key)
+
+    def __delitem__(self, key):
+        if isinstance(key, str):
+            key = self.index(key)
+        return super().__delitem__(key)
 
     def _coerce_name(self, name: str, except_for: TableLayer):
         names = set(content.name for content in self if content is not except_for)
