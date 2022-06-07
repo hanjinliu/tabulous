@@ -65,37 +65,39 @@ class FilterIndexer:
         return f"<{type(self).__name__} of {self.layer!r} at column {self._key!r}>"
     
     def __eq__(self, other) -> None:
-        fil = BinaryColumnFilter.from_operator("__eq__", self._key, other)
+        fil = ColumnFilter.from_operator("__eq__", self._key, other)
         self.layer._qwidget.setFilter(fil)
     
     def __gt__(self, other) -> None:
-        fil = BinaryColumnFilter.from_operator("__gt__", self._key, other)
+        fil = ColumnFilter.from_operator("__gt__", self._key, other)
         self.layer._qwidget.setFilter(fil)
     
     def __ge__(self, other) -> None:
-        fil = BinaryColumnFilter.from_operator("__ge__", self._key, other)
+        fil = ColumnFilter.from_operator("__ge__", self._key, other)
         self.layer._qwidget.setFilter(fil)
 
     def __lt__(self, other) -> None:
-        fil = BinaryColumnFilter.from_operator("__lt__", self._key, other)
+        fil = ColumnFilter.from_operator("__lt__", self._key, other)
         self.layer._qwidget.setFilter(fil)
     
     def __le__(self, other) -> None:
-        fil = BinaryColumnFilter.from_operator("__ge__", self._key, other)
+        fil = ColumnFilter.from_operator("__ge__", self._key, other)
         self.layer._qwidget.setFilter(fil)
 
     def __ne__(self, other) -> None:
-        fil = BinaryColumnFilter.from_operator("__ne__", self._key, other)
+        fil = ColumnFilter.from_operator("__ne__", self._key, other)
         self.layer._qwidget.setFilter(fil)
     
     def between(self, low, high) -> None:
-        fil = BinaryColumnFilter(
+        fil = ColumnFilter(
             lambda df: (low < df[self._key]) & (df[self._key] < high),
             repr=f"{low!r} < df[{self._key!r}] < {high!r}",
         )
         self.layer._qwidget.setFilter(fil)
+    
+    # TODO: implement binary operation chain
 
-class BinaryColumnFilter:
+class ColumnFilter:
     def __init__(
         self,
         func: Callable[[pd.DataFrame], pd.Series], 
@@ -111,9 +113,9 @@ class BinaryColumnFilter:
         return series
     
     @classmethod
-    def from_operator(self, op_func, key, other):
-        f = getattr(op, op_func)
-        return BinaryColumnFilter(
+    def from_operator(self, operator_name: str, key: Any, other: Any):
+        f = getattr(op, operator_name)
+        return ColumnFilter(
             lambda df: f(df[key], other),
             repr=f"df[{key!r}] == {other!r}",
         )
