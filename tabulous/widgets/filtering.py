@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Callable
+import operator as op
 
 from ..types import FilterType
 
@@ -8,12 +9,13 @@ if TYPE_CHECKING:
     import pandas as pd
 
 class FilterProperty:
+    """A field object that provides interface with column-based DataFrame filtering."""
     
     def __init__(self, obj: TableLayerBase | None = None):
         self._obj = obj
     
     def __repr__(self) -> str:
-        return f"{type(self).__name__} of {self._obj!r}"
+        return f"<{type(self).__name__} of {self._obj!r}>"
         
     def __get__(self, obj: TableLayerBase | None, type=None):
         return self.__class__(obj)
@@ -52,7 +54,6 @@ class FilterProperty:
 
 
 
-import operator as op
 
 class FilterIndexer:
     def __init__(self, layer: TableLayerBase, key: Any):
@@ -98,6 +99,8 @@ class FilterIndexer:
     # TODO: implement binary operation chain
 
 class ColumnFilter:
+    """A callable object compatible with DataFrame filter, specific to column based filter."""
+    
     def __init__(
         self,
         func: Callable[[pd.DataFrame], pd.Series], 
@@ -112,12 +115,33 @@ class ColumnFilter:
             series.name = self._repr
         return series
     
+    def __repr__(self) -> str:
+        return f"<{type(self).__name__} of {self._repr}>"
+    
     @classmethod
-    def from_operator(self, operator_name: str, key: Any, other: Any):
+    def from_operator(self, operator_name: str, key: Any, other: Any) -> ColumnFilter:
+        """
+        Construct an instance from a operator.
+
+        Parameters
+        ----------
+        operator_name : str
+            Name of operator, such as "__eq__".
+        key : Any
+            Target column name.
+        other : Any
+            The other argument of the operator.
+
+        Returns
+        -------
+        ColumnFilter
+            An instance initialized with the given operator.
+        """
         f = getattr(op, operator_name)
+        _op_ = OPERATORS[operator_name]
         return ColumnFilter(
             lambda df: f(df[key], other),
-            repr=f"df[{key!r}] == {other!r}",
+            repr=f"df[{key!r}] {_op_} {other!r}",
         )
 
 OPERATORS = {
