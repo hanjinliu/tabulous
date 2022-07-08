@@ -28,6 +28,7 @@ class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
         self.tabCloseRequested.connect(self.takeTable)
         self.tabCloseRequested.connect(self.tableRemoved.emit)
         self.tabBar().tabMoved.connect(self.itemMoved.emit)
+        self.tabBarDoubleClicked.connect(self.enterEditingMode)
     
     def addTable(self, table: QTableLayer, name: str = "None"):
         self.addTab(table, name)
