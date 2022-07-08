@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable, Iterable, NewType, Annotated, Tuple, List, Union, TYPE_CHECKING
+from enum import Enum
 from psygnal import Signal
 from psygnal.containers import EventedList
 
@@ -77,3 +78,7 @@ class SelectionRanges(EventedList[tuple[slice, slice]]):
         return value
 
 FilterType = Union[Callable[["pd.DataFrame"], ArrayLike], ArrayLike]
+
+class WidgetType(Enum):
+    list = "list"
+    tab = "tab"

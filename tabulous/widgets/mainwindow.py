@@ -5,11 +5,12 @@ import weakref
 from typing import TYPE_CHECKING, Any, Callable, Union
 from psygnal import Signal, SignalGroup
 
-from .._qt import QMainWindow, QMainWidget, get_app
-
 from .table import TableLayer
 from .tablelist import TableList
 from .keybindings import register_shortcut
+
+from ..types import WidgetType
+from .._qt import QMainWindow, QMainWidget, get_app, QTableLayer
 
 if TYPE_CHECKING:
     from .._qt._dockwidget import QtDockWidget
@@ -28,9 +29,14 @@ class _TableViewerBase:
     events: TableViewerSignal
     _qwidget_class: type[_QtMainWidgetBase]
     
-    def __init__(self, *, show: bool = True):
+    def __init__(
+        self,
+        *, 
+        widget_type: WidgetType | str = WidgetType.list,
+        show: bool = True
+    ):
         app = get_app()
-        self._qwidget = self._qwidget_class()
+        self._qwidget = self._qwidget_class(widget_type=widget_type)
         self._qwidget._table_viewer = self
         self._tablist = TableList(parent=self)
         self._tablist.events.inserted.connect(self._insert_qtable)
@@ -76,9 +82,9 @@ class _TableViewerBase:
         with self._tablist.events.blocked():
             self._qwidget._tablist.renameTable(index, name)
         
-    def _remove_pytable(self, table: TableLayer, _=None):
+    def _remove_pytable(self, index: int):
         with self._tablist.events.blocked():
-            self._tablist.remove(table)
+            del self._tablist[index]
         
     def _remove_qtable(self, index: int, table: TableLayer):
         with self._tablist.events.blocked():
@@ -197,8 +203,8 @@ class TableViewer(_TableViewerBase):
     _qwidget_class = QMainWindow
     _qwidget: QMainWindow
     
-    def __init__(self, *, show=True):
-        super().__init__(show=show)
+    def __init__(self, *, widget_type: WidgetType | str = WidgetType.list, show=True):
+        super().__init__(widget_type=widget_type, show=show)
         self._dock_widgets = weakref.WeakValueDictionary()
     
     def add_dock_widget(

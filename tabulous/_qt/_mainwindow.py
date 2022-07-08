@@ -4,9 +4,10 @@ from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, QEvent
 
-from ._table_stack import QListTableStack
-from ._table import QTableLayer
+from ._table_stack import QListTableStack, QTabbedTableStack
 from ._utils import search_name_from_qmenu
+
+from ..types import WidgetType
 
 if TYPE_CHECKING:
     from ..widgets import TableViewer
@@ -16,11 +17,18 @@ if TYPE_CHECKING:
 
 _R = TypeVar("_R")
 
+WIDGET_TYPE_MAP = {
+    WidgetType.list: QListTableStack,
+    WidgetType.tab: QTabbedTableStack,
+}
+
 class _QtMainWidgetBase(QtW.QWidget):
     _table_viewer: TableViewer
+    _tablist: _QTableStackBase
     
-    def __init__(self, qtablist: type[_QTableStackBase] = QListTableStack):
+    def __init__(self, widget_type: WidgetType | str = WidgetType.list):
         super().__init__()
+        qtablist = WIDGET_TYPE_MAP[WidgetType(widget_type)]
         self._tablist = qtablist()
         self.setCentralWidget(self._tablist)
     
@@ -41,9 +49,9 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     _table_viewer: TableViewer
     _instances: list['QMainWindow'] = []
     
-    def __init__(self):
+    def __init__(self, widget_type: WidgetType | str = WidgetType.list):
         super().__init__()
-        _QtMainWidgetBase.__init__(self)
+        _QtMainWidgetBase.__init__(self, widget_type=widget_type)
         QMainWindow._instances.append(self)
 
     def addDockWidget(

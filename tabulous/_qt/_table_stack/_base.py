@@ -27,31 +27,39 @@ class _QTableStackBase:
     _qt_context_menu: QTabContextMenu
     
     def addTable(self, table: QTableLayer, name: str = "None"):
+        """Add `table` to stack as name `name`."""
         raise NotImplementedError()
         
     def takeTable(self, index: int) -> QTableLayer:
+        """Remove table at `index` and return it."""
         raise NotImplementedError()
     
     def renameTable(self, index: int, name: str):
+        """Rename table at `index` to `name`."""
         raise NotImplementedError()
     
     def tableIndex(self, table: QTableLayer) -> int:
+        """Get the index of `table`."""
         raise NotImplementedError()
     
     def tableAtIndex(self, i: int) -> QTableLayer:
+        """Get the table at `i`."""
         raise NotImplementedError()
     
     def tableAt(self, pos: QtCore.QPoint) -> QTableLayer | None:
-        """Return table at position."""
+        """Return table at a mouse position."""
         raise NotImplementedError()
     
     def moveTable(self, src: int, dst: int):
+        """Move table from `src` to `dst`."""
         raise NotImplementedError()
 
     def currentIndex(self):
+        """Return the current active table index."""
         raise NotImplementedError()
 
     def setCurrentIndex(self, i: int):
+        """Set the current active table index and update the widget."""
         raise NotImplementedError()
     
     def registerAction(self, location: str):

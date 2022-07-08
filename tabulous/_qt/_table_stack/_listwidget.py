@@ -6,6 +6,7 @@ from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, Signal
 
 from ._base import _QTableStackBase, QTabContextMenu
+from ._utils import create_temporal_line_edit
 
 from .._table import QTableLayer
 from .._utils import search_name_from_qmenu
@@ -325,21 +326,8 @@ class _QTabLabel(QtW.QLabel):
         return super().keyPressEvent(ev)
     
     def enterEditingMode(self):
-        line = QtW.QLineEdit(parent=self)
-
-        # set geometry
-        edit_geometry = line.geometry()
-        edit_geometry.setWidth(self.width())
-        edit_geometry.setHeight(self.height())
-        edit_geometry.moveTo(self.rect().topLeft())
-        line.setGeometry(edit_geometry)
-        
-        line.setText(self.text())
-        line.setHidden(False)
-        line.setFocus()
-        line.selectAll()
-        
-        self._line = line # we have to retain the pointer, otherwise got error sometimes
+        line = create_temporal_line_edit(self.rect(), self, self.text())
+        self._line = line
         
         @self._line.editingFinished.connect
         def _():
