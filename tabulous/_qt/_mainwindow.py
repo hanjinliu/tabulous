@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 _R = TypeVar("_R")
 
-WIDGET_TYPE_MAP = {
+WIDGET_TYPE_MAP: dict[WidgetType, type[_QTableStackBase]] = {
     WidgetType.list: QListTableStack,
     WidgetType.tab: QTabbedTableStack,
 }

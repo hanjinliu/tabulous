@@ -10,11 +10,14 @@ from .._utils import search_name_from_qmenu
 class QTabContextMenu(QMenu):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._current_table = None
+        self._current_index = None
         
-    def execOnTable(self, pos: QtCore.QPoint, table: QTableLayer):
-        if self._current_table is not None:
+    def execAtIndex(self, pos: QtCore.QPoint, index: int):
+        self._current_index = index
+        try:
             self.exec_(pos)
+        finally:
+            self._current_index = None
         return None
 
 class _QTableStackBase:
@@ -25,6 +28,14 @@ class _QTableStackBase:
     tableRemoved = Signal(int)
 
     _qt_context_menu: QTabContextMenu
+        
+    def installContextMenu(self):
+        self._qt_context_menu = QTabContextMenu(self)
+        self.registerAction("Rename")(self.enterEditingMode)
+        @self.registerAction("Delete")
+        def _delete(index: int):
+            self.takeTable(index)
+            self.tableRemoved.emit(index)
     
     def addTable(self, table: QTableLayer, name: str = "None"):
         """Add `table` to stack as name `name`."""
@@ -62,8 +73,11 @@ class _QTableStackBase:
         """Set the current active table index and update the widget."""
         raise NotImplementedError()
     
+    def enterEditingMode(self, index: int):
+        """Enter edit table name mode."""
+        raise NotImplementedError()
+
     def registerAction(self, location: str):
-        # TODO: how to pass current table to the registered function?
         locs = location.split(">")
         menu = self._qt_context_menu
         for loc in locs[:-1]:
@@ -80,7 +94,7 @@ class _QTableStackBase:
         def wrapper(f: Callable):
             action = QAction(locs[-1], self)
             action.triggered.connect(
-                lambda: f(self._qt_context_menu._current_table)
+                lambda: f(self._qt_context_menu._current_index)
             )
             menu.addAction(action)
             return f
@@ -88,8 +102,9 @@ class _QTableStackBase:
     
     def showContextMenu(self, pos: QtCore.QPoint) -> None:
         """Execute contextmenu."""
-        item = self.itemAt(pos)
-        if item is None:
+        table = self.tableAt(pos)
+        if table is None:
             return
-        self._qt_context_menu.execOnTable(self.mapToGlobal(pos), item)
+        index = self.tableIndex(table)
+        self._qt_context_menu.execAtIndex(self.mapToGlobal(pos), index)
         return

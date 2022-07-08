@@ -37,6 +37,10 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
         self._tabs.itemMoved.connect(self._stack.moveWidget)
         self._tabs.itemMoved.connect(self.itemMoved.emit)
         self._stack.dropped.connect(self.itemDropped.emit)
+        
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.showContextMenu)
+        self.installContextMenu()
     
     
     def addTable(self, table: QTableLayer, name: str = "None") -> None:
@@ -107,8 +111,13 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
         self.setCurrentIndex(dst)
         self._stack.setCurrentIndex(dst)
     
+    def enterEditingMode(self, index: int):
+        item = self._tabs.item(index)
+        qtab = self._tabs.itemWidget(item)
+        qtab._label.enterEditingMode()
+        return None
 
-class QTabList(QtW.QListWidget, _QTableStackBase):
+class QTabList(QtW.QListWidget):
     currentTableChanged = Signal(int)
     itemMoved = Signal(int, int)
     
@@ -125,14 +134,6 @@ class QTabList(QtW.QListWidget, _QTableStackBase):
         self.setDropIndicatorShown(False)
         self.setDragDropMode(QtW.QAbstractItemView.DragDropMode.InternalMove)
         self.setMinimumWidth(190)
-        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.showContextMenu)
-        
-        self._qt_context_menu = QTabContextMenu()
-        
-        self.registerAction("Rename")(self._enter_editing_mode)
-        self.registerAction("Delete")(self._close_layer)
-        
     
     if TYPE_CHECKING:
         def itemWidget(self, item: QtW.QListWidgetItem) -> QTab: ...
@@ -192,41 +193,6 @@ class QTabList(QtW.QListWidget, _QTableStackBase):
                 self.itemMoved.emit(self._drag_src, self._drag_dst)
             self._drag_src = self._drag_dst = None
 
-    
-    def registerAction(self, location: str):
-        # TODO: how to pass current table to the registered function?
-        locs = location.split(">")
-        menu = self._qt_context_menu
-        for loc in locs[:-1]:
-            a = search_name_from_qmenu(menu, loc)
-            if a is None:
-                menu = menu.addMenu(loc)
-            else:
-                menu = a.menu()
-                if menu is None:
-                    i = locs.index(loc)
-                    err_loc = ">".join(locs[:i])
-                    raise TypeError(f"{err_loc} is not a menu.")
-                
-        def wrapper(f: Callable):
-            action = QAction(locs[-1], self)
-            action.triggered.connect(f)
-            menu.addAction(action)
-            return f
-        return wrapper
-    
-    def _enter_editing_mode(self, *_):
-        item = self.item(self.currentRow())
-        qtab = self.itemWidget(item)
-        qtab._label.enterEditingMode()
-        return None
-    
-    def _close_layer(self, *_):
-        item = self.item(self.currentRow())
-        qtab = self.itemWidget(item)
-        qtab._close_btn.click()
-        return None
-    
 
 class QTab(QtW.QFrame):
     def __init__(self, parent=None, text: str = "", table: QTableLayer = None):

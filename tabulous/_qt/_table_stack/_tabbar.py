@@ -1,6 +1,5 @@
 from __future__ import annotations
 from qtpy import QtWidgets as QtW, QtGui, QtCore
-from qtpy.QtWidgets import QMenu
 from qtpy.QtCore import Qt, Signal
 
 from ._base import _QTableStackBase
@@ -22,16 +21,15 @@ class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
         self.setTabsClosable(True)
         self.setMovable(True)
         
-        self._qt_context_menu = QMenu()
-        
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.tabBar().customContextMenuRequested.connect(self.showContextMenu)
+        self.customContextMenuRequested.connect(self.showContextMenu)
         self.currentChanged.connect(self.currentTableChanged.emit)
         self.tabCloseRequested.connect(self.takeTable)
         self.tabCloseRequested.connect(self.tableRemoved.emit)
         # NOTE: arguments are not (from, to). Bug in Qt??
         self.tabBar().tabMoved.connect(lambda a, b: self.itemMoved.emit(b, a))
         self.tabBarDoubleClicked.connect(self.enterEditingMode)
+        self.installContextMenu()
     
     def addTable(self, table: QTableLayer, name: str = "None"):
         self.addTab(table, name)
