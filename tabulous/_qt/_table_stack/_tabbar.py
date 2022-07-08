@@ -20,7 +20,8 @@ class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
         self.setMinimumSize(600, 400)
         self.setAcceptDrops(True)
         self.setTabsClosable(True)
-        
+        self.setMovable(True)
+        # TODO: moved event
         self._tables: list[QTableLayer] = []
         self._qt_context_menu = QMenu()
         self.customContextMenuRequested.connect(self.showContextMenu)
@@ -78,7 +79,7 @@ class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
         def _():
             self._line.setHidden(True)
             text = self._line.text()
-            self.setTabText(text)
+            self.setTabText(index, text)
             self.tableRenamed.emit(index, text)
         return None
 
