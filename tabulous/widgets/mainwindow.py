@@ -39,28 +39,13 @@ class _TableViewerBase:
         self._qwidget = self._qwidget_class(widget_type=widget_type)
         self._qwidget._table_viewer = self
         self._tablist = TableList(parent=self)
-        self._tablist.events.inserted.connect(self._insert_qtable)
-        self._tablist.events.removed.connect(self._remove_qtable)
-        self._tablist.events.moved.connect(self._move_qtable)
-        self._tablist.events.renamed.connect(self._rename_qtable)
-        
-        self._qwidget._tablist.itemMoved.connect(self._move_pytable)
-        self._qwidget._tablist.tableRenamed.connect(self._rename_pytable)
-        self._qwidget._tablist.tableRemoved.connect(self._remove_pytable)
-        self._qwidget._tablist.itemDropped.connect(self.open)
-        
-        # reset choices when something changed in python table list
-        self._tablist.events.inserted.connect(self.reset_choices)
-        self._tablist.events.removed.connect(self.reset_choices)
-        self._tablist.events.moved.connect(self.reset_choices)
-        self._tablist.events.changed.connect(self.reset_choices)
-        self._tablist.events.renamed.connect(self.reset_choices)
+        self._link_events()
         
         self.events = TableViewerSignal()
         
         if show:
             self.show()
-    
+
     def reset_choices(self, *_):
         pass
     
@@ -79,23 +64,11 @@ class _TableViewerBase:
     def _rename_pytable(self, index: int, name: str):
         with self._tablist.events.blocked():
             self._tablist.rename(index, name)
-    
-    def _rename_qtable(self, index: int, name: str):
-        with self._tablist.events.blocked():
-            self._qwidget._tablist.renameTable(index, name)
-        
+
     def _remove_pytable(self, index: int):
         with self._tablist.events.blocked():
             del self._tablist[index]
-        
-    def _remove_qtable(self, index: int, table: TableLayer):
-        with self._tablist.events.blocked():
-            self._qwidget._tablist.takeTable(index)
 
-    def _insert_qtable(self, i: int):
-        table = self._tablist[i]
-        self._qwidget._tablist.addTable(table._qwidget, table.name)
-        
     @property
     def tables(self) -> TableList:
         """Return the table list object."""
@@ -175,6 +148,57 @@ class _TableViewerBase:
             df.to_excel(path)
         else:
             raise ValueError(f"Extension {suf} not supported.")
+
+    def _link_events(self):
+        _tablist = self._tablist
+        _qtablist = self._qwidget._tablist
+        
+        @_tablist.events.inserted.connect
+        def _insert_qtable(i: int):
+            table = _tablist[i]
+            _qtablist.addTable(table._qwidget, table.name)
+        
+        @_tablist.events.removed.connect
+        def _remove_qtable(index: int, table: TableLayer):
+            with _tablist.events.blocked():
+                _qtablist.takeTable(index)
+        
+        @_tablist.events.moved.connect
+        def _move_qtable(src: int, dst: int):
+            with _tablist.events.blocked():
+                _qtablist.moveTable(src, dst)
+        
+        @_tablist.events.renamed.connect
+        def _rename_qtable(index: int, name: str):
+            with _tablist.events.blocked():
+                _qtablist.renameTable(index, name)
+
+        @_qtablist.itemMoved.connect
+        def _move_pytable(src: int, dst: int):
+            """Move evented list when list is moved in GUI."""
+            with self._tablist.events.blocked():
+                if dst > src:
+                    dst += 1
+                self._tablist.move(src, dst)
+        
+        @_qtablist.tableRenamed.connect
+        def _rename_pytable(index: int, name: str):
+            with self._tablist.events.blocked():
+                self._tablist.rename(index, name)
+        
+        @_qtablist.tableRemoved.connect
+        def _remove_pytable(index: int):
+            with self._tablist.events.blocked():
+                del self._tablist[index]    
+        
+        _qtablist.itemDropped.connect(self.open)
+        
+        # reset choices when something changed in python table list
+        _tablist.events.inserted.connect(self.reset_choices)
+        _tablist.events.removed.connect(self.reset_choices)
+        _tablist.events.moved.connect(self.reset_choices)
+        _tablist.events.changed.connect(self.reset_choices)
+        _tablist.events.renamed.connect(self.reset_choices)
 
 
 class TableViewerWidget(_TableViewerBase):

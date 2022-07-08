@@ -1,9 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
-import weakref
-from qtpy import QtWidgets as QtW, QtGui, QtCore
+from typing import Callable
 from qtpy.QtWidgets import QAction, QMenu
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Signal, QPoint
 from .._table import QTableLayer
 from .._utils import search_name_from_qmenu
 
@@ -12,7 +10,8 @@ class QTabContextMenu(QMenu):
         super().__init__(parent)
         self._current_index = None
         
-    def execAtIndex(self, pos: QtCore.QPoint, index: int):
+    def execAtIndex(self, pos: QPoint, index: int):
+        """Execute contextmenu at index."""
         self._current_index = index
         try:
             self.exec_(pos)
@@ -30,6 +29,7 @@ class _QTableStackBase:
     _qt_context_menu: QTabContextMenu
         
     def installContextMenu(self):
+        """Install the default contextmenu."""
         self._qt_context_menu = QTabContextMenu(self)
         self.registerAction("Rename")(self.enterEditingMode)
         @self.registerAction("Delete")
@@ -57,7 +57,7 @@ class _QTableStackBase:
         """Get the table at `i`."""
         raise NotImplementedError()
     
-    def tableAt(self, pos: QtCore.QPoint) -> QTableLayer | None:
+    def tableAt(self, pos: QPoint) -> QTableLayer | None:
         """Return table at a mouse position."""
         raise NotImplementedError()
     
@@ -100,7 +100,7 @@ class _QTableStackBase:
             return f
         return wrapper
     
-    def showContextMenu(self, pos: QtCore.QPoint) -> None:
+    def showContextMenu(self, pos: QPoint) -> None:
         """Execute contextmenu."""
         table = self.tableAt(pos)
         if table is None:

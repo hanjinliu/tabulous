@@ -32,16 +32,21 @@ class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
         self.installContextMenu()
     
     def addTable(self, table: QTableLayer, name: str = "None"):
+        """Add `table` to stack as name `name`."""
         self.addTab(table, name)
         self.tabBar().setTabData(self.count() - 1, table)
+        return None
         
     def takeTable(self, index: int) -> QTableLayer:
-        self.removeTab(index)
+        """Remove table at `index` and return it."""
+        return self.removeTab(index)
     
     def renameTable(self, index: int, name: str):
-        self.setTabText(index, name)
+        """Rename table at `index` to `name`."""
+        return self.setTabText(index, name)
 
     def tableIndex(self, table: QTableLayer) -> int:
+        """Get the index of `table`."""
         for i in range(self.count()):
             data = self.tabBar().tabData(i)
             if data is table:
@@ -51,6 +56,7 @@ class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
         return i
     
     def tableAtIndex(self, i: int) -> QTableLayer:
+        """Get the table at `i`."""
         return self.tabBar().tabData(i)
     
     def tableAt(self, pos: QtCore.QPoint) -> QTableLayer | None:
@@ -61,7 +67,8 @@ class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
         return self.tableAtIndex(index)
     
     def moveTable(self, src: int, dst: int):
-        self.tabBar().moveTab(src, dst)
+        """Move table from `src` to `dst`."""
+        return self.tabBar().moveTab(src, dst)
 
     def dropEvent(self, a0: QtGui.QDropEvent) -> None:
         mime = a0.mimeData()
@@ -69,6 +76,7 @@ class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
         return super().dropEvent(a0)
 
     def enterEditingMode(self, index: int):
+        """Enter edit table name mode."""
         rect = self.tabBar().tabRect(index)
         line = QtW.QLineEdit(parent=self)
 

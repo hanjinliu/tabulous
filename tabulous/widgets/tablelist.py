@@ -114,7 +114,7 @@ class TableList(EventedList[TableLayer]):
     def _coerce_name(self, name: str, except_for: TableLayer):
         names = set(content.name for content in self if content is not except_for)
         
-        suffix = re.findall(".*-(\d+)", name)
+        suffix = re.findall(r".*-(\d+)", name)
         if suffix:
             suf = suffix[0]
             new_name = name

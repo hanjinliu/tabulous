@@ -1,15 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 import weakref
 from qtpy import QtWidgets as QtW, QtGui, QtCore
-from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, Signal
 
-from ._base import _QTableStackBase, QTabContextMenu
+from ._base import _QTableStackBase
 from ._utils import create_temporal_line_edit
 
 from .._table import QTableLayer
-from .._utils import search_name_from_qmenu
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
@@ -44,6 +42,7 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
     
     
     def addTable(self, table: QTableLayer, name: str = "None") -> None:
+        """Add `table` to stack as name `name`."""
         item = QtW.QListWidgetItem(self._tabs)
         self._tabs.addItem(item)
         tab = QTab(parent=self._tabs, text=name, table=table)
@@ -66,6 +65,7 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
         return None
         
     def takeTable(self, index: int) -> QTableLayer:
+        """Remove table at `index` and return it."""
         item = self._tabs.item(index)
         qtab = self._tabs.itemWidget(item)
         self._tabs.takeItem(index)
@@ -76,12 +76,14 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
         return qtab.table
     
     def renameTable(self, index: int, name: str):
+        """Rename table at `index` to `name`."""
         item = self._tabs.item(index)
         tab = self._tabs.itemWidget(item)
         tab.setText(name)
         return None
     
     def tableIndex(self, table: QTableLayer) -> int:
+        """Get the index of `table`."""
         for i in range(self._tabs.count()):
             if table is self.tableAtIndex(i):
                 return i
@@ -89,29 +91,36 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
             raise ValueError("Table not found.")
     
     def tableAtIndex(self, i: int) -> QTableLayer:
+        """Get the table at `i`."""
         item = self._tabs.item(i)
         qtab = self._tabs.itemWidget(item)
         return qtab.table
     
-    def currentIndex(self) -> int:
-        return self._stack.currentIndex()
-    
-    def setCurrentIndex(self, i: int):
-        return self._tabs.setCurrentRow(i)
-    
     def tableAt(self, pos: QtCore.QPoint) -> QTableLayer:
+        """Return table at a mouse position."""
         item = self._tabs.itemAt(pos)
         if item is None:
             return None
         return self._tabs.itemWidget(item).table
     
     def moveTable(self, src: int, dst: int):
+        """Move table from `src` to `dst`."""
         self._tabs.moveTable(src, dst)
         self._stack.moveWidget(src, dst)
         self.setCurrentIndex(dst)
         self._stack.setCurrentIndex(dst)
+        return None
+    
+    def currentIndex(self) -> int:
+        """Return the current active table index."""
+        return self._stack.currentIndex()
+    
+    def setCurrentIndex(self, i: int):
+        """Set the current active table index and update the widget."""
+        return self._tabs.setCurrentRow(i)
     
     def enterEditingMode(self, index: int):
+        """Enter edit table name mode."""
         item = self._tabs.item(index)
         qtab = self._tabs.itemWidget(item)
         qtab._label.enterEditingMode()
