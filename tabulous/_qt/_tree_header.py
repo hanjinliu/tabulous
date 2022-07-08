@@ -11,6 +11,25 @@ class QTreeHeaderView(QtW.QHeaderView):
     def __init__(self, orientation: Qt.Orientation, parent: QtW.QWidget | None = None) -> None:
         super().__init__(orientation, parent)
     
+    def paintSection(self, painter: QtGui.QPainter, rect: QtCore.QRect, logicalIndex: int) -> None:
+        return super().paintSection(painter, rect, logicalIndex)
+
+class QTableHeaderItem(QtW.QTableWidgetItem):
+    def __init__(self, parent, item_parent=None):
+        super().__init__(parent)
+        self._item_parent = item_parent
+        
+    def insertChild(self):
+        ...
+    
+    def children(self):
+        ...
+    
+   
+class HeaderModel(QtW.QAbstractItemView):
+    
+    ...
+    
     # TODO: 
     # df0.columns.levels
     # Out[12]: FrozenList([['b', 'c', 'x'], ['mean', 'std', '']])

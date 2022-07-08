@@ -2,16 +2,112 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 import weakref
 from qtpy import QtWidgets as QtW, QtGui, QtCore
-from qtpy.QtWidgets import QAction, QMenu
+from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, Signal
-from ._table import QTableLayer
-from ._utils import search_name_from_qmenu
+
+from ._base import _QTableStackBase, QTabContextMenu
+
+from .._table import QTableLayer
+from .._utils import search_name_from_qmenu
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
 
-class QTabList(QtW.QListWidget):
-    selectionChangedSignal = Signal(int)
+class QListTableStack(QtW.QSplitter, _QTableStackBase):
+    currentTableChanged = Signal(int)
+    itemDropped = Signal(object)
+    itemMoved = Signal(int, int)
+    tableRenamed = Signal(int, str)
+    tableRemoved = Signal(int)
+    
+    def __init__(self, parent=None):
+        super().__init__(Qt.Orientation.Horizontal, parent)
+        self._tabs = QTabList()
+        self._stack = QTableStack()
+        self.addWidget(self._tabs)
+        self.addWidget(self._stack)
+        
+        # connect signals
+        @self._tabs.currentTableChanged.connect
+        def _current_table_changed(index):
+            qtable = self.tableAtIndex(index)
+            self._stack.setCurrentWidget(qtable)
+        
+        self._tabs.itemMoved.connect(self._stack.moveWidget)
+        self._tabs.itemMoved.connect(self.itemMoved.emit)
+        self._stack.dropped.connect(self.itemDropped.emit)
+    
+    
+    def addTable(self, table: QTableLayer, name: str = "None") -> None:
+        item = QtW.QListWidgetItem(self._tabs)
+        self._tabs.addItem(item)
+        tab = QTab(parent=self._tabs, text=name, table=table)
+        item.setSizeHint(tab.sizeHint())
+        self._tabs.setItemWidget(item, tab)
+        self._stack.addWidget(table)
+        @tab.renamed.connect
+        def _tab_renamed(name: str):
+            for i in range(self._tabs.count()):
+                item = self._tabs.item(i)
+                tab0 = self._tabs.itemWidget(item)
+                if tab0 is tab:
+                    self.tableRenamed.emit(i, name)
+                    break
+        @tab.buttonClicked.connect
+        def _tab_removing():
+            index = self.tableIndex(tab.table)
+            self.takeTable(index)
+            self.tableRemoved.emit(index)
+        return None
+        
+    def takeTable(self, index: int) -> QTableLayer:
+        item = self._tabs.item(index)
+        qtab = self._tabs.itemWidget(item)
+        self._tabs.takeItem(index)
+        for child in self._stack.children():
+            if child is qtab.table:
+                child.setParent(None)
+            
+        return qtab.table
+    
+    def renameTable(self, index: int, name: str):
+        item = self._tabs.item(index)
+        tab = self._tabs.itemWidget(item)
+        tab.setText(name)
+        return None
+    
+    def tableIndex(self, table: QTableLayer) -> int:
+        for i in range(self._tabs.count()):
+            if table is self.tableAtIndex(i):
+                return i
+        else:
+            raise ValueError("Table not found.")
+    
+    def tableAtIndex(self, i: int) -> QTableLayer:
+        item = self._tabs.item(i)
+        qtab = self._tabs.itemWidget(item)
+        return qtab.table
+    
+    def currentIndex(self) -> int:
+        return self._tabs.currentIndex()
+    
+    def setCurrentIndex(self, i: int):
+        return self._tabs.setCurrentRow(i)
+    
+    def tableAt(self, pos: QtCore.QPoint) -> QTableLayer:
+        item = self._tabs.itemAt(pos)
+        if item is None:
+            return None
+        return self._tabs.itemWidget(item).table
+    
+    def moveTable(self, src: int, dst: int):
+        self._tabs.moveTable(src, dst)
+        self._stack.moveWidget(src, dst)
+        self._stack.setCurrentIndex(dst)
+    
+
+class QTabList(QtW.QListWidget, _QTableStackBase):
+    currentTableChanged = Signal(int)
     itemMoved = Signal(int, int)
     
     def __init__(self, parent=None):
@@ -30,52 +126,21 @@ class QTabList(QtW.QListWidget):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
         
-        self._qt_context_menu = QMenu()
+        self._qt_context_menu = QTabContextMenu()
+        
         self.registerAction("Rename")(self._enter_editing_mode)
         self.registerAction("Delete")(self._close_layer)
         
     
-    def addTable(self, table: QTableLayer, name: str = "None"):
-        item = QtW.QListWidgetItem(self)
-        self.addItem(item)
-        tab = QTab(parent=self, text=name, table=table)
-        item.setSizeHint(tab.sizeHint())
-        self.setItemWidget(item, tab)
-        return tab
-        
-    def takeTable(self, index: int) -> QTableLayer:
-        item = self.item(index)
-        qtab = self.itemWidget(item)
-        self.takeItem(index)
-        return qtab.table
+    if TYPE_CHECKING:
+        def itemWidget(self, item: QtW.QListWidgetItem) -> QTab: ...
     
-    def renameTable(self, index: int, name: str):
-        item = self.item(index)
-        tab = self.itemWidget(item)
-        tab.setText(name)
-        return None
-
     def moveTable(self, src: int, dst: int) -> None:
         """Move table from index `src` to `dst`."""
         if src < dst:
             dst += 1
         self.model().moveRow(QtCore.QModelIndex(), src, QtCore.QModelIndex(), dst)
-    
-    def tableIndex(self, table: QTableLayer) -> int:
-        for i in range(self.count()):
-            if table is self.tableAtIndex(i):
-                return i
-        else:
-            raise ValueError("Table not found.")
-    
-    def tableAtIndex(self, i: int) -> QTableLayer:
-        item = self.item(i)
-        qtab = self.itemWidget(item)
-        return qtab.table
-    
-    if TYPE_CHECKING:
-        def itemWidget(self, item: QtW.QListWidgetItem) -> QTab: ...
-    
+
     def selectionChanged(
         self,
         selected: QtCore.QItemSelection,
@@ -84,7 +149,7 @@ class QTabList(QtW.QListWidget):
         ind = selected.indexes()
         if len(ind) > 0:
             index = ind[0].row()
-            self.selectionChangedSignal.emit(index)
+            self.currentTableChanged.emit(index)
             item = self.item(index)
             widget = self.itemWidget(item)
             widget.setHighlight(True)
@@ -148,21 +213,13 @@ class QTabList(QtW.QListWidget):
             return f
         return wrapper
     
-    def showContextMenu(self, pos: QtCore.QPoint) -> None:
-        """Execute contextmenu."""
-        item = self.itemAt(pos)
-        if item is None:
-            return
-        self._qt_context_menu.exec_(self.mapToGlobal(pos))
-        return 
-
-    def _enter_editing_mode(self):
+    def _enter_editing_mode(self, *_):
         item = self.item(self.currentRow())
         qtab = self.itemWidget(item)
         qtab._label.enterEditingMode()
         return None
     
-    def _close_layer(self):
+    def _close_layer(self, *_):
         item = self.item(self.currentRow())
         qtab = self.itemWidget(item)
         qtab._close_btn.click()
@@ -227,6 +284,7 @@ class QTab(QtW.QFrame):
         """The child button-clicked signal."""
         return self._close_btn.clicked
 
+
 class _QHoverPushButton(QtW.QPushButton):
     """A push button widget that disappears when mouse leaves."""
     
@@ -287,3 +345,33 @@ class _QTabLabel(QtW.QLabel):
             self._line.setHidden(True)
             self.renamed.emit(self._line.text())
         return None
+
+class QTableStack(QtW.QStackedWidget):
+    """The stacked widget region."""
+    
+    dropped = Signal(object)
+    
+    def __init__(self, parent=None) -> None:
+        super().__init__(parent)
+        self.setMinimumSize(600, 400)
+        self.setAcceptDrops(True)
+    
+    def moveWidget(self, src: int, dst: int) -> None:
+        """Move (reorder) child widgets"""
+        w = self.widget(src)
+        self.removeWidget(w)
+        self.insertWidget(dst, w)
+        
+        return None
+    
+    def dropEvent(self, a0: QtGui.QDropEvent) -> None:
+        mime = a0.mimeData()
+        self.dropped.emit(mime.text())
+        return super().dropEvent(a0)
+
+    def dragEnterEvent(self, e: QtGui.QDragEnterEvent):
+        if e.mimeData().hasText():
+            e.accept()
+            return None
+        else:
+            return super().dragEnterEvent()

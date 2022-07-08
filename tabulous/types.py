@@ -63,7 +63,7 @@ def _check_tuple_of_slices(value: Any) -> tuple[slice, slice]:
 class SelectionRanges(EventedList[tuple[slice, slice]]):
     """A table data specific selection range list."""
     
-    changed = Signal(object)
+    _changed = Signal(object)
     
     def __init__(self, ranges: Iterable[tuple[slice, slice]] = ()):
         super().__init__(ranges)
@@ -73,7 +73,7 @@ class SelectionRanges(EventedList[tuple[slice, slice]]):
         return value
     
     def _post_insert(self, value) -> None:
-        self.changed.emit(self)
+        self._changed.emit(self)
         return value
 
 FilterType = Union[Callable[["pd.DataFrame"], ArrayLike], ArrayLike]

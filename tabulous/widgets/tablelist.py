@@ -1,6 +1,7 @@
 from __future__ import annotations
 import re
 from typing import Any, TYPE_CHECKING
+from psygnal import Signal, SignalGroup, SignalInstance
 from psygnal.containers import EventedList
 
 from .table import TableLayer
@@ -8,10 +9,52 @@ from .table import TableLayer
 if TYPE_CHECKING:
     from .mainwindow import TableViewer
 
+# Modified from psygnal/containers/_evented_list.py. See https://github.com/tlambert03/psygnal.
+class NamedListEvents(SignalGroup):
+    """Events available on EventedList.
+
+    Attributes
+    ----------
+    inserting (index: int)
+        emitted before an item is inserted at `index`
+    inserted (index: int, value: Any)
+        emitted after `value` is inserted at `index`
+    removing (index: int)
+        emitted before an item is removed at `index`
+    removed (index: int, value: Any)
+        emitted after `value` is removed at `index`
+    moving (index: int, new_index: int)
+        emitted before an item is moved from `index` to `new_index`
+    moved (index: int, new_index: int, value: Any)
+        emitted after `value` is moved from `index` to `new_index`
+    changed (index: int or slice, old_value: Any or List[Any], value: Any or List[Any])
+        emitted when `index` is set from `old_value` to `value`
+    reordered (value: self)
+        emitted when the list is reordered (eg. moved/reversed).
+    child_event (index: int, object: Any, emitter: SignalInstance, args: tuple)
+        emitted when an object in the list emits an event.
+        Note that the EventedList must be created with `child_events=True` for this
+        to be emitted.
+    """
+
+    inserting = Signal(int)  # idx
+    inserted = Signal(int, object)  # (idx, value)
+    removing = Signal(int)  # idx
+    removed = Signal(int, object)  # (idx, value)
+    moving = Signal(int, int)  # (src_idx, dest_idx)
+    moved = Signal(tuple, object)  # ((src_idx, dest_idx), value)
+    changed = Signal(object, object, object)  # (int | slice, old, new)
+    reordered = Signal()
+    child_event = Signal(int, object, SignalInstance, tuple)
+    renamed = Signal(int, str)
+
 
 class TableList(EventedList[TableLayer]):
+    events: NamedListEvents
+    
     def __init__(self, parent: TableViewer):
         super().__init__()
+        self.events = NamedListEvents()
         self._parent = parent
 
     def insert(self, index: int, table: TableLayer):
@@ -19,6 +62,16 @@ class TableList(EventedList[TableLayer]):
             raise TypeError(f"Cannot insert {type(table)} to {self.__class__.__name__}.")
         
         table.name = self._coerce_name(table.name, except_for=table)
+        @table.events.renamed.connect
+        def _renamed_signal(name: str):
+            coerced_name = self._coerce_name(name, table)
+            table.name = coerced_name
+            for i, tb in enumerate(self):
+                if tb is table:
+                    self.events.renamed.emit(i, coerced_name)
+                    break
+            return None
+                    
         super().insert(index, table)
     
     def index(self, value: TableLayer | str, start: int = 0, stop: int = 999999) -> int:

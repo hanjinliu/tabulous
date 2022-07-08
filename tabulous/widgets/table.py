@@ -123,7 +123,7 @@ class TableLayerBase(ABC):
     def selections(self):
         """Get the SelectionRanges object of current table selection."""
         rngs = SelectionRanges(self._qwidget.selections())
-        rngs.changed.connect(self._qwidget.setSelections)
+        rngs._changed.connect(self._qwidget.setSelections)
         rngs.events.removed.connect(lambda i, value: self._qwidget.setSelections(rngs))
         return rngs
     
@@ -134,6 +134,7 @@ class TableLayerBase(ABC):
     filter = FilterProperty()
     
     def bind_key(self, *seq) -> Callable[[TableLayerBase], Any | None]:
+        """Bind callback function to a key sequence."""
         def register(f):
             register_shortcut(seq, self._qwidget, partial(f, self))
         return register

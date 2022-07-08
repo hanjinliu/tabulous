@@ -11,3 +11,11 @@ __all__ = [
 ]
 
 from . import _magicgui
+
+# TODO: merge tab list and tab stack.
+# This is because at least QListWidget+QStackedWidget and QTabWidget have different
+# layouts. 
+
+# Mainwindow ---+--> QTableListWidget ---+--> QTableStackWidget
+#               |                        |
+#               +--> ...???              +--> QTabs
