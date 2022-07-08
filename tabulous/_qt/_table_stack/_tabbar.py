@@ -1,7 +1,7 @@
 from __future__ import annotations
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtWidgets import QMenu
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal
 
 from ._base import _QTableStackBase
 from ._utils import create_temporal_line_edit
@@ -21,32 +21,39 @@ class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
         self.setAcceptDrops(True)
         self.setTabsClosable(True)
         self.setMovable(True)
-        # TODO: moved event
-        self._tables: list[QTableLayer] = []
+        
         self._qt_context_menu = QMenu()
-        self.customContextMenuRequested.connect(self.showContextMenu)
+        
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tabBar().customContextMenuRequested.connect(self.showContextMenu)
         self.currentChanged.connect(self.currentTableChanged.emit)
         self.tabCloseRequested.connect(self.takeTable)
         self.tabCloseRequested.connect(self.tableRemoved.emit)
-        self.tabBar().tabMoved.connect(self.itemMoved.emit)
+        # NOTE: arguments are not (from, to). Bug in Qt??
+        self.tabBar().tabMoved.connect(lambda a, b: self.itemMoved.emit(b, a))
         self.tabBarDoubleClicked.connect(self.enterEditingMode)
     
     def addTable(self, table: QTableLayer, name: str = "None"):
         self.addTab(table, name)
-        self._tables.append(table)
+        self.tabBar().setTabData(self.count() - 1, table)
         
     def takeTable(self, index: int) -> QTableLayer:
         self.removeTab(index)
-        del self._tables[index]
     
     def renameTable(self, index: int, name: str):
         self.setTabText(index, name)
 
     def tableIndex(self, table: QTableLayer) -> int:
-        self._tables.index(table)
+        for i in range(self.count()):
+            data = self.tabBar().tabData(i)
+            if data is table:
+                break
+        else:
+            raise ValueError(f"Table {table!r} not found.")
+        return i
     
     def tableAtIndex(self, i: int) -> QTableLayer:
-        return self._tables[i]
+        return self.tabBar().tabData(i)
     
     def tableAt(self, pos: QtCore.QPoint) -> QTableLayer | None:
         """Return table at position."""
@@ -57,10 +64,6 @@ class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
     
     def moveTable(self, src: int, dst: int):
         self.tabBar().moveTab(src, dst)
-        if src < dst:
-            dst -= 1
-        table = self._tables.pop(src)
-        self._tables.insert(table)
 
     def dropEvent(self, a0: QtGui.QDropEvent) -> None:
         mime = a0.mimeData()

@@ -10,7 +10,7 @@ from .tablelist import TableList
 from .keybindings import register_shortcut
 
 from ..types import WidgetType
-from .._qt import QMainWindow, QMainWidget, get_app, QTableLayer
+from .._qt import QMainWindow, QMainWidget, get_app
 
 if TYPE_CHECKING:
     from .._qt._dockwidget import QtDockWidget
@@ -67,6 +67,8 @@ class _TableViewerBase:
     def _move_pytable(self, src: int, dst: int):
         """Move evented list when list is moved in GUI."""
         with self._tablist.events.blocked():
+            if dst > src:
+                dst += 1
             self._tablist.move(src, dst)
     
     def _move_qtable(self, src: int, dst: int):
@@ -181,12 +183,6 @@ class TableViewerWidget(_TableViewerBase):
     
     _qwidget_class = QMainWidget
     _qwidget: QMainWidget
-
-    def reset_choices(self, *_):
-        for dock in self._dock_widgets.values():
-            widget = dock.widget
-            if hasattr(widget, "reset_choices"):
-                widget.reset_choices()
 
     def add_widget(
         self, widget: Widget | QWidget, *, name: str = "",
