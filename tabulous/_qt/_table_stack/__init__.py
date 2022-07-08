@@ -1,3 +1,3 @@
 from ._base import _QTableStackBase
-from ._listwidget import QTabList
-from ._tabbar import QTabBarWidget
+from ._listwidget import QListTableStack
+from ._tabbar import QTabbedTableStack

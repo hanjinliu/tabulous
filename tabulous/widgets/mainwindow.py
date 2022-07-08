@@ -69,11 +69,11 @@ class _TableViewerBase:
             self._qwidget._tablist.moveTable(src, dst)
 
     def _rename_pytable(self, index: int, name: str):
-        with self._tablist[index].events.blocked():
+        with self._tablist.events.blocked():
             self._tablist.rename(index, name)
     
     def _rename_qtable(self, index: int, name: str):
-        with self._tablist[index].events.blocked():
+        with self._tablist.events.blocked():
             self._qwidget._tablist.renameTable(index, name)
         
     def _remove_pytable(self, table: TableLayer, _=None):
@@ -82,11 +82,11 @@ class _TableViewerBase:
         
     def _remove_qtable(self, index: int, table: TableLayer):
         with self._tablist.events.blocked():
-            self._qwidget.removeTable(index)
+            self._qwidget._tablist.takeTable(index)
 
     def _insert_qtable(self, i: int):
         table = self._tablist[i]
-        self._qwidget.addTable(table._qwidget, table.name)
+        self._qwidget._tablist.addTable(table._qwidget, table.name)
         
     @property
     def tables(self) -> TableList:
@@ -167,6 +167,7 @@ class _TableViewerBase:
             df.to_excel(path)
         else:
             raise ValueError(f"Extension {suf} not supported.")
+
 
 class TableViewerWidget(_TableViewerBase):
     """The non-main table viewer widget."""

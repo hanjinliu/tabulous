@@ -89,7 +89,7 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
         return qtab.table
     
     def currentIndex(self) -> int:
-        return self._tabs.currentIndex()
+        return self._stack.currentIndex()
     
     def setCurrentIndex(self, i: int):
         return self._tabs.setCurrentRow(i)
@@ -103,6 +103,7 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
     def moveTable(self, src: int, dst: int):
         self._tabs.moveTable(src, dst)
         self._stack.moveWidget(src, dst)
+        self.setCurrentIndex(dst)
         self._stack.setCurrentIndex(dst)
     
 
@@ -343,7 +344,9 @@ class _QTabLabel(QtW.QLabel):
         @self._line.editingFinished.connect
         def _():
             self._line.setHidden(True)
-            self.renamed.emit(self._line.text())
+            text = self._line.text()
+            self.setText(text)
+            self.renamed.emit(text)
         return None
 
 class QTableStack(QtW.QStackedWidget):

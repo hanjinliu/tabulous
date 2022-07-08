@@ -65,7 +65,8 @@ class TableList(EventedList[TableLayer]):
         @table.events.renamed.connect
         def _renamed_signal(name: str):
             coerced_name = self._coerce_name(name, table)
-            table.name = coerced_name
+            with table.events.renamed.blocked():
+                table.name = coerced_name
             for i, tb in enumerate(self):
                 if tb is table:
                     self.events.renamed.emit(i, coerced_name)

@@ -4,12 +4,13 @@ from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, QEvent
 
-from ._table_stack import QTabList, _QTableStackBase
+from ._table_stack import QListTableStack
 from ._table import QTableLayer
 from ._utils import search_name_from_qmenu
 
 if TYPE_CHECKING:
     from ..widgets import TableViewer
+    from ._table_stack import _QTableStackBase
     from typing_extensions import ParamSpec
     _P = ParamSpec("_P")
 
@@ -18,7 +19,7 @@ _R = TypeVar("_R")
 class _QtMainWidgetBase(QtW.QWidget):
     _table_viewer: TableViewer
     
-    def __init__(self, qtablist: type[_QTableStackBase] = QTabList):
+    def __init__(self, qtablist: type[_QTableStackBase] = QListTableStack):
         super().__init__()
         self._tablist = qtablist()
         self.setCentralWidget(self._tablist)
@@ -26,25 +27,6 @@ class _QtMainWidgetBase(QtW.QWidget):
     def setCentralWidget(self, wdt: QtW.QWidget):
         """Set the splitter widget."""
         raise NotImplementedError()
-
-    
-    def addTable(self, table: QTableLayer, name: str):
-        if not isinstance(table, QTableLayer):
-            raise TypeError(f"Cannot add {type(table)}.")
-        self._tablist.addTable(table=table, name=name)
-
-    def removeTable(self, index: int):
-        self._tablist.takeTable(index)
-    
-    def renameTable(self, table: QTableLayer, name: str):
-        index = self._tablist.tableIndex(table)
-        self._tablist.renameTable(index, name)
-
-    def stackIndex(self) -> int:
-        return self._tablist.currentIndex()
-    
-    def setStackIndex(self, index: int) -> None:
-        self._tablist.setCurrentIndex(index)
 
 
 class QMainWidget(_QtMainWidgetBase):

@@ -9,7 +9,7 @@ from ._base import _QTableStackBase
 
 from .._table import QTableLayer
 
-class QTabBarWidget(QtW.QTabWidget, _QTableStackBase):
+class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
     currentTableChanged = Signal(int)
     itemMoved = Signal(int, int)
     
