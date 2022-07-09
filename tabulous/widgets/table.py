@@ -58,18 +58,13 @@ class TableLayerBase(ABC):
             value = pd.DataFrame(value)
                 
         self._data = value
-        self._qwidget.refreshTable(value)
-        self.refresh()
+        self._qwidget.setDataFrame(value)
     
     @property
     def shape(self) -> tuple[int, int]:
         """Shape of table."""
         return self._qwidget.rowCount(), self._qwidget.columnCount()
-    
-    def refresh(self) -> None:
-        """Refresh table display."""
-        self._qwidget.refreshTable()
-    
+
     @property
     def precision(self) -> int:
         """Precision (displayed digits) of table."""

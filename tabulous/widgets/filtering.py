@@ -41,10 +41,7 @@ class FilterProperty:
         obj._qwidget.setFilter(value)
     
     def __delete__(self, obj: TableLayerBase):
-        if isinstance(obj, TableLayerBase):
-            obj.filter = None
-        raise AttributeError(f"Cannot delete {type(self).__name__}.")
-        
+        obj.filter = None
     
     def __getitem__(self, key):
         return FilterIndexer(self._obj, key)
@@ -53,12 +50,8 @@ class FilterProperty:
         return self._obj._qwidget.filter()
 
 
-
-
 class FilterIndexer:
     def __init__(self, layer: TableLayerBase, key: Any):
-        if not isinstance(layer, TableLayerBase):
-            raise TypeError(f"Cannot create {type(self).__name__} with {type(layer)}.")
         self.layer = layer
         self._key = key
     

@@ -4,6 +4,9 @@ from typing import Any, NamedTuple, TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
+import numpy as np
+from ._model import AbstractDataFrameModel
+
 from .._utils import show_messagebox
 from ...types import FilterType
 
@@ -24,42 +27,74 @@ _READ_ONLY = QtW.QAbstractItemView.EditTrigger.NoEditTriggers
 _SCROLL_PRE_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
 
-class QTableLayerBase(QtW.QTableWidget):
+class QTableLayerBase(QtW.QTableView):
     itemChangedSignal = Signal(ItemInfo)
     selectionChangedSignal = Signal(list)
-    _data_ref: weakref.ReferenceType[pd.DataFrame]
     
     def __init__(self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None):
-        super().__init__(*data.shape, parent)
+        super().__init__(parent)
+        model = AbstractDataFrameModel(data=data)
+        self.setModel(model)
+        self.setDataFrame(data)
         self.setVerticalScrollMode(_SCROLL_PRE_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PRE_PIXEL)
         self._editable = False
         self._zoom = 1.0
         self._initial_font_size = self.font().pointSize()
-        self._default_h_size = self.horizontalHeader().defaultSectionSize()
-        self._default_v_size = self.verticalHeader().defaultSectionSize()
+        self._initial_section_size = (
+            self.horizontalHeader().defaultSectionSize(),
+            self.verticalHeader().defaultSectionSize(),
+        )
         self._filter_slice: FilterType | None = None
-        self._data_filtrated: pd.DataFrame | None = None
-        
-        self.refreshTable(data)
+
         delegate = TableItemDelegate(parent=self)
         self.setItemDelegate(delegate)
-        delegate.edited.connect(
-            lambda x: self.itemChangedSignal.emit(self.normalizeData(*x))
-        )
         
-    def getDataFrame(self, sl) -> pd.DataFrame:
+        model.dataEdited.connect(self.setDataFrameValue)
+        
+    def getDataFrame(self) -> pd.DataFrame:
         raise NotImplementedError()
 
-    def refreshTable(self, data: pd.DataFrame | None):
-        raise NotImplementedError()
-
+    def setDataFrame(self, data: pd.DataFrame):
+        self._data_raw = data
+        self.model().df = data
+        
     def setDataFrameValue(self, r, c, value: Any) -> None:
-        raise NotImplementedError()
-    
-    def normalizeData(self, row: int, col: int) -> ItemInfo:
-        """Called when item is edited."""
-        raise NotImplementedError()
+        data = self._data_raw
+        try:
+            value = _DTYPE_KIND_TO_CONVERTER[data.dtypes[c].kind](value)
+        except Exception as e:
+            return
+        
+        if self._filter_slice is None:
+            data.iloc[r, c] = value
+            return
+        elif callable(self._filter_slice):
+            sl = self._filter_slice(data)
+        else:
+            sl = self._filter_slice
+        
+        cum = np.cumsum(sl)  # NOTE: this is not efficient if table is large
+        if np.isscalar(r):
+            r0 = np.where(cum == r + 1)[0]
+            
+        elif isinstance(r, slice):
+            r_start, r_stop, r_step = r.indices(cum.shape[0])
+            if r_step != 1:
+                raise ValueError("step must not be >1.")
+            start = np.where(cum == r_start + 1)[0][0]
+            stop = np.where(cum == r_stop + 1)[0][0]
+        
+            r0 = np.array(sl, copy=True)
+            r0[:start] = False
+            r0[stop:] = False
+            
+        else:
+            raise TypeError(type(r))
+        
+        data.iloc[r0, c] = value
+        self.itemChangedSignal.emit(ItemInfo(r, c, value, True))
+        return None
 
     def zoom(self) -> float:
         """Get current zoom factor."""
@@ -81,20 +116,21 @@ class QTableLayerBase(QtW.QTableWidget):
         self.setFont(font)
         
         # Zoom section size of headers
-        self.horizontalHeader().setDefaultSectionSize(self._default_h_size*value)
-        self.verticalHeader().setDefaultSectionSize(self._default_v_size*value)
+        h, v = self._initial_section_size
+        self.horizontalHeader().setDefaultSectionSize(h * value)
+        self.verticalHeader().setDefaultSectionSize(v * value)
         
         # Update stuff
         self._zoom = value
-        self.refreshTable()
     
     def indexUnderCursor(self) -> tuple[int, int]:
         pos = self.mapFromGlobal(QtGui.QCursor().pos())
-        item = self.itemAt(pos)
-        return item.row(), item.column()
+        index = self.indexAt(pos)
+        return index.row(), index.column()
 
     if TYPE_CHECKING:
         def itemDelegate(self) -> TableItemDelegate: ...
+        def model(self) -> AbstractDataFrameModel: ...
         
     def precision(self) -> int:
         """Return table value precision."""
@@ -106,7 +142,6 @@ class QTableLayerBase(QtW.QTableWidget):
         if ndigits <= 0:
             raise ValueError("Cannot set negative precision.")
         self.itemDelegate().ndigits = ndigits
-        self.refreshTable()
     
     def editability(self) -> bool:
         """Return the editability of the table."""
@@ -139,13 +174,16 @@ class QTableLayerBase(QtW.QTableWidget):
     
     def selections(self) -> list[tuple[slice, slice]]:
         """Get list of selections as slicable tuples"""
-        selections = self.selectedRanges()
+        selections = self.selectionModel().selection()
+        
+        # selections = self.selectedRanges()
         out: list[tuple[slice, slice]] = []
-        for sel in selections:
-            r0 = sel.topRow()
-            r1 = sel.bottomRow() + 1
-            c0 = sel.leftColumn()
-            c1 = sel.rightColumn() + 1
+        for i in range(len(selections)):
+            sel = selections[i]
+            r0 = sel.top()
+            r1 = sel.bottom() + 1
+            c0 = sel.left()
+            c1 = sel.right() + 1
             out.append((slice(r0, r1), slice(c0, c1)))
         
         return out
@@ -153,40 +191,20 @@ class QTableLayerBase(QtW.QTableWidget):
     def setSelections(self, selections: list[tuple[slice, slice]]):
         """Set list of selections."""
         self.clearSelection()
-        data = self.getDataFrame()
-        nr, nc = data.shape
+        
+        model = self.model()
+        nr, nc = model.df.shape
         try:
             for sel in selections:
                 r, c = sel
                 r0, r1, _ = r.indices(nr)
                 c0, c1, _ = c.indices(nc)
-                self.setRangeSelected(
-                    QtW.QTableWidgetSelectionRange(r0, c0, r1 - 1, c1 - 1), 
-                    True,
-                )
+                selection = QtCore.QItemSelection(model.index(r0, c0), model.index(r1 - 1, c1 - 1))
+                self.selectionModel().select(selection, QtCore.QItemSelectionModel.SelectionFlag.Select)
+                
         except Exception as e:
             self.clearSelection()
             raise e
-
-    def verticalScrollbarValueChanged(self, value: int) -> None:
-        self.refreshTable()
-        return super().verticalScrollbarValueChanged(value)
-
-    def horizontalScrollbarValueChanged(self, value: int) -> None:
-        self.refreshTable()
-        return super().horizontalScrollbarValueChanged(value)
-    
-    def rowResized(self, row: int, oldHeight: int, newHeight: int) -> None:
-        self.refreshTable()
-        return super().rowResized(row, oldHeight, newHeight)
-    
-    def columnResized(self, column: int, oldWidth: int, newWidth: int) -> None:
-        self.refreshTable()
-        return super().columnResized(column, oldWidth, newWidth)
-    
-    def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
-        self.refreshTable()
-        return super().resizeEvent(e)
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
         if e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_C:
@@ -280,7 +298,7 @@ class QTableLayerBase(QtW.QTableWidget):
             )
             return
         try:
-            self.setDataFrameValue(sel[0], sel[1], df.values, absolute=False)
+            self.setDataFrameValue(sel[0], sel[1], df.values)
         except Exception as e:
             show_messagebox(
                 mode="error",
@@ -289,8 +307,7 @@ class QTableLayerBase(QtW.QTableWidget):
                 parent=self,
             )
             return
-            
-        self.refreshTable()
+
         return None
         
     def getCurrentSquare(self) -> tuple[int, int, int, int]:
@@ -300,9 +317,9 @@ class QTableLayerBase(QtW.QTableWidget):
         r1 = self.rowAt(self.height())
         c1 = self.columnAt(self.width())
         if r1 < 0:
-            r1 = self.rowCount() - 1
+            r1 = self.model().rowCount() - 1
         if c1 < 0:
-            c1 = self.columnCount() - 1
+            c1 = self.model().columnCount() - 1
         return r0, c0, r1 + 1, c1 + 1
 
     def filter(self) -> FilterType | None:
@@ -310,19 +327,17 @@ class QTableLayerBase(QtW.QTableWidget):
 
     def setFilter(self, sl: FilterType):
         self._filter_slice = sl
-        if sl is None:
-            self._data_filtrated = None
-        else:
-            data = self._data_ref()
-            
-            if callable(self._filter_slice):
-                sl_filt = self._filter_slice(data)
-            else:
-                sl_filt = self._filter_slice
-            self._data_filtrated = data[sl_filt]
+        data_raw = self._data_raw
         
-        self.refreshTable()
-
+        if sl is None:
+            self.model().df = data_raw
+        else:
+            if callable(sl):
+                sl_filt = sl(data_raw)
+            else:
+                sl_filt = sl
+            self.model().df = data_raw[sl_filt]
+    
 
 # modified from magicgui
 class TableItemDelegate(QtW.QStyledItemDelegate):
@@ -337,16 +352,6 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
     def displayText(self, value, locale):
         return super().displayText(self._format_number(value), locale)
 
-    def setEditorData(self, editor: QtW.QLineEdit, index: QtCore.QModelIndex) -> None:
-        super().setEditorData(editor, index)
-        # NOTE: This method is evoked when editing started and editing finished.
-        # The editor widget has focus only when editing is finished.
-        if editor.hasFocus():
-            self.edited.emit((index.row(), index.column()))
-    
-    def paint(self, painter: QtGui.QPainter, option, index: QtCore.QModelIndex) -> None:
-        return super().paint(painter, option, index)
-        
     def _format_number(self, text: str) -> str:
         """convert string to int or float if possible"""
         try:
@@ -367,3 +372,12 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
 
         return text
 
+# TODO: datetime
+_DTYPE_KIND_TO_CONVERTER = {
+    "i": int,
+    "f": float,
+    "u": int,
+    "U": str,
+    "O": str,
+    "c": complex,
+}
