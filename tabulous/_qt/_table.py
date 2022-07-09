@@ -252,7 +252,6 @@ class QTableLayer(QtW.QTableWidget):
             headers = e.modifiers() & Qt.ShiftModifier
             return self.copyToClipboard(headers)
         if e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_V:
-            # TODO
             return self.pasteFromClipBoard()
         
         return super().keyPressEvent(e)
@@ -421,9 +420,6 @@ class QTableLayer(QtW.QTableWidget):
     def setFilter(self, sl: FilterType):
         self._filter_slice = sl
         self.refreshTable()
-    
-    # def addFinder(self, finder: Callable[]):
-    #     self.findItems()
 
 
 # modified from magicgui
@@ -469,6 +465,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
 
         return text
 
+# TODO: datetime
 _DTYPE_KIND_TO_CONVERTER = {
     "i": int,
     "f": float,
@@ -477,3 +474,4 @@ _DTYPE_KIND_TO_CONVERTER = {
     "O": str,
     "c": complex,
 }
+

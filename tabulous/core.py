@@ -1,25 +1,34 @@
 from __future__ import annotations
-from typing import Callable
+from pathlib import Path
+from typing import TYPE_CHECKING
 from .widgets import TableViewer
-from functools import wraps
-import pandas as pd
 
-def _inject_pandas_signature(pd_func: Callable, return_annotation=None):
-    def wrapper(f: Callable):
-        out = wraps(pd_func)(f)
-        out.__annotations__["return"] = return_annotation
-        return out
-    return wrapper
-    
+CURRENT_VIEWER = None
 
-@_inject_pandas_signature(pd.read_csv, return_annotation=TableViewer)
-def read_csv(*args, **kwargs):
-    viewer = TableViewer(show=True)
-    viewer.read_csv(*args, **kwargs)
+def current_viewer():
+    global CURRENT_VIEWER
+    if CURRENT_VIEWER is None:
+        CURRENT_VIEWER = TableViewer()
+    return CURRENT_VIEWER
+
+def set_current_viewer(viewer: TableViewer):
+    global CURRENT_VIEWER
+    CURRENT_VIEWER = viewer
     return viewer
 
-@_inject_pandas_signature(pd.read_excel, return_annotation=TableViewer)
-def read_excel(*args, **kwargs):
-    viewer = TableViewer(show=True)
-    viewer.read_excel(*args, **kwargs)
+def read_csv(path: str | Path, *args, **kwargs):
+    import pandas as pd
+    df = pd.read_csv(path, *args, **kwargs)
+    name = Path(path).stem
+    viewer = current_viewer()
+    viewer.add_table(df, name=name)
+    return viewer
+
+def read_excel(path: str | Path, *args, **kwargs):
+    import pandas as pd
+    df_dict = pd.read_excel(path, *args, **kwargs)
+    
+    viewer = current_viewer()
+    for sheet_name, df in df_dict.items():
+        viewer.add_table(df, name=sheet_name)
     return viewer

@@ -39,7 +39,7 @@ class _QtMainWidgetBase(QtW.QWidget):
 
 class QMainWidget(_QtMainWidgetBase):
     def setCentralWidget(self, wdt: QtW.QWidget):
-        _layout = QtW.QLayout()
+        _layout = QtW.QHBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.addWidget(wdt)
         self.setLayout(_layout)

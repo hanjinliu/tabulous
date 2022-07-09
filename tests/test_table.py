@@ -1,5 +1,5 @@
 from tabulous import TableLayer, TableViewer
-
+from unittest.mock import MagicMock
 import pandas as pd
 import numpy as np
 import pytest
@@ -39,3 +39,17 @@ def test_size_change():
     assert table.shape == (20, 20)
     table.data = np.zeros((40, 40))
     assert table.shape == (40, 40)
+
+def test_selection_signal():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(df0)
+    mock = MagicMock()
+    
+    @table.events.selections.connect
+    def f(sel):
+        mock(sel)
+    
+    mock.assert_not_called()
+    sel = [(slice(1, 2), slice(1, 2))]
+    table.selections = sel
+    mock.assert_called_with(sel)

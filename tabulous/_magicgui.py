@@ -174,3 +174,35 @@ class ColumnNameChoice(Container):
         return (df, colnames)
 
 register_type(TableInfoInstance, widget_type=ColumnNameChoice, data_choices=get_table_data)
+
+
+# #############################################################################
+#    magicgui-widget
+# #############################################################################
+
+from magicgui.widgets import Widget
+from magicgui.backends._qtpy.widgets import QBaseWidget
+from .widgets import TableViewerWidget
+from qtpy import QtWidgets as QtW
+
+class MagicTableViewer(Widget, TableViewerWidget):
+    def __init__(
+        self,
+        *, 
+        widget_type="list", 
+        name: str = "",
+        label: str = None,
+        tooltip: str | None = None,
+        visible: bool | None = None,
+        enabled: bool = True,
+    ):
+        super().__init__(
+            widget_type=QBaseWidget, backend_kwargs={"qwidg": QWidget}, name=name,
+            label=label, tooltip=tooltip, visible=visible, enabled=enabled,
+        )
+        TableViewerWidget.__init__(self, widget_type=widget_type, show=False)
+        self.native: QWidget
+        self.native.setLayout(QtW.QVBoxLayout())
+        self.native.layout().addWidget(self._qwidget)
+        self.native.setContentsMargins(0, 0, 0, 0)
+        

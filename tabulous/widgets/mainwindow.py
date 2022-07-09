@@ -92,9 +92,6 @@ class _TableViewerBase:
             index += len(self.tables)
         return self._qwidget._tablist.setCurrentIndex(index)
     
-    # def register_action(self, location: str):
-    #     return self._qwidget.registerAction(location)
-    
     def bind_key(self, *seq) -> Callable[[TableViewer], Any | None]:
         def register(f):
             register_shortcut(seq, self._qwidget, partial(f, self))
@@ -226,6 +223,9 @@ class TableViewer(_TableViewerBase):
     def __init__(self, *, widget_type: WidgetType | str = WidgetType.list, show=True):
         super().__init__(widget_type=widget_type, show=show)
         self._dock_widgets = weakref.WeakValueDictionary()
+    
+    # def register_action(self, location: str):
+    #     return self._qwidget.registerAction(location)
     
     def add_dock_widget(
         self, 
