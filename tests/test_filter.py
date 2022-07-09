@@ -15,10 +15,12 @@ def test_simple_filter(n):
 def test_function_filter():
     viewer = TableViewer(show=False)
     table = viewer.add_table({"a": np.arange(20), "b": np.zeros(20)})
-    table.filter = lambda df: df["a"] < np.median(df["a"])
+    filter_func = lambda df: df["a"] < np.median(df["a"])
+    table.filter = filter_func
     assert table.table_shape == (10, 2)
     table.data = {"a": np.sin(np.arange(30)), "val0": np.zeros(30), "val1": np.ones(30)}
+    assert table.table_shape == (30, 3)
+    table.filter = filter_func
     assert table.table_shape == (15, 3)
     table.filter = None
     assert table.table_shape == (30, 3)
-    

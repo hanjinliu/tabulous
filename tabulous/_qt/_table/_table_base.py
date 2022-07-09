@@ -70,6 +70,7 @@ class QTableLayerBase(QtW.QTableView):
     def setDataFrame(self, data: pd.DataFrame) -> None:
         self._data_raw = data
         self.model().df = data
+        self._filter_slice = None  # filter should be reset
         self.update()
         return
     
@@ -357,7 +358,7 @@ class QTableLayerBase(QtW.QTableView):
                 sl_filt = sl
             self.model().df = data_raw[sl_filt]
         self.update()
-    
+
 
 # modified from magicgui
 class TableItemDelegate(QtW.QStyledItemDelegate):
