@@ -1,6 +1,6 @@
 from __future__ import annotations
 import re
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, Callable, overload, TypeVar
 from psygnal import Signal, SignalGroup, SignalInstance
 from psygnal.containers import EventedList
 
@@ -48,6 +48,7 @@ class NamedListEvents(SignalGroup):
     child_event = Signal(int, object, SignalInstance, tuple)
     renamed = Signal(int, str)
 
+_F = TypeVar("_F", bound=Callable)
 
 class TableList(EventedList[TableLayer]):
     events: NamedListEvents
@@ -129,5 +130,18 @@ class TableList(EventedList[TableLayer]):
             
         return new_name
     
-    def register_action(self, location: str):
-        return self._parent._qwidget._tablist.registerAction(location)
+    @overload
+    def register_action(self, val: str) -> Callable[[_F], _F]:
+        ...
+    
+    @overload
+    def register_action(self, val: _F) -> _F:
+        ...
+    
+    def register_action(self, val):
+        """Register an action to the tablelist."""
+        if isinstance(val, str):
+            return self._parent._qwidget._tablist.registerAction(val)
+        elif callable(val):
+            location = val.__name__.replace("_", " ")
+            return self._parent._qwidget._tablist.registerAction(location)(val)

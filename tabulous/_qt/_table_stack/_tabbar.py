@@ -70,6 +70,10 @@ class QTabbedTableStack(QtW.QTabWidget, _QTableStackBase):
         """Move table from `src` to `dst`."""
         return self.tabBar().moveTab(src, dst)
 
+    def dragEnterEvent(self, a0: QtGui.QDragEnterEvent) -> None:
+        # This override is necessary for accepting drops from files.
+        a0.accept()
+        
     def dropEvent(self, a0: QtGui.QDropEvent) -> None:
         mime = a0.mimeData()
         self.itemDropped.emit(mime.text())

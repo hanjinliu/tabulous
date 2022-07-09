@@ -48,7 +48,7 @@ class QMainWidget(_QtMainWidgetBase):
 class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     _table_viewer: TableViewer
     _instances: list['QMainWindow'] = []
-    
+
     def __init__(self, widget_type: WidgetType | str = WidgetType.list):
         super().__init__()
         _QtMainWidgetBase.__init__(self, widget_type=widget_type)
