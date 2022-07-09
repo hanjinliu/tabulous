@@ -227,6 +227,7 @@ class QTableLayerBase(QtW.QTableView):
             raise e
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
+        print(e)
         if e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_C:
             headers = e.modifiers() & Qt.ShiftModifier
             return self.copyToClipboard(headers)
