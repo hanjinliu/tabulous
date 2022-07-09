@@ -1,1 +1,1 @@
-from ._table import QTableLayer
+from ._table import QTableLayer, QSpreadSheet

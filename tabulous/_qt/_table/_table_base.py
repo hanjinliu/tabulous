@@ -33,8 +33,10 @@ class QTableLayerBase(QtW.QTableView):
     
     def __init__(self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None):
         super().__init__(parent)
-        model = AbstractDataFrameModel(data=data)
+        model = self.createModel()
+        model.df = data
         self.setModel(model)
+        model.dataEdited.connect(self.setDataFrameValue)
         self.setDataFrame(data)
         self.setVerticalScrollMode(_SCROLL_PRE_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PRE_PIXEL)
@@ -49,20 +51,36 @@ class QTableLayerBase(QtW.QTableView):
 
         delegate = TableItemDelegate(parent=self)
         self.setItemDelegate(delegate)
-        
-        model.dataEdited.connect(self.setDataFrameValue)
-        
+
     def getDataFrame(self) -> pd.DataFrame:
         raise NotImplementedError()
+    
+    def createModel(self) -> AbstractDataFrameModel:
+        raise NotImplementedError()
+    
+    def dataShape(self) -> tuple[int, int]:
+        return self._data_raw.shape
 
-    def setDataFrame(self, data: pd.DataFrame):
+    def tableShape(self) -> tuple[int, int]:
+        model = self.model()
+        nr = model.rowCount()
+        nc = model.columnCount()
+        return (nr, nc)
+
+    def setDataFrame(self, data: pd.DataFrame) -> None:
         self._data_raw = data
         self.model().df = data
-        
-    def setDataFrameValue(self, r, c, value: Any) -> None:
+        self.update()
+        return
+    
+    def convertValue(self, r: int, c: int, value: Any) -> Any:
+        """Convert value before updating DataFrame."""
+        return value
+    
+    def setDataFrameValue(self, r: int, c: int, value: Any) -> None:
         data = self._data_raw
         try:
-            value = _DTYPE_KIND_TO_CONVERTER[data.dtypes[c].kind](value)
+            value = self.convertValue(r, c ,value)
         except Exception as e:
             return
         
@@ -94,6 +112,7 @@ class QTableLayerBase(QtW.QTableView):
         
         data.iloc[r0, c] = value
         self.itemChangedSignal.emit(ItemInfo(r, c, value, True))
+        self.update()
         return None
 
     def zoom(self) -> float:
@@ -337,6 +356,7 @@ class QTableLayerBase(QtW.QTableView):
             else:
                 sl_filt = sl
             self.model().df = data_raw[sl_filt]
+        self.update()
     
 
 # modified from magicgui
@@ -371,13 +391,3 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 text = f"{value:.{ndigits-1}e}"
 
         return text
-
-# TODO: datetime
-_DTYPE_KIND_TO_CONVERTER = {
-    "i": int,
-    "f": float,
-    "u": int,
-    "U": str,
-    "O": str,
-    "c": complex,
-}

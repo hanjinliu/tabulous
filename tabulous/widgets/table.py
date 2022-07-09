@@ -9,7 +9,7 @@ from .filtering import FilterProperty
 
 from ..types import SelectionRanges
 from .._protocols import BackendTableProtocol
-from .._qt import QTableLayer
+from .._qt import QTableLayer, QSpreadSheet
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -62,8 +62,13 @@ class TableLayerBase(ABC):
     
     @property
     def shape(self) -> tuple[int, int]:
+        """Shape of data."""
+        return self._qwidget.dataShape()
+    
+    @property
+    def table_shape(self) -> tuple[int, int]:
         """Shape of table."""
-        return self._qwidget.rowCount(), self._qwidget.columnCount()
+        return self._qwidget.tableShape()
 
     @property
     def precision(self) -> int:
@@ -134,6 +139,11 @@ class TableLayerBase(ABC):
             register_shortcut(seq, self._qwidget, partial(f, self))
         return register
 
+
 class TableLayer(TableLayerBase):
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
         return QTableLayer(data=data)
+
+class SpreadSheet(TableLayerBase):
+    def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
+        return QSpreadSheet(data=data)

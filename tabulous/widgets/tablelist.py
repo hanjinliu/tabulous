@@ -4,7 +4,7 @@ from typing import Any, TYPE_CHECKING, Callable, overload, TypeVar
 from psygnal import Signal, SignalGroup, SignalInstance
 from psygnal.containers import EventedList
 
-from .table import TableLayer
+from .table import TableLayerBase
 
 if TYPE_CHECKING:
     from .mainwindow import TableViewer
@@ -50,7 +50,7 @@ class NamedListEvents(SignalGroup):
 
 _F = TypeVar("_F", bound=Callable)
 
-class TableList(EventedList[TableLayer]):
+class TableList(EventedList[TableLayerBase]):
     events: NamedListEvents
     
     def __init__(self, parent: TableViewer):
@@ -58,8 +58,8 @@ class TableList(EventedList[TableLayer]):
         self.events = NamedListEvents()
         self._parent = parent
 
-    def insert(self, index: int, table: TableLayer):
-        if not isinstance(table, TableLayer):
+    def insert(self, index: int, table: TableLayerBase):
+        if not isinstance(table, TableLayerBase):
             raise TypeError(f"Cannot insert {type(table)} to {self.__class__.__name__}.")
         
         table.name = self._coerce_name(table.name, except_for=table)
@@ -76,7 +76,7 @@ class TableList(EventedList[TableLayer]):
                     
         super().insert(index, table)
     
-    def index(self, value: TableLayer | str, start: int = 0, stop: int = 999999) -> int:
+    def index(self, value: TableLayerBase | str, start: int = 0, stop: int = 999999) -> int:
         """Override of list.index(), also accepts str input."""
         if isinstance(value, str):
             for i, content in enumerate(self):
@@ -94,7 +94,7 @@ class TableList(EventedList[TableLayer]):
         table.name = name
         return None
     
-    def get(self, name: str, default: Any | None = None) -> TableLayer | None:
+    def get(self, name: str, default: Any | None = None) -> TableLayerBase | None:
         """Get a table with name `name` if exists."""
         for content in self:
             if content.name == name:
@@ -112,7 +112,7 @@ class TableList(EventedList[TableLayer]):
             key = self.index(key)
         return super().__delitem__(key)
 
-    def _coerce_name(self, name: str, except_for: TableLayer):
+    def _coerce_name(self, name: str, except_for: TableLayerBase):
         names = set(content.name for content in self if content is not except_for)
         
         suffix = re.findall(r".*-(\d+)", name)

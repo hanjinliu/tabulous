@@ -5,7 +5,7 @@ import weakref
 from typing import TYPE_CHECKING, Any, Callable, Union
 from psygnal import Signal, SignalGroup
 
-from .table import TableLayer
+from .table import TableLayer, SpreadSheet
 from .tablelist import TableList
 from .keybindings import register_shortcut
 
@@ -103,6 +103,10 @@ class _TableViewerBase:
     
     def add_table(self, data, *, name: str = None, editable: bool = False) -> TableLayer:
         table = TableLayer(data, name=name, editable=editable)
+        return self.add_layer(table)
+    
+    def add_spreadsheet(self, data, *, name: str = None, editable: bool = False) -> SpreadSheet:
+        table = SpreadSheet(data, name=name, editable=editable)
         return self.add_layer(table)
     
     def add_layer(self, layer):
