@@ -1,15 +1,57 @@
 from __future__ import annotations
 from typing import Any, Callable, Iterable, TYPE_CHECKING
-from qtpy.QtWidgets import QWidget
+from qtpy.QtWidgets import QWidget, QVBoxLayout
 from magicgui import register_type
 from magicgui.widgets import Widget, Container, ComboBox, Label
 from magicgui.widgets._bases import CategoricalWidget
+from magicgui.backends._qtpy.widgets import QBaseWidget
 
-from .widgets import TableViewer, TableLayer
-from .types import TableColumn, TableData, TableDataTuple, TableInfoInstance
+from .widgets import TableViewer, TableLayer, TableViewerWidget
+from .types import TableColumn, TableData, TableDataTuple, TableInfoInstance, WidgetType
 
 if TYPE_CHECKING:
     import pandas as pd
+
+# #############################################################################
+#    magicgui-widget
+# #############################################################################
+
+class MagicTableViewer(Widget, TableViewerWidget):
+    """
+    A magicgui widget of table viewer.
+    
+    This class is a subclass of ``magicgui.widget.Widget`` so that it can be used
+    in a compatible way with magicgui and napari.
+    
+    Parameters
+    ----------
+    widget_type: WidgetType or str
+        Type of list-like widget to use.
+    """
+    def __init__(
+        self,
+        *, 
+        widget_type: WidgetType | str = "list", 
+        name: str = "",
+        label: str = None,
+        tooltip: str | None = None,
+        visible: bool | None = None,
+        enabled: bool = True,
+    ):
+        super().__init__(
+            widget_type=QBaseWidget, backend_kwargs={"qwidg": QWidget}, name=name,
+            label=label, tooltip=tooltip, visible=visible, enabled=enabled,
+        )
+        TableViewerWidget.__init__(self, widget_type=widget_type, show=False)
+        self.native: QWidget
+        self.native.setLayout(QVBoxLayout())
+        self.native.layout().addWidget(self._qwidget)
+        self.native.setContentsMargins(0, 0, 0, 0)
+
+
+# #############################################################################
+#    magicgui type registration
+# #############################################################################
 
 _DEFAULT_NAME = "Result"
 
@@ -174,35 +216,3 @@ class ColumnNameChoice(Container):
         return (df, colnames)
 
 register_type(TableInfoInstance, widget_type=ColumnNameChoice, data_choices=get_table_data)
-
-
-# #############################################################################
-#    magicgui-widget
-# #############################################################################
-
-from magicgui.widgets import Widget
-from magicgui.backends._qtpy.widgets import QBaseWidget
-from .widgets import TableViewerWidget
-from qtpy import QtWidgets as QtW
-
-class MagicTableViewer(Widget, TableViewerWidget):
-    def __init__(
-        self,
-        *, 
-        widget_type="list", 
-        name: str = "",
-        label: str = None,
-        tooltip: str | None = None,
-        visible: bool | None = None,
-        enabled: bool = True,
-    ):
-        super().__init__(
-            widget_type=QBaseWidget, backend_kwargs={"qwidg": QWidget}, name=name,
-            label=label, tooltip=tooltip, visible=visible, enabled=enabled,
-        )
-        TableViewerWidget.__init__(self, widget_type=widget_type, show=False)
-        self.native: QWidget
-        self.native.setLayout(QtW.QVBoxLayout())
-        self.native.layout().addWidget(self._qwidget)
-        self.native.setContentsMargins(0, 0, 0, 0)
-        

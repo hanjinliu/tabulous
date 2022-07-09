@@ -58,7 +58,7 @@ class TableLayerBase(ABC):
             value = pd.DataFrame(value)
                 
         self._data = value
-        self._qwidget.updateDataFrame(value)
+        self._qwidget.refreshTable(value)
         self.refresh()
     
     @property

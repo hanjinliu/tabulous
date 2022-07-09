@@ -1,46 +1,66 @@
 from __future__ import annotations
-from typing import Any, Callable, NamedTuple, TYPE_CHECKING
 import weakref
-import numpy as np
+from typing import Any, NamedTuple, TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
-from ._utils import show_messagebox
-from ..types import FilterType
+from .._utils import show_messagebox
+from ...types import FilterType
 
 if TYPE_CHECKING:
     import pandas as pd
 
 
 class ItemInfo(NamedTuple):
+    """A named tuple for item update."""
     row: int
     column: int
     value: Any
     updated: bool
 
+# Flags
 _EDITABLE = QtW.QAbstractItemView.EditTrigger.EditKeyPressed | QtW.QAbstractItemView.EditTrigger.DoubleClicked
 _READ_ONLY = QtW.QAbstractItemView.EditTrigger.NoEditTriggers
 _SCROLL_PRE_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
-class QTableLayer(QtW.QTableWidget):
+
+class QTableLayerBase(QtW.QTableWidget):
     itemChangedSignal = Signal(ItemInfo)
     selectionChangedSignal = Signal(list)
+    _data_ref: weakref.ReferenceType[pd.DataFrame]
     
     def __init__(self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None):
         super().__init__(*data.shape, parent)
-        self.updateDataFrame(data)
         self.setVerticalScrollMode(_SCROLL_PRE_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PRE_PIXEL)
-        delegate = TableItemDelegate(parent=self)
-        self.setItemDelegate(delegate)
-        delegate.edited.connect(lambda x: self.itemChangedSignal.emit(self._update_data(*x)))
         self._editable = False
         self._zoom = 1.0
         self._initial_font_size = self.font().pointSize()
         self._default_h_size = self.horizontalHeader().defaultSectionSize()
         self._default_v_size = self.verticalHeader().defaultSectionSize()
         self._filter_slice: FilterType | None = None
+        self._data_filtrated: pd.DataFrame | None = None
         
+        self.refreshTable(data)
+        delegate = TableItemDelegate(parent=self)
+        self.setItemDelegate(delegate)
+        delegate.edited.connect(
+            lambda x: self.itemChangedSignal.emit(self.normalizeData(*x))
+        )
+        
+    def getDataFrame(self, sl) -> pd.DataFrame:
+        raise NotImplementedError()
+
+    def refreshTable(self, data: pd.DataFrame | None):
+        raise NotImplementedError()
+
+    def setDataFrameValue(self, r, c, value: Any) -> None:
+        raise NotImplementedError()
+    
+    def normalizeData(self, row: int, col: int) -> ItemInfo:
+        """Called when item is edited."""
+        raise NotImplementedError()
+
     def zoom(self) -> float:
         """Get current zoom factor."""
         return self._zoom
@@ -72,70 +92,6 @@ class QTableLayer(QtW.QTableWidget):
         pos = self.mapFromGlobal(QtGui.QCursor().pos())
         item = self.itemAt(pos)
         return item.row(), item.column()
-    
-    def getDataFrame(self) -> pd.DataFrame:
-        data = self._data_ref()
-        if data is None:
-            raise ValueError("DataFrame is deleted.")
-        
-        if self._filter_slice is None:
-            return data
-        elif callable(self._filter_slice):
-            sl = self._filter_slice(data)
-        else:
-            sl = self._filter_slice
-        return data[sl]
-    
-    def updateDataFrame(self, value: pd.DataFrame):
-        self._data_ref: weakref.ReferenceType[pd.DataFrame] = weakref.ref(value)
-        nr = self.rowCount()
-        nc = self.columnCount()
-        
-        nr_data, nc_data = value.shape
-        
-        # check shape mismatch between DataFrame and table widget.
-        if nr > nr_data:
-            [self.removeRow(nr_data) for _ in range(nr - nr_data)]
-        elif nr < nr_data:
-            [self.insertRow(i) for i in range(nr_data - nr)]
-            
-        if nc > nc_data:
-            [self.removeColumn(nc_data) for _ in range(nc - nc_data)]
-        elif nc < nc_data:
-            [self.insertColumn(i) for i in range(nc_data - nc)]
-        
-        return None
-    
-    def setDataFrameValue(self, r, c, value: Any, absolute: bool = True) -> None:
-        data = self._data_ref()
-        if self._filter_slice is None:
-            data.iloc[r, c] = value
-            return
-        elif callable(self._filter_slice):
-            sl = self._filter_slice(data)
-        else:
-            sl = self._filter_slice
-        
-        cum = np.cumsum(sl)  # NOTE: this is not efficient if table is large
-        if np.isscalar(r):
-            r0 = np.where(cum == r + 1)[0]
-            
-        elif isinstance(r, slice):
-            r_start, r_stop, r_step = r.indices(cum.shape[0])
-            if r_step != 1:
-                raise ValueError("step must not be >1.")
-            start = np.where(cum == r_start + 1)[0][0]
-            stop = np.where(cum == r_stop + 1)[0][0]
-        
-            r0 = np.array(sl, copy=True)
-            r0[:start] = False
-            r0[stop:] = False
-            
-        else:
-            raise TypeError(type(r))
-        
-        data.iloc[r0, c] = value
-        return None
 
     if TYPE_CHECKING:
         def itemDelegate(self) -> TableItemDelegate: ...
@@ -172,7 +128,12 @@ class QTableLayer(QtW.QTableWidget):
         self.selectionChangedSignal.connect(slot)
         return slot
     
-    def selectionChanged(self, selected: QtCore.QItemSelection, deselected: QtCore.QItemSelection) -> None:
+    def selectionChanged(
+        self,
+        selected: QtCore.QItemSelection,
+        deselected: QtCore.QItemSelection,
+    ) -> None:
+        """Evoked when table selection range is changed."""
         self.selectionChangedSignal.emit(self.selections())
         return super().selectionChanged(selected, deselected)
     
@@ -206,27 +167,7 @@ class QTableLayer(QtW.QTableWidget):
         except Exception as e:
             self.clearSelection()
             raise e
-        
-    def _update_data(self, row: int, col: int):
-        item = self.item(row, col)
 
-        r = item.row()
-        c = item.column()
-        text = item.text()
-        
-        data = self.getDataFrame()
-        dtype = data.dtypes[c]
-        try:
-            value = _DTYPE_KIND_TO_CONVERTER[dtype.kind](text)
-        except Exception as e:
-            self.refreshTable()
-            updated = False
-        else:
-            self.setDataFrameValue(r, c, value)
-            updated = True
-        return ItemInfo(r, c, value, updated)
-        
-    
     def verticalScrollbarValueChanged(self, value: int) -> None:
         self.refreshTable()
         return super().verticalScrollbarValueChanged(value)
@@ -352,57 +293,7 @@ class QTableLayer(QtW.QTableWidget):
         self.refreshTable()
         return None
         
-    def refreshTable(self):
-        data = self.getDataFrame()
-        r0, c0, r1, c1 = self._get_square()
-        
-        nr = self.rowCount()
-        nc = self.columnCount()
-        
-        nr_data, nc_data = self.getDataFrame().shape
-        
-        # check shape mismatch between DataFrame and table widget.
-        if nr > nr_data:
-            [self.removeRow(nr_data) for _ in range(nr - nr_data)]
-        elif nr < nr_data:
-            [self.insertRow(i) for i in range(nr_data - nr)]
-        
-        if nc > nc_data:
-            [self.removeColumn(nc_data) for _ in range(nc - nc_data)]
-        elif nc < nc_data:
-            [self.insertColumn(i) for i in range(nc_data - nc)]
-            
-        r1 = min(r1, nr_data)
-        c1 = min(c1, nc_data)
-            
-        vindex = data.index
-        hindex = data.columns
-        for r in range(r0, r1):
-            vitem = self.verticalHeaderItem(r)
-            text = str(vindex[r])
-            if vitem is not None:
-                vitem.setText(text)
-            else:
-                self.setVerticalHeaderItem(r, QtW.QTableWidgetItem(text))
-            for c in range(c0, c1):
-                item = self.item(r, c)
-                text = str(data.iloc[r, c])
-                if item is not None:
-                    self.item(r, c).setText(text)
-                else:
-                    item = QtW.QTableWidgetItem(text)
-                    self.setItem(r, c, item)
-                # item.setBackground()
-        
-        for c in range(c0, c1):
-            hitem = self.horizontalHeaderItem(c)
-            text = str(hindex[c])
-            if hitem is not None:
-                hitem.setText(text)
-            else:
-                self.setHorizontalHeaderItem(c, QtW.QTableWidgetItem(text))
-    
-    def _get_square(self) -> tuple[int, int, int, int]:
+    def getCurrentSquare(self) -> tuple[int, int, int, int]:
         """Get index range of (row_start, column_start, row_end, column_end)."""
         r0 = self.rowAt(0)
         c0 = self.columnAt(0)
@@ -419,6 +310,17 @@ class QTableLayer(QtW.QTableWidget):
 
     def setFilter(self, sl: FilterType):
         self._filter_slice = sl
+        if sl is None:
+            self._data_filtrated = None
+        else:
+            data = self._data_ref()
+            
+            if callable(self._filter_slice):
+                sl_filt = self._filter_slice(data)
+            else:
+                sl_filt = self._filter_slice
+            self._data_filtrated = data[sl_filt]
+        
         self.refreshTable()
 
 
@@ -464,14 +366,4 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 text = f"{value:.{ndigits-1}e}"
 
         return text
-
-# TODO: datetime
-_DTYPE_KIND_TO_CONVERTER = {
-    "i": int,
-    "f": float,
-    "u": int,
-    "U": str,
-    "O": str,
-    "c": complex,
-}
 

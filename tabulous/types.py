@@ -77,7 +77,7 @@ class SelectionRanges(EventedList[tuple[slice, slice]]):
         self._changed.emit(self)
         return value
 
-FilterType = Union[Callable[["pd.DataFrame"], ArrayLike], ArrayLike]
+FilterType = Union[Callable[["pd.DataFrame"], np.ndarray], np.ndarray]
 
 class WidgetType(Enum):
     list = "list"
