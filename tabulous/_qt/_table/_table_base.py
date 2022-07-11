@@ -87,7 +87,7 @@ class QTableLayerBase(QtW.QTableView):
     
     def setDataFrameValue(self, r, c, value) -> None:
         data = self._data_raw
-        
+
         # convert values
         if isinstance(r, int) and isinstance(c, int):
             _value = self.convertValue(r, c ,value)
@@ -117,7 +117,6 @@ class QTableLayerBase(QtW.QTableView):
             spec = np.where(sl)[0].tolist()
             r0 = spec[r]
             self.model().updateValue(r, c, _value)
-            
         data.iloc[r0, c] = _value
         self.itemChangedSignal.emit(ItemInfo(r, c, _value))
         self.viewport().update()

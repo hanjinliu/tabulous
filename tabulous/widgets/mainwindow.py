@@ -102,10 +102,12 @@ class _TableViewerBase:
         self._qwidget.show()
     
     def add_table(self, data, *, name: str = None, editable: bool = False) -> TableLayer:
+        """Add data as a table."""
         table = TableLayer(data, name=name, editable=editable)
         return self.add_layer(table)
     
-    def add_spreadsheet(self, data, *, name: str = None, editable: bool = False) -> SpreadSheet:
+    def add_spreadsheet(self, data, *, name: str = None, editable: bool = True) -> SpreadSheet:
+        """Add data as a spreadsheet."""
         table = SpreadSheet(data, name=name, editable=editable)
         return self.add_layer(table)
     

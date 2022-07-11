@@ -49,7 +49,7 @@ class TableLayerBase(ABC):
     @property
     def data(self) -> pd.DataFrame:
         """Table data."""
-        return self._data
+        return self._qwidget.getDataFrame()
     
     @data.setter
     def data(self, value):
