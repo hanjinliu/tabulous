@@ -279,6 +279,10 @@ class QTableLayerBase(QtW.QTableView):
             ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
             ref.to_clipboard(index=headers, header=headers)
     
+    def readClipBoard(self):
+        import pandas as pd
+        return pd.read_clipboard(header=None)
+        
     def pasteFromClipBoard(self):
         """
         Paste data to table.
@@ -303,8 +307,7 @@ class QTableLayerBase(QtW.QTableView):
                 parent=self,
             )
         
-        import pandas as pd
-        df = pd.read_clipboard(header=None)
+        df = self.readClipBoard()
         
         # check size and normalize selection slices
         sel = selections[0]
@@ -370,7 +373,7 @@ class QTableLayerBase(QtW.QTableView):
             else:
                 sl_filt = sl
             self.model().df = data_raw[sl_filt]
-        self.update()
+        self.viewport().update()
 
 
 # modified from magicgui

@@ -60,6 +60,28 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         r, c = index.row(), index.column()
         self.dataEdited.emit(r, c, value)
         return True
+    
+    def setShape(self, nrow: int, ncol: int):
+        r0, c0 = self.rowCount(), self.columnCount()
+        dr = nrow - r0
+        dc = ncol - c0
+        _modidx = QtCore.QModelIndex()
+        if dr > 0:
+            self.beginInsertRows(_modidx, r0, r0 + dr - 1)
+            self.insertRows(r0, dr, _modidx)
+            self.endInsertRows()
+        elif dr < 0:
+            self.beginRemoveRows(_modidx, r0 + dr, r0 - 1)
+            self.removeRows(r0+dr, -dr, _modidx)
+            self.endRemoveRows()
+        if dc > 0:
+            self.beginInsertColumns(_modidx, c0, c0 + dc - 1)
+            self.insertColumns(c0, dc, _modidx)
+            self.endInsertColumns()
+        elif dc < 0:
+            self.beginRemoveColumns(_modidx, c0 + dc, c0 - 1)
+            self.removeColumns(c0+dc, -dc, _modidx)
+            self.endRemoveColumns()
 
 class DataFrameModel(AbstractDataFrameModel):
     
@@ -71,27 +93,7 @@ class DataFrameModel(AbstractDataFrameModel):
     def df(self, data: pd.DataFrame):
         if data is self._df:
             return
-        old_shape = self.df.shape
-        new_shape = data.shape
-        dr = new_shape[0] - old_shape[0]
-        dc = new_shape[1] - old_shape[1]
-        if dr > 0:
-            self.beginInsertRows(QtCore.QModelIndex(), old_shape[0], old_shape[0]+dr-1)
-            self.insertRows(old_shape[0], dr, QtCore.QModelIndex())
-            self.endInsertRows()
-        elif dr < 0:
-            self.beginRemoveRows(QtCore.QModelIndex(), old_shape[0]+dr, old_shape[0]-1)
-            self.removeRows(old_shape[0]+dr, -dr, QtCore.QModelIndex())
-            self.endRemoveRows()
-        if dc > 0:
-            self.beginInsertColumns(QtCore.QModelIndex(), old_shape[1], old_shape[1]+dc-1)
-            self.insertColumns(old_shape[1], dc, QtCore.QModelIndex())
-            self.endInsertColumns()
-        elif dc < 0:
-            self.beginRemoveColumns(QtCore.QModelIndex(), old_shape[1]+dc, old_shape[1]-1)
-            self.removeColumns(old_shape[1]+dc, -dc, QtCore.QModelIndex())
-            self.endRemoveColumns()
-        
+        self.setShape(*self.df.shape)
         self._df = data
     
     def rowCount(self, parent=None):
@@ -114,7 +116,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
         self._df = data
 
     def rowCount(self, parent=None):
-        return MAX_ROW_SIZE
+        return min(self._df.shape[0] + 10, MAX_ROW_SIZE)
 
     def columnCount(self, parent=None):
-        return MAX_COLUMN_SIZE
+        return min(self._df.shape[1] + 10, MAX_COLUMN_SIZE)
