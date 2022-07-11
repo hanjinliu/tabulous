@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, overload
 from functools import partial
 from psygnal import SignalGroup, Signal
 
@@ -9,10 +9,10 @@ from .filtering import FilterProperty
 
 from ..types import SelectionRanges
 from .._protocols import BackendTableProtocol
-from .._qt import QTableLayer, QSpreadSheet
 
 if TYPE_CHECKING:
     import pandas as pd
+    from .._qt import QTableLayer, QSpreadSheet
 
 
 class TableSignals(SignalGroup):
@@ -131,6 +131,31 @@ class TableLayerBase(ABC):
     def selections(self, value) -> None:
         self._qwidget.setSelections(value)
     
+    @overload
+    def update(self, value: dict[str, Any]) -> None:
+        ...
+    
+    @overload
+    def update(self, **kwargs: dict[str, Any]) -> None:
+        ...
+    
+    def update(self, value=None, **kwargs) -> None:
+        """Update DataFrame using a dictionary-like representation."""
+        if value is not None:
+            if kwargs:
+                raise ValueError("Cannot specify both value and kwargs.")
+            kwargs = value
+        data = self.data.copy()
+        for k, v in kwargs.items():
+            data[k] = v
+        self.data = data
+        self._qwidget.refresh()
+        return None
+    
+    def refresh(self) -> None:
+        """Refresh the table view."""
+        return self._qwidget.refresh()
+    
     filter = FilterProperty()
     
     def bind_key(self, *seq) -> Callable[[TableLayerBase], Any | None]:
@@ -142,8 +167,10 @@ class TableLayerBase(ABC):
 
 class TableLayer(TableLayerBase):
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
+        from .._qt import QTableLayer
         return QTableLayer(data=data)
 
 class SpreadSheet(TableLayerBase):
-    def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
+    def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
+        from .._qt import QSpreadSheet
         return QSpreadSheet(data=data)

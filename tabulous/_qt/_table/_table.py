@@ -1,18 +1,24 @@
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING
+from typing import Any
+from io import StringIO
 import numpy as np
-from qtpy import QtCore
+import pandas as pd
+
 from ._table_base import QTableLayerBase
 from ._model import DataFrameModel, SpreadSheetModel
-
-if TYPE_CHECKING:
-    import pandas as pd
 
 
 class QTableLayer(QTableLayerBase):
 
     def getDataFrame(self) -> pd.DataFrame:
         return self._data_raw
+
+    def setDataFrame(self, data: pd.DataFrame) -> None:
+        self._data_raw = data
+        self.model().df = data
+        self._filter_slice = None  # filter should be reset
+        self.viewport().update()
+        return
 
     def createModel(self) -> DataFrameModel:
         return DataFrameModel(self)
@@ -22,15 +28,27 @@ class QTableLayer(QTableLayerBase):
         kind = self._data_raw.dtypes[c].kind
         return _DTYPE_CONVERTER[kind](value)
 
-# TODO: datetime
+def _bool_converter(val: Any):
+    if isinstance(val, str):
+        if val in ("True", "1", "true"):
+            return True
+        elif val in ("False", "0", "false"):
+            return False
+        else:
+            raise ValueError(f"Cannot convert {val} to bool.")
+    else:
+        return bool(val)
+    
 _DTYPE_CONVERTER = {
     "i": int,
     "f": float,
     "u": int,
-    "b": bool,
+    "b": _bool_converter,
     "U": str,
-    "O": str,
+    "O": lambda e: e,
     "c": complex,
+    "M": pd.to_datetime,
+    "m": pd.to_timedelta,
 }
 
 class QSpreadSheet(QTableLayerBase):
@@ -41,13 +59,21 @@ class QSpreadSheet(QTableLayerBase):
     determined every time table data is converted into DataFrame. Table data
     is (almost) unbounded.
     """
-    
+    def __init__(self, parent = None, data: pd.DataFrame | None = None):
+        super().__init__(parent, data)
+        self._data_cache = None
+
     def getDataFrame(self) -> pd.DataFrame:
-        # TODO: dtype is not correctly inferred
-        return self._data_raw.infer_objects()
+        if self._data_cache is not None:
+            return self._data_cache
+        buf = StringIO(self._data_raw.to_string(index=False))
+        out = pd.read_csv(buf, sep="\s+")
+        self._data_cache = out
+        return out
     
     def setDataFrame(self, data: pd.DataFrame) -> None:
         self._data_raw = data.astype("string")
+        self._data_cache = None
         self.model().df = data
         self._filter_slice = None  # filter should be reset
         self.update()
@@ -61,14 +87,12 @@ class QSpreadSheet(QTableLayerBase):
         return value
     
     def readClipBoard(self):
-        import pandas as pd
         return pd.read_clipboard(header=None).astype("string")
     
     def setDataFrameValue(self, r: int | slice, c: int | slice, value: Any) -> None:
         if isinstance(value, str) and value == "":
             return
 
-        import pandas as pd
         nr, nc = self._data_raw.shape
         rmax = _get_limit(r)
         cmax = _get_limit(c)
@@ -90,13 +114,14 @@ class QSpreadSheet(QTableLayerBase):
             new_shape = self._data_raw.shape
             self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
             self.model().df = self._data_raw
+        self._data_cache = None
         return super().setDataFrameValue(r, c, value)
 
-def _get_limit(a):
+def _get_limit(a) -> int:
     if isinstance(a, int):
         amax = a
     elif isinstance(a, slice):
-        amax = a.stop
+        amax = a.stop - 1
     else:
         raise TypeError(f"Cannot infer limit of type {type(a)}")
     return amax

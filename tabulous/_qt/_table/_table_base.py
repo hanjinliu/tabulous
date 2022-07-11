@@ -1,17 +1,14 @@
 from __future__ import annotations
-from typing import Any, NamedTuple, TYPE_CHECKING, overload
+from typing import Any, NamedTuple, overload, TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
+import pandas as pd
 
 import numpy as np
 from ._model import AbstractDataFrameModel
 
 from .._utils import show_messagebox
 from ...types import FilterType
-
-if TYPE_CHECKING:
-    from numpy.typing import ArrayLike
-    import pandas as pd
 
 
 class ItemInfo(NamedTuple):
@@ -29,6 +26,7 @@ _SCROLL_PRE_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 class QTableLayerBase(QtW.QTableView):
     itemChangedSignal = Signal(ItemInfo)
     selectionChangedSignal = Signal(list)
+    _data_raw: pd.DataFrame
     
     def __init__(self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None):
         super().__init__(parent)
@@ -54,6 +52,9 @@ class QTableLayerBase(QtW.QTableView):
     def getDataFrame(self) -> pd.DataFrame:
         raise NotImplementedError()
     
+    def setDataFrame(self) -> None:
+        raise NotImplementedError()
+    
     def createModel(self) -> AbstractDataFrameModel:
         raise NotImplementedError()
     
@@ -65,13 +66,6 @@ class QTableLayerBase(QtW.QTableView):
         nr = model.rowCount()
         nc = model.columnCount()
         return (nr, nc)
-
-    def setDataFrame(self, data: pd.DataFrame) -> None:
-        self._data_raw = data
-        self.model().df = data
-        self._filter_slice = None  # filter should be reset
-        self.update()
-        return
     
     def convertValue(self, r: int, c: int, value: Any) -> Any:
         """Convert value before updating DataFrame."""
@@ -119,7 +113,7 @@ class QTableLayerBase(QtW.QTableView):
             self.model().updateValue(r, c, _value)
         data.iloc[r0, c] = _value
         self.itemChangedSignal.emit(ItemInfo(r, c, _value))
-        self.viewport().update()
+        self.refresh()
         return None
 
     def zoom(self) -> float:
@@ -253,7 +247,7 @@ class QTableLayerBase(QtW.QTableView):
         return super().wheelEvent(a0)
     
     def copyToClipboard(self, headers: bool = True):
-        import pandas as pd
+        """Copy currently selected cells to clipboard."""
         selections = self.selections()
         if len(selections) == 0:
             return
@@ -279,8 +273,8 @@ class QTableLayerBase(QtW.QTableView):
             ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
             ref.to_clipboard(index=headers, header=headers)
     
-    def readClipBoard(self):
-        import pandas as pd
+    def readClipBoard(self) -> pd.DataFrame:
+        """Read clipboard data and return as pandas DataFrame."""
         return pd.read_clipboard(header=None)
         
     def pasteFromClipBoard(self):
@@ -373,7 +367,10 @@ class QTableLayerBase(QtW.QTableView):
             else:
                 sl_filt = sl
             self.model().df = data_raw[sl_filt]
-        self.viewport().update()
+        self.refresh()
+    
+    def refresh(self) -> None:
+        return self.viewport().update()
 
 
 # modified from magicgui
