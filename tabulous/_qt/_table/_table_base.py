@@ -227,7 +227,6 @@ class QTableLayerBase(QtW.QTableView):
             raise e
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
-        print(e)
         if e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_C:
             headers = e.modifiers() & Qt.ShiftModifier
             return self.copyToClipboard(headers)
@@ -265,7 +264,7 @@ class QTableLayerBase(QtW.QTableView):
             )
             return
         else:
-            data = self.getDataFrame()
+            data = self.model().df
             if nr == 1:
                 axis = 1
             else:
@@ -287,16 +286,15 @@ class QTableLayerBase(QtW.QTableView):
         """
         selections = self.selections()
         n_selections = len(selections)
-        if n_selections == 0:
+        if n_selections == 0 or not self.editability():
             return
         elif n_selections > 1:
-            show_messagebox(
+            return show_messagebox(
                 mode="error",
                 title="Error",
                 text="Cannot paste with multiple selections.", 
                 parent=self,
             )
-            return
         
         import pandas as pd
         df = pd.read_clipboard(header=None)
@@ -311,13 +309,27 @@ class QTableLayerBase(QtW.QTableView):
         if rlen * clen == 1 and size > 1:
             sel = (slice(rrange.start, rrange.start + dr), slice(crange.start, crange.start + dc))
         elif size > 1 and dc(rlen, clen) != (dr, dc):
-            show_messagebox(
+            return show_messagebox(
                 mode="error",
                 title="Error",
-                text=f"Shape mismatch between data in clipboard {(rlen, clen)} and destination {(dr, dc)}.", 
+                text=f"Shape mismatch between data in clipboard {(rlen, clen)} and "
+                    f"destination {(dr, dc)}.", 
                 parent=self,
             )
-            return
+    
+        # check dtype
+        dtype_src = df.dtypes
+        dtype_dst = self._data_raw.dtypes[sel[1]]
+        if np.any(dtype_src != dtype_dst):
+            return show_messagebox(
+                mode="error",
+                title="Error",
+                text=f"Data type mismatch between data in clipboard {list(dtype_src)} and "
+                    f"destination {list(dtype_dst)}.",
+                parent=self,
+            )
+        
+        # update table
         try:
             self.setDataFrameValue(sel[0], sel[1], df.values)
         except Exception as e:
@@ -330,23 +342,13 @@ class QTableLayerBase(QtW.QTableView):
             return
 
         return None
-        
-    def getCurrentSquare(self) -> tuple[int, int, int, int]:
-        """Get index range of (row_start, column_start, row_end, column_end)."""
-        r0 = self.rowAt(0)
-        c0 = self.columnAt(0)
-        r1 = self.rowAt(self.height())
-        c1 = self.columnAt(self.width())
-        if r1 < 0:
-            r1 = self.model().rowCount() - 1
-        if c1 < 0:
-            c1 = self.model().columnCount() - 1
-        return r0, c0, r1 + 1, c1 + 1
 
     def filter(self) -> FilterType | None:
+        """Return the current filter."""
         return self._filter_slice
 
     def setFilter(self, sl: FilterType):
+        """Set filter to the table view."""
         self._filter_slice = sl
         data_raw = self._data_raw
         
