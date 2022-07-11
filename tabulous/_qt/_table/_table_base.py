@@ -1,6 +1,5 @@
 from __future__ import annotations
-import weakref
-from typing import Any, NamedTuple, TYPE_CHECKING
+from typing import Any, NamedTuple, TYPE_CHECKING, overload
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
@@ -11,6 +10,7 @@ from .._utils import show_messagebox
 from ...types import FilterType
 
 if TYPE_CHECKING:
+    from numpy.typing import ArrayLike
     import pandas as pd
 
 
@@ -19,7 +19,6 @@ class ItemInfo(NamedTuple):
     row: int
     column: int
     value: Any
-    updated: bool
 
 # Flags
 _EDITABLE = QtW.QAbstractItemView.EditTrigger.EditKeyPressed | QtW.QAbstractItemView.EditTrigger.DoubleClicked
@@ -78,42 +77,50 @@ class QTableLayerBase(QtW.QTableView):
         """Convert value before updating DataFrame."""
         return value
     
+    @overload
     def setDataFrameValue(self, r: int, c: int, value: Any) -> None:
+        ...
+    
+    @overload
+    def setDataFrameValue(self, r: slice, c: slice, value: pd.DataFrame) -> None:
+        ...
+    
+    def setDataFrameValue(self, r, c, value) -> None:
         data = self._data_raw
-        try:
-            value = self.convertValue(r, c ,value)
-        except Exception as e:
-            return
+        
+        # convert values
+        if isinstance(r, int) and isinstance(c, int):
+            _value = self.convertValue(r, c ,value)
+        elif isinstance(r, slice) and isinstance(c, slice):
+            _value: pd.DataFrame = value
+            if _value.size == 1:
+                v = _value.values[0 ,0]
+                _value = data.iloc[r, c].copy()
+                for _ir, _r in enumerate(range(r.start, r.stop)):
+                    for _ic, _c in enumerate(range(c.start, c.stop)):
+                        _value.iloc[_ir, _ic] = self.convertValue(_r, _c, v)
+            else:
+                for _ir, _r in enumerate(range(r.start, r.stop)):
+                    for _ic, _c in enumerate(range(c.start, c.stop)):
+                        _value.iloc[_ir, _ic] = self.convertValue(_r, _c, _value.iloc[_ir, _ic])
+        else:
+            raise TypeError
         
         if self._filter_slice is None:
-            data.iloc[r, c] = value
-            return
-        elif callable(self._filter_slice):
-            sl = self._filter_slice(data)
+            r0 = r
         else:
-            sl = self._filter_slice
-        
-        cum = np.cumsum(sl)  # NOTE: this is not efficient if table is large
-        if np.isscalar(r):
-            r0 = np.where(cum == r + 1)[0]
+            if callable(self._filter_slice):
+                sl = self._filter_slice(data)
+            else:
+                sl = self._filter_slice
             
-        elif isinstance(r, slice):
-            r_start, r_stop, r_step = r.indices(cum.shape[0])
-            if r_step != 1:
-                raise ValueError("step must not be >1.")
-            start = np.where(cum == r_start + 1)[0][0]
-            stop = np.where(cum == r_stop + 1)[0][0]
-        
-            r0 = np.array(sl, copy=True)
-            r0[:start] = False
-            r0[stop:] = False
+            spec = np.where(sl)[0].tolist()
+            r0 = spec[r]
+            self.model().updateValue(r, c, _value)
             
-        else:
-            raise TypeError(type(r))
-        
-        data.iloc[r0, c] = value
-        self.itemChangedSignal.emit(ItemInfo(r, c, value, True))
-        self.update()
+        data.iloc[r0, c] = _value
+        self.itemChangedSignal.emit(ItemInfo(r, c, _value))
+        self.viewport().update()
         return None
 
     def zoom(self) -> float:
@@ -121,6 +128,7 @@ class QTableLayerBase(QtW.QTableView):
         return self._zoom
     
     def setZoom(self, value: float) -> None:
+        """Set zoom factor."""
         if not 0.25 <= value <= 2.0:
             raise ValueError("Zoom factor must between 0.25 and 2.0.")
         # To keep table at the same position.
@@ -299,7 +307,7 @@ class QTableLayerBase(QtW.QTableView):
         import pandas as pd
         df = pd.read_clipboard(header=None)
         
-        # check size
+        # check size and normalize selection slices
         sel = selections[0]
         rrange, crange = sel
         rlen = rrange.stop - rrange.start
@@ -308,7 +316,7 @@ class QTableLayerBase(QtW.QTableView):
         size = dr * dc
         if rlen * clen == 1 and size > 1:
             sel = (slice(rrange.start, rrange.start + dr), slice(crange.start, crange.start + dc))
-        elif size > 1 and dc(rlen, clen) != (dr, dc):
+        elif size > 1 and (rlen, clen) != (dr, dc):
             return show_messagebox(
                 mode="error",
                 title="Error",
@@ -317,10 +325,12 @@ class QTableLayerBase(QtW.QTableView):
                 parent=self,
             )
     
+        rsel, csel = sel
+        
         # check dtype
         dtype_src = df.dtypes
-        dtype_dst = self._data_raw.dtypes[sel[1]]
-        if np.any(dtype_src != dtype_dst):
+        dtype_dst = self._data_raw.dtypes[csel]
+        if any(a.kind != b.kind for a, b in zip(dtype_src.values, dtype_dst.values)):
             return show_messagebox(
                 mode="error",
                 title="Error",
@@ -331,7 +341,8 @@ class QTableLayerBase(QtW.QTableView):
         
         # update table
         try:
-            self.setDataFrameValue(sel[0], sel[1], df.values)
+            self.setDataFrameValue(rsel, csel, df)
+            
         except Exception as e:
             show_messagebox(
                 mode="error",
@@ -339,7 +350,7 @@ class QTableLayerBase(QtW.QTableView):
                 text=str(e), 
                 parent=self,
             )
-            return
+            raise e from None
 
         return None
 
@@ -395,3 +406,9 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 text = f"{value:.{ndigits-1}e}"
 
         return text
+
+def _normalize_slice(sl, r):
+    # sl: boolean array
+    spec = np.where(sl)[0].tolist()
+    r0 = spec[r]
+    return r0

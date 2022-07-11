@@ -1,4 +1,5 @@
 from __future__ import annotations
+import warnings
 from qtpy import QtCore
 from qtpy.QtCore import Qt, Signal
 import pandas as pd
@@ -15,6 +16,11 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     @property
     def df(self) -> pd.DataFrame:
         return self._df
+    
+    def updateValue(self, r, c, val):
+        # pandas warns but no problem
+        with warnings.catch_warnings():
+            self._df.iloc[r, c] = val
     
     def data(self, index: QtCore.QModelIndex, role: Qt.ItemDataRole = Qt.ItemDataRole.DisplayRole):
         if not index.isValid():
