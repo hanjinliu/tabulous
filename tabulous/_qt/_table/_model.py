@@ -77,6 +77,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return True
 
     def setShape(self, nrow: int, ncol: int):
+        """Set table shape."""
         r0, c0 = self.rowCount(), self.columnCount()
         dr = nrow - r0
         dc = ncol - c0

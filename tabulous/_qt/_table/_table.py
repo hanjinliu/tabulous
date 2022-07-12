@@ -67,8 +67,9 @@ class QSpreadSheet(QTableLayerBase):
         if self._data_cache is not None:
             return self._data_cache
         # Convert table data into a DataFrame with the optimal dtypes
-        buf = StringIO(self._data_raw.to_string())
-        out = pd.read_csv(buf, sep="\s+")
+        buf = StringIO(self._data_raw.to_csv(sep="\t", index_label="_INDEX_"))
+        out = pd.read_csv(buf, sep="\t", index_col="_INDEX_")
+        out.index.name = None
         self._data_cache = out
         return out
     

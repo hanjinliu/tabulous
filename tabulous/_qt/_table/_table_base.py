@@ -376,9 +376,9 @@ class QTableLayerBase(QtW.QTableView):
             rsel, csel = sel
             nr = rsel.stop - rsel.start
             nc = csel.stop - csel.start
+            dtypes = list(self._data_raw.dtypes[csel])
             df = pd.DataFrame(
-                {c: np.full(nr, np.nan) for c in range(nc)}, 
-                dtype=self._data_raw.dtypes[csel]
+                {c: pd.Series(np.full(nr, np.nan), dtype=dtypes[c]) for c in range(nc)}, 
             )
             self.setDataFrameValue(rsel, csel, df)
 
@@ -492,7 +492,6 @@ class QTableLayerBase(QtW.QTableView):
         self.model().df.rename(index=mapping, inplace=True)
         _width_hint = _header.sizeHint().width()
         _header.resize(QtCore.QSize(_width_hint, _header.height()))
-        _header.viewport().update()
 
 
 # modified from magicgui
