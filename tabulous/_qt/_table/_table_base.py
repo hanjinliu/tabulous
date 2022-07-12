@@ -6,7 +6,6 @@ import pandas as pd
 
 import numpy as np
 from ._model import AbstractDataFrameModel
-from ._header import QTableHeader
 from .._utils import show_messagebox
 from ...types import FilterType
 
@@ -315,16 +314,29 @@ class QTableLayerBase(QtW.QTableView):
         clen = crange.stop - crange.start
         dr, dc = df.shape
         size = dr * dc
+
         if rlen * clen == 1 and size > 1:
             sel = (slice(rrange.start, rrange.start + dr), slice(crange.start, crange.start + dc))
+
         elif size > 1 and (rlen, clen) != (dr, dc):
-            return show_messagebox(
-                mode="error",
-                title="Error",
-                text=f"Shape mismatch between data in clipboard {(rlen, clen)} and "
-                    f"destination {(dr, dc)}.", 
-                parent=self,
-            )
+            # If selection is column-wide or row-wide, resize them
+            if rlen == self.model().df.shape[0]:
+                rrange = slice(0, dr)
+                rlen = dr
+            if clen == self.model().df.shape[1]:
+                crange = slice(0, dc)
+                clen = dc
+            
+            if (rlen, clen) != (dr, dc):
+                return show_messagebox(
+                    mode="error",
+                    title="Error",
+                    text=f"Shape mismatch between data in clipboard {(rlen, clen)} and "
+                        f"destination {(dr, dc)}.", 
+                    parent=self,
+                )
+            else:
+                sel = (rrange, crange)
     
         rsel, csel = sel
         
