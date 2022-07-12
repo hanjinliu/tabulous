@@ -66,7 +66,8 @@ class QSpreadSheet(QTableLayerBase):
     def getDataFrame(self) -> pd.DataFrame:
         if self._data_cache is not None:
             return self._data_cache
-        buf = StringIO(self._data_raw.to_string(index=False))
+        # Convert table data into a DataFrame with the optimal dtypes
+        buf = StringIO(self._data_raw.to_string())
         out = pd.read_csv(buf, sep="\s+")
         self._data_cache = out
         return out
@@ -98,24 +99,81 @@ class QSpreadSheet(QTableLayerBase):
         cmax = _get_limit(c)
         if nr <= rmax or nc <= cmax:
             if nr <= rmax:
-                ext = pd.DataFrame(
-                    np.full((rmax - nr + 1, nc), np.nan),
-                    index=range(nr, rmax + 1),
-                    dtype="string",
-                )
-                self._data_raw = pd.concat([self._data_raw, ext], axis=0)
-            if nc <= cmax:
-                ext = pd.DataFrame(
-                    np.full((nr, cmax - nc + 1), np.nan),
-                    columns=range(nc, cmax + 1),
-                    dtype="string",
-                )
-                self._data_raw = pd.concat([self._data_raw, ext], axis=1, ignore_index=True)
+                self.expandRows(rmax - nr + 1)
+            if self._data_raw.shape[1] <= cmax:  # NOTE: DataFrame shape is updated
+                self.expandColumns(cmax - nc + 1)
             new_shape = self._data_raw.shape
-            self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
-            self.model().df = self._data_raw
+            self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)    
+        
         self._data_cache = None
-        return super().setDataFrameValue(r, c, value)
+        super().setDataFrameValue(r, c, value)
+        
+        self.setFilter(self._filter_slice)
+        return None
+    
+    def expandRows(self, n_expand: int):
+        if self._data_raw.size == 0:
+            self._data_raw = pd.DataFrame(
+                np.full((n_expand,  1), np.nan),
+                index=range(n_expand),
+                dtype="string",
+            )
+            return
+        nr, nc = self._data_raw.shape
+        ext = pd.DataFrame(
+            np.full((n_expand, nc), np.nan),
+            index=range(nr, n_expand + nr),
+            columns=self._data_raw.columns,
+            dtype="string",
+        )
+        self._data_raw = pd.concat([self._data_raw, ext], axis=0)
+        return None
+    
+    def expandColumns(self, n_expand: int):
+        if self._data_raw.size == 0:
+            self._data_raw = pd.DataFrame(
+                np.full((1, n_expand), np.nan),
+                columns=range(n_expand),
+                dtype="string",
+            )
+            return
+        nr, nc = self._data_raw.shape
+        ext = pd.DataFrame(
+            np.full((nr, n_expand), np.nan),
+            index=self._data_raw.index,
+            columns=range(nc, n_expand + nc),
+            dtype="string",
+        )
+        self._data_raw = pd.concat([self._data_raw, ext], axis=1)
+        return None
+    
+    def setVerticalHeaderValue(self, index: int, value: Any) -> None:
+        """Set value of the table vertical header and DataFrame at the index."""
+        nrows = self._data_raw.shape[0]
+        if index >= nrows:
+            self.expandRows(index - nrows + 1)
+            self.setFilter(self._filter_slice)
+
+        new_shape = self._data_raw.shape
+        self._data_cache = None
+        self.setFilter(self._filter_slice)
+        self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
+        
+        return super().setVerticalHeaderValue(index, value)
+    
+    def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
+        """Set value of the table horizontal header and DataFrame at the index."""
+        ncols = self._data_raw.shape[1]
+        if index >= ncols:
+            self.expandColumns(index - ncols + 1)
+            self.setFilter(self._filter_slice)
+        
+        new_shape = self._data_raw.shape
+        self._data_cache = None
+        self.setFilter(self._filter_slice)
+        self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
+        
+        return super().setHorizontalHeaderValue(index, value)
 
 def _get_limit(a) -> int:
     if isinstance(a, int):

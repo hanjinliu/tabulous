@@ -9,19 +9,23 @@ from .table import TableLayer, SpreadSheet
 from .tablelist import TableList
 from .keybindings import register_shortcut
 
-from ..types import WidgetType
+from ..types import WidgetType, _TableLike
 from .._qt import QMainWindow, QMainWidget, get_app
 
 if TYPE_CHECKING:
+    from .table import TableLayerBase
     from .._qt._dockwidget import QtDockWidget
     from .._qt._mainwindow import _QtMainWidgetBase
     from qtpy.QtWidgets import QWidget
     from magicgui.widgets import Widget
+    import pandas as pd
 
 PathLike = Union[str, Path, bytes]
 
 
 class TableViewerSignal(SignalGroup):
+    """Signal group for table viewer."""
+    
     current_index = Signal(int)
 
 
@@ -46,29 +50,12 @@ class _TableViewerBase:
         if show:
             self.show()
 
+    def __repr__(self) -> str:
+        return f"<{type(self).__name__} widget at {hex(id(self))}>"
+
     def reset_choices(self, *_):
         pass
     
-    def _move_pytable(self, src: int, dst: int):
-        """Move evented list when list is moved in GUI."""
-        with self._tablist.events.blocked():
-            if dst > src:
-                dst += 1
-            self._tablist.move(src, dst)
-    
-    def _move_qtable(self, src: int, dst: int):
-        """Move backend tab list widget when programmatically moved."""
-        with self._tablist.events.blocked():
-            self._qwidget._tablist.moveTable(src, dst)
-
-    def _rename_pytable(self, index: int, name: str):
-        with self._tablist.events.blocked():
-            self._tablist.rename(index, name)
-
-    def _remove_pytable(self, index: int):
-        with self._tablist.events.blocked():
-            del self._tablist[index]
-
     @property
     def tables(self) -> TableList:
         """Return the table list object."""
@@ -93,6 +80,7 @@ class _TableViewerBase:
         return self._qwidget._tablist.setCurrentIndex(index)
     
     def bind_key(self, *seq) -> Callable[[TableViewer], Any | None]:
+        # TODO
         def register(f):
             register_shortcut(seq, self._qwidget, partial(f, self))
         return register
@@ -101,43 +89,92 @@ class _TableViewerBase:
         """Show the widget."""
         self._qwidget.show()
     
-    def add_table(self, data, *, name: str = None, editable: bool = False) -> TableLayer:
-        """Add data as a table."""
+    def add_table(
+        self,
+        data: _TableLike | None = None,
+        *, 
+        name: str | None = None,
+        editable: bool = False,
+        copy: bool = True,
+    ) -> TableLayer:
+        
+        """
+        Add data as a table.
+        
+        Parameters
+        ----------
+        data : DataFrame like, optional
+            Table data to add.
+        name : str, optional
+            Name of the table.
+        editable : bool, default is False
+            Whether the table is editable via UI.
+        copy : bool, default is True
+            Whether to copy the data before adding to avoid overwriting the original one.
+        
+        Returns
+        -------
+        TableLayer
+            The added table object.
+        """
+        if copy:
+            data = _copy_dataframe(data)
         table = TableLayer(data, name=name, editable=editable)
         return self.add_layer(table)
     
-    def add_spreadsheet(self, data, *, name: str = None, editable: bool = True) -> SpreadSheet:
-        """Add data as a spreadsheet."""
+    def add_spreadsheet(
+        self,
+        data: _TableLike | None = None,
+        *, 
+        name: str | None = None,
+        editable: bool = True,
+        copy: bool = True,
+    ) -> SpreadSheet:
+        """
+        Add data as a spreadsheet.
+        
+        Parameters
+        ----------
+        data : DataFrame like, optional
+            Table data to add.
+        name : str, optional
+            Name of the table.
+        editable : bool, default is False
+            Whether the table is editable via UI.
+        copy : bool, default is True
+            Whether to copy the data before adding to avoid overwriting the original one.
+        
+        Returns
+        -------
+        SpreadSheet
+            The added table object.
+        """        
+        if copy:
+            data = _copy_dataframe(data)
         table = SpreadSheet(data, name=name, editable=editable)
         return self.add_layer(table)
     
-    def add_layer(self, layer):
+    def add_layer(self, layer: TableLayerBase):
         self.tables.append(layer)
         self.current_index = -1  # activate the last table
         return layer
-    
-    def read_csv(self, path, *args, **kwargs):
-        import pandas as pd
-        df = pd.read_csv(path, *args, **kwargs)
-        name = Path(path).stem
-        self.add_table(df, name=name)
-        return df
-    
-    def read_excel(self, path, *args, **kwargs):
-        import pandas as pd
-        df_dict = pd.read_excel(path, *args, **kwargs)
-        
-        for sheet_name, df in df_dict.items():
-            self.add_table(df, name=sheet_name)
-        return df_dict
 
     def open(self, path: PathLike) -> None:
+        """
+        Read a table data and add to the viewer.
+        
+        Parameters
+        ----------
+        path : path like
+            File path.
+        """
         path = Path(path)
         suf = path.suffix
+        from .. import core
         if suf in (".csv", ".txt", ".dat"):
-            self.read_csv(path)
-        elif suf in (".xlsx", ".xls", "xml"):
-            self.read_excel(path)
+            core.read_csv(path)
+        elif suf in (".xlsx", ".xls", ".xlsb", ".xlsm", ".xltm", "xltx", ".xml"):
+            core.read_excel(path)
         else:
             raise ValueError(f"Extension {suf} not supported.")
     
@@ -207,7 +244,7 @@ class _TableViewerBase:
 class TableViewerWidget(_TableViewerBase):
     """The non-main table viewer widget."""
     events: TableViewerSignal
-    
+
     _qwidget_class = QMainWidget
     _qwidget: QMainWidget
 
@@ -283,3 +320,7 @@ def _normalize_widget(widget: Widget | QWidget, name: str) -> tuple[QWidget, str
             name = backend_widget.objectName()
     
     return backend_widget, name
+
+def _copy_dataframe(data) -> pd.DataFrame:
+    import pandas as pd
+    return pd.DataFrame(data)

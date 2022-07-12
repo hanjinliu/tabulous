@@ -26,12 +26,16 @@ class TableSignals(SignalGroup):
 class TableLayerBase(ABC):
     """The base class for a table layer."""
     
+    _Default_Name = "None"
+    
     def __init__(self, data, name=None, editable: bool = True):
         import pandas as pd
         if not isinstance(data, pd.DataFrame):
             self._data = pd.DataFrame(data)
         else:
             self._data = data
+        if name is None:
+            name = self._Default_Name
         self.events = TableSignals()
         self._name = str(name)
         self._qwidget = self._create_backend(self._data)
@@ -166,11 +170,15 @@ class TableLayerBase(ABC):
 
 
 class TableLayer(TableLayerBase):
+    _Default_Name = "table"
+    
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
         from .._qt import QTableLayer
         return QTableLayer(data=data)
 
 class SpreadSheet(TableLayerBase):
+    _Default_Name = "sheet"
+    
     def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
         from .._qt import QSpreadSheet
         return QSpreadSheet(data=data)

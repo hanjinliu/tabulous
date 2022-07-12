@@ -237,6 +237,8 @@ class QTableLayerBase(QtW.QTableView):
             return self.copyToClipboard(headers)
         if e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_V:
             return self.pasteFromClipBoard()
+        if e.key() == Qt.Key_Delete:
+            return self.deleteValues()
         
         return super().keyPressEvent(e)
 
@@ -366,6 +368,19 @@ class QTableLayerBase(QtW.QTableView):
             raise e from None
 
         return None
+    
+    def deleteValues(self):
+        """Replace selected cells with NaN."""
+        selections = self.selections()
+        for sel in selections:
+            rsel, csel = sel
+            nr = rsel.stop - rsel.start
+            nc = csel.stop - csel.start
+            df = pd.DataFrame(
+                {c: np.full(nr, np.nan) for c in range(nc)}, 
+                dtype=self._data_raw.dtypes[csel]
+            )
+            self.setDataFrameValue(rsel, csel, df)
 
     def filter(self) -> FilterType | None:
         """Return the current filter."""
@@ -387,7 +402,10 @@ class QTableLayerBase(QtW.QTableView):
         self.refresh()
     
     def refresh(self) -> None:
-        return self.viewport().update()
+        self.viewport().update()
+        self.horizontalHeader().viewport().update()
+        self.verticalHeader().viewport().update()
+        return None
     
     def editHorizontalHeader(self, index: int):
         """Edit the horizontal header."""
@@ -404,7 +422,12 @@ class QTableLayerBase(QtW.QTableView):
         _line.setHidden(False)
         _line.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        text = self.model().df.columns[index]
+        column_axis = self.model().df.columns
+        if index < column_axis.size:
+            text = column_axis[index]
+        else:
+            text = ""
+        
         _line.setText(str(text))
         _line.setFocus()
             
@@ -413,17 +436,7 @@ class QTableLayerBase(QtW.QTableView):
         @_line.editingFinished.connect
         def _set_header_data():
             self._line.setHidden(True)
-            col_mapping = {text: _line.text()}
-            self._data_raw = self._data_raw.rename(columns=col_mapping)
-            df = self.model().df
-            if df is self._data_raw:
-                self.model().df = df.rename(columns=col_mapping)
-            else:
-                self.model().df.rename(columns=col_mapping, inplace=True)
-
-            size_hint = _header.sectionSizeHint(index)
-            if _header.sectionSize(index) < size_hint:
-                _header.resizeSection(index, size_hint)
+            self.setHorizontalHeaderValue(index, self._line.text())
 
     def editVerticalHeader(self, index: int):
         if not self.editability():
@@ -438,7 +451,13 @@ class QTableLayerBase(QtW.QTableView):
         _line.setGeometry(edit_geometry)
         _line.setHidden(False)
         
-        text = self.model().df.index[index]
+        index_axis = self.model().df.index
+        
+        if index < index_axis.size:
+            text = index_axis[index]
+        else:
+            text = ""
+        
         _line.setText(str(text))
         _line.setFocus()
         _line.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -448,15 +467,32 @@ class QTableLayerBase(QtW.QTableView):
         @_line.editingFinished.connect
         def _set_header_data():
             self._line.setHidden(True)
-            row_mapping = {text: _line.text()}
-            self._data_raw = self._data_raw.rename(index=row_mapping)
-            df = self.model().df
-            if df is self._data_raw:
-                self.model().df = df.rename(index=row_mapping)
-            else:
-                self.model().df.rename(index=row_mapping, inplace=True)
-            _width_hint = _header.sizeHint().width()
-            _header.resize(QtCore.QSize(_width_hint, _header.height()))
+            self.setVerticalHeaderValue(index, self._line.text())
+
+    def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
+        column_axis = self.model().df.columns
+        _header = self.horizontalHeader()
+        
+        mapping = {column_axis[index]: value}
+        
+        self._data_raw.rename(columns=mapping, inplace=True)
+        self.model().df.rename(columns=mapping, inplace=True)
+        
+        size_hint = _header.sectionSizeHint(index)
+        if _header.sectionSize(index) < size_hint:
+            _header.resizeSection(index, size_hint)
+
+    def setVerticalHeaderValue(self, index: int, value: Any) -> None:
+        index_axis = self.model().df.index
+        _header = self.verticalHeader()
+        
+        mapping = {index_axis[index]: value}
+        
+        self._data_raw.rename(index=mapping, inplace=True)
+        self.model().df.rename(index=mapping, inplace=True)
+        _width_hint = _header.sizeHint().width()
+        _header.resize(QtCore.QSize(_width_hint, _header.height()))
+        _header.viewport().update()
 
 
 # modified from magicgui

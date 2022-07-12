@@ -3,7 +3,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from .widgets import TableViewer
 
-CURRENT_VIEWER = None
+if TYPE_CHECKING:
+    from .widgets.mainwindow import _TableViewerBase
+
+CURRENT_VIEWER: _TableViewerBase | None = None
 
 def current_viewer():
     global CURRENT_VIEWER
@@ -11,7 +14,7 @@ def current_viewer():
         CURRENT_VIEWER = TableViewer()
     return CURRENT_VIEWER
 
-def set_current_viewer(viewer: TableViewer):
+def set_current_viewer(viewer: _TableViewerBase):
     global CURRENT_VIEWER
     CURRENT_VIEWER = viewer
     return viewer
@@ -26,7 +29,9 @@ def read_csv(path: str | Path, *args, **kwargs):
 
 def read_excel(path: str | Path, *args, **kwargs):
     import pandas as pd
-    df_dict = pd.read_excel(path, *args, **kwargs)
+    df_dict: dict[str, pd.DataFrame] = pd.read_excel(
+        path, *args, sheet_name=None, **kwargs
+    )
     
     viewer = current_viewer()
     for sheet_name, df in df_dict.items():

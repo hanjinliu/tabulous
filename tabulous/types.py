@@ -9,7 +9,9 @@ from numpy.typing import ArrayLike
 
 if TYPE_CHECKING:
     import pandas as pd
-    
+    _TableLike = Union[pd.DataFrame, dict, Iterable, ArrayLike]
+else:
+    _TableLike = Any
 
 # class DataFrameType(Protocol):
 #     iloc: 
