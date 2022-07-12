@@ -232,13 +232,28 @@ class QTableLayerBase(QtW.QTableView):
             raise e
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
-        if e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_C:
-            headers = e.modifiers() & Qt.ShiftModifier
+        _mod = e.modifiers()
+        _key = e.key() 
+        if _mod & Qt.ControlModifier and _key == Qt.Key.Key_C:
+            headers = _mod & Qt.ShiftModifier
             return self.copyToClipboard(headers)
-        if e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_V:
+        elif _mod & Qt.ControlModifier and _key == Qt.Key.Key_V:
             return self.pasteFromClipBoard()
-        if e.key() == Qt.Key_Delete:
+        elif _mod == Qt.NoModifier and _key == Qt.Key.Key_Delete:
             return self.deleteValues()
+        elif (_mod in (Qt.NoModifier, Qt.ShiftModifier)
+              and (Qt.Key.Key_Exclam <= _key <= Qt.Key.Key_ydiaeresis)
+              ):
+            # Enter editing mode
+            text = QtGui.QKeySequence(_key).toString()
+            if _mod != Qt.ShiftModifier:
+                text = text.lower()
+            self.model().setData(self.currentIndex(), text, Qt.ItemDataRole.EditRole)
+            self.edit(self.currentIndex())
+            focused_widget = QtW.QApplication.focusWidget()
+            if isinstance(focused_widget, QtW.QLineEdit):
+                focused_widget.deselect()
+            return
         
         return super().keyPressEvent(e)
 
