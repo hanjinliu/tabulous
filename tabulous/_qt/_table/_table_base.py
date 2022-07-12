@@ -6,7 +6,7 @@ import pandas as pd
 
 import numpy as np
 from ._model import AbstractDataFrameModel
-
+from ._header import QTableHeader
 from .._utils import show_messagebox
 from ...types import FilterType
 
@@ -34,6 +34,7 @@ class QTableLayerBase(QtW.QTableView):
         model.df = data
         self.setModel(model)
         model.dataEdited.connect(self.setDataFrameValue)
+        
         self.setDataFrame(data)
         self.setVerticalScrollMode(_SCROLL_PRE_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PRE_PIXEL)
@@ -48,6 +49,10 @@ class QTableLayerBase(QtW.QTableView):
 
         delegate = TableItemDelegate(parent=self)
         self.setItemDelegate(delegate)
+        
+        # header editing signals
+        self.horizontalHeader().sectionDoubleClicked.connect(self.editHorizontalHeader)
+        self.verticalHeader().sectionDoubleClicked.connect(self.editVerticalHeader)
 
     def getDataFrame(self) -> pd.DataFrame:
         raise NotImplementedError()
@@ -66,7 +71,7 @@ class QTableLayerBase(QtW.QTableView):
         nr = model.rowCount()
         nc = model.columnCount()
         return (nr, nc)
-    
+
     def convertValue(self, r: int, c: int, value: Any) -> Any:
         """Convert value before updating DataFrame."""
         return value
@@ -371,6 +376,75 @@ class QTableLayerBase(QtW.QTableView):
     
     def refresh(self) -> None:
         return self.viewport().update()
+    
+    def editHorizontalHeader(self, index: int):
+        """Edit the horizontal header."""
+        if not self.editability():
+            return
+        
+        _header = self.horizontalHeader()
+        _line = QtW.QLineEdit(_header)
+        edit_geometry = _line.geometry()
+        edit_geometry.setHeight(_header.height())
+        edit_geometry.setWidth(_header.sectionSize(index))
+        edit_geometry.moveLeft(_header.sectionViewportPosition(index))
+        _line.setGeometry(edit_geometry)
+        _line.setHidden(False)
+        _line.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        text = self.model().df.columns[index]
+        _line.setText(str(text))
+        _line.setFocus()
+            
+        self._line = _line
+        
+        @_line.editingFinished.connect
+        def _set_header_data():
+            self._line.setHidden(True)
+            col_mapping = {text: _line.text()}
+            self._data_raw = self._data_raw.rename(columns=col_mapping)
+            df = self.model().df
+            if df is self._data_raw:
+                self.model().df = df.rename(columns=col_mapping)
+            else:
+                self.model().df.rename(columns=col_mapping, inplace=True)
+
+            size_hint = _header.sectionSizeHint(index)
+            if _header.sectionSize(index) < size_hint:
+                _header.resizeSection(index, size_hint)
+
+    def editVerticalHeader(self, index: int):
+        if not self.editability():
+            return
+        
+        _header = self.verticalHeader()
+        _line = QtW.QLineEdit(_header)
+        edit_geometry = _line.geometry()
+        edit_geometry.setHeight(_header.sectionSize(index))
+        edit_geometry.setWidth(_header.width())
+        edit_geometry.moveTop(_header.sectionViewportPosition(index))
+        _line.setGeometry(edit_geometry)
+        _line.setHidden(False)
+        
+        text = self.model().df.index[index]
+        _line.setText(str(text))
+        _line.setFocus()
+        _line.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self._line = _line
+        
+        @_line.editingFinished.connect
+        def _set_header_data():
+            self._line.setHidden(True)
+            row_mapping = {text: _line.text()}
+            self._data_raw = self._data_raw.rename(index=row_mapping)
+            df = self.model().df
+            if df is self._data_raw:
+                self.model().df = df.rename(index=row_mapping)
+            else:
+                self.model().df.rename(index=row_mapping, inplace=True)
+            _width_hint = _header.sizeHint().width()
+            _header.resize(QtCore.QSize(_width_hint, _header.height()))
 
 
 # modified from magicgui
@@ -405,9 +479,3 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 text = f"{value:.{ndigits-1}e}"
 
         return text
-
-def _normalize_slice(sl, r):
-    # sl: boolean array
-    spec = np.where(sl)[0].tolist()
-    r0 = spec[r]
-    return r0

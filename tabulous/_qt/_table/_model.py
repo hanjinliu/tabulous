@@ -67,7 +67,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             else:
                 return None
 
-    def setData(self, index: QtCore.QModelIndex, value, role):
+    def setData(self, index: QtCore.QModelIndex, value, role) -> bool:
         if not index.isValid():
             return False
         if role != Qt.ItemDataRole.EditRole:
@@ -75,7 +75,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         r, c = index.row(), index.column()
         self.dataEdited.emit(r, c, value)
         return True
-    
+
     def setShape(self, nrow: int, ncol: int):
         r0, c0 = self.rowCount(), self.columnCount()
         dr = nrow - r0
