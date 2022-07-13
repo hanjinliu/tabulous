@@ -511,15 +511,41 @@ class QTableLayerBase(QtW.QTableView):
 # modified from magicgui
 class TableItemDelegate(QtW.QStyledItemDelegate):
     """Displays table widget items with properly formatted numbers."""
-    
-    edited = Signal(tuple)
-    
+
     def __init__(self, parent: QtCore.QObject | None = None, ndigits: int = 4) -> None:
         super().__init__(parent)
         self.ndigits = ndigits
 
     def displayText(self, value, locale):
         return super().displayText(self._format_number(value), locale)
+    
+    def createEditor(self, parent: QtW.QWidget, option, index: QtCore.QModelIndex) -> QtW.QWidget:
+        table = parent.parent()
+        if isinstance(table, QTableLayerBase):
+            df = table.model().df
+            row = index.row()
+            col = index.column()
+            dtype = df.dtypes[col]
+            if dtype == "category":
+                cbox = QtW.QComboBox(parent)
+                choices = list(map(str, dtype.categories))
+                cbox.addItems(choices)
+                cbox.setCurrentIndex(choices.index(df.iloc[row, col]))
+                return cbox
+            elif dtype == "bool":
+                cbox = QtW.QComboBox(parent)
+                choices = ["True", "False"]
+                cbox.addItems(choices)
+                cbox.setCurrentIndex(0 if df.iloc[row, col] else 1)
+                return cbox
+
+        return super().createEditor(parent, option, index)
+    
+    def setEditorData(self, editor: QtW.QWidget, index: QtCore.QModelIndex) -> None:
+        super().setEditorData(editor, index)
+        if isinstance(editor, QtW.QComboBox):
+            editor.showPopup()
+        return None
 
     def _format_number(self, text: str) -> str:
         """convert string to int or float if possible"""
