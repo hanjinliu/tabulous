@@ -1,8 +1,8 @@
 from __future__ import annotations
-from typing import Any, Callable, NamedTuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 import weakref
 from qtpy import QtWidgets as QtW, QtGui, QtCore
-from qtpy.QtCore import Signal, Qt
+from qtpy.QtCore import Qt
 
 if TYPE_CHECKING:
     import pandas as pd

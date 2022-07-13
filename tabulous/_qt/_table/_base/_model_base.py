@@ -120,22 +120,3 @@ class DataFrameModel(AbstractDataFrameModel):
 
     def columnCount(self, parent=None):
         return self.df.shape[1]
-
-MAX_ROW_SIZE = 1800
-MAX_COLUMN_SIZE = 800
-
-class SpreadSheetModel(AbstractDataFrameModel):
-    
-    @property
-    def df(self) -> pd.DataFrame:
-        return self._df
-
-    @df.setter
-    def df(self, data: pd.DataFrame):
-        self._df = data
-
-    def rowCount(self, parent=None):
-        return min(self._df.shape[0] + 10, MAX_ROW_SIZE)
-
-    def columnCount(self, parent=None):
-        return min(self._df.shape[1] + 10, MAX_COLUMN_SIZE)

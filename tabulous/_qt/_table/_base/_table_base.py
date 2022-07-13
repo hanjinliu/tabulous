@@ -5,9 +5,9 @@ from qtpy.QtCore import Signal, Qt
 import pandas as pd
 
 import numpy as np
-from ._model import AbstractDataFrameModel
-from .._utils import show_messagebox
-from ...types import FilterType
+from ._model_base import AbstractDataFrameModel
+from ..._utils import show_messagebox
+from ....types import FilterType
 
 
 class ItemInfo(NamedTuple):
@@ -147,11 +147,6 @@ class QTableLayerBase(QtW.QTableView):
         
         # Update stuff
         self._zoom = value
-    
-    def indexUnderCursor(self) -> tuple[int, int]:
-        pos = self.mapFromGlobal(QtGui.QCursor().pos())
-        index = self.indexAt(pos)
-        return index.row(), index.column()
 
     if TYPE_CHECKING:
         def itemDelegate(self) -> TableItemDelegate: ...
@@ -224,8 +219,12 @@ class QTableLayerBase(QtW.QTableView):
                 r, c = sel
                 r0, r1, _ = r.indices(nr)
                 c0, c1, _ = c.indices(nc)
-                selection = QtCore.QItemSelection(model.index(r0, c0), model.index(r1 - 1, c1 - 1))
-                self.selectionModel().select(selection, QtCore.QItemSelectionModel.SelectionFlag.Select)
+                selection = QtCore.QItemSelection(
+                    model.index(r0, c0), model.index(r1 - 1, c1 - 1)
+                )
+                self.selectionModel().select(
+                    selection, QtCore.QItemSelectionModel.SelectionFlag.Select
+                )
                 
         except Exception as e:
             self.clearSelection()
@@ -233,13 +232,13 @@ class QTableLayerBase(QtW.QTableView):
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
         _mod = e.modifiers()
-        _key = e.key() 
+        _key = e.key()
         if _mod & Qt.ControlModifier and _key == Qt.Key.Key_C:
             headers = _mod & Qt.ShiftModifier
             return self.copyToClipboard(headers)
         elif _mod & Qt.ControlModifier and _key == Qt.Key.Key_V:
             return self.pasteFromClipBoard()
-        elif _mod == Qt.NoModifier and _key == Qt.Key.Key_Delete:
+        elif _mod == Qt.NoModifier and _key in (Qt.Key.Key_Delete, Qt.Key.Key_Backspace):
             return self.deleteValues()
         elif (_mod in (Qt.NoModifier, Qt.ShiftModifier)
               and (Qt.Key.Key_Exclam <= _key <= Qt.Key.Key_ydiaeresis)
