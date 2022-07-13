@@ -508,7 +508,6 @@ class QTableLayerBase(QtW.QTableView):
         _header.resize(QtCore.QSize(_width_hint, _header.height()))
 
 
-# modified from magicgui
 class TableItemDelegate(QtW.QStyledItemDelegate):
     """Displays table widget items with properly formatted numbers."""
 
@@ -520,11 +519,15 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         return super().displayText(self._format_number(value), locale)
     
     def createEditor(self, parent: QtW.QWidget, option, index: QtCore.QModelIndex) -> QtW.QWidget:
+        """Create different type of editors for different dtypes."""
         table = parent.parent()
         if isinstance(table, QTableLayerBase):
             df = table.model().df
             row = index.row()
             col = index.column()
+            if row >= df.shape[0] or col >= df.shape[1]:
+                return super().createEditor(parent, option, index)
+            
             dtype = df.dtypes[col]
             if dtype == "category":
                 cbox = QtW.QComboBox(parent)
@@ -547,6 +550,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             editor.showPopup()
         return None
 
+    # modified from magicgui
     def _format_number(self, text: str) -> str:
         """convert string to int or float if possible"""
         try:

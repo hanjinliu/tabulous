@@ -7,7 +7,7 @@ from qtpy.QtCore import Qt, Signal
 from ._base import _QTableStackBase
 from ._utils import create_temporal_line_edit
 
-from .._table import QTableLayer
+from .._table import QTableLayerBase
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
@@ -39,9 +39,9 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
         self.installContextMenu()
+
     
-    
-    def addTable(self, table: QTableLayer, name: str = "None") -> None:
+    def addTable(self, table: QTableLayerBase, name: str = "None") -> None:
         """Add `table` to stack as name `name`."""
         item = QtW.QListWidgetItem(self._tabs)
         self._tabs.addItem(item)
@@ -64,7 +64,7 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
             self.tableRemoved.emit(index)
         return None
         
-    def takeTable(self, index: int) -> QTableLayer:
+    def takeTable(self, index: int) -> QTableLayerBase:
         """Remove table at `index` and return it."""
         item = self._tabs.item(index)
         qtab = self._tabs.itemWidget(item)
@@ -82,7 +82,7 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
         tab.setText(name)
         return None
     
-    def tableIndex(self, table: QTableLayer) -> int:
+    def tableIndex(self, table: QTableLayerBase) -> int:
         """Get the index of `table`."""
         for i in range(self._tabs.count()):
             if table is self.tableAtIndex(i):
@@ -90,13 +90,13 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
         else:
             raise ValueError("Table not found.")
     
-    def tableAtIndex(self, i: int) -> QTableLayer:
+    def tableAtIndex(self, i: int) -> QTableLayerBase:
         """Get the table at `i`."""
         item = self._tabs.item(i)
         qtab = self._tabs.itemWidget(item)
         return qtab.table
     
-    def tableAt(self, pos: QtCore.QPoint) -> QTableLayer:
+    def tableAt(self, pos: QtCore.QPoint) -> QTableLayerBase:
         """Return table at a mouse position."""
         item = self._tabs.itemAt(pos)
         if item is None:
@@ -204,8 +204,8 @@ class QTabList(QtW.QListWidget):
 
 
 class QTab(QtW.QFrame):
-    def __init__(self, parent=None, text: str = "", table: QTableLayer = None):
-        if not isinstance(table, QTableLayer):
+    def __init__(self, parent=None, text: str = "", table: QTableLayerBase = None):
+        if not isinstance(table, QTableLayerBase):
             raise TypeError(f"Cannot add {type(table)}")
         
         self._table_ref = weakref.ref(table)
@@ -215,7 +215,10 @@ class QTab(QtW.QFrame):
         _layout = QtW.QHBoxLayout(self)
         _layout.setContentsMargins(3, 3, 3, 3)
         self._label = _QTabLabel(self, text=text)
-        self._close_btn = _QHoverPushButton("x", parent=self)
+        self._close_btn = _QHoverPushButton(parent=self)
+        icon = QtW.QApplication.style().standardIcon(QtW.QStyle.StandardPixmap.SP_TitleBarCloseButton)
+        self._close_btn.setIcon(icon)
+        self._close_btn.setIconSize(QtCore.QSize(16, 16))
         
         _layout.addWidget(self._label)
         _layout.addWidget(self._close_btn)
@@ -224,7 +227,7 @@ class QTab(QtW.QFrame):
         self.setText(text)
     
     @property
-    def table(self) -> QTableLayer:
+    def table(self) -> QTableLayerBase:
         out = self._table_ref()
         if out is None:
             raise ValueError("QTableLayer object is deleted.")
@@ -339,5 +342,8 @@ class QTableStack(QtW.QStackedWidget):
         if e.mimeData().hasText():
             e.accept()
             return None
+        elif isinstance(e.source(), _QTableStackBase):
+            e.accept()
+            return None
         else:
-            return super().dragEnterEvent()
+            return super().dragEnterEvent(e)
