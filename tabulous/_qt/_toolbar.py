@@ -36,6 +36,7 @@ class QTableStackToolBar(QtW.QToolBar):
         self.registerAction("Table", self.copy_as_table, ICON_DIR / "copy_as_table.svg")
         self.registerAction("Table", self.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")
         self.registerAction("Table", self.new_spreadsheet, ICON_DIR / "new_spreadsheet.svg")
+        self.registerAction("Table", self.groupby, ICON_DIR / "groupby.svg")
         self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
     
     @property
@@ -105,11 +106,21 @@ class QTableStackToolBar(QtW.QToolBar):
         """Create a new spreadsheet."""
         self.viewer.add_spreadsheet(name="New")
 
+    def groupby(self):
+        """Group table data by its column value."""
+        table = self.viewer.current_table
+        out = groupby(
+            df={"bind": table.data},
+            by={"choices": list(table.data.columns), "widget_type": "Select"},
+        )
+        if out is not None:
+            self.viewer.add_groupby(out, name=f"{table.name}-groupby")
+        
     def summarize_table(self):
         """Summarize current table."""
         table = self.viewer.current_table
         out = summarize_table(
-            df={"bind": table.data}, 
+        df={"bind": table.data}, 
             methods={"choices": SUMMARY_CHOICES, "widget_type": "Select"}
         )
         if out is not None:
@@ -118,3 +129,7 @@ class QTableStackToolBar(QtW.QToolBar):
 @dialog_factory
 def summarize_table(df, methods: list[str]):
     return df.agg(methods)
+
+@dialog_factory
+def groupby(df, by: list[str]):
+    return df.groupby(by)

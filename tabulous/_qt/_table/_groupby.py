@@ -13,8 +13,9 @@ class _LabeledComboBox(QtW.QWidget):
     
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
+        self._values = list[Any]
         _layout = QtW.QHBoxLayout()
-        _layout.setAlignment(Qt.AlignLeft)
+        _layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         _layout.setContentsMargins(2, 2, 2, 2)
         self.setLayout(_layout)
         self._cbox = QtW.QComboBox()
@@ -25,19 +26,27 @@ class _LabeledComboBox(QtW.QWidget):
         self._cbox.currentIndexChanged.connect(self.currentIndexChanged.emit)
     
     def setLabel(self, text: str) -> None:
+        """Set the text of label."""
         return self._label.setText(text)
     
-    def clear(self):
-        return self._cbox.clear()
-    
-    def addItems(self, items: Iterable[str]):
-        return self._cbox.addItems(items)
+    def setChoices(self, items: Iterable[Any]):
+        """Set choices of combo box."""
+        self._values = list(items)
+        self._cbox.clear()
+        return self._cbox.addItems(map(str, self._values))
     
     def currentIndex(self) -> int:
+        """Get the current index of the choice."""
         return self._cbox.currentIndex()
     
-    def setCurrentInex(self, index: int) -> None:
+    def setCurrentIndex(self, index: int) -> None:
+        """Set current index."""
         return self._cbox.setCurrentIndex(index)
+    
+    def value(self) -> Any:
+        """Current value."""
+        return self._values[self.currentIndex()]
+
 
 class QTableGroupBy(QBaseTable):
     _data_raw: DataFrameGroupBy
@@ -65,12 +74,20 @@ class QTableGroupBy(QBaseTable):
         if not isinstance(data, DataFrameGroupBy):
             raise TypeError(f"Data must be DataFrameGroupBy, not {type(data)}")
         self._data_raw = data
-        self._group_key_cbox.setLabel(f"{self._data_raw.keys} = ")
+        
+        # set label
+        keys = self._data_raw.keys
+        if isinstance(keys, list):
+            if len(keys) == 1:
+                label = keys[0]
+            else:
+                label = tuple(keys)
+        else:
+            label = keys
+        self._group_key_cbox.setLabel(f"{label} = ")
         
         self._group_map = self._data_raw.groups
-        self._group_map_keys = list(self._group_map.keys())
-        self._group_key_cbox.clear()
-        self._group_key_cbox.addItems(map(str, self._group_map_keys))
+        self._group_key_cbox.setChoices(self._group_map.keys())
         self.setFilter(None)
         self._qtable_view.viewport().update()
         return
@@ -82,6 +99,5 @@ class QTableGroupBy(QBaseTable):
 
     def tableSlice(self) -> pd.DataFrame:
         df: pd.DataFrame = self._data_raw.obj
-        index = self._group_key_cbox.currentIndex()
-        sl = self._group_map[self._group_map_keys[index]]
+        sl = self._group_map[self._group_key_cbox.value()]
         return df.iloc[sl, :]
