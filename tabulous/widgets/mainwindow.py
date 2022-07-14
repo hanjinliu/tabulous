@@ -6,7 +6,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Union
 from psygnal import Signal, SignalGroup
 
-from .table import TableLayer, SpreadSheet
+from .table import TableLayer, SpreadSheet, GroupBy
 from .tablelist import TableList
 from .keybindings import register_shortcut
 
@@ -156,6 +156,10 @@ class _TableViewerBase:
         if copy:
             data = _copy_dataframe(data)
         table = SpreadSheet(data, name=name, editable=editable)
+        return self.add_layer(table)
+    
+    def add_groupby(self, data, name: str | None = None):
+        table = GroupBy(data, name=name)
         return self.add_layer(table)
     
     def add_layer(self, layer: TableLayerBase):

@@ -8,11 +8,11 @@ from .keybindings import register_shortcut
 from .filtering import FilterProperty
 
 from ..types import SelectionRanges
-from .._protocols import BackendTableProtocol
 
 if TYPE_CHECKING:
     import pandas as pd
-    from .._qt import QTableLayer, QSpreadSheet
+    from .._qt import QTableLayer, QSpreadSheet, QTableGroupBy
+    from .._qt._table import QBaseTable
 
 
 class TableSignals(SignalGroup):
@@ -29,26 +29,29 @@ class TableLayerBase(ABC):
     _Default_Name = "None"
     
     def __init__(self, data, name=None, editable: bool = True):
-        import pandas as pd
-        if not isinstance(data, pd.DataFrame):
-            self._data = pd.DataFrame(data)
-        else:
-            self._data = data
+        self._data = self._normalize_data(data)
+        from .._qt._table import QMutableTable
         if name is None:
             name = self._Default_Name
         self.events = TableSignals()
         self._name = str(name)
         self._qwidget = self._create_backend(self._data)
-        self._qwidget.setEditability(editable)
-        self._qwidget.connectItemChangedSignal(self.events.data.emit)
         self._qwidget.connectSelectionChangedSignal(self.events.selections.emit)
+        
+        if isinstance(self._qwidget, QMutableTable):
+            self._qwidget.setEditability(editable)
+            self._qwidget.connectItemChangedSignal(self.events.data.emit)
     
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}<{self.name!r}>"
     
     @abstractmethod
-    def _create_backend(self, data: pd.DataFrame) -> BackendTableProtocol:
-        """This function creates a backend widget that follows BackendTableProtocol."""
+    def _create_backend(self, data: pd.DataFrame) -> QBaseTable:
+        """This function creates a backend widget."""
+    
+    @abstractmethod
+    def _normalize_data(self, data):
+        """Data normalization before setting a new data."""
 
     @property
     def data(self) -> pd.DataFrame:
@@ -57,12 +60,8 @@ class TableLayerBase(ABC):
     
     @data.setter
     def data(self, value):
-        import pandas as pd
-        if not isinstance(value, pd.DataFrame):
-            value = pd.DataFrame(value)
-                
-        self._data = value
-        self._qwidget.setDataFrame(value)
+        self._data = self._normalize_data(value)
+        self._qwidget.setDataFrame(self._data)
     
     @property
     def shape(self) -> tuple[int, int]:
@@ -168,17 +167,38 @@ class TableLayerBase(ABC):
             register_shortcut(seq, self._qwidget, partial(f, self))
         return register
 
+class _DataFrameTableLayer(TableLayerBase):
+    """Table layer for DataFrame."""
+    
+    def _normalize_data(self, data) -> pd.DataFrame:
+        import pandas as pd
+        if not isinstance(data, pd.DataFrame):
+            data = pd.DataFrame(data)
+        return data
 
-class TableLayer(TableLayerBase):
+class TableLayer(_DataFrameTableLayer):
     _Default_Name = "table"
     
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
         from .._qt import QTableLayer
         return QTableLayer(data=data)
 
-class SpreadSheet(TableLayerBase):
+class SpreadSheet(_DataFrameTableLayer):
     _Default_Name = "sheet"
     
     def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
         from .._qt import QSpreadSheet
         return QSpreadSheet(data=data)
+
+class GroupBy(TableLayerBase):
+    _Default_Name = "groupby"
+    
+    def _create_backend(self, data: pd.DataFrame) -> QTableGroupBy:
+        from .._qt import QTableGroupBy
+        return QTableGroupBy(data=data)
+    
+    def _normalize_data(self, data):
+        from pandas.core.groupby.generic import DataFrameGroupBy
+        if not isinstance(data, DataFrameGroupBy):
+            raise TypeError("Cannot only add DataFrameGroupBy object.")
+        return data

@@ -1,5 +1,6 @@
 from ._table import QTableLayer
 from ._spreadsheet import QSpreadSheet
-from ._base import QTableLayerBase
+from ._groupby import QTableGroupBy
+from ._base import QMutableTable, QBaseTable
 
-__all__ = ["QTableLayer", "QSpreadSheet", "QTableLayerBase"]
+__all__ = ["QTableLayer", "QSpreadSheet", "QBaseTable", "QMutableTable", "QTableGroupBy"]

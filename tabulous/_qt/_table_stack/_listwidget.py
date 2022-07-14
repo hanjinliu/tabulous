@@ -7,7 +7,7 @@ from qtpy.QtCore import Qt, Signal
 from ._base import _QTableStackBase
 from ._utils import create_temporal_line_edit
 
-from .._table import QTableLayerBase
+from .._table import QBaseTable
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
@@ -41,7 +41,7 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
         self.installContextMenu()
 
     
-    def addTable(self, table: QTableLayerBase, name: str = "None") -> None:
+    def addTable(self, table: QBaseTable, name: str = "None") -> None:
         """Add `table` to stack as name `name`."""
         item = QtW.QListWidgetItem(self._tabs)
         self._tabs.addItem(item)
@@ -64,7 +64,7 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
             self.tableRemoved.emit(index)
         return None
         
-    def takeTable(self, index: int) -> QTableLayerBase:
+    def takeTable(self, index: int) -> QBaseTable:
         """Remove table at `index` and return it."""
         item = self._tabs.item(index)
         qtab = self._tabs.itemWidget(item)
@@ -82,7 +82,7 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
         tab.setText(name)
         return None
     
-    def tableIndex(self, table: QTableLayerBase) -> int:
+    def tableIndex(self, table: QBaseTable) -> int:
         """Get the index of `table`."""
         for i in range(self._tabs.count()):
             if table is self.tableAtIndex(i):
@@ -90,13 +90,13 @@ class QListTableStack(QtW.QSplitter, _QTableStackBase):
         else:
             raise ValueError("Table not found.")
     
-    def tableAtIndex(self, i: int) -> QTableLayerBase:
+    def tableAtIndex(self, i: int) -> QBaseTable:
         """Get the table at `i`."""
         item = self._tabs.item(i)
         qtab = self._tabs.itemWidget(item)
         return qtab.table
     
-    def tableAt(self, pos: QtCore.QPoint) -> QTableLayerBase:
+    def tableAt(self, pos: QtCore.QPoint) -> QBaseTable:
         """Return table at a mouse position."""
         item = self._tabs.itemAt(pos)
         if item is None:
@@ -204,8 +204,8 @@ class QTabList(QtW.QListWidget):
 
 
 class QTab(QtW.QFrame):
-    def __init__(self, parent=None, text: str = "", table: QTableLayerBase = None):
-        if not isinstance(table, QTableLayerBase):
+    def __init__(self, parent=None, text: str = "", table: QBaseTable = None):
+        if not isinstance(table, QBaseTable):
             raise TypeError(f"Cannot add {type(table)}")
         
         self._table_ref = weakref.ref(table)
@@ -227,7 +227,7 @@ class QTab(QtW.QFrame):
         self.setText(text)
     
     @property
-    def table(self) -> QTableLayerBase:
+    def table(self) -> QBaseTable:
         out = self._table_ref()
         if out is None:
             raise ValueError("QTableLayer object is deleted.")

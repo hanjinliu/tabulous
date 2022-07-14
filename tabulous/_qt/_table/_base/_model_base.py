@@ -58,12 +58,12 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     ):
         if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
             if section < self.df.columns.size:
-                return self.df.columns[section]
+                return str(self.df.columns[section])
             else:
                 return None
         if orientation == Qt.Orientation.Vertical and role == Qt.ItemDataRole.DisplayRole:
             if section < self.df.index.size:
-                return self.df.index[section]
+                return str(self.df.index[section])
             else:
                 return None
 
