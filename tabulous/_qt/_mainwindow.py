@@ -4,32 +4,27 @@ from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, QEvent
 
-from ._table_stack import QListTableStack, QTabbedTableStack
+from ._table_stack import QTabbedTableStack
 from ._utils import search_name_from_qmenu
-from ..types import WidgetType
+from ..types import TabPosition
 
 if TYPE_CHECKING:
     from ..widgets import TableViewer
-    from ._table_stack import _QTableStackBase
     from typing_extensions import ParamSpec
     _P = ParamSpec("_P")
 
 _R = TypeVar("_R")
 
-WIDGET_TYPE_MAP: dict[WidgetType, type[_QTableStackBase]] = {
-    WidgetType.list: QListTableStack,
-    WidgetType.tab: QTabbedTableStack,
-}
 
 class _QtMainWidgetBase(QtW.QWidget):
     _table_viewer: TableViewer
-    _tablist: _QTableStackBase
+    _tablestack: QTabbedTableStack
     
-    def __init__(self, widget_type: WidgetType | str = WidgetType.list):
+    def __init__(self, tab_position: TabPosition | str = TabPosition.top):
         super().__init__()
-        qtablist = WIDGET_TYPE_MAP[WidgetType(widget_type)]
-        self._tablist = qtablist()
-        self.setCentralWidget(self._tablist)
+        tab_position = TabPosition(tab_position)
+        self._tablestack = QTabbedTableStack(tab_position=tab_position.name)
+        self.setCentralWidget(self._tablestack)
     
     def setCentralWidget(self, wdt: QtW.QWidget):
         """Set the splitter widget."""
@@ -48,11 +43,12 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     _table_viewer: TableViewer
     _instances: list['QMainWindow'] = []
 
-    def __init__(self, widget_type: WidgetType | str = WidgetType.list):
+    def __init__(self, tab_position: TabPosition | str = TabPosition.top):
         super().__init__()
-        _QtMainWidgetBase.__init__(self, widget_type=widget_type)
+        _QtMainWidgetBase.__init__(self, tab_position=tab_position)
         from ._toolbar import QTableStackToolBar
         self.addToolBar(QTableStackToolBar(self))
+        self._tablestack.setMinimumSize(600, 400)
         QMainWindow._instances.append(self)
 
     def addDockWidget(

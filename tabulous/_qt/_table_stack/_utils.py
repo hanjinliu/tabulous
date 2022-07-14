@@ -8,11 +8,12 @@ def create_temporal_line_edit(
     text: str,
 ) -> QtW.QLineEdit:
     line = QtW.QLineEdit(parent=parent)
-    edit_geometry = line.geometry()
-    edit_geometry.setWidth(rect.width())
-    edit_geometry.setHeight(rect.height())
-    edit_geometry.moveTo(rect.topLeft())
-    line.setGeometry(edit_geometry)
+    geometry = line.geometry()
+    geometry.setWidth(rect.width())
+    geometry.setHeight(rect.height())
+    geometry.moveCenter(rect.center())
+    # edit_geometry.moveTo(rect.topLeft())
+    line.setGeometry(geometry)
     line.setText(text)
     line.setHidden(False)
     line.setFocus()
