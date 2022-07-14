@@ -4,7 +4,7 @@ from io import StringIO
 import numpy as np
 import pandas as pd
 
-from ._base import AbstractDataFrameModel, QTableLayerBase
+from ._base import AbstractDataFrameModel, QMutableSimpleTable
 
 MAX_ROW_SIZE = 100000
 MAX_COLUMN_SIZE = 100000
@@ -26,7 +26,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
         return min(self._df.shape[1] + 10, MAX_COLUMN_SIZE)
 
 
-class QSpreadSheet(QTableLayerBase):
+class QSpreadSheet(QMutableSimpleTable):
     """
     A table layer class that works similar to Excel sheet.
     
@@ -51,13 +51,14 @@ class QSpreadSheet(QTableLayerBase):
     def setDataFrame(self, data: pd.DataFrame) -> None:
         self._data_raw = data.astype("string")
         self._data_cache = None
-        self.model().df = data
-        self._filter_slice = None  # filter should be reset
+        self.setFilter(None)
         self.update()
         return
     
-    def createModel(self) -> SpreadSheetModel:
-        return SpreadSheetModel(self)
+    def createModel(self) -> None:
+        model = SpreadSheetModel(self)
+        self._qtable_view.setModel(model)
+        return None
     
     def convertValue(self, r: int, c: int, value: Any) -> Any:
         """Convert value to the type of the table."""

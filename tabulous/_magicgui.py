@@ -1,8 +1,8 @@
 from __future__ import annotations
-from typing import Any, Callable, Iterable, TYPE_CHECKING
+from typing import Any, Callable, Iterable, TYPE_CHECKING, TypeVar
 from qtpy.QtWidgets import QWidget, QVBoxLayout
 from magicgui import register_type
-from magicgui.widgets import Widget, Container, ComboBox, Label
+from magicgui.widgets import Widget, Container, ComboBox, Label, Dialog
 from magicgui.widgets._bases import CategoricalWidget
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
@@ -215,4 +215,28 @@ class ColumnNameChoice(Container):
         colnames = [cbox.value for cbox in self._column_names]
         return (df, colnames)
 
-register_type(TableInfoInstance, widget_type=ColumnNameChoice, data_choices=get_table_data)
+register_type(
+    TableInfoInstance, 
+    widget_type=ColumnNameChoice,
+    data_choices=get_table_data
+)
+
+# #############################################################################
+#    Utility functions
+# #############################################################################
+
+_F = TypeVar("_F", bound=Callable)
+
+def dialog_factory(function: _F) -> _F:
+    from magicgui.signature import magic_signature
+    def _runner(**param_options):
+        widgets = list(
+            magic_signature(function, gui_options=param_options).widgets().values()
+        )
+        dlg = Dialog(widgets=widgets)
+        if dlg.exec():
+            out = function(**dlg.asdict())
+        else:
+            out = None
+        return out
+    return _runner

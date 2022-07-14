@@ -1,8 +1,7 @@
 from __future__ import annotations
 from typing import Any
 import pandas as pd
-
-from ._base import AbstractDataFrameModel, QTableLayerBase
+from ._base import AbstractDataFrameModel, QMutableSimpleTable
 
 class DataFrameModel(AbstractDataFrameModel):
     
@@ -24,8 +23,8 @@ class DataFrameModel(AbstractDataFrameModel):
         return self.df.shape[1]
 
 
-class QTableLayer(QTableLayerBase):
-
+class QTableLayer(QMutableSimpleTable):
+    
     def getDataFrame(self) -> pd.DataFrame:
         return self._data_raw
 
@@ -33,11 +32,13 @@ class QTableLayer(QTableLayerBase):
         self._data_raw = data
         self.model().df = data
         self._filter_slice = None  # filter should be reset
-        self.viewport().update()
+        self._qtable_view.viewport().update()
         return
 
-    def createModel(self) -> DataFrameModel:
-        return DataFrameModel(self)
+    def createModel(self):
+        model = DataFrameModel(self)
+        self._qtable_view.setModel(model)
+        return None
     
     def convertValue(self, r: int, c: int, value: Any) -> Any:
         """Convert value to the type of the table."""
