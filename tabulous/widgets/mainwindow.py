@@ -2,6 +2,7 @@ from __future__ import annotations
 from functools import partial
 from pathlib import Path
 import weakref
+from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Union
 from psygnal import Signal, SignalGroup
 
@@ -22,6 +23,9 @@ if TYPE_CHECKING:
 
 PathLike = Union[str, Path, bytes]
 
+class TableType(Enum):
+    table = "table"
+    spreadsheet = "spreadsheet"
 
 class TableViewerSignal(SignalGroup):
     """Signal group for table viewer."""
@@ -62,7 +66,7 @@ class _TableViewerBase:
         return self._tablist
     
     @property
-    def current_table(self) -> TableLayer:
+    def current_table(self) -> TableLayerBase:
         """Return the currently visible table."""
         return self.tables[self.current_index]
     
@@ -96,7 +100,7 @@ class _TableViewerBase:
         name: str | None = None,
         editable: bool = False,
         copy: bool = True,
-    ) -> TableLayer:
+    ) -> TableLayerBase:
         
         """
         Add data as a table.
@@ -114,7 +118,7 @@ class _TableViewerBase:
         
         Returns
         -------
-        TableLayer
+        TableLayerBase
             The added table object.
         """
         if copy:
@@ -159,7 +163,7 @@ class _TableViewerBase:
         self.current_index = -1  # activate the last table
         return layer
 
-    def open(self, path: PathLike) -> None:
+    def open(self, path: PathLike, *, type=TableType.table) -> None:
         """
         Read a table data and add to the viewer.
         
@@ -170,11 +174,22 @@ class _TableViewerBase:
         """
         path = Path(path)
         suf = path.suffix
-        from .. import core
+        type = TableType(type)
+        if type == TableType.table:
+            fopen = self.add_table
+        elif type == TableType.spreadsheet:
+            fopen = self.add_spreadsheet
+        else:
+            raise RuntimeError
+        
+        import pandas as pd
         if suf in (".csv", ".txt", ".dat"):
-            core.read_csv(path)
+            df = pd.read_csv(path)
+            fopen(df, name=path.stem)
         elif suf in (".xlsx", ".xls", ".xlsb", ".xlsm", ".xltm", "xltx", ".xml"):
-            core.read_excel(path)
+            df_dict: dict[str, pd.DataFrame] = pd.read_excel(path, sheet_name=None)
+            for sheet_name, df in df_dict.items():
+                fopen(df, name=sheet_name)
         else:
             raise ValueError(f"Extension {suf} not supported.")
     
@@ -199,7 +214,7 @@ class _TableViewerBase:
             _qtablist.addTable(table._qwidget, table.name)
         
         @_tablist.events.removed.connect
-        def _remove_qtable(index: int, table: TableLayer):
+        def _remove_qtable(index: int, table: TableLayerBase):
             with _tablist.events.blocked():
                 _qtablist.takeTable(index)
         

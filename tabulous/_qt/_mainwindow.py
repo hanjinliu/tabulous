@@ -6,7 +6,6 @@ from qtpy.QtCore import Qt, QEvent
 
 from ._table_stack import QListTableStack, QTabbedTableStack
 from ._utils import search_name_from_qmenu
-
 from ..types import WidgetType
 
 if TYPE_CHECKING:
@@ -52,6 +51,8 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     def __init__(self, widget_type: WidgetType | str = WidgetType.list):
         super().__init__()
         _QtMainWidgetBase.__init__(self, widget_type=widget_type)
+        from ._toolbar import QTableStackToolBar
+        self.addToolBar(QTableStackToolBar(self))
         QMainWindow._instances.append(self)
 
     def addDockWidget(
