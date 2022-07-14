@@ -1,1 +1,1 @@
-from ._tabbar import QTabbedTableStack
+from ._tabwidget import QTabbedTableStack

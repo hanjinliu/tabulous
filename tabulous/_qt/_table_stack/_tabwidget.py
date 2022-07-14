@@ -15,6 +15,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     itemMoved = Signal(int, int)
     tableRenamed = Signal(int, str)
     tableRemoved = Signal(int)
+    tablePassed = Signal(object, int, object)  # source widget, tab_id, target widget
     
     def __init__(self, parent=None, tab_position="top"):
         super().__init__(parent)
@@ -36,7 +37,8 @@ class QTabbedTableStack(QtW.QTabWidget):
         # self.setMinimumSize(600, 400)
         self.setAcceptDrops(True)
         self.setMovable(True)
-
+        self.tabBar().setMouseTracking(True)
+        
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
         self.currentChanged.connect(self.currentTableChanged.emit)
@@ -86,14 +88,52 @@ class QTabbedTableStack(QtW.QTabWidget):
         """Move table from `src` to `dst`."""
         return self.tabBar().moveTab(src, dst)
 
-    def dragEnterEvent(self, a0: QtGui.QDragEnterEvent) -> None:
+    def dragEnterEvent(self, e: QtGui.QDragEnterEvent) -> None:
         # This override is necessary for accepting drops from files.
-        a0.accept()
+        e.accept()
         
-    def dropEvent(self, a0: QtGui.QDropEvent) -> None:
-        mime = a0.mimeData()
-        self.itemDropped.emit(mime.text())
-        return super().dropEvent(a0)
+        if e.source().parentWidget() is not self:
+            return
+
+        self._entering_tab_index = self.indexOf(self.widget(self._moving_tab_index))
+        
+    def dropEvent(self, e: QtGui.QDropEvent) -> None:
+        mime = e.mimeData()
+        text = mime.text()
+        if text:
+            self.itemDropped.emit(text)
+
+        source_widget: QTabbedTableStack = e.source().parentWidget()
+        tab_id = source_widget._entering_tab_index
+        if source_widget is self:
+            return super().dropEvent(e)
+
+        e.setDropAction(Qt.MoveAction)
+        e.accept()
+        
+        self.tablePassed.emit(source_widget, tab_id, self)
+        return super().dropEvent(e)
+
+    def mouseMoveEvent(self, e: QtGui.QMouseEvent):
+        globalPos = self.mapToGlobal(e.pos())
+        tabBar = self.tabBar()
+        posInTab = tabBar.mapFromGlobal(globalPos)
+        self._moving_tab_index = tabBar.tabAt(e.pos())
+        tabRect = tabBar.tabRect(self._moving_tab_index)
+
+        pixmap = QtGui.QPixmap(tabRect.size())
+        tabBar.render(pixmap, QtCore.QPoint(), QtGui.QRegion(tabRect))
+        mimeData = QtCore.QMimeData()
+        drag = QtGui.QDrag(tabBar)
+        drag.setMimeData(mimeData)
+        drag.setPixmap(pixmap)
+        cursor = QtGui.QCursor(Qt.OpenHandCursor)
+        drag.setHotSpot(e.pos() - posInTab)
+        drag.setDragCursor(cursor.pixmap(),Qt.MoveAction)
+        drag.exec_(Qt.MoveAction)
+
+    def dragLeaveEvent(self, e: QtGui.QDragLeaveEvent):
+        e.accept()
 
     def enterEditingMode(self, index: int):
         """Enter edit table name mode."""

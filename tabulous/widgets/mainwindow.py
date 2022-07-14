@@ -250,6 +250,12 @@ class _TableViewerBase:
             with self._tablist.events.blocked():
                 del self._tablist[index]    
         
+        @_qtablist.tablePassed.connect
+        def _pass_pytable(src, index: int, dst):
+            src_ = _find_parent_table(src)
+            dst_ = _find_parent_table(dst)
+            dst_.tables.append(src_.tables.pop(index))
+        
         _qtablist.itemDropped.connect(self.open)
         
         # reset choices when something changed in python table list
@@ -343,3 +349,11 @@ def _normalize_widget(widget: Widget | QWidget, name: str) -> tuple[QWidget, str
 def _copy_dataframe(data) -> pd.DataFrame:
     import pandas as pd
     return pd.DataFrame(data)
+
+def _find_parent_table(qwidget: _QtMainWidgetBase) -> _TableViewerBase:
+    x = qwidget
+    while (parent := x.parent()) is not None:
+        x = parent
+        if hasattr(x, "_table_viewer"):
+            return x._table_viewer
+    raise RuntimeError
