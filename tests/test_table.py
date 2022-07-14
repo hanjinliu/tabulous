@@ -22,7 +22,7 @@ def test_display(df: pd.DataFrame):
     assert table.data is df
     assert table.columns is df.columns
     assert table.index is df.index
-    assert table.shape == df.shape
+    assert table.table_shape == df.shape
     assert get_cell_value(table._qwidget, 0, 0) == str(df.iloc[0, 0])
 
 @pytest.mark.parametrize("df", [df0, df1])
@@ -46,10 +46,8 @@ def test_size_change():
     viewer.add_layer(table)
     
     table.data = np.zeros((20, 20))
-    assert table.shape == (20, 20)
     assert table.table_shape == (20, 20)
     table.data = np.zeros((40, 40))
-    assert table.shape == (40, 40)
     assert table.table_shape == (40, 40)
 
 def test_selection_signal():
@@ -65,16 +63,3 @@ def test_selection_signal():
     sel = [(slice(1, 2), slice(1, 2))]
     table.selections = sel
     mock.assert_called_with(sel)
-
-def test_update():
-    viewer = TableViewer(show=False)
-    table = viewer.add_table({"a": [1, 2, 3]})
-    assert table.shape == (3, 1)
-    table.update(b=[True, False, True])
-    assert table.shape == (3, 2)
-    with pytest.raises(Exception):
-        table.update(c=[True, False])
-    table.update(a=[True, False, True])
-    assert table.shape == (3, 2)
-    table.update({"c": [0, 0, 0]})
-    assert table.shape == (3, 3)

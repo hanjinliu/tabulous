@@ -29,13 +29,13 @@ class QTableStackToolBar(QtW.QToolBar):
         self._child_widgets: weakref.WeakValueDictionary[str, QtW.QToolBar] = weakref.WeakValueDictionary()
         
         self.addWidget(self._tab)
-        sp = QtW.QStyle.StandardPixmap
         self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
         self.registerAction("File", self.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")
-        self.registerAction("File", self.save_table, sp.SP_DialogSaveButton)
+        self.registerAction("File", self.save_table, ICON_DIR / "save_table.svg")
         self.registerAction("Table", self.copy_as_table, ICON_DIR / "copy_as_table.svg")
         self.registerAction("Table", self.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")
         self.registerAction("Table", self.new_spreadsheet, ICON_DIR / "new_spreadsheet.svg")
+        self.addSeparatorToChild("Table")
         self.registerAction("Table", self.groupby, ICON_DIR / "groupby.svg")
         self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
     
@@ -68,6 +68,10 @@ class QTableStackToolBar(QtW.QToolBar):
         action.setToolTip(f.__doc__)
         toolbar.addAction(action)
         return None
+    
+    def addSeparatorToChild(self, tabname: str) -> QAction:
+        toolbar = self._child_widgets[tabname]
+        return toolbar.addSeparator()
     
     def open_table(self):
         """Open a file as a table."""

@@ -158,7 +158,7 @@ class _TableViewerBase:
         table = SpreadSheet(data, name=name, editable=editable)
         return self.add_layer(table)
     
-    def add_groupby(self, data, name: str | None = None):
+    def add_groupby(self, data, name: str | None = None) -> GroupBy:
         table = GroupBy(data, name=name)
         return self.add_layer(table)
     

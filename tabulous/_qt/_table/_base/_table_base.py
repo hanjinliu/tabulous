@@ -21,6 +21,18 @@ _EDITABLE = QtW.QAbstractItemView.EditTrigger.EditKeyPressed | QtW.QAbstractItem
 _READ_ONLY = QtW.QAbstractItemView.EditTrigger.NoEditTriggers
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
+class _QSelectableTableView(QtW.QTableView):
+    selectionChangedSignal = Signal()
+    
+    def selectionChanged(
+        self,
+        selected: QtCore.QItemSelection,
+        deselected: QtCore.QItemSelection,
+    ) -> None:
+        """Evoked when table selection range is changed."""
+        self.selectionChangedSignal.emit()
+        return super().selectionChanged(selected, deselected)
+
 
 class QBaseTable(QtW.QWidget):
     selectionChangedSignal = Signal(list)
@@ -42,9 +54,12 @@ class QBaseTable(QtW.QWidget):
 
         delegate = TableItemDelegate(parent=self)
         self._qtable_view.setItemDelegate(delegate)
+        self._qtable_view.selectionChangedSignal.connect(
+            lambda: self.selectionChangedSignal.emit(self.selections())
+        )
     
     @property
-    def _qtable_view(self) -> QtW.QTableView:
+    def _qtable_view(self) -> _QSelectableTableView:
         raise NotImplementedError()
     
     def createQTableView(self) -> None:
@@ -58,9 +73,6 @@ class QBaseTable(QtW.QWidget):
         raise NotImplementedError()
     
     def createModel(self) -> AbstractDataFrameModel:
-        raise NotImplementedError()
-    
-    def dataShape(self) -> tuple[int, int]:
         raise NotImplementedError()
     
     def tableSlice(self) -> pd.DataFrame:
@@ -120,16 +132,7 @@ class QBaseTable(QtW.QWidget):
     def connectSelectionChangedSignal(self, slot):
         self.selectionChangedSignal.connect(slot)
         return slot
-    
-    def selectionChanged(
-        self,
-        selected: QtCore.QItemSelection,
-        deselected: QtCore.QItemSelection,
-    ) -> None:
-        """Evoked when table selection range is changed."""
-        self.selectionChangedSignal.emit(self.selections())
-        return QtW.QTableView.selectionChanged(self._qtable_view, selected, deselected)
-    
+
     def selections(self) -> list[tuple[slice, slice]]:
         """Get list of selections as slicable tuples"""
         qtable = self._qtable_view
@@ -264,9 +267,6 @@ class QMutableTable(QBaseTable):
         # header editing signals
         self._qtable_view.horizontalHeader().sectionDoubleClicked.connect(self.editHorizontalHeader)
         self._qtable_view.verticalHeader().sectionDoubleClicked.connect(self.editVerticalHeader)
-    
-    def dataShape(self) -> tuple[int, int]:
-        return self._data_raw.shape
 
     def tableShape(self) -> tuple[int, int]:
         model = self.model()
@@ -563,11 +563,11 @@ class QMutableTable(QBaseTable):
 
 class QMutableSimpleTable(QMutableTable):
     @property
-    def _qtable_view(self) -> QtW.QTableView:
+    def _qtable_view(self) -> _QSelectableTableView:
         return self._qtable_view_
     
     def createQTableView(self):
-        self._qtable_view_ = QtW.QTableView()
+        self._qtable_view_ = _QSelectableTableView()
         _layout = QtW.QVBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(_layout)

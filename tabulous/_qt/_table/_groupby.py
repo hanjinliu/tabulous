@@ -1,11 +1,11 @@
 from __future__ import annotations
-from typing import Any, Iterable
+from typing import Any, Hashable, Iterable, Sequence
 import pandas as pd
 from pandas.core.groupby.generic import DataFrameGroupBy
 from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Signal, Qt
 
-from ._base import QBaseTable
+from ._base import QBaseTable, _QSelectableTableView
 from ._table import DataFrameModel
 
 class _LabeledComboBox(QtW.QWidget):
@@ -43,22 +43,29 @@ class _LabeledComboBox(QtW.QWidget):
         """Set current index."""
         return self._cbox.setCurrentIndex(index)
     
-    def value(self) -> Any:
+    def CurrentValue(self) -> Any:
         """Current value."""
         return self._values[self.currentIndex()]
+    
+    def setCurrentValue(self, value: Any) -> None:
+        try:
+            index = self._values.index(value)
+        except ValueError:
+            raise ValueError(f"{value} is not a valid choice.")
+        return self.setCurrentIndex(index)
 
 
 class QTableGroupBy(QBaseTable):
     _data_raw: DataFrameGroupBy
 
     @property
-    def _qtable_view(self) -> QtW.QTableView:
+    def _qtable_view(self) -> _QSelectableTableView:
         return self._qtable_view_
     
     def createQTableView(self):
-        self._qtable_view_ = QtW.QTableView()
+        self._qtable_view_ = _QSelectableTableView()
         self._group_key_cbox = _LabeledComboBox()
-        self._group_map: list[Any] = []
+        self._group_map: dict[Hashable, Sequence[int]] = {}
         self._group_key_cbox.currentIndexChanged.connect(lambda e: self.setFilter(self._filter_slice))
                 
         _layout = QtW.QVBoxLayout()
@@ -99,5 +106,12 @@ class QTableGroupBy(QBaseTable):
 
     def tableSlice(self) -> pd.DataFrame:
         df: pd.DataFrame = self._data_raw.obj
-        sl = self._group_map[self._group_key_cbox.value()]
+        sl = self._group_map[self._group_key_cbox.CurrentValue()]
         return df.iloc[sl, :]
+
+    def currentGroup(self) -> Hashable:
+        index = self._group_key_cbox.currentIndex()
+        return self._group_key_cbox._values[index]
+    
+    def setCurrentGroup(self, group: Hashable) -> None:
+        return self._group_key_cbox.setCurrentValue(group)

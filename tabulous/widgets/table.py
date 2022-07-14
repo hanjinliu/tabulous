@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Callable, overload
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, overload
 from functools import partial
 from psygnal import SignalGroup, Signal
 
@@ -23,7 +23,9 @@ class TableSignals(SignalGroup):
     zoom = Signal(float)
     renamed = Signal(str)
 
-class TableLayerBase(ABC):
+_QW = TypeVar("_QW", bound="QBaseTable")
+
+class TableLayerBase(ABC, Generic[_QW]):
     """The base class for a table layer."""
     
     _Default_Name = "None"
@@ -46,7 +48,7 @@ class TableLayerBase(ABC):
         return f"{self.__class__.__name__}<{self.name!r}>"
     
     @abstractmethod
-    def _create_backend(self, data: pd.DataFrame) -> QBaseTable:
+    def _create_backend(self, data: pd.DataFrame) -> _QW:
         """This function creates a backend widget."""
     
     @abstractmethod
@@ -62,12 +64,7 @@ class TableLayerBase(ABC):
     def data(self, value):
         self._data = self._normalize_data(value)
         self._qwidget.setDataFrame(self._data)
-    
-    @property
-    def shape(self) -> tuple[int, int]:
-        """Shape of data."""
-        return self._qwidget.dataShape()
-    
+
     @property
     def table_shape(self) -> tuple[int, int]:
         """Shape of table."""
@@ -134,27 +131,6 @@ class TableLayerBase(ABC):
     def selections(self, value) -> None:
         self._qwidget.setSelections(value)
     
-    @overload
-    def update(self, value: dict[str, Any]) -> None:
-        ...
-    
-    @overload
-    def update(self, **kwargs: dict[str, Any]) -> None:
-        ...
-    
-    def update(self, value=None, **kwargs) -> None:
-        """Update DataFrame using a dictionary-like representation."""
-        if value is not None:
-            if kwargs:
-                raise ValueError("Cannot specify both value and kwargs.")
-            kwargs = value
-        data = self.data.copy()
-        for k, v in kwargs.items():
-            data[k] = v
-        self.data = data
-        self._qwidget.refresh()
-        return None
-    
     def refresh(self) -> None:
         """Refresh the table view."""
         return self._qwidget.refresh()
@@ -167,7 +143,7 @@ class TableLayerBase(ABC):
             register_shortcut(seq, self._qwidget, partial(f, self))
         return register
 
-class _DataFrameTableLayer(TableLayerBase):
+class _DataFrameTableLayer(TableLayerBase[_QW]):
     """Table layer for DataFrame."""
     
     def _normalize_data(self, data) -> pd.DataFrame:
@@ -176,21 +152,21 @@ class _DataFrameTableLayer(TableLayerBase):
             data = pd.DataFrame(data)
         return data
 
-class TableLayer(_DataFrameTableLayer):
+class TableLayer(_DataFrameTableLayer["QTableLayer"]):
     _Default_Name = "table"
     
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
         from .._qt import QTableLayer
         return QTableLayer(data=data)
 
-class SpreadSheet(_DataFrameTableLayer):
+class SpreadSheet(_DataFrameTableLayer["QSpreadSheet"]):
     _Default_Name = "sheet"
     
     def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
         from .._qt import QSpreadSheet
         return QSpreadSheet(data=data)
 
-class GroupBy(TableLayerBase):
+class GroupBy(TableLayerBase["QTableGroupBy"]):
     _Default_Name = "groupby"
     
     def _create_backend(self, data: pd.DataFrame) -> QTableGroupBy:
@@ -202,3 +178,11 @@ class GroupBy(TableLayerBase):
         if not isinstance(data, DataFrameGroupBy):
             raise TypeError("Cannot only add DataFrameGroupBy object.")
         return data
+    
+    @property
+    def group(self):
+        return self._qwidget.currentGroup()
+    
+    @group.setter
+    def group(self, val) -> None:
+        return self._qwidget.setCurrentGroup(val)
