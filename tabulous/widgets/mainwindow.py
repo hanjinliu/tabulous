@@ -32,6 +32,22 @@ class TableViewerSignal(SignalGroup):
     
     current_index = Signal(int)
 
+class Toolbar:
+    """The toolbar API."""
+    
+    def __init__(self, parent: "_TableViewerBase"):
+        self.parent = parent
+    
+    def __repr__(self) -> str:
+        return f"<{type(self).__name__} of {self.parent!r}>"
+        
+    @property
+    def visible(self) -> bool:
+        return self.parent._qwidget.toolBarVisible()
+    
+    @visible.setter
+    def visible(self, val) -> None:
+        return self.parent._qwidget.setToolBarVisible(val)
 
 class _TableViewerBase:
     events: TableViewerSignal
@@ -47,6 +63,7 @@ class _TableViewerBase:
         self._qwidget = self._qwidget_class(tab_position=tab_position)
         self._qwidget._table_viewer = self
         self._tablist = TableList(parent=self)
+        self._toolbar = Toolbar(parent=self)
         self._link_events()
         
         self.events = TableViewerSignal()
@@ -64,6 +81,11 @@ class _TableViewerBase:
     def tables(self) -> TableList:
         """Return the table list object."""
         return self._tablist
+    
+    @property
+    def toolbar(self) -> Toolbar:
+        """Return the tool bar widget."""
+        return self._toolbar
     
     @property
     def current_table(self) -> TableLayerBase:
