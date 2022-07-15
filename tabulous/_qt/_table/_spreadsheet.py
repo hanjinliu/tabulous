@@ -3,6 +3,8 @@ from typing import Any
 from io import StringIO
 import numpy as np
 import pandas as pd
+from qtpy import QtCore, QtWidgets as QtW
+from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 
@@ -24,6 +26,48 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
     def columnCount(self, parent=None):
         return min(self._df.shape[1] + 10, MAX_COLUMN_SIZE)
+    
+    def insertRows(self, row: int, count: int, parent: QtCore.QModelIndex = None) -> bool:
+        df = self.df
+        self.beginInsertRows(parent, row, row + count - 1)
+        df0 = df.iloc[:row, :]
+        df1 = pd.DataFrame(
+            np.full((count, df.shape[1]), np.nan), 
+            columns=df.columns,
+            dtype="string"
+        )
+        df2 = df.iloc[row:, :]
+        self.df = pd.concat([df0, df1, df2], axis=0)
+        self.endInsertRows()
+        return True
+
+    def insertColumns(self, column: int, count: int, parent: QtCore.QModelIndex = None) -> bool:
+        df = self.df
+        self.beginInsertColumns(parent, column, column + count - 1)
+        df0 = df.iloc[:, :column]
+        df1 = pd.DataFrame(
+            np.full((df.shape[0], count), np.nan), 
+            index=df.index,
+            dtype="string"
+        )
+        df2 = df.iloc[:, column:]
+        self.df = pd.concat([df0, df1, df2], axis=1)
+        self.endInsertColumns()
+        return True
+    
+    def removeRows(self, row: int, count: int, parent: QtCore.QModelIndex = None) -> bool:
+        df = self.df
+        self.beginRemoveRows(parent, row, row + count - 1)
+        self.df = df.drop(index=df.index[row])
+        self.endRemoveRows()
+        return True
+    
+    def removeColumns(self, column: int, count: int, parent: QtCore.QModelIndex = None) -> bool:
+        df = self.df
+        self.beginRemoveColumns(parent, column, column + count - 1)
+        self.df = df.drop(columns=df.columns[column])
+        self.endRemoveColumns()
+        return True
 
 
 class QSpreadSheet(QMutableSimpleTable):
@@ -37,6 +81,8 @@ class QSpreadSheet(QMutableSimpleTable):
     def __init__(self, parent = None, data: pd.DataFrame | None = None):
         super().__init__(parent, data)
         self._data_cache = None
+        self._qtable_view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self._qtable_view.customContextMenuRequested.connect(self.showContextMenu)
 
     def getDataFrame(self) -> pd.DataFrame:
         if self._data_cache is not None:
@@ -155,7 +201,19 @@ class QSpreadSheet(QMutableSimpleTable):
         self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
         
         return super().setHorizontalHeaderValue(index, value)
-
+    
+    def showContextMenu(self, pos: QtCore.QPoint):
+        menu = QtW.QMenu(self._qtable_view)
+        index = self._qtable_view.indexAt(pos)
+        row, col = index.row(), index.column()
+        menu.addAction("Insert a row above", lambda: self.model().insertRows(row, 1, QtCore.QModelIndex()))
+        menu.addAction("Insert a row below", lambda: self.model().insertRows(row + 1, 1, QtCore.QModelIndex()))
+        menu.addAction("Insert a column on the left", lambda: self.model().insertColumns(col, 1, QtCore.QModelIndex()))
+        menu.addAction("Insert a column on the right", lambda: self.model().insertColumns(col + 1, 1, QtCore.QModelIndex()))
+        menu.addAction("Remove this row", lambda: self.model().removeRows(row, 1, QtCore.QModelIndex()))
+        menu.addAction("Remove this column", lambda: self.model().removeColumns(col, 1, QtCore.QModelIndex()))
+        return menu.exec(self._qtable_view.mapToGlobal(pos))
+        
 def _get_limit(a) -> int:
     if isinstance(a, int):
         amax = a

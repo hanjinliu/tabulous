@@ -1,15 +1,16 @@
-from __future__ import annotations
+# from __future__ import annotations
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Union, List
 import weakref
 import numpy as np
+import pandas as pd
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtWidgets import QAction
 
 from .._magicgui import dialog_factory
+from ..types import TableData
 
 if TYPE_CHECKING:
-    import pandas as pd
     from ._mainwindow import _QtMainWidgetBase
     from ..widgets.mainwindow import _TableViewerBase
 
@@ -18,7 +19,7 @@ SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 ICON_DIR = Path(__file__).parent / "_icons"
 
 class QTableStackToolBar(QtW.QToolBar):
-    def __init__(self, parent: _QtMainWidgetBase):
+    def __init__(self, parent: "_QtMainWidgetBase"):
         super().__init__(parent)
         
         self._tab = QtW.QTabWidget(self)
@@ -37,14 +38,16 @@ class QTableStackToolBar(QtW.QToolBar):
         self.registerAction("Table", self.new_spreadsheet, ICON_DIR / "new_spreadsheet.svg")
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.groupby, ICON_DIR / "groupby.svg")
+        self.registerAction("Table", self.hconcat, ICON_DIR / "hconcat.svg")
+        self.registerAction("Table", self.vconcat, ICON_DIR / "vconcat.svg")
         self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
     
     @property
-    def viewer(self) -> _TableViewerBase:
+    def viewer(self) -> "_TableViewerBase":
         return self.parent()._table_viewer
 
     if TYPE_CHECKING:
-        def parent(self) -> _QtMainWidgetBase:
+        def parent(self) -> "_QtMainWidgetBase":
             ...
     
     def addToolBar(self, name: str):
@@ -55,7 +58,7 @@ class QTableStackToolBar(QtW.QToolBar):
         self._tab.addTab(toolbar, name)
         self._child_widgets[name] = toolbar
         
-    def registerAction(self, tabname: str, f: Callable, icon: str | Path | int):
+    def registerAction(self, tabname: str, f: Callable, icon: Union[str, Path, int]):
         if tabname not in self._child_widgets:
             self.addToolBar(tabname)
         toolbar = self._child_widgets[tabname]
@@ -119,6 +122,26 @@ class QTableStackToolBar(QtW.QToolBar):
         )
         if out is not None:
             self.viewer.add_groupby(out, name=f"{table.name}-groupby")
+    
+    def hconcat(self):
+        out = hconcat(
+            viewer={"bind": self.viewer},
+            names={"value": [self.viewer.current_table.name],
+                   "widget_type": "Select",
+                   "choices": [t.name for t in self.viewer.tables]},
+        )
+        if out is not None:
+            self.viewer.add_table(out, name=f"hconcat")
+    
+    def vconcat(self):
+        out = vconcat(
+            viewer={"bind": self.viewer},
+            names={"value": [self.viewer.current_table.name],
+                   "widget_type": "Select",
+                   "choices": [t.name for t in self.viewer.tables]},
+        )
+        if out is not None:
+            self.viewer.add_table(out, name=f"vconcat")
         
     def summarize_table(self):
         """Summarize current table."""
@@ -131,9 +154,19 @@ class QTableStackToolBar(QtW.QToolBar):
             self.viewer.add_table(out, name=f"{table.name}-summary")
         
 @dialog_factory
-def summarize_table(df, methods: list[str]):
+def summarize_table(df: TableData, methods: List[str]):
     return df.agg(methods)
 
 @dialog_factory
-def groupby(df, by: list[str]):
+def groupby(df: TableData, by: List[str]):
     return df.groupby(by)
+
+@dialog_factory
+def hconcat(viewer, names: List[str]):
+    dfs = [viewer.tables[name].data for name in names]
+    return pd.concat(dfs, axis=0)
+
+@dialog_factory
+def vconcat(viewer, names: List[str]):
+    dfs = [viewer.tables[name].data for name in names]
+    return pd.concat(dfs, axis=1)

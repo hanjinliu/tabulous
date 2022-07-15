@@ -7,6 +7,7 @@ from magicgui.widgets._bases import CategoricalWidget
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
 from .widgets import TableViewer, TableLayer, TableViewerWidget
+from ._qt._mainwindow import _QtMainWidgetBase
 from .types import TableColumn, TableData, TableDataTuple, TableInfoInstance, TabPosition
 
 if TYPE_CHECKING:
@@ -66,8 +67,10 @@ def find_table_viewer_ancestor(widget: Widget | QWidget) -> TableViewer | None:
     parent = qwidget.parent()
     while (parent := qwidget.parent()) is not None:
         qwidget = parent
+        if isinstance(qwidget, _QtMainWidgetBase):
+            return qwidget._table_viewer
     
-    return getattr(qwidget, "_table_viewer", None)
+    return None
 
 def get_tables(widget: CategoricalWidget) -> list[tuple[str, Any]]:
     v = find_table_viewer_ancestor(widget)
@@ -229,11 +232,12 @@ _F = TypeVar("_F", bound=Callable)
 
 def dialog_factory(function: _F) -> _F:
     from magicgui.signature import magic_signature
-    def _runner(**param_options):
+    def _runner(parent=None, **param_options):
         widgets = list(
             magic_signature(function, gui_options=param_options).widgets().values()
         )
         dlg = Dialog(widgets=widgets)
+        dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
             out = function(**dlg.asdict())
         else:
