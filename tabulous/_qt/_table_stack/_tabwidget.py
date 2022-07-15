@@ -10,18 +10,19 @@ from .._utils import search_name_from_qmenu
 from .._table import QBaseTable
 
 class QTabbedTableStack(QtW.QTabWidget):
-    currentTableChanged = Signal(int)
-    itemDropped = Signal(object)
-    itemMoved = Signal(int, int)
-    tableRenamed = Signal(int, str)
-    tableRemoved = Signal(int)
+    """Tab widget used for table stack."""
+    
+    currentTableChanged = Signal(int)  # index
+    itemDropped = Signal(object)  # dropped item info
+    itemMoved = Signal(int, int)  # source index, destination index
+    tableRenamed = Signal(int, str)  # index
+    tableRemoved = Signal(int)  # index
     tablePassed = Signal(object, int, object)  # source widget, tab_id, target widget
     
     def __init__(
         self,
         parent=None,
         tab_position: str = "top",
-        tab_autohide: bool = False
     ):
         super().__init__(parent)
         if tab_position == "top":
@@ -42,7 +43,6 @@ class QTabbedTableStack(QtW.QTabWidget):
         # self.setMinimumSize(600, 400)
         self.setAcceptDrops(True)
         self.setMovable(True)
-        self.tabBar().setAutoHide(tab_autohide)
         self.tabBar().setMouseTracking(True)
         
         self.tabBar().setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)

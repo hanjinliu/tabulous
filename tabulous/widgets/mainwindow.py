@@ -288,8 +288,15 @@ class TableViewer(_TableViewerBase):
     _qwidget_class = QMainWindow
     _qwidget: QMainWindow
     
-    def __init__(self, *, tab_position: TabPosition | str = TabPosition.top, show=True):
-        super().__init__(tab_position=tab_position, show=show)
+    def __init__(
+        self,
+        *,
+        tab_position: TabPosition | str = TabPosition.top,
+        show: bool = True,
+    ):
+        super().__init__(
+            tab_position=tab_position, show=show,
+        )
         self._dock_widgets = weakref.WeakValueDictionary()
     
     # def register_action(self, location: str):
