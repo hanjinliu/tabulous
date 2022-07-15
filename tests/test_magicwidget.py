@@ -14,7 +14,7 @@ def test_properties():
 
 def test_containers():
     ctn = Container()
-    viewer0 = MagicTableViewer(widget_type="list")
-    viewer1 = MagicTableViewer(widget_type="tab")
+    viewer0 = MagicTableViewer(tab_position="top")
+    viewer1 = MagicTableViewer(tab_position="left")
     ctn.append(viewer0)
     ctn.append(viewer1)

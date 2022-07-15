@@ -81,6 +81,8 @@ class SelectionRanges(EventedList[tuple[slice, slice]]):
 
 FilterType = Union[Callable[["pd.DataFrame"], np.ndarray], np.ndarray]
 
-class WidgetType(Enum):
-    list = "list"
-    tab = "tab"
+class TabPosition(Enum):
+    top = "top"
+    left = "left"
+    bottom = "bottom"
+    right = "right"

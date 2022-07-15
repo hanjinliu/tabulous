@@ -7,7 +7,7 @@ from magicgui.widgets._bases import CategoricalWidget
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
 from .widgets import TableViewer, TableLayer, TableViewerWidget
-from .types import TableColumn, TableData, TableDataTuple, TableInfoInstance, WidgetType
+from .types import TableColumn, TableData, TableDataTuple, TableInfoInstance, TabPosition
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -25,13 +25,13 @@ class MagicTableViewer(Widget, TableViewerWidget):
     
     Parameters
     ----------
-    widget_type: WidgetType or str
+    tab_position: TabPosition or str
         Type of list-like widget to use.
     """
     def __init__(
         self,
         *, 
-        widget_type: WidgetType | str = "list", 
+        tab_position: TabPosition | str = TabPosition.top, 
         name: str = "",
         label: str = None,
         tooltip: str | None = None,
@@ -42,7 +42,7 @@ class MagicTableViewer(Widget, TableViewerWidget):
             widget_type=QBaseWidget, backend_kwargs={"qwidg": QWidget}, name=name,
             label=label, tooltip=tooltip, visible=visible, enabled=enabled,
         )
-        TableViewerWidget.__init__(self, widget_type=widget_type, show=False)
+        TableViewerWidget.__init__(self, tab_position=tab_position, show=False)
         self.native: QWidget
         self.native.setLayout(QVBoxLayout())
         self.native.layout().addWidget(self._qwidget)

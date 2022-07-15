@@ -10,7 +10,7 @@ from .table import TableLayer, SpreadSheet, GroupBy
 from .tablelist import TableList
 from .keybindings import register_shortcut
 
-from ..types import WidgetType, _TableLike
+from ..types import TabPosition, _TableLike
 from .._qt import QMainWindow, QMainWidget, get_app
 
 if TYPE_CHECKING:
@@ -40,11 +40,11 @@ class _TableViewerBase:
     def __init__(
         self,
         *, 
-        widget_type: WidgetType | str = WidgetType.list,
+        tab_position: TabPosition | str = TabPosition.top,
         show: bool = True
     ):
         app = get_app()
-        self._qwidget = self._qwidget_class(widget_type=widget_type)
+        self._qwidget = self._qwidget_class(tab_position=tab_position)
         self._qwidget._table_viewer = self
         self._tablist = TableList(parent=self)
         self._link_events()
@@ -73,7 +73,7 @@ class _TableViewerBase:
     @property
     def current_index(self) -> int:
         """Return the index of currently visible table."""
-        return self._qwidget._tablist.currentIndex()
+        return self._qwidget._tablestack.currentIndex()
     
     @current_index.setter
     def current_index(self, index: int | str):
@@ -81,7 +81,7 @@ class _TableViewerBase:
             index = self.tables.index(index)
         elif index < 0:
             index += len(self.tables)
-        return self._qwidget._tablist.setCurrentIndex(index)
+        return self._qwidget._tablestack.setCurrentIndex(index)
     
     def bind_key(self, *seq) -> Callable[[TableViewer], Any | None]:
         # TODO
@@ -210,7 +210,7 @@ class _TableViewerBase:
 
     def _link_events(self):
         _tablist = self._tablist
-        _qtablist = self._qwidget._tablist
+        _qtablist = self._qwidget._tablestack
         
         @_tablist.events.inserted.connect
         def _insert_qtable(i: int):
@@ -250,6 +250,12 @@ class _TableViewerBase:
             with self._tablist.events.blocked():
                 del self._tablist[index]    
         
+        @_qtablist.tablePassed.connect
+        def _pass_pytable(src, index: int, dst):
+            src_ = _find_parent_table(src)
+            dst_ = _find_parent_table(dst)
+            dst_.tables.append(src_.tables.pop(index))
+        
         _qtablist.itemDropped.connect(self.open)
         
         # reset choices when something changed in python table list
@@ -282,8 +288,15 @@ class TableViewer(_TableViewerBase):
     _qwidget_class = QMainWindow
     _qwidget: QMainWindow
     
-    def __init__(self, *, widget_type: WidgetType | str = WidgetType.list, show=True):
-        super().__init__(widget_type=widget_type, show=show)
+    def __init__(
+        self,
+        *,
+        tab_position: TabPosition | str = TabPosition.top,
+        show: bool = True,
+    ):
+        super().__init__(
+            tab_position=tab_position, show=show,
+        )
         self._dock_widgets = weakref.WeakValueDictionary()
     
     # def register_action(self, location: str):
@@ -343,3 +356,11 @@ def _normalize_widget(widget: Widget | QWidget, name: str) -> tuple[QWidget, str
 def _copy_dataframe(data) -> pd.DataFrame:
     import pandas as pd
     return pd.DataFrame(data)
+
+def _find_parent_table(qwidget: _QtMainWidgetBase) -> _TableViewerBase:
+    x = qwidget
+    while (parent := x.parent()) is not None:
+        x = parent
+        if hasattr(x, "_table_viewer"):
+            return x._table_viewer
+    raise RuntimeError

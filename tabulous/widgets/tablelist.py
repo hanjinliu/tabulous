@@ -141,7 +141,7 @@ class TableList(EventedList[TableLayerBase]):
     def register_action(self, val):
         """Register an action to the tablelist."""
         if isinstance(val, str):
-            return self._parent._qwidget._tablist.registerAction(val)
+            return self._parent._qwidget._tablestack.registerAction(val)
         elif callable(val):
             location = val.__name__.replace("_", " ")
-            return self._parent._qwidget._tablist.registerAction(location)(val)
+            return self._parent._qwidget._tablestack.registerAction(location)(val)
