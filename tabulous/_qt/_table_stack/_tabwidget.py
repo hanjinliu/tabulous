@@ -17,7 +17,12 @@ class QTabbedTableStack(QtW.QTabWidget):
     tableRemoved = Signal(int)
     tablePassed = Signal(object, int, object)  # source widget, tab_id, target widget
     
-    def __init__(self, parent=None, tab_position="top"):
+    def __init__(
+        self,
+        parent=None,
+        tab_position: str = "top",
+        tab_autohide: bool = False
+    ):
         super().__init__(parent)
         if tab_position == "top":
             pass
@@ -37,10 +42,11 @@ class QTabbedTableStack(QtW.QTabWidget):
         # self.setMinimumSize(600, 400)
         self.setAcceptDrops(True)
         self.setMovable(True)
+        self.tabBar().setAutoHide(tab_autohide)
         self.tabBar().setMouseTracking(True)
         
-        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.showContextMenu)
+        self.tabBar().setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tabBar().customContextMenuRequested.connect(self.showContextMenu)
         self.currentChanged.connect(self.currentTableChanged.emit)
         self.tabCloseRequested.connect(self.takeTable)
         self.tabCloseRequested.connect(self.tableRemoved.emit)
@@ -48,6 +54,8 @@ class QTabbedTableStack(QtW.QTabWidget):
         self.tabBar().tabMoved.connect(lambda a, b: self.itemMoved.emit(b, a))
         self.tabBarDoubleClicked.connect(self.enterEditingMode)
         self.installContextMenu()
+        
+        self._line: QtW.QLineEdit | None = None  # temporal QLineEdit for editing tabs
     
     def addTable(self, table: QBaseTable, name: str = "None"):
         """Add `table` to stack as name `name`."""
@@ -80,6 +88,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     def tableAt(self, pos: QtCore.QPoint) -> QBaseTable | None:
         """Return table at position."""
         index = self.tabBar().tabAt(pos)
+        # TODO: bug when position is east or south
         if index == -1:
             return None
         return self.tableAtIndex(index)
@@ -108,37 +117,61 @@ class QTabbedTableStack(QtW.QTabWidget):
         if source_widget is self:
             return super().dropEvent(e)
 
-        e.setDropAction(Qt.MoveAction)
+        e.setDropAction(Qt.DropAction.MoveAction)
         e.accept()
         
         self.tablePassed.emit(source_widget, tab_id, self)
         return super().dropEvent(e)
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent):
-        globalPos = self.mapToGlobal(e.pos())
-        tabBar = self.tabBar()
-        posInTab = tabBar.mapFromGlobal(globalPos)
-        self._moving_tab_index = tabBar.tabAt(e.pos())
-        tabRect = tabBar.tabRect(self._moving_tab_index)
+        global_pos = self.mapToGlobal(e.pos())
+        tabbar = self.tabBar()
+        posInTab = tabbar.mapFromGlobal(global_pos)
+        self._moving_tab_index = tabbar.tabAt(e.pos())
+        tabrect = self.tabRect(self._moving_tab_index)
 
-        pixmap = QtGui.QPixmap(tabRect.size())
-        tabBar.render(pixmap, QtCore.QPoint(), QtGui.QRegion(tabRect))
-        mimeData = QtCore.QMimeData()
-        drag = QtGui.QDrag(tabBar)
-        drag.setMimeData(mimeData)
+        pixmap = QtGui.QPixmap(tabrect.size())
+        tabbar.render(pixmap, QtCore.QPoint(), QtGui.QRegion(tabrect))
+        mime = QtCore.QMimeData()
+        drag = QtGui.QDrag(tabbar)
+        drag.setMimeData(mime)
         drag.setPixmap(pixmap)
-        cursor = QtGui.QCursor(Qt.OpenHandCursor)
+        cursor = QtGui.QCursor(Qt.CursorShape.OpenHandCursor)
         drag.setHotSpot(e.pos() - posInTab)
-        drag.setDragCursor(cursor.pixmap(),Qt.MoveAction)
-        drag.exec_(Qt.MoveAction)
+        drag.setDragCursor(cursor.pixmap(), Qt.DropAction.MoveAction)
+        drag.exec_(Qt.DropAction.MoveAction)
+    
+    def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
+        if self._line is not None:
+            self._line.setHidden(True)
+        return super().mousePressEvent(e)
+    
+    def mouseDoubleClickEvent(self, e: QtGui.QMouseEvent) -> None:
+        if e.button() != Qt.MouseButton.LeftButton:
+            return
+        return super().mouseDoubleClickEvent(e)
 
     def dragLeaveEvent(self, e: QtGui.QDragLeaveEvent):
         e.accept()
+        return None
+    
+    def tabRect(self, index: int):
+        """Get QRect of the tab at index."""
+        rect = self.tabBar().tabRect(index)
+        
+        # NOTE: East/South tab returns wrong value (Bug in Qt?)
+        if self.tabPosition() == QtW.QTabWidget.TabPosition.East:
+            w = self.rect().width() - rect.width()
+            rect.translate(w, 0)
+        elif self.tabPosition() == QtW.QTabWidget.TabPosition.South:
+            h = self.rect().height() - rect.height()
+            rect.translate(0, h)
+    
+        return rect
 
     def enterEditingMode(self, index: int):
         """Enter edit table name mode."""
-        rect = self.tabBar().tabRect(index)
-        line = QtW.QLineEdit(parent=self)
+        rect = self.tabRect(index)
 
         # set geometry
         line = create_temporal_line_edit(rect, self, self.tabText(index))
@@ -151,11 +184,21 @@ class QTabbedTableStack(QtW.QTabWidget):
             self.setTabText(index, text)
             self.tableRenamed.emit(index, text)
         return None
-    
+
     def installContextMenu(self):
         """Install the default contextmenu."""
         self._qt_context_menu = QTabContextMenu(self)
+        
+        @self.registerAction("Copy all")
+        def _copy(index: int):
+            table = self.tableAtIndex(index)
+            h, w = table.tableShape()
+            table.setSelections([(slice(0, h), slice(0, w))])
+            table.copyToClipboard(headers=True)
+            table.setSelections([])
+            
         self.registerAction("Rename")(self.enterEditingMode)
+        
         @self.registerAction("Delete")
         def _delete(index: int):
             self.takeTable(index)
@@ -190,7 +233,7 @@ class QTabbedTableStack(QtW.QTabWidget):
         if table is None:
             return
         index = self.tableIndex(table)
-        self._qt_context_menu.execAtIndex(self.mapToGlobal(pos), index)
+        self._qt_context_menu.execAtIndex(QtGui.QCursor().pos(), index)
         return
 
 
