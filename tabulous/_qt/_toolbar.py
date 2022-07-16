@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 
 ICON_DIR = Path(__file__).parent / "_icons"
+_BLACK = 'stroke="#000000"'
 
 class QTableStackToolBar(QtW.QToolBar):
     def __init__(self, parent: "_QtMainWidgetBase"):
@@ -41,7 +42,7 @@ class QTableStackToolBar(QtW.QToolBar):
         self.registerAction("Table", self.hconcat, ICON_DIR / "hconcat.svg")
         self.registerAction("Table", self.vconcat, ICON_DIR / "vconcat.svg")
         self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
-    
+
     @property
     def viewer(self) -> "_TableViewerBase":
         return self.parent()._table_viewer
@@ -59,6 +60,7 @@ class QTableStackToolBar(QtW.QToolBar):
         self._child_widgets[name] = toolbar
         
     def registerAction(self, tabname: str, f: Callable, icon: Union[str, Path, int]):
+        """Register a callback `f` in tab `tabname`."""
         if tabname not in self._child_widgets:
             self.addToolBar(tabname)
         toolbar = self._child_widgets[tabname]

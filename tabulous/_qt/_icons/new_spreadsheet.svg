@@ -1,1 +1,13 @@
-<svg width="79" height="79" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden"><defs><clipPath id="clip0"><rect x="1140" y="501" width="79" height="79"/></clipPath></defs><g clip-path="url(#clip0)" transform="translate(-1140 -501)"><path d="M1145 517.5C1145 511.149 1150.15 506 1156.5 506L1202.5 506C1208.85 506 1214 511.149 1214 517.5L1214 563.5C1214 569.851 1208.85 575 1202.5 575L1156.5 575C1150.15 575 1145 569.851 1145 563.5Z" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/><path d="M1156 536.912 1174.91 536.912 1174.91 518 1185.09 518 1185.09 536.912 1204 536.912 1204 546.088 1185.09 546.088 1185.09 565 1174.91 565 1174.91 546.088 1156 546.088Z" fill-rule="evenodd"/></g></svg>
+<svg width="79" height="79"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden">
+    <defs>
+        <clipPath id="clip0">
+            <rect x="1140" y="501" width="79" height="79"/>
+        </clipPath>
+    </defs>
+    <g clip-path="url(#clip0)" transform="translate(-1140 -501)">
+        <path d="M1145 517.5C1145 511.149 1150.15 506 1156.5 506L1202.5 506C1208.85 506 1214 511.149 1214 517.5L1214 563.5C1214 569.851 1208.85 575 1202.5 575L1156.5 575C1150.15 575 1145 569.851 1145 563.5Z" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M1156 536.912 1174.91 536.912 1174.91 518 1185.09 518 1185.09 536.912 1204 536.912 1204 546.088 1185.09 546.088 1185.09 565 1174.91 565 1174.91 546.088 1156 546.088Z" fill-rule="evenodd"/>
+    </g>
+</svg>
