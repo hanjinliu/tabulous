@@ -124,10 +124,13 @@ class QTabbedTableStack(QtW.QTabWidget):
         return super().dropEvent(e)
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent):
-        global_pos = self.mapToGlobal(e.pos())
+        pos_global = self.mapToGlobal(e.pos())
         tabbar = self.tabBar()
-        posInTab = tabbar.mapFromGlobal(global_pos)
+        pos_intab = tabbar.mapFromGlobal(pos_global)
         self._moving_tab_index = tabbar.tabAt(e.pos())
+        if self._moving_tab_index < 0:
+            return
+        
         tabrect = self.tabRect(self._moving_tab_index)
 
         pixmap = QtGui.QPixmap(tabrect.size())
@@ -137,7 +140,7 @@ class QTabbedTableStack(QtW.QTabWidget):
         drag.setMimeData(mime)
         drag.setPixmap(pixmap)
         cursor = QtGui.QCursor(Qt.CursorShape.OpenHandCursor)
-        drag.setHotSpot(e.pos() - posInTab)
+        drag.setHotSpot(e.pos() - pos_intab)
         drag.setDragCursor(cursor.pixmap(), Qt.DropAction.MoveAction)
         drag.exec_(Qt.DropAction.MoveAction)
     
