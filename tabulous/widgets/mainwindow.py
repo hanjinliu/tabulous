@@ -264,8 +264,7 @@ class _TableViewerBase:
         
         @_qtablist.tableRenamed.connect
         def _rename_pytable(index: int, name: str):
-            with self._tablist.events.blocked():
-                self._tablist.rename(index, name)
+            self._tablist.rename(index, name)
         
         @_qtablist.tableRemoved.connect
         def _remove_pytable(index: int):
