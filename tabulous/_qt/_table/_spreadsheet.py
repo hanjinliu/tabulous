@@ -96,12 +96,14 @@ class QSpreadSheet(QMutableSimpleTable):
     
     def setDataFrame(self, data: pd.DataFrame) -> None:
         self._data_raw = data.astype("string")
+        self.model().setShape(data.index.size + 10, data.columns.size + 10)
         self._data_cache = None
         self.setFilter(None)
         self.refresh()
         return
-    
+
     def createModel(self) -> None:
+        """Create spreadsheet model."""
         model = SpreadSheetModel(self)
         self._qtable_view.setModel(model)
         return None

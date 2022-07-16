@@ -63,6 +63,18 @@ class _QSelectableTableView(QtW.QTableView):
         return super().keyPressEvent(e)
 
 class QBaseTable(QtW.QWidget):
+    """
+    The base widget for a table.
+    
+    Abstract Methods
+    ----------------
+    def createQTableView(self) -> None: ...
+    def getDataFrame(self) -> pd.DataFrame: ...
+    def setDataFrame(self) -> None: ...
+    def createModel(self) -> AbstractDataFrameModel: ...
+    def tableSlice(self) -> pd.DataFrame: ...
+    """
+    
     selectionChangedSignal = Signal(list)
     
     def __init__(self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None):
@@ -277,8 +289,9 @@ class QBaseTable(QtW.QWidget):
     def refresh(self) -> None:
         qtable = self._qtable_view
         qtable.viewport().update()
-        qtable.horizontalHeader().viewport().update()
-        qtable.verticalHeader().viewport().update()
+        # TODO: are these needed?
+        # qtable.horizontalHeader().viewport().update()
+        # qtable.verticalHeader().viewport().update()
         return None
     
 
