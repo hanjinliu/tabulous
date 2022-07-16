@@ -27,8 +27,21 @@ class _QSelectableTableView(QtW.QTableView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._last_pos: QtCore.QPoint | None = None
-        self.verticalHeader().setDefaultSectionSize(30)
-        self.horizontalHeader().setDefaultSectionSize(120)
+        self._zoom = 1.0
+        self._initial_font_size = self.font().pointSize()
+        vheader, hheader = self.verticalHeader(), self.horizontalHeader()
+        vheader.setMinimumSectionSize(0)
+        hheader.setMinimumSectionSize(0)
+        vheader.font().setPointSize(self._initial_font_size)
+        hheader.font().setPointSize(self._initial_font_size)
+        
+        vheader.setDefaultSectionSize(30)
+        hheader.setDefaultSectionSize(120)
+        self._initial_section_size = (
+            hheader.defaultSectionSize(),
+            vheader.defaultSectionSize(),
+        )
+        self.setZoom(1.0)  # initialize
     
     def selectionChanged(
         self,
@@ -40,11 +53,13 @@ class _QSelectableTableView(QtW.QTableView):
         return super().selectionChanged(selected, deselected)
     
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
+        """Register clicked position"""
         if e.button() == Qt.MouseButton.RightButton:
             self._last_pos = e.pos()
         return super().mousePressEvent(e)
     
     def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
+        """Scroll table plane when mouse is moved with right click."""
         if self._last_pos is not None:
             pos = e.pos()
             dy = pos.y() - self._last_pos.y()
@@ -55,14 +70,57 @@ class _QSelectableTableView(QtW.QTableView):
         return super().mouseMoveEvent(e)
     
     def mouseReleaseEvent(self, e: QtGui.QMouseEvent) -> None:
+        """Delete last position."""
         self._last_pos = None
         return super().mouseReleaseEvent(e)
 
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
+        """Evoke parent keyPressEvent."""
         parent = self.parent()
         if isinstance(parent, QBaseTable):
             parent.keyPressEvent(e)
         return super().keyPressEvent(e)
+
+    def zoom(self) -> float:
+        """Get current zoom factor."""
+        return self._zoom
+    
+    def setZoom(self, value: float) -> None:
+        """Set zoom factor."""
+        if not 0.25 <= value <= 2.0:
+            raise ValueError("Zoom factor must between 0.25 and 2.0.")
+        # To keep table at the same position.
+        zoom_ratio = 1 / self._zoom * value
+        pos = self.verticalScrollBar().sliderPosition()
+        self.verticalScrollBar().setSliderPosition(pos * zoom_ratio)
+        pos = self.horizontalScrollBar().sliderPosition()
+        self.horizontalScrollBar().setSliderPosition(pos * zoom_ratio)
+        
+        # Zoom font size
+        font = self.font()
+        font.setPointSize(self._initial_font_size*value)
+        self.setFont(font)
+        self.verticalHeader().setFont(font)
+        self.horizontalHeader().setFont(font)
+        
+        # Zoom section size of headers
+        h, v = self._initial_section_size
+        self.verticalHeader().setDefaultSectionSize(v * value)
+        self.horizontalHeader().setDefaultSectionSize(h * value)
+        
+        # Update stuff
+        self._zoom = value
+        return
+    
+    def wheelEvent(self, e: QtGui.QWheelEvent) -> None:
+        """Zoom in/out table."""
+        if e.modifiers() & Qt.ControlModifier:
+            dt = e.angleDelta().y() / 120
+            zoom = self.zoom() + 0.15 * dt
+            self.setZoom(min(max(zoom, 0.25), 2.0))
+            return None
+                
+        return super().wheelEvent(e)
 
 class QBaseTable(QtW.QWidget):
     """
@@ -88,13 +146,6 @@ class QBaseTable(QtW.QWidget):
         self._qtable_view.setVerticalScrollMode(_SCROLL_PER_PIXEL)
         self._qtable_view.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
         self._qtable_view.setFrameStyle(QtW.QFrame.Shape.NoFrame)
-        self._zoom = 1.0
-        self._initial_font_size = self.font().pointSize()
-        self._initial_section_size = (
-            self._qtable_view.horizontalHeader().defaultSectionSize(),
-            self._qtable_view.verticalHeader().defaultSectionSize(),
-        )
-
         delegate = TableItemDelegate(parent=self)
         self._qtable_view.setItemDelegate(delegate)
         self._qtable_view.selectionChangedSignal.connect(
@@ -129,31 +180,11 @@ class QBaseTable(QtW.QWidget):
     
     def zoom(self) -> float:
         """Get current zoom factor."""
-        return self._zoom
+        return self._qtable_view.zoom()
     
     def setZoom(self, value: float) -> None:
         """Set zoom factor."""
-        if not 0.25 <= value <= 2.0:
-            raise ValueError("Zoom factor must between 0.25 and 2.0.")
-        # To keep table at the same position.
-        zoom_ratio = 1 / self._zoom * value
-        pos = self._qtable_view.verticalScrollBar().sliderPosition()
-        self._qtable_view.verticalScrollBar().setSliderPosition(pos * zoom_ratio)
-        pos = self._qtable_view.horizontalScrollBar().sliderPosition()
-        self._qtable_view.horizontalScrollBar().setSliderPosition(pos * zoom_ratio)
-        
-        # Zoom font size
-        font = self.font()
-        font.setPointSize(self._initial_font_size*value)
-        self._qtable_view.setFont(font)
-        
-        # Zoom section size of headers
-        h, v = self._initial_section_size
-        self._qtable_view.horizontalHeader().setDefaultSectionSize(h * value)
-        self._qtable_view.verticalHeader().setDefaultSectionSize(v * value)
-        
-        # Update stuff
-        self._zoom = value
+        return self._qtable_view.setZoom(value)
 
     def itemDelegate(self) -> TableItemDelegate:
         return QtW.QTableView.itemDelegate(self._qtable_view)
@@ -215,17 +246,6 @@ class QBaseTable(QtW.QWidget):
         except Exception as e:
             qtable.clearSelection()
             raise e
-
-    
-    def wheelEvent(self, a0: QtGui.QWheelEvent) -> None:
-        """Zoom in/out table."""
-        if a0.modifiers() & Qt.ControlModifier:
-            dt = a0.angleDelta().y() / 120
-            zoom = self.zoom() + 0.15 * dt
-            self.setZoom(min(max(zoom, 0.25), 2.0))
-            return None
-                
-        return super().wheelEvent(a0)
     
     def copyToClipboard(self, headers: bool = True):
         """Copy currently selected cells to clipboard."""
