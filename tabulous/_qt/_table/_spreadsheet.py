@@ -98,7 +98,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_raw = data.astype("string")
         self._data_cache = None
         self.setFilter(None)
-        self.update()
+        self.refresh()
         return
     
     def createModel(self) -> None:
@@ -206,12 +206,13 @@ class QSpreadSheet(QMutableSimpleTable):
         menu = QtW.QMenu(self._qtable_view)
         index = self._qtable_view.indexAt(pos)
         row, col = index.row(), index.column()
-        menu.addAction("Insert a row above", lambda: self.model().insertRows(row, 1, QtCore.QModelIndex()))
-        menu.addAction("Insert a row below", lambda: self.model().insertRows(row + 1, 1, QtCore.QModelIndex()))
-        menu.addAction("Insert a column on the left", lambda: self.model().insertColumns(col, 1, QtCore.QModelIndex()))
-        menu.addAction("Insert a column on the right", lambda: self.model().insertColumns(col + 1, 1, QtCore.QModelIndex()))
-        menu.addAction("Remove this row", lambda: self.model().removeRows(row, 1, QtCore.QModelIndex()))
-        menu.addAction("Remove this column", lambda: self.model().removeColumns(col, 1, QtCore.QModelIndex()))
+        model = self.model()
+        menu.addAction("Insert a row above", lambda: model.insertRows(row, 1, QtCore.QModelIndex()))
+        menu.addAction("Insert a row below", lambda: model.insertRows(row + 1, 1, QtCore.QModelIndex()))
+        menu.addAction("Insert a column on the left", lambda: model.insertColumns(col, 1, QtCore.QModelIndex()))
+        menu.addAction("Insert a column on the right", lambda: model.insertColumns(col + 1, 1, QtCore.QModelIndex()))
+        menu.addAction("Remove this row", lambda: model.removeRows(row, 1, QtCore.QModelIndex()))
+        menu.addAction("Remove this column", lambda: model.removeColumns(col, 1, QtCore.QModelIndex()))
         return menu.exec(self._qtable_view.mapToGlobal(pos))
         
 def _get_limit(a) -> int:

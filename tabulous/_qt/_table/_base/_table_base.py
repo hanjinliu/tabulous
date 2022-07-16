@@ -24,6 +24,10 @@ _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 class _QSelectableTableView(QtW.QTableView):
     selectionChangedSignal = Signal()
     
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._last_pos: QtCore.QPoint | None = None
+    
     def selectionChanged(
         self,
         selected: QtCore.QItemSelection,
@@ -32,7 +36,31 @@ class _QSelectableTableView(QtW.QTableView):
         """Evoked when table selection range is changed."""
         self.selectionChangedSignal.emit()
         return super().selectionChanged(selected, deselected)
+    
+    def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
+        if e.button() == Qt.MouseButton.RightButton:
+            self._last_pos = e.pos()
+        return super().mousePressEvent(e)
+    
+    def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
+        if self._last_pos is not None:
+            pos = e.pos()
+            dy = pos.y() - self._last_pos.y()
+            dx = pos.x() - self._last_pos.x()
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - dy)
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - dx)
+            self._last_pos = pos
+        return super().mouseMoveEvent(e)
+    
+    def mouseReleaseEvent(self, e: QtGui.QMouseEvent) -> None:
+        self._last_pos = None
+        return super().mouseReleaseEvent(e)
 
+    def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
+        parent = self.parent()
+        if isinstance(parent, QBaseTable):
+            parent.keyPressEvent(e)
+        return super().keyPressEvent(e)
 
 class QBaseTable(QtW.QWidget):
     selectionChangedSignal = Signal(list)
@@ -344,6 +372,7 @@ class QMutableTable(QBaseTable):
         return slot
     
     def keyPressEvent(self, e: QtGui.QKeyEvent):
+        # TODO: not called
         _mod = e.modifiers()
         _key = e.key()
         if _mod & Qt.ControlModifier and _key == Qt.Key.Key_C:
@@ -454,6 +483,9 @@ class QMutableTable(QBaseTable):
                 parent=self,
             )
             raise e from None
+        
+        else:
+            self.setSelections([sel])
 
         return None
     
