@@ -85,6 +85,7 @@ class QBaseTable(QtW.QWidget):
         self.setDataFrame(data)
         self._qtable_view.setVerticalScrollMode(_SCROLL_PER_PIXEL)
         self._qtable_view.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
+        self._qtable_view.setFrameStyle(QtW.QFrame.Shape.NoFrame)
         self._zoom = 1.0
         self._initial_font_size = self.font().pointSize()
         self._initial_section_size = (
@@ -385,7 +386,6 @@ class QMutableTable(QBaseTable):
         return slot
     
     def keyPressEvent(self, e: QtGui.QKeyEvent):
-        # TODO: not called
         _mod = e.modifiers()
         _key = e.key()
         if _mod & Qt.ControlModifier and _key == Qt.Key.Key_C:

@@ -44,6 +44,7 @@ class QTabbedTableStack(QtW.QTabWidget):
         self.setAcceptDrops(True)
         self.setMovable(True)
         self.tabBar().setMouseTracking(True)
+        self.setStyleSheet("QTabWidget::pane { border: 1px solid #C4C4C3; top: -1px; }")
         
         self.tabBar().setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tabBar().customContextMenuRequested.connect(self.showContextMenu)

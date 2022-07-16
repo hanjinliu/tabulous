@@ -6,10 +6,11 @@ from qtpy.QtCore import Qt
 
 class _QSideBar(QtW.QTabBar):
     _ROTATION_DEGREE: int
-    
+
     def tabSizeHint(self, index: int) -> QtCore.QSize:
         s = super().tabSizeHint(index)
         s.transpose()
+        s.setWidth(180)
         return s
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
@@ -46,4 +47,3 @@ class QLeftSideBar(_QSideBar):
 
 class QRightSideBar(_QSideBar):
     _ROTATION_DEGREE = 270
-    
