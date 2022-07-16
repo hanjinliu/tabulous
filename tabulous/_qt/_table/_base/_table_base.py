@@ -27,6 +27,8 @@ class _QSelectableTableView(QtW.QTableView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._last_pos: QtCore.QPoint | None = None
+        self.verticalHeader().setDefaultSectionSize(30)
+        self.horizontalHeader().setDefaultSectionSize(120)
     
     def selectionChanged(
         self,
