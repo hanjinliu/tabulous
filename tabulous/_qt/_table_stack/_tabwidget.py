@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable
+from typing import Callable, TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, Signal
@@ -7,7 +7,9 @@ from qtpy.QtCore import Qt, Signal
 from ._utils import create_temporal_line_edit
 
 from .._utils import search_name_from_qmenu
-from .._table import QBaseTable
+
+if TYPE_CHECKING:
+    from .._table import QBaseTable
 
 class QTabbedTableStack(QtW.QTabWidget):
     """Tab widget used for table stack."""

@@ -11,10 +11,10 @@ from .tablelist import TableList
 from .keybindings import register_shortcut
 
 from ..types import TabPosition, _TableLike
-from .._qt import QMainWindow, QMainWidget, get_app
 
 if TYPE_CHECKING:
     from .table import TableLayerBase
+    from .._qt import QMainWindow, QMainWidget
     from .._qt._dockwidget import QtDockWidget
     from .._qt._mainwindow import _QtMainWidgetBase
     from qtpy.QtWidgets import QWidget
@@ -59,6 +59,7 @@ class _TableViewerBase:
         tab_position: TabPosition | str = TabPosition.top,
         show: bool = True
     ):
+        from .._qt import get_app
         app = get_app()
         self._qwidget = self._qwidget_class(tab_position=tab_position)
         self._qwidget._table_viewer = self
@@ -290,9 +291,12 @@ class _TableViewerBase:
 class TableViewerWidget(_TableViewerBase):
     """The non-main table viewer widget."""
     events: TableViewerSignal
-
-    _qwidget_class = QMainWidget
     _qwidget: QMainWidget
+
+    @property
+    def _qwidget_class(self) -> QMainWidget:
+        from .._qt import QMainWidget
+        return QMainWidget
 
     def add_widget(
         self, widget: Widget | QWidget, *, name: str = "",
@@ -305,10 +309,13 @@ class TableViewer(_TableViewerBase):
     """The main table viewer widget."""
     events: TableViewerSignal
     _dock_widgets: weakref.WeakValueDictionary[str, QtDockWidget]
-    
-    _qwidget_class = QMainWindow
     _qwidget: QMainWindow
     
+    @property
+    def _qwidget_class(self) -> QMainWindow:
+        from .._qt import QMainWindow
+        return QMainWindow
+
     def __init__(
         self,
         *,

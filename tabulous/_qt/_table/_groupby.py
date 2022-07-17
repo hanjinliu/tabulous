@@ -1,12 +1,14 @@
 from __future__ import annotations
-from typing import Any, Hashable, Iterable, Sequence
-import pandas as pd
+from typing import Any, Hashable, Iterable, Sequence, TYPE_CHECKING
 from pandas.core.groupby.generic import DataFrameGroupBy
 from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Signal, Qt
 
 from ._base import QBaseTable, _QTableViewEnhanced
 from ._table import DataFrameModel
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 class _LabeledComboBox(QtW.QWidget):
     currentIndexChanged = Signal(int)

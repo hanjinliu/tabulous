@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from qtpy import QtWidgets as QtW, QtGui, QtCore, QtSvg
+from qtpy import QtGui, QtCore, QtSvg
 from qtpy.QtCore import Qt
 from functools import lru_cache
 

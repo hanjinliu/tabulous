@@ -7,7 +7,6 @@ from magicgui.widgets._bases import CategoricalWidget
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
 from .widgets import TableViewer, TableLayer, TableViewerWidget
-from ._qt._mainwindow import _QtMainWidgetBase
 from .types import TableColumn, TableData, TableDataTuple, TableInfoInstance, TabPosition
 
 if TYPE_CHECKING:
@@ -57,6 +56,8 @@ class MagicTableViewer(Widget, TableViewerWidget):
 _DEFAULT_NAME = "Result"
 
 def find_table_viewer_ancestor(widget: Widget | QWidget) -> TableViewer | None:
+    from ._qt._mainwindow import _QtMainWidgetBase
+    
     if isinstance(widget, Widget):
         qwidget = widget.native
     elif isinstance(widget, QWidget):
