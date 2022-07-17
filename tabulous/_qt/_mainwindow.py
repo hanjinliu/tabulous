@@ -1,35 +1,59 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Callable, TypeVar
-from qtpy import QtWidgets as QtW, QtGui
+from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtWidgets import QAction
-from qtpy.QtCore import Qt, QEvent
+from qtpy.QtCore import Qt, QEvent, Signal
 
 from ._table_stack import QTabbedTableStack
 from ._utils import search_name_from_qmenu
 from ..types import TabPosition
 
 if TYPE_CHECKING:
+    from ._toolbar import QTableStackToolBar
     from ..widgets import TableViewer
     from typing_extensions import ParamSpec
     _P = ParamSpec("_P")
+    _R = TypeVar("_R")
 
-_R = TypeVar("_R")
-
+class _EventFilter(QtCore.QObject):
+    styleChanged = Signal()
+    
+    def eventFilter(self, obj: QtCore.QObject, event: QEvent):
+        _type = event.type()
+        if _type == QEvent.Type.StyleChange:
+            self.styleChanged.emit()
+        return False
 
 class _QtMainWidgetBase(QtW.QWidget):
     _table_viewer: TableViewer
     _tablestack: QTabbedTableStack
-    _toolbar: QtW.QToolBar
+    _toolbar: QTableStackToolBar
     
     def __init__(
         self,
         tab_position: TabPosition | str = TabPosition.top,
     ):
         super().__init__()
+        self.setObjectName(f"tabulous.{type(self).__name__}")
         tab_position = TabPosition(tab_position)
         self._tablestack = QTabbedTableStack(tab_position=tab_position.name)
         self.setCentralWidget(self._tablestack)
+        
+        # NOTE: Event filter must be stored as an attribute, otherwise it will be
+        # garbage collected.
+        self._event_filter = _EventFilter()
+        self.installEventFilter(self._event_filter)
+        self._event_filter.styleChanged.connect(self.updateToolButtons)
     
+    def updateToolButtons(self):
+        bg = self.palette().color(self.backgroundRole())
+        whiteness = bg.red() + bg.green() + bg.blue()
+        if whiteness < 128 * 3:
+            self._toolbar.setToolButtonColor("#FFFFFF")
+        else:
+            self._toolbar.setToolButtonColor("#000000")
+            
+        
     def setCentralWidget(self, wdt: QtW.QWidget):
         """Set the splitter widget."""
         raise NotImplementedError()
@@ -43,6 +67,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         raise NotImplementedError()
     
     def addDefaultToolBar(self):
+        """Add default toolbar widget regardless of self is a main window or not."""
         raise NotImplementedError()
     
 

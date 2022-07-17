@@ -7,6 +7,7 @@ import pandas as pd
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtWidgets import QAction
 
+from ._svg import QColoredSVGIcon
 from .._magicgui import dialog_factory
 from ..types import TableData
 
@@ -17,7 +18,15 @@ if TYPE_CHECKING:
 SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 
 ICON_DIR = Path(__file__).parent / "_icons"
-_BLACK = 'stroke="#000000"'
+
+class _QToolBar(QtW.QToolBar):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._button_and_icon: List["tuple[QtW.QToolButton, QColoredSVGIcon]"] = []
+    
+    def updateIconColor(self, color):
+        for button, icon in self._button_and_icon:
+            button.setIcon(icon.colored(color))
 
 class QTableStackToolBar(QtW.QToolBar):
     def __init__(self, parent: "_QtMainWidgetBase"):
@@ -28,7 +37,7 @@ class QTableStackToolBar(QtW.QToolBar):
         self._tab.setStyleSheet(
             r"QTabWidget {margin: 0px, 0px, 0px, 0px; padding: 0px;}"
         )
-        self._child_widgets: weakref.WeakValueDictionary[str, QtW.QToolBar] = weakref.WeakValueDictionary()
+        self._child_widgets: weakref.WeakValueDictionary[str, _QToolBar] = weakref.WeakValueDictionary()
         
         self.addWidget(self._tab)
         self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
@@ -62,30 +71,31 @@ class QTableStackToolBar(QtW.QToolBar):
     def addToolBar(self, name: str):
         if name in self._child_widgets.keys():
             raise ValueError(f"Tab with name {name!r} already exists.")
-        toolbar = QtW.QToolBar(self)
+        toolbar = _QToolBar(self)
         toolbar.setContentsMargins(0, 0, 0, 0)
         self._tab.addTab(toolbar, name)
         self._child_widgets[name] = toolbar
         
-    def registerAction(self, tabname: str, f: Callable, icon: Union[str, Path, int]):
+    def registerAction(self, tabname: str, f: Callable, icon: Union[str, Path]):
         """Register a callback `f` in tab `tabname`."""
         if tabname not in self._child_widgets:
             self.addToolBar(tabname)
         toolbar = self._child_widgets[tabname]
-        if isinstance(icon, int):
-            qicon = QtW.QApplication.style().standardIcon(icon)
-        else:
-            qicon = QtGui.QIcon(str(icon))
-        action = QAction(qicon, "", self)
+        qicon = QColoredSVGIcon.fromfile(str(icon))
+        action = toolbar.addAction(qicon, "")
         action.triggered.connect(f)
         action.setToolTip(f.__doc__)
-        toolbar.addAction(action)
+        toolbar._button_and_icon.append((toolbar.widgetForAction(action), qicon))
         return None
     
     def addSeparatorToChild(self, tabname: str) -> QAction:
         toolbar = self._child_widgets[tabname]
         return toolbar.addSeparator()
     
+    def setToolButtonColor(self, color: str):
+        for toolbar in self._child_widgets.values():
+            toolbar.updateIconColor(color)
+
     def open_table(self):
         """Open a file as a table."""
         return self._open(type="table")
