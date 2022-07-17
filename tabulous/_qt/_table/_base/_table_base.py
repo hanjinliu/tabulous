@@ -21,7 +21,7 @@ _EDITABLE = QtW.QAbstractItemView.EditTrigger.EditKeyPressed | QtW.QAbstractItem
 _READ_ONLY = QtW.QAbstractItemView.EditTrigger.NoEditTriggers
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
-class _QSelectableTableView(QtW.QTableView):
+class _QTableViewEnhanced(QtW.QTableView):
     selectionChangedSignal = Signal()
     
     def __init__(self, parent=None):
@@ -30,6 +30,11 @@ class _QSelectableTableView(QtW.QTableView):
         self._zoom = 1.0
         self._initial_font_size = self.font().pointSize()
         vheader, hheader = self.verticalHeader(), self.horizontalHeader()
+        self.setFrameStyle(QtW.QFrame.Shape.Box)
+        vheader.setFrameStyle(QtW.QFrame.Shape.Box)
+        hheader.setFrameStyle(QtW.QFrame.Shape.Box)
+        vheader.resize(16, vheader.height())
+        self.setStyleSheet("QHeaderView::section { border: 1px solid black}")
         vheader.setMinimumSectionSize(0)
         hheader.setMinimumSectionSize(0)
         vheader.font().setPointSize(self._initial_font_size)
@@ -37,6 +42,7 @@ class _QSelectableTableView(QtW.QTableView):
         
         vheader.setDefaultSectionSize(30)
         hheader.setDefaultSectionSize(120)
+        
         self._initial_section_size = (
             hheader.defaultSectionSize(),
             vheader.defaultSectionSize(),
@@ -153,7 +159,7 @@ class QBaseTable(QtW.QWidget):
         )
     
     @property
-    def _qtable_view(self) -> _QSelectableTableView:
+    def _qtable_view(self) -> _QTableViewEnhanced:
         raise NotImplementedError()
     
     def createQTableView(self) -> None:
@@ -630,11 +636,11 @@ class QMutableTable(QBaseTable):
 
 class QMutableSimpleTable(QMutableTable):
     @property
-    def _qtable_view(self) -> _QSelectableTableView:
+    def _qtable_view(self) -> _QTableViewEnhanced:
         return self._qtable_view_
     
     def createQTableView(self):
-        self._qtable_view_ = _QSelectableTableView()
+        self._qtable_view_ = _QTableViewEnhanced()
         _layout = QtW.QVBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(_layout)

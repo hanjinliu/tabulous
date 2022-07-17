@@ -86,6 +86,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     ):
         super().__init__()
         _QtMainWidgetBase.__init__(self, tab_position=tab_position)
+        self.setWindowTitle("tabulous")
         from ._toolbar import QTableStackToolBar
         self._toolbar = QTableStackToolBar(self)
         self.addToolBar(self._toolbar)

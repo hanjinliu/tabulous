@@ -134,6 +134,7 @@ class QSpreadSheet(QMutableSimpleTable):
         super().setDataFrameValue(r, c, value)
         
         self.setFilter(self._filter_slice)
+        self._qtable_view.verticalHeader().resize(self._qtable_view.verticalHeader().sizeHint())
         return None
     
     def expandRows(self, n_expand: int):

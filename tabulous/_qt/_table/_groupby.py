@@ -5,7 +5,7 @@ from pandas.core.groupby.generic import DataFrameGroupBy
 from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Signal, Qt
 
-from ._base import QBaseTable, _QSelectableTableView
+from ._base import QBaseTable, _QTableViewEnhanced
 from ._table import DataFrameModel
 
 class _LabeledComboBox(QtW.QWidget):
@@ -59,11 +59,11 @@ class QTableGroupBy(QBaseTable):
     _data_raw: DataFrameGroupBy
 
     @property
-    def _qtable_view(self) -> _QSelectableTableView:
+    def _qtable_view(self) -> _QTableViewEnhanced:
         return self._qtable_view_
     
     def createQTableView(self):
-        self._qtable_view_ = _QSelectableTableView()
+        self._qtable_view_ = _QTableViewEnhanced()
         self._group_key_cbox = _LabeledComboBox()
         self._group_map: dict[Hashable, Sequence[int]] = {}
         self._group_key_cbox.currentIndexChanged.connect(lambda e: self.setFilter(self._filter_slice))

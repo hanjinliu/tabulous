@@ -1,6 +1,6 @@
 # from __future__ import annotations
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Union, List
+from typing import TYPE_CHECKING, Any, Callable, Union, List
 import weakref
 import numpy as np
 import pandas as pd
@@ -34,6 +34,7 @@ class QTableStackToolBar(QtW.QToolBar):
         self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
         self.registerAction("File", self.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")
         self.registerAction("File", self.save_table, ICON_DIR / "save_table.svg")
+        
         self.registerAction("Table", self.copy_as_table, ICON_DIR / "copy_as_table.svg")
         self.registerAction("Table", self.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")
         self.registerAction("Table", self.new_spreadsheet, ICON_DIR / "new_spreadsheet.svg")
@@ -41,7 +42,14 @@ class QTableStackToolBar(QtW.QToolBar):
         self.registerAction("Table", self.groupby, ICON_DIR / "groupby.svg")
         self.registerAction("Table", self.hconcat, ICON_DIR / "hconcat.svg")
         self.registerAction("Table", self.vconcat, ICON_DIR / "vconcat.svg")
+        self.registerAction("Table", self.pivot, ICON_DIR / "pivot.svg")
+        self.registerAction("Table", self.melt, ICON_DIR / "melt.svg")
+        self.addSeparatorToChild("Table")
+        self.registerAction("Table", self.query, ICON_DIR / "query.svg")
+        
         self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
+        self.addSeparatorToChild("Analyze")
+        
 
     @property
     def viewer(self) -> "_TableViewerBase":
@@ -88,8 +96,8 @@ class QTableStackToolBar(QtW.QToolBar):
     
     def _open(self, type):
         # TODO: history
-        path, _ = QtW.QFileDialog.getOpenFileName(self.parent(), "Open File", "")
-        if path:
+        paths, _ = QtW.QFileDialog.getOpenFileNames(self.parent(), "Open File", "")
+        for path in paths:
             self.viewer.open(path, type=type)
         return None
         
@@ -144,17 +152,50 @@ class QTableStackToolBar(QtW.QToolBar):
         )
         if out is not None:
             self.viewer.add_table(out, name=f"vconcat")
+    
+    def pivot(self):
+        """Pivot a table."""
+        table = self.viewer.current_table
+        col = list(table.data.columns)
+        if len(col) < 2:
+            raise ValueError("Table must have at least two columns.")
+        out = pivot(
+            df={"bind": table.data},
+            index={"choices": col, "value": col[0]},
+            columns={"choices": col, "value": col[1]},
+            values={"choices": col, "nullable": True},
+        )
+        if out is not None:
+            self.viewer.add_table(out, name=f"{table.name}-pivot")
+        
+    def melt(self):
+        """Unpivot a table."""
+        table = self.viewer.current_table
+        out = melt(
+            df={"bind": table.data},
+            id_vars={"choices": list(table.data.columns), "widget_type": "Select"},
+        )
+        if out is not None:
+            self.viewer.add_table(out, name=f"{table.name}-melt")
         
     def summarize_table(self):
         """Summarize current table."""
         table = self.viewer.current_table
         out = summarize_table(
-        df={"bind": table.data}, 
+            df={"bind": table.data}, 
             methods={"choices": SUMMARY_CHOICES, "widget_type": "Select"}
         )
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-summary")
-        
+    
+    def query(self):
+        """Filter table using a query."""
+        table = self.viewer.current_table
+        out = query(df={"bind": table.data})
+        if out is not None:
+            self.viewer.add_table(out, name=f"{table.name}-query")
+
+
 @dialog_factory
 def summarize_table(df: TableData, methods: List[str]):
     return df.agg(methods)
@@ -172,3 +213,15 @@ def hconcat(viewer, names: List[str]):
 def vconcat(viewer, names: List[str]):
     dfs = [viewer.tables[name].data for name in names]
     return pd.concat(dfs, axis=1)
+
+@dialog_factory
+def pivot(df: TableData, index: str, columns: str, values: str):
+    return df.pivot(index=index, columns=columns, values=values)
+
+@dialog_factory
+def melt(df: TableData, id_vars: List[str]):
+    return pd.melt(df, id_vars)
+
+@dialog_factory
+def query(df: TableData, expr: str):
+    return df.query(expr)
