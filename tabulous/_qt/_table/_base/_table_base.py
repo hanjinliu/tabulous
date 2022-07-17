@@ -98,21 +98,21 @@ class _QTableViewEnhanced(QtW.QTableView):
         # To keep table at the same position.
         zoom_ratio = 1 / self._zoom * value
         pos = self.verticalScrollBar().sliderPosition()
-        self.verticalScrollBar().setSliderPosition(pos * zoom_ratio)
+        self.verticalScrollBar().setSliderPosition(int(pos * zoom_ratio))
         pos = self.horizontalScrollBar().sliderPosition()
-        self.horizontalScrollBar().setSliderPosition(pos * zoom_ratio)
+        self.horizontalScrollBar().setSliderPosition(int(pos * zoom_ratio))
         
         # Zoom font size
         font = self.font()
-        font.setPointSize(self._initial_font_size*value)
+        font.setPointSize(int(self._initial_font_size * value))
         self.setFont(font)
         self.verticalHeader().setFont(font)
         self.horizontalHeader().setFont(font)
         
         # Zoom section size of headers
         h, v = self._initial_section_size
-        self.verticalHeader().setDefaultSectionSize(v * value)
-        self.horizontalHeader().setDefaultSectionSize(h * value)
+        self.verticalHeader().setDefaultSectionSize(int(v * value))
+        self.horizontalHeader().setDefaultSectionSize(int(h * value))
         
         # Update stuff
         self._zoom = value
