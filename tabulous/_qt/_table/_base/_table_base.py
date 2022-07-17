@@ -15,6 +15,7 @@ class ItemInfo(NamedTuple):
     row: int
     column: int
     value: Any
+    old_value: Any
 
 # Flags
 _EDITABLE = QtW.QAbstractItemView.EditTrigger.EditKeyPressed | QtW.QAbstractItemView.EditTrigger.DoubleClicked
@@ -392,8 +393,9 @@ class QMutableTable(QBaseTable):
             spec = np.where(sl)[0].tolist()
             r0 = spec[r]
             self.model().updateValue(r, c, _value)
+        _old_value = data.iloc[r0, c]
         data.iloc[r0, c] = _value
-        self.itemChangedSignal.emit(ItemInfo(r, c, _value))
+        self.itemChangedSignal.emit(ItemInfo(r, c, _value, _old_value))
         self.refresh()
         return None
 
