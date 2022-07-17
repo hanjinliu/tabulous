@@ -55,15 +55,27 @@ def _bool_converter(val: Any):
             raise ValueError(f"Cannot convert {val} to bool.")
     else:
         return bool(val)
+
+_NAN_STRINGS = frozenset({"", "nan", "na", "n/a", "<na>"})
+
+def _float_or_nan(x: str):
+    if x.lower() in _NAN_STRINGS:
+        return float("nan")
+    return float(x)
+
+def _complex_or_nan(x: str):
+    if x.lower() in _NAN_STRINGS:
+        return float("nan")
+    return complex(x)
     
 _DTYPE_CONVERTER = {
     "i": int,
-    "f": float,
+    "f": _float_or_nan,
     "u": int,
     "b": _bool_converter,
     "U": str,
     "O": lambda e: e,
-    "c": complex,
+    "c": _complex_or_nan,
     "M": pd.to_datetime,
     "m": pd.to_timedelta,
 }

@@ -32,8 +32,11 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         if role == Qt.ItemDataRole.EditRole or role == Qt.ItemDataRole.DisplayRole:
             r, c = index.row(), index.column()
             if r < self.df.shape[0] and c < self.df.shape[1]:
-                return str(self.df.iat[r, c])
-            return ""
+                val = self.df.iat[r, c]
+                if pd.isna(val):
+                    return "NA"
+                return str(val)
+            return QtCore.QVariant()
         elif role == Qt.ItemDataRole.TextColorRole:
             r, c = index.row(), index.column()
             if r < self.df.shape[0] and c < self.df.shape[1]:

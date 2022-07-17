@@ -574,6 +574,9 @@ class QMutableTable(QBaseTable):
         def _set_header_data():
             self._line.setHidden(True)
             self.setHorizontalHeaderValue(index, self._line.text())
+            return None
+
+        return None
 
     def editVerticalHeader(self, index: int):
         if not self.editability():
@@ -620,6 +623,7 @@ class QMutableTable(QBaseTable):
         size_hint = _header.sectionSizeHint(index)
         if _header.sectionSize(index) < size_hint:
             _header.resizeSection(index, size_hint)
+        return None
 
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         qtable = self._qtable_view
@@ -632,7 +636,7 @@ class QMutableTable(QBaseTable):
         self.model().df.rename(index=mapping, inplace=True)
         _width_hint = _header.sizeHint().width()
         _header.resize(QtCore.QSize(_width_hint, _header.height()))
-
+        return None
 
 class QMutableSimpleTable(QMutableTable):
     @property
@@ -665,20 +669,23 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             row = index.row()
             col = index.column()
             if row >= df.shape[0] or col >= df.shape[1]:
+                # out of bounds
                 return super().createEditor(parent, option, index)
             
-            dtype = df.dtypes[col]
+            dtype: np.dtype = df.dtypes[col]
             if dtype == "category":
+                # use combobox for categorical data
                 cbox = QtW.QComboBox(parent)
                 choices = list(map(str, dtype.categories))
                 cbox.addItems(choices)
-                cbox.setCurrentIndex(choices.index(df.iloc[row, col]))
+                cbox.setCurrentIndex(choices.index(df.iat[row, col]))
                 return cbox
             elif dtype == "bool":
+                # use checkbox for boolean data
                 cbox = QtW.QComboBox(parent)
                 choices = ["True", "False"]
                 cbox.addItems(choices)
-                cbox.setCurrentIndex(0 if df.iloc[row, col] else 1)
+                cbox.setCurrentIndex(0 if df.iat[row, col] else 1)
                 return cbox
 
         return super().createEditor(parent, option, index)
