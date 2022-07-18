@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from ._model_base import AbstractDataFrameModel
 from ..._utils import show_messagebox
-from ....types import FilterType, ItemInfo
+from ....types import FilterType, ItemInfo, Selections
 
 # Flags
 _EDITABLE = (
@@ -20,10 +20,12 @@ _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
 class _QTableViewEnhanced(QtW.QTableView):
     selectionChangedSignal = Signal()
+    rightClickedSignal = Signal(QtCore.QPoint)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._last_pos: QtCore.QPoint | None = None
+        self._was_right_dragging: bool = False
         self._zoom = 1.0
         self._initial_font_size = self.font().pointSize()
         vheader, hheader = self.verticalHeader(), self.horizontalHeader()
@@ -59,6 +61,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         """Register clicked position"""
         if e.button() == Qt.MouseButton.RightButton:
             self._last_pos = e.pos()
+            self._was_right_dragging = False
         return super().mousePressEvent(e)
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
@@ -70,11 +73,15 @@ class _QTableViewEnhanced(QtW.QTableView):
             self.verticalScrollBar().setValue(self.verticalScrollBar().value() - dy)
             self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - dx)
             self._last_pos = pos
+            self._was_right_dragging = True
         return super().mouseMoveEvent(e)
 
     def mouseReleaseEvent(self, e: QtGui.QMouseEvent) -> None:
         """Delete last position."""
+        if e.button() == Qt.MouseButton.RightButton and not self._was_right_dragging:
+            self.rightClickedSignal.emit(e.pos())
         self._last_pos = None
+        self._was_right_dragging = False
         return super().mouseReleaseEvent(e)
 
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
@@ -213,13 +220,13 @@ class QBaseTable(QtW.QWidget):
         self.selectionChangedSignal.connect(slot)
         return slot
 
-    def selections(self) -> list[tuple[slice, slice]]:
+    def selections(self) -> Selections:
         """Get list of selections as slicable tuples"""
         qtable = self._qtable_view
         selections = qtable.selectionModel().selection()
 
         # selections = self.selectedRanges()
-        out: list[tuple[slice, slice]] = []
+        out: Selections = []
         for i in range(len(selections)):
             sel = selections[i]
             r0 = sel.top()
@@ -230,7 +237,7 @@ class QBaseTable(QtW.QWidget):
 
         return out
 
-    def setSelections(self, selections: list[tuple[slice, slice]]):
+    def setSelections(self, selections: Selections):
         """Set list of selections."""
         qtable = self._qtable_view
         qtable.clearSelection()
