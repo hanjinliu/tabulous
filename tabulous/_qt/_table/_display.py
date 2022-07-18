@@ -2,8 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Qt, QTimer
-from ._base import QBaseTable, _QTableViewEnhanced
-from ._table import DataFrameModel
+from ._base import QBaseTable, _QTableViewEnhanced, DataFrameModel
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -18,7 +17,7 @@ class QPlayButton(QtW.QToolButton):
         super().__init__(parent)
         self._RUN = _get_standard_icon(QtW.QStyle.StandardPixmap.SP_MediaPlay)
         self._PAUSE = _get_standard_icon(QtW.QStyle.StandardPixmap.SP_MediaPause)
-        self.clicked.connect(self.toggleRunning)
+        self.clicked.connect(self.switchRunning)
         self.setRunning(True)
 
     def running(self):
@@ -31,7 +30,7 @@ class QPlayButton(QtW.QToolButton):
         else:
             self.setIcon(self._RUN)
 
-    def toggleRunning(self, *_):
+    def switchRunning(self, *_):
         self.setRunning(not self.running())
 
 
@@ -61,6 +60,11 @@ class QTableDisplay(QBaseTable):
 
         if self._play_button.running():
             self._qtimer.start()
+
+    if TYPE_CHECKING:
+
+        def model(self) -> DataFrameModel:
+            ...
 
     def refreshCallback(self):
         """Run refresh if needed."""
@@ -140,4 +144,6 @@ class QTableDisplay(QBaseTable):
         self._refreshing = False
         if self._play_button.running():
             self._qtimer.start()
+        else:
+            self._qtimer.stop()
         return super().refresh()

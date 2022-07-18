@@ -1,26 +1,7 @@
 from __future__ import annotations
 from typing import Any
 import pandas as pd
-from ._base import AbstractDataFrameModel, QMutableSimpleTable
-
-
-class DataFrameModel(AbstractDataFrameModel):
-    @property
-    def df(self) -> pd.DataFrame:
-        return self._df
-
-    @df.setter
-    def df(self, data: pd.DataFrame):
-        if data is self._df:
-            return
-        self.setShape(*data.shape)
-        self._df = data
-
-    def rowCount(self, parent=None):
-        return self.df.shape[0]
-
-    def columnCount(self, parent=None):
-        return self.df.shape[1]
+from ._base import QMutableSimpleTable, DataFrameModel
 
 
 class QTableLayer(QMutableSimpleTable):

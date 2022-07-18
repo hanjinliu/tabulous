@@ -4,15 +4,15 @@ from pandas.core.groupby.generic import DataFrameGroupBy
 from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Signal, Qt
 
-from ._base import QBaseTable, _QTableViewEnhanced
-from ._table import DataFrameModel
+from ._base import QBaseTable, _QTableViewEnhanced, DataFrameModel
 
 if TYPE_CHECKING:
     import pandas as pd
 
+
 class _LabeledComboBox(QtW.QWidget):
     currentIndexChanged = Signal(int)
-    
+
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self._values = list[Any]
@@ -24,31 +24,31 @@ class _LabeledComboBox(QtW.QWidget):
         self._label = QtW.QLabel()
         _layout.addWidget(self._label)
         _layout.addWidget(self._cbox)
-        
+
         self._cbox.currentIndexChanged.connect(self.currentIndexChanged.emit)
-    
+
     def setLabel(self, text: str) -> None:
         """Set the text of label."""
         return self._label.setText(text)
-    
+
     def setChoices(self, items: Iterable[Any]):
         """Set choices of combo box."""
         self._values = list(items)
         self._cbox.clear()
         return self._cbox.addItems(map(str, self._values))
-    
+
     def currentIndex(self) -> int:
         """Get the current index of the choice."""
         return self._cbox.currentIndex()
-    
+
     def setCurrentIndex(self, index: int) -> None:
         """Set current index."""
         return self._cbox.setCurrentIndex(index)
-    
+
     def CurrentValue(self) -> Any:
         """Current value."""
         return self._values[self.currentIndex()]
-    
+
     def setCurrentValue(self, value: Any) -> None:
         try:
             index = self._values.index(value)
@@ -63,13 +63,15 @@ class QTableGroupBy(QBaseTable):
     @property
     def _qtable_view(self) -> _QTableViewEnhanced:
         return self._qtable_view_
-    
+
     def createQTableView(self):
         self._qtable_view_ = _QTableViewEnhanced()
         self._group_key_cbox = _LabeledComboBox()
         self._group_map: dict[Hashable, Sequence[int]] = {}
-        self._group_key_cbox.currentIndexChanged.connect(lambda e: self.setFilter(self._filter_slice))
-                
+        self._group_key_cbox.currentIndexChanged.connect(
+            lambda e: self.setFilter(self._filter_slice)
+        )
+
         _layout = QtW.QVBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(_layout)
@@ -83,7 +85,7 @@ class QTableGroupBy(QBaseTable):
         if not isinstance(data, DataFrameGroupBy):
             raise TypeError(f"Data must be DataFrameGroupBy, not {type(data)}")
         self._data_raw = data
-        
+
         # set label
         keys = self._data_raw.keys
         if isinstance(keys, list):
@@ -94,7 +96,7 @@ class QTableGroupBy(QBaseTable):
         else:
             label = keys
         self._group_key_cbox.setLabel(f"{label} = ")
-        
+
         self._group_map = self._data_raw.groups
         self._group_key_cbox.setChoices(self._group_map.keys())
         self.setFilter(None)
@@ -114,6 +116,6 @@ class QTableGroupBy(QBaseTable):
     def currentGroup(self) -> Hashable:
         index = self._group_key_cbox.currentIndex()
         return self._group_key_cbox._values[index]
-    
+
     def setCurrentGroup(self, group: Hashable) -> None:
         return self._group_key_cbox.setCurrentValue(group)

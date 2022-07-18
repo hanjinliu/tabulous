@@ -6,9 +6,10 @@ import pandas as pd
 
 # https://ymt-lab.com/post/2020/pyqt5-qtableview-pandas-qabstractitemmodel/
 
+
 class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     dataEdited = Signal(int, int, object)
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._df = pd.DataFrame([])
@@ -16,15 +17,15 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     @property
     def df(self) -> pd.DataFrame:
         return self._df
-    
+
     def updateValue(self, r, c, val):
         # pandas warns but no problem
         with warnings.catch_warnings():
             self._df.iloc[r, c] = val
-    
+
     def data(
         self,
-        index: QtCore.QModelIndex, 
+        index: QtCore.QModelIndex,
         role: Qt.ItemDataRole = Qt.ItemDataRole.DisplayRole,
     ):
         if not index.isValid():
@@ -43,28 +44,34 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 val = self.df.iat[r, c]
                 if pd.isna(val):
                     return QtGui.QColor(Qt.GlobalColor.gray)
-            return QtCore.QVariant()    
+            return QtCore.QVariant()
         return QtCore.QVariant()
 
     def flags(self, index):
         return (
-            Qt.ItemFlag.ItemIsEditable | 
-            Qt.ItemFlag.ItemIsEnabled |
-            Qt.ItemFlag.ItemIsSelectable
+            Qt.ItemFlag.ItemIsEditable
+            | Qt.ItemFlag.ItemIsEnabled
+            | Qt.ItemFlag.ItemIsSelectable
         )
-    
+
     def headerData(
         self,
         section: int,
         orientation: Qt.Orientation,
-        role: int = Qt.ItemDataRole.DisplayRole
+        role: int = Qt.ItemDataRole.DisplayRole,
     ):
-        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
+        if (
+            orientation == Qt.Orientation.Horizontal
+            and role == Qt.ItemDataRole.DisplayRole
+        ):
             if section < self.df.columns.size:
                 return str(self.df.columns[section])
             else:
                 return None
-        if orientation == Qt.Orientation.Vertical and role == Qt.ItemDataRole.DisplayRole:
+        if (
+            orientation == Qt.Orientation.Vertical
+            and role == Qt.ItemDataRole.DisplayRole
+        ):
             if section < self.df.index.size:
                 return str(self.df.index[section])
             else:
@@ -84,7 +91,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         r0, c0 = self.rowCount(), self.columnCount()
         dr = nrow - r0
         dc = ncol - c0
-        
+
         # Adjust rows
         if dr > 0:
             self.beginInsertRows(QtCore.QModelIndex(), r0, r0 + dr - 1)
@@ -94,7 +101,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             self.beginRemoveRows(QtCore.QModelIndex(), r0 + dr, r0 - 1)
             self.removeRows(r0 + dr, -dr, QtCore.QModelIndex())
             self.endRemoveRows()
-        
+
         # Adjust columns
         if dc > 0:
             self.beginInsertColumns(QtCore.QModelIndex(), c0, c0 + dc - 1)
@@ -105,19 +112,19 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             self.removeColumns(c0 + dc, -dc, QtCore.QModelIndex())
             self.endRemoveColumns()
 
+
 class DataFrameModel(AbstractDataFrameModel):
-    
     @property
     def df(self) -> pd.DataFrame:
         return self._df
-    
+
     @df.setter
     def df(self, data: pd.DataFrame):
         if data is self._df:
             return
         self.setShape(*data.shape)
         self._df = data
-    
+
     def rowCount(self, parent=None):
         return self.df.shape[0]
 
