@@ -8,5 +8,4 @@ if __name__ == "__main__":
     viewer.add_table(data)  # add DataFrame
     data = {"a": np.random.random(10), "b": np.random.random(10)}
     viewer.add_table(data)  # data that can be converted into a DataFrame
-    viewer.add_spreadsheet(data)  # add spreadsheet
     viewer.show()

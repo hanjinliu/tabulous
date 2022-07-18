@@ -120,9 +120,6 @@ class QSpreadSheet(QMutableSimpleTable):
         return pd.read_clipboard(header=None).astype("string")
 
     def setDataFrameValue(self, r: int | slice, c: int | slice, value: Any) -> None:
-        if isinstance(value, str) and value == "":
-            return
-
         nr, nc = self._data_raw.shape
         rmax = _get_limit(r)
         cmax = _get_limit(c)

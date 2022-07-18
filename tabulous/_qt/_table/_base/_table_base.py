@@ -413,7 +413,21 @@ class QMutableTable(QBaseTable):
             self.model().updateValue(r, c, _value)
         _old_value = data.iloc[r0, c]
         data.iloc[r0, c] = _value
-        if _value != _old_value:
+
+        # emit item changed signal if value changed
+        # NOTE pd.NA == x returns pd.NA, not False
+        emit = False
+        if isinstance(_value, pd.DataFrame):
+            emit = True
+
+        elif pd.isna(_value):
+            if not pd.isna(_old_value):
+                emit = True
+        else:
+            if pd.isna(_old_value) or _value != _old_value:
+                emit = True
+
+        if emit:
             self.itemChangedSignal.emit(ItemInfo(r, c, _value, _old_value))
         self.refresh()
         return None
