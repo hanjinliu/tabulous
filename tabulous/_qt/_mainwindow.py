@@ -50,6 +50,8 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._event_filter.styleChanged.connect(self.updateToolButtons)
 
     def updateToolButtons(self):
+        if self._toolbar is None:
+            return
         bg = self.palette().color(self.backgroundRole())
         whiteness = bg.red() + bg.green() + bg.blue()
         if whiteness < 128 * 3:

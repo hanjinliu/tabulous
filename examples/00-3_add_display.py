@@ -1,9 +1,9 @@
 from tabulous import TableViewer
 import numpy as np
-import pandas as pd
 
 def loader():
-    return np.random.random((10, 10))
+    s = np.random.choice([3, 5, 7])
+    return np.random.random((s, s))
 
 if __name__ == "__main__":
     viewer = TableViewer()

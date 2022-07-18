@@ -83,6 +83,8 @@ class QSpreadSheet(QMutableSimpleTable):
     is (almost) unbounded.
     """
 
+    _DEFAULT_EDITABLE = True
+
     def __init__(self, parent=None, data: pd.DataFrame | None = None):
         super().__init__(parent, data)
         self._data_cache = None

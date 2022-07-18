@@ -42,6 +42,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         vheader.setDefaultSectionSize(28)
         hheader.setDefaultSectionSize(100)
 
+        hheader.setSectionResizeMode(QtW.QHeaderView.ResizeMode.Fixed)
+        vheader.setSectionResizeMode(QtW.QHeaderView.ResizeMode.Fixed)
+
         self._initial_section_size = (
             hheader.defaultSectionSize(),
             vheader.defaultSectionSize(),
@@ -115,8 +118,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # Zoom section size of headers
         h, v = self._initial_section_size
-        self.verticalHeader().setDefaultSectionSize(int(v * value))
-        self.horizontalHeader().setDefaultSectionSize(int(h * value))
+        self.setSectionSize(int(h * value), int(v * value))
 
         # Update stuff
         self._zoom = value
@@ -131,6 +133,18 @@ class _QTableViewEnhanced(QtW.QTableView):
             return None
 
         return super().wheelEvent(e)
+
+    def sectionSize(self) -> tuple[int, int]:
+        return (
+            self.horizontalHeader().defaultSectionSize(),
+            self.verticalHeader().defaultSectionSize(),
+        )
+
+    def setSectionSize(self, horizontal: int, vertical: int) -> None:
+        """Update section size of headers."""
+        self.verticalHeader().setDefaultSectionSize(vertical)
+        self.horizontalHeader().setDefaultSectionSize(horizontal)
+        return
 
 
 class QBaseTable(QtW.QWidget):
@@ -147,6 +161,7 @@ class QBaseTable(QtW.QWidget):
     """
 
     selectionChangedSignal = Signal(list)
+    _DEFAULT_EDITABLE = False
 
     def __init__(
         self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None
@@ -164,6 +179,8 @@ class QBaseTable(QtW.QWidget):
         self._qtable_view.selectionChangedSignal.connect(
             lambda: self.selectionChangedSignal.emit(self.selections())
         )
+        if not self._DEFAULT_EDITABLE:
+            self._qtable_view.setEditTriggers(_READ_ONLY)
 
     @property
     def _qtable_view(self) -> _QTableViewEnhanced:

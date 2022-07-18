@@ -63,6 +63,7 @@ class QTableDisplay(QBaseTable):
             self._qtimer.start()
 
     def refreshCallback(self):
+        """Run refresh if needed."""
         if self._play_button.running() and not self._refreshing:
             self.refresh()
 
@@ -133,10 +134,10 @@ class QTableDisplay(QBaseTable):
             try:
                 self._data_raw = self._loader()
             except Exception as e:
-                print(e)
+                return
             self.model().df = self._data_raw
-        super().refresh()
+
         self._refreshing = False
         if self._play_button.running():
             self._qtimer.start()
-        return None
+        return super().refresh()
