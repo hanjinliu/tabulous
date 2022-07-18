@@ -15,9 +15,10 @@ def extract_a_column(col: TableColumn) -> TableColumn:
 if __name__ == "__main__":
     viewer = TableViewer()
     data = pd.DataFrame({
-        "a": np.random.random(100), 
+        "a": np.random.random(100),
         "b": np.random.random(100) + 1,
         "c": np.random.random(100) * 2})
     viewer.add_table(data)
     viewer.add_dock_widget(summarize_data)
     viewer.add_dock_widget(extract_a_column)
+    viewer.show()

@@ -17,3 +17,4 @@ if __name__ == "__main__":
         "value-1": [0.5, 1.5, 1],
     })
     table.data = pd.concat([table.data, new_data], axis=0)
+    viewer.show()

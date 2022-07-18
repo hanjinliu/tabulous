@@ -9,4 +9,4 @@ if __name__ == "__main__":
     data = {"a": np.random.random(10), "b": np.random.random(10)}
     viewer.add_table(data)  # data that can be converted into a DataFrame
     viewer.tables[0].editable = True
-    
+    viewer.show()

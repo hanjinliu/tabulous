@@ -10,7 +10,7 @@ def plotter(info: TableInfo["x", "y"]):
     df, (x, y) = info
     sns.swarmplot(x=x, y=y, data=df)
     plt.show()
-    
+
 if __name__ == "__main__":
     viewer = TableViewer()
     df = pd.DataFrame(
@@ -20,3 +20,4 @@ if __name__ == "__main__":
     )
     viewer.add_table(df, name="data")
     viewer.add_dock_widget(plotter)
+    viewer.show()
