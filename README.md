@@ -12,11 +12,19 @@ viewer = open_sample("iris")
 
 `tabulous` is highly inspired by [napari](https://github.com/napari/napari) in its design and API.
 
+### Installation
+
+```
+pip install tabulous
+```
+
+### How it works.
+
 ```python
 df = pd.read_csv("data.csv")
 viewer.add_table(df)  # add table data to viewer
 viewer.tables  # table list
-table = viewer.tables[1]  # get table
+table = viewer.tables[0]  # get table
 table.data  # get pd.DataFrame object (or other similar one)
 
 # Connect data changed signal
