@@ -37,7 +37,7 @@ def _on_selection_change(selections):
 
 |**Table**|**SpreadSheet**|
 |:-:|:-:|
-|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_table.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_spreadsheet.gif)|
+|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_table.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_sheet.gif)|
 |A dtype-tagged table view with fixed size, aimed at viewing and editing `pd.DataFrame`. This table is the most basic one.|A string based table editor. Table is converted into `pd.DataFrame` object with proper dtypes consistent with reading CSV file using `pd.read_csv`.|
 
 |**Groupby**|**TableDisplay**|
