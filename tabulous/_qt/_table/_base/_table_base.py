@@ -401,7 +401,8 @@ class QMutableTable(QBaseTable):
             self.model().updateValue(r, c, _value)
         _old_value = data.iloc[r0, c]
         data.iloc[r0, c] = _value
-        self.itemChangedSignal.emit(ItemInfo(r, c, _value, _old_value))
+        if _value != _old_value:
+            self.itemChangedSignal.emit(ItemInfo(r, c, _value, _old_value))
         self.refresh()
         return None
 
