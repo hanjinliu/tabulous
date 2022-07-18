@@ -329,9 +329,9 @@ class QBaseTable(QtW.QWidget):
     def refresh(self) -> None:
         qtable = self._qtable_view
         qtable.viewport().update()
-        # TODO: are these needed?
-        # qtable.horizontalHeader().viewport().update()
-        # qtable.verticalHeader().viewport().update()
+        # headers have also to be updated.
+        qtable.horizontalHeader().viewport().update()
+        qtable.verticalHeader().viewport().update()
         return None
 
 
