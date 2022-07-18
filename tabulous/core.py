@@ -82,10 +82,3 @@ def open_sample(
     viewer = current_viewer()
     viewer.open_sample(sample_name, plugin_name)
     return viewer
-
-
-def run():
-    """Run event loop."""
-    from ._qt._app import run_app
-
-    run_app()

@@ -8,7 +8,6 @@ from .core import (
     view_table,
     view_spreadsheet,
     open_sample,
-    run,
 )
 from ._magicgui import MagicTableViewer
 
@@ -23,5 +22,4 @@ __all__ = [
     "view_table",
     "view_spreadsheet",
     "open_sample",
-    "run",
 ]
