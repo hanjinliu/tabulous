@@ -724,7 +724,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         self, parent: QtW.QWidget, option, index: QtCore.QModelIndex
     ) -> QtW.QWidget:
         """Create different type of editors for different dtypes."""
-        table = parent.parent()
+        table = parent.parent().parent()
         if isinstance(table, QMutableTable):
             df = table.model().df
             row = index.row()
