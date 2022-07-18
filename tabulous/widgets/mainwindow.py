@@ -74,7 +74,7 @@ class _TableViewerBase:
         self.events = TableViewerSignal()
 
         if show:
-            self.show()
+            self.show(run=False)
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} widget at {hex(id(self))}>"
@@ -117,9 +117,13 @@ class _TableViewerBase:
 
         return register
 
-    def show(self) -> None:
+    def show(self, *, run: bool = True) -> None:
         """Show the widget."""
         self._qwidget.show()
+        if run:
+            from .._qt._app import run_app
+
+            run_app()
         return None
 
     def screenshot(self) -> np.ndarray:
@@ -346,11 +350,11 @@ class TableViewer(_TableViewerBase):
         tab_position: TabPosition | str = TabPosition.top,
         show: bool = True,
     ):
+        self._dock_widgets = weakref.WeakValueDictionary()
         super().__init__(
             tab_position=tab_position,
             show=show,
         )
-        self._dock_widgets = weakref.WeakValueDictionary()
 
     # def register_action(self, location: str):
     #     return self._qwidget.registerAction(location)

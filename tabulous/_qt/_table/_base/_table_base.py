@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, NamedTuple, overload
+from typing import Any, overload
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 import pandas as pd
@@ -7,17 +7,7 @@ import pandas as pd
 import numpy as np
 from ._model_base import AbstractDataFrameModel
 from ..._utils import show_messagebox
-from ....types import FilterType
-
-
-class ItemInfo(NamedTuple):
-    """A named tuple for item update."""
-
-    row: int
-    column: int
-    value: Any
-    old_value: Any
-
+from ....types import FilterType, ItemInfo
 
 # Flags
 _EDITABLE = (
