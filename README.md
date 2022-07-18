@@ -35,7 +35,12 @@ def _on_selection_change(selections):
 
 ### Supported table types
 
-|**Table**|**SpreadSheet**|**Groupby**|**TableDisplay**|
-|:-:|:-:|:-:|:-:|
-|![](image/tab_table.gif)|![](image/tab_sheet.gif)|![](image/tab_groupby.gif)|![](image/tab_display.gif)|
-|A dtype-tagged table view with fixed size, aimed at viewing and editing `pd.DataFrame`. This table is the most basic one.|A string based table editor. Table is converted into `pd.DataFrame` object with proper dtypes consistent with reading CSV file using `pd.read_csv`.|A table group that corresponds to the returned object of the `groupby` method of `pd.DataFrame`.|A table viewer that hotly reload data using provided loader function. Useful for streaming data from other softwares.|
+|**Table**|**SpreadSheet**|
+|:-:|:-:|
+|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_table.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_spreadsheet.gif)|
+|A dtype-tagged table view with fixed size, aimed at viewing and editing `pd.DataFrame`. This table is the most basic one.|A string based table editor. Table is converted into `pd.DataFrame` object with proper dtypes consistent with reading CSV file using `pd.read_csv`.|
+
+|**Groupby**|**TableDisplay**|
+|:-:|:-:|
+|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_groupby.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_display.gif)|
+|A table group that corresponds to the returned object of the `groupby` method of `pd.DataFrame`.|A table viewer that hotly reloads data using provided loader function. Useful for streaming data from other softwares.|
