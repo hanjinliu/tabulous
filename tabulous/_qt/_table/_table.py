@@ -3,19 +3,19 @@ from typing import Any
 import pandas as pd
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 
+
 class DataFrameModel(AbstractDataFrameModel):
-    
     @property
     def df(self) -> pd.DataFrame:
         return self._df
-    
+
     @df.setter
     def df(self, data: pd.DataFrame):
         if data is self._df:
             return
         self.setShape(*data.shape)
         self._df = data
-    
+
     def rowCount(self, parent=None):
         return self.df.shape[0]
 
@@ -24,14 +24,12 @@ class DataFrameModel(AbstractDataFrameModel):
 
 
 class QTableLayer(QMutableSimpleTable):
-    
     def getDataFrame(self) -> pd.DataFrame:
         return self._data_raw
 
     def setDataFrame(self, data: pd.DataFrame) -> None:
         self._data_raw = data
         self.model().df = data
-        self._filter_slice = None  # filter should be reset
         self._qtable_view.viewport().update()
         return
 
@@ -39,11 +37,12 @@ class QTableLayer(QMutableSimpleTable):
         model = DataFrameModel(self)
         self._qtable_view.setModel(model)
         return None
-    
+
     def convertValue(self, r: int, c: int, value: Any) -> Any:
         """Convert value to the type of the table."""
         kind = self._data_raw.dtypes[c].kind
         return _DTYPE_CONVERTER[kind](value)
+
 
 def _bool_converter(val: Any):
     if isinstance(val, str):
@@ -56,18 +55,22 @@ def _bool_converter(val: Any):
     else:
         return bool(val)
 
+
 _NAN_STRINGS = frozenset({"", "nan", "na", "n/a", "<na>"})
+
 
 def _float_or_nan(x: str):
     if x.lower() in _NAN_STRINGS:
         return float("nan")
     return float(x)
 
+
 def _complex_or_nan(x: str):
     if x.lower() in _NAN_STRINGS:
         return float("nan")
     return complex(x)
-    
+
+
 _DTYPE_CONVERTER = {
     "i": int,
     "f": _float_or_nan,

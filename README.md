@@ -20,13 +20,13 @@ table = viewer.tables[1]  # get table
 table.data  # get pd.DataFrame object (or other similar one)
 
 # Connect data changed signal
-# See https://github.com/hanjinliu/tabulous/blob/main/examples/04_data_changed_signal.py
+# See examples/04_data_changed_signal.py
 @table.events.data.connect
 def _on_data_change(info):
     """data-changed callback"""
 
 # Connect selection changed signal
-# See https://github.com/hanjinliu/tabulous/blob/main/examples/05_selection_changed.py
+# See examples/05_selection_changed.py
 @table.events.selections.connect
 def _on_selection_change(selections):
     """selection-changed callback"""
@@ -35,7 +35,7 @@ def _on_selection_change(selections):
 
 ### Supported table types
 
-|**Table**|**SpreadSheet**|**Groupby**|
-|:-:|:-:|:-:|
-|![](image/tab_table.gif)|![](image/tab_sheet.gif)|![](image/tab_groupby.gif)|
-|A dtype-tagged table view with fixed size, aimed at viewing and editing `pd.DataFrame`.|A string based table editor. Table is converted into `pd.DataFrame` object with proper dtypes consistent with reading CSV file using `pd.read_csv`.|A table group that corresponds to the returned object of the `groupby` method of `pd.DataFrame`.|
+|**Table**|**SpreadSheet**|**Groupby**|**TableDisplay**|
+|:-:|:-:|:-:|:-:|
+|![](image/tab_table.gif)|![](image/tab_sheet.gif)|![](image/tab_groupby.gif)|![](image/tab_display.gif)|
+|A dtype-tagged table view with fixed size, aimed at viewing and editing `pd.DataFrame`. This table is the most basic one.|A string based table editor. Table is converted into `pd.DataFrame` object with proper dtypes consistent with reading CSV file using `pd.read_csv`.|A table group that corresponds to the returned object of the `groupby` method of `pd.DataFrame`.|A table viewer that hotly reload data using provided loader function. Useful for streaming data from other softwares.|

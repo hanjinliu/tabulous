@@ -11,7 +11,7 @@ from ..types import SelectionRanges
 
 if TYPE_CHECKING:
     import pandas as pd
-    from .._qt import QTableLayer, QSpreadSheet, QTableGroupBy
+    from .._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from .._qt._table import QBaseTable
 
 
@@ -200,3 +200,35 @@ class GroupBy(TableBase["QTableGroupBy"]):
     @group.setter
     def group(self, val) -> None:
         return self._qwidget.setCurrentGroup(val)
+
+
+class TableDisplay(TableBase["QTableDisplay"]):
+    _Default_Name = "display"
+
+    def _create_backend(self, data: Callable[[], Any]) -> QTableDisplay:
+        from .._qt import QTableDisplay
+
+        return QTableDisplay(loader=data)
+
+    def _normalize_data(self, data):
+        if not callable(data):
+            raise TypeError("Can only add callable object.")
+        return data
+
+    @property
+    def interval(self) -> int:
+        return self._qwidget._qtimer.interval()
+
+    @interval.setter
+    def interval(self, value: int) -> None:
+        if not 10 <= value <= 10000:
+            raise ValueError("Interval must be between 10 and 10000.")
+        self._qwidget._qtimer.setInterval(value)
+
+    @property
+    def loader(self) -> Callable[[], Any]:
+        return self._qwidget.loader()
+
+    @loader.setter
+    def loader(self, value: Callable[[], Any]) -> None:
+        self._qwidget.setLoader(value)

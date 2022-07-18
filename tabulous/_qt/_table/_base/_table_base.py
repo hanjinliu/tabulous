@@ -314,11 +314,16 @@ class QBaseTable(QtW.QWidget):
         if sl is None:
             self.model().df = data_sliced
         else:
-            if callable(sl):
-                sl_filt = sl(data_sliced)
-            else:
-                sl_filt = sl
-            self.model().df = data_sliced[sl_filt]
+            try:
+                if callable(sl):
+                    sl_filt = sl(data_sliced)
+                else:
+                    sl_filt = sl
+                self.model().df = data_sliced[sl_filt]
+            except Exception as e:
+                self._filter_slice = None
+                msg = f"Error in filter.\n\n{type(e).__name__} {e}\n\n Filter is reset."
+                show_messagebox("error", "Error", msg, self)
         self.refresh()
 
     def refresh(self) -> None:

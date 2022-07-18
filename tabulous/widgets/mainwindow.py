@@ -6,7 +6,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Union
 from psygnal import Signal, SignalGroup
 
-from .table import TableView, SpreadSheet, GroupBy
+from .table import TableView, SpreadSheet, GroupBy, TableDisplay
 from .tablelist import TableList
 from .keybindings import register_shortcut
 from ._sample import open_sample
@@ -197,6 +197,10 @@ class _TableViewerBase:
 
     def add_groupby(self, data, name: str | None = None) -> GroupBy:
         table = GroupBy(data, name=name)
+        return self.add_layer(table)
+
+    def add_loader(self, loader, name: str | None = None) -> TableDisplay:
+        table = TableDisplay(loader, name=name)
         return self.add_layer(table)
 
     def add_layer(self, layer: TableBase):
