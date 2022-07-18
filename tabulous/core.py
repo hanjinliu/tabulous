@@ -29,6 +29,7 @@ def set_current_viewer(viewer: _TableViewerBase) -> _TableViewerBase:
 
 
 def read_csv(path: str | Path, *args, **kwargs) -> _TableViewerBase:
+    """Read CSV file and add it to the current viewer."""
     import pandas as pd
 
     df = pd.read_csv(path, *args, **kwargs)
@@ -39,6 +40,7 @@ def read_csv(path: str | Path, *args, **kwargs) -> _TableViewerBase:
 
 
 def read_excel(path: str | Path, *args, **kwargs) -> _TableViewerBase:
+    """Read Excel file and add all the sheets to the current viewer."""
     import pandas as pd
 
     df_dict: dict[str, pd.DataFrame] = pd.read_excel(
@@ -58,6 +60,7 @@ def view_table(
     editable: bool = False,
     copy: bool = True,
 ) -> _TableViewerBase:
+    """View a table in the current viewer."""
     viewer = current_viewer()
     viewer.add_table(data, name=name, editable=editable, copy=copy)
     return viewer
@@ -70,6 +73,7 @@ def view_spreadsheet(
     editable: bool = True,
     copy: bool = True,
 ) -> _TableViewerBase:
+    """View a table as a spreadsheet in the current viewer."""
     viewer = current_viewer()
     viewer.add_spreadsheet(data, name=name, editable=editable, copy=copy)
     return viewer
@@ -79,6 +83,7 @@ def open_sample(
     sample_name: str,
     plugin_name: str = "seaborn",
 ) -> _TableViewerBase:
+    """Open a sample data."""
     viewer = current_viewer()
     viewer.open_sample(sample_name, plugin_name)
     return viewer

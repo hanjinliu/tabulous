@@ -45,6 +45,8 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 if pd.isna(val):
                     return QtGui.QColor(Qt.GlobalColor.gray)
             return QtCore.QVariant()
+        # elif role == Qt.ItemDataRole.ToolTipRole:
+        #     ...
         return QtCore.QVariant()
 
     def flags(self, index):
@@ -60,21 +62,22 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         orientation: Qt.Orientation,
         role: int = Qt.ItemDataRole.DisplayRole,
     ):
-        if (
-            orientation == Qt.Orientation.Horizontal
-            and role == Qt.ItemDataRole.DisplayRole
-        ):
-            if section < self.df.columns.size:
-                return str(self.df.columns[section])
-            else:
+        if orientation == Qt.Orientation.Horizontal:
+            if role == Qt.ItemDataRole.DisplayRole:
+                if section < self.df.columns.size:
+                    return str(self.df.columns[section])
                 return None
-        if (
-            orientation == Qt.Orientation.Vertical
-            and role == Qt.ItemDataRole.DisplayRole
-        ):
-            if section < self.df.index.size:
-                return str(self.df.index[section])
-            else:
+            elif role == Qt.ItemDataRole.ToolTipRole:
+                if section < self.df.columns.size:
+                    name = self.df.columns[section]
+                    dtype = self.df.dtypes[section]
+                    return f"{name} (dtype: {dtype})"
+                return None
+
+        if orientation == Qt.Orientation.Vertical:
+            if role in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.ToolTipRole):
+                if section < self.df.index.size:
+                    return str(self.df.index[section])
                 return None
 
     def setData(self, index: QtCore.QModelIndex, value, role) -> bool:
