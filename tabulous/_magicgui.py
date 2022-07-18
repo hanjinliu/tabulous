@@ -6,8 +6,14 @@ from magicgui.widgets import Widget, Container, ComboBox, Label, Dialog
 from magicgui.widgets._bases import CategoricalWidget
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
-from .widgets import TableViewer, TableLayer, TableViewerWidget
-from .types import TableColumn, TableData, TableDataTuple, TableInfoInstance, TabPosition
+from .widgets import TableViewer, TableView, TableViewerWidget
+from .types import (
+    TableColumn,
+    TableData,
+    TableDataTuple,
+    TableInfoInstance,
+    TabPosition,
+)
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -16,22 +22,24 @@ if TYPE_CHECKING:
 #    magicgui-widget
 # #############################################################################
 
+
 class MagicTableViewer(Widget, TableViewerWidget):
     """
     A magicgui widget of table viewer.
-    
+
     This class is a subclass of ``magicgui.widget.Widget`` so that it can be used
     in a compatible way with magicgui and napari.
-    
+
     Parameters
     ----------
     tab_position: TabPosition or str
         Type of list-like widget to use.
     """
+
     def __init__(
         self,
-        *, 
-        tab_position: TabPosition | str = TabPosition.top, 
+        *,
+        tab_position: TabPosition | str = TabPosition.top,
         name: str = "",
         label: str = None,
         tooltip: str | None = None,
@@ -39,8 +47,13 @@ class MagicTableViewer(Widget, TableViewerWidget):
         enabled: bool = True,
     ):
         super().__init__(
-            widget_type=QBaseWidget, backend_kwargs={"qwidg": QWidget}, name=name,
-            label=label, tooltip=tooltip, visible=visible, enabled=enabled,
+            widget_type=QBaseWidget,
+            backend_kwargs={"qwidg": QWidget},
+            name=name,
+            label=label,
+            tooltip=tooltip,
+            visible=visible,
+            enabled=enabled,
         )
         TableViewerWidget.__init__(self, tab_position=tab_position, show=False)
         self.native: QWidget
@@ -55,9 +68,10 @@ class MagicTableViewer(Widget, TableViewerWidget):
 
 _DEFAULT_NAME = "Result"
 
+
 def find_table_viewer_ancestor(widget: Widget | QWidget) -> TableViewer | None:
     from ._qt._mainwindow import _QtMainWidgetBase
-    
+
     if isinstance(widget, Widget):
         qwidget = widget.native
     elif isinstance(widget, QWidget):
@@ -70,8 +84,9 @@ def find_table_viewer_ancestor(widget: Widget | QWidget) -> TableViewer | None:
         qwidget = parent
         if isinstance(qwidget, _QtMainWidgetBase):
             return qwidget._table_viewer
-    
+
     return None
+
 
 def get_tables(widget: CategoricalWidget) -> list[tuple[str, Any]]:
     v = find_table_viewer_ancestor(widget)
@@ -79,26 +94,31 @@ def get_tables(widget: CategoricalWidget) -> list[tuple[str, Any]]:
         return []
     return v.tables
 
+
 def get_table_data(widget: CategoricalWidget) -> list[tuple[str, Any]]:
     v = find_table_viewer_ancestor(widget)
     if v is None:
         return []
     return [(table.name, table.data) for table in v.tables]
 
+
 def open_viewer(gui, result: TableViewer, return_type: type):
     result.show()
-    
+
+
 def add_table_to_viewer(gui, result: Any, return_type: type):
     viewer = find_table_viewer_ancestor(gui)
     if viewer is None:
         return
     viewer.add_layer(result)
-    
+
+
 def add_table_data_to_viewer(gui, result: Any, return_type: type):
     viewer = find_table_viewer_ancestor(gui)
     if viewer is None:
         return
     viewer.add_table(result, name=_DEFAULT_NAME)
+
 
 def add_table_data_tuple_to_viewer(gui, result: tuple, return_type: type):
     viewer = find_table_viewer_ancestor(gui)
@@ -119,16 +139,25 @@ def add_table_data_tuple_to_viewer(gui, result: tuple, return_type: type):
         raise ValueError(f"Length of TableDataTuple must be < 4, got {n}.")
     viewer.add_table(data[0], name=data[1], **data[2])
 
-register_type(TableViewer, return_callback=open_viewer, choices=find_table_viewer_ancestor)
-register_type(TableLayer, return_callback=add_table_to_viewer, choices=get_tables)
-register_type(TableData, return_callback=add_table_data_to_viewer, choices=get_table_data, nullable=False)
+
+register_type(
+    TableViewer, return_callback=open_viewer, choices=find_table_viewer_ancestor
+)
+register_type(TableView, return_callback=add_table_to_viewer, choices=get_tables)
+register_type(
+    TableData,
+    return_callback=add_table_data_to_viewer,
+    choices=get_table_data,
+    nullable=False,
+)
 register_type(TableDataTuple, return_callback=add_table_data_tuple_to_viewer)
 
 # Widget
 class ColumnChoice(Container):
     def __init__(
         self,
-        data_choices: Iterable[pd.DataFrame] | Callable[[Widget], Iterable[pd.DataFrame]],
+        data_choices: Iterable[pd.DataFrame]
+        | Callable[[Widget], Iterable[pd.DataFrame]],
         value=None,
         **kwargs,
     ):
@@ -140,7 +169,7 @@ class ColumnChoice(Container):
         _label_r.max_width = 24
         super().__init__(
             layout="horizontal",
-            widgets=[self._dataframe_choices, _label_l, self._column_choices, _label_r], 
+            widgets=[self._dataframe_choices, _label_l, self._column_choices, _label_r],
             labels=False,
             name=kwargs.get("name"),
         )
@@ -151,7 +180,7 @@ class ColumnChoice(Container):
         df: pd.DataFrame = self._dataframe_choices.value
         cols = getattr(df, "columns", [])
         return cols
-    
+
     def _set_available_columns(self, w=None):
         cols = self._get_available_columns()
         self._column_choices.choices = cols
@@ -162,25 +191,29 @@ class ColumnChoice(Container):
         df = self._dataframe_choices.value
         return df[self._column_choices.value]
 
+
 register_type(
     TableColumn,
-    widget_type=ColumnChoice, 
-    return_callback=add_table_data_to_viewer, 
+    widget_type=ColumnChoice,
+    return_callback=add_table_data_to_viewer,
     data_choices=get_table_data,
     nullable=False,
 )
 
+
 class ColumnNameChoice(Container):
     """
     A container widget with a DataFrame selection and multiple column name selections.
-    
+
     This widget is composed of two or more ComboBox widgets. The top one is to choose a
     DataFrame and the rest are to choose column names from the DataFrame. When the DataFrame
     selection changed, the column name selections will also changed accordingly.
     """
+
     def __init__(
         self,
-        data_choices: Iterable[pd.DataFrame] | Callable[[Widget], Iterable[pd.DataFrame]],
+        data_choices: Iterable[pd.DataFrame]
+        | Callable[[Widget], Iterable[pd.DataFrame]],
         column_choice_names: Iterable[str],
         value=None,
         **kwargs,
@@ -195,7 +228,7 @@ class ColumnNameChoice(Container):
         self._child_container.margins = (0, 0, 0, 0)
         super().__init__(
             layout="vertical",
-            widgets=[self._dataframe_choices, self._child_container], 
+            widgets=[self._dataframe_choices, self._child_container],
             labels=False,
             name=kwargs.get("name"),
         )
@@ -206,7 +239,7 @@ class ColumnNameChoice(Container):
         df: pd.DataFrame = self._dataframe_choices.value
         cols = getattr(df, "columns", [])
         return cols
-    
+
     def _set_available_columns(self, w=None):
         cols = self._get_available_columns()
         for cbox in self._column_names:
@@ -219,10 +252,9 @@ class ColumnNameChoice(Container):
         colnames = [cbox.value for cbox in self._column_names]
         return (df, colnames)
 
+
 register_type(
-    TableInfoInstance, 
-    widget_type=ColumnNameChoice,
-    data_choices=get_table_data
+    TableInfoInstance, widget_type=ColumnNameChoice, data_choices=get_table_data
 )
 
 # #############################################################################
@@ -231,8 +263,10 @@ register_type(
 
 _F = TypeVar("_F", bound=Callable)
 
+
 def dialog_factory(function: _F) -> _F:
     from magicgui.signature import magic_signature
+
     def _runner(parent=None, **param_options):
         widgets = list(
             magic_signature(function, gui_options=param_options).widgets().values()
@@ -244,4 +278,5 @@ def dialog_factory(function: _F) -> _F:
         else:
             out = None
         return out
+
     return _runner

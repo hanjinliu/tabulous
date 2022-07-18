@@ -4,7 +4,7 @@ from typing import Any, TYPE_CHECKING, Callable, overload, TypeVar
 from psygnal import Signal, SignalGroup, SignalInstance
 from psygnal.containers import EventedList
 
-from .table import TableLayerBase
+from .table import TableBase
 
 if TYPE_CHECKING:
     from .mainwindow import TableViewer
@@ -48,21 +48,26 @@ class NamedListEvents(SignalGroup):
     child_event = Signal(int, object, SignalInstance, tuple)
     renamed = Signal(int, str)
 
+
 _F = TypeVar("_F", bound=Callable)
 
-class TableList(EventedList[TableLayerBase]):
+
+class TableList(EventedList[TableBase]):
     events: NamedListEvents
-    
+
     def __init__(self, parent: TableViewer):
         super().__init__()
         self.events = NamedListEvents()
         self._parent = parent
 
-    def insert(self, index: int, table: TableLayerBase):
-        if not isinstance(table, TableLayerBase):
-            raise TypeError(f"Cannot insert {type(table)} to {self.__class__.__name__}.")
-        
+    def insert(self, index: int, table: TableBase):
+        if not isinstance(table, TableBase):
+            raise TypeError(
+                f"Cannot insert {type(table)} to {self.__class__.__name__}."
+            )
+
         table.name = self._coerce_name(table.name, except_for=table)
+
         @table.events.renamed.connect
         def _renamed_signal(name: str):
             coerced_name = self._coerce_name(name, table)
@@ -73,10 +78,10 @@ class TableList(EventedList[TableLayerBase]):
                     self.events.renamed.emit(i, coerced_name)
                     break
             return None
-                    
+
         super().insert(index, table)
-    
-    def index(self, value: TableLayerBase | str, start: int = 0, stop: int = 999999) -> int:
+
+    def index(self, value: TableBase | str, start: int = 0, stop: int = 999999) -> int:
         """Override of list.index(), also accepts str input."""
         if isinstance(value, str):
             for i, content in enumerate(self):
@@ -86,22 +91,22 @@ class TableList(EventedList[TableLayerBase]):
                 raise ValueError(f"No table named {value}")
         else:
             return super().index(value, start, stop)
-    
+
     def rename(self, index_or_name: int | str, name: str) -> None:
         """Rename a table name."""
         table = self[index_or_name]
         name = self._coerce_name(name, except_for=table)
         table.name = name
         return None
-    
-    def get(self, name: str, default: Any | None = None) -> TableLayerBase | None:
+
+    def get(self, name: str, default: Any | None = None) -> TableBase | None:
         """Get a table with name `name` if exists."""
         for content in self:
             if content.name == name:
                 return content
         else:
             return default
-    
+
     def __getitem__(self, key):
         if isinstance(key, str):
             key = self.index(key)
@@ -112,9 +117,9 @@ class TableList(EventedList[TableLayerBase]):
             key = self.index(key)
         return super().__delitem__(key)
 
-    def _coerce_name(self, name: str, except_for: TableLayerBase):
-        names = set(content.name for content in self if content is not except_for)
-        
+    def _coerce_name(self, name: str, except_for: TableBase):
+        names = {content.name for content in self if content is not except_for}
+
         suffix = re.findall(r".*-(\d+)", name)
         if suffix:
             suf = suffix[0]
@@ -127,17 +132,17 @@ class TableList(EventedList[TableLayerBase]):
         while new_name in names:
             new_name = f"{name}-{i}"
             i += 1
-            
+
         return new_name
-    
+
     @overload
     def register_action(self, val: str) -> Callable[[_F], _F]:
         ...
-    
+
     @overload
     def register_action(self, val: _F) -> _F:
         ...
-    
+
     def register_action(self, val):
         """Register an action to the tablelist."""
         if isinstance(val, str):

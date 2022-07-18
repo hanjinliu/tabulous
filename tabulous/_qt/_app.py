@@ -1,4 +1,6 @@
 from qtpy.QtWidgets import QApplication
+from qtpy.QtCore import Qt
+from qtpy import PYQT5
 
 APPLICATION = None
 
@@ -32,6 +34,11 @@ def gui_qt_is_active() -> bool:
 def get_app():
     """Get QApplication."""
     gui_qt()
+    if PYQT5:
+        # Make DPI ratio consistent between displays.
+        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+        QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
     app = QApplication.instance()
     if app is None:
         app = QApplication([])

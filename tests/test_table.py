@@ -1,4 +1,4 @@
-from tabulous import TableLayer, TableViewer
+from tabulous import TableView, TableViewer
 from unittest.mock import MagicMock
 import pandas as pd
 import numpy as np
@@ -17,7 +17,7 @@ def edit_cell(table, row, col, value):
 @pytest.mark.parametrize("df", [df0, df1])
 def test_display(df: pd.DataFrame):
     viewer = TableViewer(show=False)
-    table = TableLayer(df)
+    table = TableView(df)
     viewer.add_layer(table)
     assert table.data is df
     assert table.columns is df.columns
@@ -28,7 +28,7 @@ def test_display(df: pd.DataFrame):
 @pytest.mark.parametrize("df", [df0, df1])
 def test_editing_data(df: pd.DataFrame):
     viewer = TableViewer(show=False)
-    table = TableLayer(df)
+    table = TableView(df)
     viewer.add_layer(table)
     edit_cell(table._qwidget, 0, 0, "11")
     assert str(df.iloc[0, 0]) == "11"
@@ -42,9 +42,9 @@ def test_editing_data(df: pd.DataFrame):
 
 def test_size_change():
     viewer = TableViewer(show=False)
-    table = TableLayer(np.zeros((30, 30)))
+    table = TableView(np.zeros((30, 30)))
     viewer.add_layer(table)
-    
+
     table.data = np.zeros((20, 20))
     assert table.table_shape == (20, 20)
     table.data = np.zeros((40, 40))
@@ -54,11 +54,11 @@ def test_selection_signal():
     viewer = TableViewer(show=False)
     table = viewer.add_table(df0)
     mock = MagicMock()
-    
+
     @table.events.selections.connect
     def f(sel):
         mock(sel)
-    
+
     mock.assert_not_called()
     sel = [(slice(1, 2), slice(1, 2))]
     table.selections = sel

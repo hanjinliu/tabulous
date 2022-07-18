@@ -20,8 +20,9 @@ setup(
     packages=find_packages(exclude=["docs", "examples", "rst", "tests", "tests.*"]),
     package_data={"tabulous": ["**/*.pyi", "*.pyi"]},
     install_requires=[
-        "magicgui>=0.4.0",
+        "magicgui>=0.5.1",
         "qtpy>=1.10.0",
+        "pandas>=1.0.0",
     ],
     python_requires=">=3.8",
 )
