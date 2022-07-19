@@ -19,6 +19,7 @@ setup(
     download_url="https://github.com/hanjinliu/tabulous",
     packages=find_packages(exclude=["docs", "examples", "rst", "tests", "tests.*"]),
     package_data={"tabulous": ["**/*.pyi", "*.pyi", "**/*.svg"]},
+    include_package_data=True,
     install_requires=[
         "magicgui>=0.5.1",
         "qtpy>=1.10.0",
