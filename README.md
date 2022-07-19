@@ -1,3 +1,6 @@
+[![Downloads](https://pepy.tech/badge/tabulous/month)](https://pepy.tech/project/tabulous)
+[![PyPI version](https://badge.fury.io/py/tabulous.svg)](https://badge.fury.io/py/tabulous)
+
 # tabulous
 
 A table data viewer for Python.
