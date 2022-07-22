@@ -6,7 +6,7 @@ from qtpy.QtCore import Signal, Qt
 import numpy as np
 import pandas as pd
 
-from undo import UndoManager
+from collections_undo import UndoManager
 from ._model_base import AbstractDataFrameModel
 from ..._utils import show_messagebox
 from ....types import FilterType, ItemInfo, HeaderInfo, Selections
@@ -91,10 +91,14 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
         """Evoke parent keyPressEvent."""
-        if e.modifiers() in (
-            Qt.KeyboardModifier.NoModifier,
-            Qt.KeyboardModifier.ShiftModifier,
-        ) and (Qt.Key.Key_Exclam <= e.key() <= Qt.Key.Key_ydiaeresis):
+        if (
+            e.modifiers()
+            in (
+                Qt.KeyboardModifier.NoModifier,
+                Qt.KeyboardModifier.ShiftModifier,
+            )
+            and (Qt.Key.Key_Exclam <= e.key() <= Qt.Key.Key_ydiaeresis)
+        ):
             parent = self.parent()
             if isinstance(parent, QBaseTable):
                 parent.keyPressEvent(e)
@@ -532,10 +536,14 @@ class QMutableTable(QBaseTable):
             self._mgr.undo()
         elif _mod == Qt.KeyboardModifier.ControlModifier and _key == Qt.Key.Key_Y:
             self._mgr.redo()
-        elif _mod in (
-            Qt.KeyboardModifier.NoModifier,
-            Qt.KeyboardModifier.ShiftModifier,
-        ) and (Qt.Key.Key_Exclam <= _key <= Qt.Key.Key_ydiaeresis):
+        elif (
+            _mod
+            in (
+                Qt.KeyboardModifier.NoModifier,
+                Qt.KeyboardModifier.ShiftModifier,
+            )
+            and (Qt.Key.Key_Exclam <= _key <= Qt.Key.Key_ydiaeresis)
+        ):
             # Enter editing mode
             qtable = self._qtable_view
             text = QtGui.QKeySequence(_key).toString()
@@ -753,7 +761,7 @@ class QMutableTable(QBaseTable):
         self.refresh()
         return None
 
-    @setHorizontalHeaderValue.descriptor
+    @setHorizontalHeaderValue.server
     def setHorizontalHeaderValue(self, index: int, value: Any) -> Any:
         return (index, self.model().df.columns[index]), {}
 
@@ -772,7 +780,7 @@ class QMutableTable(QBaseTable):
         self.refresh()
         return None
 
-    @setVerticalHeaderValue.descriptor
+    @setVerticalHeaderValue.server
     def setVerticalHeaderValue(self, index: int, value: Any) -> Any:
         return (index, self.model().df.index[index]), {}
 
