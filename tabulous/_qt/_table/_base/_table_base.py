@@ -1,13 +1,15 @@
 from __future__ import annotations
-from typing import Any, overload
+from typing import Any, Callable, overload
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
-import pandas as pd
 
 import numpy as np
+import pandas as pd
+
+from undo import UndoManager
 from ._model_base import AbstractDataFrameModel
 from ..._utils import show_messagebox
-from ....types import FilterType, ItemInfo, Selections
+from ....types import FilterType, ItemInfo, HeaderInfo, Selections
 
 # Flags
 _EDITABLE = (
@@ -89,10 +91,15 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
         """Evoke parent keyPressEvent."""
-        parent = self.parent()
-        if isinstance(parent, QBaseTable):
-            parent.keyPressEvent(e)
-        return super().keyPressEvent(e)
+        if e.modifiers() in (
+            Qt.KeyboardModifier.NoModifier,
+            Qt.KeyboardModifier.ShiftModifier,
+        ) and (Qt.Key.Key_Exclam <= e.key() <= Qt.Key.Key_ydiaeresis):
+            parent = self.parent()
+            if isinstance(parent, QBaseTable):
+                parent.keyPressEvent(e)
+        else:
+            return super().keyPressEvent(e)
 
     def zoom(self) -> float:
         """Get current zoom factor."""
@@ -352,10 +359,39 @@ class QBaseTable(QtW.QWidget):
         return None
 
 
+def _count_data_size(*args, **kwargs) -> float:
+    total_nbytes = 0
+    for arg in args:
+        total_nbytes += _getsizeof(arg)
+    for v in kwargs.values():
+        total_nbytes += _getsizeof(v)
+    return total_nbytes
+
+
+def _getsizeof(obj) -> float:
+    if isinstance(obj, pd.DataFrame):
+        nbytes = obj.memory_usage(deep=True).sum()
+    elif isinstance(obj, pd.Series):
+        nbytes = obj.memory_usage(deep=True)
+    elif isinstance(obj, np.ndarray):
+        nbytes = obj.nbytes
+    elif isinstance(obj, (list, tuple, set)):
+        nbytes = sum(_getsizeof(x) for x in obj)
+    elif isinstance(obj, dict):
+        nbytes = sum(_getsizeof(x) for x in obj.values())
+    else:
+        nbytes = 1  # approximate
+    return nbytes
+
+
 class QMutableTable(QBaseTable):
     itemChangedSignal = Signal(ItemInfo)
+    rowChangedSignal = Signal(HeaderInfo)
+    columnChangedSignal = Signal(HeaderInfo)
     selectionChangedSignal = Signal(list)
     _data_raw: pd.DataFrame
+
+    _mgr = UndoManager(measure=_count_data_size, maxsize=1e7)
 
     def __init__(
         self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None
@@ -429,7 +465,6 @@ class QMutableTable(QBaseTable):
             r0 = spec[r]
             self.model().updateValue(r, c, _value)
         _old_value = data.iloc[r0, c]
-        data.iloc[r0, c] = _value
 
         # emit item changed signal if value changed
         # NOTE pd.NA == x returns pd.NA, not False
@@ -445,7 +480,19 @@ class QMutableTable(QBaseTable):
                 emit = True
 
         if emit:
-            self.itemChangedSignal.emit(ItemInfo(r, c, _value, _old_value))
+            self._set_value(r0, c, _value, _old_value)
+            self.itemChangedSignal.emit(ItemInfo(r0, c, _value, _old_value))
+        return None
+
+    @_mgr.command
+    def _set_value(self, r, c, value, old_value):
+        self._data_raw.iloc[r, c] = value
+        self.refresh()
+        return None
+
+    @_set_value.undo_def
+    def _set_value(self, r, c, value, old_value):
+        self._data_raw.iloc[r, c] = old_value
         self.refresh()
         return None
 
@@ -461,30 +508,38 @@ class QMutableTable(QBaseTable):
             self._qtable_view.setEditTriggers(_READ_ONLY)
         self._editable = editable
 
-    def connectItemChangedSignal(self, slot):
-        self.itemChangedSignal.connect(slot)
-        return slot
+    def connectItemChangedSignal(self, *slots: tuple[Callable, Callable, Callable]):
+        slot_val, slot_row, slot_col = slots
+        self.itemChangedSignal.connect(slot_val)
+        self.rowChangedSignal.connect(slot_row)
+        self.columnChangedSignal.connect(slot_col)
+        return None
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
         _mod = e.modifiers()
         _key = e.key()
-        if _mod & Qt.ControlModifier and _key == Qt.Key.Key_C:
-            headers = _mod & Qt.ShiftModifier
+        if _mod & Qt.KeyboardModifier.ControlModifier and _key == Qt.Key.Key_C:
+            headers = _mod & Qt.KeyboardModifier.ShiftModifier
             return self.copyToClipboard(headers)
-        elif _mod & Qt.ControlModifier and _key == Qt.Key.Key_V:
+        elif _mod & Qt.KeyboardModifier.ControlModifier and _key == Qt.Key.Key_V:
             return self.pasteFromClipBoard()
-        elif _mod == Qt.NoModifier and _key in (
+        elif _mod == Qt.KeyboardModifier.NoModifier and _key in (
             Qt.Key.Key_Delete,
             Qt.Key.Key_Backspace,
         ):
             return self.deleteValues()
-        elif _mod in (Qt.NoModifier, Qt.ShiftModifier) and (
-            Qt.Key.Key_Exclam <= _key <= Qt.Key.Key_ydiaeresis
-        ):
+        elif _mod == Qt.KeyboardModifier.ControlModifier and _key == Qt.Key.Key_Z:
+            self._mgr.undo()
+        elif _mod == Qt.KeyboardModifier.ControlModifier and _key == Qt.Key.Key_Y:
+            self._mgr.redo()
+        elif _mod in (
+            Qt.KeyboardModifier.NoModifier,
+            Qt.KeyboardModifier.ShiftModifier,
+        ) and (Qt.Key.Key_Exclam <= _key <= Qt.Key.Key_ydiaeresis):
             # Enter editing mode
             qtable = self._qtable_view
             text = QtGui.QKeySequence(_key).toString()
-            if _mod != Qt.ShiftModifier:
+            if _mod != Qt.KeyboardModifier.ShiftModifier:
                 text = text.lower()
             self.model().setData(qtable.currentIndex(), text, Qt.ItemDataRole.EditRole)
             qtable.edit(qtable.currentIndex())
@@ -492,8 +547,8 @@ class QMutableTable(QBaseTable):
             if isinstance(focused_widget, QtW.QLineEdit):
                 focused_widget.deselect()
             return
-
-        return super().keyPressEvent(e)
+        else:
+            return super().keyPressEvent(e)
 
     def pasteFromClipBoard(self):
         """
@@ -619,11 +674,13 @@ class QMutableTable(QBaseTable):
 
         column_axis = self.model().df.columns
         if index < column_axis.size:
-            text = column_axis[index]
+            old_value = column_axis[index]
+            text = str(old_value)
         else:
+            old_value = None
             text = ""
 
-        _line.setText(str(text))
+        _line.setText(text)
         _line.setFocus()
 
         self._line = _line
@@ -631,7 +688,10 @@ class QMutableTable(QBaseTable):
         @_line.editingFinished.connect
         def _set_header_data():
             self._line.setHidden(True)
-            self.setHorizontalHeaderValue(index, self._line.text())
+            value = self._line.text()
+            if not value == old_value:
+                self.setHorizontalHeaderValue(index, value)
+                self.columnChangedSignal.emit(HeaderInfo(index, value, old_value))
             return None
 
         return None
@@ -653,8 +713,10 @@ class QMutableTable(QBaseTable):
         index_axis = self.model().df.index
 
         if index < index_axis.size:
-            text = index_axis[index]
+            old_value = index_axis[index]
+            text = str(old_value)
         else:
+            old_value = None
             text = ""
 
         _line.setText(str(text))
@@ -666,8 +728,15 @@ class QMutableTable(QBaseTable):
         @_line.editingFinished.connect
         def _set_header_data():
             self._line.setHidden(True)
-            self.setVerticalHeaderValue(index, self._line.text())
+            value = self._line.text()
+            if not value == old_value:
+                self.setVerticalHeaderValue(index, value)
+                self.rowChangedSignal.emit(HeaderInfo(index, value, old_value))
+            return None
 
+        return None
+
+    @_mgr.interface
     def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
         qtable = self._qtable_view
         column_axis = self.model().df.columns
@@ -681,8 +750,14 @@ class QMutableTable(QBaseTable):
         size_hint = _header.sectionSizeHint(index)
         if _header.sectionSize(index) < size_hint:
             _header.resizeSection(index, size_hint)
+        self.refresh()
         return None
 
+    @setHorizontalHeaderValue.descriptor
+    def setHorizontalHeaderValue(self, index: int, value: Any) -> Any:
+        return (index, self.model().df.columns[index]), {}
+
+    @_mgr.interface
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         qtable = self._qtable_view
         index_axis = self.model().df.index
@@ -694,10 +769,17 @@ class QMutableTable(QBaseTable):
         self.model().df.rename(index=mapping, inplace=True)
         _width_hint = _header.sizeHint().width()
         _header.resize(QtCore.QSize(_width_hint, _header.height()))
+        self.refresh()
         return None
+
+    @setVerticalHeaderValue.descriptor
+    def setVerticalHeaderValue(self, index: int, value: Any) -> Any:
+        return (index, self.model().df.index[index]), {}
 
 
 class QMutableSimpleTable(QMutableTable):
+    """A mutable table with a single QTableView."""
+
     @property
     def _qtable_view(self) -> _QTableViewEnhanced:
         return self._qtable_view_

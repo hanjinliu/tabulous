@@ -7,7 +7,7 @@ from psygnal import SignalGroup, Signal
 from .keybindings import register_shortcut
 from .filtering import FilterProperty
 
-from ..types import SelectionRanges
+from ..types import SelectionRanges, ItemInfo, HeaderInfo
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -18,7 +18,9 @@ if TYPE_CHECKING:
 class TableSignals(SignalGroup):
     """Signal group for a Table."""
 
-    data = Signal(object)
+    data = Signal(ItemInfo)
+    index = Signal(HeaderInfo)
+    columns = Signal(HeaderInfo)
     selections = Signal(object)
     zoom = Signal(float)
     renamed = Signal(str)
@@ -45,7 +47,11 @@ class TableBase(ABC, Generic[_QW]):
 
         if isinstance(self._qwidget, QMutableTable):
             self._qwidget.setEditability(editable)
-            self._qwidget.connectItemChangedSignal(self.events.data.emit)
+            self._qwidget.connectItemChangedSignal(
+                self.events.data.emit,
+                self.events.index.emit,
+                self.events.columns.emit,
+            )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}<{self.name!r}>"
