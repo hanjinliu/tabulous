@@ -830,6 +830,10 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 cbox.addItems(choices)
                 cbox.setCurrentIndex(0 if df.iat[row, col] else 1)
                 return cbox
+            elif dtype.kind == "M":
+                dt = QtW.QDateTimeEdit(parent)
+                dt.setDateTime(df.iat[row, col].to_pydatetime())
+                return dt
 
         return super().createEditor(parent, option, index)
 
@@ -838,6 +842,18 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         if isinstance(editor, QtW.QComboBox):
             editor.showPopup()
         return None
+
+    def setModelData(
+        self,
+        editor: QtW.QWidget,
+        model: QtCore.QAbstractItemModel,
+        index: QtCore.QModelIndex,
+    ) -> None:
+        if isinstance(editor, QtW.QDateTimeEdit):
+            dt = editor.dateTime().toPyDateTime()
+            model.setData(index, dt, Qt.ItemDataRole.EditRole)
+        else:
+            return super().setModelData(editor, model, index)
 
     # modified from magicgui
     def _format_number(self, text: str) -> str:
