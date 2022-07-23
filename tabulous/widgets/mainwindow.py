@@ -102,6 +102,11 @@ class _TableViewerBase:
         """Return the index of currently visible table."""
         return self._qwidget._tablestack.currentIndex()
 
+    @property
+    def native(self) -> _QtMainWidgetBase:
+        """Return the native widget."""
+        return self._qwidget
+
     @current_index.setter
     def current_index(self, index: int | str):
         if isinstance(index, str):
