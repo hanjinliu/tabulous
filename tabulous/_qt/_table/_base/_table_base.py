@@ -411,6 +411,7 @@ class QMutableTable(QBaseTable):
         self._qtable_view.verticalHeader().sectionDoubleClicked.connect(
             self.editVerticalHeader
         )
+        self._mgr.clear()
 
     def tableShape(self) -> tuple[int, int]:
         model = self.model()
@@ -471,33 +472,35 @@ class QMutableTable(QBaseTable):
         _old_value = data.iloc[r0, c]
 
         # emit item changed signal if value changed
-        # NOTE pd.NA == x returns pd.NA, not False
-        emit = False
-        if isinstance(_value, pd.DataFrame):
-            emit = True
-
-        elif pd.isna(_value):
-            if not pd.isna(_old_value):
-                emit = True
-        else:
-            if pd.isna(_old_value) or _value != _old_value:
-                emit = True
-
-        if emit:
+        if _equal(_value, _old_value):
             self._set_value(r0, c, _value, _old_value)
             self.itemChangedSignal.emit(ItemInfo(r0, c, _value, _old_value))
         return None
 
-    @_mgr.command
+    @_mgr.undoable(name="setDataFrameValue")
     def _set_value(self, r, c, value, old_value):
+        if not self._editable:
+            return None
         self._data_raw.iloc[r, c] = value
         self.refresh()
+        if not isinstance(r, slice):
+            r = slice(r, r + 1)
+        if not isinstance(c, slice):
+            c = slice(c, c + 1)
+        self.setSelections([(r, c)])
         return None
 
     @_set_value.undo_def
     def _set_value(self, r, c, value, old_value):
+        if not self._editable:
+            return None
         self._data_raw.iloc[r, c] = old_value
         self.refresh()
+        if not isinstance(r, slice):
+            r = slice(r, r + 1)
+        if not isinstance(c, slice):
+            c = slice(c, c + 1)
+        self.setSelections([(r, c)])
         return None
 
     def editability(self) -> bool:
@@ -512,8 +515,12 @@ class QMutableTable(QBaseTable):
             self._qtable_view.setEditTriggers(_READ_ONLY)
         self._editable = editable
 
-    def connectItemChangedSignal(self, *slots: tuple[Callable, Callable, Callable]):
-        slot_val, slot_row, slot_col = slots
+    def connectItemChangedSignal(
+        self,
+        slot_val: Callable[[ItemInfo], None],
+        slot_row: Callable[[HeaderInfo], None],
+        slot_col: Callable[[HeaderInfo], None],
+    ) -> None:
         self.itemChangedSignal.connect(slot_val)
         self.rowChangedSignal.connect(slot_row)
         self.columnChangedSignal.connect(slot_col)
@@ -695,11 +702,14 @@ class QMutableTable(QBaseTable):
 
         @_line.editingFinished.connect
         def _set_header_data():
+            if self._line is None:
+                return None
             self._line.setHidden(True)
             value = self._line.text()
             if not value == old_value:
                 self.setHorizontalHeaderValue(index, value)
                 self.columnChangedSignal.emit(HeaderInfo(index, value, old_value))
+            self._line = None
             return None
 
         return None
@@ -735,11 +745,14 @@ class QMutableTable(QBaseTable):
 
         @_line.editingFinished.connect
         def _set_header_data():
+            if self._line is None:
+                return None
             self._line.setHidden(True)
             value = self._line.text()
             if not value == old_value:
                 self.setVerticalHeaderValue(index, value)
                 self.rowChangedSignal.emit(HeaderInfo(index, value, old_value))
+            self._line = None
             return None
 
         return None
@@ -883,3 +896,18 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 text = f"{value:.{ndigits-1}e}"
 
         return text
+
+
+def _equal(val, old_val):
+    # NOTE pd.NA == x returns pd.NA, not False
+    eq = False
+    if isinstance(val, pd.DataFrame):
+        eq = True
+
+    elif pd.isna(val):
+        if not pd.isna(old_val):
+            eq = True
+    else:
+        if pd.isna(old_val) or val != old_val:
+            eq = True
+    return eq
