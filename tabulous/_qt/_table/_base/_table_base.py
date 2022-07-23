@@ -21,6 +21,31 @@ _READ_ONLY = QtW.QAbstractItemView.EditTrigger.NoEditTriggers
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
 
+def _count_data_size(*args, **kwargs) -> float:
+    total_nbytes = 0
+    for arg in args:
+        total_nbytes += _getsizeof(arg)
+    for v in kwargs.values():
+        total_nbytes += _getsizeof(v)
+    return total_nbytes
+
+
+def _getsizeof(obj) -> float:
+    if isinstance(obj, pd.DataFrame):
+        nbytes = obj.memory_usage(deep=True).sum()
+    elif isinstance(obj, pd.Series):
+        nbytes = obj.memory_usage(deep=True)
+    elif isinstance(obj, np.ndarray):
+        nbytes = obj.nbytes
+    elif isinstance(obj, (list, tuple, set)):
+        nbytes = sum(_getsizeof(x) for x in obj)
+    elif isinstance(obj, dict):
+        nbytes = sum(_getsizeof(x) for x in obj.values())
+    else:
+        nbytes = 1  # approximate
+    return nbytes
+
+
 class _QTableViewEnhanced(QtW.QTableView):
     selectionChangedSignal = Signal()
     rightClickedSignal = Signal(QtCore.QPoint)
@@ -174,6 +199,7 @@ class QBaseTable(QtW.QWidget):
 
     selectionChangedSignal = Signal(list)
     _DEFAULT_EDITABLE = False
+    _mgr = UndoManager(measure=_count_data_size, maxsize=1e7)
 
     def __init__(
         self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None
@@ -364,39 +390,12 @@ class QBaseTable(QtW.QWidget):
         return None
 
 
-def _count_data_size(*args, **kwargs) -> float:
-    total_nbytes = 0
-    for arg in args:
-        total_nbytes += _getsizeof(arg)
-    for v in kwargs.values():
-        total_nbytes += _getsizeof(v)
-    return total_nbytes
-
-
-def _getsizeof(obj) -> float:
-    if isinstance(obj, pd.DataFrame):
-        nbytes = obj.memory_usage(deep=True).sum()
-    elif isinstance(obj, pd.Series):
-        nbytes = obj.memory_usage(deep=True)
-    elif isinstance(obj, np.ndarray):
-        nbytes = obj.nbytes
-    elif isinstance(obj, (list, tuple, set)):
-        nbytes = sum(_getsizeof(x) for x in obj)
-    elif isinstance(obj, dict):
-        nbytes = sum(_getsizeof(x) for x in obj.values())
-    else:
-        nbytes = 1  # approximate
-    return nbytes
-
-
 class QMutableTable(QBaseTable):
     itemChangedSignal = Signal(ItemInfo)
     rowChangedSignal = Signal(HeaderInfo)
     columnChangedSignal = Signal(HeaderInfo)
     selectionChangedSignal = Signal(list)
     _data_raw: pd.DataFrame
-
-    _mgr = UndoManager(measure=_count_data_size, maxsize=1e7)
 
     def __init__(
         self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None
@@ -479,7 +478,7 @@ class QMutableTable(QBaseTable):
             self.itemChangedSignal.emit(ItemInfo(r0, c, _value, _old_value))
         return None
 
-    @_mgr.undoable(name="setDataFrameValue")
+    @QBaseTable._mgr.undoable(name="setDataFrameValue")
     def _set_value(self, r, c, value, old_value):
         if not self._editable:
             return None
@@ -549,9 +548,9 @@ class QMutableTable(QBaseTable):
         elif keys in ("Delete", "Backspace"):
             return self.deleteValues()
         elif keys == "Ctrl+Z":
-            self._mgr.undo()
+            self.undo()
         elif keys == "Ctrl+Y":
-            self._mgr.redo()
+            self.redo()
         elif keys.is_typing():
             # Enter editing mode
             qtable = self._qtable_view
@@ -765,7 +764,7 @@ class QMutableTable(QBaseTable):
 
         return None
 
-    @_mgr.interface
+    @QBaseTable._mgr.interface
     def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
         qtable = self._qtable_view
         column_axis = self.model().df.columns
@@ -786,7 +785,7 @@ class QMutableTable(QBaseTable):
     def setHorizontalHeaderValue(self, index: int, value: Any) -> Any:
         return (index, self.model().df.columns[index]), {}
 
-    @_mgr.interface
+    @QBaseTable._mgr.interface
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         qtable = self._qtable_view
         index_axis = self.model().df.index
@@ -805,7 +804,7 @@ class QMutableTable(QBaseTable):
     def setVerticalHeaderValue(self, index: int, value: Any) -> Any:
         return (index, self.model().df.index[index]), {}
 
-    @_mgr.interface
+    @QBaseTable._mgr.interface
     def setFilter(self, sl: FilterType):
         """Set filter to the table view. This operation is undoable."""
         return super().setFilter(sl)
@@ -813,6 +812,16 @@ class QMutableTable(QBaseTable):
     @setFilter.server
     def setFilter(self, sl: FilterType):
         return (self.filter(),), {}
+
+    def undo(self) -> None:
+        """Undo last operation."""
+        self._mgr.undo()
+        return None
+
+    def redo(self) -> None:
+        """Redo last undo operation."""
+        self._mgr.redo()
+        return None
 
 
 class QMutableSimpleTable(QMutableTable):

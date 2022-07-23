@@ -109,6 +109,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = out
         return out
 
+    @QMutableSimpleTable._mgr.interface
     def setDataFrame(self, data: pd.DataFrame) -> None:
         self._data_raw = data.astype("string")
         self.model().setShape(data.index.size + 10, data.columns.size + 10)
@@ -116,6 +117,10 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setFilter(None)
         self.refresh()
         return
+
+    @setDataFrame.server
+    def setDataFrame(self, data):
+        return (getattr(self, "_data_raw", None),), {}
 
     def createModel(self) -> None:
         """Create spreadsheet model."""
