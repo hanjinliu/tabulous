@@ -9,7 +9,7 @@ import pandas as pd
 
 from collections_undo import UndoManager
 from ._model_base import AbstractDataFrameModel
-from ..._utils import show_messagebox
+from ..._utils import show_messagebox, QtKeys
 from ....types import FilterType, ItemInfo, HeaderInfo, Selections
 
 # Flags
@@ -321,11 +321,11 @@ class QBaseTable(QtW.QWidget):
         return pd.read_clipboard(header=None)
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
-        _mod = e.modifiers()
-        _key = e.key()
-        if _mod & Qt.ControlModifier and _key == Qt.Key.Key_C:
-            headers = _mod & Qt.ShiftModifier
-            return self.copyToClipboard(headers)
+        keys = QtKeys(e)
+        if keys == "Ctrl+C":
+            return self.copyToClipboard(False)
+        elif keys == "Ctrl+Shift+C":
+            return self.copyToClipboard(True)
 
         return super().keyPressEvent(e)
 
@@ -415,13 +415,14 @@ class QMutableTable(QBaseTable):
         self._mgr.clear()
 
     def tableShape(self) -> tuple[int, int]:
+        """Return the available shape of the table."""
         model = self.model()
         nr = model.rowCount()
         nc = model.columnCount()
         return (nr, nc)
 
     def tableSlice(self) -> pd.DataFrame:
-        # TODO: just for now!!
+        """Return 2D table for display."""
         return self._data_raw
 
     def convertValue(self, r: int, c: int, value: Any) -> Any:
@@ -538,39 +539,29 @@ class QMutableTable(QBaseTable):
         return None
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
-        _mod = e.modifiers()
-        _key = e.key()
-        if _mod & Qt.KeyboardModifier.ControlModifier and _key == Qt.Key.Key_C:
-            headers = _mod & Qt.KeyboardModifier.ShiftModifier
-            return self.copyToClipboard(headers)
-        elif _mod & Qt.KeyboardModifier.ControlModifier and _key == Qt.Key.Key_V:
+        keys = QtKeys(e)
+        if keys == "Ctrl+C":
+            return self.copyToClipboard(headers=False)
+        elif keys == "Ctrl+Shift+C":
+            return self.copyToClipboard(headers=True)
+        elif keys == "Ctrl+V":
             return self.pasteFromClipBoard()
-        elif _mod == Qt.KeyboardModifier.NoModifier and _key in (
-            Qt.Key.Key_Delete,
-            Qt.Key.Key_Backspace,
-        ):
+        elif keys in ("Delete", "Backspace"):
             return self.deleteValues()
-        elif _mod == Qt.KeyboardModifier.ControlModifier and _key == Qt.Key.Key_Z:
+        elif keys == "Ctrl+Z":
             self._mgr.undo()
-        elif _mod == Qt.KeyboardModifier.ControlModifier and _key == Qt.Key.Key_Y:
+        elif keys == "Ctrl+Y":
             self._mgr.redo()
-        elif (
-            _mod
-            in (
-                Qt.KeyboardModifier.NoModifier,
-                Qt.KeyboardModifier.ShiftModifier,
-            )
-            and (Qt.Key.Key_Exclam <= _key <= Qt.Key.Key_ydiaeresis)
-        ):
+        elif keys.is_typing():
             # Enter editing mode
             qtable = self._qtable_view
-            text = QtGui.QKeySequence(_key).toString()
-            if _mod != Qt.KeyboardModifier.ShiftModifier:
+            text = keys.key_string()
+            if not keys.has_shift():
                 text = text.lower()
-            self.model().setData(qtable.currentIndex(), text, Qt.ItemDataRole.EditRole)
             qtable.edit(qtable.currentIndex())
             focused_widget = QtW.QApplication.focusWidget()
             if isinstance(focused_widget, QtW.QLineEdit):
+                focused_widget.setText(text)
                 focused_widget.deselect()
             return
         else:
@@ -707,6 +698,7 @@ class QMutableTable(QBaseTable):
             text = ""
 
         _line.setText(text)
+        _line.selectAll()
         _line.setFocus()
 
         self._line = _line
@@ -721,6 +713,8 @@ class QMutableTable(QBaseTable):
                 self.setHorizontalHeaderValue(index, value)
                 self.columnChangedSignal.emit(HeaderInfo(index, value, old_value))
             self._line = None
+            qtable.setFocus()
+            qtable.clearSelection()
             return None
 
         return None
@@ -750,6 +744,7 @@ class QMutableTable(QBaseTable):
 
         _line.setText(str(text))
         _line.setFocus()
+        _line.selectAll()
         _line.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self._line = _line
@@ -764,6 +759,8 @@ class QMutableTable(QBaseTable):
                 self.setVerticalHeaderValue(index, value)
                 self.rowChangedSignal.emit(HeaderInfo(index, value, old_value))
             self._line = None
+            qtable.setFocus()
+            qtable.clearSelection()
             return None
 
         return None
@@ -847,7 +844,8 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         self, parent: QtW.QWidget, option, index: QtCore.QModelIndex
     ) -> QtW.QWidget:
         """Create different type of editors for different dtypes."""
-        table = parent.parent().parent()
+        qtable: QBaseTable = parent.parent()
+        table = qtable.parent()
         if isinstance(table, QMutableTable):
             df = table.model().df
             row = index.row()
@@ -863,6 +861,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 choices = list(map(str, dtype.categories))
                 cbox.addItems(choices)
                 cbox.setCurrentIndex(choices.index(df.iat[row, col]))
+                cbox.currentIndexChanged.connect(qtable.setFocus)
                 return cbox
             elif dtype == "bool":
                 # use checkbox for boolean data
@@ -870,6 +869,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 choices = ["True", "False"]
                 cbox.addItems(choices)
                 cbox.setCurrentIndex(0 if df.iat[row, col] else 1)
+                cbox.currentIndexChanged.connect(qtable.setFocus)
                 return cbox
             elif dtype.kind == "M":
                 dt = QtW.QDateTimeEdit(parent)
