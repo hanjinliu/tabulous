@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from io import StringIO
 import numpy as np
 import pandas as pd
@@ -58,6 +58,8 @@ class SpreadSheetModel(AbstractDataFrameModel):
     def removeRows(
         self, row: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
+        if count <= 0:
+            return False
         df = self.df
         self.beginRemoveRows(parent, row, row + count - 1)
         self.df = df.drop(index=df.index[row])
@@ -67,6 +69,8 @@ class SpreadSheetModel(AbstractDataFrameModel):
     def removeColumns(
         self, column: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
+        if count <= 0:
+            return False
         df = self.df
         self.beginRemoveColumns(parent, column, column + count - 1)
         self.df = df.drop(columns=df.columns[column])
@@ -89,6 +93,11 @@ class QSpreadSheet(QMutableSimpleTable):
         super().__init__(parent, data)
         self._data_cache = None
         self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
+
+    if TYPE_CHECKING:
+
+        def model(self) -> SpreadSheetModel:
+            ...
 
     def getDataFrame(self) -> pd.DataFrame:
         if self._data_cache is not None:
@@ -119,63 +128,46 @@ class QSpreadSheet(QMutableSimpleTable):
         return value
 
     def readClipBoard(self):
+        """Read clipboard as a string data frame."""
         return pd.read_clipboard(header=None).astype("string")
 
     def setDataFrameValue(self, r: int | slice, c: int | slice, value: Any) -> None:
         nr, nc = self._data_raw.shape
         rmax = _get_limit(r)
         cmax = _get_limit(c)
-        if nr <= rmax or nc <= cmax:
-            if nr <= rmax:
-                self.expandRows(rmax - nr + 1)
-            if self._data_raw.shape[1] <= cmax:  # NOTE: DataFrame shape is updated
-                self.expandColumns(cmax - nc + 1)
-            new_shape = self._data_raw.shape
-            self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
+        with self._mgr.merging(name="setDataFrameValue"):
+            if nr <= rmax or nc <= cmax:
+                self.expandDataFrame(
+                    max(rmax - nr + 1, 0),
+                    max(cmax - nc + 1, 0),
+                )
 
-        self._data_cache = None
-        super().setDataFrameValue(r, c, value)
+            super().setDataFrameValue(r, c, value)
+            self.setFilter(self._filter_slice)
 
-        self.setFilter(self._filter_slice)
         self._qtable_view.verticalHeader().resize(
             self._qtable_view.verticalHeader().sizeHint()
         )
+        self._data_cache = None
         return None
 
-    def expandRows(self, n_expand: int):
-        if self._data_raw.size == 0:
-            self._data_raw = pd.DataFrame(
-                np.full((n_expand, 1), np.nan),
-                index=range(n_expand),
-                dtype="string",
-            )
-            return
-        nr, nc = self._data_raw.shape
-        ext = pd.DataFrame(
-            np.full((n_expand, nc), np.nan),
-            index=range(nr, n_expand + nr),
-            columns=self._data_raw.columns,
-            dtype="string",
-        )
-        self._data_raw = pd.concat([self._data_raw, ext], axis=0)
+    @QMutableSimpleTable._mgr.undoable
+    def expandDataFrame(self, nrows: int, ncols: int):
+        if not self._editable:
+            return None
+        self._data_raw = _pad_dataframe(self._data_raw, nrows, ncols)
+        new_shape = self._data_raw.shape
+        self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
         return None
 
-    def expandColumns(self, n_expand: int):
-        if self._data_raw.size == 0:
-            self._data_raw = pd.DataFrame(
-                np.full((1, n_expand), np.nan),
-                columns=range(n_expand),
-                dtype="string",
-            )
-            return
+    @expandDataFrame.undo_def
+    def expandDataFrame(self, nrows: int, ncols: int):
         nr, nc = self._data_raw.shape
-        ext = pd.DataFrame(
-            np.full((nr, n_expand), np.nan),
-            index=self._data_raw.index,
-            columns=range(nc, n_expand + nc),
-            dtype="string",
-        )
-        self._data_raw = pd.concat([self._data_raw, ext], axis=1)
+        self.model().removeRows(nr - nrows, nrows, QtCore.QModelIndex())
+        self.model().removeColumns(nc - ncols, ncols, QtCore.QModelIndex())
+        self._data_raw = self._data_raw.iloc[: nr - nrows, : nc - ncols]
+        self.setFilter(self._filter_slice)
+        self._data_cache = None
         return None
 
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
@@ -184,14 +176,14 @@ class QSpreadSheet(QMutableSimpleTable):
         if index >= nrows:
             if value == "":
                 return
-            self.expandRows(index - nrows + 1)
-            self.setFilter(self._filter_slice)
+            self._data_raw = _pad_dataframe(self._data_raw, index - nrows + 1, 0)
 
         new_shape = self._data_raw.shape
-        self._data_cache = None
-        self.setFilter(self._filter_slice)
-        self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
 
+        with self._mgr.blocked():
+            self.setFilter(self._filter_slice)
+        self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
+        self._data_cache = None
         return super().setVerticalHeaderValue(index, value)
 
     def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
@@ -200,14 +192,15 @@ class QSpreadSheet(QMutableSimpleTable):
         if index >= ncols:
             if value == "":
                 return
-            self.expandColumns(index - ncols + 1)
-            self.setFilter(self._filter_slice)
+            self._data_raw = _pad_dataframe(self._data_raw, 0, index - ncols + 1)
 
         new_shape = self._data_raw.shape
-        self._data_cache = None
-        self.setFilter(self._filter_slice)
+
+        with self._mgr.blocked():
+            self.setFilter(self._filter_slice)
         self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
 
+        self._data_cache = None
         return super().setHorizontalHeaderValue(index, value)
 
     def showContextMenu(self, pos: QtCore.QPoint):
@@ -248,3 +241,43 @@ def _get_limit(a) -> int:
     else:
         raise TypeError(f"Cannot infer limit of type {type(a)}")
     return amax
+
+
+def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int) -> pd.DataFrame:
+    # pad rows
+    if nr > 0:
+        if df.size == 0:
+            df = pd.DataFrame(
+                np.full((nr, 1), np.nan),
+                index=range(nr),
+                dtype="string",
+            )
+        else:
+            _nr, _nc = df.shape
+            ext = pd.DataFrame(
+                np.full((nr, _nc), np.nan),
+                index=range(_nr, _nr + nr),
+                columns=df.columns,
+                dtype="string",
+            )
+            df = pd.concat([df, ext], axis=0)
+
+    # pad columns
+    if nc > 0:
+        if df.size == 0:
+            df = pd.DataFrame(
+                np.full((1, nc), np.nan),
+                columns=range(nc),
+                dtype="string",
+            )
+        else:
+            _nr, _nc = df.shape
+            ext = pd.DataFrame(
+                np.full((_nr, nc), np.nan),
+                index=df.index,
+                columns=range(_nc, _nc + nc),
+                dtype="string",
+            )
+            df = pd.concat([df, ext], axis=1)
+
+    return df

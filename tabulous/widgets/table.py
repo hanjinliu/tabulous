@@ -11,6 +11,7 @@ from ..types import SelectionRanges, ItemInfo, HeaderInfo
 
 if TYPE_CHECKING:
     import pandas as pd
+    from collections_undo import UndoManager
     from .._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from .._qt._table import QBaseTable
 
@@ -145,6 +146,11 @@ class TableBase(ABC, Generic[_QW]):
         return self._qwidget.refresh()
 
     filter = FilterProperty()
+
+    @property
+    def undo_manager(self) -> UndoManager:
+        """Return the undo manager."""
+        return self._qwidget._mgr
 
     def bind_key(self, *seq) -> Callable[[TableBase], Any | None]:
         """Bind callback function to a key sequence."""

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable, overload
+import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
@@ -481,8 +482,8 @@ class QMutableTable(QBaseTable):
     def _set_value(self, r, c, value, old_value):
         if not self._editable:
             return None
-        self._data_raw.iloc[r, c] = value
-        self.refresh()
+        self.updateValue(r, c, value)
+
         if not isinstance(r, slice):
             r = slice(r, r + 1)
         if not isinstance(c, slice):
@@ -494,14 +495,24 @@ class QMutableTable(QBaseTable):
     def _set_value(self, r, c, value, old_value):
         if not self._editable:
             return None
-        self._data_raw.iloc[r, c] = old_value
-        self.refresh()
+        self.updateValue(r, c, old_value)
+
         if not isinstance(r, slice):
             r = slice(r, r + 1)
         if not isinstance(c, slice):
             c = slice(c, c + 1)
+        # BUG: selected range is not correct if filter is applied
         self.setSelections([(r, c)])
         return None
+
+    def updateValue(self, r, c, value):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self._data_raw.iloc[r, c] = value
+
+        if self._filter_slice is not None:
+            self.setFilter(self._filter_slice)
+        self.refresh()
 
     def editability(self) -> bool:
         """Return the editability of the table."""
@@ -796,6 +807,15 @@ class QMutableTable(QBaseTable):
     @setVerticalHeaderValue.server
     def setVerticalHeaderValue(self, index: int, value: Any) -> Any:
         return (index, self.model().df.index[index]), {}
+
+    @_mgr.interface
+    def setFilter(self, sl: FilterType):
+        """Set filter to the table view. This operation is undoable."""
+        return super().setFilter(sl)
+
+    @setFilter.server
+    def setFilter(self, sl: FilterType):
+        return (self.filter(),), {}
 
 
 class QMutableSimpleTable(QMutableTable):

@@ -36,6 +36,8 @@ class FilterProperty:
                     f"{type(e).__name__}: {e}"
                 ) from None
 
+        elif isinstance(value, FilterProperty):
+            value = value.get_filter()
         elif value is not None and len(value) != data.shape[0]:
             raise ValueError(
                 f"Shape mismatch between data {data.shape} and input slice {len(value)}."
