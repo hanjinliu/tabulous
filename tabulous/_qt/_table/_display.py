@@ -34,6 +34,7 @@ class QPlayButton(QtW.QToolButton):
         self.setRunning(not self.running())
 
 
+# TODO: don't initialize filter and only accept function filter.
 class QTableDisplay(QBaseTable):
     def __init__(
         self,

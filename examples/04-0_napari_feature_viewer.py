@@ -1,7 +1,11 @@
-from tabulous import MagicTableViewer
+from tabulous import TableViewerWidget
 import napari
 import numpy as np
 from magicgui import magicgui
+
+# Use a TableDisplay to display features.
+# The features can be changed using magicgui "f".
+# TableDisplay is updated accordingly every one second by default.
 
 if __name__ == "__main__":
     viewer = napari.Viewer()
@@ -17,9 +21,11 @@ if __name__ == "__main__":
         size=2
     )
 
-    table_viewer = MagicTableViewer()
+    table_viewer = TableViewerWidget()
+
     @table_viewer.add_loader
     def load_features():
+        """Define how to read data."""
         return layer.features
 
     @magicgui

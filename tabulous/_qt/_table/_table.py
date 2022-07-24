@@ -8,11 +8,20 @@ class QTableLayer(QMutableSimpleTable):
     def getDataFrame(self) -> pd.DataFrame:
         return self._data_raw
 
+    @QMutableSimpleTable._mgr.interface
     def setDataFrame(self, data: pd.DataFrame) -> None:
         self._data_raw = data
         self.model().df = data
+        self.setFilter(None)
         self._qtable_view.viewport().update()
         return
+
+    @setDataFrame.server
+    def setDataFrame(self, data):
+        try:
+            return (self.getDataFrame(),), {}
+        except Exception:
+            return None
 
     def createModel(self):
         model = DataFrameModel(self)

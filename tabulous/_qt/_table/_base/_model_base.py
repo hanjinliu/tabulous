@@ -21,6 +21,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     def updateValue(self, r, c, val):
         # pandas warns but no problem
         with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
             self._df.iloc[r, c] = val
 
     def data(

@@ -6,7 +6,7 @@ from magicgui.widgets import Widget, Container, ComboBox, Label, Dialog
 from magicgui.widgets._bases import CategoricalWidget
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
-from .widgets import TableViewer, TableView, TableViewerWidget
+from .widgets import TableViewer, Table, TableViewerWidget
 from .types import (
     TableColumn,
     TableData,
@@ -143,7 +143,7 @@ def add_table_data_tuple_to_viewer(gui, result: tuple, return_type: type):
 register_type(
     TableViewer, return_callback=open_viewer, choices=find_table_viewer_ancestor
 )
-register_type(TableView, return_callback=add_table_to_viewer, choices=get_tables)
+register_type(Table, return_callback=add_table_to_viewer, choices=get_tables)
 register_type(
     TableData,
     return_callback=add_table_data_to_viewer,

@@ -6,7 +6,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Union
 from psygnal import Signal, SignalGroup
 
-from .table import TableView, SpreadSheet, GroupBy, TableDisplay
+from .table import Table, SpreadSheet, GroupBy, TableDisplay
 from .tablelist import TableList
 from .keybindings import register_shortcut
 from ._sample import open_sample
@@ -102,6 +102,11 @@ class _TableViewerBase:
         """Return the index of currently visible table."""
         return self._qwidget._tablestack.currentIndex()
 
+    @property
+    def native(self) -> _QtMainWidgetBase:
+        """Return the native widget."""
+        return self._qwidget
+
     @current_index.setter
     def current_index(self, index: int | str):
         if isinstance(index, str):
@@ -160,7 +165,7 @@ class _TableViewerBase:
         """
         if copy:
             data = _copy_dataframe(data)
-        table = TableView(data, name=name, editable=editable)
+        table = Table(data, name=name, editable=editable)
         return self.add_layer(table)
 
     def add_spreadsheet(
@@ -251,7 +256,7 @@ class _TableViewerBase:
         else:
             raise ValueError(f"Extension {suf} not supported.")
 
-    def open_sample(self, sample_name: str, plugin: str = "seaborn") -> TableView:
+    def open_sample(self, sample_name: str, plugin: str = "seaborn") -> Table:
         df = open_sample(sample_name, plugin)
         return self.add_table(df, name=sample_name)
 

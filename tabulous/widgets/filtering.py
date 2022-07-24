@@ -9,14 +9,25 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-class FilterProperty:
-    """A field object that provides interface with column-based DataFrame filtering."""
+class FilterProxy:
+    """
+    A proxy of column-based DataFrame filtering.
 
-    def __init__(self, obj: TableBase | None = None):
-        self._obj = obj
+    This object makes filtering of table easier. For instance, to filter a table
+    by a column, you can do:
+    >>> table.filter["a"] < 5
+    which is equivalent to
+    >>> table.filter = lambda df: df["a"] < 5
+    """
+
+    def __init__(self, table: TableBase | None = None):
+        self._table = table
 
     def __repr__(self) -> str:
-        return f"<{type(self).__name__} of {self._obj!r}>"
+        return f"{type(self).__name__}(table={self._table!r}, func={self.func!r})"
+
+    def __bool__(self) -> bool:
+        return self.func is not None
 
     def __get__(self, obj: TableBase | None, type=None):
         return self.__class__(obj)
@@ -36,6 +47,8 @@ class FilterProperty:
                     f"{type(e).__name__}: {e}"
                 ) from None
 
+        elif isinstance(value, FilterProxy):
+            value = value.func
         elif value is not None and len(value) != data.shape[0]:
             raise ValueError(
                 f"Shape mismatch between data {data.shape} and input slice {len(value)}."
@@ -43,55 +56,93 @@ class FilterProperty:
         obj._qwidget.setFilter(value)
 
     def __delete__(self, obj: TableBase):
+        """Disable filter."""
         obj.filter = None
 
     def __getitem__(self, key):
-        return FilterIndexer(self._obj, key)
+        return FilterIndexer(self._table, key)
 
-    def get_filter(self):
-        return self._obj._qwidget.filter()
+    @property
+    def func(self) -> FilterType:
+        """Get the filter function."""
+        return self._table._qwidget.filter()
+
+    @property
+    def table(self) -> TableBase | None:
+        """Return the connected table."""
+        return self._table
+
+    def array(self) -> pd.Series:
+        f = self.func
+        if callable(f):
+            arr = f(self._table.data)
+        else:
+            arr = f
+        return arr
 
 
 class FilterIndexer:
-    def __init__(self, layer: TableBase, key: Any):
-        self.layer = layer
+    def __init__(
+        self, table: TableBase, key: Any, *, current_filter: ColumnFilter | None = None
+    ):
+        self._table = table
         self._key = key
+        self._filter = current_filter
+        self._table._qwidget.setFilter(current_filter)
 
     def __repr__(self) -> str:
-        return f"<{type(self).__name__} of {self.layer!r} at column {self._key!r}>"
+        return f"<{type(self).__name__} of {self._table!r} at column {self._key!r}>"
 
-    def __eq__(self, other) -> None:
+    def chain(self, other: ColumnFilter) -> ColumnFilter:
+        if self._filter is None:
+            fil = other
+        else:
+            fil = self._filter & other
+        return self.filter(fil)
+
+    def filter(self, filter: ColumnFilter) -> FilterIndexer:
+        return FilterIndexer(self._table, self._key, current_filter=filter)
+
+    def __eq__(self, other) -> ColumnFilter:
         fil = ColumnFilter.from_operator("__eq__", self._key, other)
-        self.layer._qwidget.setFilter(fil)
+        return self.chain(fil)
 
-    def __gt__(self, other) -> None:
+    def __gt__(self, other) -> ColumnFilter:
         fil = ColumnFilter.from_operator("__gt__", self._key, other)
-        self.layer._qwidget.setFilter(fil)
+        return self.chain(fil)
 
-    def __ge__(self, other) -> None:
+    def __ge__(self, other) -> ColumnFilter:
         fil = ColumnFilter.from_operator("__ge__", self._key, other)
-        self.layer._qwidget.setFilter(fil)
+        return self.chain(fil)
 
-    def __lt__(self, other) -> None:
+    def __lt__(self, other) -> ColumnFilter:
         fil = ColumnFilter.from_operator("__lt__", self._key, other)
-        self.layer._qwidget.setFilter(fil)
+        return self.chain(fil)
 
-    def __le__(self, other) -> None:
-        fil = ColumnFilter.from_operator("__ge__", self._key, other)
-        self.layer._qwidget.setFilter(fil)
+    def __le__(self, other) -> ColumnFilter:
+        fil = ColumnFilter.from_operator("__le__", self._key, other)
+        return self.chain(fil)
 
-    def __ne__(self, other) -> None:
+    def __ne__(self, other) -> ColumnFilter:
         fil = ColumnFilter.from_operator("__ne__", self._key, other)
-        self.layer._qwidget.setFilter(fil)
+        return self.chain(fil)
 
-    def between(self, low, high) -> None:
+    def __and__(self, other: FilterIndexer) -> FilterIndexer:
+        fil = self._filter & other._filter
+        return self.filter(fil)
+
+    def __or__(self, other: FilterIndexer) -> FilterIndexer:
+        fil = self._filter | other._filter
+        return self.filter(fil)
+
+    def __contains__(self, other) -> None:
         fil = ColumnFilter(
-            lambda df: (low < df[self._key]) & (df[self._key] < high),
-            repr=f"{low!r} < df[{self._key!r}] < {high!r}",
+            lambda df: df[self._key].isin(other),
+            repr=f"df[{self._key}].isin({list(other)!r})",
         )
-        self.layer._qwidget.setFilter(fil)
+        return self.chain(fil)
 
-    # TODO: implement binary operation chain
+    # TODO: __invert__, __mod__
 
 
 class ColumnFilter:
@@ -113,6 +164,18 @@ class ColumnFilter:
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} of {self._repr}>"
+
+    def __and__(self, other: ColumnFilter) -> ColumnFilter:
+        return ColumnFilter(
+            lambda df: self(df) & other(df),
+            repr=f"{self._repr} & {other._repr}",
+        )
+
+    def __or__(self, other: ColumnFilter) -> ColumnFilter:
+        return ColumnFilter(
+            lambda df: self(df) | other(df),
+            repr=f"{self._repr} | {other._repr}",
+        )
 
     @classmethod
     def from_operator(self, operator_name: str, key: Any, other: Any) -> ColumnFilter:

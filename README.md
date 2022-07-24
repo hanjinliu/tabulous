@@ -31,13 +31,13 @@ table = viewer.tables[0]  # get table
 table.data  # get pd.DataFrame object (or other similar one)
 
 # Connect data changed signal
-# See examples/04_data_changed_signal.py
+# See examples/03-0_data_changed_signal.py
 @table.events.data.connect
 def _on_data_change(info):
     """data-changed callback"""
 
 # Connect selection changed signal
-# See examples/05_selection_changed.py
+# See examples/03-1_selection_changed.py
 @table.events.selections.connect
 def _on_selection_change(selections):
     """selection-changed callback"""

@@ -112,8 +112,16 @@ class TabPosition(Enum):
 class ItemInfo(NamedTuple):
     """A named tuple for item update."""
 
-    row: int
-    column: int
+    row: int | slice
+    column: int | slice
+    value: Any
+    old_value: Any
+
+
+class HeaderInfo(NamedTuple):
+    """A named tuple for header update."""
+
+    index: int
     value: Any
     old_value: Any
 
