@@ -630,9 +630,9 @@ class QMutableTable(QBaseTable):
         rsel, csel = sel
 
         # check dtype
-        dtype_src = df.dtypes
-        dtype_dst = self._data_raw.dtypes[csel]
-        if any(a.kind != b.kind for a, b in zip(dtype_src.values, dtype_dst.values)):
+        dtype_src = df.dtypes.values
+        dtype_dst = self._data_raw.dtypes.values[csel]
+        if any(a.kind != b.kind for a, b in zip(dtype_src, dtype_dst)):
             return show_messagebox(
                 mode="error",
                 title="Error",
@@ -640,7 +640,6 @@ class QMutableTable(QBaseTable):
                 f"destination {list(dtype_dst)}.",
                 parent=self,
             )
-
         # update table
         try:
             self.setDataFrameValue(rsel, csel, df)
@@ -668,7 +667,7 @@ class QMutableTable(QBaseTable):
             rsel, csel = sel
             nr = rsel.stop - rsel.start
             nc = csel.stop - csel.start
-            dtypes = list(self._data_raw.dtypes[csel])
+            dtypes = list(self._data_raw.dtypes.values[csel])
             df = pd.DataFrame(
                 {c: pd.Series(np.full(nr, np.nan), dtype=dtypes[c]) for c in range(nc)},
             )
@@ -866,7 +865,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 # out of bounds
                 return super().createEditor(parent, option, index)
 
-            dtype: np.dtype = df.dtypes[col]
+            dtype: np.dtype = df.dtypes.values[col]
             if dtype == "category":
                 # use combobox for categorical data
                 cbox = QtW.QComboBox(parent)

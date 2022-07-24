@@ -61,8 +61,9 @@ class SpreadSheetModel(AbstractDataFrameModel):
         if count <= 0:
             return False
         df = self.df
-        self.beginRemoveRows(parent, row, row + count - 1)
-        self.df = df.drop(index=df.index[row])
+        stop = row + count
+        self.beginRemoveRows(parent, row, stop - 1)
+        self.df = df.drop(index=df.index[row:count])
         self.endRemoveRows()
         return True
 
@@ -72,8 +73,9 @@ class SpreadSheetModel(AbstractDataFrameModel):
         if count <= 0:
             return False
         df = self.df
-        self.beginRemoveColumns(parent, column, column + count - 1)
-        self.df = df.drop(columns=df.columns[column])
+        stop = column + count
+        self.beginRemoveColumns(parent, column, stop - 1)
+        self.df = df.drop(columns=df.columns[column:stop])
         self.endRemoveColumns()
         return True
 
@@ -111,6 +113,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.interface
     def setDataFrame(self, data: pd.DataFrame) -> None:
+        """Set data frame as a string table."""
         self._data_raw = data.astype("string")
         self.model().setShape(data.index.size + 10, data.columns.size + 10)
         self._data_cache = None
@@ -140,13 +143,28 @@ class QSpreadSheet(QMutableSimpleTable):
         nr, nc = self._data_raw.shape
         rmax = _get_limit(r)
         cmax = _get_limit(c)
+        need_expand = nr <= rmax or nc <= cmax
+
+        if isinstance(value, str):
+            if need_expand and value == "":
+                # if user start editing a cell outside the data frame and did nothing,
+                # do not expand the data frame.
+                return
+            if isinstance(r, int) and isinstance(c, int) and value == "NA":
+                # if user start editing an empty cell and did nothing, do not set string "NA".
+                index = self._qtable_view.model().index(r, c, QtCore.QModelIndex())
+                text = self._qtable_view.model().data(
+                    index, Qt.ItemDataRole.DisplayRole
+                )
+                if text == value:
+                    return
+
         with self._mgr.merging(name="setDataFrameValue"):
-            if nr <= rmax or nc <= cmax:
+            if need_expand:
                 self.expandDataFrame(
                     max(rmax - nr + 1, 0),
                     max(cmax - nc + 1, 0),
                 )
-
             super().setDataFrameValue(r, c, value)
             self.setFilter(self._filter_slice)
 
