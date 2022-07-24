@@ -213,7 +213,7 @@ class _TableViewerBase:
         self.current_index = -1  # activate the last table
         return layer
 
-    def open(self, path: PathLike, *, type=TableType.table) -> None:
+    def open(self, path: PathLike, *, type: TableType | str = TableType.table) -> None:
         """
         Read a table data and add to the viewer.
 
@@ -257,6 +257,7 @@ class _TableViewerBase:
             raise ValueError(f"Extension {suf} not supported.")
 
     def open_sample(self, sample_name: str, plugin: str = "seaborn") -> Table:
+        """Open a sample table."""
         df = open_sample(sample_name, plugin)
         return self.add_table(df, name=sample_name)
 

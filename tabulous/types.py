@@ -104,6 +104,8 @@ FilterType = Union[Callable[["pd.DataFrame"], np.ndarray], np.ndarray]
 
 
 class TabPosition(Enum):
+    """Enum for tab position."""
+
     top = "top"
     left = "left"
     bottom = "bottom"
@@ -127,4 +129,5 @@ class HeaderInfo(NamedTuple):
     old_value: Any
 
 
-SelectionType = List[Tuple[Union[SupportsIndex, slice], Union[SupportsIndex, slice]]]
+_Sliceable = Union[SupportsIndex, slice]
+SelectionType = List[Tuple[_Sliceable, _Sliceable]]

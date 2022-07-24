@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable, overload, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -10,7 +10,7 @@ import pandas as pd
 from collections_undo import UndoManager
 from ._model_base import AbstractDataFrameModel
 from ..._utils import show_messagebox, QtKeys
-from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType
+from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
@@ -398,6 +398,8 @@ class QBaseTable(QtW.QWidget):
 
 
 class QMutableTable(QBaseTable):
+    """A mutable table widget."""
+
     itemChangedSignal = Signal(ItemInfo)
     rowChangedSignal = Signal(HeaderInfo)
     columnChangedSignal = Signal(HeaderInfo)
@@ -435,22 +437,11 @@ class QMutableTable(QBaseTable):
         """Convert value before updating DataFrame."""
         return value
 
-    @overload
-    def setDataFrameValue(self, r: int, c: int, value: Any) -> None:
-        ...
-
-    @overload
-    def setDataFrameValue(self, r: slice, c: slice, value: pd.DataFrame) -> None:
-        ...
-
-    def setDataFrameValue(self, r, c, value) -> None:
+    def setDataFrameValue(self, r: _Sliceable, c: _Sliceable, value: Any) -> None:
         data = self._data_raw
 
         # convert values
-        if isinstance(r, int) and isinstance(c, int):
-            _value = self.convertValue(r, c, value)
-            _is_scalar = True
-        elif isinstance(r, slice) and isinstance(c, slice):
+        if isinstance(r, slice) and isinstance(c, slice):
             _value: pd.DataFrame = value
             if _value.size == 1:
                 v = _value.values[0, 0]
@@ -466,7 +457,8 @@ class QMutableTable(QBaseTable):
                         )
             _is_scalar = False
         else:
-            raise TypeError
+            _value = self.convertValue(r, c, value)
+            _is_scalar = True
 
         # if table has filter, indices must be adjusted
         if self._filter_slice is None:
