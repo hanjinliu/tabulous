@@ -514,11 +514,11 @@ class QMutableTable(QBaseTable):
             self.setFilter(self._filter_slice)
         self.refresh()
 
-    def editability(self) -> bool:
+    def isEditable(self) -> bool:
         """Return the editability of the table."""
         return self._editable
 
-    def setEditability(self, editable: bool):
+    def setEditable(self, editable: bool):
         """Set the editability of the table."""
         if editable:
             self._qtable_view.setEditTriggers(_EDITABLE)
@@ -551,7 +551,7 @@ class QMutableTable(QBaseTable):
             self.undo()
         elif keys == "Ctrl+Y":
             self.redo()
-        elif keys.is_typing():
+        elif keys.is_typing() and self.isEditable():
             # Enter editing mode
             qtable = self._qtable_view
             text = keys.key_string()
@@ -580,7 +580,7 @@ class QMutableTable(QBaseTable):
         """
         selections = self.selections()
         n_selections = len(selections)
-        if n_selections == 0 or not self.editability():
+        if n_selections == 0 or not self.isEditable():
             return
         elif n_selections > 1:
             return show_messagebox(
@@ -661,6 +661,8 @@ class QMutableTable(QBaseTable):
 
     def deleteValues(self):
         """Replace selected cells with NaN."""
+        if not self.isEditable():
+            return None
         selections = self.selections()
         for sel in selections:
             rsel, csel = sel
@@ -671,10 +673,11 @@ class QMutableTable(QBaseTable):
                 {c: pd.Series(np.full(nr, np.nan), dtype=dtypes[c]) for c in range(nc)},
             )
             self.setDataFrameValue(rsel, csel, df)
+        return None
 
     def editHorizontalHeader(self, index: int):
         """Edit the horizontal header."""
-        if not self.editability():
+        if not self.isEditable():
             return
 
         qtable = self._qtable_view
@@ -719,7 +722,7 @@ class QMutableTable(QBaseTable):
         return None
 
     def editVerticalHeader(self, index: int):
-        if not self.editability():
+        if not self.isEditable():
             return
 
         qtable = self._qtable_view

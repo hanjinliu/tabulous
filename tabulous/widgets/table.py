@@ -5,7 +5,7 @@ from functools import partial
 from psygnal import SignalGroup, Signal
 
 from .keybindings import register_shortcut
-from .filtering import FilterProperty
+from .filtering import FilterProxy
 
 from ..types import SelectionRanges, ItemInfo, HeaderInfo
 
@@ -47,7 +47,7 @@ class TableBase(ABC, Generic[_QW]):
         self._qwidget.connectSelectionChangedSignal(self.events.selections.emit)
 
         if isinstance(self._qwidget, QMutableTable):
-            self._qwidget.setEditability(editable)
+            self._qwidget.setEditable(editable)
             self._qwidget.connectItemChangedSignal(
                 self.events.data.emit,
                 self.events.index.emit,
@@ -115,11 +115,11 @@ class TableBase(ABC, Generic[_QW]):
     @property
     def editable(self) -> bool:
         """Editability of table."""
-        return self._qwidget.editability()
+        return self._qwidget.isEditable()
 
     @editable.setter
     def editable(self, value: bool):
-        self._qwidget.setEditability(value)
+        self._qwidget.setEditable(value)
 
     @property
     def columns(self):
@@ -145,7 +145,7 @@ class TableBase(ABC, Generic[_QW]):
         """Refresh the table view."""
         return self._qwidget.refresh()
 
-    filter = FilterProperty()
+    filter = FilterProxy()
 
     @property
     def undo_manager(self) -> UndoManager:
@@ -172,7 +172,7 @@ class _DataFrameTableLayer(TableBase[_QW]):
         return data
 
 
-class TableView(_DataFrameTableLayer["QTableLayer"]):
+class Table(_DataFrameTableLayer["QTableLayer"]):
     _Default_Name = "table"
 
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
@@ -206,11 +206,12 @@ class GroupBy(TableBase["QTableGroupBy"]):
         return data
 
     @property
-    def group(self):
+    def current_group(self):
+        """Current group ID."""
         return self._qwidget.currentGroup()
 
-    @group.setter
-    def group(self, val) -> None:
+    @current_group.setter
+    def current_group(self, val) -> None:
         return self._qwidget.setCurrentGroup(val)
 
 
@@ -229,6 +230,7 @@ class TableDisplay(TableBase["QTableDisplay"]):
 
     @property
     def interval(self) -> int:
+        """Interval of table refresh."""
         return self._qwidget._qtimer.interval()
 
     @interval.setter
@@ -239,6 +241,7 @@ class TableDisplay(TableBase["QTableDisplay"]):
 
     @property
     def loader(self) -> Callable[[], Any]:
+        """Loader function."""
         return self._qwidget.loader()
 
     @loader.setter
