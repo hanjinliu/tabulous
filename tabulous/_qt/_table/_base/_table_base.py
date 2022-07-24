@@ -349,6 +349,9 @@ class QBaseTable(QtW.QWidget):
             ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
             ref.to_clipboard(index=headers, header=headers)
 
+    def pasteFromClipBoard(self):
+        raise TypeError("Table is immutable.")
+
     def readClipBoard(self) -> pd.DataFrame:
         """Read clipboard data and return as pandas DataFrame."""
         return pd.read_clipboard(header=None)

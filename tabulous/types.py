@@ -26,15 +26,17 @@ if TYPE_CHECKING:
 else:
     _TableLike = Any
 
-# class DataFrameType(Protocol):
-#     iloc:
 
 __all__ = [
     "TableData",
     "TableColumn",
     "TableDataTuple",
     "TableInfo",
+    "TablePosition",
+    "ItemInfo",
+    "HeaderInfo",
     "SelectionRanges",
+    "SelectionType",
 ]
 
 if TYPE_CHECKING:
@@ -62,6 +64,13 @@ class TableInfoAlias(type):
 
 
 class TableInfo(metaclass=TableInfoAlias):
+    """
+    A generic type to describe a DataFrame and its column names.
+
+    ``TableInfo["x", "y"]`` is equivalent to ``tuple[pd.DataFrame, str, str]``
+    with additional information for magicgui construction.
+    """
+
     def __new__(cls, *args, **kwargs):
         raise TypeError(f"Type {cls.__name__} cannot be instantiated.")
 
@@ -130,4 +139,5 @@ class HeaderInfo(NamedTuple):
 
 
 _Sliceable = Union[SupportsIndex, slice]
-SelectionType = List[Tuple[_Sliceable, _Sliceable]]
+_SingleSelection = Tuple[_Sliceable, _Sliceable]
+SelectionType = List[_SingleSelection]

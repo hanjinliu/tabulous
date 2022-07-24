@@ -1,13 +1,19 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Generic, TYPE_CHECKING, TypeVar
+from typing import Any, Callable, TYPE_CHECKING
 from functools import partial
 from psygnal import SignalGroup, Signal
 
 from .keybindings import register_shortcut
 from .filtering import FilterProxy
 
-from ..types import SelectionRanges, ItemInfo, HeaderInfo
+from ..types import (
+    SelectionRanges,
+    ItemInfo,
+    HeaderInfo,
+    SelectionType,
+    _SingleSelection,
+)
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -27,10 +33,7 @@ class TableSignals(SignalGroup):
     renamed = Signal(str)
 
 
-_QW = TypeVar("_QW", bound="QBaseTable")
-
-
-class TableBase(ABC, Generic[_QW]):
+class TableBase(ABC):
     """The base class for a table layer."""
 
     _Default_Name = "None"
@@ -58,7 +61,7 @@ class TableBase(ABC, Generic[_QW]):
         return f"{self.__class__.__name__}<{self.name!r}>"
 
     @abstractmethod
-    def _create_backend(self, data: pd.DataFrame) -> _QW:
+    def _create_backend(self, data: pd.DataFrame) -> QBaseTable:
         """This function creates a backend widget."""
 
     @abstractmethod
@@ -122,14 +125,6 @@ class TableBase(ABC, Generic[_QW]):
         self._qwidget.setEditable(value)
 
     @property
-    def columns(self):
-        return self._data.columns
-
-    @property
-    def index(self):
-        return self._data.index
-
-    @property
     def selections(self):
         """Get the SelectionRanges object of current table selection."""
         rngs = SelectionRanges(self._qwidget.selections())
@@ -138,7 +133,9 @@ class TableBase(ABC, Generic[_QW]):
         return rngs
 
     @selections.setter
-    def selections(self, value) -> None:
+    def selections(self, value: SelectionType | _SingleSelection) -> None:
+        if not isinstance(value, list):
+            value = [value]
         self._qwidget.setSelections(value)
 
     def refresh(self) -> None:
@@ -161,7 +158,7 @@ class TableBase(ABC, Generic[_QW]):
         return register
 
 
-class _DataFrameTableLayer(TableBase[_QW]):
+class _DataFrameTableLayer(TableBase):
     """Table layer for DataFrame."""
 
     def _normalize_data(self, data) -> pd.DataFrame:
@@ -172,7 +169,7 @@ class _DataFrameTableLayer(TableBase[_QW]):
         return data
 
 
-class Table(_DataFrameTableLayer["QTableLayer"]):
+class Table(_DataFrameTableLayer):
     _Default_Name = "table"
 
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
@@ -181,7 +178,7 @@ class Table(_DataFrameTableLayer["QTableLayer"]):
         return QTableLayer(data=data)
 
 
-class SpreadSheet(_DataFrameTableLayer["QSpreadSheet"]):
+class SpreadSheet(_DataFrameTableLayer):
     _Default_Name = "sheet"
 
     def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
@@ -190,7 +187,7 @@ class SpreadSheet(_DataFrameTableLayer["QSpreadSheet"]):
         return QSpreadSheet(data=data)
 
 
-class GroupBy(TableBase["QTableGroupBy"]):
+class GroupBy(TableBase):
     _Default_Name = "groupby"
 
     def _create_backend(self, data: pd.DataFrame) -> QTableGroupBy:
@@ -231,7 +228,7 @@ class GroupBy(TableBase["QTableGroupBy"]):
         return self._qwidget.setCurrentGroup(val)
 
 
-class TableDisplay(TableBase["QTableDisplay"]):
+class TableDisplay(TableBase):
     _Default_Name = "display"
 
     def _create_backend(self, data: Callable[[], Any]) -> QTableDisplay:

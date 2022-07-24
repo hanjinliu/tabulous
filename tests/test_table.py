@@ -20,8 +20,8 @@ def test_display(df: pd.DataFrame):
     table = Table(df)
     viewer.add_layer(table)
     assert table.data is df
-    assert table.columns is df.columns
-    assert table.index is df.index
+    assert table.data.columns is df.columns
+    assert table.data.index is df.index
     assert table.table_shape == df.shape
     assert get_cell_value(table._qwidget, 0, 0) == str(df.iloc[0, 0])
 

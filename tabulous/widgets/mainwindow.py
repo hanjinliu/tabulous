@@ -11,7 +11,7 @@ from .tablelist import TableList
 from .keybindings import register_shortcut
 from ._sample import open_sample
 
-from ..types import TabPosition, _TableLike
+from ..types import SelectionType, TabPosition, _TableLike, _SingleSelection
 
 if TYPE_CHECKING:
     from .table import TableBase
@@ -260,6 +260,26 @@ class _TableViewerBase:
         """Open a sample table."""
         df = open_sample(sample_name, plugin)
         return self.add_table(df, name=sample_name)
+
+    def copy_data(
+        self,
+        selections: SelectionType | _SingleSelection | None = None,
+        *,
+        headers: bool = False,
+    ) -> None:
+        """Copy selected cells to clipboard."""
+        if selections is not None:
+            self.current_table.selections = selections
+        return self.current_table._qwidget.copyToClipboard(headers=headers)
+
+    def paste_data(
+        self,
+        selections: SelectionType | _SingleSelection | None = None,
+    ) -> None:
+        """Paste from clipboard."""
+        if selections is not None:
+            self.current_table.selections = selections
+        return self.current_table._qwidget.pasteFromClipBoard()
 
     def _link_events(self):
         _tablist = self._tablist
