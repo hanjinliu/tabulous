@@ -171,6 +171,7 @@ class _DataFrameTableLayer(TableBase):
 
 class Table(_DataFrameTableLayer):
     _Default_Name = "table"
+    _qwidget: QTableLayer
 
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
         from .._qt import QTableLayer
@@ -180,6 +181,7 @@ class Table(_DataFrameTableLayer):
 
 class SpreadSheet(_DataFrameTableLayer):
     _Default_Name = "sheet"
+    _qwidget: QSpreadSheet
 
     def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
         from .._qt import QSpreadSheet
@@ -189,6 +191,7 @@ class SpreadSheet(_DataFrameTableLayer):
 
 class GroupBy(TableBase):
     _Default_Name = "groupby"
+    _qwidget: QTableGroupBy
 
     def _create_backend(self, data: pd.DataFrame) -> QTableGroupBy:
         from .._qt import QTableGroupBy
@@ -230,6 +233,7 @@ class GroupBy(TableBase):
 
 class TableDisplay(TableBase):
     _Default_Name = "display"
+    _qwidget: QTableDisplay
 
     def _create_backend(self, data: Callable[[], Any]) -> QTableDisplay:
         from .._qt import QTableDisplay
