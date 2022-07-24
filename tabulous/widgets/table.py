@@ -199,9 +199,25 @@ class GroupBy(TableBase["QTableGroupBy"]):
         return QTableGroupBy(data=data)
 
     def _normalize_data(self, data):
+        import pandas as pd
         from pandas.core.groupby.generic import DataFrameGroupBy
 
-        if not isinstance(data, DataFrameGroupBy):
+        if isinstance(data, DataFrameGroupBy):
+            pass
+        elif isinstance(data, (list, tuple, dict)):
+            data_all = []
+            group = "group"
+            if isinstance(data, dict):
+                it = data.items()
+            else:
+                it = enumerate(data)
+            for key, df in it:
+                df = pd.DataFrame(df)
+                if group in df.columns:
+                    raise ValueError("Input data must not have a 'group' column.")
+                data_all.append(df.assign(group=key))
+            data = pd.concat(data_all, axis=0).groupby(group)
+        else:
             raise TypeError("Cannot only add DataFrameGroupBy object.")
         return data
 
