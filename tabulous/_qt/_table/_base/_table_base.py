@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable, overload
+from typing import Any, Callable, overload, TYPE_CHECKING
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -10,7 +10,10 @@ import pandas as pd
 from collections_undo import UndoManager
 from ._model_base import AbstractDataFrameModel
 from ..._utils import show_messagebox, QtKeys
-from ....types import FilterType, ItemInfo, HeaderInfo, Selections
+from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType
+
+if TYPE_CHECKING:
+    from ._delegate import TableItemDelegate
 
 # Flags
 _EDITABLE = (
@@ -117,14 +120,8 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
         """Evoke parent keyPressEvent."""
-        if (
-            e.modifiers()
-            in (
-                Qt.KeyboardModifier.NoModifier,
-                Qt.KeyboardModifier.ShiftModifier,
-            )
-            and (Qt.Key.Key_Exclam <= e.key() <= Qt.Key.Key_ydiaeresis)
-        ):
+        keys = QtKeys(e)
+        if keys.is_typing():
             parent = self.parent()
             if isinstance(parent, QBaseTable):
                 parent.keyPressEvent(e)
@@ -163,7 +160,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def wheelEvent(self, e: QtGui.QWheelEvent) -> None:
         """Zoom in/out table."""
-        if e.modifiers() & Qt.ControlModifier:
+        if e.modifiers() & Qt.KeyboardModifier.ControlModifier:
             dt = e.angleDelta().y() / 120
             zoom = self.zoom() + 0.15 * dt
             self.setZoom(min(max(zoom, 0.25), 2.0))
@@ -212,6 +209,9 @@ class QBaseTable(QtW.QWidget):
         self._qtable_view.setVerticalScrollMode(_SCROLL_PER_PIXEL)
         self._qtable_view.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
         self._qtable_view.setFrameStyle(QtW.QFrame.Shape.NoFrame)
+
+        from ._delegate import TableItemDelegate
+
         delegate = TableItemDelegate(parent=self)
         self._qtable_view.setItemDelegate(delegate)
         self._qtable_view.selectionChangedSignal.connect(
@@ -275,13 +275,13 @@ class QBaseTable(QtW.QWidget):
         self.selectionChangedSignal.connect(slot)
         return slot
 
-    def selections(self) -> Selections:
+    def selections(self) -> SelectionType:
         """Get list of selections as slicable tuples"""
         qtable = self._qtable_view
         selections = qtable.selectionModel().selection()
 
         # selections = self.selectedRanges()
-        out: Selections = []
+        out: SelectionType = []
         for i in range(len(selections)):
             sel = selections[i]
             r0 = sel.top()
@@ -292,7 +292,7 @@ class QBaseTable(QtW.QWidget):
 
         return out
 
-    def setSelections(self, selections: Selections):
+    def setSelections(self, selections: SelectionType):
         """Set list of selections."""
         qtable = self._qtable_view
         qtable.clearSelection()
@@ -302,6 +302,13 @@ class QBaseTable(QtW.QWidget):
         try:
             for sel in selections:
                 r, c = sel
+                # if int is used instead of slice
+                if not isinstance(r, slice):
+                    _r = r.__index__()
+                    r = slice(_r, _r + 1)
+                if not isinstance(c, slice):
+                    _c = c.__index__()
+                    c = slice(_c, _c + 1)
                 r0, r1, _ = r.indices(nr)
                 c0, c1, _ = c.indices(nc)
                 selection = QtCore.QItemSelection(
@@ -442,6 +449,7 @@ class QMutableTable(QBaseTable):
         # convert values
         if isinstance(r, int) and isinstance(c, int):
             _value = self.convertValue(r, c, value)
+            _is_scalar = True
         elif isinstance(r, slice) and isinstance(c, slice):
             _value: pd.DataFrame = value
             if _value.size == 1:
@@ -456,9 +464,11 @@ class QMutableTable(QBaseTable):
                         _value.iloc[_ir, _ic] = self.convertValue(
                             _r, _c, _value.iloc[_ir, _ic]
                         )
+            _is_scalar = False
         else:
             raise TypeError
 
+        # if table has filter, indices must be adjusted
         if self._filter_slice is None:
             r0 = r
         else:
@@ -470,39 +480,29 @@ class QMutableTable(QBaseTable):
             spec = np.where(sl)[0].tolist()
             r0 = spec[r]
             self.model().updateValue(r, c, _value)
+
         _old_value = data.iloc[r0, c]
+        if not _is_scalar:
+            _old_value: pd.DataFrame
+            _old_value = _old_value.copy()  # this is needed for undo
 
         # emit item changed signal if value changed
-        if _equal(_value, _old_value):
-            self._set_value(r0, c, _value, _old_value)
-            self.itemChangedSignal.emit(ItemInfo(r0, c, _value, _old_value))
+        if _equal(_value, _old_value) and self._editable:
+            self._set_value(r0, c, r, c, _value, _old_value)
         return None
 
     @QBaseTable._mgr.undoable(name="setDataFrameValue")
-    def _set_value(self, r, c, value, old_value):
-        if not self._editable:
-            return None
+    def _set_value(self, r, c, r_ori, c_ori, value, old_value):
         self.updateValue(r, c, value)
-
-        if not isinstance(r, slice):
-            r = slice(r, r + 1)
-        if not isinstance(c, slice):
-            c = slice(c, c + 1)
-        self.setSelections([(r, c)])
+        self.setSelections([(r_ori, c_ori)])
+        self.itemChangedSignal.emit(ItemInfo(r, c, value, old_value))
         return None
 
     @_set_value.undo_def
-    def _set_value(self, r, c, value, old_value):
-        if not self._editable:
-            return None
+    def _set_value(self, r, c, r_ori, c_ori, value, old_value):
         self.updateValue(r, c, old_value)
-
-        if not isinstance(r, slice):
-            r = slice(r, r + 1)
-        if not isinstance(c, slice):
-            c = slice(c, c + 1)
-        # BUG: selected range is not correct if filter is applied
-        self.setSelections([(r, c)])
+        self.setSelections([(r_ori, c_ori)])
+        self.itemChangedSignal.emit(ItemInfo(r, c, old_value, value))
         return None
 
     def updateValue(self, r, c, value):
@@ -841,95 +841,7 @@ class QMutableSimpleTable(QMutableTable):
         self.layout().addWidget(self._qtable_view_)
 
 
-class TableItemDelegate(QtW.QStyledItemDelegate):
-    """Displays table widget items with properly formatted numbers."""
-
-    def __init__(self, parent: QtCore.QObject | None = None, ndigits: int = 4) -> None:
-        super().__init__(parent)
-        self.ndigits = ndigits
-
-    def displayText(self, value, locale):
-        return super().displayText(self._format_number(value), locale)
-
-    def createEditor(
-        self, parent: QtW.QWidget, option, index: QtCore.QModelIndex
-    ) -> QtW.QWidget:
-        """Create different type of editors for different dtypes."""
-        qtable: QBaseTable = parent.parent()
-        table = qtable.parent()
-        if isinstance(table, QMutableTable):
-            df = table.model().df
-            row = index.row()
-            col = index.column()
-            if row >= df.shape[0] or col >= df.shape[1]:
-                # out of bounds
-                return super().createEditor(parent, option, index)
-
-            dtype: np.dtype = df.dtypes.values[col]
-            if dtype == "category":
-                # use combobox for categorical data
-                cbox = QtW.QComboBox(parent)
-                choices = list(map(str, dtype.categories))
-                cbox.addItems(choices)
-                cbox.setCurrentIndex(choices.index(df.iat[row, col]))
-                cbox.currentIndexChanged.connect(qtable.setFocus)
-                return cbox
-            elif dtype == "bool":
-                # use checkbox for boolean data
-                cbox = QtW.QComboBox(parent)
-                choices = ["True", "False"]
-                cbox.addItems(choices)
-                cbox.setCurrentIndex(0 if df.iat[row, col] else 1)
-                cbox.currentIndexChanged.connect(qtable.setFocus)
-                return cbox
-            elif dtype.kind == "M":
-                dt = QtW.QDateTimeEdit(parent)
-                dt.setDateTime(df.iat[row, col].to_pydatetime())
-                return dt
-
-        return super().createEditor(parent, option, index)
-
-    def setEditorData(self, editor: QtW.QWidget, index: QtCore.QModelIndex) -> None:
-        super().setEditorData(editor, index)
-        if isinstance(editor, QtW.QComboBox):
-            editor.showPopup()
-        return None
-
-    def setModelData(
-        self,
-        editor: QtW.QWidget,
-        model: QtCore.QAbstractItemModel,
-        index: QtCore.QModelIndex,
-    ) -> None:
-        if isinstance(editor, QtW.QDateTimeEdit):
-            dt = editor.dateTime().toPyDateTime()
-            model.setData(index, dt, Qt.ItemDataRole.EditRole)
-        else:
-            return super().setModelData(editor, model, index)
-
-    # modified from magicgui
-    def _format_number(self, text: str) -> str:
-        """convert string to int or float if possible"""
-        try:
-            value: int | float | None = int(text)
-        except ValueError:
-            try:
-                value = float(text)
-            except ValueError:
-                value = None
-
-        ndigits = self.ndigits
-
-        if isinstance(value, (int, float)):
-            if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
-                text = str(value) if isinstance(value, int) else f"{value:.{ndigits}f}"
-            else:
-                text = f"{value:.{ndigits-1}e}"
-
-        return text
-
-
-def _equal(val, old_val):
+def _equal(val: Any, old_val: Any) -> bool:
     # NOTE pd.NA == x returns pd.NA, not False
     eq = False
     if isinstance(val, pd.DataFrame):

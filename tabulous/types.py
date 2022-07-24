@@ -10,6 +10,7 @@ from typing import (
     Union,
     TYPE_CHECKING,
     NamedTuple,
+    SupportsIndex,
 )
 from enum import Enum
 from psygnal import Signal
@@ -126,4 +127,4 @@ class HeaderInfo(NamedTuple):
     old_value: Any
 
 
-Selections = List[Tuple[slice, slice]]
+SelectionType = List[Tuple[Union[SupportsIndex, slice], Union[SupportsIndex, slice]]]
