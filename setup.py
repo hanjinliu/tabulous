@@ -24,7 +24,12 @@ setup(
         "magicgui>=0.5.1",
         "qtpy>=1.10.0",
         "pandas>=1.0.0",
-        "collections-undo>=0.0.2rc0",
+        "collections-undo>=0.0.2",
     ],
+    entry_points={
+        "console_scripts": [
+            "tabulous=tabulous.__main__:main",
+        ],
+    },
     python_requires=">=3.8",
 )
