@@ -46,17 +46,17 @@ def _bool_converter(val: Any):
         return bool(val)
 
 
-_NAN_STRINGS = frozenset({"", "nan", "na", "n/a", "<na>"})
+_NAN_STRINGS = frozenset({"", "nan", "na", "n/a", "<na>", "NaN", "NA", "N/A", "<NA>"})
 
 
-def _float_or_nan(x: str):
-    if x.lower() in _NAN_STRINGS:
+def _float_or_nan(x: Any):
+    if x in _NAN_STRINGS:
         return float("nan")
     return float(x)
 
 
-def _complex_or_nan(x: str):
-    if x.lower() in _NAN_STRINGS:
+def _complex_or_nan(x: Any):
+    if x in _NAN_STRINGS:
         return float("nan")
     return complex(x)
 
