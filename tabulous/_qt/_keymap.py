@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import abstractmethod
 from typing import (
+    Any,
     Callable,
     Hashable,
     Iterator,
@@ -103,7 +104,11 @@ def _parse_string(keys: str):
 
 
 _NO_KEY = -1
-_DUMMY_CALLBACK = lambda: None
+
+
+def _DUMMY_CALLBACK(*args):
+    """Dummy callback function."""
+
 
 KeyType = Union[QtGui.QKeyEvent, "QtKeys", str]
 
@@ -206,23 +211,28 @@ _F = TypeVar("_F", bound=Callable)
 class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     """A mapping object for key map and key combo registration."""
 
-    def __init__(self):
+    def __init__(
+        self, instance: Any | None = None, activated: Callable = _DUMMY_CALLBACK
+    ):
         self._keymap: dict[QtKeys, QtKeyMap | Callable] = {}
         self._current_state = None
-        self._activated_callback = _DUMMY_CALLBACK
+        self._activated_callback = activated
         self._instances: dict[int, QtKeyMap] = {}
-        self._obj = None
+        self._obj = instance
 
     def __get__(self, obj, objtype=None):
         if obj is None:
             return self
         _id = id(obj)
         if (new := self._instances.get(_id, None)) is None:
-            new = self.__class__()
-            new._keymap = self._keymap.copy()
-            new._activated_callback = self._activated_callback
+            new = self.copy()
             new._obj = obj
             self._instances[_id] = new
+        return new
+
+    def copy(self) -> Self:
+        new = self.__class__(self._obj, self._activated_callback)
+        new._keymap = self._keymap.copy()
         return new
 
     def __getitem__(self, key: KeyType):
@@ -235,6 +245,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     def _repr(self, indent: int = 0) -> str:
         indent_str = " " * indent
         strings = []
+        if self._activated_callback is not _DUMMY_CALLBACK:
+            strings.append(f"<activated>: {self._activated_callback!r}")
         for k, v in self._keymap.items():
             if isinstance(v, QtKeyMap):
                 vrepr = v._repr(indent + 2)
@@ -333,9 +345,16 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         current = self
         *pref, last = combo
         for key in pref:
+            key = QtKeys(key)
             if key not in current._keymap:
                 current.add_child(key)
-            current = current[key]
+
+            child = current[key]
+            if callable(child):
+                child = self.__class__(self._obj, activated=child)
+                current[key] = child
+            current = child
+
         current._bind_key(last, callback, overwrite)
         return None
 
@@ -345,11 +364,13 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             if self._current_state is None:
                 val = self._keymap[key]
                 if isinstance(val, QtKeyMap):
+                    val._obj = self._obj
                     self.activate(key)
             else:
                 inter = self._keymap[self._current_state]
                 val = inter[key]
                 if isinstance(val, QtKeyMap):
+                    val._obj = self._obj
                     inter.activate(key)
         except KeyError:
             val = default
@@ -383,7 +404,10 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             raise KeyError(f"Key {key} is not a child")
         child.deactivate()
         self._current_state = key
-        child._activated_callback()
+        if child._obj is None:
+            child._activated_callback()
+        else:
+            child._activated_callback(child._obj)
 
     def deactivate(self) -> None:
         """Deactivate key combo trigger."""

@@ -400,10 +400,6 @@ class TableViewer(_TableViewerBase):
     # def register_action(self, location: str):
     #     return self._qwidget.registerAction(location)
 
-    @property
-    def console(self):
-        return self._qwidget.console()
-
     def add_dock_widget(
         self,
         widget: Widget | QWidget,

@@ -82,3 +82,6 @@ class _QtConsole(RichJupyterWidget):
 
         if self.shell is not None:
             self.shell.push({"viewer": widget})
+
+    def setFocus(self):
+        return self._control.setFocus()

@@ -20,9 +20,7 @@ def main():
     else:
         raise RuntimeError
 
-    from ._qt._app import run_app
-
-    run_app()
+    viewer.show()
 
 
 if __name__ == "__main__":

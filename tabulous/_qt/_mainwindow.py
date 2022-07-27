@@ -50,7 +50,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._event_filter = _EventFilter()
         self.installEventFilter(self._event_filter)
         self._event_filter.styleChanged.connect(self.updateToolButtons)
-        self._console = None
+        self._console_widget = None
 
     def updateToolButtons(self):
         if self._toolbar is None:
@@ -156,14 +156,31 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self._tablestack.setMinimumSize(400, 250)
         QMainWindow._instances.append(self)
 
-    def console(self):
-        if self._console is None:
+    def consoleVisible(self) -> bool:
+        """True if embeded console is visible."""
+        if self._console_widget is None:
+            return False
+        else:
+            return self._console_widget.isVisible()
+
+    def setConsoleVisible(self, visible: bool) -> None:
+        """Set visibility of embeded console widget."""
+        if visible and self._console_widget is None:
             from ._console import _QtConsole
 
-            console = _QtConsole()
-            console.connect_parent(self._table_viewer)
-            self._console = console
-        return console
+            qtconsole = _QtConsole()
+            qtconsole.connect_parent(self._table_viewer)
+            self._console_widget = self.addDockWidget(
+                qtconsole, name="console", area="bottom"
+            )
+            qtconsole.setParent(self._console_widget)
+            self._console_widget.setSourceObject(qtconsole)
+        self._console_widget.setVisible(visible)
+        self._console_widget.widget.setFocus()
+
+    def toggleConsoleVisibility(self) -> None:
+        """Toggle visibility of embeded console widget."""
+        return self.setConsoleVisible(not self.consoleVisible())
 
     def addDockWidget(
         self,
@@ -244,3 +261,5 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
 QMainWidget._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWidget.toggleToolBarVisibility)
 QMainWindow._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWindow.toggleToolBarVisibility)
+QMainWindow._keymap.bind(["Ctrl+Shift+C"], QMainWindow.toggleConsoleVisibility)
+QMainWindow._keymap.bind(["Ctrl+Shift+0"], QMainWindow.setFocus)

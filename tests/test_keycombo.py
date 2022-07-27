@@ -47,3 +47,27 @@ def test_keycombo_initialization():
     keymap.press_key("B")
     keymap.press_key("C")
     mock.assert_called_once()
+
+
+def test_activated_callback():
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    keymap.bind(["Ctrl+C", "Ctrl+V"], lambda: 0)
+    keymap["Ctrl+C"].set_activated_callback(mock)
+    keymap.press_key("Ctrl+C")
+    mock.assert_called_once()
+
+def test_callback_to_child_map():
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    func0 = lambda: mock(0)
+    func1 = lambda: mock(1)
+    keymap.bind("Ctrl+C", func0)
+    keymap.bind(["Ctrl+C", "Ctrl+V"], func1)
+    keymap.press_key("Ctrl+C")
+    mock.assert_called_once()
+    mock.assert_called_with(0)
+    keymap.press_key("Ctrl+V")
+    mock.assert_called_with(1)
