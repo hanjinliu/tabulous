@@ -48,6 +48,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._event_filter = _EventFilter()
         self.installEventFilter(self._event_filter)
         self._event_filter.styleChanged.connect(self.updateToolButtons)
+        self._console = None
 
     def updateToolButtons(self):
         if self._toolbar is None:
@@ -140,6 +141,15 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self.addToolBar(self._toolbar)
         self._tablestack.setMinimumSize(400, 250)
         QMainWindow._instances.append(self)
+
+    def console(self):
+        if self._console is None:
+            from ._console import _QtConsole
+
+            console = _QtConsole()
+            console.connect_parent(self._table_viewer)
+            self._console = console
+        return console
 
     def addDockWidget(
         self,
