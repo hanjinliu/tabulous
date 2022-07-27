@@ -1,14 +1,12 @@
 from __future__ import annotations
-from functools import partial
 from pathlib import Path
 import weakref
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Union
+from typing import TYPE_CHECKING, Union
 from psygnal import Signal, SignalGroup
 
 from .table import Table, SpreadSheet, GroupBy, TableDisplay
 from .tablelist import TableList
-from .keybindings import register_shortcut
 from ._sample import open_sample
 
 from ..types import SelectionType, TabPosition, _TableLike, _SingleSelection
@@ -18,6 +16,7 @@ if TYPE_CHECKING:
     from .._qt import QMainWindow, QMainWidget
     from .._qt._dockwidget import QtDockWidget
     from .._qt._mainwindow import _QtMainWidgetBase
+    from .._qt._keymap import QtKeyMap
     from qtpy.QtWidgets import QWidget
     from magicgui.widgets import Widget
     import numpy as np
@@ -93,6 +92,11 @@ class _TableViewerBase:
         return self._toolbar
 
     @property
+    def keymap(self) -> QtKeyMap:
+        """Return the keymap object."""
+        return self._qwidget._keymap
+
+    @property
     def current_table(self) -> TableBase:
         """Return the currently visible table."""
         return self.tables[self.current_index]
@@ -115,12 +119,12 @@ class _TableViewerBase:
             index += len(self.tables)
         return self._qwidget._tablestack.setCurrentIndex(index)
 
-    def bind_key(self, *seq) -> Callable[[TableViewer], Any | None]:
-        # TODO
-        def register(f):
-            register_shortcut(seq, self._qwidget, partial(f, self))
+    # def bind_key(self, *seq) -> Callable[[TableViewer], Any | None]:
+    #     # TODO
+    #     def register(f):
+    #         register_shortcut(seq, self._qwidget, partial(f, self))
 
-        return register
+    #     return register
 
     def show(self, *, run: bool = True) -> None:
         """Show the widget."""
@@ -193,7 +197,7 @@ class _TableViewerBase:
         Returns
         -------
         SpreadSheet
-            The added table object.
+            The added spreadsheet object.
         """
         if copy:
             data = _copy_dataframe(data)
@@ -241,6 +245,9 @@ class _TableViewerBase:
             df_dict: dict[str, pd.DataFrame] = pd.read_excel(path, sheet_name=None)
             for sheet_name, df in df_dict.items():
                 fopen(df, name=sheet_name)
+        elif suf in (".parquet",):
+            df = pd.read_parquet(path)
+            fopen(df)
         else:
             raise ValueError(f"Extension {suf} not supported.")
 
@@ -253,6 +260,10 @@ class _TableViewerBase:
             df.to_csv(path)
         elif suf in (".xlsx", ".xls", "xml"):
             df.to_excel(path)
+        elif suf in (".html",):
+            df.to_html(path)
+        elif suf in (".parquet",):
+            df.to_parquet(path)
         else:
             raise ValueError(f"Extension {suf} not supported.")
 
