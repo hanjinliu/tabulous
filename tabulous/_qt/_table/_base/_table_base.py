@@ -9,7 +9,9 @@ import pandas as pd
 
 from collections_undo import UndoManager
 from ._model_base import AbstractDataFrameModel
-from ..._utils import show_messagebox, QtKeys
+
+from ..._utils import show_messagebox
+from ..._keymap import QtKeys, QtKeyMap
 from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
 
 if TYPE_CHECKING:
@@ -197,6 +199,7 @@ class QBaseTable(QtW.QWidget):
     selectionChangedSignal = Signal(list)
     _DEFAULT_EDITABLE = False
     _mgr = UndoManager(measure=_count_data_size, maxsize=1e7)
+    _keymap = QtKeyMap()
 
     def __init__(
         self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None
@@ -357,12 +360,8 @@ class QBaseTable(QtW.QWidget):
         return pd.read_clipboard(header=None)
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
-        keys = QtKeys(e)
-        if keys == "Ctrl+C":
-            return self.copyToClipboard(False)
-        elif keys == "Ctrl+Shift+C":
-            return self.copyToClipboard(True)
-
+        if self._keymap.press_key(e):
+            return
         return super().keyPressEvent(e)
 
     def filter(self) -> FilterType | None:
@@ -521,6 +520,10 @@ class QMutableTable(QBaseTable):
             self._qtable_view.setEditTriggers(_READ_ONLY)
         self._editable = editable
 
+    def toggleEditability(self) -> None:
+        """Toggle editability of the table."""
+        return self.setEditable(not self.isEditable())
+
     def connectItemChangedSignal(
         self,
         slot_val: Callable[[ItemInfo], None],
@@ -534,19 +537,10 @@ class QMutableTable(QBaseTable):
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
         keys = QtKeys(e)
-        if keys == "Ctrl+C":
-            return self.copyToClipboard(headers=False)
-        elif keys == "Ctrl+Shift+C":
-            return self.copyToClipboard(headers=True)
-        elif keys == "Ctrl+V":
-            return self.pasteFromClipBoard()
-        elif keys in ("Delete", "Backspace"):
-            return self.deleteValues()
-        elif keys == "Ctrl+Z":
-            self.undo()
-        elif keys == "Ctrl+Y":
-            self.redo()
-        elif keys.is_typing() and self.isEditable():
+        if self._keymap.press_key(keys):
+            return
+
+        if keys.is_typing() and self.isEditable():
             # Enter editing mode
             qtable = self._qtable_view
             text = keys.key_string()
@@ -810,15 +804,13 @@ class QMutableTable(QBaseTable):
     def setFilter(self, sl: FilterType):
         return (self.filter(),), {}
 
-    def undo(self) -> None:
+    def undo(self) -> Any:
         """Undo last operation."""
-        self._mgr.undo()
-        return None
+        return self._mgr.undo()
 
-    def redo(self) -> None:
+    def redo(self) -> Any:
         """Redo last undo operation."""
-        self._mgr.redo()
-        return None
+        return self._mgr.redo()
 
 
 class QMutableSimpleTable(QMutableTable):

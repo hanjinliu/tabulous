@@ -7,6 +7,7 @@ from qtpy.QtCore import Qt, QEvent, Signal
 
 from ._table_stack import QTabbedTableStack
 from ._utils import search_name_from_qmenu
+from ._keymap import QtKeyMap
 from ..types import TabPosition
 
 if TYPE_CHECKING:
@@ -32,6 +33,7 @@ class _QtMainWidgetBase(QtW.QWidget):
     _table_viewer: TableViewer
     _tablestack: QTabbedTableStack
     _toolbar: QTableStackToolBar
+    _keymap: QtKeyMap
 
     def __init__(
         self,
@@ -73,6 +75,11 @@ class _QtMainWidgetBase(QtW.QWidget):
 
         return arr[:, :, [2, 1, 0, 3]]
 
+    def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
+        if not self._keymap.press_key(a0):
+            return super().keyPressEvent(a0)
+        return None
+
     def setCentralWidget(self, wdt: QtW.QWidget):
         """Set the splitter widget."""
         raise NotImplementedError()
@@ -85,12 +92,18 @@ class _QtMainWidgetBase(QtW.QWidget):
         """Set visibility of toolbar"""
         raise NotImplementedError()
 
+    def toggleToolBarVisibility(self):
+        """Toggle visibility of toolbar"""
+        return self.setToolBarVisible(not self.toolBarVisible())
+
     def addDefaultToolBar(self):
         """Add default toolbar widget regardless of self is a main window or not."""
         raise NotImplementedError()
 
 
 class QMainWidget(_QtMainWidgetBase):
+    _keymap = QtKeyMap()
+
     def __init__(self, tab_position: TabPosition | str = TabPosition.top):
         super().__init__(tab_position)
         self._toolbar = None
@@ -126,6 +139,7 @@ class QMainWidget(_QtMainWidgetBase):
 class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     _table_viewer: TableViewer
     _instances: list[QMainWindow] = []
+    _keymap = QtKeyMap()
 
     def __init__(
         self,
@@ -216,3 +230,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
     def setToolBarVisible(self, visible: bool):
         return self._toolbar.setVisible(visible)
+
+
+QMainWidget._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWidget.toggleToolBarVisibility)
+QMainWindow._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWindow.toggleToolBarVisibility)
