@@ -33,6 +33,7 @@ class _QtMainWidgetBase(QtW.QWidget):
     _table_viewer: TableViewer
     _tablestack: QTabbedTableStack
     _toolbar: QTableStackToolBar
+    _keymap: QtKeyMap
 
     def __init__(
         self,
@@ -49,8 +50,6 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._event_filter = _EventFilter()
         self.installEventFilter(self._event_filter)
         self._event_filter.styleChanged.connect(self.updateToolButtons)
-
-        self._keymap = QtKeyMap()
 
     def updateToolButtons(self):
         if self._toolbar is None:
@@ -77,7 +76,9 @@ class _QtMainWidgetBase(QtW.QWidget):
         return arr[:, :, [2, 1, 0, 3]]
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
-        self._keymap.emit(a0)
+        if not self._keymap.press_key(a0):
+            return super().keyPressEvent(a0)
+        return None
 
     def setCentralWidget(self, wdt: QtW.QWidget):
         """Set the splitter widget."""
@@ -97,6 +98,8 @@ class _QtMainWidgetBase(QtW.QWidget):
 
 
 class QMainWidget(_QtMainWidgetBase):
+    _keymap = QtKeyMap()
+
     def __init__(self, tab_position: TabPosition | str = TabPosition.top):
         super().__init__(tab_position)
         self._toolbar = None
@@ -132,6 +135,7 @@ class QMainWidget(_QtMainWidgetBase):
 class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     _table_viewer: TableViewer
     _instances: list[QMainWindow] = []
+    _keymap = QtKeyMap()
 
     def __init__(
         self,

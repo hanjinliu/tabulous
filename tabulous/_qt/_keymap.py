@@ -4,16 +4,18 @@ from typing import (
     Callable,
     Hashable,
     Iterator,
+    Literal,
     MutableMapping,
     Sequence,
     TYPE_CHECKING,
     TypeVar,
     Union,
+    overload,
 )
 
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Qt
-from functools import reduce
+from functools import partial, reduce
 from operator import or_
 
 if TYPE_CHECKING:
@@ -194,6 +196,9 @@ class RecursiveMapping(MutableMapping[_K, _V]):
             return super().__iter__()
 
 
+_F = TypeVar("_F", bound=Callable)
+
+
 class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     """A mapping object for key map and key combo registration."""
 
@@ -203,6 +208,20 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         self._parent = parent
         self._self_key = key
         self._activated_callback = _DUMMY_CALLBACK
+        self._instances: dict[int, QtKeyMap] = {}
+        self._obj = None
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        _id = id(obj)
+        if (new := self._instances.get(_id, None)) is None:
+            new = self.__class__()
+            new._keymap = self._keymap.copy()
+            new._activated_callback = self._activated_callback
+            new._obj = obj
+            self._instances[_id] = new
+        return new
 
     def __getitem__(self, key: KeyType):
         key = QtKeys(key)
@@ -233,17 +252,45 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         self[key] = kmap
         return None
 
+    @overload
     def bind(
         self,
         key: KeyType | Sequence[KeyType],
-        callback: Callable | None = None,
+        callback: Literal[None] = None,
         overwrite: bool = False,
-    ) -> None:
+        **kwargs,
+    ) -> Callable[[_F], _F]:
+        ...
+
+    @overload
+    def bind(
+        self,
+        key: KeyType | Sequence[KeyType],
+        callback: _F,
+        overwrite: bool = False,
+        **kwargs,
+    ) -> _F:
+        ...
+
+    def bind(self, key, callback=None, overwrite=False, **kwargs) -> None:
         def wrapper(func):
+            if kwargs:
+                # check keyword arguments to avoid runtime error
+                import inspect
+
+                sig = inspect.signature(func)
+                for name in kwargs:
+                    if name not in sig.parameters:
+                        raise TypeError(
+                            f"{func} does not accept keyword argument {name!r}."
+                        )
+                _func = partial(func, **kwargs)
+            else:
+                _func = func
             if isinstance(key, (str, QtKeys)):
-                self.bind_key(key, func, overwrite)
+                self.bind_key(key, _func, overwrite)
             elif isinstance(key, Sequence):
-                self.bind_keycombo(key, func, overwrite)
+                self.bind_keycombo(key, _func, overwrite)
             else:
                 raise TypeError("key must be a string or a sequence of strings")
             return func
@@ -293,14 +340,17 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             raise TypeError("Activated callback must be callable")
         self._activated_callback = callback
 
-    def emit(self, key: KeyType) -> bool:
+    def press_key(self, key: KeyType) -> bool:
         key = QtKeys(key)
         callback = self.get_and_activate(key, None)
         if not isinstance(callback, QtKeyMap):
             self.deactivate()
             if callback is None:
                 return False
-            callback()
+            if self._obj is None:
+                callback()
+            else:
+                callback(self._obj)
         return True
 
     def activate(self, key: KeyType) -> None:

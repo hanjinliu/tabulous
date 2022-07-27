@@ -1,10 +1,8 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Callable, TYPE_CHECKING
-from functools import partial
 from psygnal import SignalGroup, Signal
 
-from .keybindings import register_shortcut
 from .filtering import FilterProxy
 
 from ..types import (
@@ -20,6 +18,7 @@ if TYPE_CHECKING:
     from collections_undo import UndoManager
     from .._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from .._qt._table import QBaseTable
+    from .._qt._keymap import QtKeyMap
 
 
 class TableSignals(SignalGroup):
@@ -82,6 +81,10 @@ class TableBase(ABC):
     def table_shape(self) -> tuple[int, int]:
         """Shape of table."""
         return self._qwidget.tableShape()
+
+    @property
+    def keymap(self) -> QtKeyMap:
+        return self._qwidget._keymap
 
     @property
     def precision(self) -> int:
@@ -148,14 +151,6 @@ class TableBase(ABC):
     def undo_manager(self) -> UndoManager:
         """Return the undo manager."""
         return self._qwidget._mgr
-
-    def bind_key(self, *seq) -> Callable[[TableBase], Any | None]:
-        """Bind callback function to a key sequence."""
-
-        def register(f):
-            register_shortcut(seq, self._qwidget, partial(f, self))
-
-        return register
 
 
 class _DataFrameTableLayer(TableBase):
