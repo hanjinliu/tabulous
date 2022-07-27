@@ -4,7 +4,7 @@ import pytest
 
 @pytest.mark.parametrize(
     "key",
-    ["Ctrl+C", ["Ctrl+C", "C"], ["Ctrl+C", "Shift+Z", "Alt+O"], ["A", "B", "C", "D"]],
+    ["Ctrl+C", ["Ctrl+C", "C"], ["Ctrl+C", "Shift+Z", "Alt+O"]],
 )
 def test_keypress(key):
     mock = MagicMock()
