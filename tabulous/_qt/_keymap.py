@@ -202,11 +202,9 @@ _F = TypeVar("_F", bound=Callable)
 class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     """A mapping object for key map and key combo registration."""
 
-    def __init__(self, key=None, parent: QtKeyMap | None = None):
+    def __init__(self):
         self._keymap: dict[QtKeys, QtKeyMap | Callable] = {}
         self._current_state = None
-        self._parent = parent
-        self._self_key = key
         self._activated_callback = _DUMMY_CALLBACK
         self._instances: dict[int, QtKeyMap] = {}
         self._obj = None
@@ -246,7 +244,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         return self._repr()
 
     def add_child(self, key: KeyType, child_callback: Callable | None = None) -> None:
-        kmap = QtKeyMap(key=QtKeys(key), parent=self)
+        kmap = QtKeyMap()
         if child_callback is not None:
             kmap.set_activated_callback(child_callback)
         self[key] = kmap
@@ -273,6 +271,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         ...
 
     def bind(self, key, callback=None, overwrite=False, **kwargs) -> None:
+        """Assign key or key combo to callback."""
+
         def wrapper(func):
             if kwargs:
                 # check keyword arguments to avoid runtime error
@@ -288,16 +288,32 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             else:
                 _func = func
             if isinstance(key, (str, QtKeys)):
-                self.bind_key(key, _func, overwrite)
+                self._bind_key(key, _func, overwrite)
             elif isinstance(key, Sequence):
-                self.bind_keycombo(key, _func, overwrite)
+                self._bind_keycombo(key, _func, overwrite)
             else:
                 raise TypeError("key must be a string or a sequence of strings")
             return func
 
         return wrapper if callback is None else wrapper(callback)
 
-    def bind_key(
+    def rebind(
+        self, old: KeyType | Sequence[KeyType], new: KeyType | Sequence[KeyType]
+    ):
+        if isinstance(old, (str, QtKeys)):
+            old = [old]
+        if isinstance(new, (str, QtKeys)):
+            new = [new]
+        src = self
+        for k in old[:-1]:
+            src = src._keymap[QtKeys(k)]
+        dst = self
+        for k in new[:-1]:
+            dst = dst._keymap[k]
+        dst[new[-1]] = src.pop(old[-1])
+        return None
+
+    def _bind_key(
         self, key: KeyType, callback: Callable, overwrite: bool = False
     ) -> None:
         if key in self._keymap and not overwrite:
@@ -305,7 +321,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         self[key] = callback
         return None
 
-    def bind_keycombo(
+    def _bind_keycombo(
         self, combo: Sequence[KeyType], callback: Callable, overwrite: bool = False
     ) -> None:
         if isinstance(combo, str):
@@ -316,7 +332,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             if key not in current._keymap:
                 current.add_child(key)
             current = current[key]
-        current.bind_key(last, callback, overwrite)
+        current._bind_key(last, callback, overwrite)
         return None
 
     def get_and_activate(self, key: KeyType, default=None) -> Callable:
@@ -341,6 +357,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         self._activated_callback = callback
 
     def press_key(self, key: KeyType) -> bool:
+        """Emulate pressing a key."""
         key = QtKeys(key)
         callback = self.get_and_activate(key, None)
         if not isinstance(callback, QtKeyMap):
@@ -382,10 +399,3 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
 
     def __len__(self):
         return len(self._keymap)
-
-    @property
-    def ancestor(self) -> Self:
-        current = self
-        while parent := current._parent:
-            current = parent
-        return current

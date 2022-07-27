@@ -92,6 +92,10 @@ class _QtMainWidgetBase(QtW.QWidget):
         """Set visibility of toolbar"""
         raise NotImplementedError()
 
+    def toggleToolBarVisibility(self):
+        """Toggle visibility of toolbar"""
+        return self.setToolBarVisible(not self.toolBarVisible())
+
     def addDefaultToolBar(self):
         """Add default toolbar widget regardless of self is a main window or not."""
         raise NotImplementedError()
@@ -226,3 +230,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
     def setToolBarVisible(self, visible: bool):
         return self._toolbar.setVisible(visible)
+
+
+QMainWidget._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWidget.toggleToolBarVisibility)
+QMainWindow._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWindow.toggleToolBarVisibility)
