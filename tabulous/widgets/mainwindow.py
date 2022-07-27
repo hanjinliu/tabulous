@@ -197,7 +197,7 @@ class _TableViewerBase:
         Returns
         -------
         SpreadSheet
-            The added table object.
+            The added spreadsheet object.
         """
         if copy:
             data = _copy_dataframe(data)
@@ -245,6 +245,9 @@ class _TableViewerBase:
             df_dict: dict[str, pd.DataFrame] = pd.read_excel(path, sheet_name=None)
             for sheet_name, df in df_dict.items():
                 fopen(df, name=sheet_name)
+        elif suf in (".parquet",):
+            df = pd.read_parquet(path)
+            fopen(df)
         else:
             raise ValueError(f"Extension {suf} not supported.")
 
@@ -257,6 +260,10 @@ class _TableViewerBase:
             df.to_csv(path)
         elif suf in (".xlsx", ".xls", "xml"):
             df.to_excel(path)
+        elif suf in (".html",):
+            df.to_html(path)
+        elif suf in (".parquet",):
+            df.to_parquet(path)
         else:
             raise ValueError(f"Extension {suf} not supported.")
 

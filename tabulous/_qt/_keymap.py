@@ -83,7 +83,7 @@ _MODIFIERS_INV = {
 }
 
 
-def _str_to_keys(keys: str):
+def _parse_string(keys: str):
     if keys in _MODIFIERS_INV.values():
         mods = keys.split("+")
         qtmod = reduce(or_, [_MODIFIERS[m] for m in mods])
@@ -115,10 +115,10 @@ class QtKeys:
         if isinstance(e, QtGui.QKeyEvent):
             self.modifier = e.modifiers()
             self.key = e.key()
-            if self.key > 10000:
+            if self.key > 10000:  # modifier only
                 self.key = -1
         elif isinstance(e, str):
-            mod, key = _str_to_keys(e)
+            mod, key = _parse_string(e)
             self.modifier = mod
             self.key = key
         elif isinstance(e, QtKeys):
@@ -146,10 +146,10 @@ class QtKeys:
         if isinstance(other, QtKeys):
             return self.modifier == other.modifier and self.key == other.key
         elif isinstance(other, str):
-            qtmod, qtkey = _str_to_keys(other)
+            qtmod, qtkey = _parse_string(other)
             return self.modifier == qtmod and self.key == qtkey
         else:
-            raise TypeError
+            raise TypeError("QtKeys can only be compared to QtKeys or str")
 
     def is_typing(self) -> bool:
         """True if key is a letter or number."""
@@ -175,6 +175,10 @@ class QtKeys:
     def has_shift(self) -> bool:
         """True if Shift is pressed."""
         return self.modifier & Qt.KeyboardModifier.ShiftModifier
+
+    def has_alt(self) -> bool:
+        """True if Alt is pressed."""
+        return self.modifier & Qt.KeyboardModifier.AltModifier
 
 
 _K = TypeVar("_K", bound=Hashable)
