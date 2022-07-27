@@ -7,6 +7,7 @@ from qtpy.QtCore import Qt, QEvent, Signal
 
 from ._table_stack import QTabbedTableStack
 from ._utils import search_name_from_qmenu
+from ._keymap import QtKeyMap
 from ..types import TabPosition
 
 if TYPE_CHECKING:
@@ -49,6 +50,8 @@ class _QtMainWidgetBase(QtW.QWidget):
         self.installEventFilter(self._event_filter)
         self._event_filter.styleChanged.connect(self.updateToolButtons)
 
+        self._keymap = QtKeyMap()
+
     def updateToolButtons(self):
         if self._toolbar is None:
             return
@@ -72,6 +75,9 @@ class _QtMainWidgetBase(QtW.QWidget):
             arr = np.frombuffer(bits, np.uint8).reshape(h, w, c)
 
         return arr[:, :, [2, 1, 0, 3]]
+
+    def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
+        self._keymap.emit(a0)
 
     def setCentralWidget(self, wdt: QtW.QWidget):
         """Set the splitter widget."""

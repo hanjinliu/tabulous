@@ -9,7 +9,8 @@ import pandas as pd
 
 from collections_undo import UndoManager
 from ._model_base import AbstractDataFrameModel
-from ..._utils import show_messagebox, QtKeys
+from ..._utils import show_messagebox
+from ..._keymap import QtKeys
 from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
 
 if TYPE_CHECKING:
