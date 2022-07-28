@@ -2,16 +2,13 @@
 from pathlib import Path
 from typing import Callable, List, TYPE_CHECKING, Union
 import weakref
-import pandas as pd
-from qtpy import QtWidgets as QtW, QtGui, QtCore
-from qtpy.QtCore import Qt
+from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtWidgets import QAction
 
 from ._svg import QColoredSVGIcon
 from ._multitips import _QHasToolTip
+from . import _dialogs as _dlg
 
-from .._magicgui import dialog_factory
-from ..types import TableData
 
 if TYPE_CHECKING:
     from ._mainwindow import _QtMainWidgetBase
@@ -48,9 +45,13 @@ class _QToolBar(QtW.QToolBar, _QHasToolTip):
     def toolTipNumber(self) -> int:
         return len(self._button_and_icon)
 
-    def clickButton(self, index: int):
+    def clickButton(self, index: int, *, ignore_index_error: bool = True):
+        """Emulate a click on the button at the given index."""
         if index < 0 or index >= len(self._button_and_icon):
-            return None
+            if ignore_index_error:
+                return None
+            else:
+                raise IndexError(f"Index {index} out of range")
         btn, icon = self._button_and_icon[index]
         return btn.click()
 
@@ -194,7 +195,7 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
     def groupby(self):
         """Group table data by its column value."""
         table = self.viewer.current_table
-        out = groupby(
+        out = _dlg.groupby(
             df={"bind": table.data},
             by={"choices": list(table.data.columns), "widget_type": "Select"},
         )
@@ -203,7 +204,7 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
 
     def hconcat(self):
         """Concatenate tables horizontally."""
-        out = hconcat(
+        out = _dlg.hconcat(
             viewer={"bind": self.viewer},
             names={
                 "value": [self.viewer.current_table.name],
@@ -216,7 +217,7 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
 
     def vconcat(self):
         """Concatenate tables vertically."""
-        out = vconcat(
+        out = _dlg.vconcat(
             viewer={"bind": self.viewer},
             names={
                 "value": [self.viewer.current_table.name],
@@ -233,7 +234,7 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
         col = list(table.data.columns)
         if len(col) < 2:
             raise ValueError("Table must have at least two columns.")
-        out = pivot(
+        out = _dlg.pivot(
             df={"bind": table.data},
             index={"choices": col, "value": col[0]},
             columns={"choices": col, "value": col[1]},
@@ -245,7 +246,7 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
     def melt(self):
         """Unpivot a table."""
         table = self.viewer.current_table
-        out = melt(
+        out = _dlg.melt(
             df={"bind": table.data},
             id_vars={"choices": list(table.data.columns), "widget_type": "Select"},
         )
@@ -255,7 +256,7 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
     def summarize_table(self):
         """Summarize current table."""
         table = self.viewer.current_table
-        out = summarize_table(
+        out = _dlg.summarize_table(
             df={"bind": table.data},
             methods={"choices": SUMMARY_CHOICES, "widget_type": "Select"},
         )
@@ -265,43 +266,6 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
     def query(self):
         """Filter table using a query."""
         table = self.viewer.current_table
-        out = query(df={"bind": table.data})
+        out = _dlg.query(df={"bind": table.data})
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-query")
-
-
-@dialog_factory
-def summarize_table(df: TableData, methods: List[str]):
-    return df.agg(methods)
-
-
-@dialog_factory
-def groupby(df: TableData, by: List[str]):
-    return df.groupby(by)
-
-
-@dialog_factory
-def hconcat(viewer, names: List[str]):
-    dfs = [viewer.tables[name].data for name in names]
-    return pd.concat(dfs, axis=0)
-
-
-@dialog_factory
-def vconcat(viewer, names: List[str]):
-    dfs = [viewer.tables[name].data for name in names]
-    return pd.concat(dfs, axis=1)
-
-
-@dialog_factory
-def pivot(df: TableData, index: str, columns: str, values: str):
-    return df.pivot(index=index, columns=columns, values=values)
-
-
-@dialog_factory
-def melt(df: TableData, id_vars: List[str]):
-    return pd.melt(df, id_vars)
-
-
-@dialog_factory
-def query(df: TableData, expr: str):
-    return df.query(expr)

@@ -315,3 +315,15 @@ def _(self: QMainWindow):
 def _(self: QMainWindow, index: int):
     self._toolbar.setCurrentIndex(index)
     self._toolbar.currentToolBar().showTabTooltips()
+
+
+@QMainWindow._keymap.bind("Alt, F, {}")
+@QMainWindow._keymap.bind("Alt, T, {}")
+@QMainWindow._keymap.bind("Alt, A, {}")
+def _(self: QMainWindow, key: str):
+    try:
+        index = int(key)
+    except ValueError:
+        return None
+
+    self._toolbar.currentToolBar().clickButton(index, ignore_index_error=True)

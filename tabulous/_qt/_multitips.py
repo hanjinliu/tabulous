@@ -23,7 +23,8 @@ class _QHasToolTip(QtW.QWidget):
     def showTabTooltips(self):
         """Show all the tooltips."""
         self._labels = []
-        for i in range(self.toolTipNumber()):
+        num = min(self.toolTipNumber(), 10)
+        for i in range(num):
             label = QKeyComboTip(self.toolTipText(i), self)
             pos = self.toolTipPosition(i)
             label.move(self.mapToGlobal(pos))
