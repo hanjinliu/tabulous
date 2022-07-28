@@ -24,7 +24,7 @@ class _QToolBar(QtW.QToolBar):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._button_and_icon: List["tuple[QtW.QToolButton, QColoredSVGIcon]"] = []
-        self._labels: List[QtW.QLabel] = []
+        self._labels: List[QKeyComboTip] = []
 
     def updateIconColor(self, color):
         for button, icon in self._button_and_icon:
@@ -36,9 +36,8 @@ class _QToolBar(QtW.QToolBar):
         action.setToolTip(f.__doc__)
         btn = self.widgetForAction(action)
         self._button_and_icon.append((btn, qicon))
-        label = QtW.QLabel(str(len(self._button_and_icon)), btn, QtCore.Qt.SplashScreen)
-        label.setFixedSize(20, 20)
-        label.move(btn.rect().topLeft())
+        label = QKeyComboTip(str(len(self._button_and_icon)), btn)
+        # label.move(btn.rect().topLeft())
         self._labels.append(label)
         return None
 
@@ -67,7 +66,7 @@ class QTableStackToolBar(QtW.QToolBar):
             str, _QToolBar
         ] = weakref.WeakValueDictionary()
 
-        self._labels: dict[str, QtW.QLabel] = {}
+        self._labels: dict[str, QKeyComboTip] = {}
 
         self.addWidget(self._tab)
         self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
@@ -135,9 +134,7 @@ class QTableStackToolBar(QtW.QToolBar):
         self._tab.addTab(toolbar, name)
         self._child_widgets[name] = toolbar
 
-        label = QtW.QLabel(name[0], self._tab, QtCore.Qt.SplashScreen)
-        label.setFixedSize(20, 20)
-        label.hide()
+        label = QKeyComboTip(text=name[0], parent=self._tab)
         self._labels[name] = label
 
     def registerAction(self, tabname: str, f: Callable, icon: Union[str, Path]):
@@ -309,3 +306,15 @@ def melt(df: TableData, id_vars: List[str]):
 @dialog_factory
 def query(df: TableData, expr: str):
     return df.query(expr)
+
+
+class QKeyComboTip(QtW.QLabel):
+    def __init__(self, text: str, parent=None):
+        super().__init__(text, parent)
+        self.setAlignment(QtCore.Qt.AlignCenter)
+        self.setFixedSize(20, 20)
+        self.hide()
+
+    def eventFilter(self, obj: QtCore.QObject, ev: QtCore.QEvent) -> bool:
+        print(ev.type())
+        return super().eventFilter(obj, ev)
