@@ -1,6 +1,9 @@
 from __future__ import annotations
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from typing import TYPE_CHECKING
+from qtpy import QtCore
+
+from ._keymap import QtKeys
 
 if TYPE_CHECKING:
     from ..widgets.mainwindow import _TableViewerBase

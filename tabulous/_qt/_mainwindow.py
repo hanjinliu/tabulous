@@ -175,12 +175,28 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
             )
             qtconsole.setParent(self._console_widget)
             self._console_widget.setSourceObject(qtconsole)
+
         self._console_widget.setVisible(visible)
-        self._console_widget.widget.setFocus()
+
+        if visible:
+            self._console_widget.widget.setFocus()
+        else:
+            self.setCellFocus()
 
     def toggleConsoleVisibility(self) -> None:
         """Toggle visibility of embeded console widget."""
         return self.setConsoleVisible(not self.consoleVisible())
+
+    def setCellFocus(self) -> None:
+        table = self._table_viewer.current_table
+        if table is None or table.data is None:
+            return None
+        sels = table.selections
+        table._qwidget._qtable_view.setFocus()
+        if len(sels) == 0:
+            sels = [(slice(0, 1), slice(0, 1))]
+        table.selections = [sels[0]]
+        return None
 
     def addDockWidget(
         self,
@@ -262,4 +278,5 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 QMainWidget._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWidget.toggleToolBarVisibility)
 QMainWindow._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWindow.toggleToolBarVisibility)
 QMainWindow._keymap.bind(["Ctrl+Shift+C"], QMainWindow.toggleConsoleVisibility)
-QMainWindow._keymap.bind(["Ctrl+Shift+0"], QMainWindow.setFocus)
+QMainWindow._keymap.bind(["Ctrl+0"], QMainWindow.setCellFocus)
+QMainWindow._keymap.bind(["Ctrl+1"], QMainWindow.setCellFocus)

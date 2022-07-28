@@ -335,9 +335,9 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     ):
         old = _normalize_key_combo(old)
         new = _normalize_key_combo(new)
-        if isinstance(old, (str, QtKeys)):
+        if isinstance(old, (str, QtKeys, QtGui.QKeyEvent)):
             old = [old]
-        if isinstance(new, (str, QtKeys)):
+        if isinstance(new, (str, QtKeys, QtGui.QKeyEvent)):
             new = [new]
         src = self
         for k in old[:-1]:
@@ -401,7 +401,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     def press_key(self, key: KeyType) -> bool:
         """Emulate pressing a key."""
         key = _normalize_key_combo(key)
-        if isinstance(key, (str, QtKeys)):
+        if isinstance(key, (str, QtKeys, QtGui.QKeyEvent)):
             return self._press_one_key(QtKeys(key))
         else:
             for k in key:
