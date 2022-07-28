@@ -1,9 +1,6 @@
 from __future__ import annotations
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from typing import TYPE_CHECKING
-from qtpy import QtCore
-
-from ._keymap import QtKeys
 
 if TYPE_CHECKING:
     from ..widgets.mainwindow import _TableViewerBase
@@ -13,8 +10,7 @@ if TYPE_CHECKING:
         ...
 
 
-# See napari_console
-# https://github.com/napari/napari-console
+# Modified from napari_console https://github.com/napari/napari-console
 class _QtConsole(RichJupyterWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -87,4 +83,5 @@ class _QtConsole(RichJupyterWidget):
             self.shell.push({"viewer": widget})
 
     def setFocus(self):
+        """Set focus to the text edit."""
         return self._control.setFocus()

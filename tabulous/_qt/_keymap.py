@@ -223,11 +223,16 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     """A mapping object for key map and key combo registration."""
 
     def __init__(
-        self, instance: Any | None = None, activated: Callable = _DUMMY_CALLBACK
+        self,
+        instance: Any | None = None,
+        activated: Callable = _DUMMY_CALLBACK,
+        deactivated: Callable = _DUMMY_CALLBACK,
     ):
         self._keymap: dict[QtKeys, QtKeyMap | Callable] = {}
         self._current_state = None
+        self._current_map = self
         self._activated_callback = activated
+        self._deactivated_callback = deactivated
         self._instances: dict[int, QtKeyMap] = {}
         self._obj = instance
 
@@ -242,11 +247,20 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         return new
 
     def copy(self) -> Self:
-        new = self.__class__(self._obj, self._activated_callback)
+        new = self.__class__(
+            self._obj, self._activated_callback, self._deactivated_callback
+        )
         new._keymap = self._keymap.copy()
         return new
 
     def __getitem__(self, key: KeyType):
+        key = QtKeys(key)
+        if self._current_state is None:
+            return self._keymap[key]
+
+        return self._keymap[self._current_state][key]
+
+    def _get_active_item(self, key: KeyType):
         key = QtKeys(key)
         if self._current_state is None:
             return self._keymap[key]
@@ -258,6 +272,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         strings = []
         if self._activated_callback is not _DUMMY_CALLBACK:
             strings.append(f"<activated>: {self._activated_callback!r}")
+        if self._deactivated_callback is not _DUMMY_CALLBACK:
+            strings.append(f"<deactivated>: {self._deactivated_callback!r}")
         for k, v in self._keymap.items():
             if isinstance(v, QtKeyMap):
                 vrepr = v._repr(indent + 2)
@@ -301,20 +317,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         """Assign key or key combo to callback."""
 
         def wrapper(func):
-            if kwargs:
-                # check keyword arguments to avoid runtime error
-                import inspect
-
-                sig = inspect.signature(func)
-                for name in kwargs:
-                    if name not in sig.parameters:
-                        raise TypeError(
-                            f"{func} does not accept keyword argument {name!r}."
-                        )
-                _func = partial(func, **kwargs)
-            else:
-                _func = func
-
+            _func = _safe_partial(func, **kwargs)
             _key = _normalize_key_combo(key)
 
             if isinstance(_key, (str, QtKeys)):
@@ -323,6 +326,50 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                 self._bind_keycombo(_key, _func, overwrite)
             else:
                 raise TypeError("key must be a string or a sequence of strings")
+            return func
+
+        return wrapper if callback is None else wrapper(callback)
+
+    @overload
+    def bind_deactivated(
+        self,
+        key: KeyType | Sequence[KeyType],
+        callback: Literal[None] = None,
+        overwrite: bool = False,
+        **kwargs,
+    ) -> Callable[[_F], _F]:
+        ...
+
+    @overload
+    def bind_deactivated(
+        self,
+        key: KeyType | Sequence[KeyType],
+        callback: _F,
+        overwrite: bool = False,
+        **kwargs,
+    ) -> _F:
+        ...
+
+    def bind_deactivated(self, key, callback=None, overwrite=False, **kwargs):
+        def wrapper(func):
+            _func = _safe_partial(func, **kwargs)
+            _key = _normalize_key_combo(key)
+
+            if isinstance(_key, (str, QtKeys)):
+                _key = [_key]
+            current = self
+            for i, k in enumerate(_key):
+                if not isinstance(current, QtKeyMap):
+                    seq = _key[:i]
+                    raise ValueError(
+                        f"Non keymap object {type(current)} encountered at {', '.join(seq)}."
+                    )
+                k = QtKeys(k)
+                try:
+                    current = current._keymap[k]
+                except KeyError:
+                    raise KeyError(f"Key {k} not found in {current!r}")
+            current._deactivated_callback = _func
             return func
 
         return wrapper if callback is None else wrapper(callback)
@@ -389,6 +436,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                 if isinstance(val, QtKeyMap):
                     val._obj = self._obj
                     inter.activate(key)
+                # self.deactivate()
         except KeyError:
             val = default
         return val
@@ -398,8 +446,25 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             raise TypeError("Activated callback must be callable")
         self._activated_callback = callback
 
+    def set_deactivated_callback(self, callback: Callable):
+        if not callable(callback):
+            raise TypeError("Activated callback must be callable")
+        self._deactivated_callback = callback
+
     def press_key(self, key: KeyType) -> bool:
-        """Emulate pressing a key."""
+        """
+        Emulate pressing a key.
+
+        Parameters
+        ----------
+        key : KeyType
+            Key expression to press.
+
+        Returns
+        -------
+        bool
+            True if the key triggered anything, False otherwise.
+        """
         key = _normalize_key_combo(key)
         if isinstance(key, (str, QtKeys, QtGui.QKeyEvent)):
             return self._press_one_key(QtKeys(key))
@@ -408,7 +473,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                 out = self._press_one_key(QtKeys(k))
             return out
 
-    def _press_one_key(self, key: QtKeys):
+    def _press_one_key(self, key: QtKeys) -> bool:
         callback = self.get_and_activate(key, None)
         if not isinstance(callback, QtKeyMap):
             self.deactivate()
@@ -434,9 +499,15 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         else:
             child._activated_callback(child._obj)
 
+        return None
+
     def deactivate(self) -> None:
         """Deactivate key combo trigger."""
         self._current_state = None
+        if self._obj is None:
+            self._deactivated_callback()
+        else:
+            self._deactivated_callback(self._obj)
         return None
 
     def __setitem__(self, key, value):
@@ -452,3 +523,16 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
 
     def __len__(self):
         return len(self._keymap)
+
+
+def _safe_partial(func, **kwargs):
+    if kwargs:
+        # check keyword arguments to avoid runtime error
+        import inspect
+
+        sig = inspect.signature(func)
+        for name in kwargs:
+            if name not in sig.parameters:
+                raise TypeError(f"{func} does not accept keyword argument {name!r}.")
+        return partial(func, **kwargs)
+    return func

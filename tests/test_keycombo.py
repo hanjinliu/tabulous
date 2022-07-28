@@ -55,6 +55,17 @@ def test_activated_callback():
     keymap.press_key("Ctrl+C")
     mock.assert_called_once()
 
+def test_deactivated_callback():
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    keymap.bind(["Ctrl+C", "Ctrl+V"], lambda: 0)
+    keymap["Ctrl+C"].set_deactivated_callback(mock)
+    keymap.press_key("Ctrl+C")
+    mock.assert_not_called()
+    keymap.press_key("Ctrl+V")
+    mock.assert_called_once()
+
 def test_callback_to_child_map():
     keymap = QtKeyMap()
     mock = MagicMock()

@@ -4,7 +4,7 @@ from typing import Callable, List, TYPE_CHECKING, Union
 import weakref
 import numpy as np
 import pandas as pd
-from qtpy import QtWidgets as QtW, QtGui
+from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtWidgets import QAction
 
 from ._svg import QColoredSVGIcon
@@ -24,10 +24,34 @@ class _QToolBar(QtW.QToolBar):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._button_and_icon: List["tuple[QtW.QToolButton, QColoredSVGIcon]"] = []
+        self._labels: List[QtW.QLabel] = []
 
     def updateIconColor(self, color):
         for button, icon in self._button_and_icon:
             button.setIcon(icon.colored(color))
+
+    def appendAction(self, f: Callable, qicon: "QColoredSVGIcon"):
+        action = self.addAction(qicon, "")
+        action.triggered.connect(f)
+        action.setToolTip(f.__doc__)
+        btn = self.widgetForAction(action)
+        self._button_and_icon.append((btn, qicon))
+        label = QtW.QLabel(str(len(self._button_and_icon)), btn, QtCore.Qt.SplashScreen)
+        label.setFixedSize(20, 20)
+        label.move(btn.rect().topLeft())
+        self._labels.append(label)
+        return None
+
+    def showButtonTooltip(self):
+        for i, (btn, icon) in enumerate(self._button_and_icon):
+            # QtW.QToolTip.showText(btn.rect().topLeft(), str(i), btn)
+            ...
+
+    def clickButton(self, index: int):
+        if index < 0 or index >= len(self._button_and_icon):
+            return None
+        btn, icon = self._button_and_icon[index]
+        return btn.click()
 
 
 class QTableStackToolBar(QtW.QToolBar):
@@ -42,6 +66,8 @@ class QTableStackToolBar(QtW.QToolBar):
         self._child_widgets: weakref.WeakValueDictionary[
             str, _QToolBar
         ] = weakref.WeakValueDictionary()
+
+        self._labels: dict[str, QtW.QLabel] = {}
 
         self.addWidget(self._tab)
         self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
@@ -76,6 +102,25 @@ class QTableStackToolBar(QtW.QToolBar):
         """The parent viewer object."""
         return self.parent()._table_viewer
 
+    def currentIndex(self) -> int:
+        """Current tab index."""
+        return self._tab.currentIndex()
+
+    def setCurrentIndex(self, index: int):
+        """Set current tab index."""
+        return self._tab.setCurrentIndex(index)
+
+    def showTabTooltips(self):
+        tabbar = self._tab.tabBar()
+        for i, label in enumerate(self._labels.values()):
+            pos = tabbar.tabRect(i).topLeft()
+            label.move(self._tab.mapToGlobal(pos))
+            label.show()
+
+    def hideTabTooltips(self):
+        for label in self._labels.values():
+            label.hide()
+
     if TYPE_CHECKING:
 
         def parent(self) -> "_QtMainWidgetBase":
@@ -90,16 +135,18 @@ class QTableStackToolBar(QtW.QToolBar):
         self._tab.addTab(toolbar, name)
         self._child_widgets[name] = toolbar
 
+        label = QtW.QLabel(name[0], self._tab, QtCore.Qt.SplashScreen)
+        label.setFixedSize(20, 20)
+        label.hide()
+        self._labels[name] = label
+
     def registerAction(self, tabname: str, f: Callable, icon: Union[str, Path]):
         """Register a callback `f` in tab `tabname`."""
         if tabname not in self._child_widgets:
             self.addToolBar(tabname)
         toolbar = self._child_widgets[tabname]
         qicon = QColoredSVGIcon.fromfile(str(icon))
-        action = toolbar.addAction(qicon, "")
-        action.triggered.connect(f)
-        action.setToolTip(f.__doc__)
-        toolbar._button_and_icon.append((toolbar.widgetForAction(action), qicon))
+        toolbar.appendAction(f, qicon)
         return None
 
     def addSeparatorToChild(self, tabname: str) -> QAction:

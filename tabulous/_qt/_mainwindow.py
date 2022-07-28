@@ -279,4 +279,26 @@ QMainWidget._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWidget.toggleToolBarVisibili
 QMainWindow._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWindow.toggleToolBarVisibility)
 QMainWindow._keymap.bind(["Ctrl+Shift+C"], QMainWindow.toggleConsoleVisibility)
 QMainWindow._keymap.bind(["Ctrl+0"], QMainWindow.setCellFocus)
-QMainWindow._keymap.bind(["Ctrl+1"], QMainWindow.setCellFocus)
+
+
+@QMainWindow._keymap.bind("Alt")
+def _(self: QMainWindow):
+    print("Alt")
+    self._toolbar.showTabTooltips()
+    self._toolbar.setFocus()
+
+
+@QMainWindow._keymap.bind("Alt, F", index=0)
+@QMainWindow._keymap.bind("Alt, T", index=1)
+@QMainWindow._keymap.bind("Alt, A", index=2)
+def _(self: QMainWindow, index: int):
+    print(index)
+    self._toolbar.setCurrentIndex(index)
+
+
+@QMainWindow._keymap.bind_deactivated("Alt")
+# @QMainWindow._keymap.bind_deactivated("Alt, F")
+# @QMainWindow._keymap.bind_deactivated("Alt, T")
+# @QMainWindow._keymap.bind_deactivated("Alt, A")
+def _(self: QMainWindow):
+    return self._toolbar.hideTabTooltips()
