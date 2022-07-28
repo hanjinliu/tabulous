@@ -127,7 +127,7 @@ class QtKeys:
         if isinstance(e, QtGui.QKeyEvent):
             self.modifier = e.modifiers()
             self.key = e.key()
-            if self.key > 10000:  # modifier only
+            if Qt.Key.Key_Shift <= self.key <= Qt.Key.Key_Alt:  # modifier only
                 self.key = _NO_KEY
         elif isinstance(e, str):
             mod, key = _parse_string(e)

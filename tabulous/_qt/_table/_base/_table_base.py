@@ -123,7 +123,8 @@ class _QTableViewEnhanced(QtW.QTableView):
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
         """Evoke parent keyPressEvent."""
         keys = QtKeys(e)
-        if keys.is_typing():
+        if keys.is_typing() or keys == "Ctrl+Tab":
+            # override default behavior
             parent = self.parent()
             if isinstance(parent, QBaseTable):
                 parent.keyPressEvent(e)

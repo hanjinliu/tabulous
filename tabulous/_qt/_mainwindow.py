@@ -288,10 +288,11 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         return self._toolbar.setVisible(visible)
 
 
-QMainWidget._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWidget.toggleToolBarVisibility)
-QMainWindow._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWindow.toggleToolBarVisibility)
-QMainWindow._keymap.bind(["Ctrl+Shift+C"], QMainWindow.toggleConsoleVisibility)
-QMainWindow._keymap.bind(["Ctrl+0"], QMainWindow.setCellFocus)
+QMainWidget._keymap.bind("Ctrl+K, Ctrl+T", QMainWidget.toggleToolBarVisibility)
+
+QMainWindow._keymap.bind("Ctrl+K, Ctrl+T", QMainWindow.toggleToolBarVisibility)
+QMainWindow._keymap.bind("Ctrl+Shift+C", QMainWindow.toggleConsoleVisibility)
+QMainWindow._keymap.bind("Ctrl+0", QMainWindow.setCellFocus)
 
 
 @QMainWindow._keymap.bind("Ctrl+O")
@@ -307,6 +308,7 @@ def _(self: QMainWindow):
 @QMainWindow._keymap.bind("Alt")
 def _(self: QMainWindow):
     self._toolbar.showTabTooltips()
+    self._toolbar.setFocus()
 
 
 @QMainWindow._keymap.bind("Alt, F", index=0)
@@ -327,3 +329,14 @@ def _(self: QMainWindow, key: str):
         return None
 
     self._toolbar.currentToolBar().clickButton(index, ignore_index_error=True)
+
+
+@QMainWindow._keymap.bind("Ctrl+Tab")
+def _(self: QMainWindow):
+    num = self._tablestack.count()
+    if num == 0:
+        return None
+    idx = self._tablestack.currentIndex() + 1
+    if idx >= num:
+        idx = 0
+    return self._tablestack.setCurrentIndex(idx)
