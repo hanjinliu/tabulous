@@ -315,11 +315,3 @@ def _(self: QMainWindow):
 def _(self: QMainWindow, index: int):
     self._toolbar.setCurrentIndex(index)
     self._toolbar.currentToolBar().showTabTooltips()
-
-
-@QMainWindow._keymap.bind_deactivated("Alt")
-# @QMainWindow._keymap.bind_deactivated("Alt, F")
-# @QMainWindow._keymap.bind_deactivated("Alt, T")
-# @QMainWindow._keymap.bind_deactivated("Alt, A")
-def _(self: QMainWindow):
-    return self._toolbar.hideTabTooltips()

@@ -94,3 +94,40 @@ def test_rebind(key0, key1):
 
     keymap.press_key(key1)
     mock.assert_called_once()
+
+def test_parametric():
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    keymap.bind("Ctrl+{}", mock)
+    keymap.bind("Ctrl+A", lambda: None)
+    keymap.bind("Ctrl+B, Ctrl+C", lambda: None)
+
+    mock.assert_not_called()
+    keymap.press_key("Ctrl+A")
+    mock.assert_not_called()
+    keymap.press_key("Ctrl+2")
+    mock.assert_called_with("2")
+    keymap.press_key("Ctrl+Z")
+    mock.assert_called_with("Z")
+    mock.reset_mock()
+    keymap.press_key("Ctrl+Shift+1")
+    mock.assert_not_called()
+    keymap.press_key("Ctrl")
+    mock.assert_not_called()
+    keymap.press_key("Ctrl+T")
+    mock.assert_called_with("T")
+    mock.reset_mock()
+    keymap.press_key("Ctrl+B")
+    mock.assert_not_called()
+
+def test_parametric_combo():
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    keymap.bind("Ctrl+B, Alt+{}", mock)
+
+    keymap.press_key("Ctrl+B")
+    mock.assert_not_called()
+    keymap.press_key("Alt+A")
+    mock.assert_called_with("A")

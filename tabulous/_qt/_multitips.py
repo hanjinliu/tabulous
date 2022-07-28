@@ -4,6 +4,8 @@ from qtpy.QtCore import Qt
 
 
 class _QHasToolTip(QtW.QWidget):
+    """A trait for a widget that has multiple tooltips."""
+
     _labels: list[QKeyComboTip] = []
 
     def toolTipPosition(self, index: int) -> QtCore.QPoint:
@@ -36,12 +38,12 @@ class _QHasToolTip(QtW.QWidget):
 
 
 class QKeyComboTip(QtW.QLabel):
-    def __init__(self, text: str, parent=None):
+    def __init__(self, text: str, parent=None, size=14):
         super().__init__(text, parent, Qt.WindowType.ToolTip)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = self.font()
-        font.setPointSize(14)
+        font.setPointSize(size)
         self.setFont(font)
-        self.setFixedSize(20, 20)
+        self.setFixedSize(size + 4, size + 4)
         self.setStyleSheet("border: 1px solid gray;")
         self.hide()

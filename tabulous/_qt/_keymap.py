@@ -91,20 +91,26 @@ def _parse_string(keys: str):
         return qtmod, _NO_KEY
 
     *mods, btn = keys.split("+")
+
     # get modifiler
     if not mods:
         qtmod = Qt.KeyboardModifier.NoModifier
     else:
         qtmod = reduce(or_, [_MODIFIERS[m] for m in mods])
+
     # get button
     if btn in _SYMBOLS:
         btn = _SYMBOLS[btn]
-    qtkey = getattr(Qt.Key, f"Key_{btn}")
+
+    if btn != "{}":
+        qtkey = getattr(Qt.Key, f"Key_{btn}")
+    else:
+        qtkey = _ANY_KEY
     return qtmod, qtkey
 
 
 _NO_KEY = -1
-_UNSET = object()
+_ANY_KEY = -2
 
 
 def _DUMMY_CALLBACK(*args):
@@ -122,7 +128,7 @@ class QtKeys:
             self.modifier = e.modifiers()
             self.key = e.key()
             if self.key > 10000:  # modifier only
-                self.key = -1
+                self.key = _NO_KEY
         elif isinstance(e, str):
             mod, key = _parse_string(e)
             self.modifier = mod
@@ -135,6 +141,14 @@ class QtKeys:
 
     def __hash__(self) -> int:
         return hash((self.modifier, self.key))
+
+    def _reduce_key(self) -> Self:
+        if self.key == _NO_KEY:
+            # this case is needed to avoid triggering parametric key binding with modifiers.
+            return self
+        new = QtKeys(self)
+        new.key = _ANY_KEY
+        return new
 
     def __str__(self) -> str:
         mod = _MODIFIERS_INV.get(self.modifier, "???")
@@ -172,6 +186,8 @@ class QtKeys:
         """Get clicked key in string form."""
         if self.key == -1:
             return ""
+        elif self.key == -2:
+            return "{}"
         return QtGui.QKeySequence(self.key).toString()
 
     def has_ctrl(self) -> bool:
@@ -423,24 +439,6 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         current._bind_key(last, callback, overwrite)
         return None
 
-    def get_or_activate(self, key: KeyType, default=_UNSET) -> Callable | Self:
-        """Go to a new state."""
-        key = QtKeys(key)
-        try:
-            current = self.current_map
-            val = current[key]
-            if isinstance(val, QtKeyMap):
-                val._obj = self._obj
-                self.activate(key)
-            else:
-                current.deactivate()
-
-        except KeyError as e:
-            if default is _UNSET:
-                raise e
-            val = default
-        return val
-
     def set_activated_callback(self, callback: Callable):
         if not callable(callback):
             raise TypeError("Activated callback must be callable")
@@ -475,12 +473,17 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
 
     def _press_one_key(self, key: QtKeys) -> bool:
         current = self.current_map
+        _is_parametric = False
         try:
             callback = current[key]
         except KeyError:
-            current.deactivate()
-            self._current_map = None
-            return False
+            try:
+                callback = current[key._reduce_key()]
+            except KeyError:
+                current.deactivate()
+                self._current_map = None
+                return False
+            _is_parametric = True
 
         if isinstance(callback, QtKeyMap):
             callback._obj = self._obj
@@ -488,10 +491,13 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         else:
             current.deactivate()
             self._current_map = None
-            if self._obj is None:
-                callback()
+            if self._obj is not None:
+                callback = callback.__get__(self._obj)
+            if _is_parametric:
+                callback(key.key_string())
             else:
-                callback(self._obj)
+                callback()
+
         return True
 
     def activate(self, key: KeyType) -> None:
