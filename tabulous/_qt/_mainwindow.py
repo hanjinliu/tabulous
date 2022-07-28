@@ -284,8 +284,8 @@ QMainWindow._keymap.bind(["Ctrl+0"], QMainWindow.setCellFocus)
 @QMainWindow._keymap.bind("Alt")
 def _(self: QMainWindow):
     print("Alt")
-    self._toolbar.showTabTooltips()
-    self._toolbar.setFocus()
+    # self._toolbar.showTabTooltips()
+    self.setFocus()
 
 
 @QMainWindow._keymap.bind("Alt, F", index=0)

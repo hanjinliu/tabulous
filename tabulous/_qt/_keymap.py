@@ -104,6 +104,7 @@ def _parse_string(keys: str):
 
 
 _NO_KEY = -1
+_UNSET = object()
 
 
 def _DUMMY_CALLBACK(*args):
@@ -203,7 +204,11 @@ class RecursiveMapping(MutableMapping[_K, _V]):
 
         @abstractmethod
         def __iter__(self) -> Iterator[_V | Self[_K, _V]]:
-            return super().__iter__()
+            ...
+
+        @abstractmethod
+        def items(self) -> Iterator[tuple[_K, _V | Self[_K, _V]]]:
+            ...
 
 
 _F = TypeVar("_F", bound=Callable)
@@ -229,12 +234,17 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         deactivated: Callable = _DUMMY_CALLBACK,
     ):
         self._keymap: dict[QtKeys, QtKeyMap | Callable] = {}
-        self._current_state = None
-        self._current_map = self
+        self._current_map = None
         self._activated_callback = activated
         self._deactivated_callback = deactivated
         self._instances: dict[int, QtKeyMap] = {}
         self._obj = instance
+
+    @property
+    def current_map(self) -> Self:
+        if self._current_map is None:
+            return self
+        return self._current_map
 
     def __get__(self, obj, objtype=None):
         if obj is None:
@@ -254,18 +264,10 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         return new
 
     def __getitem__(self, key: KeyType):
-        key = QtKeys(key)
-        if self._current_state is None:
-            return self._keymap[key]
-
-        return self._keymap[self._current_state][key]
+        return self._keymap[QtKeys(key)]
 
     def _get_active_item(self, key: KeyType):
-        key = QtKeys(key)
-        if self._current_state is None:
-            return self._keymap[key]
-
-        return self._keymap[self._current_state][key]
+        return self.current_map[QtKeys(key)]
 
     def _repr(self, indent: int = 0) -> str:
         indent_str = " " * indent
@@ -274,7 +276,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             strings.append(f"<activated>: {self._activated_callback!r}")
         if self._deactivated_callback is not _DUMMY_CALLBACK:
             strings.append(f"<deactivated>: {self._deactivated_callback!r}")
-        for k, v in self._keymap.items():
+        for k, v in self.items():
             if isinstance(v, QtKeyMap):
                 vrepr = v._repr(indent + 2)
             else:
@@ -366,7 +368,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                     )
                 k = QtKeys(k)
                 try:
-                    current = current._keymap[k]
+                    current = current[k]
                 except KeyError:
                     raise KeyError(f"Key {k} not found in {current!r}")
             current._deactivated_callback = _func
@@ -388,14 +390,14 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             new = [new]
         src = self
         for k in old[:-1]:
-            src = src._keymap[QtKeys(k)]
+            src = src[QtKeys(k)]
         self.bind(new, src.pop(old[-1]), overwrite=overwrite)
         return None
 
     def _bind_key(
         self, key: KeyType, callback: Callable, overwrite: bool = False
     ) -> None:
-        if key in self._keymap and not overwrite:
+        if key in self and not overwrite:
             raise KeyError(f"Key {key} already exists")
         self[key] = callback
         return None
@@ -409,7 +411,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         *pref, last = combo
         for key in pref:
             key = QtKeys(key)
-            if key not in current._keymap:
+            if key not in current:
                 current.add_child(key)
 
             child = current[key]
@@ -421,23 +423,21 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         current._bind_key(last, callback, overwrite)
         return None
 
-    def get_and_activate(self, key: KeyType, default=None) -> Callable:
+    def get_or_activate(self, key: KeyType, default=_UNSET) -> Callable | Self:
         """Go to a new state."""
         key = QtKeys(key)
         try:
-            if self._current_state is None:
-                val = self._keymap[key]
-                if isinstance(val, QtKeyMap):
-                    val._obj = self._obj
-                    self.activate(key)
+            current = self.current_map
+            val = current[key]
+            if isinstance(val, QtKeyMap):
+                val._obj = self._obj
+                self.activate(key)
             else:
-                inter = self._keymap[self._current_state]
-                val = inter[key]
-                if isinstance(val, QtKeyMap):
-                    val._obj = self._obj
-                    inter.activate(key)
-                # self.deactivate()
-        except KeyError:
+                current.deactivate()
+
+        except KeyError as e:
+            if default is _UNSET:
+                raise e
             val = default
         return val
 
@@ -474,11 +474,20 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             return out
 
     def _press_one_key(self, key: QtKeys) -> bool:
-        callback = self.get_and_activate(key, None)
-        if not isinstance(callback, QtKeyMap):
-            self.deactivate()
-            if callback is None:
-                return False
+        current = self.current_map
+        try:
+            callback = current[key]
+        except KeyError:
+            current.deactivate()
+            self._current_map = None
+            return False
+
+        if isinstance(callback, QtKeyMap):
+            callback._obj = self._obj
+            self.activate(key)
+        else:
+            current.deactivate()
+            self._current_map = None
             if self._obj is None:
                 callback()
             else:
@@ -488,22 +497,22 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     def activate(self, key: KeyType) -> None:
         """Activate key combo trigger."""
         key = QtKeys(key)
-        child = self._keymap[key]
-        if not isinstance(child, QtKeyMap):
-            self._current_state = None
-            raise KeyError(f"Key {key} is not a child")
-        child.deactivate()
-        self._current_state = key
-        if child._obj is None:
-            child._activated_callback()
-        else:
-            child._activated_callback(child._obj)
 
+        old = self.current_map
+        current = self._get_active_item(key)
+        if not isinstance(current, QtKeyMap):
+            self._current_map = None
+            raise KeyError(f"Key {key} is not a child")
+        self._current_map = current
+        if current._obj is None:
+            current._activated_callback()
+        else:
+            current._activated_callback(current._obj)
+        old.deactivate()
         return None
 
     def deactivate(self) -> None:
         """Deactivate key combo trigger."""
-        self._current_state = None
         if self._obj is None:
             self._deactivated_callback()
         else:
