@@ -4,7 +4,7 @@ import pytest
 
 @pytest.mark.parametrize(
     "key",
-    ["Ctrl+C", ["Ctrl+C", "C"], ["Ctrl+C", "Shift+Z", "Alt+O"]],
+    ["Ctrl+C", ["Ctrl+C", "C"], ["Ctrl+C", "Shift+Z", "Alt+O"], "Ctrl+C, Shift+Z, Alt+O"],
 )
 def test_keypress(key):
     mock = MagicMock()
@@ -15,10 +15,7 @@ def test_keypress(key):
     mock.assert_not_called()
     keymap.press_key("Ctrl+@")
     mock.assert_not_called()
-    if isinstance(key, str):
-        keymap.press_key(key)
-    else:
-        [keymap.press_key(k) for k in key]
+    keymap.press_key(key)
     mock.assert_called_once()
 
 
@@ -71,3 +68,18 @@ def test_callback_to_child_map():
     mock.assert_called_with(0)
     keymap.press_key("Ctrl+V")
     mock.assert_called_with(1)
+
+@pytest.mark.parametrize("key0", ["Ctrl+C", "Ctrl+K, Ctrl+C"])
+@pytest.mark.parametrize("key1", ["Ctrl+A", "Ctrl+K, Ctrl+A"])
+def test_rebind(key0, key1):
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    keymap.bind(key0, mock)
+    keymap.rebind(key0, key1)
+
+    keymap.press_key(key0)
+    mock.assert_not_called()
+
+    keymap.press_key(key1)
+    mock.assert_called_once()
