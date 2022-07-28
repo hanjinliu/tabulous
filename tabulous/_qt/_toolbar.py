@@ -2,12 +2,14 @@
 from pathlib import Path
 from typing import Callable, List, TYPE_CHECKING, Union
 import weakref
-import numpy as np
 import pandas as pd
 from qtpy import QtWidgets as QtW, QtGui, QtCore
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QAction
 
 from ._svg import QColoredSVGIcon
+from ._multitips import _QHasToolTip
+
 from .._magicgui import dialog_factory
 from ..types import TableData
 
@@ -20,11 +22,10 @@ SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 ICON_DIR = Path(__file__).parent / "_icons"
 
 
-class _QToolBar(QtW.QToolBar):
+class _QToolBar(QtW.QToolBar, _QHasToolTip):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._button_and_icon: List["tuple[QtW.QToolButton, QColoredSVGIcon]"] = []
-        self._labels: List[QKeyComboTip] = []
 
     def updateIconColor(self, color):
         for button, icon in self._button_and_icon:
@@ -36,15 +37,16 @@ class _QToolBar(QtW.QToolBar):
         action.setToolTip(f.__doc__)
         btn = self.widgetForAction(action)
         self._button_and_icon.append((btn, qicon))
-        label = QKeyComboTip(str(len(self._button_and_icon)), btn)
-        # label.move(btn.rect().topLeft())
-        self._labels.append(label)
         return None
 
-    def showButtonTooltip(self):
-        for i, (btn, icon) in enumerate(self._button_and_icon):
-            # QtW.QToolTip.showText(btn.rect().topLeft(), str(i), btn)
-            ...
+    def toolTipPosition(self, index: int) -> QtCore.QPoint:
+        btn, icon = self._button_and_icon[index]
+        pos = btn.pos()
+        pos.setY(pos.y() + btn.height() // 2)
+        return pos
+
+    def toolTipNumber(self) -> int:
+        return len(self._button_and_icon)
 
     def clickButton(self, index: int):
         if index < 0 or index >= len(self._button_and_icon):
@@ -53,7 +55,7 @@ class _QToolBar(QtW.QToolBar):
         return btn.click()
 
 
-class QTableStackToolBar(QtW.QToolBar):
+class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
     def __init__(self, parent: "_QtMainWidgetBase"):
         super().__init__(parent)
 
@@ -65,8 +67,6 @@ class QTableStackToolBar(QtW.QToolBar):
         self._child_widgets: weakref.WeakValueDictionary[
             str, _QToolBar
         ] = weakref.WeakValueDictionary()
-
-        self._labels: dict[str, QKeyComboTip] = {}
 
         self.addWidget(self._tab)
         self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
@@ -109,16 +109,18 @@ class QTableStackToolBar(QtW.QToolBar):
         """Set current tab index."""
         return self._tab.setCurrentIndex(index)
 
-    def showTabTooltips(self):
-        tabbar = self._tab.tabBar()
-        for i, label in enumerate(self._labels.values()):
-            pos = tabbar.tabRect(i).topLeft()
-            label.move(self._tab.mapToGlobal(pos))
-            label.show()
+    def currentToolBar(self) -> _QToolBar:
+        """Current toolbar."""
+        return self._child_widgets[self._tab.tabText(self._tab.currentIndex())]
 
-    def hideTabTooltips(self):
-        for label in self._labels.values():
-            label.hide()
+    def toolTipPosition(self, index: int) -> QtCore.QPoint:
+        return self._tab.tabBar().tabRect(index).topLeft()
+
+    def toolTipText(self, index: int) -> str:
+        return list(self._child_widgets.keys())[index][0]
+
+    def toolTipNumber(self) -> int:
+        return self._tab.count()
 
     if TYPE_CHECKING:
 
@@ -133,9 +135,6 @@ class QTableStackToolBar(QtW.QToolBar):
         toolbar.setContentsMargins(0, 0, 0, 0)
         self._tab.addTab(toolbar, name)
         self._child_widgets[name] = toolbar
-
-        label = QKeyComboTip(text=name[0], parent=self._tab)
-        self._labels[name] = label
 
     def registerAction(self, tabname: str, f: Callable, icon: Union[str, Path]):
         """Register a callback `f` in tab `tabname`."""
@@ -306,15 +305,3 @@ def melt(df: TableData, id_vars: List[str]):
 @dialog_factory
 def query(df: TableData, expr: str):
     return df.query(expr)
-
-
-class QKeyComboTip(QtW.QLabel):
-    def __init__(self, text: str, parent=None):
-        super().__init__(text, parent)
-        self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFixedSize(20, 20)
-        self.hide()
-
-    def eventFilter(self, obj: QtCore.QObject, ev: QtCore.QEvent) -> bool:
-        print(ev.type())
-        return super().eventFilter(obj, ev)

@@ -240,6 +240,19 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 inst.append(inst.pop(inst.index(self)))
             except ValueError:
                 pass
+
+        if e.type() in {
+            QEvent.Type.MouseButtonPress,
+            QEvent.Type.MouseButtonDblClick,
+            QEvent.Type.KeyPress,
+            QEvent.Type.Move,
+            QEvent.Type.Resize,
+            QEvent.Type.Show,
+            QEvent.Type.Hide,
+        }:
+            self._toolbar.hideTabTooltips()
+            self._toolbar.currentToolBar().hideTabTooltips()
+
         return super().event(e)
 
     def registerAction(
@@ -281,9 +294,18 @@ QMainWindow._keymap.bind(["Ctrl+Shift+C"], QMainWindow.toggleConsoleVisibility)
 QMainWindow._keymap.bind(["Ctrl+0"], QMainWindow.setCellFocus)
 
 
+@QMainWindow._keymap.bind("Ctrl+O")
+def _(self: QMainWindow):
+    return self._toolbar.open_table()
+
+
+@QMainWindow._keymap.bind("Ctrl+S")
+def _(self: QMainWindow):
+    return self._toolbar.save_table()
+
+
 @QMainWindow._keymap.bind("Alt")
 def _(self: QMainWindow):
-    print("Alt")
     self._toolbar.showTabTooltips()
 
 
@@ -291,8 +313,8 @@ def _(self: QMainWindow):
 @QMainWindow._keymap.bind("Alt, T", index=1)
 @QMainWindow._keymap.bind("Alt, A", index=2)
 def _(self: QMainWindow, index: int):
-    print(index)
     self._toolbar.setCurrentIndex(index)
+    self._toolbar.currentToolBar().showTabTooltips()
 
 
 @QMainWindow._keymap.bind_deactivated("Alt")
