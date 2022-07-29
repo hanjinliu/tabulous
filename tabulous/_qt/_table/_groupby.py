@@ -72,12 +72,13 @@ class QTableGroupBy(QBaseTable):
         self._group_key_cbox.currentIndexChanged.connect(
             lambda e: self.setFilter(self._filter_slice)
         )
-
-        _layout = QtW.QVBoxLayout()
-        _layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(_layout)
-        self.layout().addWidget(self._group_key_cbox)
-        self.layout().addWidget(self._qtable_view_)
+        _main_layout = QtW.QVBoxLayout()
+        _main_layout.setContentsMargins(0, 0, 0, 0)
+        _main_layout.addWidget(self._group_key_cbox)
+        _main_layout.addWidget(self._qtable_view_)
+        wdt = QtW.QWidget()
+        wdt.setLayout(_main_layout)
+        self.addWidget(wdt)
 
     def getDataFrame(self) -> DataFrameGroupBy:
         return self._data_raw

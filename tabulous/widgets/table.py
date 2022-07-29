@@ -16,6 +16,8 @@ from ..types import (
 if TYPE_CHECKING:
     import pandas as pd
     from collections_undo import UndoManager
+    from qtpy import QtWidgets as QtW
+    from magicgui.widgets import Widget
     from .._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from .._qt._table import QBaseTable
     from .._qt._keymap import QtKeyMap
@@ -151,6 +153,12 @@ class TableBase(ABC):
     def undo_manager(self) -> UndoManager:
         """Return the undo manager."""
         return self._qwidget._mgr
+
+    def add_side_widget(self, wdt: QtW.QWidget | Widget):
+        if hasattr(wdt, "native"):
+            wdt = wdt.native
+        self._qwidget.addSideWidget(wdt)
+        return wdt
 
 
 class _DataFrameTableLayer(TableBase):

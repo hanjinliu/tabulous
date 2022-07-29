@@ -124,14 +124,15 @@ class QTableDisplay(QBaseTable):
                 self._qtimer.start()
 
         _header_layout.addWidget(self._play_button)
-
         _header.setLayout(_header_layout)
 
-        _layout = QtW.QVBoxLayout()
-        _layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(_layout)
-        self.layout().addWidget(_header)
-        self.layout().addWidget(self._qtable_view_)
+        _main_layout = QtW.QVBoxLayout()
+        _main_layout.setContentsMargins(0, 0, 0, 0)
+        _main_layout.addWidget(_header)
+        _main_layout.addWidget(self._qtable_view_)
+        wdt = QtW.QWidget()
+        wdt.setLayout(_main_layout)
+        self.addWidget(wdt)
 
     def refresh(self) -> None:
         self._refreshing = True

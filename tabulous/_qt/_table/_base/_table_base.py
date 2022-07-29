@@ -184,7 +184,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         return
 
 
-class QBaseTable(QtW.QWidget):
+class QBaseTable(QtW.QSplitter):
     """
     The base widget for a table.
 
@@ -207,6 +207,8 @@ class QBaseTable(QtW.QWidget):
     ):
         super().__init__(parent)
         self._filter_slice: FilterType | None = None
+        self.setContentsMargins(0, 0, 0, 0)
+
         self.createQTableView()
         self.createModel()
         self.setDataFrame(data)
@@ -221,6 +223,8 @@ class QBaseTable(QtW.QWidget):
         self._qtable_view.selectionChangedSignal.connect(
             lambda: self.selectionChangedSignal.emit(self.selections())
         )
+
+        self._side_area = None
         if not self._DEFAULT_EDITABLE:
             self._qtable_view.setEditTriggers(_READ_ONLY)
 
@@ -392,11 +396,21 @@ class QBaseTable(QtW.QWidget):
         self.refresh()
 
     def refresh(self) -> None:
+        """Refresh table view."""
         qtable = self._qtable_view
         qtable.viewport().update()
         # headers have also to be updated.
         qtable.horizontalHeader().viewport().update()
         qtable.verticalHeader().viewport().update()
+        return None
+
+    def addSideWidget(self, widget: QtW.QWidget):
+        if self._side_area is None:
+            wdt = QtW.QWidget()
+            wdt.setLayout(QtW.QVBoxLayout())
+            self.addWidget(wdt)
+            self._side_area = wdt
+        self._side_area.layout().addWidget(widget)
         return None
 
 
@@ -823,10 +837,9 @@ class QMutableSimpleTable(QMutableTable):
 
     def createQTableView(self):
         self._qtable_view_ = _QTableViewEnhanced()
-        _layout = QtW.QVBoxLayout()
-        _layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(_layout)
-        self.layout().addWidget(self._qtable_view_)
+        self.addWidget(self._qtable_view_)
+        # self.layout().addWidget(self._qtable_view_)
+        return None
 
 
 def _equal(val: Any, old_val: Any) -> bool:
