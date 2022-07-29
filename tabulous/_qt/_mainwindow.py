@@ -310,23 +310,26 @@ QMainWindow._keymap.bind("Ctrl+0", QMainWindow.setCellFocus)
 
 @QMainWindow._keymap.bind("Ctrl+O")
 def _(self: QMainWindow):
+    """Open a file as a table."""
     return self._toolbar.open_table()
 
 
 @QMainWindow._keymap.bind("Ctrl+S")
 def _(self: QMainWindow):
+    """Save current table."""
     return self._toolbar.save_table()
 
 
 @QMainWindow._keymap.bind("Alt")
 def _(self: QMainWindow):
+    """Move focus to toolbar."""
     self._toolbar.showTabTooltips()
     self._toolbar.setFocus()
 
 
-@QMainWindow._keymap.bind("Alt, F", index=0)
-@QMainWindow._keymap.bind("Alt, T", index=1)
-@QMainWindow._keymap.bind("Alt, A", index=2)
+@QMainWindow._keymap.bind("Alt, F", index=0, desc="Move focus to `File` menu tab.")
+@QMainWindow._keymap.bind("Alt, T", index=1, desc="Move focus to `Table` menu tab.")
+@QMainWindow._keymap.bind("Alt, A", index=2, desc="Move focus to `Analyze` menu tab.")
 def _(self: QMainWindow, index: int):
     self._toolbar.setCurrentIndex(index)
     self._toolbar.currentToolBar().showTabTooltips()
@@ -336,6 +339,7 @@ def _(self: QMainWindow, index: int):
 @QMainWindow._keymap.bind("Alt, T, {}")
 @QMainWindow._keymap.bind("Alt, A, {}")
 def _(self: QMainWindow, key: str):
+    """Push a tool button at the given position."""
     try:
         index = int(key)
     except ValueError:

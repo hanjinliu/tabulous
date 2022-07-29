@@ -1,20 +1,31 @@
 from __future__ import annotations
 from typing import Sequence
 
-from qtpy import QtGui, QtWidgets as QtW
+from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Qt
 
 from ._callback import BoundCallback
 from ._keymap import QtKeys, QtKeyMap
 
 
-class QtKeyMapView(QtW.QScrollArea):
+class QtKeyMapView(QtW.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        area = QtW.QScrollArea()
+        area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+
+        self.setLayout(QtW.QVBoxLayout())
+        self.layout().addWidget(area)
+
+        self.setWindowTitle("Keymaps")
+        central_widget = QtW.QWidget(area)
+        area.setWidget(central_widget)
+
         _layout = QtW.QVBoxLayout()
-        self.setLayout(_layout)
         _layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.setMinimumHeight(30)
+        central_widget.setLayout(_layout)
+        self._layout = _layout
 
     @classmethod
     def from_keymap(cls, kmap: QtKeyMap) -> QtKeyMapView:
@@ -35,7 +46,7 @@ class QtKeyMapView(QtW.QScrollArea):
 
     def addItem(self, keys: Sequence[QtKeys], callback: BoundCallback) -> None:
         item = QtKeyBindItem(parent=self, key=keys, desc=callback.desc)
-        self.layout().addWidget(item)
+        self._layout.addWidget(item)
         return None
 
 
@@ -60,7 +71,7 @@ class QtKeyBindItem(QtW.QGroupBox):
         if isinstance(key, QtKeys):
             text = f"<code>{key}</code>"
         else:
-            text = ", ".join(f"<code>{key}</code>" for k in key)
+            text = ", ".join(f"<code>{k}</code>" for k in key)
         self._key_label.setText(text)
         return None
 

@@ -100,5 +100,8 @@ class BoundCallback(partial):
         if obj is None:
             return self
         return BoundCallback(
-            self.func.__get__(obj), desc=self.desc, keys=self.keys, kwargs=self.keywords
+            self.func.__get__(obj, objtype),
+            desc=self.desc,
+            keys=self.keys,
+            kwargs=self.keywords,
         )
