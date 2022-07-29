@@ -14,13 +14,17 @@ from typing import (
     overload,
 )
 
-from qtpy import QtWidgets as QtW, QtGui, QtCore
+from qtpy import QtGui
 from qtpy.QtCore import Qt
-from functools import partial, reduce
+from functools import reduce
 from operator import or_
 
+from ._callback import BoundCallback
+
 if TYPE_CHECKING:
-    from typing_extensions import Self
+    from typing_extensions import Self, ParamSpec
+
+    _P = ParamSpec("_P")
 
 NoModifier = Qt.KeyboardModifier.NoModifier
 Ctrl = Qt.KeyboardModifier.ControlModifier
@@ -113,10 +117,6 @@ _NO_KEY = -1
 _ANY_KEY = -2
 
 
-def _DUMMY_CALLBACK(*args):
-    """Dummy callback function."""
-
-
 KeyType = Union[QtGui.QKeyEvent, "QtKeys", str]
 
 
@@ -137,7 +137,10 @@ class QtKeys:
             self.modifier = e.modifier
             self.key = e.key
         else:
-            raise TypeError("QtKeys can only be initialized with QKeyEvent or QtKeys")
+            raise TypeError(
+                "QtKeys can only be initialized with QKeyEvent, str or QtKeys, "
+                f"but got {type(e)}."
+            )
 
     def __hash__(self) -> int:
         return hash((self.modifier, self.key))
@@ -173,14 +176,10 @@ class QtKeys:
 
     def is_typing(self) -> bool:
         """True if key is a letter or number."""
-        return (
-            self.modifier
-            in (
-                Qt.KeyboardModifier.NoModifier,
-                Qt.KeyboardModifier.ShiftModifier,
-            )
-            and (Qt.Key.Key_Exclam <= self.key <= Qt.Key.Key_ydiaeresis)
-        )
+        return self.modifier in (
+            Qt.KeyboardModifier.NoModifier,
+            Qt.KeyboardModifier.ShiftModifier,
+        ) and (Qt.Key.Key_Exclam <= self.key <= Qt.Key.Key_ydiaeresis)
 
     def key_string(self) -> str:
         """Get clicked key in string form."""
@@ -246,21 +245,34 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     def __init__(
         self,
         instance: Any | None = None,
-        activated: Callable = _DUMMY_CALLBACK,
-        deactivated: Callable = _DUMMY_CALLBACK,
+        activated: Callable | None = None,
+        deactivated: Callable | None = None,
     ):
         self._keymap: dict[QtKeys, QtKeyMap | Callable] = {}
         self._current_map = None
-        self._activated_callback = activated
-        self._deactivated_callback = deactivated
+        self._activated_callback = activated or _DUMMY_CALLBACK
+        self._deactivated_callback = deactivated or _DUMMY_CALLBACK
         self._instances: dict[int, QtKeyMap] = {}
         self._obj = instance
 
     @property
     def current_map(self) -> Self:
+        """Return the current active keymap object."""
         if self._current_map is None:
             return self
         return self._current_map
+
+    @property
+    def activated_callback(self) -> BoundCallback | None:
+        if (a := self._activated_callback) is not _DUMMY_CALLBACK:
+            return a
+        return None
+
+    @property
+    def deactivated_callback(self) -> BoundCallback | None:
+        if (a := self._deactivated_callback) is not _DUMMY_CALLBACK:
+            return a
+        return None
 
     def __get__(self, obj, objtype=None):
         if obj is None:
@@ -273,6 +285,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         return new
 
     def copy(self) -> Self:
+        """Return a copy of an instance."""
         new = self.__class__(
             self._obj, self._activated_callback, self._deactivated_callback
         )
@@ -281,9 +294,6 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
 
     def __getitem__(self, key: KeyType):
         return self._keymap[QtKeys(key)]
-
-    def _get_active_item(self, key: KeyType):
-        return self.current_map[QtKeys(key)]
 
     def _repr(self, indent: int = 0) -> str:
         indent_str = " " * indent
@@ -305,9 +315,10 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         return self._repr()
 
     def add_child(self, key: KeyType, child_callback: Callable | None = None) -> None:
+        """Add a child keymap."""
         kmap = QtKeyMap()
         if child_callback is not None:
-            kmap.set_activated_callback(child_callback)
+            kmap._activated_callback = BoundCallback(child_callback, keys=key)
         self[key] = kmap
         return None
 
@@ -317,6 +328,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         key: KeyType | Sequence[KeyType],
         callback: Literal[None] = None,
         overwrite: bool = False,
+        desc: str | None = None,
         **kwargs,
     ) -> Callable[[_F], _F]:
         ...
@@ -327,16 +339,17 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         key: KeyType | Sequence[KeyType],
         callback: _F,
         overwrite: bool = False,
+        desc: str | None = None,
         **kwargs,
     ) -> _F:
         ...
 
-    def bind(self, key, callback=None, overwrite=False, **kwargs) -> None:
+    def bind(self, key, callback=None, *, overwrite=False, desc=None, **kwargs) -> None:
         """Assign key or key combo to callback."""
 
         def wrapper(func):
-            _func = _safe_partial(func, **kwargs)
             _key = _normalize_key_combo(key)
+            _func = BoundCallback(func, keys=_key, desc=desc, kwargs=kwargs)
 
             if isinstance(_key, (str, QtKeys)):
                 self._bind_key(_key, _func, overwrite)
@@ -370,8 +383,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
 
     def bind_deactivated(self, key, callback=None, overwrite=False, **kwargs):
         def wrapper(func):
-            _func = _safe_partial(func, **kwargs)
             _key = _normalize_key_combo(key)
+            _func = BoundCallback(func, keys=_key, kwargs=kwargs)
 
             if isinstance(_key, (str, QtKeys)):
                 _key = [_key]
@@ -387,6 +400,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                     current = current[k]
                 except KeyError:
                     raise KeyError(f"Key {k} not found in {current!r}")
+            if current._deactivated_callback is not _DUMMY_CALLBACK and not overwrite:
+                raise ValueError(f"Key {key} already exists")
             current._deactivated_callback = _func
             return func
 
@@ -411,15 +426,28 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         return None
 
     def _bind_key(
-        self, key: KeyType, callback: Callable, overwrite: bool = False
+        self, key: KeyType, callback: BoundCallback, overwrite: bool = False
     ) -> None:
-        if key in self and not overwrite:
-            raise KeyError(f"Key {key} already exists")
-        self[key] = callback
+        child = self.get(key, None)
+        if callable(child):
+            if not overwrite:
+                raise ValueError(f"A callback is already assigned to key {key}.")
+            self[key] = callback
+
+        elif isinstance(child, QtKeyMap):
+            if not overwrite and child._activated_callback is not _DUMMY_CALLBACK:
+                raise ValueError(
+                    f"A keymap with callback is already assigned to key {key}."
+                )
+            child._activated_callback = callback
+
+        else:
+            self[key] = callback
+
         return None
 
     def _bind_keycombo(
-        self, combo: Sequence[KeyType], callback: Callable, overwrite: bool = False
+        self, combo: Sequence[KeyType], callback: BoundCallback, overwrite: bool = False
     ) -> None:
         if isinstance(combo, str):
             raise TypeError("Combo must be an iterable of keys")
@@ -438,16 +466,6 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
 
         current._bind_key(last, callback, overwrite)
         return None
-
-    def set_activated_callback(self, callback: Callable):
-        if not callable(callback):
-            raise TypeError("Activated callback must be callable")
-        self._activated_callback = callback
-
-    def set_deactivated_callback(self, callback: Callable):
-        if not callable(callback):
-            raise TypeError("Activated callback must be callable")
-        self._deactivated_callback = callback
 
     def press_key(self, key: KeyType) -> bool:
         """
@@ -505,7 +523,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         key = QtKeys(key)
 
         old = self.current_map
-        current = self._get_active_item(key)
+        current = self.current_map[QtKeys(key)]
         if not isinstance(current, QtKeyMap):
             self._current_map = None
             raise KeyError(f"Key {key} is not a child")
@@ -525,8 +543,15 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             self._deactivated_callback(self._obj)
         return None
 
+    def to_widget(self):
+        from ._keymapview import QtKeyMapView
+
+        return QtKeyMapView.from_keymap(self)
+
     def __setitem__(self, key, value):
-        if not isinstance(value, (QtKeyMap, Callable)):
+        if callable(value):
+            value = BoundCallback(value)
+        elif not isinstance(value, QtKeyMap):
             raise TypeError("Values in QtKeyMap must be QtKeyMap or callable.")
         self._keymap[QtKeys(key)] = value
 
@@ -540,14 +565,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         return len(self._keymap)
 
 
-def _safe_partial(func, **kwargs):
-    if kwargs:
-        # check keyword arguments to avoid runtime error
-        import inspect
+def _DUMMY_CALLBACK(*args):
+    """Dummy callback function."""
 
-        sig = inspect.signature(func)
-        for name in kwargs:
-            if name not in sig.parameters:
-                raise TypeError(f"{func} does not accept keyword argument {name!r}.")
-        return partial(func, **kwargs)
-    return func
+
+_DUMMY_CALLBACK = BoundCallback(_DUMMY_CALLBACK)

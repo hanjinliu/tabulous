@@ -51,7 +51,7 @@ def test_activated_callback():
     mock = MagicMock()
 
     keymap.bind(["Ctrl+C", "Ctrl+V"], lambda: 0)
-    keymap["Ctrl+C"].set_activated_callback(mock)
+    keymap.bind("Ctrl+C", mock)
     keymap.press_key("Ctrl+C")
     mock.assert_called_once()
 
@@ -60,7 +60,7 @@ def test_deactivated_callback():
     mock = MagicMock()
 
     keymap.bind(["Ctrl+C", "Ctrl+V"], lambda: 0)
-    keymap["Ctrl+C"].set_deactivated_callback(mock)
+    keymap.bind_deactivated("Ctrl+C", mock)
     keymap.press_key("Ctrl+C")
     mock.assert_not_called()
     keymap.press_key("Ctrl+V")

@@ -81,6 +81,11 @@ class _QtMainWidgetBase(QtW.QWidget):
             return super().keyPressEvent(a0)
         return None
 
+    def showKeyMap(self) -> None:
+        wdt = self._keymap.to_widget()
+        wdt.setParent(self, wdt.windowFlags())
+        return wdt.show()
+
     def setCentralWidget(self, wdt: QtW.QWidget):
         """Set the splitter widget."""
         raise NotImplementedError()
@@ -135,6 +140,21 @@ class QMainWidget(_QtMainWidgetBase):
             self.layout().insertWidget(0, self._toolbar)
 
         return self._toolbar.setVisible(visible)
+
+
+_REORDER_INSTANCES = frozenset({QEvent.Type.WindowActivate, QEvent.Type.ZOrderChange})
+
+_HIDE_TOOLTIPS = frozenset(
+    {
+        QEvent.Type.MouseButtonPress,
+        QEvent.Type.MouseButtonDblClick,
+        QEvent.Type.KeyPress,
+        QEvent.Type.Move,
+        QEvent.Type.Resize,
+        QEvent.Type.Show,
+        QEvent.Type.Hide,
+    }
+)
 
 
 class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
@@ -227,13 +247,14 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         return window._table_viewer if window else None
 
     def event(self, e: QEvent):
-        if e.type() == QEvent.Type.Close:
+        type = e.type()
+        if type == QEvent.Type.Close:
             # when we close the MainWindow, remove it from the instances list
             try:
                 QMainWindow._instances.remove(self)
             except ValueError:
                 pass
-        if e.type() in {QEvent.Type.WindowActivate, QEvent.Type.ZOrderChange}:
+        if type in _REORDER_INSTANCES:
             # upon activation or raise_, put window at the end of _instances
             try:
                 inst = QMainWindow._instances
@@ -241,15 +262,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
             except ValueError:
                 pass
 
-        if e.type() in {
-            QEvent.Type.MouseButtonPress,
-            QEvent.Type.MouseButtonDblClick,
-            QEvent.Type.KeyPress,
-            QEvent.Type.Move,
-            QEvent.Type.Resize,
-            QEvent.Type.Show,
-            QEvent.Type.Hide,
-        }:
+        if type in _HIDE_TOOLTIPS:
             self._toolbar.hideTabTooltips()
             self._toolbar.currentToolBar().hideTabTooltips()
 
@@ -333,6 +346,7 @@ def _(self: QMainWindow, key: str):
 
 @QMainWindow._keymap.bind("Ctrl+Tab")
 def _(self: QMainWindow):
+    """Activate the new tab."""
     num = self._tablestack.count()
     if num == 0:
         return None
@@ -340,3 +354,10 @@ def _(self: QMainWindow):
     if idx >= num:
         idx = 0
     return self._tablestack.setCurrentIndex(idx)
+
+
+@QMainWidget._keymap.bind("Ctrl+Shift+?")
+@QMainWindow._keymap.bind("Ctrl+Shift+?")
+def _(self: QMainWidget | QMainWindow):
+    """Open a keymap viewer."""
+    return self.showKeyMap()
