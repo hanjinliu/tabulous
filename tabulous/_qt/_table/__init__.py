@@ -10,4 +10,5 @@ __all__ = [
     "QBaseTable",
     "QMutableTable",
     "QTableGroupBy",
+    "QTableDisplay",
 ]

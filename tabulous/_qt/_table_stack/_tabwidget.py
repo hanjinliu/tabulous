@@ -65,12 +65,13 @@ class QTabbedTableStack(QtW.QTabWidget):
     def addTable(self, table: QBaseTable, name: str = "None"):
         """Add `table` to stack as name `name`."""
         self.addTab(table, name)
-        self.tabBar().setTabData(self.count() - 1, table)
         return None
 
     def takeTable(self, index: int) -> QBaseTable:
         """Remove table at `index` and return it."""
-        return self.removeTab(index)
+        table = self.tableAtIndex(index)
+        self.removeTab(index)
+        return table
 
     def renameTable(self, index: int, name: str):
         """Rename table at `index` to `name`."""
@@ -79,7 +80,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     def tableIndex(self, table: QBaseTable) -> int:
         """Get the index of `table`."""
         for i in range(self.count()):
-            data = self.tabBar().tabData(i)
+            data = self.widget(i)
             if data is table:
                 break
         else:
@@ -88,7 +89,7 @@ class QTabbedTableStack(QtW.QTabWidget):
 
     def tableAtIndex(self, i: int) -> QBaseTable:
         """Get the table at `i`."""
-        return self.tabBar().tabData(i)
+        return self.widget(i)
 
     def tableAt(self, pos: QtCore.QPoint) -> QBaseTable | None:
         """Return table at position."""
@@ -246,6 +247,8 @@ class QTabbedTableStack(QtW.QTabWidget):
 
 
 class QTabContextMenu(QtW.QMenu):
+    """Contextmenu for the tabs on the QTabWidget."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._current_index = None
