@@ -11,21 +11,28 @@ from ._keymap import QtKeys, QtKeyMap
 class QtKeyMapView(QtW.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setWindowTitle("Keymaps")
+
         area = QtW.QScrollArea()
         area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        area.setContentsMargins(2, 2, 2, 2)
+        area.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.setLayout(QtW.QVBoxLayout())
         self.layout().addWidget(area)
 
-        self.setWindowTitle("Keymaps")
         central_widget = QtW.QWidget(area)
-        area.setWidget(central_widget)
+        central_widget.setMinimumSize(500, 500)
 
         _layout = QtW.QVBoxLayout()
         _layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         central_widget.setLayout(_layout)
+
+        area.setWidget(central_widget)
+
         self._layout = _layout
+        self._central_widget = central_widget
 
     @classmethod
     def from_keymap(cls, kmap: QtKeyMap) -> QtKeyMapView:
@@ -45,7 +52,7 @@ class QtKeyMapView(QtW.QWidget):
         return None
 
     def addItem(self, keys: Sequence[QtKeys], callback: BoundCallback) -> None:
-        item = QtKeyBindItem(parent=self, key=keys, desc=callback.desc)
+        item = QtKeyBindItem(key=keys, desc=callback.desc)
         self._layout.addWidget(item)
         return None
 
@@ -55,9 +62,11 @@ class QtKeyBindItem(QtW.QGroupBox):
         super().__init__(parent)
 
         _layout = QtW.QHBoxLayout()
+        _layout.setContentsMargins(6, 2, 6, 2)
         self.setLayout(_layout)
         self._key_label = QtW.QLabel()
-        self._key_label.setFixedWidth(88)
+        self._key_label.setFixedWidth(240)
+        self.setFixedHeight(30)
         self._desc = QtW.QLabel()
         _layout.addWidget(self._key_label)
         _layout.addWidget(self._desc)
@@ -71,7 +80,7 @@ class QtKeyBindItem(QtW.QGroupBox):
         if isinstance(key, QtKeys):
             text = f"<code>{key}</code>"
         else:
-            text = ", ".join(f"<code>{k}</code>" for k in key)
+            text = " &rarr; ".join(f"<code>{k}</code>" for k in key)
         self._key_label.setText(text)
         return None
 

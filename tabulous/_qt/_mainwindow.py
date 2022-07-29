@@ -51,6 +51,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         self.installEventFilter(self._event_filter)
         self._event_filter.styleChanged.connect(self.updateToolButtons)
         self._console_widget = None
+        self._keymap_widget = None
 
     def updateToolButtons(self):
         if self._toolbar is None:
@@ -82,9 +83,13 @@ class _QtMainWidgetBase(QtW.QWidget):
         return None
 
     def showKeyMap(self) -> None:
-        wdt = self._keymap.to_widget()
-        wdt.setParent(self, wdt.windowFlags())
-        return wdt.show()
+        if self._keymap_widget is None:
+            wdt = self._keymap.to_widget()
+            wdt.setParent(self, wdt.windowFlags())
+            self._keymap_widget = wdt
+        self._keymap_widget.show()
+        self._keymap_widget.showNormal()
+        return None
 
     def setCentralWidget(self, wdt: QtW.QWidget):
         """Set the splitter widget."""
@@ -208,6 +213,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         return self.setConsoleVisible(not self.consoleVisible())
 
     def setCellFocus(self) -> None:
+        """Set focus to the current table."""
         table = self._table_viewer.current_table
         if table is None or table.data is None:
             return None
