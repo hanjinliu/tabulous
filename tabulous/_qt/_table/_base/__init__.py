@@ -20,7 +20,7 @@ __all__ = [
 # #############################################################################
 
 QBaseTable._keymap.bind("Ctrl+C", QBaseTable.copyToClipboard, headers=False)
-QBaseTable._keymap.bind("Ctrl+Shift+C", QBaseTable.copyToClipboard, headers=True)
+QBaseTable._keymap.bind(["Ctrl+C", "Ctrl+H"], QBaseTable.copyToClipboard, headers=True)
 
 QMutableTable._keymap.bind("Ctrl+V", QMutableTable.pasteFromClipBoard)
 QMutableTable._keymap.bind("Delete", QMutableTable.deleteValues)

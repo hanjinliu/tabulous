@@ -4,7 +4,7 @@ import pytest
 
 @pytest.mark.parametrize(
     "key",
-    ["Ctrl+C", ["Ctrl+C", "C"], ["Ctrl+C", "Shift+Z", "Alt+O"]],
+    ["Ctrl+C", ["Ctrl+C", "C"], ["Ctrl+C", "Shift+Z", "Alt+O"], "Ctrl+C, Shift+Z, Alt+O"],
 )
 def test_keypress(key):
     mock = MagicMock()
@@ -15,10 +15,7 @@ def test_keypress(key):
     mock.assert_not_called()
     keymap.press_key("Ctrl+@")
     mock.assert_not_called()
-    if isinstance(key, str):
-        keymap.press_key(key)
-    else:
-        [keymap.press_key(k) for k in key]
+    keymap.press_key(key)
     mock.assert_called_once()
 
 
@@ -47,3 +44,90 @@ def test_keycombo_initialization():
     keymap.press_key("B")
     keymap.press_key("C")
     mock.assert_called_once()
+
+
+def test_activated_callback():
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    keymap.bind(["Ctrl+C", "Ctrl+V"], lambda: 0)
+    keymap.bind("Ctrl+C", mock)
+    keymap.press_key("Ctrl+C")
+    mock.assert_called_once()
+
+def test_deactivated_callback():
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    keymap.bind(["Ctrl+C", "Ctrl+V"], lambda: 0)
+    keymap.bind_deactivated("Ctrl+C", mock)
+    keymap.press_key("Ctrl+C")
+    mock.assert_not_called()
+    keymap.press_key("Ctrl+V")
+    mock.assert_called_once()
+
+def test_callback_to_child_map():
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    func0 = lambda: mock(0)
+    func1 = lambda: mock(1)
+    keymap.bind("Ctrl+C", func0)
+    keymap.bind(["Ctrl+C", "Ctrl+V"], func1)
+    keymap.press_key("Ctrl+C")
+    mock.assert_called_once()
+    mock.assert_called_with(0)
+    keymap.press_key("Ctrl+V")
+    mock.assert_called_with(1)
+
+@pytest.mark.parametrize("key0", ["Ctrl+C", "Ctrl+K, Ctrl+C"])
+@pytest.mark.parametrize("key1", ["Ctrl+A", "Ctrl+K, Ctrl+A"])
+def test_rebind(key0, key1):
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    keymap.bind(key0, mock)
+    keymap.rebind(key0, key1)
+
+    keymap.press_key(key0)
+    mock.assert_not_called()
+
+    keymap.press_key(key1)
+    mock.assert_called_once()
+
+def test_parametric():
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    keymap.bind("Ctrl+{}", mock)
+    keymap.bind("Ctrl+A", lambda: None)
+    keymap.bind("Ctrl+B, Ctrl+C", lambda: None)
+
+    mock.assert_not_called()
+    keymap.press_key("Ctrl+A")
+    mock.assert_not_called()
+    keymap.press_key("Ctrl+2")
+    mock.assert_called_with("2")
+    keymap.press_key("Ctrl+Z")
+    mock.assert_called_with("Z")
+    mock.reset_mock()
+    keymap.press_key("Ctrl+Shift+1")
+    mock.assert_not_called()
+    keymap.press_key("Ctrl")
+    mock.assert_not_called()
+    keymap.press_key("Ctrl+T")
+    mock.assert_called_with("T")
+    mock.reset_mock()
+    keymap.press_key("Ctrl+B")
+    mock.assert_not_called()
+
+def test_parametric_combo():
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    keymap.bind("Ctrl+B, Alt+{}", mock)
+
+    keymap.press_key("Ctrl+B")
+    mock.assert_not_called()
+    keymap.press_key("Alt+A")
+    mock.assert_called_with("A")

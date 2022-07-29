@@ -2,14 +2,13 @@
 from pathlib import Path
 from typing import Callable, List, TYPE_CHECKING, Union
 import weakref
-import numpy as np
-import pandas as pd
-from qtpy import QtWidgets as QtW, QtGui
+from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtWidgets import QAction
 
 from ._svg import QColoredSVGIcon
-from .._magicgui import dialog_factory
-from ..types import TableData
+from ._multitips import _QHasToolTip
+from . import _dialogs as _dlg
+
 
 if TYPE_CHECKING:
     from ._mainwindow import _QtMainWidgetBase
@@ -20,7 +19,7 @@ SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 ICON_DIR = Path(__file__).parent / "_icons"
 
 
-class _QToolBar(QtW.QToolBar):
+class _QToolBar(QtW.QToolBar, _QHasToolTip):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._button_and_icon: List["tuple[QtW.QToolButton, QColoredSVGIcon]"] = []
@@ -29,8 +28,35 @@ class _QToolBar(QtW.QToolBar):
         for button, icon in self._button_and_icon:
             button.setIcon(icon.colored(color))
 
+    def appendAction(self, f: Callable, qicon: "QColoredSVGIcon"):
+        action = self.addAction(qicon, "")
+        action.triggered.connect(f)
+        action.setToolTip(f.__doc__)
+        btn = self.widgetForAction(action)
+        self._button_and_icon.append((btn, qicon))
+        return None
 
-class QTableStackToolBar(QtW.QToolBar):
+    def toolTipPosition(self, index: int) -> QtCore.QPoint:
+        btn, icon = self._button_and_icon[index]
+        pos = btn.pos()
+        pos.setY(pos.y() + btn.height() // 2)
+        return pos
+
+    def toolTipNumber(self) -> int:
+        return len(self._button_and_icon)
+
+    def clickButton(self, index: int, *, ignore_index_error: bool = True):
+        """Emulate a click on the button at the given index."""
+        if index < 0 or index >= len(self._button_and_icon):
+            if ignore_index_error:
+                return None
+            else:
+                raise IndexError(f"Index {index} out of range")
+        btn, icon = self._button_and_icon[index]
+        return btn.click()
+
+
+class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
     def __init__(self, parent: "_QtMainWidgetBase"):
         super().__init__(parent)
 
@@ -76,6 +102,27 @@ class QTableStackToolBar(QtW.QToolBar):
         """The parent viewer object."""
         return self.parent()._table_viewer
 
+    def currentIndex(self) -> int:
+        """Current tab index."""
+        return self._tab.currentIndex()
+
+    def setCurrentIndex(self, index: int):
+        """Set current tab index."""
+        return self._tab.setCurrentIndex(index)
+
+    def currentToolBar(self) -> _QToolBar:
+        """Current toolbar."""
+        return self._child_widgets[self._tab.tabText(self._tab.currentIndex())]
+
+    def toolTipPosition(self, index: int) -> QtCore.QPoint:
+        return self._tab.tabBar().tabRect(index).topLeft()
+
+    def toolTipText(self, index: int) -> str:
+        return list(self._child_widgets.keys())[index][0]
+
+    def toolTipNumber(self) -> int:
+        return self._tab.count()
+
     if TYPE_CHECKING:
 
         def parent(self) -> "_QtMainWidgetBase":
@@ -96,10 +143,7 @@ class QTableStackToolBar(QtW.QToolBar):
             self.addToolBar(tabname)
         toolbar = self._child_widgets[tabname]
         qicon = QColoredSVGIcon.fromfile(str(icon))
-        action = toolbar.addAction(qicon, "")
-        action.triggered.connect(f)
-        action.setToolTip(f.__doc__)
-        toolbar._button_and_icon.append((toolbar.widgetForAction(action), qicon))
+        toolbar.appendAction(f, qicon)
         return None
 
     def addSeparatorToChild(self, tabname: str) -> QAction:
@@ -151,7 +195,7 @@ class QTableStackToolBar(QtW.QToolBar):
     def groupby(self):
         """Group table data by its column value."""
         table = self.viewer.current_table
-        out = groupby(
+        out = _dlg.groupby(
             df={"bind": table.data},
             by={"choices": list(table.data.columns), "widget_type": "Select"},
         )
@@ -160,7 +204,7 @@ class QTableStackToolBar(QtW.QToolBar):
 
     def hconcat(self):
         """Concatenate tables horizontally."""
-        out = hconcat(
+        out = _dlg.hconcat(
             viewer={"bind": self.viewer},
             names={
                 "value": [self.viewer.current_table.name],
@@ -173,7 +217,7 @@ class QTableStackToolBar(QtW.QToolBar):
 
     def vconcat(self):
         """Concatenate tables vertically."""
-        out = vconcat(
+        out = _dlg.vconcat(
             viewer={"bind": self.viewer},
             names={
                 "value": [self.viewer.current_table.name],
@@ -190,7 +234,7 @@ class QTableStackToolBar(QtW.QToolBar):
         col = list(table.data.columns)
         if len(col) < 2:
             raise ValueError("Table must have at least two columns.")
-        out = pivot(
+        out = _dlg.pivot(
             df={"bind": table.data},
             index={"choices": col, "value": col[0]},
             columns={"choices": col, "value": col[1]},
@@ -202,7 +246,7 @@ class QTableStackToolBar(QtW.QToolBar):
     def melt(self):
         """Unpivot a table."""
         table = self.viewer.current_table
-        out = melt(
+        out = _dlg.melt(
             df={"bind": table.data},
             id_vars={"choices": list(table.data.columns), "widget_type": "Select"},
         )
@@ -212,7 +256,7 @@ class QTableStackToolBar(QtW.QToolBar):
     def summarize_table(self):
         """Summarize current table."""
         table = self.viewer.current_table
-        out = summarize_table(
+        out = _dlg.summarize_table(
             df={"bind": table.data},
             methods={"choices": SUMMARY_CHOICES, "widget_type": "Select"},
         )
@@ -222,43 +266,6 @@ class QTableStackToolBar(QtW.QToolBar):
     def query(self):
         """Filter table using a query."""
         table = self.viewer.current_table
-        out = query(df={"bind": table.data})
+        out = _dlg.query(df={"bind": table.data})
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-query")
-
-
-@dialog_factory
-def summarize_table(df: TableData, methods: List[str]):
-    return df.agg(methods)
-
-
-@dialog_factory
-def groupby(df: TableData, by: List[str]):
-    return df.groupby(by)
-
-
-@dialog_factory
-def hconcat(viewer, names: List[str]):
-    dfs = [viewer.tables[name].data for name in names]
-    return pd.concat(dfs, axis=0)
-
-
-@dialog_factory
-def vconcat(viewer, names: List[str]):
-    dfs = [viewer.tables[name].data for name in names]
-    return pd.concat(dfs, axis=1)
-
-
-@dialog_factory
-def pivot(df: TableData, index: str, columns: str, values: str):
-    return df.pivot(index=index, columns=columns, values=values)
-
-
-@dialog_factory
-def melt(df: TableData, id_vars: List[str]):
-    return pd.melt(df, id_vars)
-
-
-@dialog_factory
-def query(df: TableData, expr: str):
-    return df.query(expr)

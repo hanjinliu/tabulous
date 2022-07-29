@@ -1,6 +1,7 @@
 from __future__ import annotations
 from functools import reduce
 from operator import ior
+from typing import Any
 from qtpy.QtWidgets import QDockWidget as _QDockWidget, QMainWindow, QWidget
 from qtpy.QtCore import Qt
 
@@ -44,7 +45,7 @@ class QtDockWidget(_QDockWidget):
 
     def setSourceObject(self, obj):
         self._widget = obj
-    
+
     @property
-    def widget(self):
+    def widget(self) -> QWidget | Any:
         return self._widget

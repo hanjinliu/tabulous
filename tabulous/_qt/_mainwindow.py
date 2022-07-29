@@ -50,6 +50,8 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._event_filter = _EventFilter()
         self.installEventFilter(self._event_filter)
         self._event_filter.styleChanged.connect(self.updateToolButtons)
+        self._console_widget = None
+        self._keymap_widget = None
 
     def updateToolButtons(self):
         if self._toolbar is None:
@@ -78,6 +80,15 @@ class _QtMainWidgetBase(QtW.QWidget):
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
         if not self._keymap.press_key(a0):
             return super().keyPressEvent(a0)
+        return None
+
+    def showKeyMap(self) -> None:
+        if self._keymap_widget is None:
+            wdt = self._keymap.to_widget()
+            wdt.setParent(self, wdt.windowFlags())
+            self._keymap_widget = wdt
+        self._keymap_widget.show()
+        self._keymap_widget.showNormal()
         return None
 
     def setCentralWidget(self, wdt: QtW.QWidget):
@@ -136,6 +147,21 @@ class QMainWidget(_QtMainWidgetBase):
         return self._toolbar.setVisible(visible)
 
 
+_REORDER_INSTANCES = frozenset({QEvent.Type.WindowActivate, QEvent.Type.ZOrderChange})
+
+_HIDE_TOOLTIPS = frozenset(
+    {
+        QEvent.Type.MouseButtonPress,
+        QEvent.Type.MouseButtonDblClick,
+        QEvent.Type.KeyPress,
+        QEvent.Type.Move,
+        QEvent.Type.Resize,
+        QEvent.Type.Show,
+        QEvent.Type.Hide,
+    }
+)
+
+
 class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     _table_viewer: TableViewer
     _instances: list[QMainWindow] = []
@@ -154,6 +180,49 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self.addToolBar(self._toolbar)
         self._tablestack.setMinimumSize(400, 250)
         QMainWindow._instances.append(self)
+
+    def consoleVisible(self) -> bool:
+        """True if embeded console is visible."""
+        if self._console_widget is None:
+            return False
+        else:
+            return self._console_widget.isVisible()
+
+    def setConsoleVisible(self, visible: bool) -> None:
+        """Set visibility of embeded console widget."""
+        if visible and self._console_widget is None:
+            from ._console import _QtConsole
+
+            qtconsole = _QtConsole()
+            qtconsole.connect_parent(self._table_viewer)
+            self._console_widget = self.addDockWidget(
+                qtconsole, name="console", area="bottom"
+            )
+            qtconsole.setParent(self._console_widget)
+            self._console_widget.setSourceObject(qtconsole)
+
+        self._console_widget.setVisible(visible)
+
+        if visible:
+            self._console_widget.widget.setFocus()
+        else:
+            self.setCellFocus()
+
+    def toggleConsoleVisibility(self) -> None:
+        """Toggle visibility of embeded console widget."""
+        return self.setConsoleVisible(not self.consoleVisible())
+
+    def setCellFocus(self) -> None:
+        """Set focus to the current table."""
+        table = self._table_viewer.current_table
+        if table is None or table.data is None:
+            return None
+        sels = table.selections
+        table._qwidget._qtable_view.setFocus()
+        if len(sels) == 0:
+            sels = [(slice(0, 1), slice(0, 1))]
+        table.selections = [sels[0]]
+        return None
 
     def addDockWidget(
         self,
@@ -184,19 +253,25 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         return window._table_viewer if window else None
 
     def event(self, e: QEvent):
-        if e.type() == QEvent.Type.Close:
+        type = e.type()
+        if type == QEvent.Type.Close:
             # when we close the MainWindow, remove it from the instances list
             try:
                 QMainWindow._instances.remove(self)
             except ValueError:
                 pass
-        if e.type() in {QEvent.Type.WindowActivate, QEvent.Type.ZOrderChange}:
+        if type in _REORDER_INSTANCES:
             # upon activation or raise_, put window at the end of _instances
             try:
                 inst = QMainWindow._instances
                 inst.append(inst.pop(inst.index(self)))
             except ValueError:
                 pass
+
+        if type in _HIDE_TOOLTIPS:
+            self._toolbar.hideTabTooltips()
+            self._toolbar.currentToolBar().hideTabTooltips()
+
         return super().event(e)
 
     def registerAction(
@@ -232,5 +307,67 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         return self._toolbar.setVisible(visible)
 
 
-QMainWidget._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWidget.toggleToolBarVisibility)
-QMainWindow._keymap.bind(["Ctrl+K", "Ctrl+T"], QMainWindow.toggleToolBarVisibility)
+QMainWidget._keymap.bind("Ctrl+K, Ctrl+T", QMainWidget.toggleToolBarVisibility)
+
+QMainWindow._keymap.bind("Ctrl+K, Ctrl+T", QMainWindow.toggleToolBarVisibility)
+QMainWindow._keymap.bind("Ctrl+Shift+C", QMainWindow.toggleConsoleVisibility)
+QMainWindow._keymap.bind("Ctrl+0", QMainWindow.setCellFocus)
+
+
+@QMainWindow._keymap.bind("Ctrl+O")
+def _(self: QMainWindow):
+    """Open a file as a table."""
+    return self._toolbar.open_table()
+
+
+@QMainWindow._keymap.bind("Ctrl+S")
+def _(self: QMainWindow):
+    """Save current table."""
+    return self._toolbar.save_table()
+
+
+@QMainWindow._keymap.bind("Alt")
+def _(self: QMainWindow):
+    """Move focus to toolbar."""
+    self._toolbar.showTabTooltips()
+    self._toolbar.setFocus()
+
+
+@QMainWindow._keymap.bind("Alt, F", index=0, desc="Move focus to `File` menu tab.")
+@QMainWindow._keymap.bind("Alt, T", index=1, desc="Move focus to `Table` menu tab.")
+@QMainWindow._keymap.bind("Alt, A", index=2, desc="Move focus to `Analyze` menu tab.")
+def _(self: QMainWindow, index: int):
+    self._toolbar.setCurrentIndex(index)
+    self._toolbar.currentToolBar().showTabTooltips()
+
+
+@QMainWindow._keymap.bind("Alt, F, {}")
+@QMainWindow._keymap.bind("Alt, T, {}")
+@QMainWindow._keymap.bind("Alt, A, {}")
+def _(self: QMainWindow, key: str):
+    """Push a tool button at the given position."""
+    try:
+        index = int(key)
+    except ValueError:
+        return None
+
+    self._toolbar.currentToolBar().clickButton(index, ignore_index_error=True)
+
+
+@QMainWindow._keymap.bind("Ctrl+Tab")
+def _(self: QMainWindow):
+    """Activate the new tab."""
+    num = self._tablestack.count()
+    if num == 0:
+        return None
+    idx = self._tablestack.currentIndex() + 1
+    if idx >= num:
+        idx = 0
+    return self._tablestack.setCurrentIndex(idx)
+
+
+@QMainWidget._keymap.bind("Ctrl+Shift+?")
+@QMainWindow._keymap.bind("Ctrl+Shift+?")
+def _(self: QMainWidget | QMainWindow):
+    """Open a keymap viewer."""
+    return self.showKeyMap()

@@ -97,9 +97,11 @@ class _TableViewerBase:
         return self._qwidget._keymap
 
     @property
-    def current_table(self) -> TableBase:
+    def current_table(self) -> TableBase | None:
         """Return the currently visible table."""
-        return self.tables[self.current_index]
+        if len(self.tables) > 0:
+            return self.tables[self.current_index]
+        return None
 
     @property
     def current_index(self) -> int:
