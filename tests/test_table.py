@@ -76,3 +76,15 @@ def test_move_location():
 
     with pytest.raises(IndexError):
         table.move_iloc(5, 2)
+
+def test_dual_view():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(df0)
+
+    table.view_mode = "horizontal"
+    table.view_mode = "vertical"
+    table.view_mode = "normal"
+    table.view_mode = "vertical"
+    table.view_mode = "horizontal"
+
+    table.selections = [(slice(1, 2), slice(0, 2))]

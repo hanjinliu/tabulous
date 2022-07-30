@@ -84,6 +84,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         )
         self.setZoom(1.0)  # initialize
 
+        self.setVerticalScrollMode(_SCROLL_PER_PIXEL)
+        self.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
+        self.setFrameStyle(QtW.QFrame.Shape.NoFrame)
+
     def selectionChanged(
         self,
         selected: QtCore.QItemSelection,
@@ -218,9 +222,6 @@ class QBaseTable(QtW.QSplitter):
         self.createQTableView()
         self.createModel()
         self.setDataFrame(data)
-        self._qtable_view.setVerticalScrollMode(_SCROLL_PER_PIXEL)
-        self._qtable_view.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
-        self._qtable_view.setFrameStyle(QtW.QFrame.Shape.NoFrame)
 
         from ._delegate import TableItemDelegate
 
@@ -417,6 +418,38 @@ class QBaseTable(QtW.QSplitter):
             self.addWidget(wdt)
             self._side_area = wdt
         self._side_area.layout().addWidget(widget)
+        return None
+
+    def setDualView(self, orientation: str = "horizontal"):
+        """Set dual view."""
+        from ._table_wrappers import QTableDualView
+
+        if orientation == "vertical":
+            qori = Qt.Orientation.Vertical
+        elif orientation == "horizontal":
+            qori = Qt.Orientation.Horizontal
+        else:
+            raise ValueError("orientation must be 'vertical' or 'horizontal'.")
+
+        widget0 = self.widget(0)
+        if widget0 is not self._qtable_view:
+            widget0.setParent(None)
+            widget0.deleteLater()
+        self._qtable_view.setParent(None)
+        dual = QTableDualView(self._qtable_view, qori)
+        self.insertWidget(0, dual)
+        return None
+
+    def resetViewMode(self):
+        """Reset the view mode to the normal one."""
+        widget0 = self.widget(0)
+        if widget0 is not self._qtable_view:
+            widget0.setParent(None)
+            self.insertWidget(0, self._qtable_view)
+            widget0.deleteLater()
+        else:
+            pass
+
         return None
 
 
@@ -844,7 +877,6 @@ class QMutableSimpleTable(QMutableTable):
     def createQTableView(self):
         self._qtable_view_ = _QTableViewEnhanced()
         self.addWidget(self._qtable_view_)
-        # self.layout().addWidget(self._qtable_view_)
         return None
 
 

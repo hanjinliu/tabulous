@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Any, Callable, TYPE_CHECKING
 from psygnal import SignalGroup, Signal
 
@@ -35,6 +36,20 @@ class TableSignals(SignalGroup):
     renamed = Signal(str)
 
 
+class ViewMode(Enum):
+    normal = "normal"
+    horizontal = "horizontal"
+    vertical = "vertical"
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.name == other
+        return super().__eq__(other)
+
+    def __repr__(self) -> str:
+        return f"<{type(self).__name__}.{self.name}>"
+
+
 class TableBase(ABC):
     """The base class for a table layer."""
 
@@ -49,6 +64,7 @@ class TableBase(ABC):
         self._name = str(name)
         self._qwidget = self._create_backend(self._data)
         self._qwidget.connectSelectionChangedSignal(self.events.selections.emit)
+        self._view_mode = ViewMode.normal
 
         if self.mutable:
             self._qwidget.setEditable(editable)
@@ -177,6 +193,28 @@ class TableBase(ABC):
                 f"Indices {(row, column)!r} out of range of table shape {shape!r}."
             )
         return self._qwidget._qtable_view.moveToItem(row, column)
+
+    @property
+    def view_mode(self) -> str:
+        """View mode of the table."""
+        return self._view_mode
+
+    @view_mode.setter
+    def view_mode(self, mode) -> None:
+        if mode is None:
+            mode = ViewMode.normal
+        else:
+            mode = ViewMode(mode)
+
+        if mode in (ViewMode.horizontal, ViewMode.vertical):
+            self._qwidget.setDualView(orientation=mode.name)
+        elif mode == ViewMode.normal:
+            self._qwidget.resetViewMode()
+        else:
+            raise ValueError(f"Unknown view mode: {mode!r}.")
+
+        self._view_mode = mode
+        return None
 
     filter = FilterProxy()
 
