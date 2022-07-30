@@ -30,8 +30,7 @@ class QTableGroup(QtW.QSplitter):
 
     def copy(self) -> QTableGroup:
         """Make a copy of this widget."""
-        tables = [table.copy() for table in self.tables]
-        copy = self.__class__(tables, self.orientation())
+        copy = self.__class__(self.tables, self.orientation())
         return copy
 
     @property

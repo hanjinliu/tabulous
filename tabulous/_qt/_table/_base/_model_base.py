@@ -13,6 +13,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._df = pd.DataFrame([])
+        self._editable = False
 
     @property
     def df(self) -> pd.DataFrame:
@@ -46,16 +47,21 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 if pd.isna(val):
                     return QtGui.QColor(Qt.GlobalColor.gray)
             return QtCore.QVariant()
-        # elif role == Qt.ItemDataRole.ToolTipRole:
-        #     ...
+        elif role == Qt.ItemDataRole.ToolTipRole:
+            r, c = index.row(), index.column()
+            if r < self.df.shape[0] and c < self.df.shape[1]:
+                val = self.df.iat[r, c]
+                dtype = self.df.dtypes[c]
+                return f"{val!r} (dtype: {dtype})"
+            return QtCore.QVariant()
         return QtCore.QVariant()
 
     def flags(self, index):
-        return (
-            Qt.ItemFlag.ItemIsEditable
-            | Qt.ItemFlag.ItemIsEnabled
-            | Qt.ItemFlag.ItemIsSelectable
-        )
+        basic = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
+        if self._editable:
+            return Qt.ItemFlag.ItemIsEditable | basic
+        else:
+            return basic
 
     def headerData(
         self,

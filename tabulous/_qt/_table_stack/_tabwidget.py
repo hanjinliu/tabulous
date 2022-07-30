@@ -265,10 +265,17 @@ class QTabbedTableStack(QtW.QTabWidget):
 
     def mergeTables(self, indices: list[int]):
         """Merge tables at indices."""
+        # strict check of indices
         if len(indices) < 2:
             raise ValueError("Need at least two tables to merge.")
         elif not all(0 <= idx < self.count() for idx in indices):
             raise IndexError("Table indices out of range.")
+        elif not all(isinstance(idx, int) for idx in indices):
+            raise TypeError("Indices must be integers.")
+        elif len(set(indices)) != len(indices):
+            raise ValueError("Duplicate indices.")
+
+        indices = sorted(indices)
 
         tables: list[QBaseTable] = []
         for i in indices:
@@ -279,9 +286,9 @@ class QTabbedTableStack(QtW.QTabWidget):
         group = QTableGroup(tables)
         widgets = [group.copy() for _ in indices]
 
-        for i in indices:
-            wdt = widgets[i]
-            self.replaceWidget(i, wdt)
+        for j, index in enumerate(indices):
+            wdt = widgets[j]
+            self.replaceWidget(index, wdt)
 
             @wdt.focusChanged.connect
             def _(idx, wdt: QTableGroup = wdt):

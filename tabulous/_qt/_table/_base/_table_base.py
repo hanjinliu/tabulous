@@ -20,8 +20,6 @@ if TYPE_CHECKING:
 
 # fmt: off
 # Flags
-_EDITABLE = QtW.QAbstractItemView.EditTrigger.EditKeyPressed | QtW.QAbstractItemView.EditTrigger.DoubleClicked
-_READ_ONLY = QtW.QAbstractItemView.EditTrigger.NoEditTriggers
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
 # Built-in table view key press events
@@ -239,8 +237,7 @@ class QBaseTable(QtW.QSplitter):
         )
 
         self._side_area = None
-        if not self._DEFAULT_EDITABLE:
-            self._qtable_view.setEditTriggers(_READ_ONLY)
+        self.model()._editable = self._DEFAULT_EDITABLE
 
     @property
     def _qtable_view(self) -> _QTableViewEnhanced:
@@ -494,7 +491,6 @@ class QMutableTable(QBaseTable):
         self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None
     ):
         super().__init__(parent, data)
-        self._editable = False
         self.model().dataEdited.connect(self.setDataFrameValue)
 
         # header editing signals
@@ -563,7 +559,7 @@ class QMutableTable(QBaseTable):
             _old_value = _old_value.copy()  # this is needed for undo
 
         # emit item changed signal if value changed
-        if _equal(_value, _old_value) and self._editable:
+        if _equal(_value, _old_value) and self.isEditable():
             self._set_value(r0, c, r, c, _value, _old_value)
         return None
 
@@ -592,15 +588,11 @@ class QMutableTable(QBaseTable):
 
     def isEditable(self) -> bool:
         """Return the editability of the table."""
-        return self._editable
+        return self.model()._editable
 
     def setEditable(self, editable: bool):
         """Set the editability of the table."""
-        if editable:
-            self._qtable_view.setEditTriggers(_EDITABLE)
-        else:
-            self._qtable_view.setEditTriggers(_READ_ONLY)
-        self._editable = editable
+        self.model()._editable = editable
 
     def toggleEditability(self) -> None:
         """Toggle editability of the table."""
