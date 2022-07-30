@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, Signal
@@ -7,6 +7,7 @@ from qtpy.QtCore import Qt, Signal
 from ._utils import create_temporal_line_edit
 
 from .._utils import search_name_from_qmenu
+from .._table._base._table_group import QTableGroup
 
 if TYPE_CHECKING:
     from .._table import QBaseTable
@@ -60,6 +61,9 @@ class QTabbedTableStack(QtW.QTabWidget):
         self.tabBarDoubleClicked.connect(self.enterEditingMode)
         self.installContextMenu()
 
+        # NOTE: this is needed to correctly refocus table groups.
+        self.tabBarClicked.connect(self.setCurrentIndex)
+
         self._line: QtW.QLineEdit | None = None  # temporal QLineEdit for editing tabs
 
     def addTable(self, table: QBaseTable, name: str = "None"):
@@ -70,6 +74,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     def takeTable(self, index: int) -> QBaseTable:
         """Remove table at `index` and return it."""
         table = self.tableAtIndex(index)
+        self.resetMerge(index)
         self.removeTab(index)
         return table
 
@@ -89,7 +94,12 @@ class QTabbedTableStack(QtW.QTabWidget):
 
     def tableAtIndex(self, i: int) -> QBaseTable:
         """Get the table at `i`."""
-        return self.widget(i)
+        wdt = self.widget(i)
+        if isinstance(wdt, QTableGroup):
+            wdt = cast(QTableGroup, wdt)
+            idx = self._tab_index_to_group_index(i)
+            return wdt.tables[idx]
+        return wdt
 
     def tableAt(self, pos: QtCore.QPoint) -> QBaseTable | None:
         """Return table at position."""
@@ -244,6 +254,105 @@ class QTabbedTableStack(QtW.QTabWidget):
         index = self.tableIndex(table)
         self._qt_context_menu.execAtIndex(QtGui.QCursor().pos(), index)
         return
+
+    def setCurrentIndex(self, index: int):
+        """Set current active index."""
+        wdt = self.widget(index)
+        if isinstance(wdt, QTableGroup):
+            wdt = cast(QTableGroup, wdt)
+            wdt.setFocusedIndex(self._tab_index_to_group_index(index))
+        return super().setCurrentIndex(index)
+
+    def mergeTables(self, indices: list[int]):
+        """Merge tables at indices."""
+        if len(indices) < 2:
+            raise ValueError("Need at least two tables to merge.")
+        elif not all(0 <= idx < self.count() for idx in indices):
+            raise IndexError("Table indices out of range.")
+
+        tables: list[QBaseTable] = []
+        for i in indices:
+            table = self.widget(i)
+            if isinstance(table, QTableGroup):
+                table = self.resetMerge(i)
+            tables.append(table)
+        group = QTableGroup(tables)
+        widgets = [group.copy() for _ in indices]
+
+        for i in indices:
+            wdt = widgets[i]
+            self.replaceTable(i, wdt)
+
+            @wdt.focusChanged.connect
+            def _(idx, wdt: QTableGroup = wdt):
+                idx_dst = self._group_index_to_tab_index(wdt, idx)
+                dst = cast(QTableGroup, self.widget(idx_dst))
+                wdt.blockSignals(True)
+                dst.blockSignals(True)
+                self.setCurrentIndex(idx_dst)
+                dst.setFocusedIndex(idx)
+                dst.blockSignals(False)
+                wdt.blockSignals(False)
+
+        return None
+
+    def replaceTable(self, index: int, new: QBaseTable):
+        """Replace table at index with new table."""
+        text = self.tabText(index)
+        self.takeTable(index)
+        self.insertTab(index, new, text)
+        return None
+
+    def resetMerge(self, index: int) -> QBaseTable:
+        """Reset merge of the table group at index."""
+        target_group = self.widget(index)
+        if not isinstance(target_group, QTableGroup):
+            return target_group
+
+        appeared_idx: list[int] = []
+        all_groups: list[QTableGroup] = []
+        target_idx = -1
+        for i in range(self.count()):
+            wdt = self.widget(i)
+            if target_group == wdt:
+                all_groups.append(wdt)
+                appeared_idx.append(i)
+                if len(appeared_idx) == index:
+                    target_idx = len(appeared_idx) - 1
+
+        n_merged = len(all_groups)
+        unmerged = None
+        for i, tablegroup in enumerate(all_groups):
+            table = tablegroup.pop(target_idx)
+            if i == index or n_merged == 2:
+                if i == index:
+                    unmerged = table
+                self.replaceTable(index, table)
+        if unmerged is None:
+            raise RuntimeError("Unmerging could not be resolved.")
+        return unmerged
+
+    def _group_index_to_tab_index(self, group: QTableGroup, index: int) -> int:
+        # return the global in index of `index`-th table in `group`
+        count = 0
+        for i in range(self.count()):
+            wdt = self.widget(i)
+            if group == wdt:
+                if count == index:
+                    return i
+                count += 1
+        raise ValueError(f"{index} is not in {group}.")
+
+    def _tab_index_to_group_index(self, index: int) -> int:
+        wdt = cast(QTableGroup, self.widget(index))
+        if isinstance(wdt, QTableGroup):
+            count = 0
+            for i in range(index):
+                if wdt == self.widget(i):
+                    count += 1
+            return count
+        else:
+            raise ValueError(f"Widget at {index} is not a table group.")
 
 
 class QTabContextMenu(QtW.QMenu):

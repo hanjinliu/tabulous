@@ -27,8 +27,8 @@ class QTableDualView(QtW.QSplitter):
         second.setZoom(table.zoom())
 
         self.addWidget(table)
-        self.addWidget(second)
         self.setStretchFactor(0, 1)
+        self.addWidget(second)
         self.setStretchFactor(1, 1)
 
         self._first = table

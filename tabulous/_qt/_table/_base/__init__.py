@@ -5,6 +5,7 @@ from ._table_base import (
     QMutableSimpleTable,
     _QTableViewEnhanced,
 )
+from ._table_group import QTableGroup
 
 __all__ = [
     "AbstractDataFrameModel",
@@ -13,6 +14,7 @@ __all__ = [
     "QMutableTable",
     "QMutableSimpleTable",
     "_QTableViewEnhanced",
+    "QTableGroup",
 ]
 
 # #############################################################################

@@ -62,6 +62,13 @@ class QTableDisplay(QBaseTable):
         if self._play_button.running():
             self._qtimer.start()
 
+    def copy(self, link: bool = True) -> QTableDisplay:
+        copy = self.__class__(self.parent(), self.loader(), self._qtimer.interval())
+        if link:
+            copy._qtable_view.setModel(self._qtable_view.model())
+            copy._qtable_view.setSelectionModel(self._qtable_view.selectionModel())
+        return copy
+
     if TYPE_CHECKING:
 
         def model(self) -> DataFrameModel:

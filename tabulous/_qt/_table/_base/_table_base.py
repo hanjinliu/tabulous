@@ -16,6 +16,7 @@ from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceabl
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
+    from typing_extensions import Self
 
 # fmt: off
 # Flags
@@ -62,6 +63,7 @@ def _getsizeof(obj) -> float:
 class _QTableViewEnhanced(QtW.QTableView):
     selectionChangedSignal = Signal()
     rightClickedSignal = Signal(QtCore.QPoint)
+    focusedSignal = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -193,6 +195,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.verticalHeader().setDefaultSectionSize(vertical)
         self.horizontalHeader().setDefaultSectionSize(horizontal)
         return
+
+    def focusInEvent(self, e: QtGui.QFocusEvent) -> None:
+        self.focusedSignal.emit()
+        return super().focusInEvent(e)
 
 
 class QBaseTable(QtW.QSplitter):
@@ -402,6 +408,15 @@ class QBaseTable(QtW.QSplitter):
                 msg = f"Error in filter.\n\n{type(e).__name__} {e}\n\n Filter is reset."
                 show_messagebox("error", "Error", msg, self)
         self.refresh()
+
+    def copy(self, link: bool = True) -> Self:
+        if link:
+            copy = self.__class__(self.parent(), pd.DataFrame([]))
+            copy._qtable_view.setModel(self._qtable_view.model())
+            copy._qtable_view.setSelectionModel(self._qtable_view.selectionModel())
+        else:
+            copy = self.__class__(self.parent(), self.getDataFrame())
+        return copy
 
     def refresh(self) -> None:
         """Refresh table view."""
