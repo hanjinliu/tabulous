@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from collections_undo import UndoManager
     from qtpy import QtWidgets as QtW
     from magicgui.widgets import Widget
+
     from .._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from .._qt._table import QBaseTable
     from .._qt._keymap import QtKeyMap
@@ -41,7 +42,6 @@ class TableBase(ABC):
 
     def __init__(self, data, name=None, editable: bool = True):
         self._data = self._normalize_data(data)
-        from .._qt._table import QMutableTable
 
         if name is None:
             name = self._Default_Name
@@ -50,7 +50,7 @@ class TableBase(ABC):
         self._qwidget = self._create_backend(self._data)
         self._qwidget.connectSelectionChangedSignal(self.events.selections.emit)
 
-        if isinstance(self._qwidget, QMutableTable):
+        if self.mutable:
             self._qwidget.setEditable(editable)
             self._qwidget.connectItemChangedSignal(
                 self.events.data.emit,
@@ -78,6 +78,13 @@ class TableBase(ABC):
     def data(self, value):
         self._data = self._normalize_data(value)
         self._qwidget.setDataFrame(self._data)
+
+    @property
+    def mutable(self) -> bool:
+        """Mutability of the table."""
+        from .._qt._table import QMutableTable
+
+        return isinstance(self._qwidget, QMutableTable)
 
     @property
     def table_shape(self) -> tuple[int, int]:
@@ -123,11 +130,17 @@ class TableBase(ABC):
     @property
     def editable(self) -> bool:
         """Editability of table."""
-        return self._qwidget.isEditable()
+        if self.mutable:
+            return self._qwidget.isEditable()
+        else:
+            return False
 
     @editable.setter
     def editable(self, value: bool):
-        self._qwidget.setEditable(value)
+        if self.mutable:
+            self._qwidget.setEditable(value)
+        elif value:
+            raise ValueError("Table is not mutable.")
 
     @property
     def selections(self):
@@ -146,6 +159,24 @@ class TableBase(ABC):
     def refresh(self) -> None:
         """Refresh the table view."""
         return self._qwidget.refresh()
+
+    def move_loc(self, row: Any, column: Any):
+        """Move to a location in the table using axis label."""
+        data = self.data
+        r = data.index.get_loc(row)
+        c = data.columns.get_loc(column)
+        return self._qwidget._qtable_view.moveToItem(r, c)
+
+    def move_iloc(self, row: int, column: int):
+        """Move to a location in the table using indices."""
+        shape = self.table_shape
+        row_outofrange = row < 0 or row >= shape[0]
+        col_outofrange = column < 0 or column >= shape[1]
+        if row_outofrange or col_outofrange:
+            raise IndexError(
+                f"Indices {(row, column)!r} out of range of table shape {shape!r}."
+            )
+        return self._qwidget._qtable_view.moveToItem(row, column)
 
     filter = FilterProxy()
 

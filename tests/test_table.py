@@ -63,3 +63,16 @@ def test_selection_signal():
     sel = [(slice(1, 2), slice(1, 2))]
     table.selections = sel
     mock.assert_called_with(sel)
+
+def test_move_location():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(df0)
+
+    table.move_loc(1, "a")
+    table.move_iloc(2, 1)
+
+    with pytest.raises(IndexError):
+        table.move_iloc(2, 5)
+
+    with pytest.raises(IndexError):
+        table.move_iloc(5, 2)

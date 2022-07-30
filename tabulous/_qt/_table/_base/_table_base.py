@@ -172,6 +172,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         return super().wheelEvent(e)
 
     def sectionSize(self) -> tuple[int, int]:
+        """Return current section size."""
         return (
             self.horizontalHeader().defaultSectionSize(),
             self.verticalHeader().defaultSectionSize(),
@@ -182,6 +183,11 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.verticalHeader().setDefaultSectionSize(vertical)
         self.horizontalHeader().setDefaultSectionSize(horizontal)
         return
+
+    def moveToItem(self, row: int, column: int) -> None:
+        """Move to a location."""
+        self.setCurrentIndex(self.model().index(row, column))
+        return None
 
 
 class QBaseTable(QtW.QSplitter):
