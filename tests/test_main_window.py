@@ -34,17 +34,17 @@ def test_renaming(viewer_cls: type[TableViewerWidget], pos):
     assert table1.name == "Data-1"
     assert get_tabwidget_tab_name(viewer, 0) == "Data-0"
     assert get_tabwidget_tab_name(viewer, 1) == "Data-1"
-    
+
     # name of newly added table will be renamed if there are collision.
     table2 = viewer.add_table(test_data.copy(), name="Data-0")
     assert table2.name == "Data-2"
     assert get_tabwidget_tab_name(viewer, 2) == "Data-2"
-    
+
     # new name will be renamed if there are collision.
     table1.name = "Data-2"
     assert table1.name == "Data-3"
     assert get_tabwidget_tab_name(viewer, 1) == "Data-3"
-    
+
     # no need for coercing if the table is already removed.
     name = viewer.tables[0].name
     del viewer.tables[0]
@@ -58,11 +58,26 @@ def test_register_action(viewer_cls: type[TableViewerWidget]):
     @viewer.tables.register_action
     def f(i):
         pass
-    
+
     @viewer.tables.register_action("register-test")
     def g(i):
         pass
-    
+
     @viewer.tables.register_action("Tests>name")
     def h(i):
         pass
+
+@pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
+def test_components(viewer_cls: type[TableViewerWidget]):
+    viewer = viewer_cls(show=True)
+
+    assert not viewer.console.visible
+    viewer.console.visible = True
+    assert viewer.console.visible
+    viewer.console.visible = False
+    assert not viewer.console.visible
+
+    viewer.toolbar.visible = True
+    assert viewer.toolbar.visible
+    viewer.toolbar.visible = False
+    assert not viewer.toolbar.visible

@@ -7,10 +7,11 @@ from functools import lru_cache
 # These classes are mostly copied from napari/_qt/qt_resources/_svg.py
 # See https://github.com/napari/napari/blob/main/napari/_qt/qt_resources/_svg.py
 
+
 class SVGBufferIconEngine(QtGui.QIconEngine):
     def __init__(self, xml: str | bytes) -> None:
         if isinstance(xml, str):
-            xml = xml.encode('utf-8')
+            xml = xml.encode("utf-8")
         self.data = QtCore.QByteArray(xml)
         super().__init__()
 
@@ -25,35 +26,35 @@ class SVGBufferIconEngine(QtGui.QIconEngine):
 
     def pixmap(self, size, mode, state):
         """Return the icon as a pixmap with requested size, mode, and state."""
-        img = QtGui.QImage(size, QtGui.QImage.Format_ARGB32)
-        img.fill(Qt.transparent)
-        pixmap = QtGui.QPixmap.fromImage(img, Qt.NoFormatConversion)
+        img = QtGui.QImage(size, QtGui.QImage.Format.Format_ARGB32)
+        img.fill(Qt.GlobalColor.transparent)
+        pixmap = QtGui.QPixmap.fromImage(img, Qt.ImageConversionFlag.NoFormatConversion)
         painter = QtGui.QPainter(pixmap)
         self.paint(painter, QtCore.QRect(QtCore.QPoint(0, 0), size), mode, state)
         return pixmap
 
 
 class QColoredSVGIcon(QtGui.QIcon):
-    _COLOR_ARG = '#000000'
-    
+    _COLOR_ARG = "#000000"
+
     def __init__(
         self,
         xml: str,
         color: str = "#000000",
     ) -> None:
         self._xml = xml
-        colorized = xml.replace(self._COLOR_ARG, f'{color}')
+        colorized = xml.replace(self._COLOR_ARG, f"{color}")
         super().__init__(SVGBufferIconEngine(colorized))
 
     @lru_cache
     def colored(
         self,
         color: str = "#000000",
-    ) -> 'QColoredSVGIcon':
+    ) -> QColoredSVGIcon:
         return QColoredSVGIcon(self._xml, color)
-    
+
     @classmethod
     def fromfile(cls: type[QColoredSVGIcon], path: str | Path, color="#000000"):
-        with open(path, "r") as f:
+        with open(path) as f:
             xml = f.read()
         return cls(xml, color=color)

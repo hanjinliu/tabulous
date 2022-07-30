@@ -6,7 +6,8 @@ from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtWidgets import QAction
 
 from ._svg import QColoredSVGIcon
-from ._multitips import _QHasToolTip
+from ._multitips import QHasToolTip
+from ._history import QtFileHistoryManager
 from . import _dialogs as _dlg
 
 
@@ -19,7 +20,7 @@ SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 ICON_DIR = Path(__file__).parent / "_icons"
 
 
-class _QToolBar(QtW.QToolBar, _QHasToolTip):
+class _QToolBar(QtW.QToolBar, QHasToolTip):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._button_and_icon: List["tuple[QtW.QToolButton, QColoredSVGIcon]"] = []
@@ -42,7 +43,7 @@ class _QToolBar(QtW.QToolBar, _QHasToolTip):
         pos.setY(pos.y() + btn.height() // 2)
         return pos
 
-    def toolTipNumber(self) -> int:
+    def toolTipCount(self) -> int:
         return len(self._button_and_icon)
 
     def clickButton(self, index: int, *, ignore_index_error: bool = True):
@@ -56,7 +57,9 @@ class _QToolBar(QtW.QToolBar, _QHasToolTip):
         return btn.click()
 
 
-class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
+class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
+    _hist_mgr = QtFileHistoryManager()
+
     def __init__(self, parent: "_QtMainWidgetBase"):
         super().__init__(parent)
 
@@ -70,19 +73,17 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
         ] = weakref.WeakValueDictionary()
 
         self.addWidget(self._tab)
+        self.setMaximumHeight(120)
+
+        # Add tool buttons
+        # fmt: off
         self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
-        self.registerAction(
-            "File", self.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg"
-        )
+        self.registerAction("File", self.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")
         self.registerAction("File", self.save_table, ICON_DIR / "save_table.svg")
 
         self.registerAction("Table", self.copy_as_table, ICON_DIR / "copy_as_table.svg")
-        self.registerAction(
-            "Table", self.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg"
-        )
-        self.registerAction(
-            "Table", self.new_spreadsheet, ICON_DIR / "new_spreadsheet.svg"
-        )
+        self.registerAction("Table", self.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")
+        self.registerAction("Table", self.new_spreadsheet, ICON_DIR / "new_spreadsheet.svg")
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.groupby, ICON_DIR / "groupby.svg")
         self.registerAction("Table", self.hconcat, ICON_DIR / "hconcat.svg")
@@ -92,10 +93,10 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.query, ICON_DIR / "query.svg")
 
-        self.registerAction(
-            "Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg"
-        )
+        self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
+        self.registerAction("Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg")
         self.addSeparatorToChild("Analyze")
+        # fmt: on
 
     @property
     def viewer(self) -> "_TableViewerBase":
@@ -120,7 +121,7 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
     def toolTipText(self, index: int) -> str:
         return list(self._child_widgets.keys())[index][0]
 
-    def toolTipNumber(self) -> int:
+    def toolTipCount(self) -> int:
         return self._tab.count()
 
     if TYPE_CHECKING:
@@ -164,17 +165,17 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
         return self._open(type="spreadsheet")
 
     def _open(self, type):
-        # TODO: history
-        paths, _ = QtW.QFileDialog.getOpenFileNames(self.parent(), "Open File", "")
+        paths = self._hist_mgr.openFileDialog(mode="rm", caption="Open file(s)")
         for path in paths:
             self.viewer.open(path, type=type)
         return None
 
     def save_table(self):
         """Save current table."""
-        path, _ = QtW.QFileDialog.getSaveFileName(self.parent(), "Save Table", "")
+        path = self._hist_mgr.openFileDialog(mode="w", caption="Save table")
         if path:
             self.viewer.save(path)
+        return None
 
     def copy_as_table(self):
         """Make a copy of the current table."""
@@ -262,6 +263,10 @@ class QTableStackToolBar(QtW.QToolBar, _QHasToolTip):
         )
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-summary")
+
+    def toggle_console(self):
+        """Toggle embedded console."""
+        return self.parent().toggleConsoleVisibility()
 
     def query(self):
         """Filter table using a query."""

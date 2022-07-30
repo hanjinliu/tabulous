@@ -3,7 +3,7 @@ from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtCore import Qt
 
 
-class _QHasToolTip(QtW.QWidget):
+class QHasToolTip(QtW.QWidget):
     """A trait for a widget that has multiple tooltips."""
 
     _labels: list[QKeyComboTip] = []
@@ -16,14 +16,14 @@ class _QHasToolTip(QtW.QWidget):
         """Return the text of the tooltip for the given index."""
         return str(index)
 
-    def toolTipNumber(self) -> int:
+    def toolTipCount(self) -> int:
         """Return the number of tooltips."""
         raise NotImplementedError()
 
     def showTabTooltips(self):
         """Show all the tooltips."""
         self._labels = []
-        num = min(self.toolTipNumber(), 10)
+        num = min(self.toolTipCount(), 10)
         for i in range(num):
             label = QKeyComboTip(self.toolTipText(i), self)
             pos = self.toolTipPosition(i)

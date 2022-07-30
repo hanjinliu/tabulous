@@ -12,6 +12,7 @@ from ..types import TabPosition
 
 if TYPE_CHECKING:
     from ._toolbar import QTableStackToolBar
+    from ._console import _QtConsole
     from ..widgets import TableViewer
     from typing_extensions import ParamSpec
 
@@ -50,7 +51,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._event_filter = _EventFilter()
         self.installEventFilter(self._event_filter)
         self._event_filter.styleChanged.connect(self.updateToolButtons)
-        self._console_widget = None
+        self._console_widget: _QtConsole | None = None
         self._keymap_widget = None
 
     def updateToolButtons(self):
@@ -91,6 +92,18 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._keymap_widget.showNormal()
         return None
 
+    def setCellFocus(self) -> None:
+        """Set focus to the current table."""
+        table = self._table_viewer.current_table
+        if table is None or table.data is None:
+            return None
+        sels = table.selections
+        table._qwidget._qtable_view.setFocus()
+        if len(sels) == 0:
+            sels = [(slice(0, 1), slice(0, 1))]
+        table.selections = [sels[0]]
+        return None
+
     def setCentralWidget(self, wdt: QtW.QWidget):
         """Set the splitter widget."""
         raise NotImplementedError()
@@ -111,25 +124,31 @@ class _QtMainWidgetBase(QtW.QWidget):
         """Add default toolbar widget regardless of self is a main window or not."""
         raise NotImplementedError()
 
+    def consoleVisible(self) -> bool:
+        """True if embeded console is visible."""
+        raise NotImplementedError()
 
-class QMainWidget(_QtMainWidgetBase):
+    def setConsoleVisible(self, visible: bool) -> None:
+        """Set visibility of embeded console widget."""
+        raise NotImplementedError()
+
+    def toggleConsoleVisibility(self) -> None:
+        """Toggle visibility of embeded console widget."""
+        return self.setConsoleVisible(not self.consoleVisible())
+
+
+class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
     _keymap = QtKeyMap()
 
     def __init__(self, tab_position: TabPosition | str = TabPosition.top):
-        super().__init__(tab_position)
+        QtW.QSplitter.__init__(self)
+        _QtMainWidgetBase.__init__(self, tab_position)
+        self.setOrientation(Qt.Orientation.Vertical)
         self._toolbar = None
 
     def setCentralWidget(self, wdt: QtW.QWidget):
         """Mimicking QMainWindow's method by adding a widget to the layout."""
-        _layout = QtW.QVBoxLayout()
-        _layout.setContentsMargins(0, 0, 0, 0)
-        _layout.addWidget(wdt)
-        self.setLayout(_layout)
-
-    if TYPE_CHECKING:
-
-        def layout(self) -> QtW.QVBoxLayout:
-            ...
+        self.addWidget(wdt)
 
     def toolBarVisible(self) -> bool:
         if self._toolbar is None:
@@ -142,9 +161,33 @@ class QMainWidget(_QtMainWidgetBase):
             from ._toolbar import QTableStackToolBar
 
             self._toolbar = QTableStackToolBar(self)
-            self.layout().insertWidget(0, self._toolbar)
+            self.insertWidget(0, self._toolbar)
 
         return self._toolbar.setVisible(visible)
+
+    def consoleVisible(self) -> bool:
+        """True if embeded console is visible."""
+        if self._console_widget is None:
+            return False
+        else:
+            return self._console_widget.isVisible()
+
+    def setConsoleVisible(self, visible: bool) -> None:
+        """Set visibility of embeded console widget."""
+        if visible and self._console_widget is None:
+            from ._console import _QtConsole
+
+            qtconsole = _QtConsole()
+            qtconsole.connect_parent(self._table_viewer)
+            self.addWidget(qtconsole)
+            self._console_widget = qtconsole
+
+        self._console_widget.setVisible(visible)
+
+        if visible:
+            self._console_widget.setFocus()
+        else:
+            self.setCellFocus()
 
 
 _REORDER_INSTANCES = frozenset({QEvent.Type.WindowActivate, QEvent.Type.ZOrderChange})
@@ -177,6 +220,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         from ._toolbar import QTableStackToolBar
 
         self._toolbar = QTableStackToolBar(self)
+        self._console_dock_widget = None
         self.addToolBar(self._toolbar)
         self._tablestack.setMinimumSize(400, 250)
         QMainWindow._instances.append(self)
@@ -195,34 +239,20 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
             qtconsole = _QtConsole()
             qtconsole.connect_parent(self._table_viewer)
-            self._console_widget = self.addDockWidget(
-                qtconsole, name="console", area="bottom"
-            )
-            qtconsole.setParent(self._console_widget)
-            self._console_widget.setSourceObject(qtconsole)
+            dock = self.addDockWidget(qtconsole, name="console", area="bottom")
+            qtconsole.setDockParent(dock)
+            dock.setSourceObject(qtconsole)
+            self._console_widget = qtconsole
 
-        self._console_widget.setVisible(visible)
+        else:
+            dock = self._console_widget.dockParent()
+
+        dock.setVisible(visible)
 
         if visible:
-            self._console_widget.widget.setFocus()
+            self._console_widget.setFocus()
         else:
             self.setCellFocus()
-
-    def toggleConsoleVisibility(self) -> None:
-        """Toggle visibility of embeded console widget."""
-        return self.setConsoleVisible(not self.consoleVisible())
-
-    def setCellFocus(self) -> None:
-        """Set focus to the current table."""
-        table = self._table_viewer.current_table
-        if table is None or table.data is None:
-            return None
-        sels = table.selections
-        table._qwidget._qtable_view.setFocus()
-        if len(sels) == 0:
-            sels = [(slice(0, 1), slice(0, 1))]
-        table.selections = [sels[0]]
-        return None
 
     def addDockWidget(
         self,
@@ -307,27 +337,44 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         return self._toolbar.setVisible(visible)
 
 
-QMainWidget._keymap.bind("Ctrl+K, Ctrl+T", QMainWidget.toggleToolBarVisibility)
+@QMainWidget._keymap.bind("Ctrl+K, Ctrl+T")
+@QMainWindow._keymap.bind("Ctrl+K, Ctrl+T")
+def _(self: _QtMainWidgetBase):
+    """Toggle toolbar visibility."""
+    return self.toggleToolBarVisibility()
 
-QMainWindow._keymap.bind("Ctrl+K, Ctrl+T", QMainWindow.toggleToolBarVisibility)
-QMainWindow._keymap.bind("Ctrl+Shift+C", QMainWindow.toggleConsoleVisibility)
-QMainWindow._keymap.bind("Ctrl+0", QMainWindow.setCellFocus)
+
+@QMainWidget._keymap.bind("Ctrl+Shift+C")
+@QMainWindow._keymap.bind("Ctrl+Shift+C")
+def _(self: _QtMainWidgetBase):
+    """Toggle embeded console visibility."""
+    return self.toggleConsoleVisibility()
 
 
+@QMainWidget._keymap.bind("Ctrl+0")
+@QMainWindow._keymap.bind("Ctrl+0")
+def _(self: _QtMainWidgetBase):
+    """Focus on a cell in the current table."""
+    return self.setCellFocus()
+
+
+@QMainWidget._keymap.bind("Ctrl+O")
 @QMainWindow._keymap.bind("Ctrl+O")
-def _(self: QMainWindow):
+def _(self: _QtMainWidgetBase):
     """Open a file as a table."""
     return self._toolbar.open_table()
 
 
+@QMainWidget._keymap.bind("Ctrl+S")
 @QMainWindow._keymap.bind("Ctrl+S")
-def _(self: QMainWindow):
+def _(self: _QtMainWidgetBase):
     """Save current table."""
     return self._toolbar.save_table()
 
 
+@QMainWidget._keymap.bind("Alt")
 @QMainWindow._keymap.bind("Alt")
-def _(self: QMainWindow):
+def _(self: _QtMainWidgetBase):
     """Move focus to toolbar."""
     self._toolbar.showTabTooltips()
     self._toolbar.setFocus()

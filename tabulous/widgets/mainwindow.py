@@ -2,7 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 import weakref
 from enum import Enum
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Callable, Union
 from psygnal import Signal, SignalGroup
 
 from .table import Table, SpreadSheet, GroupBy, TableDisplay
@@ -36,22 +36,59 @@ class TableViewerSignal(SignalGroup):
     current_index = Signal(int)
 
 
-class Toolbar:
-    """The toolbar API."""
-
+class _ComponentProxy:
     def __init__(self, parent: _TableViewerBase):
         self.parent = parent
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} of {self.parent!r}>"
 
+
+class Toolbar(_ComponentProxy):
+    """The toolbar proxy."""
+
     @property
     def visible(self) -> bool:
+        """Visibility of the toolbar."""
         return self.parent._qwidget.toolBarVisible()
 
     @visible.setter
     def visible(self, val) -> None:
         return self.parent._qwidget.setToolBarVisible(val)
+
+    @property
+    def history_manager(self):
+        """The file I/O history manager."""
+        return self.parent._qwidget._toolbar._hist_mgr
+
+    def register_action(self, f: Callable):
+        raise NotImplementedError()
+
+
+class Console(_ComponentProxy):
+    """The QtConsole proxy."""
+
+    @property
+    def visible(self) -> bool:
+        """Visibility of the toolbar."""
+        return self.parent._qwidget.consoleVisible()
+
+    @visible.setter
+    def visible(self, val) -> None:
+        return self.parent._qwidget.setConsoleVisible(val)
+
+    @property
+    def buffer(self) -> str:
+        """Return the current text buffer of the console."""
+        return self.parent._qwidget._console_widget.input_buffer
+
+    @buffer.setter
+    def buffer(self, val) -> None:
+        return self.parent._qwidget._console_widget.setBuffer(val)
+
+    def execute(self):
+        """Execute current buffer."""
+        return self.parent._qwidget._console_widget.execute()
 
 
 class _TableViewerBase:
@@ -68,6 +105,7 @@ class _TableViewerBase:
         self._qwidget._table_viewer = self
         self._tablist = TableList(parent=self)
         self._toolbar = Toolbar(parent=self)
+        self._console = Console(parent=self)
         self._link_events()
 
         self.events = TableViewerSignal()
@@ -88,8 +126,13 @@ class _TableViewerBase:
 
     @property
     def toolbar(self) -> Toolbar:
-        """Return the tool bar widget."""
+        """Return the toolbar interface."""
         return self._toolbar
+
+    @property
+    def console(self) -> Console:
+        """Return the console interface."""
+        return self._console
 
     @property
     def keymap(self) -> QtKeyMap:
@@ -120,13 +163,6 @@ class _TableViewerBase:
         elif index < 0:
             index += len(self.tables)
         return self._qwidget._tablestack.setCurrentIndex(index)
-
-    # def bind_key(self, *seq) -> Callable[[TableViewer], Any | None]:
-    #     # TODO
-    #     def register(f):
-    #         register_shortcut(seq, self._qwidget, partial(f, self))
-
-    #     return register
 
     def show(self, *, run: bool = True) -> None:
         """Show the widget."""

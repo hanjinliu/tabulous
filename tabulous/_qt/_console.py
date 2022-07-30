@@ -1,10 +1,12 @@
 from __future__ import annotations
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
+import weakref
 from typing import TYPE_CHECKING
+from qtpy.QtCore import Signal
+from qtpy import QtWidgets as QtW
 
 if TYPE_CHECKING:
     from ..widgets.mainwindow import _TableViewerBase
-    from qtpy import QtWidgets as QtW
 
     class RichJupyterWidget(RichJupyterWidget, QtW.QWidget):
         ...
@@ -12,10 +14,13 @@ if TYPE_CHECKING:
 
 # Modified from napari_console https://github.com/napari/napari-console
 class _QtConsole(RichJupyterWidget):
+    codeExecuted = Signal(str)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setMinimumSize(100, 0)
         self.resize(100, 40)
+        self._dock_parent = None
 
     def connect_parent(self, widget: _TableViewerBase):
         from IPython import get_ipython
@@ -85,3 +90,46 @@ class _QtConsole(RichJupyterWidget):
     def setFocus(self):
         """Set focus to the text edit."""
         return self._control.setFocus()
+
+    def buffer(self) -> str:
+        """Get current code block"""
+        return self.input_buffer
+
+    def setBuffer(self, code: str) -> None:
+        """Set code string to Jupyter QtConsole buffer"""
+        self.input_buffer = ""
+        if not isinstance(code, str):
+            raise ValueError(f"Cannot set {type(code)}.")
+        cursor = self._control.textCursor()
+        lines = code.split("\n")
+        for line in lines[:-1]:
+            cursor.insertText(line + "\n")
+            self._insert_continuation_prompt(cursor)  # insert "...:"
+        cursor.insertText(lines[-1])
+        return None
+
+    def execute(
+        self,
+        source: str | None = None,
+        hidden: bool = False,
+        interactive: bool = False,
+    ):
+        """Execute current code block."""
+        if source is None:
+            source = self.input_buffer
+        super().execute(source=source, hidden=hidden, interactive=interactive)
+        self.codeExecuted.emit(source)
+        return None
+
+    # NOTE: qtconsole overwrites "parent" method so we have to use another method to manage parent.
+    def dockParent(self):
+        """Return the dock widget parent."""
+        if self._dock_parent is None:
+            return None
+        return self._dock_parent()
+
+    def setDockParent(self, widget: QtW.QDockWidget):
+        """Set the dock widget parent."""
+        if not isinstance(widget, QtW.QDockWidget):
+            raise TypeError("Parent must be a QDockWidget")
+        self._dock_parent = weakref.ref(widget)
