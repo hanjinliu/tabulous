@@ -19,7 +19,7 @@ def test_merge(indices):
     viewer.add_table(df2)
     viewer.add_table(df3)
 
-    viewer.tables.merge(indices)
+    viewer.tables.tile(indices)
 
     for i in indices:
         assert _is_group(viewer, i)
@@ -35,13 +35,13 @@ def test_merge_error():
     viewer.add_table(df3)
 
     with pytest.raises(Exception):
-        viewer.tables.merge([0, 4])
+        viewer.tables.tile([0, 4])
     with pytest.raises(Exception):
-        viewer.tables.merge([0, 0])
+        viewer.tables.tile([0, 0])
     with pytest.raises(Exception):
-        viewer.tables.merge([0.0, 4])
+        viewer.tables.tile([0.0, 4])
     with pytest.raises(Exception):
-        viewer.tables.merge([1])
+        viewer.tables.tile([1])
 
 @pytest.mark.parametrize("indices", [[0, 1], [2, 0]])
 def test_unmerge_2(indices):
@@ -51,8 +51,8 @@ def test_unmerge_2(indices):
     viewer.add_table(df2)
     viewer.add_table(df3)
 
-    viewer.tables.merge(indices)
-    viewer.tables.unmerge(0)
+    viewer.tables.tile(indices)
+    viewer.tables.untile(0)
 
     for i in [0, 1, 2, 3]:
         assert not _is_group(viewer, i)
@@ -60,7 +60,7 @@ def test_unmerge_2(indices):
         qtable = viewer._qwidget._tablestack.tableAtIndex(i)
         assert table._qwidget is qtable
 
-    viewer.tables.merge(indices)  # test merging again just works
+    viewer.tables.tile(indices)  # test merging again just works
 
 @pytest.mark.parametrize("indices", [[0, 1, 2], [0, 1, 3], [2, 0, 3]])
 def test_unmerge_3(indices):
@@ -70,11 +70,13 @@ def test_unmerge_3(indices):
     viewer.add_table(df2)
     viewer.add_table(df3)
 
-    viewer.tables.merge(indices)
-    viewer.tables.unmerge(indices)
+    viewer.tables.tile(indices)
+    viewer.tables.untile(indices)
 
     for i in [0, 1, 2, 3]:
         assert not _is_group(viewer, i)
         table = viewer.tables[i]
         qtable = viewer._qwidget._tablestack.tableAtIndex(i)
         assert table._qwidget is qtable
+
+    viewer.tables.tile(indices)  # test merging again just works

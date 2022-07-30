@@ -151,13 +151,13 @@ class TableList(EventedList[TableBase]):
             location = val.__name__.replace("_", " ")
             return self._parent._qwidget._tablestack.registerAction(location)(val)
 
-    def merge(self, indices: list[int]):
-        self._parent._qwidget._tablestack.mergeTables(indices)
+    def tile(self, indices: list[int]):
+        self._parent._qwidget._tablestack.tileTables(indices)
         return None
 
-    def unmerge(self, indices: int | list[int]):
+    def untile(self, indices: int | list[int]):
         if isinstance(indices, int):
             indices = [indices]
         for idx in indices:
-            self._parent._qwidget._tablestack.resetMerge(idx)
+            self._parent._qwidget._tablestack.untileTable(idx)
         return None

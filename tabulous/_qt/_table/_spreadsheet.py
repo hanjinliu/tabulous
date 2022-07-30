@@ -30,6 +30,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
     def insertRows(
         self, row: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
+        """Insert rows at the given row number and count."""
         df = self.df
         self.beginInsertRows(parent, row, row + count - 1)
         df0 = df.iloc[:row, :]
@@ -44,6 +45,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
     def insertColumns(
         self, column: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
+        """Insert columns at the given column number and count."""
         df = self.df
         self.beginInsertColumns(parent, column, column + count - 1)
         df0 = df.iloc[:, :column]
@@ -161,10 +163,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
         with self._mgr.merging(name="setDataFrameValue"):
             if need_expand:
-                self.expandDataFrame(
-                    max(rmax - nr + 1, 0),
-                    max(cmax - nc + 1, 0),
-                )
+                self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
             super().setDataFrameValue(r, c, value)
             self.setFilter(self._filter_slice)
 
@@ -176,7 +175,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.undoable
     def expandDataFrame(self, nrows: int, ncols: int):
-        if not self._editable:
+        if not self.isEditable():
             return None
         self._data_raw = _pad_dataframe(self._data_raw, nrows, ncols)
         new_shape = self._data_raw.shape
@@ -231,28 +230,16 @@ class QSpreadSheet(QMutableSimpleTable):
         index = self._qtable_view.indexAt(pos)
         row, col = index.row(), index.column()
         model = self.model()
-        menu.addAction(
-            "Insert a row above", lambda: model.insertRows(row, 1, QtCore.QModelIndex())
-        )
-        menu.addAction(
-            "Insert a row below",
-            lambda: model.insertRows(row + 1, 1, QtCore.QModelIndex()),
-        )
-        menu.addAction(
-            "Insert a column on the left",
-            lambda: model.insertColumns(col, 1, QtCore.QModelIndex()),
-        )
-        menu.addAction(
-            "Insert a column on the right",
-            lambda: model.insertColumns(col + 1, 1, QtCore.QModelIndex()),
-        )
-        menu.addAction(
-            "Remove this row", lambda: model.removeRows(row, 1, QtCore.QModelIndex())
-        )
-        menu.addAction(
-            "Remove this column",
-            lambda: model.removeColumns(col, 1, QtCore.QModelIndex()),
-        )
+
+        # fmt: off
+        menu.addAction("Insert a row above", lambda: model.insertRows(row, 1, QtCore.QModelIndex()))
+        menu.addAction("Insert a row below", lambda: model.insertRows(row + 1, 1, QtCore.QModelIndex()))
+        menu.addAction("Insert a column on the left", lambda: model.insertColumns(col, 1, QtCore.QModelIndex()))
+        menu.addAction("Insert a column on the right", lambda: model.insertColumns(col + 1, 1, QtCore.QModelIndex()))
+        menu.addAction("Remove this row", lambda: model.removeRows(row, 1, QtCore.QModelIndex()))
+        menu.addAction("Remove this column", lambda: model.removeColumns(col, 1, QtCore.QModelIndex()))
+        # fmt: on
+
         return menu.exec(self._qtable_view.mapToGlobal(pos))
 
 
@@ -267,6 +254,14 @@ def _get_limit(a) -> int:
 
 
 def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int) -> pd.DataFrame:
+    if df.empty:
+        return pd.DataFrame(
+            np.full((nr, nc), np.nan),
+            index=range(nr),
+            columns=range(nc),
+            dtype="string",
+        )
+
     # pad rows
     if nr > 0:
         if df.size == 0:

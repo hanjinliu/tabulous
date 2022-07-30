@@ -67,8 +67,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         super().__init__(parent)
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
-        self._zoom = 1.0
-        self._initial_font_size = self.font().pointSize()
         vheader, hheader = self.verticalHeader(), self.horizontalHeader()
         self.setFrameStyle(QtW.QFrame.Shape.Box)
         vheader.setFrameStyle(QtW.QFrame.Shape.Box)
@@ -77,8 +75,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setStyleSheet("QHeaderView::section { border: 1px solid black}")
         vheader.setMinimumSectionSize(0)
         hheader.setMinimumSectionSize(0)
-        vheader.font().setPointSize(self._initial_font_size)
-        hheader.font().setPointSize(self._initial_font_size)
 
         vheader.setDefaultSectionSize(28)
         hheader.setDefaultSectionSize(100)
@@ -90,11 +86,15 @@ class _QTableViewEnhanced(QtW.QTableView):
             hheader.defaultSectionSize(),
             vheader.defaultSectionSize(),
         )
-        self.setZoom(1.0)  # initialize
 
         self.setVerticalScrollMode(_SCROLL_PER_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
         self.setFrameStyle(QtW.QFrame.Shape.NoFrame)
+
+    if TYPE_CHECKING:
+
+        def model(self) -> AbstractDataFrameModel:
+            ...
 
     def selectionChanged(
         self,
@@ -143,32 +143,28 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def zoom(self) -> float:
         """Get current zoom factor."""
-        return self._zoom
+        return self.model()._zoom
 
     def setZoom(self, value: float) -> None:
         """Set zoom factor."""
         if not 0.25 <= value <= 2.0:
             raise ValueError("Zoom factor must between 0.25 and 2.0.")
         # To keep table at the same position.
-        zoom_ratio = 1 / self._zoom * value
+        zoom_ratio = 1 / self.zoom() * value
         pos = self.verticalScrollBar().sliderPosition()
         self.verticalScrollBar().setSliderPosition(int(pos * zoom_ratio))
         pos = self.horizontalScrollBar().sliderPosition()
         self.horizontalScrollBar().setSliderPosition(int(pos * zoom_ratio))
 
-        # Zoom font size
-        font = self.font()
-        font.setPointSize(int(self._initial_font_size * value))
-        self.setFont(font)
-        self.verticalHeader().setFont(font)
-        self.horizontalHeader().setFont(font)
-
-        # Zoom section size of headers
+        # # Zoom section size of headers
         h, v = self._initial_section_size
         self.setSectionSize(int(h * value), int(v * value))
 
-        # Update stuff
-        self._zoom = value
+        # # Update stuff
+        self.model()._zoom = value
+        self.viewport().update()
+        self.horizontalHeader().viewport().update()
+        self.verticalHeader().viewport().update()
         return
 
     def wheelEvent(self, e: QtGui.QWheelEvent) -> None:
@@ -594,6 +590,7 @@ class QMutableTable(QBaseTable):
     def setEditable(self, editable: bool):
         """Set the editability of the table."""
         self.model()._editable = editable
+        return None
 
     def toggleEditability(self) -> None:
         """Toggle editability of the table."""

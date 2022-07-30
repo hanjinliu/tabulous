@@ -74,7 +74,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     def takeTable(self, index: int) -> QBaseTable:
         """Remove table at `index` and return it."""
         table = self.tableAtIndex(index)
-        self.resetMerge(index)
+        self.untileTable(index)
         self.removeTab(index)
         return table
 
@@ -263,7 +263,7 @@ class QTabbedTableStack(QtW.QTabWidget):
             wdt.setFocusedIndex(self._tab_index_to_group_index(index))
         return super().setCurrentIndex(index)
 
-    def mergeTables(self, indices: list[int]):
+    def tileTables(self, indices: list[int]):
         """Merge tables at indices."""
         # strict check of indices
         if len(indices) < 2:
@@ -281,7 +281,7 @@ class QTabbedTableStack(QtW.QTabWidget):
         for i in indices:
             table = self.widget(i)
             if isinstance(table, QTableGroup):
-                table = self.resetMerge(i)
+                table = self.untileTable(i)
             tables.append(table)
         group = QTableGroup(tables)
         widgets = [group.copy() for _ in indices]
@@ -322,7 +322,7 @@ class QTabbedTableStack(QtW.QTabWidget):
         self.insertTab(index, new, text)
         return None
 
-    def resetMerge(self, index: int) -> QBaseTable:
+    def untileTable(self, index: int) -> QBaseTable:
         """Reset merge of the table group at index."""
         target_group = self.widget(index)
         if not isinstance(target_group, QTableGroup):
