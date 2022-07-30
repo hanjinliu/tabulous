@@ -17,13 +17,21 @@ from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceabl
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
 
+# fmt: off
 # Flags
-_EDITABLE = (
-    QtW.QAbstractItemView.EditTrigger.EditKeyPressed
-    | QtW.QAbstractItemView.EditTrigger.DoubleClicked
-)
+_EDITABLE = QtW.QAbstractItemView.EditTrigger.EditKeyPressed | QtW.QAbstractItemView.EditTrigger.DoubleClicked
 _READ_ONLY = QtW.QAbstractItemView.EditTrigger.NoEditTriggers
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
+
+# Built-in table view key press events
+_TABLE_VIEW_KEY_SET = set()
+for keys in ["Up", "Down", "Left", "Right", "Home", "End", "PageUp", "PageDown", "F2", "Escape",
+             "Shift+Up", "Shift+Down", "Shift+Left", "Shift+Right", "Shift+Home", "Shift+End",
+             "Shift+PageUp", "Shift+PageDown", "Ctrl+A"]:
+    _TABLE_VIEW_KEY_SET.add(QtKeys(keys))
+_TABLE_VIEW_KEY_SET = frozenset(_TABLE_VIEW_KEY_SET)
+
+# fmt: on
 
 
 def _count_data_size(*args, **kwargs) -> float:
@@ -127,13 +135,11 @@ class _QTableViewEnhanced(QtW.QTableView):
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
         """Evoke parent keyPressEvent."""
         keys = QtKeys(e)
-        if keys.is_typing() or keys == "Ctrl+Tab":
-            # override default behavior
-            parent = self.parent()
-            if isinstance(parent, QBaseTable):
-                parent.keyPressEvent(e)
-        else:
+        if keys in _TABLE_VIEW_KEY_SET:
             return super().keyPressEvent(e)
+        parent = self.parent()
+        if isinstance(parent, QBaseTable):
+            parent.keyPressEvent(e)
 
     def zoom(self) -> float:
         """Get current zoom factor."""
@@ -187,11 +193,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.verticalHeader().setDefaultSectionSize(vertical)
         self.horizontalHeader().setDefaultSectionSize(horizontal)
         return
-
-    def moveToItem(self, row: int, column: int) -> None:
-        """Move to a location."""
-        self.setCurrentIndex(self.model().index(row, column))
-        return None
 
 
 class QBaseTable(QtW.QSplitter):
@@ -451,6 +452,18 @@ class QBaseTable(QtW.QSplitter):
             pass
 
         return None
+
+    def moveToItem(self, row: int | None = None, column: int | None = None):
+        if row is None:
+            row = self._qtable_view.currentIndex().row()
+        elif row < 0:
+            row += self.tableShape()[0]
+
+        if column is None:
+            column = self._qtable_view.currentIndex().column()
+        elif column < 0:
+            column += self.tableShape()[1]
+        self._qtable_view.setCurrentIndex(self.model().index(row, column))
 
 
 class QMutableTable(QBaseTable):

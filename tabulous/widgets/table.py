@@ -181,18 +181,18 @@ class TableBase(ABC):
         data = self.data
         r = data.index.get_loc(row)
         c = data.columns.get_loc(column)
-        return self._qwidget._qtable_view.moveToItem(r, c)
+        return self._qwidget.moveToItem(r, c)
 
     def move_iloc(self, row: int, column: int):
         """Move to a location in the table using indices."""
         shape = self.table_shape
-        row_outofrange = row < 0 or row >= shape[0]
-        col_outofrange = column < 0 or column >= shape[1]
+        row_outofrange = row >= shape[0]
+        col_outofrange = column >= shape[1]
         if row_outofrange or col_outofrange:
             raise IndexError(
                 f"Indices {(row, column)!r} out of range of table shape {shape!r}."
             )
-        return self._qwidget._qtable_view.moveToItem(row, column)
+        return self._qwidget.moveToItem(row, column)
 
     @property
     def view_mode(self) -> str:

@@ -1,12 +1,13 @@
 from __future__ import annotations
 from ._mainwidgets import QMainWindow, QMainWidget, _QtMainWidgetBase
 
+# fmt: off
 
 @QMainWidget._keymap.bind("Ctrl+K")
 @QMainWindow._keymap.bind("Ctrl+K")
 def _(self: _QtMainWidgetBase):
     """Toggle toolbar visibility."""
-    print("K")
+    self.setFocus()
 
 
 @QMainWidget._keymap.bind("Ctrl+K, Ctrl+T")
@@ -15,20 +16,26 @@ def _(self: _QtMainWidgetBase):
     """Toggle toolbar visibility."""
     return self.toggleToolBarVisibility()
 
+@QMainWidget._keymap.bind("Ctrl+K, E")
+@QMainWindow._keymap.bind("Ctrl+K, E")
+def _(self: _QtMainWidgetBase):
+    """Toggle table editability."""
+    table = self._table_viewer.current_table
+    try:
+        table.editable = not table.editable
+    except Exception:
+        pass
+    self.setCellFocus()
 
 @QMainWidget._keymap.bind("Ctrl+K, V", mode="vertical", desc="Vertical dual view mode.")
 @QMainWindow._keymap.bind("Ctrl+K, V", mode="vertical", desc="Vertical dual view mode.")
-@QMainWidget._keymap.bind(
-    "Ctrl+K, H", mode="horizontal", desc="Horizontal dual view mode."
-)
-@QMainWindow._keymap.bind(
-    "Ctrl+K, H", mode="horizontal", desc="Horizontal dual view mode."
-)
+@QMainWidget._keymap.bind("Ctrl+K, H", mode="horizontal", desc="Horizontal dual view mode.")
+@QMainWindow._keymap.bind("Ctrl+K, H", mode="horizontal", desc="Horizontal dual view mode.")
 @QMainWidget._keymap.bind("Ctrl+K, N", mode="normal", desc="Reset view mode.")
 @QMainWindow._keymap.bind("Ctrl+K, N", mode="normal", desc="Reset view mode.")
 def _(self: _QtMainWidgetBase, mode):
     self._table_viewer.current_table.view_mode = mode
-
+    return None
 
 @QMainWidget._keymap.bind("Ctrl+Shift+C")
 @QMainWindow._keymap.bind("Ctrl+Shift+C")
@@ -41,6 +48,14 @@ def _(self: _QtMainWidgetBase):
 @QMainWindow._keymap.bind("Ctrl+0")
 def _(self: _QtMainWidgetBase):
     """Focus on a cell in the current table."""
+    return self.setCellFocus()
+
+
+@QMainWidget._keymap.bind("Ctrl+N")
+@QMainWindow._keymap.bind("Ctrl+N")
+def _(self: _QtMainWidgetBase):
+    """New table"""
+    self._table_viewer.add_spreadsheet(name="New")
     return self.setCellFocus()
 
 
@@ -104,3 +119,5 @@ def _(self: QMainWindow):
 def _(self: QMainWidget | QMainWindow):
     """Open a keymap viewer."""
     return self.showKeyMap()
+
+# fmt: on
