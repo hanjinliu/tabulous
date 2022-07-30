@@ -413,6 +413,7 @@ class QBaseTable(QtW.QSplitter):
             copy._qtable_view.setSelectionModel(self._qtable_view.selectionModel())
         else:
             copy = self.__class__(self.parent(), self.getDataFrame())
+        copy.setZoom(self.zoom())
         return copy
 
     def refresh(self) -> None:
@@ -736,6 +737,11 @@ class QMutableTable(QBaseTable):
             )
             self.setDataFrameValue(rsel, csel, df)
         return None
+
+    def copy(self, link: bool = True) -> Self:
+        copy = super().copy(link=link)
+        copy.setEditable(self.isEditable())
+        return copy
 
     def editHorizontalHeader(self, index: int):
         """Edit the horizontal header."""

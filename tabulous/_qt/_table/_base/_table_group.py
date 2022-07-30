@@ -40,9 +40,11 @@ class QTableGroup(QtW.QSplitter):
     def pop(self, index: int = -1) -> QBaseTable:
         if index < 0:
             index += self.count()
-        table = self.widget(index)
+        out = self._tables.pop(index)
+        table = self.widget(index)  # this is a copy
+        table.setParent(None)
         table.deleteLater()
-        return self.tables[index]
+        return out
 
     def tableIndex(self, table: QBaseTable) -> int:
         model = table.model()
@@ -78,7 +80,7 @@ class QTableGroup(QtW.QSplitter):
             return False
         # NOTE: This should be safe. Table groups derived from the same ancestor
         # will always have exclusively the same set of tables.
-        return self.tables[0].model() is other.tables[0].model()
+        return self._tables[0].model() is other._tables[0].model()
 
     if TYPE_CHECKING:
 

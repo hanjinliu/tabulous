@@ -339,18 +339,19 @@ class QTabbedTableStack(QtW.QTabWidget):
             if target_group == wdt:
                 all_groups.append(wdt)
                 appeared_idx.append(i)
-                if count == index:
+                if i == index:
                     target_idx = count
                 count += 1
 
         unmerged = None
         for i, tablegroup in enumerate(all_groups):
             table = tablegroup.pop(target_idx)
-            if i == index:
+            j = appeared_idx[i]
+            if j == index:
                 unmerged = table
-                self.replaceWidget(i, table)
+                self.replaceWidget(j, table)
             elif n_merged == 2:
-                self.replaceWidget(appeared_idx[i], tablegroup.pop(i))
+                self.replaceWidget(j, tablegroup.pop(0))
 
         if unmerged is None:
             raise RuntimeError("Unmerging could not be resolved.")
