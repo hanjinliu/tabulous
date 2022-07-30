@@ -85,6 +85,16 @@ class QTableGroupBy(QBaseTable):
 
     @QBaseTable._mgr.interface
     def setDataFrame(self, data: DataFrameGroupBy) -> None:
+        if data is None:
+            self._data_raw = data
+            self._group_key_cbox.setLabel("")
+
+            self._group_map = {}
+            self._group_key_cbox.setChoices([])
+            self.setFilter(None)
+            self._qtable_view.viewport().update()
+            return
+
         if not isinstance(data, DataFrameGroupBy):
             raise TypeError(f"Data must be DataFrameGroupBy, not {type(data)}")
         self._data_raw = data

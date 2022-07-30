@@ -404,7 +404,7 @@ class QBaseTable(QtW.QSplitter):
 
     def copy(self, link: bool = True) -> Self:
         if link:
-            copy = self.__class__(self.parent(), pd.DataFrame([]))
+            copy = self.__class__(self.parent(), self.getDataFrame())
             copy._qtable_view.setModel(self._qtable_view.model())
             copy._qtable_view.setSelectionModel(self._qtable_view.selectionModel())
         else:
