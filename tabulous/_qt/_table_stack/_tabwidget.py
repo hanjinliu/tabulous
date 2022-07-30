@@ -281,7 +281,7 @@ class QTabbedTableStack(QtW.QTabWidget):
 
         for i in indices:
             wdt = widgets[i]
-            self.replaceTable(i, wdt)
+            self.replaceWidget(i, wdt)
 
             @wdt.focusChanged.connect
             def _(idx, wdt: QTableGroup = wdt):
@@ -296,10 +296,22 @@ class QTabbedTableStack(QtW.QTabWidget):
 
         return None
 
-    def replaceTable(self, index: int, new: QBaseTable):
-        """Replace table at index with new table."""
+    def replaceWidget(self, index: int, new: QtW.QWidget) -> None:
+        """
+        Replace table at index with new table.
+
+        This function will NOT consider if the incoming and to-be-replaced tables
+        are table group or not. This function is genuinely a method of QTabWidget.
+
+        Parameters
+        ----------
+        index : int
+            Index of the widget to be replaced.
+        new : QWidget
+            New widget to replace the old one.
+        """
         text = self.tabText(index)
-        self.takeTable(index)
+        self.removeTab(index)
         self.insertTab(index, new, text)
         return None
 
@@ -309,7 +321,10 @@ class QTabbedTableStack(QtW.QTabWidget):
         if not isinstance(target_group, QTableGroup):
             return target_group
 
+        target_group = cast(QTableGroup, target_group)
+        n_merged = len(target_group.tables)
         appeared_idx: list[int] = []
+        count = 0
         all_groups: list[QTableGroup] = []
         target_idx = -1
         for i in range(self.count()):
@@ -317,17 +332,19 @@ class QTabbedTableStack(QtW.QTabWidget):
             if target_group == wdt:
                 all_groups.append(wdt)
                 appeared_idx.append(i)
-                if len(appeared_idx) == index:
-                    target_idx = len(appeared_idx) - 1
+                if count == index:
+                    target_idx = count
+                count += 1
 
-        n_merged = len(all_groups)
         unmerged = None
         for i, tablegroup in enumerate(all_groups):
             table = tablegroup.pop(target_idx)
-            if i == index or n_merged == 2:
-                if i == index:
-                    unmerged = table
-                self.replaceTable(index, table)
+            if i == index:
+                unmerged = table
+                self.replaceWidget(i, table)
+            elif n_merged == 2:
+                self.replaceWidget(appeared_idx[i], tablegroup.pop(i))
+
         if unmerged is None:
             raise RuntimeError("Unmerging could not be resolved.")
         return unmerged
