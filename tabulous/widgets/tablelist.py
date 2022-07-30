@@ -151,8 +151,8 @@ class TableList(EventedList[TableBase]):
             location = val.__name__.replace("_", " ")
             return self._parent._qwidget._tablestack.registerAction(location)(val)
 
-    def tile(self, indices: list[int]):
-        self._parent._qwidget._tablestack.tileTables(indices)
+    def tile(self, indices: list[int], orientation: str = "horizontal") -> None:
+        self._parent._qwidget._tablestack.tileTables(indices, orientation=orientation)
         return None
 
     def untile(self, indices: int | list[int]):

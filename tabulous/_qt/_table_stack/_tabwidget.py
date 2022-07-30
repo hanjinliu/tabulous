@@ -263,7 +263,11 @@ class QTabbedTableStack(QtW.QTabWidget):
             wdt.setFocusedIndex(self._tab_index_to_group_index(index))
         return super().setCurrentIndex(index)
 
-    def tileTables(self, indices: list[int]):
+    def tileTables(
+        self,
+        indices: list[int],
+        orientation: Qt.Orientation = Qt.Orientation.Horizontal,
+    ):
         """Merge tables at indices."""
         # strict check of indices
         if len(indices) < 2:
@@ -275,6 +279,14 @@ class QTabbedTableStack(QtW.QTabWidget):
         elif len(set(indices)) != len(indices):
             raise ValueError("Duplicate indices.")
 
+        # check orientation
+        if orientation == "horizontal":
+            ori = Qt.Orientation.Horizontal
+        elif orientation == "vertical":
+            ori = Qt.Orientation.Vertical
+        else:
+            raise ValueError("Orientation must be 'horizontal' or 'vertical'.")
+
         indices = sorted(indices)
 
         tables: list[QBaseTable] = []
@@ -283,7 +295,7 @@ class QTabbedTableStack(QtW.QTabWidget):
             if isinstance(table, QTableGroup):
                 table = self.untileTable(i)
             tables.append(table)
-        group = QTableGroup(tables)
+        group = QTableGroup(tables, ori)
         widgets = [group.copy() for _ in indices]
 
         for j, index in enumerate(indices):
