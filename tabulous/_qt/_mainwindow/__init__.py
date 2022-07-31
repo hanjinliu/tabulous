@@ -1,2 +1,8 @@
 from ._mainwidgets import QMainWindow, QMainWidget, _QtMainWidgetBase
-from . import _keycombo  # activate key combo
+
+# activate key combo
+from . import _keycombo
+
+del _keycombo
+
+__all__ = ["QMainWindow", "QMainWidget", "_QtMainWidgetBase"]

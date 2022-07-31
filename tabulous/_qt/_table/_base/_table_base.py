@@ -340,9 +340,13 @@ class QBaseTable(QtW.QSplitter):
                 # if int is used instead of slice
                 if not isinstance(r, slice):
                     _r = r.__index__()
+                    if _r < 0:
+                        _r += nr
                     r = slice(_r, _r + 1)
                 if not isinstance(c, slice):
                     _c = c.__index__()
+                    if _c < 0:
+                        _c += nc
                     c = slice(_c, _c + 1)
                 r0, r1, _ = r.indices(nr)
                 c0, c1, _ = c.indices(nc)
@@ -507,7 +511,12 @@ class QBaseTable(QtW.QSplitter):
             column = self._qtable_view.currentIndex().column()
         elif column < 0:
             column += self.tableShape()[1]
-        self._qtable_view.setCurrentIndex(self.model().index(row, column))
+
+        self._qtable_view.selectionModel().setCurrentIndex(
+            self.model().index(row, column),
+            QtCore.QItemSelectionModel.SelectionFlag.Current,
+        )
+        return None
 
 
 class QMutableTable(QBaseTable):
