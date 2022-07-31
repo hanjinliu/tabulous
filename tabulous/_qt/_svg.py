@@ -18,6 +18,7 @@ class SVGBufferIconEngine(QtGui.QIconEngine):
     def paint(self, painter: QtGui.QPainter, rect, mode, state):
         """Paint the icon int ``rect`` using ``painter``."""
         renderer = QtSvg.QSvgRenderer(self.data)
+        renderer.setAspectRatioMode(Qt.AspectRatioMode.KeepAspectRatio)
         renderer.render(painter, QtCore.QRectF(rect))
 
     def clone(self):

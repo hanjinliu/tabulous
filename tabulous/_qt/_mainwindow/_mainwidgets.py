@@ -31,12 +31,14 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
         self.addWidget(wdt)
 
     def toolBarVisible(self) -> bool:
+        """Visibility of toolbar"""
         if self._toolbar is None:
             return False
         else:
             return self._toolbar.isVisible()
 
     def setToolBarVisible(self, visible: bool):
+        """Set visibility of toolbar"""
         if visible and self._toolbar is None:
             from .._toolbar import QTableStackToolBar
 
@@ -212,7 +214,9 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         return wrapper
 
     def toolBarVisible(self) -> bool:
+        """Visibility of toolbar"""
         return self._toolbar.isVisible()
 
     def setToolBarVisible(self, visible: bool):
+        """Set visibility of toolbar"""
         return self._toolbar.setVisible(visible)
