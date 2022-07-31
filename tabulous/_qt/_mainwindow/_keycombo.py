@@ -78,7 +78,7 @@ def _(self: _QtMainWidgetBase):
 def _(self: _QtMainWidgetBase):
     """Move focus to toolbar."""
     self._toolbar.showTabTooltips()
-    self._toolbar.setFocus()
+    self.setFocus()
 
 
 @QMainWindow._keymap.bind("Alt, F", index=0, desc="Move focus to `File` menu tab.")
@@ -116,8 +116,71 @@ def _(self: QMainWindow):
 
 @QMainWidget._keymap.bind("Ctrl+Shift+?")
 @QMainWindow._keymap.bind("Ctrl+Shift+?")
-def _(self: QMainWidget | QMainWindow):
+def _(self: _QtMainWidgetBase):
     """Open a keymap viewer."""
     return self.showKeyMap()
+
+@QMainWidget._keymap.bind("Alt+Left")
+@QMainWindow._keymap.bind("Alt+Left")
+def _(self: _QtMainWidgetBase):
+    """Activate the previous table."""
+    num = self._tablestack.count()
+    if num == 0:
+        return None
+    src = self._tablestack.currentIndex()
+    if src == 0:
+        return
+    self._tablestack.setCurrentIndex(src - 1)
+
+@QMainWidget._keymap.bind("Alt+Right")
+@QMainWindow._keymap.bind("Alt+Right")
+def _(self: _QtMainWidgetBase):
+    """Activate the next table."""
+    num = self._tablestack.count()
+    if num == 0:
+        return None
+    src = self._tablestack.currentIndex()
+    if src == num - 1:
+        return
+    self._tablestack.setCurrentIndex(src + 1)
+
+@QMainWidget._keymap.bind("Alt+Shift+Left")
+@QMainWindow._keymap.bind("Alt+Shift+Left")
+def _(self: _QtMainWidgetBase):
+    """Swap the current table with the previous one."""
+    num = self._tablestack.count()
+    if num == 0:
+        return None
+    src = self._tablestack.currentIndex()
+    if src == 0:
+        return
+    self._table_viewer.tables.move(src, src - 1)
+
+@QMainWidget._keymap.bind("Alt+Shift+Right")
+@QMainWindow._keymap.bind("Alt+Shift+Right")
+def _(self: _QtMainWidgetBase):
+    """Swap the current table with the next one."""
+    num = self._tablestack.count()
+    if num == 0:
+        return None
+    src = self._tablestack.currentIndex()
+    if src == num - 1:
+        return
+    self._table_viewer.tables.move(src + 1, src)
+
+
+@QMainWidget._keymap.bind("Ctrl+Shift+|")
+@QMainWindow._keymap.bind("Ctrl+Shift+|")
+def _(self: _QtMainWidgetBase):
+    """Tile table."""
+    num = self._tablestack.count()
+    if num < 2:
+        return None
+    idx = self._tablestack.currentIndex()
+    if idx < num - 1:
+        indices = [idx, idx + 1]
+    else:
+        indices = [idx - 1, idx]
+    self._tablestack.tileTables(indices, orientation="horizontal")
 
 # fmt: on

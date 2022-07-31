@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, TYPE_CHECKING, cast
+from typing import Callable, TYPE_CHECKING, Literal, cast
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, Signal
@@ -85,7 +85,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     def tableIndex(self, table: QBaseTable) -> int:
         """Get the index of `table`."""
         for i in range(self.count()):
-            data = self.widget(i)
+            data = self.tableAtIndex(i)
             if data is table:
                 break
         else:
@@ -224,6 +224,24 @@ class QTabbedTableStack(QtW.QTabWidget):
             self.takeTable(index)
             self.tableRemoved.emit(index)
 
+        self._qt_context_menu.addSeparator()
+
+        @self.registerAction("Tile Horizontally")
+        def _tile_h(index: int):
+            if index == self.count() - 1:
+                index -= 1
+            self.tileTables([index, index + 1])
+
+        @self.registerAction("Tile Vertically")
+        def _tile_v(index: int):
+            if index == self.count() - 1:
+                index -= 1
+            self.tileTables([index, index + 1], orientation="vertical")
+
+        @self.registerAction("Untile")
+        def _untile(index: int):
+            self.untileTable(index)
+
     def registerAction(self, location: str):
         locs = location.split(">")
         menu = self._qt_context_menu
@@ -266,7 +284,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     def tileTables(
         self,
         indices: list[int],
-        orientation: Qt.Orientation = Qt.Orientation.Horizontal,
+        orientation: Literal["horizontal", "vertical"] = "horizontal",
     ):
         """Merge tables at indices."""
         # strict check of indices
@@ -287,6 +305,7 @@ class QTabbedTableStack(QtW.QTabWidget):
         else:
             raise ValueError("Orientation must be 'horizontal' or 'vertical'.")
 
+        current_index = self.currentIndex()
         indices = sorted(indices)
 
         tables: list[QBaseTable] = []
@@ -313,6 +332,7 @@ class QTabbedTableStack(QtW.QTabWidget):
                 dst.blockSignals(False)
                 wdt.blockSignals(False)
 
+        self.setCurrentIndex(current_index)
         return None
 
     def replaceWidget(self, index: int, new: QtW.QWidget) -> None:
@@ -340,6 +360,7 @@ class QTabbedTableStack(QtW.QTabWidget):
         if not isinstance(target_group, QTableGroup):
             return target_group
 
+        current_index = self.currentIndex()
         target_group = cast(QTableGroup, target_group)
         n_merged = len(target_group.tables)
         appeared_idx: list[int] = []
@@ -367,6 +388,7 @@ class QTabbedTableStack(QtW.QTabWidget):
 
         if unmerged is None:
             raise RuntimeError("Unmerging could not be resolved.")
+        self.setCurrentIndex(current_index)
         return unmerged
 
     def _group_index_to_tab_index(self, group: QTableGroup, index: int) -> int:
