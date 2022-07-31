@@ -14,6 +14,20 @@ def get_cell_value(table, row, col):
 def edit_cell(table, row, col, value):
     table.model().dataEdited.emit(row, col, value)
 
+def selection_equal(sel1: list[tuple[slice, slice]], sel2: list[tuple[slice, slice]]):
+    if len(sel1) != len(sel2):
+        return False
+    for s1, s2 in zip(sel1, sel2):
+        if (s1[0].start == s2[0].start and
+            s1[1].start == s2[1].start and
+            s1[0].stop == s2[0].stop and
+            s1[1].stop == s2[1].stop):
+            pass
+        else:
+            return False
+    return True
+
+
 @pytest.mark.parametrize("df", [df0, df1])
 def test_display(df: pd.DataFrame):
     viewer = TableViewer(show=False)
@@ -88,3 +102,25 @@ def test_dual_view():
     table.view_mode = "horizontal"
 
     table.selections = [(slice(1, 2), slice(0, 2))]
+    selection_equal(table.selections, [(slice(1, 2), slice(0, 2))])
+
+def test_popup_view():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(df0)
+
+    table.view_mode = "popup"
+
+    table.selections = [(slice(1, 2), slice(0, 2))]
+    selection_equal(table.selections, [(slice(1, 2), slice(0, 2))])
+
+def test_color_mapper():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(df0)
+
+    @table.foreground_rule("a")
+    def _(val):
+        return "red" if val < 2 else None
+
+    @table.background_rule("b")
+    def _(val):
+        return "green" if val < 20 else None

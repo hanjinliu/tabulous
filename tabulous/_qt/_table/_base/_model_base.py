@@ -1,8 +1,11 @@
 from __future__ import annotations
+from typing import Any, Callable, Hashable
 import warnings
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
 import pandas as pd
+
+from ....color import normalize_color, ColorType
 
 # https://ymt-lab.com/post/2020/pyqt5-qtableview-pandas-qabstractitemmodel/
 
@@ -15,11 +18,24 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._df = pd.DataFrame([])
+
+        # settings
         self._editable = False
         self._font_size = 10
         self._zoom = 1.0
         self._h_default = 28
         self._w_default = 100
+        self._foreground_color_mapper: dict[Hashable, Callable[[Any], ColorType]] = {}
+        self._background_color_mapper: dict[Hashable, Callable[[Any], ColorType]] = {}
+
+        self._data_role_map = {
+            Qt.ItemDataRole.EditRole: self._data_display,
+            Qt.ItemDataRole.DisplayRole: self._data_display,
+            Qt.ItemDataRole.TextColorRole: self._data_text_color,
+            Qt.ItemDataRole.ToolTipRole: self._data_tooltip,
+            Qt.ItemDataRole.FontRole: self._data_font,
+            Qt.ItemDataRole.BackgroundColorRole: self._data_background_color,
+        }
 
     @property
     def df(self) -> pd.DataFrame:
@@ -38,30 +54,69 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     ):
         if not index.isValid():
             return QtCore.QVariant()
-        if role == Qt.ItemDataRole.EditRole or role == Qt.ItemDataRole.DisplayRole:
-            r, c = index.row(), index.column()
-            if r < self.df.shape[0] and c < self.df.shape[1]:
+        if map := self._data_role_map.get(role, None):
+            return map(index)
+        return QtCore.QVariant()
+
+    def _data_display(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        if r < self.df.shape[0] and c < self.df.shape[1]:
+            val = self.df.iat[r, c]
+            if pd.isna(val):
+                return "NA"
+            return str(val)
+        return QtCore.QVariant()
+
+    def _data_text_color(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        if r < self.df.shape[0] and c < self.df.shape[1]:
+            colname = self.df.columns[c]
+            val = self.df.iat[r, c]
+            if mapper := self._foreground_color_mapper.get(colname, None):
+                # If mapper is given for the column, call it.
+                try:
+                    col = mapper(val)
+                    if col is None:
+                        return QtCore.QVariant()
+                    rgba = normalize_color(col)
+                except Exception as e:
+                    # since this method is called many times, errorous function should be
+                    # deleted from the mapper.
+                    self._foreground_color_mapper.pop(c)
+                    raise e
+                return QtGui.QColor(*rgba)
+            if pd.isna(val):
+                return QtGui.QColor(Qt.GlobalColor.gray)
+        return QtCore.QVariant()
+
+    def _data_tooltip(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        if r < self.df.shape[0] and c < self.df.shape[1]:
+            val = self.df.iat[r, c]
+            dtype = self.df.dtypes[c]
+            return f"{val!r} (dtype: {dtype})"
+        return QtCore.QVariant()
+
+    def _data_font(self, index: QtCore.QModelIndex):
+        return QtGui.QFont(_FONT, int(self._font_size * self._zoom))
+
+    def _data_background_color(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        if r < self.df.shape[0] and c < self.df.shape[1]:
+            colname = self.df.columns[c]
+            if mapper := self._background_color_mapper.get(colname, None):
                 val = self.df.iat[r, c]
-                if pd.isna(val):
-                    return "NA"
-                return str(val)
-            return QtCore.QVariant()
-        elif role == Qt.ItemDataRole.TextColorRole:
-            r, c = index.row(), index.column()
-            if r < self.df.shape[0] and c < self.df.shape[1]:
-                val = self.df.iat[r, c]
-                if pd.isna(val):
-                    return QtGui.QColor(Qt.GlobalColor.gray)
-            return QtCore.QVariant()
-        elif role == Qt.ItemDataRole.ToolTipRole:
-            r, c = index.row(), index.column()
-            if r < self.df.shape[0] and c < self.df.shape[1]:
-                val = self.df.iat[r, c]
-                dtype = self.df.dtypes[c]
-                return f"{val!r} (dtype: {dtype})"
-            return QtCore.QVariant()
-        elif role == Qt.ItemDataRole.FontRole:
-            return QtGui.QFont(_FONT, int(self._font_size * self._zoom))
+                try:
+                    col = mapper(val)
+                    if col is None:
+                        return QtCore.QVariant()
+                    rgba = normalize_color(col)
+                except Exception as e:
+                    # since this method is called many times, errorous function should be
+                    # deleted from the mapper.
+                    self._background_color_mapper.pop(c)
+                    raise e
+                return QtGui.QColor(*rgba)
         return QtCore.QVariant()
 
     def flags(self, index):
@@ -135,6 +190,8 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
 
 
 class DataFrameModel(AbstractDataFrameModel):
+    """A concrete model for a pandas DataFrame."""
+
     @property
     def df(self) -> pd.DataFrame:
         return self._df

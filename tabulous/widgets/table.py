@@ -1,9 +1,8 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Callable, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING, Hashable
 from psygnal import SignalGroup, Signal
-
 from .filtering import FilterProxy
 
 from ..types import (
@@ -23,6 +22,10 @@ if TYPE_CHECKING:
     from .._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from .._qt._table import QBaseTable
     from .._qt._keymap import QtKeyMap
+
+    from ..color import ColorType
+
+    ColorMapping = Callable[[Any], ColorType]
 
 
 class TableSignals(SignalGroup):
@@ -51,12 +54,30 @@ class ViewMode(Enum):
         return f"<{type(self).__name__}.{self.name}>"
 
 
+class CellInterface:
+    """The interface for editing cell as if it was manually edited."""
+
+    def __init__(self, parent: TableBase):
+        self.parent = parent
+
+    def __getitem__(self, key: tuple[int, int]) -> str:
+        r, c = key
+        model = self.parent._qwidget.model()
+        index = model.index(r, c)
+        return model.data(index)
+
+    def __setitem__(self, key: tuple[int, int], value: Any) -> None:
+        row, col = key
+        self.parent._qwidget.model().dataEdited.emit(row, col, value)
+        return None
+
+
 class TableBase(ABC):
     """The base class for a table layer."""
 
     _Default_Name = "None"
 
-    def __init__(self, data, name=None, editable: bool = True):
+    def __init__(self, data, name: str | None = None, editable: bool = True):
         self._data = self._normalize_data(data)
 
         if name is None:
@@ -66,6 +87,7 @@ class TableBase(ABC):
         self._qwidget = self._create_backend(self._data)
         self._qwidget.connectSelectionChangedSignal(self.events.selections.emit)
         self._view_mode = ViewMode.normal
+        self._cell = CellInterface(self)
 
         if self.mutable:
             self._qwidget.setEditable(editable)
@@ -114,13 +136,18 @@ class TableBase(ABC):
         return self._qwidget._keymap
 
     @property
+    def cell(self) -> CellInterface:
+        """Cell interface of the table."""
+        return self._cell
+
+    @property
     def precision(self) -> int:
         """Precision (displayed digits) of table."""
         return self._qwidget.precision()
 
     @precision.setter
     def precision(self, value: int) -> None:
-        self._qwidget.setPrecision(value)
+        return self._qwidget.setPrecision(value)
 
     @property
     def zoom(self) -> float:
@@ -129,7 +156,7 @@ class TableBase(ABC):
 
     @zoom.setter
     def zoom(self, value: float):
-        self._qwidget.setZoom(value)
+        return self._qwidget.setZoom(value)
 
     @property
     def name(self) -> str:
@@ -139,7 +166,7 @@ class TableBase(ABC):
     @name.setter
     def name(self, value: str):
         self._name = str(value)
-        self.events.renamed.emit(self._name)
+        return self.events.renamed.emit(self._name)
 
     @property
     def editable(self) -> bool:
@@ -168,7 +195,7 @@ class TableBase(ABC):
     def selections(self, value: SelectionType | _SingleSelection) -> None:
         if not isinstance(value, list):
             value = [value]
-        self._qwidget.setSelections(value)
+        return self._qwidget.setSelections(value)
 
     @property
     def native(self) -> QBaseTable:
@@ -196,6 +223,28 @@ class TableBase(ABC):
                 f"Indices {(row, column)!r} out of range of table shape {shape!r}."
             )
         return self._qwidget.moveToItem(row, column)
+
+    def foreground_rule(self, column_name: Hashable, func: ColorMapping | None = None):
+        """Set foreground rule."""
+
+        def _wrapper(f: ColorMapping) -> ColorMapping:
+            model = self._qwidget.model()
+            model._foreground_color_mapper[column_name] = f
+            self.refresh()
+            return f
+
+        return _wrapper(func) if func is not None else _wrapper
+
+    def background_rule(self, column_name: Hashable, func: ColorMapping | None = None):
+        """Set background rule."""
+
+        def _wrapper(f: ColorMapping) -> ColorMapping:
+            model = self._qwidget.model()
+            model._background_color_mapper[column_name] = f
+            self.refresh()
+            return f
+
+        return _wrapper(func) if func is not None else _wrapper
 
     @property
     def view_mode(self) -> str:
