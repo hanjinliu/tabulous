@@ -139,7 +139,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     def readClipBoard(self):
         """Read clipboard as a string data frame."""
-        return pd.read_clipboard(header=None).astype("string")
+        return pd.read_clipboard(header=None, dtype="string")  # read as string
 
     def setDataFrameValue(self, r: int | slice, c: int | slice, value: Any) -> None:
         nr, nc = self._data_raw.shape
@@ -175,6 +175,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.undoable
     def expandDataFrame(self, nrows: int, ncols: int):
+        """Expand the data frame by adding empty rows and columns."""
         if not self.isEditable():
             return None
         self._data_raw = _pad_dataframe(self._data_raw, nrows, ncols)
