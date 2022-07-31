@@ -110,6 +110,7 @@ class TableBase(ABC):
 
     @property
     def keymap(self) -> QtKeyMap:
+        """The keymap object."""
         return self._qwidget._keymap
 
     @property
@@ -129,10 +130,6 @@ class TableBase(ABC):
     @zoom.setter
     def zoom(self, value: float):
         self._qwidget.setZoom(value)
-
-    def _set_name(self, value: str):
-        with self.events.renamed.blocked():
-            self.name = value
 
     @property
     def name(self) -> str:
@@ -172,6 +169,11 @@ class TableBase(ABC):
         if not isinstance(value, list):
             value = [value]
         self._qwidget.setSelections(value)
+
+    @property
+    def native(self) -> QBaseTable:
+        """The backend widget."""
+        return self._qwidget
 
     def refresh(self) -> None:
         """Refresh the table view."""
@@ -233,6 +235,7 @@ class TableBase(ABC):
         return self._qwidget._mgr
 
     def add_side_widget(self, wdt: QtW.QWidget | Widget):
+        """Add a side widget to the table."""
         if hasattr(wdt, "native"):
             wdt = wdt.native
         self._qwidget.addSideWidget(wdt)

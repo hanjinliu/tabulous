@@ -48,4 +48,27 @@ def get_app():
 def run_app():
     """Start the event loop."""
     if not gui_qt_is_active():
-        return get_app().exec_()
+        with ExceptionHandler() as exc_handler:
+            get_app().exec_()
+        return None
+
+
+class ExceptionHandler:
+    """Handle exceptions in the GUI thread."""
+
+    def __enter__(self):
+        import sys
+
+        self._original_excepthook = sys.excepthook
+        sys.excepthook = print
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        import sys
+
+        sys.excepthook = self._original_excepthook
+        return None
+
+    def _on_exception(self, exc_type, exc_value, exc_traceback):
+        # TODO
+        print(exc_type, exc_value)
