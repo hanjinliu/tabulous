@@ -1,38 +1,27 @@
 from __future__ import annotations
-from typing import Sequence
+from typing import Sequence, TYPE_CHECKING
 
-from qtpy import QtWidgets as QtW
-from qtpy.QtCore import Qt
+from qtpy import QtWidgets as QtW, QtGui
 
 from ._callback import BoundCallback
 from ._keymap import QtKeys, QtKeyMap
 
 
 class QtKeyMapView(QtW.QWidget):
+    """A viewer widget for keymap."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Keymaps")
+        _layout = QtW.QVBoxLayout(self)
+        self._list = QKeyMapList()
+        # self._keyseq_edit = QtW.QKeySequenceEdit()
+        _layout.addWidget(self._list)
+        # _layout.addWidget(self._keyseq_edit)
 
-        area = QtW.QScrollArea()
-        area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        area.setContentsMargins(2, 2, 2, 2)
-        area.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        self.setLayout(QtW.QVBoxLayout())
-        self.layout().addWidget(area)
-
-        central_widget = QtW.QWidget(area)
-        central_widget.setMinimumSize(500, 500)
-
-        _layout = QtW.QVBoxLayout()
-        _layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        central_widget.setLayout(_layout)
-
-        area.setWidget(central_widget)
-
+        self.setLayout(_layout)
         self._layout = _layout
-        self._central_widget = central_widget
+        self.setMinimumWidth(520)
 
     @classmethod
     def from_keymap(cls, kmap: QtKeyMap) -> QtKeyMapView:
@@ -45,36 +34,52 @@ class QtKeyMapView(QtW.QWidget):
             current_keys = offset + (key,)
             if isinstance(child, QtKeyMap):
                 if (c := child.activated_callback) is not None:
-                    self.addItem(current_keys, c)
+                    self._list.addKeyMapItem(current_keys, c)
                 self.loadKeyMap(child, current_keys)
             else:
-                self.addItem(current_keys, child)
+                self._list.addKeyMapItem(current_keys, child)
         return None
 
-    def addItem(self, keys: Sequence[QtKeys], callback: BoundCallback) -> None:
-        item = QtKeyBindItem(key=keys, desc=callback.desc)
-        self._layout.addWidget(item)
+
+class QKeyMapList(QtW.QListWidget):
+    def addKeyMapItem(self, keys: Sequence[QtKeys], callback: BoundCallback):
+        item = QtW.QListWidgetItem()
+        self.addItem(item)
+        self.setItemWidget(item, QtKeyBindItem(key=keys, desc=callback.desc))
         return None
+
+    # def filter(self, string: str):
+    #     # TODO
+    #     keys = QtKeys(string)
+    #     for i in self.count():
+    #         item = self.item(i)
+    #         widget = self.itemWidget(item)
+    #         widget.key.key | widget.key.modifier
+    #         item.setHidden(False)
+
+    if TYPE_CHECKING:
+
+        def itemWidget(self, item: QtW.QListWidgetItem) -> QtKeyBindItem:
+            ...
 
 
 class QtKeyBindItem(QtW.QGroupBox):
-    def __init__(self, parent=None, key=None, desc=None):
+    def __init__(
+        self, parent=None, key: QtKeys | Sequence[QtKeys] | None = None, desc: str = ""
+    ):
         super().__init__(parent)
-
         _layout = QtW.QHBoxLayout()
-        _layout.setContentsMargins(6, 2, 6, 2)
+        _layout.setContentsMargins(2, 0, 2, 0)
         self.setLayout(_layout)
         self._key_label = QtW.QLabel()
         self._key_label.setFixedWidth(240)
-        self.setFixedHeight(30)
         self._desc = QtW.QLabel()
         _layout.addWidget(self._key_label)
         _layout.addWidget(self._desc)
 
-        if key is not None:
-            self.setKeyText(key)
-        if desc is not None:
-            self.setDescription(desc)
+        self.setKeyText(key)
+        self.setDescription(desc)
+        self.key = key
 
     def setKeyText(self, key: QtKeys | Sequence[QtKeys]) -> None:
         if isinstance(key, QtKeys):

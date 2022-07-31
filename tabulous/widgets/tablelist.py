@@ -176,15 +176,12 @@ class TableList(EventedList[TableBase]):
 
             return _fset
 
+        # fmt: off
         self.register_action("Copy all")(self._parent._qwidget._tablestack.copyData)
-        self.register_action("Rename")(
-            self._parent._qwidget._tablestack.enterEditingMode
-        )
+        self.register_action("Rename")(self._parent._qwidget._tablestack.enterEditingMode)
         self.register_action("Delete")(self.__delitem__)
 
-        self.register_action("View>Horizontal dual view")(
-            view_mode_setter("horizontal")
-        )
+        self.register_action("View>Horizontal dual view")(view_mode_setter("horizontal"))
         self.register_action("View>Vertical dual view")(view_mode_setter("vertical"))
         self.register_action("View>Popup view")(view_mode_setter("popup"))
         self.register_action("View>Reset view")(view_mode_setter("normal"))
@@ -204,3 +201,4 @@ class TableList(EventedList[TableBase]):
         @self.register_action("Tile>Untile")
         def _untile(index: int):
             self.untile(index)
+        # fmt: on

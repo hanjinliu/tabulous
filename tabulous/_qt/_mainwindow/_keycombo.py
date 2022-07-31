@@ -31,6 +31,8 @@ def _(self: _QtMainWidgetBase):
 @QMainWindow._keymap.bind("Ctrl+K, V", mode="vertical", desc="Vertical dual view mode.")
 @QMainWidget._keymap.bind("Ctrl+K, H", mode="horizontal", desc="Horizontal dual view mode.")
 @QMainWindow._keymap.bind("Ctrl+K, H", mode="horizontal", desc="Horizontal dual view mode.")
+@QMainWidget._keymap.bind("Ctrl+K, P", mode="popup", desc="Popup view mode.")
+@QMainWindow._keymap.bind("Ctrl+K, P", mode="popup", desc="Popup view mode.")
 @QMainWidget._keymap.bind("Ctrl+K, N", mode="normal", desc="Reset view mode.")
 @QMainWindow._keymap.bind("Ctrl+K, N", mode="normal", desc="Reset view mode.")
 def _(self: _QtMainWidgetBase, mode):
@@ -54,7 +56,7 @@ def _(self: _QtMainWidgetBase):
 @QMainWidget._keymap.bind("Ctrl+N")
 @QMainWindow._keymap.bind("Ctrl+N")
 def _(self: _QtMainWidgetBase):
-    """New table"""
+    """New spreadsheet"""
     self._table_viewer.add_spreadsheet(name="New")
     return self.setCellFocus()
 
@@ -182,5 +184,15 @@ def _(self: _QtMainWidgetBase):
     else:
         indices = [idx - 1, idx]
     self._tablestack.tileTables(indices, orientation="horizontal")
+
+@QMainWidget._keymap.bind("\\")
+@QMainWindow._keymap.bind("\\")
+def _(self: _QtMainWidgetBase):
+    """Untile table."""
+    num = self._tablestack.count()
+    if num < 2:
+        return None
+    idx = self._tablestack.currentIndex()
+    self._tablestack.untileTable(idx)
 
 # fmt: on
