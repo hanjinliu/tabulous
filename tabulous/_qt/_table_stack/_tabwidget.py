@@ -356,7 +356,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     def copyData(self, index: int):
         """Copy all the data in the table at index to the clipboard."""
         table = self.tableAtIndex(index)
-        h, w = table.tableShape()
+        h, w = table.dataShape()
         table.setSelections([(slice(0, h), slice(0, w))])
         table.copyToClipboard(headers=True)
         table.setSelections([])

@@ -113,6 +113,9 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = out
         return out
 
+    def dataShape(self) -> tuple[int, int]:
+        return self._data_raw.shape
+
     @QMutableSimpleTable._mgr.interface
     def setDataFrame(self, data: pd.DataFrame) -> None:
         """Set data frame as a string table."""

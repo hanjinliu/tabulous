@@ -281,6 +281,9 @@ class QBaseTable(QtW.QSplitter):
         nc = model.columnCount()
         return (nr, nc)
 
+    def dataShape(self) -> tuple[int, int]:
+        return self.tableShape()
+
     def zoom(self) -> float:
         """Get current zoom factor."""
         return self._qtable_view.zoom()
@@ -505,12 +508,12 @@ class QBaseTable(QtW.QSplitter):
         if row is None:
             row = self._qtable_view.currentIndex().row()
         elif row < 0:
-            row += self.tableShape()[0]
+            row += self.dataShape()[0]
 
         if column is None:
             column = self._qtable_view.currentIndex().column()
         elif column < 0:
-            column += self.tableShape()[1]
+            column += self.dataShape()[1]
 
         self._qtable_view.selectionModel().setCurrentIndex(
             self.model().index(row, column),
