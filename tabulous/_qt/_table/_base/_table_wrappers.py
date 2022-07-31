@@ -62,8 +62,9 @@ class QPopupWidget(QtW.QWidget):
         _layout.addWidget(sizegrip, False, Qt.AlignmentFlag.AlignRight)
 
         self.setLayout(_layout)
-        self.resize(600, 400)
-        _screen_center = QtW.QApplication.desktop().screen().rect().center()
+        _screen_rect = QtW.QApplication.desktop().screen().rect()
+        _screen_center = _screen_rect.center()
+        self.resize(int(_screen_rect.width() * 0.8), int(_screen_rect.height() * 0.8))
         self.move(_screen_center - self.rect().center())
         self._drag_start: QtCore.QPoint | None = None
 
