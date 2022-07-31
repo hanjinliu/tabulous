@@ -1,0 +1,379 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tabulous._magicgui &#8212; tabulous 0.1.0a3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for tabulous._magicgui</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">TypeVar</span>
+<span class="kn">from</span> <span class="nn">qtpy.QtWidgets</span> <span class="kn">import</span> <span class="n">QWidget</span><span class="p">,</span> <span class="n">QVBoxLayout</span>
+<span class="kn">from</span> <span class="nn">magicgui</span> <span class="kn">import</span> <span class="n">register_type</span>
+<span class="kn">from</span> <span class="nn">magicgui.widgets</span> <span class="kn">import</span> <span class="n">Widget</span><span class="p">,</span> <span class="n">Container</span><span class="p">,</span> <span class="n">ComboBox</span><span class="p">,</span> <span class="n">Label</span><span class="p">,</span> <span class="n">Dialog</span>
+<span class="kn">from</span> <span class="nn">magicgui.widgets._bases</span> <span class="kn">import</span> <span class="n">CategoricalWidget</span>
+<span class="kn">from</span> <span class="nn">magicgui.backends._qtpy.widgets</span> <span class="kn">import</span> <span class="n">QBaseWidget</span>
+
+<span class="kn">from</span> <span class="nn">.widgets</span> <span class="kn">import</span> <span class="n">TableViewer</span><span class="p">,</span> <span class="n">Table</span><span class="p">,</span> <span class="n">TableViewerWidget</span>
+<span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TableColumn</span><span class="p">,</span>
+    <span class="n">TableData</span><span class="p">,</span>
+    <span class="n">TableDataTuple</span><span class="p">,</span>
+    <span class="n">TableInfoInstance</span><span class="p">,</span>
+    <span class="n">TabPosition</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="c1"># #############################################################################</span>
+<span class="c1">#    magicgui-widget</span>
+<span class="c1"># #############################################################################</span>
+
+
+<div class="viewcode-block" id="MagicTableViewer"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.MagicTableViewer">[docs]</a><span class="k">class</span> <span class="nc">MagicTableViewer</span><span class="p">(</span><span class="n">Widget</span><span class="p">,</span> <span class="n">TableViewerWidget</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A magicgui widget of table viewer.</span>
+
+<span class="sd">    This class is a subclass of ``magicgui.widget.Widget`` so that it can be used</span>
+<span class="sd">    in a compatible way with magicgui and napari.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tab_position: TabPosition or str</span>
+<span class="sd">        Type of list-like widget to use.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">tab_position</span><span class="p">:</span> <span class="n">TabPosition</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">TabPosition</span><span class="o">.</span><span class="n">top</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">visible</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">widget_type</span><span class="o">=</span><span class="n">QBaseWidget</span><span class="p">,</span>
+            <span class="n">backend_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;qwidg&quot;</span><span class="p">:</span> <span class="n">QWidget</span><span class="p">},</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+            <span class="n">tooltip</span><span class="o">=</span><span class="n">tooltip</span><span class="p">,</span>
+            <span class="n">visible</span><span class="o">=</span><span class="n">visible</span><span class="p">,</span>
+            <span class="n">enabled</span><span class="o">=</span><span class="n">enabled</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">TableViewerWidget</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab_position</span><span class="o">=</span><span class="n">tab_position</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="p">:</span> <span class="n">QWidget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">QVBoxLayout</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">layout</span><span class="p">()</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1">#    magicgui type registration</span>
+<span class="c1"># #############################################################################</span>
+
+<span class="n">_DEFAULT_NAME</span> <span class="o">=</span> <span class="s2">&quot;Result&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span> <span class="o">|</span> <span class="n">QWidget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableViewer</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">._qt._mainwindow</span> <span class="kn">import</span> <span class="n">_QtMainWidgetBase</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">Widget</span><span class="p">):</span>
+        <span class="n">qwidget</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">native</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">QWidget</span><span class="p">):</span>
+        <span class="n">qwidget</span> <span class="o">=</span> <span class="n">widget</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot use </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span><span class="si">}</span><span class="s2"> as an input.&quot;</span><span class="p">)</span>
+    <span class="n">qwidget</span><span class="p">:</span> <span class="n">QWidget</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">qwidget</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">parent</span> <span class="o">:=</span> <span class="n">qwidget</span><span class="o">.</span><span class="n">parent</span><span class="p">())</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">qwidget</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qwidget</span><span class="p">,</span> <span class="n">_QtMainWidgetBase</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">qwidget</span><span class="o">.</span><span class="n">_table_viewer</span>
+
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">get_tables</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">CategoricalWidget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">tables</span>
+
+
+<span class="k">def</span> <span class="nf">get_table_data</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">CategoricalWidget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">tables</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">open_viewer</span><span class="p">(</span><span class="n">gui</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">TableViewer</span><span class="p">,</span> <span class="n">return_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">):</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">add_table_to_viewer</span><span class="p">(</span><span class="n">gui</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">return_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">):</span>
+    <span class="n">viewer</span> <span class="o">=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">gui</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">viewer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">viewer</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">add_table_data_to_viewer</span><span class="p">(</span><span class="n">gui</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">return_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">):</span>
+    <span class="n">viewer</span> <span class="o">=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">gui</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">viewer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">_DEFAULT_NAME</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">add_table_data_tuple_to_viewer</span><span class="p">(</span><span class="n">gui</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">return_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">):</span>
+    <span class="n">viewer</span> <span class="o">=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">gui</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">viewer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">_DEFAULT_NAME</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">_DEFAULT_NAME</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">name</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">{})</span>
+    <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">result</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Length of TableDataTuple must be &lt; 4, got </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+
+<span class="n">register_type</span><span class="p">(</span>
+    <span class="n">TableViewer</span><span class="p">,</span> <span class="n">return_callback</span><span class="o">=</span><span class="n">open_viewer</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">find_table_viewer_ancestor</span>
+<span class="p">)</span>
+<span class="n">register_type</span><span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_to_viewer</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">get_tables</span><span class="p">)</span>
+<span class="n">register_type</span><span class="p">(</span>
+    <span class="n">TableData</span><span class="p">,</span>
+    <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_data_to_viewer</span><span class="p">,</span>
+    <span class="n">choices</span><span class="o">=</span><span class="n">get_table_data</span><span class="p">,</span>
+    <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">register_type</span><span class="p">(</span><span class="n">TableDataTuple</span><span class="p">,</span> <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_data_tuple_to_viewer</span><span class="p">)</span>
+
+<span class="c1"># Widget</span>
+<span class="k">class</span> <span class="nc">ColumnChoice</span><span class="p">(</span><span class="n">Container</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data_choices</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span>
+        <span class="o">|</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Widget</span><span class="p">],</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]],</span>
+        <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataframe_choices</span> <span class="o">=</span> <span class="n">ComboBox</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">data_choices</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_column_choices</span> <span class="o">=</span> <span class="n">ComboBox</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_available_columns</span><span class="p">)</span>
+        <span class="n">_label_l</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;[&quot;&#39;</span><span class="p">)</span>
+        <span class="n">_label_l</span><span class="o">.</span><span class="n">max_width</span> <span class="o">=</span> <span class="mi">24</span>
+        <span class="n">_label_r</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;&quot;]&#39;</span><span class="p">)</span>
+        <span class="n">_label_r</span><span class="o">.</span><span class="n">max_width</span> <span class="o">=</span> <span class="mi">24</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;horizontal&quot;</span><span class="p">,</span>
+            <span class="n">widgets</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_dataframe_choices</span><span class="p">,</span> <span class="n">_label_l</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_column_choices</span><span class="p">,</span> <span class="n">_label_r</span><span class="p">],</span>
+            <span class="n">labels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">margins</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataframe_choices</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_available_columns</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_available_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataframe_choices</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;columns&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">return</span> <span class="n">cols</span>
+
+    <span class="k">def</span> <span class="nf">_set_available_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_available_columns</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_column_choices</span><span class="o">.</span><span class="n">choices</span> <span class="o">=</span> <span class="n">cols</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataframe_choices</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_column_choices</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
+
+
+<span class="n">register_type</span><span class="p">(</span>
+    <span class="n">TableColumn</span><span class="p">,</span>
+    <span class="n">widget_type</span><span class="o">=</span><span class="n">ColumnChoice</span><span class="p">,</span>
+    <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_data_to_viewer</span><span class="p">,</span>
+    <span class="n">data_choices</span><span class="o">=</span><span class="n">get_table_data</span><span class="p">,</span>
+    <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">ColumnNameChoice</span><span class="p">(</span><span class="n">Container</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A container widget with a DataFrame selection and multiple column name selections.</span>
+
+<span class="sd">    This widget is composed of two or more ComboBox widgets. The top one is to choose a</span>
+<span class="sd">    DataFrame and the rest are to choose column names from the DataFrame. When the DataFrame</span>
+<span class="sd">    selection changed, the column name selections will also changed accordingly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data_choices</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span>
+        <span class="o">|</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Widget</span><span class="p">],</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]],</span>
+        <span class="n">column_choice_names</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataframe_choices</span> <span class="o">=</span> <span class="n">ComboBox</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">data_choices</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_column_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ComboBox</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cn</span> <span class="ow">in</span> <span class="n">column_choice_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_column_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">ComboBox</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_available_columns</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">cn</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_child_container</span> <span class="o">=</span> <span class="n">Container</span><span class="p">(</span><span class="n">widgets</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_column_names</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;vertical&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_child_container</span><span class="o">.</span><span class="n">margins</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;vertical&quot;</span><span class="p">,</span>
+            <span class="n">widgets</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_dataframe_choices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_child_container</span><span class="p">],</span>
+            <span class="n">labels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">margins</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataframe_choices</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_available_columns</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_available_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataframe_choices</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;columns&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">return</span> <span class="n">cols</span>
+
+    <span class="k">def</span> <span class="nf">_set_available_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_available_columns</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">cbox</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_column_names</span><span class="p">:</span>
+            <span class="n">cbox</span><span class="o">.</span><span class="n">choices</span> <span class="o">=</span> <span class="n">cols</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataframe_choices</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">cbox</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">cbox</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_column_names</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">colnames</span><span class="p">)</span>
+
+
+<span class="n">register_type</span><span class="p">(</span>
+    <span class="n">TableInfoInstance</span><span class="p">,</span> <span class="n">widget_type</span><span class="o">=</span><span class="n">ColumnNameChoice</span><span class="p">,</span> <span class="n">data_choices</span><span class="o">=</span><span class="n">get_table_data</span>
+<span class="p">)</span>
+
+<span class="c1"># #############################################################################</span>
+<span class="c1">#    Utility functions</span>
+<span class="c1"># #############################################################################</span>
+
+<span class="n">_F</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_F&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">dialog_factory</span><span class="p">(</span><span class="n">function</span><span class="p">:</span> <span class="n">_F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_F</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">magicgui.signature</span> <span class="kn">import</span> <span class="n">magic_signature</span>
+
+    <span class="k">def</span> <span class="nf">_runner</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">param_options</span><span class="p">):</span>
+        <span class="n">widgets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">magic_signature</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">gui_options</span><span class="o">=</span><span class="n">param_options</span><span class="p">)</span><span class="o">.</span><span class="n">widgets</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">dlg</span> <span class="o">=</span> <span class="n">Dialog</span><span class="p">(</span><span class="n">widgets</span><span class="o">=</span><span class="n">widgets</span><span class="p">)</span>
+        <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setParent</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">windowFlags</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">dlg</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="o">**</span><span class="n">dlg</span><span class="o">.</span><span class="n">asdict</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">return</span> <span class="n">_runner</span>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">tabulous</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Hanjin Liu.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

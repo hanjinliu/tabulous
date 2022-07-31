@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tabulous.core &#8212; tabulous 0.1.0a3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <h1>Source code for tabulous.core</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span> <span class="nn">.widgets</span> <span class="kn">import</span> <span class="n">TableViewer</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">.widgets.mainwindow</span> <span class="kn">import</span> <span class="n">_TableViewerBase</span>
+
+<span class="n">CURRENT_VIEWER</span><span class="p">:</span> <span class="n">_TableViewerBase</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="current_viewer"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.core.current_viewer">[docs]</a><span class="k">def</span> <span class="nf">current_viewer</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">_TableViewerBase</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Get the current table viewer widget.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">CURRENT_VIEWER</span>
+    <span class="k">if</span> <span class="n">CURRENT_VIEWER</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">CURRENT_VIEWER</span> <span class="o">=</span> <span class="n">TableViewer</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">CURRENT_VIEWER</span></div>
+
+
+<div class="viewcode-block" id="set_current_viewer"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.core.set_current_viewer">[docs]</a><span class="k">def</span> <span class="nf">set_current_viewer</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">_TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TableViewerBase</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Set a table viewer as the current one.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">CURRENT_VIEWER</span>
+    <span class="kn">from</span> <span class="nn">.widgets.mainwindow</span> <span class="kn">import</span> <span class="n">_TableViewerBase</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">_TableViewerBase</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot set </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="si">}</span><span class="s2"> as the current viewer.&quot;</span><span class="p">)</span>
+    <span class="n">CURRENT_VIEWER</span> <span class="o">=</span> <span class="n">viewer</span>
+    <span class="k">return</span> <span class="n">viewer</span></div>
+
+
+<div class="viewcode-block" id="read_csv"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.core.read_csv">[docs]</a><span class="k">def</span> <span class="nf">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TableViewerBase</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read CSV file and add it to the current viewer.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
+    <span class="n">viewer</span> <span class="o">=</span> <span class="n">current_viewer</span><span class="p">()</span>
+    <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">viewer</span></div>
+
+
+<div class="viewcode-block" id="read_excel"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.core.read_excel">[docs]</a><span class="k">def</span> <span class="nf">read_excel</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TableViewerBase</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read Excel file and add all the sheets to the current viewer.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+    <span class="n">df_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+
+    <span class="n">viewer</span> <span class="o">=</span> <span class="n">current_viewer</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">sheet_name</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">df_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">sheet_name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">viewer</span></div>
+
+
+<div class="viewcode-block" id="view_table"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.core.view_table">[docs]</a><span class="k">def</span> <span class="nf">view_table</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">editable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">copy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TableViewerBase</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;View a table in the current viewer.&quot;&quot;&quot;</span>
+    <span class="n">viewer</span> <span class="o">=</span> <span class="n">current_viewer</span><span class="p">()</span>
+    <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="n">editable</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">viewer</span></div>
+
+
+<div class="viewcode-block" id="view_spreadsheet"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.core.view_spreadsheet">[docs]</a><span class="k">def</span> <span class="nf">view_spreadsheet</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">editable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">copy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TableViewerBase</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;View a table as a spreadsheet in the current viewer.&quot;&quot;&quot;</span>
+    <span class="n">viewer</span> <span class="o">=</span> <span class="n">current_viewer</span><span class="p">()</span>
+    <span class="n">viewer</span><span class="o">.</span><span class="n">add_spreadsheet</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="n">editable</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">viewer</span></div>
+
+
+<div class="viewcode-block" id="open_sample"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.core.open_sample">[docs]</a><span class="k">def</span> <span class="nf">open_sample</span><span class="p">(</span>
+    <span class="n">sample_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">plugin_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;seaborn&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TableViewerBase</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Open a sample data.&quot;&quot;&quot;</span>
+    <span class="n">viewer</span> <span class="o">=</span> <span class="n">current_viewer</span><span class="p">()</span>
+    <span class="n">viewer</span><span class="o">.</span><span class="n">open_sample</span><span class="p">(</span><span class="n">sample_name</span><span class="p">,</span> <span class="n">plugin_name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">viewer</span></div>
+</pre></div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">tabulous</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Hanjin Liu.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+    </div>
+
+
+
+
+  </body>
+</html>

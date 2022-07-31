@@ -25,6 +25,7 @@ setup(
         "qtpy>=1.10.0",
         "pandas>=1.0.0",
         "collections-undo>=0.0.2",
+        "qtconsole",
     ],
     entry_points={
         "console_scripts": [

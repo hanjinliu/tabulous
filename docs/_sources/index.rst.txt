@@ -1,0 +1,29 @@
+========
+tabulous
+========
+
+``tabulous`` is a Qt based table data viewer for Python.
+
+This package is strongly inspired by `napari <https://github.com/napari/napari>`_
+in the design and API. Accordingly, custom widget creation is easily achievable
+for beginners using `magicgui <https://github.com/napari/magicgui>`_, or any
+Qt widgets for more trained users.
+
+
+
+.. toctree::
+   :maxdepth: 2
+
+   ./main/quickstart
+   ./main/dock_widget
+   ./main/table_advanced
+   ./main/non_mainwindow
+
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tabulous.widgets package &mdash; tabulous 0.1.0a3 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> tabulous
+          </a>
+              <div class="version">
+                0.1.0a3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">tabulous.widgets package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-tabulous.widgets.filtering">tabulous.widgets.filtering module</a></li>
+<li><a class="reference internal" href="#module-tabulous.widgets.mainwindow">tabulous.widgets.mainwindow module</a></li>
+<li><a class="reference internal" href="#module-tabulous.widgets.table">tabulous.widgets.table module</a></li>
+<li><a class="reference internal" href="#module-tabulous.widgets.tablelist">tabulous.widgets.tablelist module</a></li>
+<li><a class="reference internal" href="#module-tabulous.widgets">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tabulous</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>tabulous.widgets package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/apidoc/tabulous.widgets.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <section id="tabulous-widgets-package">
+<h1>tabulous.widgets package<a class="headerlink" href="#tabulous-widgets-package" title="Permalink to this headline">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-tabulous.widgets.filtering">
+<span id="tabulous-widgets-filtering-module"></span><h2>tabulous.widgets.filtering module<a class="headerlink" href="#module-tabulous.widgets.filtering" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.filtering.ColumnFilter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.filtering.</span></span><span class="sig-name descname"><span class="pre">ColumnFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">pd.DataFrame</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">pd.Series</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#ColumnFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.ColumnFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A callable object compatible with DataFrame filter, specific to column based filter.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.filtering.ColumnFilter.from_operator">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_operator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operator_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabulous.widgets.filtering.ColumnFilter" title="tabulous.widgets.filtering.ColumnFilter"><span class="pre">tabulous.widgets.filtering.ColumnFilter</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#ColumnFilter.from_operator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.ColumnFilter.from_operator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct an instance from a operator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operator_name</strong> (<em>str</em>) – Name of operator, such as “__eq__”.</p></li>
+<li><p><strong>key</strong> (<em>Any</em>) – Target column name.</p></li>
+<li><p><strong>other</strong> (<em>Any</em>) – The other argument of the operator.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An instance initialized with the given operator.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabulous.widgets.filtering.ColumnFilter" title="tabulous.widgets.filtering.ColumnFilter">ColumnFilter</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterIndexer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.filtering.</span></span><span class="sig-name descname"><span class="pre">FilterIndexer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TableBase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_filter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#tabulous.widgets.filtering.ColumnFilter" title="tabulous.widgets.filtering.ColumnFilter"><span class="pre">ColumnFilter</span></a> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#FilterIndexer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.FilterIndexer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterIndexer.chain">
+<span class="sig-name descname"><span class="pre">chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#tabulous.widgets.filtering.ColumnFilter" title="tabulous.widgets.filtering.ColumnFilter"><span class="pre">tabulous.widgets.filtering.ColumnFilter</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabulous.widgets.filtering.ColumnFilter" title="tabulous.widgets.filtering.ColumnFilter"><span class="pre">tabulous.widgets.filtering.ColumnFilter</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#FilterIndexer.chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.FilterIndexer.chain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterIndexer.filter">
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#tabulous.widgets.filtering.ColumnFilter" title="tabulous.widgets.filtering.ColumnFilter"><span class="pre">tabulous.widgets.filtering.ColumnFilter</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabulous.widgets.filtering.FilterIndexer" title="tabulous.widgets.filtering.FilterIndexer"><span class="pre">tabulous.widgets.filtering.FilterIndexer</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#FilterIndexer.filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.FilterIndexer.filter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterProxy">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.filtering.</span></span><span class="sig-name descname"><span class="pre">FilterProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TableBase</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#FilterProxy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.FilterProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A proxy of column-based DataFrame filtering.</p>
+<p>This object makes filtering of table easier. For instance, to filter a table
+by a column, you can do:
+&gt;&gt;&gt; table.filter[“a”] &lt; 5
+which is equivalent to
+&gt;&gt;&gt; table.filter = lambda df: df[“a”] &lt; 5</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterProxy.array">
+<span class="sig-name descname"><span class="pre">array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.Series</span></span></span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#FilterProxy.array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.FilterProxy.array" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterProxy.func">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">func</span></span><em class="property"><span class="pre">:</span> <span class="pre">FilterType</span></em><a class="headerlink" href="#tabulous.widgets.filtering.FilterProxy.func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the filter function.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterProxy.table">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">table</span></span><em class="property"><span class="pre">:</span> <span class="pre">TableBase</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></em><a class="headerlink" href="#tabulous.widgets.filtering.FilterProxy.table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the connected table.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tabulous.widgets.mainwindow">
+<span id="tabulous-widgets-mainwindow-module"></span><h2>tabulous.widgets.mainwindow module<a class="headerlink" href="#module-tabulous.widgets.mainwindow" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.Console">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.mainwindow.</span></span><span class="sig-name descname"><span class="pre">Console</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">tabulous.widgets.mainwindow._TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#Console"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.Console" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.mainwindow._ComponentProxy</span></code></p>
+<p>The QtConsole proxy.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.Console.buffer">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">buffer</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#tabulous.widgets.mainwindow.Console.buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current text buffer of the console.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.Console.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#Console.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.Console.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute current buffer.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.Console.visible">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">visible</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#tabulous.widgets.mainwindow.Console.visible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visibility of the toolbar.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.mainwindow.</span></span><span class="sig-name descname"><span class="pre">TableType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableType.spreadsheet">
+<span class="sig-name descname"><span class="pre">spreadsheet</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'spreadsheet'</span></em><a class="headerlink" href="#tabulous.widgets.mainwindow.TableType.spreadsheet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableType.table">
+<span class="sig-name descname"><span class="pre">table</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'table'</span></em><a class="headerlink" href="#tabulous.widgets.mainwindow.TableType.table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.mainwindow.</span></span><span class="sig-name descname"><span class="pre">TableViewer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab_position</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TabPosition</span> <span class="p"><span class="pre">|</span></span> <span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TabPosition.top</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.mainwindow._TableViewerBase</span></code></p>
+<p>The main table viewer widget.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewer.add_dock_widget">
+<span class="sig-name descname"><span class="pre">add_dock_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Widget</span> <span class="p"><span class="pre">|</span></span> <span class="pre">QWidget</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'right'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_areas</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer.add_dock_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewer.add_dock_widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewer.events">
+<span class="sig-name descname"><span class="pre">events</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#tabulous.widgets.mainwindow.TableViewerSignal" title="tabulous.widgets.mainwindow.TableViewerSignal"><span class="pre">TableViewerSignal</span></a></em><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewer.events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewer.remove_dock_widget">
+<span class="sig-name descname"><span class="pre">remove_dock_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_or_widget</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">Widget</span> <span class="p"><span class="pre">|</span></span> <span class="pre">QWidget</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer.remove_dock_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewer.remove_dock_widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewer.reset_choices">
+<span class="sig-name descname"><span class="pre">reset_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer.reset_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewer.reset_choices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewer.status">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewer.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the statup tip</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewerSignal">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.mainwindow.</span></span><span class="sig-name descname"><span class="pre">TableViewerSignal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerSignal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewerSignal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">psygnal._group.SignalGroup</span></code></p>
+<p>Signal group for table viewer.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewerSignal.current_index">
+<span class="sig-name descname"><span class="pre">current_index</span></span><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewerSignal.current_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewerWidget">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.mainwindow.</span></span><span class="sig-name descname"><span class="pre">TableViewerWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab_position</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TabPosition</span> <span class="p"><span class="pre">|</span></span> <span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TabPosition.top</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerWidget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewerWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.mainwindow._TableViewerBase</span></code></p>
+<p>The non-main table viewer widget.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewerWidget.add_widget">
+<span class="sig-name descname"><span class="pre">add_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Widget</span> <span class="p"><span class="pre">|</span></span> <span class="pre">QWidget</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerWidget.add_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewerWidget.add_widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewerWidget.events">
+<span class="sig-name descname"><span class="pre">events</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#tabulous.widgets.mainwindow.TableViewerSignal" title="tabulous.widgets.mainwindow.TableViewerSignal"><span class="pre">TableViewerSignal</span></a></em><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewerWidget.events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.Toolbar">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.mainwindow.</span></span><span class="sig-name descname"><span class="pre">Toolbar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">tabulous.widgets.mainwindow._TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#Toolbar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.Toolbar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.mainwindow._ComponentProxy</span></code></p>
+<p>The toolbar proxy.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.Toolbar.history_manager">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">history_manager</span></span><a class="headerlink" href="#tabulous.widgets.mainwindow.Toolbar.history_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>The file I/O history manager.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.Toolbar.register_action">
+<span class="sig-name descname"><span class="pre">register_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#Toolbar.register_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.Toolbar.register_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.Toolbar.visible">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">visible</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#tabulous.widgets.mainwindow.Toolbar.visible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visibility of the toolbar.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tabulous.widgets.table">
+<span id="tabulous-widgets-table-module"></span><h2>tabulous.widgets.table module<a class="headerlink" href="#module-tabulous.widgets.table" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.table.GroupBy">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.table.</span></span><span class="sig-name descname"><span class="pre">GroupBy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#GroupBy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.GroupBy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tabulous.widgets.table.TableBase" title="tabulous.widgets.table.TableBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.table.TableBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.GroupBy.current_group">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">current_group</span></span><a class="headerlink" href="#tabulous.widgets.table.GroupBy.current_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current group ID.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.table.SpreadSheet">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.table.</span></span><span class="sig-name descname"><span class="pre">SpreadSheet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#SpreadSheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.SpreadSheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.table._DataFrameTableLayer</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.table.Table">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.table.</span></span><span class="sig-name descname"><span class="pre">Table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#Table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.Table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.table._DataFrameTableLayer</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.table.</span></span><span class="sig-name descname"><span class="pre">TableBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.TableBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>The base class for a table layer.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.add_side_widget">
+<span class="sig-name descname"><span class="pre">add_side_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wdt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">QtW.QWidget</span> <span class="p"><span class="pre">|</span></span> <span class="pre">Widget</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableBase.add_side_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.TableBase.add_side_widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.data">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">data</span></span><em class="property"><span class="pre">:</span> <span class="pre">pd.DataFrame</span></em><a class="headerlink" href="#tabulous.widgets.table.TableBase.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table data.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.editable">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">editable</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#tabulous.widgets.table.TableBase.editable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Editability of table.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.filter">
+<span class="sig-name descname"><span class="pre">filter</span></span><a class="headerlink" href="#tabulous.widgets.table.TableBase.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A proxy of column-based DataFrame filtering.</p>
+<p>This object makes filtering of table easier. For instance, to filter a table
+by a column, you can do:
+&gt;&gt;&gt; table.filter[“a”] &lt; 5
+which is equivalent to
+&gt;&gt;&gt; table.filter = lambda df: df[“a”] &lt; 5</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.keymap">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">keymap</span></span><em class="property"><span class="pre">:</span> <span class="pre">QtKeyMap</span></em><a class="headerlink" href="#tabulous.widgets.table.TableBase.keymap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.move_iloc">
+<span class="sig-name descname"><span class="pre">move_iloc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableBase.move_iloc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.TableBase.move_iloc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move to a location in the table using indices.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.move_loc">
+<span class="sig-name descname"><span class="pre">move_loc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableBase.move_loc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.TableBase.move_loc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move to a location in the table using axis label.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.mutable">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mutable</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#tabulous.widgets.table.TableBase.mutable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mutability of the table.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.name">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#tabulous.widgets.table.TableBase.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table name.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.precision">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">precision</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#tabulous.widgets.table.TableBase.precision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Precision (displayed digits) of table.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.refresh">
+<span class="sig-name descname"><span class="pre">refresh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableBase.refresh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.TableBase.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refresh the table view.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.selections">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">selections</span></span><a class="headerlink" href="#tabulous.widgets.table.TableBase.selections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the SelectionRanges object of current table selection.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.table_shape">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">table_shape</span></span><em class="property"><span class="pre">:</span> <span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tabulous.widgets.table.TableBase.table_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shape of table.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.undo_manager">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">undo_manager</span></span><em class="property"><span class="pre">:</span> <span class="pre">UndoManager</span></em><a class="headerlink" href="#tabulous.widgets.table.TableBase.undo_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the undo manager.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.view_mode">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">view_mode</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#tabulous.widgets.table.TableBase.view_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>View mode of the table.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.zoom">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">zoom</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#tabulous.widgets.table.TableBase.zoom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zoom factor of table.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableDisplay">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.table.</span></span><span class="sig-name descname"><span class="pre">TableDisplay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableDisplay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.TableDisplay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tabulous.widgets.table.TableBase" title="tabulous.widgets.table.TableBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.table.TableBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableDisplay.interval">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">interval</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#tabulous.widgets.table.TableDisplay.interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interval of table refresh.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableDisplay.loader">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">loader</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tabulous.widgets.table.TableDisplay.loader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loader function.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableSignals">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.table.</span></span><span class="sig-name descname"><span class="pre">TableSignals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableSignals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.TableSignals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">psygnal._group.SignalGroup</span></code></p>
+<p>Signal group for a Table.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableSignals.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><a class="headerlink" href="#tabulous.widgets.table.TableSignals.columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableSignals.data">
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#tabulous.widgets.table.TableSignals.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableSignals.index">
+<span class="sig-name descname"><span class="pre">index</span></span><a class="headerlink" href="#tabulous.widgets.table.TableSignals.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableSignals.renamed">
+<span class="sig-name descname"><span class="pre">renamed</span></span><a class="headerlink" href="#tabulous.widgets.table.TableSignals.renamed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableSignals.selections">
+<span class="sig-name descname"><span class="pre">selections</span></span><a class="headerlink" href="#tabulous.widgets.table.TableSignals.selections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.table.TableSignals.zoom">
+<span class="sig-name descname"><span class="pre">zoom</span></span><a class="headerlink" href="#tabulous.widgets.table.TableSignals.zoom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.table.ViewMode">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.table.</span></span><span class="sig-name descname"><span class="pre">ViewMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#ViewMode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.ViewMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.table.ViewMode.horizontal">
+<span class="sig-name descname"><span class="pre">horizontal</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'horizontal'</span></em><a class="headerlink" href="#tabulous.widgets.table.ViewMode.horizontal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.table.ViewMode.normal">
+<span class="sig-name descname"><span class="pre">normal</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'normal'</span></em><a class="headerlink" href="#tabulous.widgets.table.ViewMode.normal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.table.ViewMode.popup">
+<span class="sig-name descname"><span class="pre">popup</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'popup'</span></em><a class="headerlink" href="#tabulous.widgets.table.ViewMode.popup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.table.ViewMode.vertical">
+<span class="sig-name descname"><span class="pre">vertical</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'vertical'</span></em><a class="headerlink" href="#tabulous.widgets.table.ViewMode.vertical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tabulous.widgets.tablelist">
+<span id="tabulous-widgets-tablelist-module"></span><h2>tabulous.widgets.tablelist module<a class="headerlink" href="#module-tabulous.widgets.tablelist" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.NamedListEvents">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.tablelist.</span></span><span class="sig-name descname"><span class="pre">NamedListEvents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/tablelist.html#NamedListEvents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.tablelist.NamedListEvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">psygnal._group.SignalGroup</span></code></p>
+<p>Events available on EventedList.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">inserting</span> <span class="pre">(index</span></span></dt>
+<dd><p>emitted before an item is inserted at <cite>index</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">inserted</span> <span class="pre">(index</span></span></dt>
+<dd><p>emitted after <cite>value</cite> is inserted at <cite>index</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int, value: Any)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">removing</span> <span class="pre">(index</span></span></dt>
+<dd><p>emitted before an item is removed at <cite>index</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">removed</span> <span class="pre">(index</span></span></dt>
+<dd><p>emitted after <cite>value</cite> is removed at <cite>index</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int, value: Any)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">moving</span> <span class="pre">(index</span></span></dt>
+<dd><p>emitted before an item is moved from <cite>index</cite> to <cite>new_index</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int, new_index: int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">moved</span> <span class="pre">(index</span></span></dt>
+<dd><p>emitted after <cite>value</cite> is moved from <cite>index</cite> to <cite>new_index</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int, new_index: int, value: Any)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">changed</span> <span class="pre">(index</span></span></dt>
+<dd><p>emitted when <cite>index</cite> is set from <cite>old_value</cite> to <cite>value</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int or slice, old_value: Any or List[Any], value: Any or List[Any])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">reordered</span> <span class="pre">(value</span></span></dt>
+<dd><p>emitted when the list is reordered (eg. moved/reversed).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>self)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">child_event</span> <span class="pre">(index</span></span></dt>
+<dd><p>emitted when an object in the list emits an event.
+Note that the EventedList must be created with <cite>child_events=True</cite> for this
+to be emitted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int, object: Any, emitter: SignalInstance, args: tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.NamedListEvents.changed">
+<span class="sig-name descname"><span class="pre">changed</span></span><a class="headerlink" href="#tabulous.widgets.tablelist.NamedListEvents.changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.NamedListEvents.child_event">
+<span class="sig-name descname"><span class="pre">child_event</span></span><a class="headerlink" href="#tabulous.widgets.tablelist.NamedListEvents.child_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.NamedListEvents.inserted">
+<span class="sig-name descname"><span class="pre">inserted</span></span><a class="headerlink" href="#tabulous.widgets.tablelist.NamedListEvents.inserted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.NamedListEvents.inserting">
+<span class="sig-name descname"><span class="pre">inserting</span></span><a class="headerlink" href="#tabulous.widgets.tablelist.NamedListEvents.inserting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.NamedListEvents.moved">
+<span class="sig-name descname"><span class="pre">moved</span></span><a class="headerlink" href="#tabulous.widgets.tablelist.NamedListEvents.moved" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.NamedListEvents.moving">
+<span class="sig-name descname"><span class="pre">moving</span></span><a class="headerlink" href="#tabulous.widgets.tablelist.NamedListEvents.moving" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.NamedListEvents.removed">
+<span class="sig-name descname"><span class="pre">removed</span></span><a class="headerlink" href="#tabulous.widgets.tablelist.NamedListEvents.removed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.NamedListEvents.removing">
+<span class="sig-name descname"><span class="pre">removing</span></span><a class="headerlink" href="#tabulous.widgets.tablelist.NamedListEvents.removing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.NamedListEvents.renamed">
+<span class="sig-name descname"><span class="pre">renamed</span></span><a class="headerlink" href="#tabulous.widgets.tablelist.NamedListEvents.renamed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.NamedListEvents.reordered">
+<span class="sig-name descname"><span class="pre">reordered</span></span><a class="headerlink" href="#tabulous.widgets.tablelist.NamedListEvents.reordered" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal descriptor, for declaring a signal on a class.</p>
+<p>This is designed to be used as a class attribute, with the supported signature(s)
+provided in the contructor:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class MyEmitter:</dt><dd><p>changed = Signal(int)  # changed will emit an int</p>
+</dd>
+<dt>def receiver(arg: int):</dt><dd><p>print(“new value:”, arg)</p>
+</dd>
+</dl>
+<p>emitter = MyEmitter()
+emitter.changed.connect(receiver)
+emitter.emit(1)</p>
+</div></blockquote>
+<p>Note: in the example above, <cite>MyEmitter.changed</cite> is an instance of <cite>Signal</cite>,
+and <cite>emitter.changed</cite> is an instance of <cite>SignalInstance</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*types</strong> (<em>sequence of Type</em>) – A sequence of individual types</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional descriptive text for the signal.  (not used internally).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional name of the signal. If it is not specified then the name of the
+class attribute that is bound to the signal will be used. default None</p></li>
+<li><p><strong>check_nargs_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the number of positional args against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_nargs=True)</cite>. By default, True.</p></li>
+<li><p><strong>check_types_on_connect</strong> (<em>str</em><em>, </em><em>optional</em>) – Whether to check the callback parameter types against <cite>signature</cite> when
+connecting a new callback. This can also be provided at connection time using
+<cite>.connect(…, check_types=True)</cite>. By default, False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.TableList">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.tablelist.</span></span><span class="sig-name descname"><span class="pre">TableList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TableViewer</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/tablelist.html#TableList"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.tablelist.TableList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">psygnal.containers._evented_list.EventedList</span></code>[<a class="reference internal" href="#tabulous.widgets.table.TableBase" title="tabulous.widgets.table.TableBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.table.TableBase</span></code></a>]</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.TableList.events">
+<span class="sig-name descname"><span class="pre">events</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#tabulous.widgets.tablelist.NamedListEvents" title="tabulous.widgets.tablelist.NamedListEvents"><span class="pre">tabulous.widgets.tablelist.NamedListEvents</span></a></em><a class="headerlink" href="#tabulous.widgets.tablelist.TableList.events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.TableList.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableBase</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/widgets/tablelist.html#TableList.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.tablelist.TableList.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a table with name <cite>name</cite> if exists.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.TableList.index">
+<span class="sig-name descname"><span class="pre">index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TableBase</span> <span class="p"><span class="pre">|</span></span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">999999</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/tabulous/widgets/tablelist.html#TableList.index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.tablelist.TableList.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override of list.index(), also accepts str input.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.TableList.insert">
+<span class="sig-name descname"><span class="pre">insert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#tabulous.widgets.table.TableBase" title="tabulous.widgets.table.TableBase"><span class="pre">tabulous.widgets.table.TableBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/tablelist.html#TableList.insert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.tablelist.TableList.insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert <cite>value</cite> before index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.TableList.register_action">
+<span class="sig-name descname"><span class="pre">register_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">tabulous.widgets.tablelist._F</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">tabulous.widgets.tablelist._F</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/tabulous/widgets/tablelist.html#TableList.register_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.tablelist.TableList.register_action" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">register_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">tabulous.widgets.tablelist._F</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tabulous.widgets.tablelist._F</span></span></span></dt>
+<dd><p>Register an contextmenu action to the tablelist.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.TableList.rename">
+<span class="sig-name descname"><span class="pre">rename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_or_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/widgets/tablelist.html#TableList.rename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.tablelist.TableList.rename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rename a table name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.TableList.tile">
+<span class="sig-name descname"><span class="pre">tile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'horizontal'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/widgets/tablelist.html#TableList.tile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.tablelist.TableList.tile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tile the tables in the list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.tablelist.TableList.untile">
+<span class="sig-name descname"><span class="pre">untile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/tablelist.html#TableList.untile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.tablelist.TableList.untile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Untile the tables in the list.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tabulous.widgets">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tabulous.widgets" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.GroupBy">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.</span></span><span class="sig-name descname"><span class="pre">GroupBy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#GroupBy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.GroupBy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tabulous.widgets.table.TableBase" title="tabulous.widgets.table.TableBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.table.TableBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.GroupBy.current_group">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">current_group</span></span><a class="headerlink" href="#tabulous.widgets.GroupBy.current_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current group ID.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.SpreadSheet">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.</span></span><span class="sig-name descname"><span class="pre">SpreadSheet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#SpreadSheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.SpreadSheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.table._DataFrameTableLayer</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.Table">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.</span></span><span class="sig-name descname"><span class="pre">Table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#Table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.Table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.table._DataFrameTableLayer</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.TableDisplay">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.</span></span><span class="sig-name descname"><span class="pre">TableDisplay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableDisplay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableDisplay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tabulous.widgets.table.TableBase" title="tabulous.widgets.table.TableBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.table.TableBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.TableDisplay.interval">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">interval</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#tabulous.widgets.TableDisplay.interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interval of table refresh.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.TableDisplay.loader">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">loader</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tabulous.widgets.TableDisplay.loader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loader function.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.</span></span><span class="sig-name descname"><span class="pre">TableViewer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab_position</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TabPosition</span> <span class="p"><span class="pre">|</span></span> <span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TabPosition.top</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableViewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.mainwindow._TableViewerBase</span></code></p>
+<p>The main table viewer widget.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewer.add_dock_widget">
+<span class="sig-name descname"><span class="pre">add_dock_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Widget</span> <span class="p"><span class="pre">|</span></span> <span class="pre">QWidget</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'right'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_areas</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer.add_dock_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableViewer.add_dock_widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewer.events">
+<span class="sig-name descname"><span class="pre">events</span></span><em class="property"><span class="pre">:</span> <span class="pre">TableViewerSignal</span></em><a class="headerlink" href="#tabulous.widgets.TableViewer.events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewer.remove_dock_widget">
+<span class="sig-name descname"><span class="pre">remove_dock_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_or_widget</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">Widget</span> <span class="p"><span class="pre">|</span></span> <span class="pre">QWidget</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer.remove_dock_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableViewer.remove_dock_widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewer.reset_choices">
+<span class="sig-name descname"><span class="pre">reset_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer.reset_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableViewer.reset_choices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewer.status">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#tabulous.widgets.TableViewer.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the statup tip</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewerWidget">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.</span></span><span class="sig-name descname"><span class="pre">TableViewerWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab_position</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TabPosition</span> <span class="p"><span class="pre">|</span></span> <span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TabPosition.top</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerWidget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableViewerWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.mainwindow._TableViewerBase</span></code></p>
+<p>The non-main table viewer widget.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewerWidget.add_widget">
+<span class="sig-name descname"><span class="pre">add_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Widget</span> <span class="p"><span class="pre">|</span></span> <span class="pre">QWidget</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerWidget.add_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableViewerWidget.add_widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewerWidget.events">
+<span class="sig-name descname"><span class="pre">events</span></span><em class="property"><span class="pre">:</span> <span class="pre">TableViewerSignal</span></em><a class="headerlink" href="#tabulous.widgets.TableViewerWidget.events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Hanjin Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

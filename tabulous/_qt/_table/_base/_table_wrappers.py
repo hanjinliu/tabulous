@@ -47,7 +47,11 @@ class QTablePopupView(QtW.QWidget):
 class QPopupWidget(QtW.QWidget):
     closed = Signal()
 
-    def __init__(self, parent=None, widget: _QTableViewEnhanced = None):
+    def __init__(
+        self,
+        parent: _QTableViewEnhanced = None,
+        widget: _QTableViewEnhanced = None,
+    ):
         super().__init__(parent, Qt.WindowType.Popup)
         self._widget = widget
         _layout = QtW.QVBoxLayout()
