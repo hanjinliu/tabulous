@@ -6,7 +6,6 @@ from qtpy.QtCore import Qt, Signal
 
 from ._utils import create_temporal_line_edit
 
-from .._utils import search_name_from_qmenu
 from .._table._base._table_group import QTableGroup
 
 if TYPE_CHECKING:
@@ -59,11 +58,11 @@ class QTabbedTableStack(QtW.QTabWidget):
         # NOTE: arguments are not (from, to). Bug in Qt??
         self.tabBar().tabMoved.connect(lambda a, b: self.itemMoved.emit(b, a))
         self.tabBarDoubleClicked.connect(self.enterEditingMode)
-        self.installContextMenu()
 
         # NOTE: this is needed to correctly refocus table groups.
         self.tabBarClicked.connect(self.setCurrentIndex)
 
+        self._qt_context_menu = QTabContextMenu(self)
         self._line: QtW.QLineEdit | None = None  # temporal QLineEdit for editing tabs
 
     def addTable(self, table: QBaseTable, name: str = "None"):
@@ -205,48 +204,11 @@ class QTabbedTableStack(QtW.QTabWidget):
 
         return None
 
-    def installContextMenu(self):
-        """Install the default contextmenu."""
-        self._qt_context_menu = QTabContextMenu(self)
-
-        @self.registerAction("Copy all")
-        def _copy(index: int):
-            table = self.tableAtIndex(index)
-            h, w = table.tableShape()
-            table.setSelections([(slice(0, h), slice(0, w))])
-            table.copyToClipboard(headers=True)
-            table.setSelections([])
-
-        self.registerAction("Rename")(self.enterEditingMode)
-
-        @self.registerAction("Delete")
-        def _delete(index: int):
-            self.takeTable(index)
-            self.tableRemoved.emit(index)
-
-        self._qt_context_menu.addSeparator()
-
-        @self.registerAction("Tile Horizontally")
-        def _tile_h(index: int):
-            if index == self.count() - 1:
-                index -= 1
-            self.tileTables([index, index + 1])
-
-        @self.registerAction("Tile Vertically")
-        def _tile_v(index: int):
-            if index == self.count() - 1:
-                index -= 1
-            self.tileTables([index, index + 1], orientation="vertical")
-
-        @self.registerAction("Untile")
-        def _untile(index: int):
-            self.untileTable(index)
-
     def registerAction(self, location: str):
         locs = location.split(">")
         menu = self._qt_context_menu
         for loc in locs[:-1]:
-            a = search_name_from_qmenu(menu, loc)
+            a = menu.searchAction(loc)
             if a is None:
                 menu = menu.addMenu(loc)
             else:
@@ -391,6 +353,15 @@ class QTabbedTableStack(QtW.QTabWidget):
         self.setCurrentIndex(current_index)
         return unmerged
 
+    def copyData(self, index: int):
+        """Copy all the data in the table at index to the clipboard."""
+        table = self.tableAtIndex(index)
+        h, w = table.tableShape()
+        table.setSelections([(slice(0, h), slice(0, w))])
+        table.copyToClipboard(headers=True)
+        table.setSelections([])
+        return None
+
     def _group_index_to_tab_index(self, group: QTableGroup, index: int) -> int:
         # return the global in index of `index`-th table in `group`
         count = 0
@@ -420,6 +391,21 @@ class QTabContextMenu(QtW.QMenu):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._current_index = None
+        self._actions: dict[str, QAction | QTabContextMenu] = {}
+
+    def addMenu(self, title: str) -> QTabContextMenu:
+        """Add a submenu to the contextmenu."""
+        menu = self.__class__()
+        action = super().addMenu(menu)
+        action.setText(title)
+        action.setMenu(menu)
+        self._actions[title] = action
+        return menu
+
+    def addAction(self, action: QAction) -> None:
+        super().addAction(action)
+        self._actions[action.text()] = action
+        return None
 
     def execAtIndex(self, pos: QtCore.QPoint, index: int):
         """Execute contextmenu at index."""
@@ -428,4 +414,11 @@ class QTabContextMenu(QtW.QMenu):
             self.exec_(pos)
         finally:
             self._current_index = None
+        return None
+
+    def searchAction(self, name: str) -> QAction | None:
+        """Return a action that matches the name."""
+        for k, action in self._actions.items():
+            if k == name:
+                return action
         return None
