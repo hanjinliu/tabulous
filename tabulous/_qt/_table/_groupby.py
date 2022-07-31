@@ -66,7 +66,7 @@ class QTableGroupBy(QBaseTable):
         return self._qtable_view_
 
     def createQTableView(self):
-        self._qtable_view_ = _QTableViewEnhanced()
+        self._qtable_view_ = _QTableViewEnhanced(self)
         self._group_key_cbox = _LabeledComboBox()
         self._group_map: dict[Hashable, Sequence[int]] = {}
         self._group_key_cbox.currentIndexChanged.connect(
@@ -85,6 +85,16 @@ class QTableGroupBy(QBaseTable):
 
     @QBaseTable._mgr.interface
     def setDataFrame(self, data: DataFrameGroupBy) -> None:
+        if data is None:
+            self._data_raw = data
+            self._group_key_cbox.setLabel("")
+
+            self._group_map = {}
+            self._group_key_cbox.setChoices([])
+            self.setFilter(None)
+            self._qtable_view.viewport().update()
+            return
+
         if not isinstance(data, DataFrameGroupBy):
             raise TypeError(f"Data must be DataFrameGroupBy, not {type(data)}")
         self._data_raw = data

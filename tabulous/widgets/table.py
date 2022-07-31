@@ -40,6 +40,7 @@ class ViewMode(Enum):
     normal = "normal"
     horizontal = "horizontal"
     vertical = "vertical"
+    popup = "popup"
 
     def __eq__(self, other):
         if isinstance(other, str):
@@ -208,6 +209,14 @@ class TableBase(ABC):
 
         if mode in (ViewMode.horizontal, ViewMode.vertical):
             self._qwidget.setDualView(orientation=mode.name)
+        elif mode == ViewMode.popup:
+            view = self._qwidget.setPopupView()
+            view.popup.setTitle(self.name)
+
+            @view.popup.closed.connect
+            def _():
+                self.view_mode = ViewMode.normal
+
         elif mode == ViewMode.normal:
             self._qwidget.resetViewMode()
         else:

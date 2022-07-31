@@ -1,12 +1,12 @@
 from __future__ import annotations
-from typing import Callable, TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING, Literal, cast
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, Signal
 
 from ._utils import create_temporal_line_edit
 
-from .._utils import search_name_from_qmenu
+from .._table._base._table_group import QTableGroup
 
 if TYPE_CHECKING:
     from .._table import QBaseTable
@@ -58,8 +58,11 @@ class QTabbedTableStack(QtW.QTabWidget):
         # NOTE: arguments are not (from, to). Bug in Qt??
         self.tabBar().tabMoved.connect(lambda a, b: self.itemMoved.emit(b, a))
         self.tabBarDoubleClicked.connect(self.enterEditingMode)
-        self.installContextMenu()
 
+        # NOTE: this is needed to correctly refocus table groups.
+        self.tabBarClicked.connect(self.setCurrentIndex)
+
+        self._qt_context_menu = QTabContextMenu(self)
         self._line: QtW.QLineEdit | None = None  # temporal QLineEdit for editing tabs
 
     def addTable(self, table: QBaseTable, name: str = "None"):
@@ -70,6 +73,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     def takeTable(self, index: int) -> QBaseTable:
         """Remove table at `index` and return it."""
         table = self.tableAtIndex(index)
+        self.untileTable(index)
         self.removeTab(index)
         return table
 
@@ -80,7 +84,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     def tableIndex(self, table: QBaseTable) -> int:
         """Get the index of `table`."""
         for i in range(self.count()):
-            data = self.widget(i)
+            data = self.tableAtIndex(i)
             if data is table:
                 break
         else:
@@ -89,7 +93,12 @@ class QTabbedTableStack(QtW.QTabWidget):
 
     def tableAtIndex(self, i: int) -> QBaseTable:
         """Get the table at `i`."""
-        return self.widget(i)
+        wdt = self.widget(i)
+        if isinstance(wdt, QTableGroup):
+            wdt = cast(QTableGroup, wdt)
+            idx = self._tab_index_to_group_index(i)
+            return wdt.tables[idx]
+        return wdt
 
     def tableAt(self, pos: QtCore.QPoint) -> QBaseTable | None:
         """Return table at position."""
@@ -195,30 +204,11 @@ class QTabbedTableStack(QtW.QTabWidget):
 
         return None
 
-    def installContextMenu(self):
-        """Install the default contextmenu."""
-        self._qt_context_menu = QTabContextMenu(self)
-
-        @self.registerAction("Copy all")
-        def _copy(index: int):
-            table = self.tableAtIndex(index)
-            h, w = table.tableShape()
-            table.setSelections([(slice(0, h), slice(0, w))])
-            table.copyToClipboard(headers=True)
-            table.setSelections([])
-
-        self.registerAction("Rename")(self.enterEditingMode)
-
-        @self.registerAction("Delete")
-        def _delete(index: int):
-            self.takeTable(index)
-            self.tableRemoved.emit(index)
-
     def registerAction(self, location: str):
         locs = location.split(">")
         menu = self._qt_context_menu
         for loc in locs[:-1]:
-            a = search_name_from_qmenu(menu, loc)
+            a = menu.searchAction(loc)
             if a is None:
                 menu = menu.addMenu(loc)
             else:
@@ -245,6 +235,155 @@ class QTabbedTableStack(QtW.QTabWidget):
         self._qt_context_menu.execAtIndex(QtGui.QCursor().pos(), index)
         return
 
+    def setCurrentIndex(self, index: int):
+        """Set current active index."""
+        wdt = self.widget(index)
+        if isinstance(wdt, QTableGroup):
+            wdt = cast(QTableGroup, wdt)
+            wdt.setFocusedIndex(self._tab_index_to_group_index(index))
+        return super().setCurrentIndex(index)
+
+    def tileTables(
+        self,
+        indices: list[int],
+        orientation: Literal["horizontal", "vertical"] = "horizontal",
+    ):
+        """Merge tables at indices."""
+        # strict check of indices
+        if len(indices) < 2:
+            raise ValueError("Need at least two tables to merge.")
+        elif not all(0 <= idx < self.count() for idx in indices):
+            raise IndexError("Table indices out of range.")
+        elif not all(isinstance(idx, int) for idx in indices):
+            raise TypeError("Indices must be integers.")
+        elif len(set(indices)) != len(indices):
+            raise ValueError("Duplicate indices.")
+
+        # check orientation
+        if orientation == "horizontal":
+            ori = Qt.Orientation.Horizontal
+        elif orientation == "vertical":
+            ori = Qt.Orientation.Vertical
+        else:
+            raise ValueError("Orientation must be 'horizontal' or 'vertical'.")
+
+        current_index = self.currentIndex()
+        indices = sorted(indices)
+
+        tables: list[QBaseTable] = []
+        for i in indices:
+            table = self.widget(i)
+            if isinstance(table, QTableGroup):
+                table = self.untileTable(i)
+            tables.append(table)
+        group = QTableGroup(tables, ori)
+        widgets = [group.copy() for _ in indices]
+
+        for j, index in enumerate(indices):
+            wdt = widgets[j]
+            self.replaceWidget(index, wdt)
+
+            @wdt.focusChanged.connect
+            def _(idx, wdt: QTableGroup = wdt):
+                idx_dst = self._group_index_to_tab_index(wdt, idx)
+                dst = cast(QTableGroup, self.widget(idx_dst))
+                wdt.blockSignals(True)
+                dst.blockSignals(True)
+                self.setCurrentIndex(idx_dst)
+                dst.setFocusedIndex(idx)
+                dst.blockSignals(False)
+                wdt.blockSignals(False)
+
+        self.setCurrentIndex(current_index)
+        return None
+
+    def replaceWidget(self, index: int, new: QtW.QWidget) -> None:
+        """
+        Replace table at index with new table.
+
+        This function will NOT consider if the incoming and to-be-replaced tables
+        are table group or not. This function is genuinely a method of QTabWidget.
+
+        Parameters
+        ----------
+        index : int
+            Index of the widget to be replaced.
+        new : QWidget
+            New widget to replace the old one.
+        """
+        text = self.tabText(index)
+        self.removeTab(index)
+        self.insertTab(index, new, text)
+        return None
+
+    def untileTable(self, index: int) -> QBaseTable:
+        """Reset merge of the table group at index."""
+        target_group = self.widget(index)
+        if not isinstance(target_group, QTableGroup):
+            return target_group
+
+        current_index = self.currentIndex()
+        target_group = cast(QTableGroup, target_group)
+        n_merged = len(target_group.tables)
+        appeared_idx: list[int] = []
+        count = 0
+        all_groups: list[QTableGroup] = []
+        target_idx = -1
+        for i in range(self.count()):
+            wdt = self.widget(i)
+            if target_group == wdt:
+                all_groups.append(wdt)
+                appeared_idx.append(i)
+                if i == index:
+                    target_idx = count
+                count += 1
+
+        unmerged = None
+        for i, tablegroup in enumerate(all_groups):
+            table = tablegroup.pop(target_idx)
+            j = appeared_idx[i]
+            if j == index:
+                unmerged = table
+                self.replaceWidget(j, table)
+            elif n_merged == 2:
+                self.replaceWidget(j, tablegroup.pop(0))
+
+        if unmerged is None:
+            raise RuntimeError("Unmerging could not be resolved.")
+        self.setCurrentIndex(current_index)
+        return unmerged
+
+    def copyData(self, index: int):
+        """Copy all the data in the table at index to the clipboard."""
+        table = self.tableAtIndex(index)
+        h, w = table.tableShape()
+        table.setSelections([(slice(0, h), slice(0, w))])
+        table.copyToClipboard(headers=True)
+        table.setSelections([])
+        return None
+
+    def _group_index_to_tab_index(self, group: QTableGroup, index: int) -> int:
+        # return the global in index of `index`-th table in `group`
+        count = 0
+        for i in range(self.count()):
+            wdt = self.widget(i)
+            if group == wdt:
+                if count == index:
+                    return i
+                count += 1
+        raise ValueError(f"{index} is not in {group}.")
+
+    def _tab_index_to_group_index(self, index: int) -> int:
+        wdt = cast(QTableGroup, self.widget(index))
+        if isinstance(wdt, QTableGroup):
+            count = 0
+            for i in range(index):
+                if wdt == self.widget(i):
+                    count += 1
+            return count
+        else:
+            raise ValueError(f"Widget at {index} is not a table group.")
+
 
 class QTabContextMenu(QtW.QMenu):
     """Contextmenu for the tabs on the QTabWidget."""
@@ -252,6 +391,21 @@ class QTabContextMenu(QtW.QMenu):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._current_index = None
+        self._actions: dict[str, QAction | QTabContextMenu] = {}
+
+    def addMenu(self, title: str) -> QTabContextMenu:
+        """Add a submenu to the contextmenu."""
+        menu = self.__class__()
+        action = super().addMenu(menu)
+        action.setText(title)
+        action.setMenu(menu)
+        self._actions[title] = action
+        return menu
+
+    def addAction(self, action: QAction) -> None:
+        super().addAction(action)
+        self._actions[action.text()] = action
+        return None
 
     def execAtIndex(self, pos: QtCore.QPoint, index: int):
         """Execute contextmenu at index."""
@@ -260,4 +414,11 @@ class QTabContextMenu(QtW.QMenu):
             self.exec_(pos)
         finally:
             self._current_index = None
+        return None
+
+    def searchAction(self, name: str) -> QAction | None:
+        """Return a action that matches the name."""
+        for k, action in self._actions.items():
+            if k == name:
+                return action
         return None

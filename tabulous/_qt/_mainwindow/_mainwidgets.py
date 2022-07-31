@@ -1,20 +1,14 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable, TypeVar
+from typing import TYPE_CHECKING
 from qtpy import QtWidgets as QtW
-from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, QEvent
 
 from ._base import _QtMainWidgetBase
-from .._utils import search_name_from_qmenu
 from .._keymap import QtKeyMap
 from ...types import TabPosition
 
 if TYPE_CHECKING:
     from ...widgets import TableViewer
-    from typing_extensions import ParamSpec
-
-    _P = ParamSpec("_P")
-    _R = TypeVar("_R")
 
 
 class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
@@ -31,12 +25,14 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
         self.addWidget(wdt)
 
     def toolBarVisible(self) -> bool:
+        """Visibility of toolbar"""
         if self._toolbar is None:
             return False
         else:
             return self._toolbar.isVisible()
 
     def setToolBarVisible(self, visible: bool):
+        """Set visibility of toolbar"""
         if visible and self._toolbar is None:
             from .._toolbar import QTableStackToolBar
 
@@ -87,7 +83,6 @@ _HIDE_TOOLTIPS = frozenset(
 
 
 class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
-    _table_viewer: TableViewer
     _instances: list[QMainWindow] = []
     _keymap = QtKeyMap()
 
@@ -104,6 +99,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self._console_dock_widget = None
         self.addToolBar(self._toolbar)
         self._tablestack.setMinimumSize(400, 250)
+        self.statusBar()
         QMainWindow._instances.append(self)
 
     def consoleVisible(self) -> bool:
@@ -185,34 +181,10 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
         return super().event(e)
 
-    def registerAction(
-        self, location: str
-    ) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
-        locs = location.split(">")
-        if len(locs) < 2:
-            raise ValueError("Location must be 'XXX>YYY>ZZZ' format.")
-        menu = self.menuBar()
-        for loc in locs[:-1]:
-            a = search_name_from_qmenu(menu, loc)
-            if a is None:
-                menu = menu.addMenu(loc)
-            else:
-                menu = a.menu()
-                if menu is None:
-                    i = locs.index(loc)
-                    err_loc = ">".join(locs[:i])
-                    raise TypeError(f"{err_loc} is not a menu.")
-
-        def wrapper(f: Callable):
-            action = QAction(locs[-1], self)
-            action.triggered.connect(f)
-            menu.addAction(action)
-            return f
-
-        return wrapper
-
     def toolBarVisible(self) -> bool:
+        """Visibility of toolbar"""
         return self._toolbar.isVisible()
 
     def setToolBarVisible(self, visible: bool):
+        """Set visibility of toolbar"""
         return self._toolbar.setVisible(visible)

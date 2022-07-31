@@ -6,6 +6,8 @@ import pandas as pd
 
 # https://ymt-lab.com/post/2020/pyqt5-qtableview-pandas-qabstractitemmodel/
 
+_FONT = "Arial"
+
 
 class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     dataEdited = Signal(int, int, object)
@@ -13,6 +15,11 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._df = pd.DataFrame([])
+        self._editable = False
+        self._font_size = 10
+        self._zoom = 1.0
+        self._h_default = 28
+        self._w_default = 100
 
     @property
     def df(self) -> pd.DataFrame:
@@ -46,16 +53,23 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 if pd.isna(val):
                     return QtGui.QColor(Qt.GlobalColor.gray)
             return QtCore.QVariant()
-        # elif role == Qt.ItemDataRole.ToolTipRole:
-        #     ...
+        elif role == Qt.ItemDataRole.ToolTipRole:
+            r, c = index.row(), index.column()
+            if r < self.df.shape[0] and c < self.df.shape[1]:
+                val = self.df.iat[r, c]
+                dtype = self.df.dtypes[c]
+                return f"{val!r} (dtype: {dtype})"
+            return QtCore.QVariant()
+        elif role == Qt.ItemDataRole.FontRole:
+            return QtGui.QFont(_FONT, int(self._font_size * self._zoom))
         return QtCore.QVariant()
 
     def flags(self, index):
-        return (
-            Qt.ItemFlag.ItemIsEditable
-            | Qt.ItemFlag.ItemIsEnabled
-            | Qt.ItemFlag.ItemIsSelectable
-        )
+        _read_only = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
+        if self._editable:
+            return Qt.ItemFlag.ItemIsEditable | _read_only
+        else:
+            return _read_only
 
     def headerData(
         self,
@@ -80,6 +94,9 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 if section < self.df.index.size:
                     return str(self.df.index[section])
                 return None
+
+        elif role == Qt.ItemDataRole.FontRole:
+            return QtGui.QFont(_FONT, int(self._font_size * self._zoom))
 
     def setData(self, index: QtCore.QModelIndex, value, role) -> bool:
         if not index.isValid():

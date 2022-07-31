@@ -59,6 +59,7 @@ class _QtMainWidgetBase(QtW.QWidget):
             self._toolbar.setToolButtonColor("#000000")
 
     def screenshot(self):
+        """Create an array of pixel data of the current view."""
         import numpy as np
 
         img = self.grab().toImage()
@@ -73,11 +74,13 @@ class _QtMainWidgetBase(QtW.QWidget):
         return arr[:, :, [2, 1, 0, 3]]
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
+        """Activate keymap object."""
         if not self._keymap.press_key(a0):
             return super().keyPressEvent(a0)
         return None
 
     def showKeyMap(self) -> None:
+        """Show keymap viewer widget."""
         if self._keymap_widget is None:
             wdt = self._keymap.to_widget()
             wdt.setParent(self, wdt.windowFlags())

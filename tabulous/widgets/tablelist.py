@@ -59,6 +59,7 @@ class TableList(EventedList[TableBase]):
         super().__init__()
         self.events = NamedListEvents()
         self._parent = parent
+        self._install_contextmenu()
 
     def insert(self, index: int, table: TableBase):
         if not isinstance(table, TableBase):
@@ -144,9 +145,62 @@ class TableList(EventedList[TableBase]):
         ...
 
     def register_action(self, val):
-        """Register an action to the tablelist."""
+        """Register an contextmenu action to the tablelist."""
         if isinstance(val, str):
             return self._parent._qwidget._tablestack.registerAction(val)
         elif callable(val):
             location = val.__name__.replace("_", " ")
             return self._parent._qwidget._tablestack.registerAction(location)(val)
+        else:
+            raise ValueError("input must be a string or callable.")
+
+    def tile(self, indices: list[int], orientation: str = "horizontal") -> None:
+        """Tile the tables in the list."""
+        self._parent._qwidget._tablestack.tileTables(indices, orientation=orientation)
+        return None
+
+    def untile(self, indices: int | list[int]):
+        """Untile the tables in the list."""
+        if isinstance(indices, int):
+            indices = [indices]
+        for idx in indices:
+            self._parent._qwidget._tablestack.untileTable(idx)
+        return None
+
+    def _install_contextmenu(self):
+        """Install the default contextmenu."""
+
+        def view_mode_setter(mode: str):
+            def _fset(index: int):
+                self[index].view_mode = mode
+
+            return _fset
+
+        self.register_action("Copy all")(self._parent._qwidget._tablestack.copyData)
+        self.register_action("Rename")(
+            self._parent._qwidget._tablestack.enterEditingMode
+        )
+        self.register_action("Delete")(self.__delitem__)
+
+        self.register_action("View>Horizontal dual view")(
+            view_mode_setter("horizontal")
+        )
+        self.register_action("View>Vertical dual view")(view_mode_setter("vertical"))
+        self.register_action("View>Popup view")(view_mode_setter("popup"))
+        self.register_action("View>Reset view")(view_mode_setter("normal"))
+
+        @self.register_action("Tile>Horizontal tiling")
+        def _tile_h(index: int):
+            if index == self.count() - 1:
+                index -= 1
+            self.tile([index, index + 1])
+
+        @self.register_action("Tile>Vertical tiling")
+        def _tile_v(index: int):
+            if index == self.count() - 1:
+                index -= 1
+            self.tile([index, index + 1], orientation="vertical")
+
+        @self.register_action("Tile>Untile")
+        def _untile(index: int):
+            self.untile(index)

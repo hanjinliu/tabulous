@@ -16,11 +16,10 @@ from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceabl
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
+    from typing_extensions import Self
 
 # fmt: off
 # Flags
-_EDITABLE = QtW.QAbstractItemView.EditTrigger.EditKeyPressed | QtW.QAbstractItemView.EditTrigger.DoubleClicked
-_READ_ONLY = QtW.QAbstractItemView.EditTrigger.NoEditTriggers
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
 # Built-in table view key press events
@@ -62,13 +61,16 @@ def _getsizeof(obj) -> float:
 class _QTableViewEnhanced(QtW.QTableView):
     selectionChangedSignal = Signal()
     rightClickedSignal = Signal(QtCore.QPoint)
+    focusedSignal = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        if isinstance(parent, QBaseTable):
+            self._parent_table = parent
+        else:
+            self._parent_table = None
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
-        self._zoom = 1.0
-        self._initial_font_size = self.font().pointSize()
         vheader, hheader = self.verticalHeader(), self.horizontalHeader()
         self.setFrameStyle(QtW.QFrame.Shape.Box)
         vheader.setFrameStyle(QtW.QFrame.Shape.Box)
@@ -77,10 +79,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setStyleSheet("QHeaderView::section { border: 1px solid black}")
         vheader.setMinimumSectionSize(0)
         hheader.setMinimumSectionSize(0)
-        vheader.font().setPointSize(self._initial_font_size)
-        hheader.font().setPointSize(self._initial_font_size)
 
-        vheader.setDefaultSectionSize(28)
+        vheader.setDefaultSectionSize(24)
         hheader.setDefaultSectionSize(100)
 
         hheader.setSectionResizeMode(QtW.QHeaderView.ResizeMode.Fixed)
@@ -90,11 +90,25 @@ class _QTableViewEnhanced(QtW.QTableView):
             hheader.defaultSectionSize(),
             vheader.defaultSectionSize(),
         )
-        self.setZoom(1.0)  # initialize
 
         self.setVerticalScrollMode(_SCROLL_PER_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
         self.setFrameStyle(QtW.QFrame.Shape.NoFrame)
+
+    if TYPE_CHECKING:
+
+        def model(self) -> AbstractDataFrameModel:
+            ...
+
+    def copy(self) -> _QTableViewEnhanced:
+        """Make a copy of the table."""
+        new = _QTableViewEnhanced(self.parentTable())
+        new.setModel(self.model())
+        new.setSelectionModel(self.selectionModel())
+        new.setItemDelegate(self.itemDelegate())
+        new.setZoom(self.zoom())
+        new.setCurrentIndex(self.currentIndex())
+        return new
 
     def selectionChanged(
         self,
@@ -137,38 +151,34 @@ class _QTableViewEnhanced(QtW.QTableView):
         keys = QtKeys(e)
         if keys in _TABLE_VIEW_KEY_SET:
             return super().keyPressEvent(e)
-        parent = self.parent()
+        parent = self.parentTable()
         if isinstance(parent, QBaseTable):
             parent.keyPressEvent(e)
 
     def zoom(self) -> float:
         """Get current zoom factor."""
-        return self._zoom
+        return self.model()._zoom
 
     def setZoom(self, value: float) -> None:
         """Set zoom factor."""
         if not 0.25 <= value <= 2.0:
             raise ValueError("Zoom factor must between 0.25 and 2.0.")
         # To keep table at the same position.
-        zoom_ratio = 1 / self._zoom * value
+        zoom_ratio = 1 / self.zoom() * value
         pos = self.verticalScrollBar().sliderPosition()
         self.verticalScrollBar().setSliderPosition(int(pos * zoom_ratio))
         pos = self.horizontalScrollBar().sliderPosition()
         self.horizontalScrollBar().setSliderPosition(int(pos * zoom_ratio))
 
-        # Zoom font size
-        font = self.font()
-        font.setPointSize(int(self._initial_font_size * value))
-        self.setFont(font)
-        self.verticalHeader().setFont(font)
-        self.horizontalHeader().setFont(font)
-
-        # Zoom section size of headers
+        # # Zoom section size of headers
         h, v = self._initial_section_size
         self.setSectionSize(int(h * value), int(v * value))
 
-        # Update stuff
-        self._zoom = value
+        # # Update stuff
+        self.model()._zoom = value
+        self.viewport().update()
+        self.horizontalHeader().viewport().update()
+        self.verticalHeader().viewport().update()
         return
 
     def wheelEvent(self, e: QtGui.QWheelEvent) -> None:
@@ -193,6 +203,16 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.verticalHeader().setDefaultSectionSize(vertical)
         self.horizontalHeader().setDefaultSectionSize(horizontal)
         return
+
+    def focusInEvent(self, e: QtGui.QFocusEvent) -> None:
+        self.focusedSignal.emit()
+        return super().focusInEvent(e)
+
+    def parentTable(self) -> QBaseTable | None:
+        parent = self._parent_table
+        if not isinstance(parent, QBaseTable):
+            parent = None
+        return parent
 
 
 class QBaseTable(QtW.QSplitter):
@@ -233,8 +253,7 @@ class QBaseTable(QtW.QSplitter):
         )
 
         self._side_area = None
-        if not self._DEFAULT_EDITABLE:
-            self._qtable_view.setEditTriggers(_READ_ONLY)
+        self.model()._editable = self._DEFAULT_EDITABLE
 
     @property
     def _qtable_view(self) -> _QTableViewEnhanced:
@@ -403,6 +422,16 @@ class QBaseTable(QtW.QSplitter):
                 show_messagebox("error", "Error", msg, self)
         self.refresh()
 
+    def copy(self, link: bool = True) -> Self:
+        if link:
+            copy = self.__class__(self.parent(), self.getDataFrame())
+            copy._qtable_view.setModel(self._qtable_view.model())
+            copy._qtable_view.setSelectionModel(self._qtable_view.selectionModel())
+        else:
+            copy = self.__class__(self.parent(), self.getDataFrame())
+        copy.setZoom(self.zoom())
+        return copy
+
     def refresh(self) -> None:
         """Refresh table view."""
         qtable = self._qtable_view
@@ -439,7 +468,22 @@ class QBaseTable(QtW.QSplitter):
         self._qtable_view.setParent(None)
         dual = QTableDualView(self._qtable_view, qori)
         self.insertWidget(0, dual)
-        return None
+        return dual
+
+    def setPopupView(self):
+        """Set splash view."""
+        from ._table_wrappers import QTablePopupView
+
+        widget0 = self.widget(0)
+        if widget0 is not self._qtable_view:
+            widget0.setParent(None)
+            widget0.deleteLater()
+
+        self._qtable_view.setParent(None)
+        view = QTablePopupView(self._qtable_view)
+        self.insertWidget(0, view)
+        view.exec()
+        return view
 
     def resetViewMode(self):
         """Reset the view mode to the normal one."""
@@ -479,7 +523,6 @@ class QMutableTable(QBaseTable):
         self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None
     ):
         super().__init__(parent, data)
-        self._editable = False
         self.model().dataEdited.connect(self.setDataFrameValue)
 
         # header editing signals
@@ -548,7 +591,7 @@ class QMutableTable(QBaseTable):
             _old_value = _old_value.copy()  # this is needed for undo
 
         # emit item changed signal if value changed
-        if _equal(_value, _old_value) and self._editable:
+        if _equal(_value, _old_value) and self.isEditable():
             self._set_value(r0, c, r, c, _value, _old_value)
         return None
 
@@ -577,15 +620,12 @@ class QMutableTable(QBaseTable):
 
     def isEditable(self) -> bool:
         """Return the editability of the table."""
-        return self._editable
+        return self.model()._editable
 
     def setEditable(self, editable: bool):
         """Set the editability of the table."""
-        if editable:
-            self._qtable_view.setEditTriggers(_EDITABLE)
-        else:
-            self._qtable_view.setEditTriggers(_READ_ONLY)
-        self._editable = editable
+        self.model()._editable = editable
+        return None
 
     def toggleEditability(self) -> None:
         """Toggle editability of the table."""
@@ -729,6 +769,11 @@ class QMutableTable(QBaseTable):
             )
             self.setDataFrameValue(rsel, csel, df)
         return None
+
+    def copy(self, link: bool = True) -> Self:
+        copy = super().copy(link=link)
+        copy.setEditable(self.isEditable())
+        return copy
 
     def editHorizontalHeader(self, index: int):
         """Edit the horizontal header."""
@@ -888,7 +933,7 @@ class QMutableSimpleTable(QMutableTable):
         return self._qtable_view_
 
     def createQTableView(self):
-        self._qtable_view_ = _QTableViewEnhanced()
+        self._qtable_view_ = _QTableViewEnhanced(self)
         self.addWidget(self._qtable_view_)
         return None
 
