@@ -1,9 +1,14 @@
 from __future__ import annotations
-from qtpy import QtWidgets as QtW, QtCore
+from typing import TYPE_CHECKING
+from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
-import numpy as np
+from ..._keymap import QtKeys
 
 from ._table_base import QBaseTable, QMutableTable
+
+if TYPE_CHECKING:
+    import numpy as np
+    from ._model_base import AbstractDataFrameModel
 
 
 class TableItemDelegate(QtW.QStyledItemDelegate):
@@ -23,17 +28,21 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         qtable: QBaseTable = parent.parent()
         table = qtable.parent()
         if isinstance(table, QMutableTable):
-            df = table.model().df
+            model = table.model()
+            df = model.df
             row = index.row()
             col = index.column()
+            font = model.data(index, Qt.ItemDataRole.FontRole)
             if row >= df.shape[0] or col >= df.shape[1]:
-                # out of bounds
-                return super().createEditor(parent, option, index)
+                line = QDtypedLineEdit(parent, table, (row, col))
+                line.setFont(font)
+                return line
 
             dtype: np.dtype = df.dtypes.values[col]
             if dtype == "category":
                 # use combobox for categorical data
                 cbox = QtW.QComboBox(parent)
+                cbox.setFont(font)
                 choices = list(map(str, dtype.categories))
                 cbox.addItems(choices)
                 cbox.setCurrentIndex(choices.index(df.iat[row, col]))
@@ -42,6 +51,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             elif dtype == "bool":
                 # use checkbox for boolean data
                 cbox = QtW.QComboBox(parent)
+                cbox.setFont(font)
                 choices = ["True", "False"]
                 cbox.addItems(choices)
                 cbox.setCurrentIndex(0 if df.iat[row, col] else 1)
@@ -49,10 +59,13 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 return cbox
             elif dtype.kind == "M":
                 dt = QtW.QDateTimeEdit(parent)
+                dt.setFont(font)
                 dt.setDateTime(df.iat[row, col].to_pydatetime())
                 return dt
-
-        return super().createEditor(parent, option, index)
+            else:
+                line = QDtypedLineEdit(parent, table, (row, col))
+                line.setFont(font)
+                return line
 
     def setEditorData(self, editor: QtW.QWidget, index: QtCore.QModelIndex) -> None:
         super().setEditorData(editor, index)
@@ -92,3 +105,58 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 text = f"{value:.{ndigits-1}e}"
 
         return text
+
+
+class QDtypedLineEdit(QtW.QLineEdit):
+    def __init__(
+        self,
+        parent: QtCore.QObject | None = None,
+        table: QMutableTable | None = None,
+        pos: tuple[int, int] = (0, 0),
+    ):
+        super().__init__(parent)
+        self._table = table
+        self._pos = pos
+        self.textChanged.connect(self.onTextChanged)
+
+    def isTextValid(self, r: int, c: int, text: str) -> bool:
+        """True if text is valid for this cell."""
+        try:
+            self._table.convertValue(r, c, text)
+        except Exception:
+            return False
+        return True
+
+    def onTextChanged(self, text: str):
+        """Change text color to red if invalid."""
+        palette = QtGui.QPalette()
+
+        try:
+            self._table.convertValue(self._pos[0], self._pos[1], text)
+        except Exception:
+            col = Qt.GlobalColor.red
+        else:
+            col = Qt.GlobalColor.black
+
+        palette.setColor(QtGui.QPalette.ColorRole.Text, col)
+        self.setPalette(palette)
+
+    def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
+        """Handle key press events."""
+        keys = QtKeys(event)
+        pos = self.cursorPosition()
+        nchar = len(self.text())
+        r, c = self._pos
+        if pos == 0 and keys == "Left" and c > 0:
+            self._table._qtable_view.setFocus()
+            index = self._table._qtable_view.model().index(r, c - 1)
+            self._table._qtable_view.setCurrentIndex(index)
+        elif (
+            pos == nchar
+            and keys == "Right"
+            and c < self._table.model().columnCount() - 1
+        ):
+            self._table._qtable_view.setFocus()
+            index = self._table._qtable_view.model().index(r, c + 1)
+            self._table._qtable_view.setCurrentIndex(index)
+        return super().keyPressEvent(event)

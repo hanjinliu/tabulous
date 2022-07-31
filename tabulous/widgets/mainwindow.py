@@ -454,7 +454,7 @@ class TableViewer(_TableViewerBase):
         *,
         name: str = "",
         area: str = "right",
-        allowed_areas: list[str] = None,
+        allowed_areas: list[str] | None = None,
     ):
         backend_widget, name = _normalize_widget(widget, name)
 
@@ -465,7 +465,7 @@ class TableViewer(_TableViewerBase):
         self._dock_widgets[name] = dock
         return dock
 
-    def remove_dock_widget(self, name_or_widget):
+    def remove_dock_widget(self, name_or_widget: str | Widget | QWidget):
         if isinstance(name_or_widget, str):
             name = name_or_widget
             dock = self._dock_widgets[name_or_widget]
@@ -476,7 +476,7 @@ class TableViewer(_TableViewerBase):
                     dock = v
                     break
             else:
-                raise ValueError(f"Widget {name_or_widget} not found.")
+                raise ValueError(f"Widget {name_or_widget!r} not found.")
         self._qwidget.removeDockWidget(dock)
         self._dock_widgets.pop(name)
         return None
