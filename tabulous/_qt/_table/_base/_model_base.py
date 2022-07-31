@@ -25,8 +25,8 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         self._zoom = 1.0
         self._h_default = 28
         self._w_default = 100
-        self._foreground_color_mapper: dict[Hashable, Callable[[Any], ColorType]] = {}
-        self._background_color_mapper: dict[Hashable, Callable[[Any], ColorType]] = {}
+        self._foreground_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
+        self._background_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
 
         self._data_role_map = {
             Qt.ItemDataRole.EditRole: self._data_display,
@@ -72,7 +72,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         if r < self.df.shape[0] and c < self.df.shape[1]:
             colname = self.df.columns[c]
             val = self.df.iat[r, c]
-            if mapper := self._foreground_color_mapper.get(colname, None):
+            if mapper := self._foreground_colormap.get(colname, None):
                 # If mapper is given for the column, call it.
                 try:
                     col = mapper(val)
@@ -82,7 +82,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 except Exception as e:
                     # since this method is called many times, errorous function should be
                     # deleted from the mapper.
-                    self._foreground_color_mapper.pop(c)
+                    self._foreground_colormap.pop(c)
                     raise e
                 return QtGui.QColor(*rgba)
             if pd.isna(val):
@@ -104,7 +104,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         r, c = index.row(), index.column()
         if r < self.df.shape[0] and c < self.df.shape[1]:
             colname = self.df.columns[c]
-            if mapper := self._background_color_mapper.get(colname, None):
+            if mapper := self._background_colormap.get(colname, None):
                 val = self.df.iat[r, c]
                 try:
                     col = mapper(val)
@@ -114,7 +114,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 except Exception as e:
                     # since this method is called many times, errorous function should be
                     # deleted from the mapper.
-                    self._background_color_mapper.pop(c)
+                    self._background_colormap.pop(c)
                     raise e
                 return QtGui.QColor(*rgba)
         return QtCore.QVariant()

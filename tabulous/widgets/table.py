@@ -224,23 +224,27 @@ class TableBase(ABC):
             )
         return self._qwidget.moveToItem(row, column)
 
-    def foreground_rule(self, column_name: Hashable, func: ColorMapping | None = None):
+    def foreground_colormap(
+        self, column_name: Hashable, func: ColorMapping | None = None
+    ):
         """Set foreground rule."""
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
             model = self._qwidget.model()
-            model._foreground_color_mapper[column_name] = f
+            model._foreground_colormap[column_name] = f
             self.refresh()
             return f
 
         return _wrapper(func) if func is not None else _wrapper
 
-    def background_rule(self, column_name: Hashable, func: ColorMapping | None = None):
+    def background_colormap(
+        self, column_name: Hashable, func: ColorMapping | None = None
+    ):
         """Set background rule."""
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
             model = self._qwidget.model()
-            model._background_color_mapper[column_name] = f
+            model._background_colormap[column_name] = f
             self.refresh()
             return f
 

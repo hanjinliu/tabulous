@@ -10,16 +10,17 @@ if __name__ == "__main__":
         "value-1": np.random.normal(loc=2, scale=1, size=size),
     })
 
-    @table.foreground_rule("label")
+    # You can give a colormap to a column.
+    @table.foreground_colormap("label")
     def _set_color(val):
         if val == "A":
             return "green"
         else:
             return "red"
 
-    @table.background_rule("value-0")
+    @table.background_colormap("value-0")
     def _set_color(val):
         alpha = int(255 * val)
-        return [255, 255, 255, alpha]
+        return [255, 0, 130, alpha]
 
     viewer.show()
