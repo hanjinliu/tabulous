@@ -89,7 +89,6 @@ _HIDE_TOOLTIPS = frozenset(
 
 
 class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
-    _table_viewer: TableViewer
     _instances: list[QMainWindow] = []
     _keymap = QtKeyMap()
 
@@ -106,6 +105,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self._console_dock_widget = None
         self.addToolBar(self._toolbar)
         self._tablestack.setMinimumSize(400, 250)
+        self.statusBar()
         QMainWindow._instances.append(self)
 
     def consoleVisible(self) -> bool:

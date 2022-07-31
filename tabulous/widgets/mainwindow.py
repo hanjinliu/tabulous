@@ -438,6 +438,16 @@ class TableViewer(_TableViewerBase):
     # def register_action(self, location: str):
     #     return self._qwidget.registerAction(location)
 
+    @property
+    def status(self) -> str:
+        """Return the statup tip"""
+        return self._qwidget.statusTip()
+
+    @status.setter
+    def status(self, tip: str) -> None:
+        """Set the status tip"""
+        return self._qwidget.setStatusTip(tip)
+
     def add_dock_widget(
         self,
         widget: Widget | QWidget,
