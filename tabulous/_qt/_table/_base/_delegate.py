@@ -4,11 +4,10 @@ from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
 from ..._keymap import QtKeys
 
-from ._table_base import QBaseTable, QMutableTable
+from ._table_base import QBaseTable, QMutableTable, _QTableViewEnhanced
 
 if TYPE_CHECKING:
     import numpy as np
-    from ._model_base import AbstractDataFrameModel
 
 
 class TableItemDelegate(QtW.QStyledItemDelegate):
@@ -25,10 +24,10 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         self, parent: QtW.QWidget, option, index: QtCore.QModelIndex
     ) -> QtW.QWidget:
         """Create different type of editors for different dtypes."""
-        qtable: QBaseTable = parent.parent()
-        table = qtable.parent()
-        if isinstance(table, QMutableTable):
-            model = table.model()
+        qtable: _QTableViewEnhanced = parent.parent()
+        table: QBaseTable = qtable.parentTable()
+        if qtable.model()._editable:
+            model = qtable.model()
             df = model.df
             row = index.row()
             col = index.column()
@@ -130,9 +129,9 @@ class QDtypedLineEdit(QtW.QLineEdit):
     def onTextChanged(self, text: str):
         """Change text color to red if invalid."""
         palette = QtGui.QPalette()
-
+        table = self._table
         try:
-            self._table.convertValue(self._pos[0], self._pos[1], text)
+            table.convertValue(self._pos[0], self._pos[1], text)
         except Exception:
             col = Qt.GlobalColor.red
         else:
@@ -148,7 +147,7 @@ class QDtypedLineEdit(QtW.QLineEdit):
         nchar = len(self.text())
         r, c = self._pos
         if pos == 0 and keys == "Left" and c > 0:
-            self._table._qtable_view.setFocus()
+            self.parent().setFocus()
             index = self._table._qtable_view.model().index(r, c - 1)
             self._table._qtable_view.setCurrentIndex(index)
         elif (
@@ -156,7 +155,7 @@ class QDtypedLineEdit(QtW.QLineEdit):
             and keys == "Right"
             and c < self._table.model().columnCount() - 1
         ):
-            self._table._qtable_view.setFocus()
+            self.parent().setFocus()
             index = self._table._qtable_view.model().index(r, c + 1)
             self._table._qtable_view.setCurrentIndex(index)
         return super().keyPressEvent(event)

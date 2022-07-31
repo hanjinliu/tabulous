@@ -65,6 +65,10 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        if isinstance(parent, QBaseTable):
+            self._parent_table = parent
+        else:
+            self._parent_table = None
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
         vheader, hheader = self.verticalHeader(), self.horizontalHeader()
@@ -76,7 +80,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         vheader.setMinimumSectionSize(0)
         hheader.setMinimumSectionSize(0)
 
-        vheader.setDefaultSectionSize(28)
+        vheader.setDefaultSectionSize(24)
         hheader.setDefaultSectionSize(100)
 
         hheader.setSectionResizeMode(QtW.QHeaderView.ResizeMode.Fixed)
@@ -95,6 +99,16 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         def model(self) -> AbstractDataFrameModel:
             ...
+
+    def copy(self) -> _QTableViewEnhanced:
+        """Make a copy of the table."""
+        new = _QTableViewEnhanced(self.parentTable())
+        new.setModel(self.model())
+        new.setSelectionModel(self.selectionModel())
+        new.setItemDelegate(self.itemDelegate())
+        new.setZoom(self.zoom())
+        new.setCurrentIndex(self.currentIndex())
+        return new
 
     def selectionChanged(
         self,
@@ -137,7 +151,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         keys = QtKeys(e)
         if keys in _TABLE_VIEW_KEY_SET:
             return super().keyPressEvent(e)
-        parent = self.parent()
+        parent = self.parentTable()
         if isinstance(parent, QBaseTable):
             parent.keyPressEvent(e)
 
@@ -193,6 +207,12 @@ class _QTableViewEnhanced(QtW.QTableView):
     def focusInEvent(self, e: QtGui.QFocusEvent) -> None:
         self.focusedSignal.emit()
         return super().focusInEvent(e)
+
+    def parentTable(self) -> QBaseTable | None:
+        parent = self._parent_table
+        if not isinstance(parent, QBaseTable):
+            parent = None
+        return parent
 
 
 class QBaseTable(QtW.QSplitter):
@@ -448,7 +468,22 @@ class QBaseTable(QtW.QSplitter):
         self._qtable_view.setParent(None)
         dual = QTableDualView(self._qtable_view, qori)
         self.insertWidget(0, dual)
-        return None
+        return dual
+
+    def setPopupView(self):
+        """Set splash view."""
+        from ._table_wrappers import QTablePopupView
+
+        widget0 = self.widget(0)
+        if widget0 is not self._qtable_view:
+            widget0.setParent(None)
+            widget0.deleteLater()
+
+        self._qtable_view.setParent(None)
+        view = QTablePopupView(self._qtable_view)
+        self.insertWidget(0, view)
+        view.exec()
+        return view
 
     def resetViewMode(self):
         """Reset the view mode to the normal one."""
@@ -898,7 +933,7 @@ class QMutableSimpleTable(QMutableTable):
         return self._qtable_view_
 
     def createQTableView(self):
-        self._qtable_view_ = _QTableViewEnhanced()
+        self._qtable_view_ = _QTableViewEnhanced(self)
         self.addWidget(self._qtable_view_)
         return None
 

@@ -66,7 +66,7 @@ class QTableGroupBy(QBaseTable):
         return self._qtable_view_
 
     def createQTableView(self):
-        self._qtable_view_ = _QTableViewEnhanced()
+        self._qtable_view_ = _QTableViewEnhanced(self)
         self._group_key_cbox = _LabeledComboBox()
         self._group_map: dict[Hashable, Sequence[int]] = {}
         self._group_key_cbox.currentIndexChanged.connect(

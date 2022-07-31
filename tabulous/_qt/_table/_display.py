@@ -109,7 +109,7 @@ class QTableDisplay(QBaseTable):
         return self._qtable_view_
 
     def createQTableView(self):
-        self._qtable_view_ = _QTableViewEnhanced()
+        self._qtable_view_ = _QTableViewEnhanced(self)
 
         _header = QtW.QWidget()
         _header_layout = QtW.QHBoxLayout()

@@ -16,7 +16,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         super().__init__(parent)
         self._df = pd.DataFrame([])
         self._editable = False
-        self._font_size = 12
+        self._font_size = 10
         self._zoom = 1.0
         self._h_default = 28
         self._w_default = 100
