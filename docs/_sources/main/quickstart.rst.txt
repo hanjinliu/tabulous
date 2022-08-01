@@ -218,4 +218,4 @@ Key combo
 ``tabulous`` supports many keyboard shortcuts including key combo.
 
 All the global key map is listed in a widget that will be shown when you press
-``Ctrl+Shift+?``.
+``Ctrl+K, Shift+?`` key combo.

@@ -11,7 +11,6 @@ You can apply a filter to a table without converting the internal data.
 Apply Filters Programmatically
 ==============================
 
-
 You only have to set a function that maps a ``DataFrame`` to a 1-D boolean array to
 the property ``filter``. For instance, following code
 

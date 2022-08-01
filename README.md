@@ -15,6 +15,10 @@ A table data viewer for Python.
 pip install tabulous
 ```
 
+### Documentation
+
+Documentation is available [here](https://hanjinliu.github.io/tabulous/).
+
 ### How it works.
 
 ```python

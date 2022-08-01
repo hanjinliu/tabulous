@@ -9,11 +9,19 @@ in the design and API. Accordingly, custom widget creation is easily achievable
 for beginners using `magicgui <https://github.com/napari/magicgui>`_, or any
 Qt widgets for more trained users.
 
+Highlight
+---------
+
+* Implemented with interactive table viewer and editor.
+* Highly customizable and extensible.
+* Catch data selection and data editing events.
+
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    ./main/quickstart
+   ./main/cheat_sheet
 
 
 Basics
