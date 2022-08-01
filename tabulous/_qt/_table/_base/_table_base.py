@@ -16,6 +16,7 @@ from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceabl
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
+    from qtpy.QtCore import pyqtBoundSignal
     from typing_extensions import Self
 
 # fmt: off
@@ -835,7 +836,7 @@ class QMutableTable(QBaseTable):
         header: QtW.QHeaderView,
         size: tuple[int, int],
         topleft: tuple[int, int],
-        signal: Signal,
+        signal: pyqtBoundSignal,
         index: int,
         df_axis: pd.Index,
     ):
