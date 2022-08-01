@@ -157,16 +157,16 @@ class QSpreadSheet(QMutableSimpleTable):
                 return
             if isinstance(r, int) and isinstance(c, int) and value == "NA":
                 # if user start editing an empty cell and did nothing, do not set string "NA".
-                index = self._qtable_view.model().index(r, c, QtCore.QModelIndex())
-                text = self._qtable_view.model().data(
-                    index, Qt.ItemDataRole.DisplayRole
-                )
+                model = self._qtable_view.model()
+                index = model.index(r, c, QtCore.QModelIndex())
+                text = model.data(index, Qt.ItemDataRole.DisplayRole)
                 if text == value:
                     return
 
         with self._mgr.merging(name="setDataFrameValue"):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
+            # TODO: nan is sometimes problematic in pandas.
             super().setDataFrameValue(r, c, value)
             self.setFilter(self._filter_slice)
 
