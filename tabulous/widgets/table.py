@@ -34,7 +34,7 @@ class TableSignals(SignalGroup):
     data = Signal(ItemInfo)
     index = Signal(HeaderInfo)
     columns = Signal(HeaderInfo)
-    selections = Signal(object)
+    selections = Signal(SelectionRanges)
     zoom = Signal(float)
     renamed = Signal(str)
 
@@ -86,7 +86,7 @@ class TableBase(ABC):
         self.events = TableSignals()
         self._name = str(name)
         self._qwidget = self._create_backend(self._data)
-        self._qwidget.connectSelectionChangedSignal(self.events.selections.emit)
+        self._qwidget.connectSelectionChangedSignal(self._emit_selections)
         self._view_mode = ViewMode.normal
         self._cell = CellInterface(self)
 
@@ -291,6 +291,9 @@ class TableBase(ABC):
             wdt = wdt.native
         self._qwidget.addSideWidget(wdt)
         return wdt
+
+    def _emit_selections(self):
+        return self.events.selections.emit(self.selections)
 
 
 class _DataFrameTableLayer(TableBase):

@@ -1,5 +1,5 @@
 from tabulous import TableViewer
-from tabulous.types import SelectionType
+from tabulous.types import SelectionRanges
 import numpy as np
 
 if __name__ == "__main__":
@@ -15,15 +15,7 @@ if __name__ == "__main__":
     )
 
     @table.events.selections.connect
-    def _on_selection_change(selection: SelectionType):
-        strings = []
-        for sel in selection:
-            top_left, bottom_right = sel
-            string = (
-                f"data[{top_left.start}:{top_left.stop}, "
-                f"{bottom_right.start}:{bottom_right.stop}]"
-            )
-            strings.append(string)
-        print(", ".join(strings))
+    def _on_selection_change(selections: SelectionRanges):
+        print(selections)
 
     viewer.show()

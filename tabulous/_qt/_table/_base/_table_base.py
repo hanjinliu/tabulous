@@ -229,7 +229,7 @@ class QBaseTable(QtW.QSplitter):
     def tableSlice(self) -> pd.DataFrame: ...
     """
 
-    selectionChangedSignal = Signal(list)
+    selectionChangedSignal = Signal()
     _DEFAULT_EDITABLE = False
     _mgr = UndoManager(measure=_count_data_size, maxsize=1e7)
     _keymap = QtKeyMap()
@@ -250,7 +250,7 @@ class QBaseTable(QtW.QSplitter):
         delegate = TableItemDelegate(parent=self)
         self._qtable_view.setItemDelegate(delegate)
         self._qtable_view.selectionChangedSignal.connect(
-            lambda: self.selectionChangedSignal.emit(self.selections())
+            self.selectionChangedSignal.emit
         )
 
         self._side_area = None
@@ -528,7 +528,7 @@ class QMutableTable(QBaseTable):
     itemChangedSignal = Signal(ItemInfo)
     rowChangedSignal = Signal(HeaderInfo)
     columnChangedSignal = Signal(HeaderInfo)
-    selectionChangedSignal = Signal(list)
+    selectionChangedSignal = Signal()
     _data_raw: pd.DataFrame
 
     def __init__(
