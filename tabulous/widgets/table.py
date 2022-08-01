@@ -68,7 +68,8 @@ class CellInterface:
 
     def __setitem__(self, key: tuple[int, int], value: Any) -> None:
         row, col = key
-        self.parent._qwidget.model().dataEdited.emit(row, col, value)
+        if self.parent.editable:
+            self.parent._qwidget.setDataFrameValue(row, col, value)
         return None
 
 

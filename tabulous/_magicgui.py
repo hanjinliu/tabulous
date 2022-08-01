@@ -17,6 +17,8 @@ from .types import (
 
 if TYPE_CHECKING:
     import pandas as pd
+    from magicgui.widgets import FunctionGui
+
 
 # #############################################################################
 #    magicgui-widget
@@ -89,6 +91,7 @@ def find_table_viewer_ancestor(widget: Widget | QWidget) -> TableViewer | None:
 
 
 def get_tables(widget: CategoricalWidget) -> list[tuple[str, Any]]:
+    """Get the list of available tables and the names."""
     v = find_table_viewer_ancestor(widget)
     if v is None:
         return []
@@ -96,6 +99,7 @@ def get_tables(widget: CategoricalWidget) -> list[tuple[str, Any]]:
 
 
 def get_table_data(widget: CategoricalWidget) -> list[tuple[str, Any]]:
+    """Get the list of available table data and the names."""
     v = find_table_viewer_ancestor(widget)
     if v is None:
         return []
@@ -106,30 +110,38 @@ def open_viewer(gui, result: TableViewer, return_type: type):
     result.show()
 
 
-def add_table_to_viewer(gui, result: Any, return_type: type):
+def add_table_to_viewer(
+    gui: FunctionGui,
+    result: Any,
+    return_type: type,
+) -> None:
     viewer = find_table_viewer_ancestor(gui)
     if viewer is None:
         return
-    viewer.add_layer(result)
+    viewer.add_layer(result, update=True)
 
 
-def add_table_data_to_viewer(gui, result: Any, return_type: type):
+def add_table_data_to_viewer(gui: FunctionGui, result: Any, return_type: type) -> None:
     viewer = find_table_viewer_ancestor(gui)
     if viewer is None:
         return
-    viewer.add_table(result, name=_DEFAULT_NAME)
+    viewer.add_table(result, name=f"{gui.name}-{_DEFAULT_NAME}", update=True)
 
 
-def add_table_data_tuple_to_viewer(gui, result: tuple, return_type: type):
+def add_table_data_tuple_to_viewer(
+    gui: FunctionGui,
+    result: tuple,
+    return_type: type,
+):
     viewer = find_table_viewer_ancestor(gui)
     if viewer is None:
         return
     n = len(result)
     if n == 1:
-        data = (result[0], _DEFAULT_NAME, {})
+        data = (result[0], f"{gui.name}-{_DEFAULT_NAME}", {})
     elif n == 2:
         if isinstance(result[1], dict):
-            name = result[1].pop("name", _DEFAULT_NAME)
+            name = result[1].pop("name", f"{gui.name}-{_DEFAULT_NAME}")
             data = (result[0], name, result[1])
         else:
             data = (result[0], result[1], {})
@@ -137,7 +149,7 @@ def add_table_data_tuple_to_viewer(gui, result: tuple, return_type: type):
         data = result
     else:
         raise ValueError(f"Length of TableDataTuple must be < 4, got {n}.")
-    viewer.add_table(data[0], name=data[1], **data[2])
+    viewer.add_table(data[0], name=data[1], **data[2], update=True)
 
 
 register_type(

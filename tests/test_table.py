@@ -48,11 +48,21 @@ def test_editing_data(df: pd.DataFrame):
     assert str(df.iloc[0, 0]) == "11"
 
 @pytest.mark.parametrize("df", [df0, df1])
-def test_editing_data(df: pd.DataFrame):
+def test_updating_data(df: pd.DataFrame):
     viewer = TableViewer(show=False)
     table = viewer.add_table(np.zeros((3, 3)))
     table.data = df
     assert str(table.data.iloc[0, 0]) == str(df.iloc[0, 0])
+
+@pytest.mark.parametrize("df", [df0, df1])
+def test_editing_original_data(df: pd.DataFrame):
+    viewer = TableViewer(show=False)
+    df = df.copy()
+    table = viewer.add_table(df, copy=False, editable=True)
+    table.data.iloc[0, 1] = -1.
+    table.cell[1, 1] = "100.0"
+    assert df.iloc[0, 1] == -1.
+    assert df.iloc[1, 1] == 100.
 
 def test_size_change():
     viewer = TableViewer(show=False)

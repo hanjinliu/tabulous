@@ -37,7 +37,7 @@ class TableViewerSignal(SignalGroup):
 
 
 class _ComponentProxy:
-    def __init__(self, parent: _TableViewerBase):
+    def __init__(self, parent: TableViewerBase):
         self.parent = parent
 
     def __repr__(self) -> str:
@@ -91,7 +91,7 @@ class Console(_ComponentProxy):
         return self.parent._qwidget._console_widget.execute()
 
 
-class _TableViewerBase:
+class TableViewerBase:
     events: TableViewerSignal
     _qwidget_class: type[_QtMainWidgetBase]
 
@@ -184,6 +184,7 @@ class _TableViewerBase:
         name: str | None = None,
         editable: bool = False,
         copy: bool = True,
+        update: bool = False,
     ) -> TableBase:
 
         """
@@ -199,6 +200,8 @@ class _TableViewerBase:
             Whether the table is editable via UI.
         copy : bool, default is True
             Whether to copy the data before adding to avoid overwriting the original one.
+        update : bool, default is False
+            If True, update the table data if a table of same name exists.
 
         Returns
         -------
@@ -208,7 +211,7 @@ class _TableViewerBase:
         if copy:
             data = _copy_dataframe(data)
         table = Table(data, name=name, editable=editable)
-        return self.add_layer(table)
+        return self.add_layer(table, update=update)
 
     def add_spreadsheet(
         self,
@@ -217,6 +220,7 @@ class _TableViewerBase:
         name: str | None = None,
         editable: bool = True,
         copy: bool = True,
+        update: bool = False,
     ) -> SpreadSheet:
         """
         Add data as a spreadsheet.
@@ -240,20 +244,29 @@ class _TableViewerBase:
         if copy:
             data = _copy_dataframe(data)
         table = SpreadSheet(data, name=name, editable=editable)
-        return self.add_layer(table)
+        return self.add_layer(table, update=update)
 
     def add_groupby(self, data, name: str | None = None) -> GroupBy:
+        """Add a groupby."""
         table = GroupBy(data, name=name)
         return self.add_layer(table)
 
     def add_loader(self, loader, name: str | None = None) -> TableDisplay:
+        """Add a table loader."""
         table = TableDisplay(loader, name=name)
         return self.add_layer(table)
 
-    def add_layer(self, layer: TableBase):
-        self.tables.append(layer)
+    def add_layer(self, input: TableBase, *, update: bool = False):
+        if (
+            update
+            and (table := self.tables.get(input.name, None))
+            and type(table) is type(input)
+        ):
+            table.data = input.data
+            return table
+        self.tables.append(input)
         self.current_index = -1  # activate the last table
-        return layer
+        return input
 
     def open(self, path: PathLike, *, type: TableType | str = TableType.table) -> None:
         """
@@ -388,7 +401,7 @@ class _TableViewerBase:
         _tablist.events.renamed.connect(self.reset_choices)
 
 
-class TableViewerWidget(_TableViewerBase):
+class TableViewerWidget(TableViewerBase):
     """The non-main table viewer widget."""
 
     events: TableViewerSignal
@@ -411,7 +424,7 @@ class TableViewerWidget(_TableViewerBase):
         return backend_widget
 
 
-class TableViewer(_TableViewerBase):
+class TableViewer(TableViewerBase):
     """The main table viewer widget."""
 
     events: TableViewerSignal
@@ -508,7 +521,7 @@ def _copy_dataframe(data) -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-def _find_parent_table(qwidget: _QtMainWidgetBase) -> _TableViewerBase:
+def _find_parent_table(qwidget: _QtMainWidgetBase) -> TableViewerBase:
     x = qwidget
     while (parent := x.parent()) is not None:
         x = parent

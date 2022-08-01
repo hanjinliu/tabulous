@@ -13,7 +13,7 @@ from . import _dialogs as _dlg
 
 if TYPE_CHECKING:
     from ._mainwindow import _QtMainWidgetBase
-    from ..widgets.mainwindow import _TableViewerBase
+    from ..widgets.mainwindow import TableViewerBase
 
 SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 
@@ -99,7 +99,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         # fmt: on
 
     @property
-    def viewer(self) -> "_TableViewerBase":
+    def viewer(self) -> "TableViewerBase":
         """The parent viewer object."""
         return self.parent()._table_viewer
 
@@ -233,13 +233,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         """Pivot a table."""
         table = self.viewer.current_table
         col = list(table.data.columns)
-        if len(col) < 2:
-            raise ValueError("Table must have at least two columns.")
+        if len(col) < 3:
+            raise ValueError("Table must have at least three columns.")
         out = _dlg.pivot(
             df={"bind": table.data},
             index={"choices": col, "value": col[0]},
             columns={"choices": col, "value": col[1]},
-            values={"choices": col, "nullable": True},
+            values={"choices": col, "value": col[2]},
         )
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-pivot")

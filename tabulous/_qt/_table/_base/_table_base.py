@@ -299,6 +299,9 @@ class QBaseTable(QtW.QSplitter):
     def model(self) -> AbstractDataFrameModel:
         return QtW.QTableView.model(self._qtable_view)
 
+    def setDataFrameValue(self, row: int, col: int, value: Any) -> None:
+        raise TypeError("Table is immutable.")
+
     def precision(self) -> int:
         """Return table value precision."""
         return self.itemDelegate().ndigits

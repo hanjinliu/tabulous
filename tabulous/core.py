@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING
 from .widgets import TableViewer
 
 if TYPE_CHECKING:
-    from .widgets.mainwindow import _TableViewerBase
+    from .widgets.mainwindow import TableViewerBase
 
-CURRENT_VIEWER: _TableViewerBase | None = None
+CURRENT_VIEWER: TableViewerBase | None = None
 
 
-def current_viewer() -> _TableViewerBase:
+def current_viewer() -> TableViewerBase:
     """Get the current table viewer widget."""
     global CURRENT_VIEWER
     if CURRENT_VIEWER is None:
@@ -17,18 +17,18 @@ def current_viewer() -> _TableViewerBase:
     return CURRENT_VIEWER
 
 
-def set_current_viewer(viewer: _TableViewerBase) -> _TableViewerBase:
+def set_current_viewer(viewer: TableViewerBase) -> TableViewerBase:
     """Set a table viewer as the current one."""
     global CURRENT_VIEWER
-    from .widgets.mainwindow import _TableViewerBase
+    from .widgets.mainwindow import TableViewerBase
 
-    if not isinstance(viewer, _TableViewerBase):
+    if not isinstance(viewer, TableViewerBase):
         raise TypeError(f"Cannot set {type(viewer)} as the current viewer.")
     CURRENT_VIEWER = viewer
     return viewer
 
 
-def read_csv(path: str | Path, *args, **kwargs) -> _TableViewerBase:
+def read_csv(path: str | Path, *args, **kwargs) -> TableViewerBase:
     """Read CSV file and add it to the current viewer."""
     import pandas as pd
 
@@ -39,7 +39,7 @@ def read_csv(path: str | Path, *args, **kwargs) -> _TableViewerBase:
     return viewer
 
 
-def read_excel(path: str | Path, *args, **kwargs) -> _TableViewerBase:
+def read_excel(path: str | Path, *args, **kwargs) -> TableViewerBase:
     """Read Excel file and add all the sheets to the current viewer."""
     import pandas as pd
 
@@ -59,7 +59,7 @@ def view_table(
     name: str | None = None,
     editable: bool = False,
     copy: bool = True,
-) -> _TableViewerBase:
+) -> TableViewerBase:
     """View a table in the current viewer."""
     viewer = current_viewer()
     viewer.add_table(data, name=name, editable=editable, copy=copy)
@@ -72,7 +72,7 @@ def view_spreadsheet(
     name: str | None = None,
     editable: bool = True,
     copy: bool = True,
-) -> _TableViewerBase:
+) -> TableViewerBase:
     """View a table as a spreadsheet in the current viewer."""
     viewer = current_viewer()
     viewer.add_spreadsheet(data, name=name, editable=editable, copy=copy)
@@ -82,7 +82,7 @@ def view_spreadsheet(
 def open_sample(
     sample_name: str,
     plugin_name: str = "seaborn",
-) -> _TableViewerBase:
+) -> TableViewerBase:
     """Open a sample data."""
     viewer = current_viewer()
     viewer.open_sample(sample_name, plugin_name)

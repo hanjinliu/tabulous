@@ -6,7 +6,7 @@ from qtpy.QtCore import Signal
 from qtpy import QtWidgets as QtW
 
 if TYPE_CHECKING:
-    from ..widgets.mainwindow import _TableViewerBase
+    from ..widgets.mainwindow import TableViewerBase
 
     class RichJupyterWidget(RichJupyterWidget, QtW.QWidget):
         ...
@@ -22,7 +22,7 @@ class _QtConsole(RichJupyterWidget):
         self.resize(100, 40)
         self._dock_parent = None
 
-    def connect_parent(self, widget: _TableViewerBase):
+    def connect_parent(self, widget: TableViewerBase):
         from IPython import get_ipython
         from IPython.terminal.interactiveshell import TerminalInteractiveShell
         from ipykernel.connect import get_connection_file
