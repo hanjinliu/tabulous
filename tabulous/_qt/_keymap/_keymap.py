@@ -263,7 +263,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         deactivated: Callable | None = None,
     ):
         self._keymap: dict[QtKeys, QtKeyMap | Callable] = {}
-        self._current_map = None
+        self._current_map: QtKeyMap | None = None
+        self._last_pressed: QtKeys | None = None
         self._activated_callback = activated or _DUMMY_CALLBACK
         self._deactivated_callback = deactivated or _DUMMY_CALLBACK
         self._instances: dict[int, QtKeyMap] = {}
@@ -278,15 +279,22 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
 
     @property
     def activated_callback(self) -> BoundCallback | None:
+        """The function to be called when the keymap is activated."""
         if (a := self._activated_callback) is not _DUMMY_CALLBACK:
             return a
         return None
 
     @property
     def deactivated_callback(self) -> BoundCallback | None:
+        """The function to be called when the keymap is deactivated."""
         if (a := self._deactivated_callback) is not _DUMMY_CALLBACK:
             return a
         return None
+
+    @property
+    def last_pressed(self) -> QtKeys | None:
+        """The last pressed key."""
+        return self._last_pressed
 
     def __get__(self, obj, objtype=None):
         if obj is None:
@@ -504,6 +512,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             return out
 
     def _press_one_key(self, key: QtKeys) -> bool:
+        self._last_pressed = key
         current = self.current_map
         _is_parametric = False
         try:
@@ -512,8 +521,10 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             try:
                 callback = current[key._reduce_key()]
             except KeyError:
-                current.deactivate()
-                self._current_map = None
+                # Don't lose the combo if only a modifier is pressed
+                if key.key != ExtKey.No:
+                    current.deactivate()
+                    self._current_map = None
                 return False
             _is_parametric = True
 
@@ -529,7 +540,6 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                 callback(key.key_string())
             else:
                 callback()
-
         return True
 
     def activate(self, key: KeyType) -> None:
