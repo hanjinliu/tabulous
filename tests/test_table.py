@@ -105,7 +105,7 @@ def test_selection_signal():
     mock.assert_not_called()
     sel = [(slice(1, 2), slice(1, 2))]
     table.selections = sel
-    mock.assert_called_with(sel)
+    mock.assert_called()
 
 def test_move_location():
     viewer = TableViewer(show=False)
