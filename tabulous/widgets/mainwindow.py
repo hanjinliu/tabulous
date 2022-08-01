@@ -346,6 +346,9 @@ class _TableViewerBase:
 
         @_tablist.events.moved.connect
         def _move_qtable(src: int, dst: int):
+            # Evented list emits (0, 1) when move(0, 2) is called (v0.3.5 now).
+            if src < dst:
+                dst += 1
             with _tablist.events.blocked():
                 _qtablist.moveTable(src, dst)
 
@@ -358,8 +361,6 @@ class _TableViewerBase:
         def _move_pytable(src: int, dst: int):
             """Move evented list when list is moved in GUI."""
             with self._tablist.events.blocked():
-                if dst > src:
-                    dst += 1
                 self._tablist.move(src, dst)
 
         @_qtablist.tableRenamed.connect
