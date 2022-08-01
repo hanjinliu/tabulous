@@ -5,22 +5,24 @@ from typing import (
     Iterable,
     NewType,
     Annotated,
+    Sequence,
     Tuple,
     List,
+    TypeVar,
     Union,
     TYPE_CHECKING,
     NamedTuple,
     SupportsIndex,
 )
 from enum import Enum
-from psygnal import Signal
-from psygnal.containers import EventedList
+import weakref
 
 import numpy as np
 from numpy.typing import ArrayLike
 
 if TYPE_CHECKING:
     import pandas as pd
+    from .widgets import TableBase
 
     _TableLike = Union[pd.DataFrame, dict, Iterable, ArrayLike]
 else:
@@ -92,21 +94,58 @@ def _check_tuple_of_slices(value: Any) -> tuple[slice, slice]:
         raise TypeError(f"Invalid input: ({type(v0)}, {type(v1)}).")
 
 
-class SelectionRanges(EventedList[tuple[slice, slice]]):
+class SelectionRanges(Sequence[tuple[slice, slice]]):
     """A table data specific selection range list."""
 
-    _changed = Signal(object)
+    def __init__(self, data: TableBase, ranges: Iterable[tuple[slice, slice]] = ()):
+        self._ranges = list(ranges)
+        self._data_ref = weakref.ref(data)
 
-    def __init__(self, ranges: Iterable[tuple[slice, slice]] = ()):
-        super().__init__(ranges)
+    def __repr__(self) -> str:
+        rng_str: list[str] = []
+        for rng in self:
+            r, c = rng
+            rng_str.append(f"[{r.start}:{r.stop}, {c.start}:{c.stop}]")
+        return f"{self.__class__.__name__}({', '.join(rng_str)})"
 
-    def _pre_insert(self, value):
-        _check_tuple_of_slices(value)
-        return value
+    def __getitem__(self, index: int) -> tuple[slice, slice]:
+        """The selected range at the given index."""
+        return self._ranges[index]
 
-    def _post_insert(self, value) -> None:
-        self._changed.emit(self)
-        return value
+    def __len__(self) -> int:
+        """Number of selections."""
+        return len(self._ranges)
+
+    def __iter__(self):
+        """Iterate over the selection ranges."""
+        return iter(self._ranges)
+
+    @property
+    def values(self) -> SelectedData[TableBase]:
+        return SelectedData(self)
+
+
+_T = TypeVar("_T", bound="TableBase")
+
+
+class SelectedData(Sequence[_T]):
+    """Interface with the selected data."""
+
+    def __init__(self, obj: SelectionRanges):
+        self._obj = obj
+
+    def __getitem__(self, index: int) -> _T:
+        """Get the selected data at the given index of selection."""
+        data = self._obj._data_ref().data
+        sl = self._obj[index]
+        return data.iloc[sl]
+
+    def __len__(self) -> int:
+        """Number of selections."""
+        return len(self._obj)
+
+    def __iter__(self) -> Iterable[_T]:
+        return (self[i] for i in range(len(self)))
 
 
 FilterType = Union[Callable[["pd.DataFrame"], np.ndarray], np.ndarray]

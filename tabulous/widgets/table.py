@@ -185,12 +185,9 @@ class TableBase(ABC):
             raise ValueError("Table is not mutable.")
 
     @property
-    def selections(self):
+    def selections(self) -> SelectionRanges:
         """Get the SelectionRanges object of current table selection."""
-        rngs = SelectionRanges(self._qwidget.selections())
-        rngs._changed.connect(self._qwidget.setSelections)
-        rngs.events.removed.connect(lambda i, value: self._qwidget.setSelections(rngs))
-        return rngs
+        return SelectionRanges(self, self._qwidget.selections())
 
     @selections.setter
     def selections(self, value: SelectionType | _SingleSelection) -> None:
