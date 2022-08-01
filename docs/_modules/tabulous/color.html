@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tabulous.color &mdash; tabulous 0.1.0a3 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> tabulous
+          </a>
+              <div class="version">
+                0.1.0a3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../main/quickstart.html">Quickstart</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../main/selections.html">Get Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/filter.html">Filter Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/table_advanced.html">Advanced Usage of Tables</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../main/dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">tabulous</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>tabulous.color</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for tabulous.color</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;normalize_color&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="normalize_color"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.normalize_color">[docs]</a><span class="k">def</span> <span class="nf">normalize_color</span><span class="p">(</span><span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_str_color_to_tuple</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">color</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">255</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid color: </span><span class="si">{</span><span class="n">color</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid color: </span><span class="si">{</span><span class="n">color</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<span class="n">ColorType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>
+
+
+<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_str_color_to_tuple</span><span class="p">(</span><span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">COLORS_BY_NAME</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">out</span>
+    <span class="k">if</span> <span class="n">color</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">color</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">color</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">color</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="mi">255</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="o">==</span> <span class="mi">8</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">color</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">color</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">color</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">color</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">8</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid color: </span><span class="si">{</span><span class="n">color</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># This dict is modified from pydantic (MIT licence)</span>
+<span class="c1"># See https://github.com/samuelcolvin/pydantic</span>
+<span class="n">COLORS_BY_NAME</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;aliceblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">240</span><span class="p">,</span> <span class="mi">248</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;antiquewhite&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">250</span><span class="p">,</span> <span class="mi">235</span><span class="p">,</span> <span class="mi">215</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;aqua&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;aquamarine&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">127</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">212</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;azure&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">240</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;beige&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">245</span><span class="p">,</span> <span class="mi">245</span><span class="p">,</span> <span class="mi">220</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;bisque&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">228</span><span class="p">,</span> <span class="mi">196</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;blanchedalmond&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">235</span><span class="p">,</span> <span class="mi">205</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;blue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;blueviolet&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">138</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">226</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;brown&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">165</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;burlywood&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">222</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">135</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;cadetblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">95</span><span class="p">,</span> <span class="mi">158</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;chartreuse&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">127</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;chocolate&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">210</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;coral&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;cornflowerblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">149</span><span class="p">,</span> <span class="mi">237</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;cornsilk&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">248</span><span class="p">,</span> <span class="mi">220</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;crimson&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">220</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;cyan&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">139</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkcyan&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">139</span><span class="p">,</span> <span class="mi">139</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkgoldenrod&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">184</span><span class="p">,</span> <span class="mi">134</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkgray&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">169</span><span class="p">,</span> <span class="mi">169</span><span class="p">,</span> <span class="mi">169</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkgreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkgrey&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">169</span><span class="p">,</span> <span class="mi">169</span><span class="p">,</span> <span class="mi">169</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkkhaki&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">189</span><span class="p">,</span> <span class="mi">183</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkmagenta&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">139</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">139</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkolivegreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">85</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">47</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkorange&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">140</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkorchid&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">153</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">204</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkred&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">139</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darksalmon&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">233</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">122</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkseagreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">143</span><span class="p">,</span> <span class="mi">188</span><span class="p">,</span> <span class="mi">143</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkslateblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">72</span><span class="p">,</span> <span class="mi">61</span><span class="p">,</span> <span class="mi">139</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkslategray&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">47</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkslategrey&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">47</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkturquoise&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">206</span><span class="p">,</span> <span class="mi">209</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;darkviolet&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">148</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">211</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;deeppink&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">147</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;deepskyblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">191</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;dimgray&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">105</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;dimgrey&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">105</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;dodgerblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;firebrick&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">178</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;floralwhite&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;forestgreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">34</span><span class="p">,</span> <span class="mi">139</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;fuchsia&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;gainsboro&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">220</span><span class="p">,</span> <span class="mi">220</span><span class="p">,</span> <span class="mi">220</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;ghostwhite&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">248</span><span class="p">,</span> <span class="mi">248</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;gold&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">215</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;goldenrod&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">218</span><span class="p">,</span> <span class="mi">165</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;gray&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;green&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;greenyellow&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">173</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">47</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;grey&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;honeydew&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">240</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;hotpink&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;indianred&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">205</span><span class="p">,</span> <span class="mi">92</span><span class="p">,</span> <span class="mi">92</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;indigo&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">75</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">130</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;ivory&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;khaki&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">240</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span> <span class="mi">140</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lavender&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">230</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lavenderblush&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">245</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lawngreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">124</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lemonchiffon&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">205</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">173</span><span class="p">,</span> <span class="mi">216</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightcoral&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">240</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightcyan&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightgoldenrodyellow&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">250</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">210</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightgray&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">211</span><span class="p">,</span> <span class="mi">211</span><span class="p">,</span> <span class="mi">211</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightgreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">144</span><span class="p">,</span> <span class="mi">238</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightgrey&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">211</span><span class="p">,</span> <span class="mi">211</span><span class="p">,</span> <span class="mi">211</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightpink&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">182</span><span class="p">,</span> <span class="mi">193</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightsalmon&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">122</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightseagreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">178</span><span class="p">,</span> <span class="mi">170</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightskyblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">135</span><span class="p">,</span> <span class="mi">206</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightslategray&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">119</span><span class="p">,</span> <span class="mi">136</span><span class="p">,</span> <span class="mi">153</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightslategrey&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">119</span><span class="p">,</span> <span class="mi">136</span><span class="p">,</span> <span class="mi">153</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightsteelblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">176</span><span class="p">,</span> <span class="mi">196</span><span class="p">,</span> <span class="mi">222</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lightyellow&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;lime&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;limegreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">205</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;linen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">250</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;magenta&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;maroon&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;mediumaquamarine&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">102</span><span class="p">,</span> <span class="mi">205</span><span class="p">,</span> <span class="mi">170</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;mediumblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">205</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;mediumorchid&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">186</span><span class="p">,</span> <span class="mi">85</span><span class="p">,</span> <span class="mi">211</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;mediumpurple&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">147</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span> <span class="mi">219</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;mediumseagreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">179</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;mediumslateblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">123</span><span class="p">,</span> <span class="mi">104</span><span class="p">,</span> <span class="mi">238</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;mediumspringgreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">154</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;mediumturquoise&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">72</span><span class="p">,</span> <span class="mi">209</span><span class="p">,</span> <span class="mi">204</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;mediumvioletred&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">199</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">133</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;midnightblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;mintcream&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">245</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;mistyrose&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">228</span><span class="p">,</span> <span class="mi">225</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;moccasin&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">228</span><span class="p">,</span> <span class="mi">181</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;navajowhite&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">222</span><span class="p">,</span> <span class="mi">173</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;navy&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;oldlace&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">245</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;olive&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;olivedrab&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">107</span><span class="p">,</span> <span class="mi">142</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;orange&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">165</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;orangered&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">69</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;orchid&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">218</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span> <span class="mi">214</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;palegoldenrod&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">238</span><span class="p">,</span> <span class="mi">232</span><span class="p">,</span> <span class="mi">170</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;palegreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">152</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">152</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;paleturquoise&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">175</span><span class="p">,</span> <span class="mi">238</span><span class="p">,</span> <span class="mi">238</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;palevioletred&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">219</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span> <span class="mi">147</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;papayawhip&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">239</span><span class="p">,</span> <span class="mi">213</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;peachpuff&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">218</span><span class="p">,</span> <span class="mi">185</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;peru&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">205</span><span class="p">,</span> <span class="mi">133</span><span class="p">,</span> <span class="mi">63</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;pink&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="mi">203</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;plum&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">221</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">221</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;powderblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">176</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;purple&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;red&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;rosybrown&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">188</span><span class="p">,</span> <span class="mi">143</span><span class="p">,</span> <span class="mi">143</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;royalblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">65</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">225</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;saddlebrown&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">139</span><span class="p">,</span> <span class="mi">69</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;salmon&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">250</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">114</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;sandybrown&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">244</span><span class="p">,</span> <span class="mi">164</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;seagreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">46</span><span class="p">,</span> <span class="mi">139</span><span class="p">,</span> <span class="mi">87</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;seashell&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">245</span><span class="p">,</span> <span class="mi">238</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;sienna&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mi">82</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;silver&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">192</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;skyblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">135</span><span class="p">,</span> <span class="mi">206</span><span class="p">,</span> <span class="mi">235</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;slateblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">106</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">205</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;slategray&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">112</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;slategrey&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">112</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;snow&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;springgreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;steelblue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">70</span><span class="p">,</span> <span class="mi">130</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;tan&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">210</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">140</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;teal&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;thistle&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">216</span><span class="p">,</span> <span class="mi">191</span><span class="p">,</span> <span class="mi">216</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;tomato&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">99</span><span class="p">,</span> <span class="mi">71</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;turquoise&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">208</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;violet&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">238</span><span class="p">,</span> <span class="mi">130</span><span class="p">,</span> <span class="mi">238</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;wheat&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">245</span><span class="p">,</span> <span class="mi">222</span><span class="p">,</span> <span class="mi">179</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;white&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;whitesmoke&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">245</span><span class="p">,</span> <span class="mi">245</span><span class="p">,</span> <span class="mi">245</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;yellow&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s2">&quot;yellowgreen&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">154</span><span class="p">,</span> <span class="mi">205</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Hanjin Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

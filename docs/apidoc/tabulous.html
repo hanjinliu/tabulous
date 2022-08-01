@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tabulous package &mdash; tabulous 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> tabulous
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main/quickstart.html">Quickstart</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../main/selections.html">Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/filter.html">Filter Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/table_advanced.html">Working with Tables</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../main/dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tabulous</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>tabulous package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/apidoc/tabulous.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <section id="tabulous-package">
+<h1>tabulous package<a class="headerlink" href="#tabulous-package" title="Permalink to this headline">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tabulous.widgets.html">tabulous.widgets package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.widgets.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.widgets.html#module-tabulous.widgets.filtering">tabulous.widgets.filtering module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.widgets.html#module-tabulous.widgets.mainwindow">tabulous.widgets.mainwindow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.widgets.html#module-tabulous.widgets.table">tabulous.widgets.table module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.widgets.html#module-tabulous.widgets.tablelist">tabulous.widgets.tablelist module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.widgets.html#module-tabulous.widgets">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-tabulous.color">
+<span id="tabulous-color-module"></span><h2>tabulous.color module<a class="headerlink" href="#module-tabulous.color" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.color.normalize_color">
+<span class="sig-prename descclassname"><span class="pre">tabulous.color.</span></span><span class="sig-name descname"><span class="pre">normalize_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/tabulous/color.html#normalize_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.color.normalize_color" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-tabulous.core">
+<span id="tabulous-core-module"></span><h2>tabulous.core module<a class="headerlink" href="#module-tabulous.core" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.core.current_viewer">
+<span class="sig-prename descclassname"><span class="pre">tabulous.core.</span></span><span class="sig-name descname"><span class="pre">current_viewer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#current_viewer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.core.current_viewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current table viewer widget.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.core.open_sample">
+<span class="sig-prename descclassname"><span class="pre">tabulous.core.</span></span><span class="sig-name descname"><span class="pre">open_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plugin_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'seaborn'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#open_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.core.open_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open a sample data.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.core.read_csv">
+<span class="sig-prename descclassname"><span class="pre">tabulous.core.</span></span><span class="sig-name descname"><span class="pre">read_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">Path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#read_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.core.read_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read CSV file and add it to the current viewer.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.core.read_excel">
+<span class="sig-prename descclassname"><span class="pre">tabulous.core.</span></span><span class="sig-name descname"><span class="pre">read_excel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">Path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#read_excel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.core.read_excel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read Excel file and add all the sheets to the current viewer.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.core.set_current_viewer">
+<span class="sig-prename descclassname"><span class="pre">tabulous.core.</span></span><span class="sig-name descname"><span class="pre">set_current_viewer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#set_current_viewer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.core.set_current_viewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a table viewer as the current one.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.core.view_spreadsheet">
+<span class="sig-prename descclassname"><span class="pre">tabulous.core.</span></span><span class="sig-name descname"><span class="pre">view_spreadsheet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#view_spreadsheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.core.view_spreadsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>View a table as a spreadsheet in the current viewer.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.core.view_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.core.</span></span><span class="sig-name descname"><span class="pre">view_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#view_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.core.view_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>View a table in the current viewer.</p>
+</dd></dl>
+
+</section>
+<section id="module-tabulous.exceptions">
+<span id="tabulous-exceptions-module"></span><h2>tabulous.exceptions module<a class="headerlink" href="#module-tabulous.exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.exceptions.ExceptionHandler">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.exceptions.</span></span><span class="sig-name descname"><span class="pre">ExceptionHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">[</span></span><span class="pre">Exception</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Exception</span><span class="p"><span class="pre">,</span> </span><span class="pre">types.TracebackType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/exceptions.html#ExceptionHandler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.exceptions.ExceptionHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Handle exceptions in the GUI thread.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="tabulous.exceptions.SelectionRangeError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.exceptions.</span></span><span class="sig-name descname"><span class="pre">SelectionRangeError</span></span><a class="reference internal" href="../_modules/tabulous/exceptions.html#SelectionRangeError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.exceptions.SelectionRangeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+<p>Raised when the exception is caused by wrong selection range(s).</p>
+</dd></dl>
+
+</section>
+<section id="module-tabulous.types">
+<span id="tabulous-types-module"></span><h2>tabulous.types module<a class="headerlink" href="#module-tabulous.types" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.types.HeaderInfo">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.types.</span></span><span class="sig-name descname"><span class="pre">HeaderInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/types.html#HeaderInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.types.HeaderInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<p>A named tuple for header update.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.types.HeaderInfo.index">
+<span class="sig-name descname"><span class="pre">index</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#tabulous.types.HeaderInfo.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.types.HeaderInfo.old_value">
+<span class="sig-name descname"><span class="pre">old_value</span></span><em class="property"><span class="pre">:</span> <span class="pre">Any</span></em><a class="headerlink" href="#tabulous.types.HeaderInfo.old_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.types.HeaderInfo.value">
+<span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="pre">:</span> <span class="pre">Any</span></em><a class="headerlink" href="#tabulous.types.HeaderInfo.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.types.ItemInfo">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.types.</span></span><span class="sig-name descname"><span class="pre">ItemInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">slice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">slice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/types.html#ItemInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.types.ItemInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<p>A named tuple for item update.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.types.ItemInfo.column">
+<span class="sig-name descname"><span class="pre">column</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">slice</span></em><a class="headerlink" href="#tabulous.types.ItemInfo.column" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.types.ItemInfo.old_value">
+<span class="sig-name descname"><span class="pre">old_value</span></span><em class="property"><span class="pre">:</span> <span class="pre">Any</span></em><a class="headerlink" href="#tabulous.types.ItemInfo.old_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.types.ItemInfo.row">
+<span class="sig-name descname"><span class="pre">row</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">slice</span></em><a class="headerlink" href="#tabulous.types.ItemInfo.row" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.types.ItemInfo.value">
+<span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="pre">:</span> <span class="pre">Any</span></em><a class="headerlink" href="#tabulous.types.ItemInfo.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.types.SelectionRanges">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.types.</span></span><span class="sig-name descname"><span class="pre">SelectionRanges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TableBase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranges</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">slice</span><span class="p"><span class="pre">,</span> </span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/types.html#SelectionRanges"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.types.SelectionRanges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">slice</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">slice</span></code>]]</p>
+<p>A table data specific selection range list.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.types.SelectionRanges.values">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">values</span></span><em class="property"><span class="pre">:</span> <span class="pre">SelectedData</span><span class="p"><span class="pre">[</span></span><span class="pre">TableBase</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tabulous.types.SelectionRanges.values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.types.TableColumn">
+<span class="sig-prename descclassname"><span class="pre">tabulous.types.</span></span><span class="sig-name descname"><span class="pre">TableColumn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tabulous.types.TableColumn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.types.TableData">
+<span class="sig-prename descclassname"><span class="pre">tabulous.types.</span></span><span class="sig-name descname"><span class="pre">TableData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tabulous.types.TableData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.types.TableDataTuple">
+<span class="sig-prename descclassname"><span class="pre">tabulous.types.</span></span><span class="sig-name descname"><span class="pre">TableDataTuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tabulous.types.TableDataTuple" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.types.TableInfo">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.types.</span></span><span class="sig-name descname"><span class="pre">TableInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/types.html#TableInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.types.TableInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A generic type to describe a DataFrame and its column names.</p>
+<p><code class="docutils literal notranslate"><span class="pre">TableInfo[&quot;x&quot;,</span> <span class="pre">&quot;y&quot;]</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">tuple[pd.DataFrame,</span> <span class="pre">str,</span> <span class="pre">str]</span></code>
+with additional information for magicgui construction.</p>
+</dd></dl>
+
+</section>
+<section id="module-tabulous">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tabulous" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.MagicTableViewer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">MagicTableViewer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab_position</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TabPosition</span> <span class="p"><span class="pre">|</span></span> <span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TabPosition.top</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tooltip</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visible</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enabled</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/_magicgui.html#MagicTableViewer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.MagicTableViewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">magicgui.widgets._bases.widget.Widget</span></code>, <a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerWidget" title="tabulous.widgets.mainwindow.TableViewerWidget"><code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.mainwindow.TableViewerWidget</span></code></a></p>
+<p>A magicgui widget of table viewer.</p>
+<p>This class is a subclass of <code class="docutils literal notranslate"><span class="pre">magicgui.widget.Widget</span></code> so that it can be used
+in a compatible way with magicgui and napari.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tab_position</strong> (<em>TabPosition</em><em> or </em><em>str</em>) – Type of list-like widget to use.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.Table">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">Table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#Table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.Table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.table._DataFrameTableLayer</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.TableViewer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">TableViewer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab_position</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TabPosition</span> <span class="p"><span class="pre">|</span></span> <span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TabPosition.top</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.TableViewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase" title="tabulous.widgets.mainwindow.TableViewerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.mainwindow.TableViewerBase</span></code></a></p>
+<p>The main table viewer widget.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.TableViewer.add_dock_widget">
+<span class="sig-name descname"><span class="pre">add_dock_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Widget</span> <span class="p"><span class="pre">|</span></span> <span class="pre">QWidget</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'right'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_areas</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer.add_dock_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.TableViewer.add_dock_widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.TableViewer.events">
+<span class="sig-name descname"><span class="pre">events</span></span><em class="property"><span class="pre">:</span> <span class="pre">TableViewerSignal</span></em><a class="headerlink" href="#tabulous.TableViewer.events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.TableViewer.remove_dock_widget">
+<span class="sig-name descname"><span class="pre">remove_dock_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_or_widget</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">Widget</span> <span class="p"><span class="pre">|</span></span> <span class="pre">QWidget</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer.remove_dock_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.TableViewer.remove_dock_widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.TableViewer.reset_choices">
+<span class="sig-name descname"><span class="pre">reset_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewer.reset_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.TableViewer.reset_choices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.TableViewer.status">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#tabulous.TableViewer.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the statup tip</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.TableViewerWidget">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">TableViewerWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab_position</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">TabPosition</span> <span class="p"><span class="pre">|</span></span> <span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TabPosition.top</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerWidget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.TableViewerWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase" title="tabulous.widgets.mainwindow.TableViewerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.mainwindow.TableViewerBase</span></code></a></p>
+<p>The non-main table viewer widget.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.TableViewerWidget.add_widget">
+<span class="sig-name descname"><span class="pre">add_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Widget</span> <span class="p"><span class="pre">|</span></span> <span class="pre">QWidget</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerWidget.add_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.TableViewerWidget.add_widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.TableViewerWidget.events">
+<span class="sig-name descname"><span class="pre">events</span></span><em class="property"><span class="pre">:</span> <span class="pre">TableViewerSignal</span></em><a class="headerlink" href="#tabulous.TableViewerWidget.events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.current_viewer">
+<span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">current_viewer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#current_viewer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.current_viewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current table viewer widget.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.open_sample">
+<span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">open_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plugin_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'seaborn'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#open_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.open_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open a sample data.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.read_csv">
+<span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">read_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">Path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#read_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.read_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read CSV file and add it to the current viewer.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.read_excel">
+<span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">read_excel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">Path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#read_excel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.read_excel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read Excel file and add all the sheets to the current viewer.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.view_spreadsheet">
+<span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">view_spreadsheet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#view_spreadsheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.view_spreadsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>View a table as a spreadsheet in the current viewer.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.view_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">view_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableViewerBase</span></span></span><a class="reference internal" href="../_modules/tabulous/core.html#view_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.view_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>View a table in the current viewer.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Hanjin Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quickstart &mdash; tabulous 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Table Selections" href="selections.html" />
+    <link rel="prev" title="tabulous" href="../index.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> tabulous
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#open-a-table-viewer">Open A Table Viewer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#handle-tables">Handle Tables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#table"><code class="docutils literal notranslate"><span class="pre">Table</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spreadsheet"><code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#interface-with-viewer-components">Interface with Viewer Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-tables">Get tables</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#embedded-console">Embedded Console</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#key-combo">Key combo</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Working with Tables</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tabulous</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Quickstart</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/main/quickstart.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <section id="quickstart">
+<h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#open-a-table-viewer" id="id1">Open A Table Viewer</a></p></li>
+<li><p><a class="reference internal" href="#handle-tables" id="id2">Handle Tables</a></p></li>
+<li><p><a class="reference internal" href="#interface-with-viewer-components" id="id3">Interface with Viewer Components</a></p></li>
+<li><p><a class="reference internal" href="#embedded-console" id="id4">Embedded Console</a></p></li>
+<li><p><a class="reference internal" href="#key-combo" id="id5">Key combo</a></p></li>
+</ul>
+</div>
+<section id="open-a-table-viewer">
+<h2><a class="toc-backref" href="#id1">Open A Table Viewer</a><a class="headerlink" href="#open-a-table-viewer" title="Permalink to this headline">¶</a></h2>
+<p>The main window of <code class="docutils literal notranslate"><span class="pre">tabulous</span></code> is a <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> instance.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">TableViewer</span>
+
+<span class="n">viewer</span> <span class="o">=</span> <span class="n">TableViewer</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You can also read table data from files to create a viewer.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tabulous</span> <span class="k">as</span> <span class="nn">tb</span>
+
+<span class="c1"># Read a csv file and add it to the viewer, just like pd.read_csv</span>
+<span class="n">viewer</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;path/to/data.csv&quot;</span><span class="p">)</span>
+
+<span class="c1"># Read a Excel file and add all the sheets to the viewer.</span>
+<span class="n">viewer</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="s2">&quot;path/to/data.xlsx&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If virtual environment (such as <code class="docutils literal notranslate"><span class="pre">conda</span></code>) is used, you can use <code class="docutils literal notranslate"><span class="pre">tabulous</span></code> command to launch
+a viewer.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ tabulous  <span class="c1"># just launch a viewer</span>
+
+$ tabulous ./path/to/data.csv  <span class="c1"># open a table file in the viewer</span>
+</pre></div>
+</div>
+</section>
+<section id="handle-tables">
+<h2><a class="toc-backref" href="#id2">Handle Tables</a><a class="headerlink" href="#handle-tables" title="Permalink to this headline">¶</a></h2>
+<p>Basically, table data is handled based on <code class="docutils literal notranslate"><span class="pre">pandas</span></code>.
+A <code class="xref py py-class docutils literal notranslate"><span class="pre">TableViewer</span></code> instance has several methods that add <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> to the viewer.</p>
+<section id="table">
+<h3><code class="docutils literal notranslate"><span class="pre">Table</span></code><a class="headerlink" href="#table" title="Permalink to this headline">¶</a></h3>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> is the most simple interface with <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code>.</p>
+<ul class="simple">
+<li><p>It stores a copy of an input <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> as is.</p></li>
+<li><p>It is not editable by default.</p></li>
+<li><p>Table shape is fixed unless data is fully updated by <code class="docutils literal notranslate"><span class="pre">table.data</span> <span class="pre">=</span> <span class="pre">new_data</span></code>.</p></li>
+<li><p>When edited, the input value will be checked for the column data type. Wrong input will be
+rejected.</p></li>
+</ul>
+<p>A <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> (or other objects that can be converted into a <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code>) can be added to
+the viewer using <code class="docutils literal notranslate"><span class="pre">add_table</span></code> method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]})</span>
+
+<span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;table name&quot;</span><span class="p">)</span>
+<span class="n">table</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Table</span><span class="o">&lt;</span><span class="s1">&#39;table name&#39;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The newly added table is stored in <code class="docutils literal notranslate"><span class="pre">tables</span></code> property of the viewer in a <code class="docutils literal notranslate"><span class="pre">list</span></code> like
+structure.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># the 0-th table</span>
+</pre></div>
+</div>
+</div>
+<p>You can rename a table by <code class="docutils literal notranslate"><span class="pre">name</span></code> property. Tab name is also renamed accordingly.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;new name&quot;</span>
+</pre></div>
+</div>
+<p>You have to pass <code class="docutils literal notranslate"><span class="pre">editable=True</span></code> or set the <code class="docutils literal notranslate"><span class="pre">editable</span></code> property to make it editable on GUI.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># pass the option</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># or set the property</span>
+<span class="n">table</span><span class="o">.</span><span class="n">editable</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>Table data is available in <code class="docutils literal notranslate"><span class="pre">data</span></code> property. You can also update the table data by directly
+setting the <code class="docutils literal notranslate"><span class="pre">data</span></code> property.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span>  <span class="c1"># get the table data as a DataFrame</span>
+<span class="n">table</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">df2</span>  <span class="c1"># set a new table data</span>
+</pre></div>
+</div>
+<p>The selected range of data is available in <code class="docutils literal notranslate"><span class="pre">selections</span></code> property. You can also
+programmatically set table selections via <code class="docutils literal notranslate"><span class="pre">selections</span></code> property. Since table selections are
+multi-selection, this property takes a <code class="docutils literal notranslate"><span class="pre">list</span></code> of slicable objects.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># print all the selected data</span>
+<span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">selections</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">sel</span><span class="p">])</span>
+
+<span class="c1"># set selections</span>
+<span class="n">table</span><span class="o">.</span><span class="n">selections</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))]</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="selections.html"><span class="doc">Table Selections</span></a> for more details.</p>
+</section>
+<section id="spreadsheet">
+<h3><code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code><a class="headerlink" href="#spreadsheet" title="Permalink to this headline">¶</a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code> behaves more like Excel or Google Spreadsheet.</p>
+<ul class="simple">
+<li><p>It stores a copy of an input <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> as “string” types.</p></li>
+<li><p>It is editable by default and the input value will not be checked.</p></li>
+<li><p>Shape of table is unlimited (as far as it is not too large).</p></li>
+<li><p>The data type is inferred by <code class="docutils literal notranslate"><span class="pre">pd.read_csv</span></code> when it is obtained by <code class="docutils literal notranslate"><span class="pre">data</span></code> property.</p></li>
+</ul>
+<p>For instance, if you manually edited the cells</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td></td>
+<td><p>A</p></td>
+<td><p>B</p></td>
+</tr>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>t</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>3</p></td>
+<td><p>u</p></td>
+</tr>
+</tbody>
+</table>
+<p>then you’ll get following <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>   <span class="n">A</span>  <span class="n">B</span>
+<span class="mi">0</span>  <span class="mi">2</span>  <span class="n">t</span>
+<span class="mi">1</span>  <span class="mi">3</span>  <span class="n">u</span>
+
+<span class="c1"># dtypes</span>
+<span class="n">A</span>     <span class="n">int64</span>
+<span class="n">B</span>    <span class="nb">object</span>
+</pre></div>
+</div>
+<p>A spreadsheet can be added to the viewer by <code class="docutils literal notranslate"><span class="pre">add_spreadsheet</span></code> method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]})</span>
+
+<span class="n">sheet</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_spreadsheet</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sheet&quot;</span><span class="p">)</span>
+<span class="n">sheet</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SpreadSheet</span><span class="o">&lt;</span><span class="s1">&#39;sheet&#39;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Since a <code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code> is easily editable, it is reasonable to add an empty spreadsheet to
+the viewer.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sheet</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_spreadsheet</span><span class="p">()</span>  <span class="c1"># add an empty spreadsheet</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="interface-with-viewer-components">
+<h2><a class="toc-backref" href="#id3">Interface with Viewer Components</a><a class="headerlink" href="#interface-with-viewer-components" title="Permalink to this headline">¶</a></h2>
+<section id="get-tables">
+<h3>Get tables<a class="headerlink" href="#get-tables" title="Permalink to this headline">¶</a></h3>
+<p>All the table data is available in <code class="docutils literal notranslate"><span class="pre">tables</span></code> property. It is a <code class="docutils literal notranslate"><span class="pre">list</span></code> like
+object with some extended methods.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># the 0-th table</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="s2">&quot;table-name&quot;</span><span class="p">]</span>  <span class="c1"># the table with name &quot;table-name&quot;</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;table-name&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># the table with name &quot;table-name&quot; if exists</span>
+<span class="k">del</span> <span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># delete the 0-th table</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># move the 0-th table to the 2-th position</span>
+</pre></div>
+</div>
+<p>You can also get currently acitive (visible) table or its index with
+<code class="docutils literal notranslate"><span class="pre">viewer.current_table</span></code> or <code class="docutils literal notranslate"><span class="pre">viewer.current_index</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">TableList</span></code> object.</p>
+</section>
+</section>
+<section id="embedded-console">
+<h2><a class="toc-backref" href="#id4">Embedded Console</a><a class="headerlink" href="#embedded-console" title="Permalink to this headline">¶</a></h2>
+<p>To programmatically analyze table data, you can just open the embedded
+interpreter. It is dependent on <a class="reference external" href="https://qtconsole.readthedocs.io/en/stable/">qtconsole</a>
+package.</p>
+<p>The console is not visible by default. You can show it by setting <code class="docutils literal notranslate"><span class="pre">visible</span></code>
+property of <code class="docutils literal notranslate"><span class="pre">console</span></code> interface to <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span><span class="o">.</span><span class="n">conosole</span><span class="o">.</span><span class="n">visible</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>or push <code class="docutils literal notranslate"><span class="pre">Ctrl+Shift+C</span></code> shortcut.</p>
+</section>
+<section id="key-combo">
+<h2><a class="toc-backref" href="#id5">Key combo</a><a class="headerlink" href="#key-combo" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">tabulous</span></code> supports many keyboard shortcuts including key combo.</p>
+<p>All the global key map is listed in a widget that will be shown when you press
+<code class="docutils literal notranslate"><span class="pre">Ctrl+Shift+?</span></code>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="tabulous" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="selections.html" class="btn btn-neutral float-right" title="Table Selections" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Hanjin Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>
