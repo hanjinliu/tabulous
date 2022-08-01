@@ -170,8 +170,8 @@ def _(self: _QtMainWidgetBase):
     self._table_viewer.tables.move(src + 1, src)
 
 
-@QMainWidget._keymap.bind("Ctrl+Shift+|")
-@QMainWindow._keymap.bind("Ctrl+Shift+|")
+@QMainWidget._keymap.bind("Ctrl+K, ^")
+@QMainWindow._keymap.bind("Ctrl+K, ^")
 def _(self: _QtMainWidgetBase):
     """Tile table."""
     num = self._tablestack.count()
