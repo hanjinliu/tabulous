@@ -4,7 +4,6 @@ from typing import (
     Callable,
     Iterable,
     NewType,
-    Annotated,
     Sequence,
     Tuple,
     List,
@@ -14,6 +13,7 @@ from typing import (
     NamedTuple,
     SupportsIndex,
 )
+from typing_extensions import Annotated
 from enum import Enum
 import weakref
 
