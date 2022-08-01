@@ -12,10 +12,26 @@ Subpackages
 Submodules
 ----------
 
+tabulous.color module
+---------------------
+
+.. automodule:: tabulous.color
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tabulous.core module
 --------------------
 
 .. automodule:: tabulous.core
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tabulous.exceptions module
+--------------------------
+
+.. automodule:: tabulous.exceptions
    :members:
    :undoc-members:
    :show-inheritance:

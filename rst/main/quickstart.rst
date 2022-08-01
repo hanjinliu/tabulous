@@ -29,23 +29,26 @@ You can also read table data from files to create a viewer.
     # Read a Excel file and add all the sheets to the viewer.
     viewer = tb.read_excel("path/to/data.xlsx")
 
-In a proper environment, ``tabulous`` command should be available.
+If virtual environment (such as ``conda``) is used, you can use ``tabulous`` command to launch
+a viewer.
 
 .. code-block:: bash
 
-    $ tabulous
+    $ tabulous  # just launch a viewer
+
+    $ tabulous ./path/to/data.csv  # open a table file in the viewer
 
 
 Handle Tables
 =============
 
 Basically, table data is handled based on ``pandas``.
-A ``TableViewer`` instance has several methods that add ``DataFrame`` to the viewer.
+A :class:`TableViewer` instance has several methods that add ``DataFrame`` to the viewer.
 
 ``Table``
 ---------
 
-A ``Table`` is the most simple interface with ``DataFrame``.
+A :class:`Table` is the most simple interface with ``DataFrame``.
 
 - It stores a copy of an input ``DataFrame`` as is.
 - It is not editable by default.
@@ -104,9 +107,7 @@ setting the ``data`` property.
 
 The selected range of data is available in ``selections`` property. You can also
 programmatically set table selections via ``selections`` property. Since table selections are
-multi-selection, this property takes a ``list`` of ``tuple`` of two ``slice`` s
-(``list[tuple[slice, slice]]``). Each item of list is ready for slicing using ``iloc`` method
-of ``DataFrame``.
+multi-selection, this property takes a ``list`` of slicable objects.
 
 .. code-block:: python
 
@@ -116,6 +117,8 @@ of ``DataFrame``.
 
     # set selections
     table.selections = [(2, 4), (slice(10, 20), slice(2, 4))]
+
+See :doc:`selections` for more details.
 
 ``SpreadSheet``
 ---------------

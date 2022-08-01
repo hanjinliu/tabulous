@@ -15,13 +15,26 @@ Qt widgets for more trained users.
 
    ./main/quickstart
 
+
+Basics
+------
+
+.. toctree::
+   :maxdepth: 2
+
+   ./main/selections
+   ./main/filter
+   ./main/table_advanced
+
+
+Cooperate with Other Widgets
+----------------------------
+
 .. toctree::
    :maxdepth: 2
 
    ./main/dock_widget
-   ./main/table_advanced
    ./main/non_mainwindow
-
 
 
 Indices and tables

@@ -1,6 +1,6 @@
-========================
-Advanced Usage of Tables
-========================
+===================
+Working with Tables
+===================
 
 
 .. contents:: Contents
@@ -60,15 +60,22 @@ How tiling works
 For instance, if you tiled tables "A" and "B", they will appear in the same
 window, but tabs named "A" and "B" still exist in the tab bar. ``viewer.tables[i]``
 also returns the same table as before. When tab "A" or "B" is clicked, the tiled
-table with "A" and "B" is shown.
+table with "A" and "B" is shown as ``A|B``.
 
-You can tile the current table and the table next to it by shortcut ``Ctrl+Shift+|``.
+You can tile the current table and the table next to it by shortcut ``Ctrl+K, ^``.
 You can also programmatically tile tables by calling ``viewer.tables.tile([0, 1, 2])``.
 
 Untiling
 --------
 
-Untiling is also well-defined operation. Let's say
+Untiling is also well-defined operation. Let's say tabs "A", "B" and "C" is tiled so
+these tabs show tiled view ``A|B|C``. If you untiled "B", "A" and "C" are re-tiled
+while "B" returns the original state. Therefore, tabs "A" and "C" shows ``A|C`` and
+tab "B" shows ``B``.
+
+You can untile the current table by shortcut ``\``.
+You can also programmatically untile tables by calling ``viewer.tables.untile([0, 1, 2])``.
+
 
 Side Area
 =========
@@ -77,3 +84,12 @@ Side Area
 
     table = viewer.tables[0]
     table.add_side_widget(widget)
+
+
+Emulate Editing Cells
+=====================
+
+.. code-block:: python
+
+    table = viewer.tables[0]
+    table.cell[1, 2] = "new value"

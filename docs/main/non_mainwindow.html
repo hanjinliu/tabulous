@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Use Non-main Window Table Viewers &mdash; tabulous 0.1.0a3 documentation</title>
+  <title>Use Non-main Window Table Viewers &mdash; tabulous 0.1.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,7 +18,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="Advanced Usage of Tables" href="table_advanced.html" />
+    <link rel="prev" title="Custom Dock widget" href="dock_widget.html" />
 </head>
 
 <body class="wy-body-for-nav">
@@ -29,7 +29,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.0a3
+                0.1.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -39,11 +39,22 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul class="current">
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Working with Tables</a></li>
+</ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="dock_widget.html">Custom Dock widget</a></li>
-<li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Advanced Usage of Tables</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Use Non-main Window Table Viewers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Use Non-main Window Table Viewers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#use-tableviewer-in-your-qt-widget">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> in Your Qt Widget</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-tableviewer-with-magicgui">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> with <code class="docutils literal notranslate"><span class="pre">magicgui</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-a-single-table-in-your-widget">Use A Single Table in Your Widget</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -72,31 +83,92 @@
 
   <section id="use-non-main-window-table-viewers">
 <h1>Use Non-main Window Table Viewers<a class="headerlink" href="#use-non-main-window-table-viewers" title="Permalink to this headline">¶</a></h1>
+<p>Aiming at better extensibility, <code class="docutils literal notranslate"><span class="pre">tabulous</span></code> is designed to allow many different types of
+integration to external packages.</p>
+<div class="contents local topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#use-tableviewer-in-your-qt-widget" id="id1">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> in Your Qt Widget</a></p></li>
+<li><p><a class="reference internal" href="#use-tableviewer-with-magicgui" id="id2">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> with <code class="docutils literal notranslate"><span class="pre">magicgui</span></code></a></p></li>
+<li><p><a class="reference internal" href="#use-a-single-table-in-your-widget" id="id3">Use A Single Table in Your Widget</a></p></li>
+</ul>
+</div>
+<section id="use-tableviewer-in-your-qt-widget">
+<h2><a class="toc-backref" href="#id1">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> in Your Qt Widget</a><a class="headerlink" href="#use-tableviewer-in-your-qt-widget" title="Permalink to this headline">¶</a></h2>
 <p>If you plan to use a table viewer as a child of another <code class="docutils literal notranslate"><span class="pre">QWidget</span></code>, you can use a non-main
-window version.</p>
+window version of it. The <code class="docutils literal notranslate"><span class="pre">native</span></code> property returns the Qt backend widget.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">TableViewerWidget</span>
-<span class="kn">from</span> <span class="nn">qtpy.QtWidgets</span> <span class="kn">import</span> <span class="n">QWidget</span>
+<span class="kn">from</span> <span class="nn">qtpy</span> <span class="kn">import</span> <span class="n">QtWidgets</span> <span class="k">as</span> <span class="n">QtW</span>
 
-<span class="n">viewer</span> <span class="o">=</span> <span class="n">TableViewerWidget</span><span class="p">()</span>
-<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">,</span> <span class="n">QWidget</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MyQWidget</span><span class="p">(</span><span class="n">QtW</span><span class="o">.</span><span class="n">QMainWindow</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">TableViewerWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setCentralWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>If you want to use a <code class="docutils literal notranslate"><span class="pre">magicgui</span></code> version of it, you can use the following code.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A benefit of using <code class="docutils literal notranslate"><span class="pre">tabulous</span></code> is that a table widget usually takes too much space but this
+problem can be solve by popup view of tables in <code class="docutils literal notranslate"><span class="pre">tabulous</span></code>. See <a class="reference internal" href="table_advanced.html"><span class="doc">Working with Tables</span></a> for
+more detail.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To avoid conflicting with the main widget, the non-main-window version of table viewer has
+some restriction. For instance, embedded console does not open with shortcut <code class="docutils literal notranslate"><span class="pre">Ctrl+Shift+C</span></code>
+so you have to programmatically open it by <code class="docutils literal notranslate"><span class="pre">viewer.console.visible</span> <span class="pre">=</span> <span class="pre">True</span></code>.</p>
+</div>
+</section>
+<section id="use-tableviewer-with-magicgui">
+<h2><a class="toc-backref" href="#id2">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> with <code class="docutils literal notranslate"><span class="pre">magicgui</span></code></a><a class="headerlink" href="#use-tableviewer-with-magicgui" title="Permalink to this headline">¶</a></h2>
+<p>If you want to use a <a class="reference external" href="https://github.com/napari/magicgui">magicgui</a> version of it, you can
+use <code class="docutils literal notranslate"><span class="pre">MagicTableViewer</span></code>. <code class="docutils literal notranslate"><span class="pre">MagicTableViewer</span></code> is a subclass of <code class="docutils literal notranslate"><span class="pre">TableViewerWidget</span></code> and
+<code class="docutils literal notranslate"><span class="pre">magicgui.widgets.Widget</span></code> so it is compatible with all the <code class="docutils literal notranslate"><span class="pre">magicgui</span></code> functionalities.</p>
+<p>In following simple example you can load a table data from a file.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">MagicTableViewer</span>
-<span class="kn">from</span> <span class="nn">magicgui.widgets</span> <span class="kn">import</span> <span class="n">Container</span>
+<span class="kn">from</span> <span class="nn">magicgui.widgets</span> <span class="kn">import</span> <span class="n">Container</span><span class="p">,</span> <span class="n">FileEdit</span>
 
 <span class="n">viewer</span> <span class="o">=</span> <span class="n">MagicTableViewer</span><span class="p">()</span>
+<span class="n">file_edit</span> <span class="o">=</span> <span class="n">FileEdit</span><span class="p">()</span>
+<span class="n">file_edit</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">open</span><span class="p">)</span>
+
 <span class="n">container</span> <span class="o">=</span> <span class="n">Container</span><span class="p">()</span>
 <span class="n">container</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+<span class="n">container</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file_edit</span><span class="p">)</span>
+
+<span class="n">container</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">MagicTableViewer</span></code> can also easily be used with <a class="reference external" href="https://github.com/hanjinliu/magic-class">magic-class</a>.
+Following example does similar thing as the one above.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">MagicTableViewer</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">magicclass</span> <span class="kn">import</span> <span class="n">magicclass</span><span class="p">,</span> <span class="n">field</span>
+
+<span class="nd">@magicclass</span>
+<span class="k">class</span> <span class="nc">A</span><span class="p">:</span>
+    <span class="n">table_viewer</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">MagicTableViewer</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_viewer</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="n">ui</span> <span class="o">=</span> <span class="n">A</span><span class="p">()</span>
+<span class="n">ui</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="use-a-single-table-in-your-widget">
+<h2><a class="toc-backref" href="#id3">Use A Single Table in Your Widget</a><a class="headerlink" href="#use-a-single-table-in-your-widget" title="Permalink to this headline">¶</a></h2>
+<p>TODO</p>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="table_advanced.html" class="btn btn-neutral float-left" title="Advanced Usage of Tables" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dock_widget.html" class="btn btn-neutral float-left" title="Custom Dock widget" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quickstart &mdash; tabulous 0.1.0a3 documentation</title>
+  <title>Quickstart &mdash; tabulous 0.1.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,7 +18,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Custom Dock widget" href="dock_widget.html" />
+    <link rel="next" title="Table Selections" href="selections.html" />
     <link rel="prev" title="tabulous" href="../index.html" />
 </head>
 
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.0a3
+                0.1.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -56,8 +56,14 @@
 <li class="toctree-l2"><a class="reference internal" href="#key-combo">Key combo</a></li>
 </ul>
 </li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Working with Tables</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="dock_widget.html">Custom Dock widget</a></li>
-<li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Advanced Usage of Tables</a></li>
 <li class="toctree-l1"><a class="reference internal" href="non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 
@@ -115,18 +121,21 @@
 <span class="n">viewer</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="s2">&quot;path/to/data.xlsx&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>In a proper environment, <code class="docutils literal notranslate"><span class="pre">tabulous</span></code> command should be available.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ tabulous
+<p>If virtual environment (such as <code class="docutils literal notranslate"><span class="pre">conda</span></code>) is used, you can use <code class="docutils literal notranslate"><span class="pre">tabulous</span></code> command to launch
+a viewer.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ tabulous  <span class="c1"># just launch a viewer</span>
+
+$ tabulous ./path/to/data.csv  <span class="c1"># open a table file in the viewer</span>
 </pre></div>
 </div>
 </section>
 <section id="handle-tables">
 <h2><a class="toc-backref" href="#id2">Handle Tables</a><a class="headerlink" href="#handle-tables" title="Permalink to this headline">¶</a></h2>
 <p>Basically, table data is handled based on <code class="docutils literal notranslate"><span class="pre">pandas</span></code>.
-A <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> instance has several methods that add <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> to the viewer.</p>
+A <code class="xref py py-class docutils literal notranslate"><span class="pre">TableViewer</span></code> instance has several methods that add <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> to the viewer.</p>
 <section id="table">
 <h3><code class="docutils literal notranslate"><span class="pre">Table</span></code><a class="headerlink" href="#table" title="Permalink to this headline">¶</a></h3>
-<p>A <code class="docutils literal notranslate"><span class="pre">Table</span></code> is the most simple interface with <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code>.</p>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> is the most simple interface with <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code>.</p>
 <ul class="simple">
 <li><p>It stores a copy of an input <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> as is.</p></li>
 <li><p>It is not editable by default.</p></li>
@@ -174,9 +183,7 @@ setting the <code class="docutils literal notranslate"><span class="pre">data</s
 </div>
 <p>The selected range of data is available in <code class="docutils literal notranslate"><span class="pre">selections</span></code> property. You can also
 programmatically set table selections via <code class="docutils literal notranslate"><span class="pre">selections</span></code> property. Since table selections are
-multi-selection, this property takes a <code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">tuple</span></code> of two <code class="docutils literal notranslate"><span class="pre">slice</span></code> s
-(<code class="docutils literal notranslate"><span class="pre">list[tuple[slice,</span> <span class="pre">slice]]</span></code>). Each item of list is ready for slicing using <code class="docutils literal notranslate"><span class="pre">iloc</span></code> method
-of <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code>.</p>
+multi-selection, this property takes a <code class="docutils literal notranslate"><span class="pre">list</span></code> of slicable objects.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># print all the selected data</span>
 <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">selections</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">sel</span><span class="p">])</span>
@@ -185,6 +192,7 @@ of <code class="docutils literal notranslate"><span class="pre">DataFrame</span>
 <span class="n">table</span><span class="o">.</span><span class="n">selections</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))]</span>
 </pre></div>
 </div>
+<p>See <a class="reference internal" href="selections.html"><span class="doc">Table Selections</span></a> for more details.</p>
 </section>
 <section id="spreadsheet">
 <h3><code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code><a class="headerlink" href="#spreadsheet" title="Permalink to this headline">¶</a></h3>
@@ -289,7 +297,7 @@ property of <code class="docutils literal notranslate"><span class="pre">console
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../index.html" class="btn btn-neutral float-left" title="tabulous" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="dock_widget.html" class="btn btn-neutral float-right" title="Custom Dock widget" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="selections.html" class="btn btn-neutral float-right" title="Table Selections" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
