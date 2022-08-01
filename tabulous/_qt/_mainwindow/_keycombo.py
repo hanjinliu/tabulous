@@ -116,8 +116,8 @@ def _(self: QMainWindow):
     return self._tablestack.setCurrentIndex(idx)
 
 
-@QMainWidget._keymap.bind("Ctrl+Shift+?")
-@QMainWindow._keymap.bind("Ctrl+Shift+?")
+@QMainWidget._keymap.bind("Ctrl+K, Shift+?")
+@QMainWindow._keymap.bind("Ctrl+K, Shift+?")
 def _(self: _QtMainWidgetBase):
     """Open a keymap viewer."""
     return self.showKeyMap()
