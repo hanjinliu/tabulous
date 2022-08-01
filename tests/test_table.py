@@ -1,6 +1,7 @@
 from tabulous import Table, TableViewer
 from unittest.mock import MagicMock
 import pandas as pd
+from pandas.testing import assert_frame_equal
 import numpy as np
 import pytest
 
@@ -13,6 +14,23 @@ def get_cell_value(table, row, col):
 
 def edit_cell(table, row, col, value):
     table.model().dataEdited.emit(row, col, value)
+
+def slice_equal(s1: tuple[slice, slice], s2: tuple[slice, slice]):
+    return (
+        s1[0].start == s2[0].start and
+        s1[1].start == s2[1].start and
+        s1[0].stop == s2[0].stop and
+        s1[1].stop == s2[1].stop
+    )
+
+def selection_equal(sel1: list[tuple[slice, slice]], sel2: list[tuple[slice, slice]]):
+    if len(sel1) != len(sel2):
+        return False
+    for s1, s2 in zip(sel1, sel2):
+        if not slice_equal(s1, s2):
+            return False
+    return True
+
 
 @pytest.mark.parametrize("df", [df0, df1])
 def test_display(df: pd.DataFrame):
@@ -34,11 +52,36 @@ def test_editing_data(df: pd.DataFrame):
     assert str(df.iloc[0, 0]) == "11"
 
 @pytest.mark.parametrize("df", [df0, df1])
-def test_editing_data(df: pd.DataFrame):
+def test_updating_data(df: pd.DataFrame):
     viewer = TableViewer(show=False)
     table = viewer.add_table(np.zeros((3, 3)))
     table.data = df
     assert str(table.data.iloc[0, 0]) == str(df.iloc[0, 0])
+
+@pytest.mark.parametrize("df", [df0, df1])
+def test_editing_original_data(df: pd.DataFrame):
+    viewer = TableViewer(show=False)
+    df = df.copy()
+    table = viewer.add_table(df, copy=False, editable=True)
+    table.data.iloc[0, 1] = -1.
+    table.cell[1, 1] = "100.0"
+    assert df.iloc[0, 1] == -1.
+    assert df.iloc[1, 1] == 100.
+
+def test_selection():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(df0)
+
+    table.selections = [(0, 0), (slice(1, 3), slice(1, 2))]
+
+    sl0 = (slice(0, 1), slice(0, 1))
+    sl1 = (slice(1, 3), slice(1, 2))
+    assert selection_equal(table.selections, [sl0, (slice(1, 3), slice(1, 2))])
+    assert slice_equal(table.selections[0], sl0)
+    assert slice_equal(table.selections[1], sl1)
+    assert_frame_equal(table.selections.values[0], table.data.iloc[sl0])
+    assert_frame_equal(table.selections.values[1], table.data.iloc[sl1])
+
 
 def test_size_change():
     viewer = TableViewer(show=False)
@@ -62,7 +105,7 @@ def test_selection_signal():
     mock.assert_not_called()
     sel = [(slice(1, 2), slice(1, 2))]
     table.selections = sel
-    mock.assert_called_with(sel)
+    mock.assert_called()
 
 def test_move_location():
     viewer = TableViewer(show=False)
@@ -88,3 +131,25 @@ def test_dual_view():
     table.view_mode = "horizontal"
 
     table.selections = [(slice(1, 2), slice(0, 2))]
+    selection_equal(table.selections, [(slice(1, 2), slice(0, 2))])
+
+def test_popup_view():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(df0)
+
+    table.view_mode = "popup"
+
+    table.selections = [(slice(1, 2), slice(0, 2))]
+    selection_equal(table.selections, [(slice(1, 2), slice(0, 2))])
+
+def test_color_mapper():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(df0)
+
+    @table.foreground_colormap("a")
+    def _(val):
+        return "red" if val < 2 else None
+
+    @table.background_colormap("b")
+    def _(val):
+        return "green" if val < 20 else None

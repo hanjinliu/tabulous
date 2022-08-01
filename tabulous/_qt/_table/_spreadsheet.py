@@ -113,6 +113,9 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = out
         return out
 
+    def dataShape(self) -> tuple[int, int]:
+        return self._data_raw.shape
+
     @QMutableSimpleTable._mgr.interface
     def setDataFrame(self, data: pd.DataFrame) -> None:
         """Set data frame as a string table."""
@@ -139,7 +142,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     def readClipBoard(self):
         """Read clipboard as a string data frame."""
-        return pd.read_clipboard(header=None).astype("string")
+        return pd.read_clipboard(header=None, dtype="string")  # read as string
 
     def setDataFrameValue(self, r: int | slice, c: int | slice, value: Any) -> None:
         nr, nc = self._data_raw.shape
@@ -154,16 +157,16 @@ class QSpreadSheet(QMutableSimpleTable):
                 return
             if isinstance(r, int) and isinstance(c, int) and value == "NA":
                 # if user start editing an empty cell and did nothing, do not set string "NA".
-                index = self._qtable_view.model().index(r, c, QtCore.QModelIndex())
-                text = self._qtable_view.model().data(
-                    index, Qt.ItemDataRole.DisplayRole
-                )
+                model = self._qtable_view.model()
+                index = model.index(r, c, QtCore.QModelIndex())
+                text = model.data(index, Qt.ItemDataRole.DisplayRole)
                 if text == value:
                     return
 
         with self._mgr.merging(name="setDataFrameValue"):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
+            # TODO: nan is sometimes problematic in pandas.
             super().setDataFrameValue(r, c, value)
             self.setFilter(self._filter_slice)
 
@@ -175,6 +178,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.undoable
     def expandDataFrame(self, nrows: int, ncols: int):
+        """Expand the data frame by adding empty rows and columns."""
         if not self.isEditable():
             return None
         self._data_raw = _pad_dataframe(self._data_raw, nrows, ncols)

@@ -92,7 +92,7 @@ class _QtMainWidgetBase(QtW.QWidget):
     def setCellFocus(self) -> None:
         """Set focus to the current table."""
         table = self._table_viewer.current_table
-        if table is None or table.data is None:
+        if table is None or table.table_shape[0] * table.table_shape[1] == 0:
             return None
         sels = table.selections
         table._qwidget._qtable_view.setFocus()

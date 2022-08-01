@@ -10,12 +10,13 @@ import pandas as pd
 from collections_undo import UndoManager
 from ._model_base import AbstractDataFrameModel
 
-from ..._utils import show_messagebox
 from ..._keymap import QtKeys, QtKeyMap
 from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
+from ....exceptions import SelectionRangeError
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
+    from qtpy.QtCore import pyqtBoundSignal
     from typing_extensions import Self
 
 # fmt: off
@@ -228,7 +229,7 @@ class QBaseTable(QtW.QSplitter):
     def tableSlice(self) -> pd.DataFrame: ...
     """
 
-    selectionChangedSignal = Signal(list)
+    selectionChangedSignal = Signal()
     _DEFAULT_EDITABLE = False
     _mgr = UndoManager(measure=_count_data_size, maxsize=1e7)
     _keymap = QtKeyMap()
@@ -249,7 +250,7 @@ class QBaseTable(QtW.QSplitter):
         delegate = TableItemDelegate(parent=self)
         self._qtable_view.setItemDelegate(delegate)
         self._qtable_view.selectionChangedSignal.connect(
-            lambda: self.selectionChangedSignal.emit(self.selections())
+            self.selectionChangedSignal.emit
         )
 
         self._side_area = None
@@ -281,6 +282,9 @@ class QBaseTable(QtW.QSplitter):
         nc = model.columnCount()
         return (nr, nc)
 
+    def dataShape(self) -> tuple[int, int]:
+        return self.tableShape()
+
     def zoom(self) -> float:
         """Get current zoom factor."""
         return self._qtable_view.zoom()
@@ -294,6 +298,9 @@ class QBaseTable(QtW.QSplitter):
 
     def model(self) -> AbstractDataFrameModel:
         return QtW.QTableView.model(self._qtable_view)
+
+    def setDataFrameValue(self, row: int, col: int, value: Any) -> None:
+        raise TypeError("Table is immutable.")
 
     def precision(self) -> int:
         """Return table value precision."""
@@ -340,9 +347,13 @@ class QBaseTable(QtW.QSplitter):
                 # if int is used instead of slice
                 if not isinstance(r, slice):
                     _r = r.__index__()
+                    if _r < 0:
+                        _r += nr
                     r = slice(_r, _r + 1)
                 if not isinstance(c, slice):
                     _c = c.__index__()
+                    if _c < 0:
+                        _c += nc
                     c = slice(_c, _c + 1)
                 r0, r1, _ = r.indices(nr)
                 c0, c1, _ = c.indices(nc)
@@ -371,10 +382,7 @@ class QBaseTable(QtW.QSplitter):
         nr = len(r_ranges)
         nc = len(c_ranges)
         if nr > 1 and nc > 1:
-            show_messagebox(
-                mode="error", title="Error", text="Wrong selection range.", parent=self
-            )
-            return
+            raise SelectionRangeError("Cannot copy selected range.")
         else:
             data = self.model().df
             if nr == 1:
@@ -418,8 +426,7 @@ class QBaseTable(QtW.QSplitter):
                 self.model().df = data_sliced[sl_filt]
             except Exception as e:
                 self._filter_slice = None
-                msg = f"Error in filter.\n\n{type(e).__name__} {e}\n\n Filter is reset."
-                show_messagebox("error", "Error", msg, self)
+                raise ValueError("Error in filter. Filter is reset.") from e
         self.refresh()
 
     def copy(self, link: bool = True) -> Self:
@@ -501,13 +508,18 @@ class QBaseTable(QtW.QSplitter):
         if row is None:
             row = self._qtable_view.currentIndex().row()
         elif row < 0:
-            row += self.tableShape()[0]
+            row += self.dataShape()[0]
 
         if column is None:
             column = self._qtable_view.currentIndex().column()
         elif column < 0:
-            column += self.tableShape()[1]
-        self._qtable_view.setCurrentIndex(self.model().index(row, column))
+            column += self.dataShape()[1]
+
+        self._qtable_view.selectionModel().setCurrentIndex(
+            self.model().index(row, column),
+            QtCore.QItemSelectionModel.SelectionFlag.Current,
+        )
+        return None
 
 
 class QMutableTable(QBaseTable):
@@ -516,7 +528,7 @@ class QMutableTable(QBaseTable):
     itemChangedSignal = Signal(ItemInfo)
     rowChangedSignal = Signal(HeaderInfo)
     columnChangedSignal = Signal(HeaderInfo)
-    selectionChangedSignal = Signal(list)
+    selectionChangedSignal = Signal()
     _data_raw: pd.DataFrame
 
     def __init__(
@@ -533,6 +545,14 @@ class QMutableTable(QBaseTable):
             self.editVerticalHeader
         )
         self._mgr.clear()
+
+        @self.rowChangedSignal.connect
+        def _on_row_changed(info: HeaderInfo):
+            return self.setVerticalHeaderValue(info.index, info.value)
+
+        @self.columnChangedSignal.connect
+        def _on_col_changed(info: HeaderInfo):
+            return self.setHorizontalHeaderValue(info.index, info.value)
 
     def tableShape(self) -> tuple[int, int]:
         """Return the available shape of the table."""
@@ -679,12 +699,7 @@ class QMutableTable(QBaseTable):
         if n_selections == 0 or not self.isEditable():
             return
         elif n_selections > 1:
-            return show_messagebox(
-                mode="error",
-                title="Error",
-                text="Cannot paste with multiple selections.",
-                parent=self,
-            )
+            raise ValueError("Cannot paste to multiple selections.")
 
         df = self.readClipBoard()
 
@@ -713,12 +728,9 @@ class QMutableTable(QBaseTable):
                 clen = dc
 
             if (rlen, clen) != (dr, dc):
-                return show_messagebox(
-                    mode="error",
-                    title="Error",
-                    text=f"Shape mismatch between data in clipboard {(rlen, clen)} and "
-                    f"destination {(dr, dc)}.",
-                    parent=self,
+                raise SelectionRangeError(
+                    f"Shape mismatch between data in clipboard {(rlen, clen)} and "
+                    f"destination {(dr, dc)}."
                 )
             else:
                 sel = (rrange, crange)
@@ -729,28 +741,14 @@ class QMutableTable(QBaseTable):
         dtype_src = df.dtypes.values
         dtype_dst = self._data_raw.dtypes.values[csel]
         if any(a.kind != b.kind for a, b in zip(dtype_src, dtype_dst)):
-            return show_messagebox(
-                mode="error",
-                title="Error",
-                text=f"Data type mismatch between data in clipboard {list(dtype_src)} and "
-                f"destination {list(dtype_dst)}.",
-                parent=self,
+            raise ValueError(
+                f"Data type mismatch between data in clipboard {list(dtype_src)} and "
+                f"destination {list(dtype_dst)}."
             )
+
         # update table
-        try:
-            self.setDataFrameValue(rsel, csel, df)
-
-        except Exception as e:
-            show_messagebox(
-                mode="error",
-                title=e.__class__.__name__,
-                text=str(e),
-                parent=self,
-            )
-            raise e from None
-
-        else:
-            self.setSelections([sel])
+        self.setDataFrameValue(rsel, csel, df)
+        self.setSelections([sel])
 
         return None
 
@@ -782,18 +780,59 @@ class QMutableTable(QBaseTable):
 
         qtable = self._qtable_view
         _header = qtable.horizontalHeader()
-        _line = QtW.QLineEdit(_header)
+        self._prepare_header_line_edit(
+            _header,
+            (_header.sectionSize(index), _header.height()),
+            (None, _header.sectionViewportPosition(index)),
+            self.columnChangedSignal,
+            index,
+            self.model().df.index,
+        )
+
+        return None
+
+    def editVerticalHeader(self, index: int):
+        if not self.isEditable():
+            return
+
+        qtable = self._qtable_view
+        _header = qtable.verticalHeader()
+        self._prepare_header_line_edit(
+            _header,
+            (_header.width(), _header.sectionSize(index)),
+            (_header.sectionViewportPosition(index), None),
+            self.rowChangedSignal,
+            index,
+            self.model().df.index,
+        )
+
+        return None
+
+    def _prepare_header_line_edit(
+        self,
+        header: QtW.QHeaderView,
+        size: tuple[int, int],
+        topleft: tuple[int, int],
+        signal: pyqtBoundSignal,
+        index: int,
+        df_axis: pd.Index,
+    ):
+        _line = QtW.QLineEdit(header)
+        width, height = size
+        top, left = topleft
         edit_geometry = _line.geometry()
-        edit_geometry.setHeight(_header.height())
-        edit_geometry.setWidth(_header.sectionSize(index))
-        edit_geometry.moveLeft(_header.sectionViewportPosition(index))
+        edit_geometry.setHeight(height)
+        edit_geometry.setWidth(width)
+        if top is not None:
+            edit_geometry.moveTop(top)
+        if left is not None:
+            edit_geometry.moveLeft(left)
         _line.setGeometry(edit_geometry)
         _line.setHidden(False)
         _line.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        column_axis = self.model().df.columns
-        if index < column_axis.size:
-            old_value = column_axis[index]
+        if index < df_axis.size:
+            old_value = df_axis[index]
             text = str(old_value)
         else:
             old_value = None
@@ -809,63 +848,16 @@ class QMutableTable(QBaseTable):
         def _set_header_data():
             if self._line is None:
                 return None
-            self._line.setHidden(True)
             value = self._line.text()
+            self._line.setHidden(True)
             if not value == old_value:
-                self.setHorizontalHeaderValue(index, value)
-                self.columnChangedSignal.emit(HeaderInfo(index, value, old_value))
+                signal.emit(HeaderInfo(index, value, old_value))
             self._line = None
-            qtable.setFocus()
-            qtable.clearSelection()
+            header.parent().setFocus()
+            header.parent().clearSelection()
             return None
 
-        return None
-
-    def editVerticalHeader(self, index: int):
-        if not self.isEditable():
-            return
-
-        qtable = self._qtable_view
-        _header = qtable.verticalHeader()
-        _line = QtW.QLineEdit(_header)
-        edit_geometry = _line.geometry()
-        edit_geometry.setHeight(_header.sectionSize(index))
-        edit_geometry.setWidth(_header.width())
-        edit_geometry.moveTop(_header.sectionViewportPosition(index))
-        _line.setGeometry(edit_geometry)
-        _line.setHidden(False)
-
-        index_axis = self.model().df.index
-
-        if index < index_axis.size:
-            old_value = index_axis[index]
-            text = str(old_value)
-        else:
-            old_value = None
-            text = ""
-
-        _line.setText(str(text))
-        _line.setFocus()
-        _line.selectAll()
-        _line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self._line = _line
-
-        @_line.editingFinished.connect
-        def _set_header_data():
-            if self._line is None:
-                return None
-            self._line.setHidden(True)
-            value = self._line.text()
-            if not value == old_value:
-                self.setVerticalHeaderValue(index, value)
-                self.rowChangedSignal.emit(HeaderInfo(index, value, old_value))
-            self._line = None
-            qtable.setFocus()
-            qtable.clearSelection()
-            return None
-
-        return None
+        return _line
 
     @QBaseTable._mgr.interface
     def setHorizontalHeaderValue(self, index: int, value: Any) -> None:

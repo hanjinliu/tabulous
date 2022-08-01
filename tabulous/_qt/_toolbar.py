@@ -13,7 +13,7 @@ from . import _dialogs as _dlg
 
 if TYPE_CHECKING:
     from ._mainwindow import _QtMainWidgetBase
-    from ..widgets.mainwindow import _TableViewerBase
+    from ..widgets.mainwindow import TableViewerBase
 
 SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 
@@ -99,7 +99,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         # fmt: on
 
     @property
-    def viewer(self) -> "_TableViewerBase":
+    def viewer(self) -> "TableViewerBase":
         """The parent viewer object."""
         return self.parent()._table_viewer
 
@@ -181,13 +181,15 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         """Make a copy of the current table."""
         viewer = self.viewer
         table = viewer.current_table
-        viewer.add_table(table.data, name=f"{table.name}-copy")
+        if table is not None:
+            viewer.add_table(table.data, name=f"{table.name}-copy")
 
     def copy_as_spreadsheet(self):
         """Make a copy of the current table."""
         viewer = self.viewer
         table = viewer.current_table
-        viewer.add_spreadsheet(table.data, name=f"{table.name}-copy")
+        if table is not None:
+            viewer.add_spreadsheet(table.data, name=f"{table.name}-copy")
 
     def new_spreadsheet(self):
         """Create a new spreadsheet."""
@@ -196,12 +198,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def groupby(self):
         """Group table data by its column value."""
         table = self.viewer.current_table
-        out = _dlg.groupby(
-            df={"bind": table.data},
-            by={"choices": list(table.data.columns), "widget_type": "Select"},
-        )
-        if out is not None:
-            self.viewer.add_groupby(out, name=f"{table.name}-groupby")
+        if table is not None:
+            out = _dlg.groupby(
+                df={"bind": table.data},
+                by={"choices": list(table.data.columns), "widget_type": "Select"},
+            )
+            if out is not None:
+                self.viewer.add_groupby(out, name=f"{table.name}-groupby")
 
     def hconcat(self):
         """Concatenate tables horizontally."""
@@ -232,14 +235,16 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def pivot(self):
         """Pivot a table."""
         table = self.viewer.current_table
+        if table is None:
+            return
         col = list(table.data.columns)
-        if len(col) < 2:
-            raise ValueError("Table must have at least two columns.")
+        if len(col) < 3:
+            raise ValueError("Table must have at least three columns.")
         out = _dlg.pivot(
             df={"bind": table.data},
             index={"choices": col, "value": col[0]},
             columns={"choices": col, "value": col[1]},
-            values={"choices": col, "nullable": True},
+            values={"choices": col, "value": col[2]},
         )
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-pivot")
@@ -247,6 +252,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def melt(self):
         """Unpivot a table."""
         table = self.viewer.current_table
+        if table is None:
+            return
         out = _dlg.melt(
             df={"bind": table.data},
             id_vars={"choices": list(table.data.columns), "widget_type": "Select"},
@@ -257,6 +264,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def summarize_table(self):
         """Summarize current table."""
         table = self.viewer.current_table
+        if table is None:
+            return
         out = _dlg.summarize_table(
             df={"bind": table.data},
             methods={"choices": SUMMARY_CHOICES, "widget_type": "Select"},
@@ -271,6 +280,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def query(self):
         """Filter table using a query."""
         table = self.viewer.current_table
+        if table is None:
+            return
         out = _dlg.query(df={"bind": table.data})
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-query")

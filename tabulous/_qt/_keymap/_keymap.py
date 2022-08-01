@@ -22,15 +22,15 @@ from operator import or_
 from ._callback import BoundCallback
 
 if TYPE_CHECKING:
-    from typing_extensions import Self, ParamSpec
+    from typing_extensions import Self
 
-    _P = ParamSpec("_P")
 
 NoModifier = Qt.KeyboardModifier.NoModifier
 Ctrl = Qt.KeyboardModifier.ControlModifier
 Shift = Qt.KeyboardModifier.ShiftModifier
 Alt = Qt.KeyboardModifier.AltModifier
 Meta = Qt.KeyboardModifier.MetaModifier
+
 
 _MODIFIERS = {
     "None": NoModifier,
@@ -92,7 +92,7 @@ def _parse_string(keys: str):
     if keys in _MODIFIERS_INV.values():
         mods = keys.split("+")
         qtmod = reduce(or_, [_MODIFIERS[m] for m in mods])
-        return qtmod, _NO_KEY
+        return qtmod, ExtKey.No
 
     *mods, btn = keys.split("+")
 
@@ -109,15 +109,29 @@ def _parse_string(keys: str):
     if btn != "{}":
         qtkey = getattr(Qt.Key, f"Key_{btn}")
     else:
-        qtkey = _ANY_KEY
+        qtkey = ExtKey.Any
     return qtmod, qtkey
 
 
-_NO_KEY = -1
-_ANY_KEY = -2
+def _parse_modifiers(km: Qt.KeyboardModifiers) -> Qt.KeyboardModifiers:
+    """Keypad modifier should be ignored."""
+    if km & Qt.KeyboardModifier.KeypadModifier:
+        km ^= Qt.KeyboardModifier.KeypadModifier
+
+    return km
+
+
+class ExtKey:
+    """Key extension."""
+
+    No = -1
+    Any = -2
 
 
 KeyType = Union[QtGui.QKeyEvent, "QtKeys", str]
+MODIFIER_KEYS = frozenset(
+    {Qt.Key.Key_Shift, Qt.Key.Key_Control, Qt.Key.Key_Meta, Qt.Key.Key_Alt}
+)
 
 
 class QtKeys:
@@ -125,10 +139,10 @@ class QtKeys:
 
     def __init__(self, e: KeyType):
         if isinstance(e, QtGui.QKeyEvent):
-            self.modifier = e.modifiers()
+            self.modifier = _parse_modifiers(e.modifiers())
             self.key = e.key()
-            if Qt.Key.Key_Shift <= self.key <= Qt.Key.Key_Alt:  # modifier only
-                self.key = _NO_KEY
+            if self.key in MODIFIER_KEYS:  # modifier only
+                self.key = ExtKey.No
         elif isinstance(e, str):
             mod, key = _parse_string(e)
             self.modifier = mod
@@ -146,11 +160,11 @@ class QtKeys:
         return hash((self.modifier, self.key))
 
     def _reduce_key(self) -> Self:
-        if self.key == _NO_KEY:
+        if self.key == ExtKey.No:
             # this case is needed to avoid triggering parametric key binding with modifiers.
             return self
         new = QtKeys(self)
-        new.key = _ANY_KEY
+        new.key = ExtKey.Any
         return new
 
     def __str__(self) -> str:
@@ -249,7 +263,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         deactivated: Callable | None = None,
     ):
         self._keymap: dict[QtKeys, QtKeyMap | Callable] = {}
-        self._current_map = None
+        self._current_map: QtKeyMap | None = None
+        self._last_pressed: QtKeys | None = None
         self._activated_callback = activated or _DUMMY_CALLBACK
         self._deactivated_callback = deactivated or _DUMMY_CALLBACK
         self._instances: dict[int, QtKeyMap] = {}
@@ -264,15 +279,22 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
 
     @property
     def activated_callback(self) -> BoundCallback | None:
+        """The function to be called when the keymap is activated."""
         if (a := self._activated_callback) is not _DUMMY_CALLBACK:
             return a
         return None
 
     @property
     def deactivated_callback(self) -> BoundCallback | None:
+        """The function to be called when the keymap is deactivated."""
         if (a := self._deactivated_callback) is not _DUMMY_CALLBACK:
             return a
         return None
+
+    @property
+    def last_pressed(self) -> QtKeys | None:
+        """The last pressed key."""
+        return self._last_pressed
 
     def __get__(self, obj, objtype=None):
         if obj is None:
@@ -490,6 +512,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             return out
 
     def _press_one_key(self, key: QtKeys) -> bool:
+        self._last_pressed = key
         current = self.current_map
         _is_parametric = False
         try:
@@ -498,8 +521,10 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             try:
                 callback = current[key._reduce_key()]
             except KeyError:
-                current.deactivate()
-                self._current_map = None
+                # Don't lose the combo if only a modifier is pressed
+                if key.key != ExtKey.No:
+                    current.deactivate()
+                    self._current_map = None
                 return False
             _is_parametric = True
 
@@ -515,7 +540,6 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                 callback(key.key_string())
             else:
                 callback()
-
         return True
 
     def activate(self, key: KeyType) -> None:

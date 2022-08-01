@@ -48,4 +48,16 @@ def get_app():
 def run_app():
     """Start the event loop."""
     if not gui_qt_is_active():
-        return get_app().exec_()
+        from ..exceptions import ExceptionHandler
+
+        with ExceptionHandler(hook=_excepthook) as exc_handler:
+            get_app().exec_()
+        return None
+
+
+def _excepthook(exc_type, exc_value, exc_traceback):
+    """Exception hook used during application execution."""
+    from ._traceback import QtErrorMessageBox
+
+    QtErrorMessageBox.raise_(exc_value)
+    return None

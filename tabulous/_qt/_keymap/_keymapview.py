@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Sequence, TYPE_CHECKING
 
-from qtpy import QtWidgets as QtW, QtGui
+from qtpy import QtWidgets as QtW
 
 from ._callback import BoundCallback
 from ._keymap import QtKeys, QtKeyMap
@@ -63,7 +63,7 @@ class QKeyMapList(QtW.QListWidget):
             ...
 
 
-class QtKeyBindItem(QtW.QGroupBox):
+class QtKeyBindItem(QtW.QWidget):
     def __init__(
         self, parent=None, key: QtKeys | Sequence[QtKeys] | None = None, desc: str = ""
     ):
@@ -72,7 +72,6 @@ class QtKeyBindItem(QtW.QGroupBox):
         _layout.setContentsMargins(2, 0, 2, 0)
         self.setLayout(_layout)
         self._key_label = QtW.QLabel()
-        self._key_label.setFixedWidth(240)
         self._desc = QtW.QLabel()
         _layout.addWidget(self._key_label)
         _layout.addWidget(self._desc)

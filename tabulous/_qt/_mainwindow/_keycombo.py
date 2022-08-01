@@ -39,7 +39,6 @@ def _(self: _QtMainWidgetBase, mode):
     self._table_viewer.current_table.view_mode = mode
     return None
 
-@QMainWidget._keymap.bind("Ctrl+Shift+C")
 @QMainWindow._keymap.bind("Ctrl+Shift+C")
 def _(self: _QtMainWidgetBase):
     """Toggle embeded console visibility."""
@@ -116,8 +115,8 @@ def _(self: QMainWindow):
     return self._tablestack.setCurrentIndex(idx)
 
 
-@QMainWidget._keymap.bind("Ctrl+Shift+?")
-@QMainWindow._keymap.bind("Ctrl+Shift+?")
+@QMainWidget._keymap.bind("Ctrl+K, Shift+?")
+@QMainWindow._keymap.bind("Ctrl+K, Shift+?")
 def _(self: _QtMainWidgetBase):
     """Open a keymap viewer."""
     return self.showKeyMap()
@@ -171,8 +170,8 @@ def _(self: _QtMainWidgetBase):
     self._table_viewer.tables.move(src + 1, src)
 
 
-@QMainWidget._keymap.bind("Ctrl+Shift+|")
-@QMainWindow._keymap.bind("Ctrl+Shift+|")
+@QMainWidget._keymap.bind("Ctrl+K, ^")
+@QMainWindow._keymap.bind("Ctrl+K, ^")
 def _(self: _QtMainWidgetBase):
     """Tile table."""
     num = self._tablestack.count()
