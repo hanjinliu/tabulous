@@ -10,9 +10,9 @@ import pandas as pd
 from collections_undo import UndoManager
 from ._model_base import AbstractDataFrameModel
 
-from ..._utils import show_messagebox
 from ..._keymap import QtKeys, QtKeyMap
 from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
+from ....exceptions import SelectionRangeError
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
@@ -382,10 +382,7 @@ class QBaseTable(QtW.QSplitter):
         nr = len(r_ranges)
         nc = len(c_ranges)
         if nr > 1 and nc > 1:
-            show_messagebox(
-                mode="error", title="Error", text="Wrong selection range.", parent=self
-            )
-            return
+            raise SelectionRangeError("Cannot copy selected range.")
         else:
             data = self.model().df
             if nr == 1:
@@ -429,8 +426,7 @@ class QBaseTable(QtW.QSplitter):
                 self.model().df = data_sliced[sl_filt]
             except Exception as e:
                 self._filter_slice = None
-                msg = f"Error in filter.\n\n{type(e).__name__} {e}\n\n Filter is reset."
-                show_messagebox("error", "Error", msg, self)
+                raise ValueError("Error in filter. Filter is reset.") from e
         self.refresh()
 
     def copy(self, link: bool = True) -> Self:
@@ -703,12 +699,7 @@ class QMutableTable(QBaseTable):
         if n_selections == 0 or not self.isEditable():
             return
         elif n_selections > 1:
-            return show_messagebox(
-                mode="error",
-                title="Error",
-                text="Cannot paste with multiple selections.",
-                parent=self,
-            )
+            raise ValueError("Cannot paste to multiple selections.")
 
         df = self.readClipBoard()
 
@@ -737,12 +728,9 @@ class QMutableTable(QBaseTable):
                 clen = dc
 
             if (rlen, clen) != (dr, dc):
-                return show_messagebox(
-                    mode="error",
-                    title="Error",
-                    text=f"Shape mismatch between data in clipboard {(rlen, clen)} and "
-                    f"destination {(dr, dc)}.",
-                    parent=self,
+                raise SelectionRangeError(
+                    f"Shape mismatch between data in clipboard {(rlen, clen)} and "
+                    f"destination {(dr, dc)}."
                 )
             else:
                 sel = (rrange, crange)
@@ -753,28 +741,14 @@ class QMutableTable(QBaseTable):
         dtype_src = df.dtypes.values
         dtype_dst = self._data_raw.dtypes.values[csel]
         if any(a.kind != b.kind for a, b in zip(dtype_src, dtype_dst)):
-            return show_messagebox(
-                mode="error",
-                title="Error",
-                text=f"Data type mismatch between data in clipboard {list(dtype_src)} and "
-                f"destination {list(dtype_dst)}.",
-                parent=self,
+            raise ValueError(
+                f"Data type mismatch between data in clipboard {list(dtype_src)} and "
+                f"destination {list(dtype_dst)}."
             )
+
         # update table
-        try:
-            self.setDataFrameValue(rsel, csel, df)
-
-        except Exception as e:
-            show_messagebox(
-                mode="error",
-                title=e.__class__.__name__,
-                text=str(e),
-                parent=self,
-            )
-            raise e from None
-
-        else:
-            self.setSelections([sel])
+        self.setDataFrameValue(rsel, csel, df)
+        self.setSelections([sel])
 
         return None
 
