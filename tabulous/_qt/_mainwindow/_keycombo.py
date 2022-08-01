@@ -39,7 +39,6 @@ def _(self: _QtMainWidgetBase, mode):
     self._table_viewer.current_table.view_mode = mode
     return None
 
-@QMainWidget._keymap.bind("Ctrl+Shift+C")
 @QMainWindow._keymap.bind("Ctrl+Shift+C")
 def _(self: _QtMainWidgetBase):
     """Toggle embeded console visibility."""

@@ -546,6 +546,14 @@ class QMutableTable(QBaseTable):
         )
         self._mgr.clear()
 
+        @self.rowChangedSignal.connect
+        def _on_row_changed(info: HeaderInfo):
+            return self.setVerticalHeaderValue(info.index, info.value)
+
+        @self.columnChangedSignal.connect
+        def _on_col_changed(info: HeaderInfo):
+            return self.setHorizontalHeaderValue(info.index, info.value)
+
     def tableShape(self) -> tuple[int, int]:
         """Return the available shape of the table."""
         model = self.model()
@@ -794,18 +802,59 @@ class QMutableTable(QBaseTable):
 
         qtable = self._qtable_view
         _header = qtable.horizontalHeader()
-        _line = QtW.QLineEdit(_header)
+        self._prepare_header_line_edit(
+            _header,
+            (_header.sectionSize(index), _header.height()),
+            (None, _header.sectionViewportPosition(index)),
+            self.columnChangedSignal,
+            index,
+            self.model().df.index,
+        )
+
+        return None
+
+    def editVerticalHeader(self, index: int):
+        if not self.isEditable():
+            return
+
+        qtable = self._qtable_view
+        _header = qtable.verticalHeader()
+        self._prepare_header_line_edit(
+            _header,
+            (_header.width(), _header.sectionSize(index)),
+            (_header.sectionViewportPosition(index), None),
+            self.rowChangedSignal,
+            index,
+            self.model().df.index,
+        )
+
+        return None
+
+    def _prepare_header_line_edit(
+        self,
+        header: QtW.QHeaderView,
+        size: tuple[int, int],
+        topleft: tuple[int, int],
+        signal: Signal,
+        index: int,
+        df_axis: pd.Index,
+    ):
+        _line = QtW.QLineEdit(header)
+        width, height = size
+        top, left = topleft
         edit_geometry = _line.geometry()
-        edit_geometry.setHeight(_header.height())
-        edit_geometry.setWidth(_header.sectionSize(index))
-        edit_geometry.moveLeft(_header.sectionViewportPosition(index))
+        edit_geometry.setHeight(height)
+        edit_geometry.setWidth(width)
+        if top is not None:
+            edit_geometry.moveTop(top)
+        if left is not None:
+            edit_geometry.moveLeft(left)
         _line.setGeometry(edit_geometry)
         _line.setHidden(False)
         _line.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        column_axis = self.model().df.columns
-        if index < column_axis.size:
-            old_value = column_axis[index]
+        if index < df_axis.size:
+            old_value = df_axis[index]
             text = str(old_value)
         else:
             old_value = None
@@ -821,63 +870,16 @@ class QMutableTable(QBaseTable):
         def _set_header_data():
             if self._line is None:
                 return None
-            self._line.setHidden(True)
             value = self._line.text()
+            self._line.setHidden(True)
             if not value == old_value:
-                self.setHorizontalHeaderValue(index, value)
-                self.columnChangedSignal.emit(HeaderInfo(index, value, old_value))
+                signal.emit(HeaderInfo(index, value, old_value))
             self._line = None
-            qtable.setFocus()
-            qtable.clearSelection()
+            header.parent().setFocus()
+            header.parent().clearSelection()
             return None
 
-        return None
-
-    def editVerticalHeader(self, index: int):
-        if not self.isEditable():
-            return
-
-        qtable = self._qtable_view
-        _header = qtable.verticalHeader()
-        _line = QtW.QLineEdit(_header)
-        edit_geometry = _line.geometry()
-        edit_geometry.setHeight(_header.sectionSize(index))
-        edit_geometry.setWidth(_header.width())
-        edit_geometry.moveTop(_header.sectionViewportPosition(index))
-        _line.setGeometry(edit_geometry)
-        _line.setHidden(False)
-
-        index_axis = self.model().df.index
-
-        if index < index_axis.size:
-            old_value = index_axis[index]
-            text = str(old_value)
-        else:
-            old_value = None
-            text = ""
-
-        _line.setText(str(text))
-        _line.setFocus()
-        _line.selectAll()
-        _line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self._line = _line
-
-        @_line.editingFinished.connect
-        def _set_header_data():
-            if self._line is None:
-                return None
-            self._line.setHidden(True)
-            value = self._line.text()
-            if not value == old_value:
-                self.setVerticalHeaderValue(index, value)
-                self.rowChangedSignal.emit(HeaderInfo(index, value, old_value))
-            self._line = None
-            qtable.setFocus()
-            qtable.clearSelection()
-            return None
-
-        return None
+        return _line
 
     @QBaseTable._mgr.interface
     def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
