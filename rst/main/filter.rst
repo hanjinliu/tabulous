@@ -11,14 +11,14 @@ You can apply a filter to a table without converting the internal data.
 Apply Filters Programmatically
 ==============================
 
-You only have to set a function that maps a ``DataFrame`` to a 1-D boolean array to
+You only have to set a function that maps a :class:`DataFrame` to a 1-D boolean array to
 the property ``filter``. For instance, following code
 
 .. code-block:: python
 
     table.filter = lambda df: df["label"] == "A"
 
-is essentially equivalent to slicing a ``DataFrame`` with ``df[df["label"] == "A"]``.
+is essentially equivalent to slicing a :class:`DataFrame` with ``df[df["label"] == "A"]``.
 
 If the table is
 

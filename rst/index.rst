@@ -34,6 +34,7 @@ Basics
    ./main/selections
    ./main/filter
    ./main/table_advanced
+   ./main/keycombo
 
 
 Cooperate with Other Widgets

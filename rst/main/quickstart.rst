@@ -43,20 +43,20 @@ Handle Tables
 =============
 
 Basically, table data is handled based on ``pandas``.
-A :class:`TableViewer` instance has several methods that add ``DataFrame`` to the viewer.
+A :class:`TableViewer` instance has several methods that add :class:`DataFrame` to the viewer.
 
 ``Table``
 ---------
 
-A :class:`Table` is the most simple interface with ``DataFrame``.
+A :class:`Table` is the most simple interface with :class:`DataFrame`.
 
-- It stores a copy of an input ``DataFrame`` as is.
+- It stores a copy of an input :class:`DataFrame` as is.
 - It is not editable by default.
 - Table shape is fixed unless data is fully updated by ``table.data = new_data``.
 - When edited, the input value will be checked for the column data type. Wrong input will be
   rejected.
 
-A ``DataFrame`` (or other objects that can be converted into a ``DataFrame``) can be added to
+A :class:`DataFrame` (or other objects that can be converted into a :class:`DataFrame`) can be added to
 the viewer using ``add_table`` method.
 
 .. code-block:: python
@@ -74,21 +74,21 @@ the viewer using ``add_table`` method.
 
 .. note::
 
-    The newly added table is stored in ``tables`` property of the viewer in a ``list`` like
+    The newly added table is stored in :attr:`tables` property of the viewer in a :class:`list` like
     structure.
 
     .. code-block:: python
 
         viewer.tables[0]  # the 0-th table
 
-You can rename a table by ``name`` property. Tab name is also renamed accordingly.
+You can rename a table by :attr:`name` property. Tab name is also renamed accordingly.
 
 .. code-block:: python
 
     table.name = "new name"
 
 
-You have to pass ``editable=True`` or set the ``editable`` property to make it editable on GUI.
+You have to pass ``editable=True`` or set the :attr:`editable` property to make it editable on GUI.
 
 .. code-block:: python
 
@@ -125,7 +125,7 @@ See :doc:`selections` for more details.
 
 A ``SpreadSheet`` behaves more like Excel or Google Spreadsheet.
 
-- It stores a copy of an input ``DataFrame`` as "string" types.
+- It stores a copy of an input :class:`DataFrame` as "string" types.
 - It is editable by default and the input value will not be checked.
 - Shape of table is unlimited (as far as it is not too large).
 - The data type is inferred by ``pd.read_csv`` when it is obtained by ``data`` property.
@@ -140,7 +140,7 @@ For instance, if you manually edited the cells
 | 1 | 3 | u |
 +---+---+---+
 
-then you'll get following ``DataFrame``.
+then you'll get following :class:`DataFrame`.
 
 .. code-block::
 
@@ -194,8 +194,6 @@ object with some extended methods.
 You can also get currently acitive (visible) table or its index with
 ``viewer.current_table`` or ``viewer.current_index``.
 
-``TableList`` object.
-
 Embedded Console
 ================
 
@@ -203,8 +201,8 @@ To programmatically analyze table data, you can just open the embedded
 interpreter. It is dependent on `qtconsole <https://qtconsole.readthedocs.io/en/stable/>`_
 package.
 
-The console is not visible by default. You can show it by setting ``visible``
-property of ``console`` interface to ``True``
+The console is not visible by default. You can show it by setting :attr:`visible`
+property of :attr:`console` interface to ``True``
 
 .. code-block:: python
 

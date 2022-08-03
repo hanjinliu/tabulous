@@ -31,7 +31,7 @@ Each selection is a ``tuple[slice, slice]`` object.
 
     (slice(0, 100, None), slice(0, 1, None))
 
-Thus, you can use them directly in ``iloc`` method of ``DataFrame``.
+Thus, you can use them directly in ``iloc`` method of :class:`DataFrame`.
 
 .. code-block:: python
 

@@ -83,18 +83,6 @@ class TableInfoInstance(Tuple["pd.DataFrame", List[str]]):
         raise TypeError(f"Type {cls.__name__} cannot be instantiated.")
 
 
-def _check_tuple_of_slices(value: Any) -> tuple[slice, slice]:
-    v0, v1 = value
-    if isinstance(v0, slice) and isinstance(v1, slice):
-        if v0.step and v0.step != 1:
-            raise ValueError("Cannot set slice with step.")
-        if v1.step and v1.step != 1:
-            raise ValueError("Cannot set slice with step.")
-        return tuple(value)
-    else:
-        raise TypeError(f"Invalid input: ({type(v0)}, {type(v1)}).")
-
-
 class SelectionRanges(Sequence[tuple[slice, slice]]):
     """A table data specific selection range list."""
 
