@@ -216,6 +216,24 @@ class _QTableViewEnhanced(QtW.QTableView):
         return parent
 
 
+class QTableHandle(QtW.QSplitterHandle):
+    def __init__(self, o: Qt.Orientation, parent: QtW.QSplitter) -> None:
+        super().__init__(o, parent)
+        self._sizes = parent.sizes()
+
+    def mouseDoubleClickEvent(self, a0: QtGui.QMouseEvent) -> None:
+        """Collapse/expand side area."""
+        parent = self.splitter()
+        sizes = parent.sizes()
+        if sizes[1] == 0:
+            parent.setSizes(self._sizes)
+        else:
+            self._sizes = sizes
+            parent.setSizes([1, 0])
+
+        return super().mouseDoubleClickEvent(a0)
+
+
 class QBaseTable(QtW.QSplitter):
     """
     The base widget for a table.
@@ -255,6 +273,19 @@ class QBaseTable(QtW.QSplitter):
 
         self._side_area = None
         self.model()._editable = self._DEFAULT_EDITABLE
+        self.setStyleSheet(
+            "QSplitter::handle:horizontal {"
+            "background-color: gray;"
+            "border: 0px;"
+            "width: 4px;"
+            "margin-top: 5px;"
+            "margin-bottom: 5px;"
+            "border-radius: 2px;}"
+        )
+
+    def createHandle(self) -> QTableHandle:
+        """Create custom handle."""
+        return QTableHandle(Qt.Orientation.Horizontal, self)
 
     @property
     def _qtable_view(self) -> _QTableViewEnhanced:
