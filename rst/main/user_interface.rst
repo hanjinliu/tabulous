@@ -6,7 +6,8 @@ Tables
 ======
 
 Arrow keys ``→``, ``←``, ``↑``, ``↓`` with ``Ctrl`` (or ``⌘`` in Mac), ``Shift`` modifier
-work as you expects in most of table data editors.
+work as you expects in most of table data editors. ``Ctrl`` + mouse wheel zooms in/out
+table.
 
 .. image:: ../fig/table_interface_0.gif
 

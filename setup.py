@@ -27,6 +27,7 @@ setup(
         "collections-undo>=0.0.2",
         "qtconsole",
     ],
+    extras_require={"all": ["seaborn>=0.11", "matplotlib>=3.1", "pyqt5>=5.12.3"]},
     entry_points={
         "console_scripts": [
             "tabulous=tabulous.__main__:main",
