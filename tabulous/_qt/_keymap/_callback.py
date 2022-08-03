@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import FunctionType
 from typing import (
     Any,
     Callable,
@@ -30,25 +31,29 @@ class BoundCallback(partial):
 
         import inspect
 
-        sig = inspect.signature(func)
-        params = dict(sig.parameters)
+        try:
+            sig = inspect.signature(func)
+        except ValueError:
+            sig = None
+        else:
+            params = dict(sig.parameters)
 
-        # check argument names if **kwargs is not in the function
-        if not any(
-            param.kind
-            in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
-            for param in params.values()
-        ):
-            new_params: dict[str, inspect.Parameter] = {}
-            for name in kwargs:
-                if name not in params:
-                    raise TypeError(
-                        f"{func} does not accept keyword argument {name!r}."
-                    )
+            # check argument names if **kwargs is not in the function
+            if not any(
+                param.kind
+                in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
+                for param in params.values()
+            ):
+                new_params: dict[str, inspect.Parameter] = {}
+                for name in kwargs:
+                    if name not in params:
+                        raise TypeError(
+                            f"{func} does not accept keyword argument {name!r}."
+                        )
 
-                new_params[name] = params[name].replace(default=kwargs[name])
-            params.update(new_params)
-            sig = sig.replace(parameters=list(params.values()))
+                    new_params[name] = params[name].replace(default=kwargs[name])
+                params.update(new_params)
+                sig = sig.replace(parameters=list(params.values()))
 
         self: Self = partial.__new__(cls, func, **kwargs)
         self.desc = desc
@@ -99,8 +104,12 @@ class BoundCallback(partial):
     def __get__(self, obj, objtype=None) -> BoundCallback:
         if obj is None:
             return self
+        if isinstance(self.func, FunctionType):
+            method = self.func.__get__(obj, objtype)
+        else:
+            method = partial(self.func, obj)
         return BoundCallback(
-            self.func.__get__(obj, objtype),
+            method,
             desc=self.desc,
             keys=self.keys,
             kwargs=self.keywords,

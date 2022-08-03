@@ -1,3 +1,4 @@
+from unittest.mock import MagicMock
 from tabulous import TableViewer, TableViewerWidget
 import numpy as np
 from ._utils import get_tabwidget_tab_name
@@ -81,3 +82,18 @@ def test_components(viewer_cls: type[TableViewerWidget]):
     assert viewer.toolbar.visible
     viewer.toolbar.visible = False
     assert not viewer.toolbar.visible
+
+@pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
+def test_bind_keycombo(viewer_cls: type[TableViewerWidget]):
+    viewer = viewer_cls()
+
+    mock = MagicMock()
+
+    viewer.keymap.bind("T")(mock)
+    mock.assert_not_called()
+    viewer.keymap.press_key("T")
+    mock.assert_called_once()
+
+    with pytest.raises(Exception):
+        viewer.keymap.bind("T")(mock)
+    viewer.keymap.bind("T", overwrite=True)(print)
