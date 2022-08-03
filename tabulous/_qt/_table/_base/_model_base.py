@@ -9,8 +9,6 @@ from ....color import normalize_color, ColorType
 
 # https://ymt-lab.com/post/2020/pyqt5-qtableview-pandas-qabstractitemmodel/
 
-_FONT = "Arial"
-
 
 class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     dataEdited = Signal(int, int, object)
@@ -19,12 +17,15 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         super().__init__(parent)
         self._df = pd.DataFrame([])
 
+        from ...._global_variables import table
+
         # settings
         self._editable = False
-        self._font_size = 10
+        self._font_size = table.font_size
         self._zoom = 1.0
-        self._h_default = 28
-        self._w_default = 100
+        self._h_default = table.row_size
+        self._w_default = table.column_size
+        self._font = table.font
         self._foreground_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
         self._background_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
 
@@ -98,7 +99,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return QtCore.QVariant()
 
     def _data_font(self, index: QtCore.QModelIndex):
-        return QtGui.QFont(_FONT, int(self._font_size * self._zoom))
+        return QtGui.QFont(self._font, int(self._font_size * self._zoom))
 
     def _data_background_color(self, index: QtCore.QModelIndex):
         r, c = index.row(), index.column()
@@ -151,7 +152,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 return None
 
         elif role == Qt.ItemDataRole.FontRole:
-            return QtGui.QFont(_FONT, int(self._font_size * self._zoom))
+            return QtGui.QFont(self._font, int(self._font_size * self._zoom))
 
     def setData(self, index: QtCore.QModelIndex, value, role) -> bool:
         if not index.isValid():

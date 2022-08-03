@@ -85,7 +85,18 @@ class _QtConsole(RichJupyterWidget):
             raise ValueError("ipython shell not recognized; " f"got {type(shell)}")
 
         if self.shell is not None:
-            self.shell.push({"viewer": widget})
+            from .._global_variables import default_namespace as _ns
+            import tabulous as tbl
+            import numpy as np
+            import pandas as pd
+
+            ns = {
+                _ns.viewer: widget,
+                _ns.numpy: np,
+                _ns.pandas: pd,
+                _ns.tabulous: tbl,
+            }
+            self.shell.push(ns)
 
     def setFocus(self):
         """Set focus to the text edit."""

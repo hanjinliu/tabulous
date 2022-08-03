@@ -8,9 +8,6 @@ from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 
-MAX_ROW_SIZE = 100000
-MAX_COLUMN_SIZE = 100000
-
 
 class SpreadSheetModel(AbstractDataFrameModel):
     @property
@@ -22,10 +19,14 @@ class SpreadSheetModel(AbstractDataFrameModel):
         self._df = data
 
     def rowCount(self, parent=None):
-        return min(self._df.shape[0] + 10, MAX_ROW_SIZE)
+        from ..._global_variables import table
+
+        return min(self._df.shape[0] + 10, table.max_row_count)
 
     def columnCount(self, parent=None):
-        return min(self._df.shape[1] + 10, MAX_COLUMN_SIZE)
+        from ..._global_variables import table
+
+        return min(self._df.shape[1] + 10, table.max_column_count)
 
     def insertRows(
         self, row: int, count: int, parent: QtCore.QModelIndex = None
