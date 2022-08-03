@@ -12,7 +12,7 @@ from ._model_base import AbstractDataFrameModel
 
 from ..._keymap import QtKeys, QtKeyMap
 from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
-from ....exceptions import SelectionRangeError
+from ....exceptions import SelectionRangeError, TableImmutableError
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
@@ -300,7 +300,7 @@ class QBaseTable(QtW.QSplitter):
         return QtW.QTableView.model(self._qtable_view)
 
     def setDataFrameValue(self, row: int, col: int, value: Any) -> None:
-        raise TypeError("Table is immutable.")
+        raise TableImmutableError("Table is immutable.")
 
     def precision(self) -> int:
         """Return table value precision."""
@@ -393,7 +393,7 @@ class QBaseTable(QtW.QSplitter):
             ref.to_clipboard(index=headers, header=headers)
 
     def pasteFromClipBoard(self):
-        raise TypeError("Table is immutable.")
+        raise TableImmutableError("Table is immutable.")
 
     def readClipBoard(self) -> pd.DataFrame:
         """Read clipboard data and return as pandas DataFrame."""

@@ -30,6 +30,7 @@ Basics
 .. toctree::
    :maxdepth: 2
 
+   ./main/user_interface
    ./main/selections
    ./main/filter
    ./main/table_advanced

@@ -13,7 +13,6 @@ from typing import (
     NamedTuple,
     SupportsIndex,
 )
-from typing_extensions import Annotated
 from enum import Enum
 import weakref
 
@@ -53,6 +52,8 @@ TableDataTuple = NewType("TableDataTuple", tuple)
 
 class TableInfoAlias(type):
     def __getitem__(cls, names: str | tuple[str, ...]):
+        from typing_extensions import Annotated
+
         if isinstance(names, str):
             names = (names,)
         else:
@@ -98,6 +99,8 @@ class SelectionRanges(Sequence[tuple[slice, slice]]):
     """A table data specific selection range list."""
 
     def __init__(self, data: TableBase, ranges: Iterable[tuple[slice, slice]] = ()):
+        # NOTE: it's better to use NamedTuple for a rectangular selection but
+        # unfortunately DataFrame does not support slicing with NamedTuple.
         self._ranges = list(ranges)
         self._data_ref = weakref.ref(data)
 

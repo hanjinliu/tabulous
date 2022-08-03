@@ -10,6 +10,10 @@ class SelectionRangeError(ValueError):
     """Raised when the exception is caused by wrong selection range(s)."""
 
 
+class TableImmutableError(ValueError):
+    """Raised when immutable table was being tried to edit."""
+
+
 class ExceptionHandler:
     """Handle exceptions in the GUI thread."""
 

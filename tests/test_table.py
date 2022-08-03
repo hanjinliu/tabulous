@@ -51,6 +51,18 @@ def test_editing_data(df: pd.DataFrame):
     edit_cell(table._qwidget, 0, 0, "11")
     assert str(df.iloc[0, 0]) == "11"
 
+def test_copy():
+    viewer = TableViewer(show=False)
+    df = pd.DataFrame({"a": [1, 2, 3], "b": [0, 0, 0]})
+    table = viewer.add_table(df, copy=True, editable=True)
+    table.cell[0, 0] = "11"
+    assert df.iloc[0, 0] == 1
+
+    df = pd.DataFrame({"a": [1, 2, 3], "b": [0, 0, 0]})
+    table = viewer.add_table(df, copy=False, editable=True)
+    table.cell[0, 0] = "11"
+    assert df.iloc[0, 0] == 11
+
 @pytest.mark.parametrize("df", [df0, df1])
 def test_updating_data(df: pd.DataFrame):
     viewer = TableViewer(show=False)

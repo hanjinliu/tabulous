@@ -3,8 +3,10 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Callable, TYPE_CHECKING, Hashable
 from psygnal import SignalGroup, Signal
+
 from .filtering import FilterProxy
 
+from ..exceptions import TableImmutableError
 from ..types import (
     SelectionRanges,
     ItemInfo,
@@ -40,6 +42,8 @@ class TableSignals(SignalGroup):
 
 
 class ViewMode(Enum):
+    """Enum of view modes"""
+
     normal = "normal"
     horizontal = "horizontal"
     vertical = "vertical"
@@ -70,6 +74,8 @@ class CellInterface:
         row, col = key
         if self.parent.editable:
             self.parent._qwidget.setDataFrameValue(row, col, value)
+        else:
+            raise TableImmutableError("Table is not editable.")
         return None
 
 
@@ -350,7 +356,7 @@ class GroupBy(TableBase):
             else:
                 it = enumerate(data)
             for key, df in it:
-                df = pd.DataFrame(df)
+                df = pd.DataFrame(df, copy=True)
                 if group in df.columns:
                     raise ValueError("Input data must not have a 'group' column.")
                 data_all.append(df.assign(group=key))
