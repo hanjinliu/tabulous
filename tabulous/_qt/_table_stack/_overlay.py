@@ -21,6 +21,7 @@ class QOverlayWidget(QtW.QDialog):
     def __init__(self, parent: QTabbedTableStack):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.SubWindow)
+        self._widget = None
 
         _layout = QtW.QVBoxLayout()
         _layout.setContentsMargins(2, 2, 2, 2)
@@ -37,10 +38,16 @@ class QOverlayWidget(QtW.QDialog):
             self.removeWidget()
         self.layout().addWidget(widget)
         self.resize(widget.sizeHint())
+        self._widget = widget
+        self.alignToParent()
 
     def removeWidget(self):
+        self._widget = None
         self.layout().removeWidget(self.layout().itemAt(0).widget())
         self.resize(QtCore.QSize(0, 0))
+
+    def widget(self) -> QtW.QWidget:
+        return self._widget
 
     def anchor(self) -> Anchor:
         return self._anchor
@@ -81,10 +88,6 @@ class QOverlayWidget(QtW.QDialog):
         """Return the parent table rect."""
         parent = self.parentWidget()
         rect = parent.rect()
-        # w = parent.verticalScrollBar().width()
-        # h = parent.horizontalScrollBar().height()
-        # rect.setWidth(rect.width() - w)
-        # rect.setHeight(rect.height() - h)
         return rect
 
     def alignTopLeft(self, offset=(8, 8)):

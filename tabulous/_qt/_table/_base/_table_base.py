@@ -336,6 +336,10 @@ class QBaseTable(QtW.QSplitter):
     def deleteValues(self, row: int, col: int) -> None:
         raise TableImmutableError("Table is immutable.")
 
+    def convertValue(self, r: int, c: int, value: Any) -> Any:
+        """Convert value before updating DataFrame."""
+        return value
+
     def precision(self) -> int:
         """Return table value precision."""
         return self.itemDelegate().ndigits
@@ -599,10 +603,6 @@ class QMutableTable(QBaseTable):
     def tableSlice(self) -> pd.DataFrame:
         """Return 2D table for display."""
         return self._data_raw
-
-    def convertValue(self, r: int, c: int, value: Any) -> Any:
-        """Convert value before updating DataFrame."""
-        return value
 
     def setDataFrameValue(self, r: _Sliceable, c: _Sliceable, value: Any) -> None:
         data = self._data_raw

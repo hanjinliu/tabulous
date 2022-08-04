@@ -91,6 +91,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Table", self.pivot, ICON_DIR / "pivot.svg")
         self.registerAction("Table", self.melt, ICON_DIR / "melt.svg")
         self.addSeparatorToChild("Table")
+        self.registerAction("Table", self.find_item, ICON_DIR / "find_item.svg")
         self.registerAction("Table", self.query, ICON_DIR / "query.svg")
 
         self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
@@ -276,6 +277,18 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def toggle_console(self):
         """Toggle embedded console."""
         return self.parent().toggleConsoleVisibility()
+
+    def find_item(self):
+        """Toggle finder"""
+        ol = self.parent()._tablestack._overlay
+        ol.show()
+        from ._table_stack._finder import QFinderWidget
+
+        if not isinstance(ol.widget(), QFinderWidget):
+            _finder = QFinderWidget(ol)
+            _finder.searchBox().escClicked.connect(ol.hide)
+            ol.addWidget(_finder)
+            _finder.searchBox().setFocus()
 
     def query(self):
         """Filter table using a query."""
