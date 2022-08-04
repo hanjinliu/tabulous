@@ -78,6 +78,15 @@ class CellInterface:
             raise TableImmutableError("Table is not editable.")
         return None
 
+    def __delitem__(self, key: tuple[int, int]) -> None:
+        row, col = key
+        if self.parent.editable:
+            self.parent._qwidget.setSelections([(row, col)])
+            self.parent._qwidget.deleteValues()
+        else:
+            raise TableImmutableError("Table is not editable.")
+        return None
+
 
 class TableBase(ABC):
     """The base class for a table layer."""

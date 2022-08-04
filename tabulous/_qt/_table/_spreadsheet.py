@@ -10,6 +10,8 @@ from ._base import AbstractDataFrameModel, QMutableSimpleTable
 
 
 class SpreadSheetModel(AbstractDataFrameModel):
+    """A DataFrameModel for a spreadsheet."""
+
     @property
     def df(self) -> pd.DataFrame:
         return self._df
@@ -36,7 +38,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
         self.beginInsertRows(parent, row, row + count - 1)
         df0 = df.iloc[:row, :]
         df1 = pd.DataFrame(
-            np.full((count, df.shape[1]), np.nan), columns=df.columns, dtype="string"
+            np.full((count, df.shape[1]), ""), columns=df.columns, dtype="string"
         )
         df2 = df.iloc[row:, :]
         self.df = pd.concat([df0, df1, df2], axis=0)
@@ -51,7 +53,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
         self.beginInsertColumns(parent, column, column + count - 1)
         df0 = df.iloc[:, :column]
         df1 = pd.DataFrame(
-            np.full((df.shape[0], count), np.nan), index=df.index, dtype="string"
+            np.full((df.shape[0], count), ""), index=df.index, dtype="string"
         )
         df2 = df.iloc[:, column:]
         self.df = pd.concat([df0, df1, df2], axis=1)
@@ -61,6 +63,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
     def removeRows(
         self, row: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
+        """Remove rows at the given column number and count."""
         if count <= 0:
             return False
         df = self.df
@@ -73,6 +76,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
     def removeColumns(
         self, column: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
+        """Remove columns at the given column number and count."""
         if count <= 0:
             return False
         df = self.df
@@ -93,6 +97,7 @@ class QSpreadSheet(QMutableSimpleTable):
     """
 
     _DEFAULT_EDITABLE = True
+    NaN = ""
 
     def __init__(self, parent=None, data: pd.DataFrame | None = None):
         super().__init__(parent, data)
@@ -126,6 +131,14 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setFilter(None)
         self.refresh()
         return
+
+    def updateValue(self, r, c, val):
+        # NOTE: It seems very weird but the string array of pandas does not
+        # support setting (N, 1) string array.
+        if isinstance(val, pd.DataFrame) and isinstance(c, slice) and c.stop == 1:
+            val = list(val.iloc[:, 0])
+
+        return super().updateValue(r, c, val)
 
     @setDataFrame.server
     def setDataFrame(self, data):
@@ -167,7 +180,6 @@ class QSpreadSheet(QMutableSimpleTable):
         with self._mgr.merging(name="setDataFrameValue"):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
-            # TODO: nan is sometimes problematic in pandas.
             super().setDataFrameValue(r, c, value)
             self.setFilter(self._filter_slice)
 
@@ -258,10 +270,10 @@ def _get_limit(a) -> int:
     return amax
 
 
-def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int) -> pd.DataFrame:
+def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value="") -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame(
-            np.full((nr, nc), np.nan),
+            np.full((nr, nc), value),
             index=range(nr),
             columns=range(nc),
             dtype="string",
@@ -271,14 +283,14 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int) -> pd.DataFrame:
     if nr > 0:
         if df.size == 0:
             df = pd.DataFrame(
-                np.full((nr, 1), np.nan),
+                np.full((nr, 1), value),
                 index=range(nr),
                 dtype="string",
             )
         else:
             _nr, _nc = df.shape
             ext = pd.DataFrame(
-                np.full((nr, _nc), np.nan),
+                np.full((nr, _nc), value),
                 index=range(_nr, _nr + nr),
                 columns=df.columns,
                 dtype="string",
@@ -289,14 +301,14 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int) -> pd.DataFrame:
     if nc > 0:
         if df.size == 0:
             df = pd.DataFrame(
-                np.full((1, nc), np.nan),
+                np.full((1, nc), value),
                 columns=range(nc),
                 dtype="string",
             )
         else:
             _nr, _nc = df.shape
             ext = pd.DataFrame(
-                np.full((_nr, nc), np.nan),
+                np.full((_nr, nc), value),
                 index=df.index,
                 columns=range(_nc, _nc + nc),
                 dtype="string",

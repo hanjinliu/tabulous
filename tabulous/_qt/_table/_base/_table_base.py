@@ -333,6 +333,9 @@ class QBaseTable(QtW.QSplitter):
     def setDataFrameValue(self, row: int, col: int, value: Any) -> None:
         raise TableImmutableError("Table is immutable.")
 
+    def deleteValues(self, row: int, col: int) -> None:
+        raise TableImmutableError("Table is immutable.")
+
     def precision(self) -> int:
         """Return table value precision."""
         return self.itemDelegate().ndigits
@@ -561,6 +564,7 @@ class QMutableTable(QBaseTable):
     columnChangedSignal = Signal(HeaderInfo)
     selectionChangedSignal = Signal()
     _data_raw: pd.DataFrame
+    NaN = np.nan
 
     def __init__(
         self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None
@@ -794,7 +798,10 @@ class QMutableTable(QBaseTable):
             nc = csel.stop - csel.start
             dtypes = list(self._data_raw.dtypes.values[csel])
             df = pd.DataFrame(
-                {c: pd.Series(np.full(nr, np.nan), dtype=dtypes[c]) for c in range(nc)},
+                {
+                    c: pd.Series(np.full(nr, self.NaN), dtype=dtypes[c])
+                    for c in range(nc)
+                },
             )
             self.setDataFrameValue(rsel, csel, df)
         return None
