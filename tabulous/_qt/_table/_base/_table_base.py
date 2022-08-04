@@ -275,12 +275,12 @@ class QBaseTable(QtW.QSplitter):
         self.model()._editable = self._DEFAULT_EDITABLE
         self.setStyleSheet(
             "QSplitter::handle:horizontal {"
-            "background-color: gray;"
-            "border: 0px;"
-            "width: 4px;"
-            "margin-top: 5px;"
-            "margin-bottom: 5px;"
-            "border-radius: 2px;}"
+            "    background-color: gray;"
+            "    border: 0px;"
+            "    width: 4px;"
+            "    margin-top: 5px;"
+            "    margin-bottom: 5px;"
+            "    border-radius: 2px;}"
         )
 
     def createHandle(self) -> QTableHandle:

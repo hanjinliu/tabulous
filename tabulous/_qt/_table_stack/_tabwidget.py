@@ -21,6 +21,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     tableRenamed = Signal(int, str)  # index
     tableRemoved = Signal(int)  # index
     tablePassed = Signal(object, int, object)  # source widget, tab_id, target widget
+    resizedSignal = Signal()
 
     def __init__(
         self,
@@ -61,6 +62,10 @@ class QTabbedTableStack(QtW.QTabWidget):
 
         # NOTE: this is needed to correctly refocus table groups.
         self.tabBarClicked.connect(self.setCurrentIndex)
+
+        from ._overlay import QOverlayWidget
+
+        self._overlay = QOverlayWidget(self)
 
         self._qt_context_menu = QTabContextMenu(self)
         self._line: QtW.QLineEdit | None = None  # temporal QLineEdit for editing tabs
@@ -172,6 +177,10 @@ class QTabbedTableStack(QtW.QTabWidget):
     def dragLeaveEvent(self, e: QtGui.QDragLeaveEvent):
         e.accept()
         return None
+
+    def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
+        self.resizedSignal.emit()
+        return super().resizeEvent(e)
 
     def tabRect(self, index: int):
         """Get QRect of the tab at index."""
