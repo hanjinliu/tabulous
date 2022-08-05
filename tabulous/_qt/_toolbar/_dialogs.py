@@ -1,7 +1,7 @@
 from typing import List
 import pandas as pd
-from .._magicgui import dialog_factory
-from ..types import TableData
+from ..._magicgui import dialog_factory
+from ...types import TableData
 
 
 @dialog_factory

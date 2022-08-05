@@ -169,6 +169,11 @@ def _(self: _QtMainWidgetBase):
         return
     self._table_viewer.tables.move(src + 1, src)
 
+@QMainWidget._keymap.bind("Ctrl+F")
+@QMainWindow._keymap.bind("Ctrl+F")
+def _(self: _QtMainWidgetBase):
+    """Tile table."""
+    self._toolbar.find_item()
 
 @QMainWidget._keymap.bind("Ctrl+K, ^")
 @QMainWindow._keymap.bind("Ctrl+K, ^")

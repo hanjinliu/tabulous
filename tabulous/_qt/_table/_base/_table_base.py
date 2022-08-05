@@ -298,7 +298,7 @@ class QBaseTable(QtW.QSplitter):
     def getDataFrame(self) -> pd.DataFrame:
         raise NotImplementedError()
 
-    def setDataFrame(self) -> None:
+    def setDataFrame(self, df: pd.DataFrame) -> None:
         raise NotImplementedError()
 
     def createModel(self) -> AbstractDataFrameModel:
@@ -334,6 +334,9 @@ class QBaseTable(QtW.QSplitter):
         raise TableImmutableError("Table is immutable.")
 
     def deleteValues(self, row: int, col: int) -> None:
+        raise TableImmutableError("Table is immutable.")
+
+    def assignColumn(self, ds: pd.Series):
         raise TableImmutableError("Table is immutable.")
 
     def convertValue(self, r: int, c: int, value: Any) -> Any:
@@ -663,6 +666,25 @@ class QMutableTable(QBaseTable):
         self.setSelections([(r_ori, c_ori)])
         self.itemChangedSignal.emit(ItemInfo(r, c, old_value, value))
         return None
+
+    def assignColumn(self, ds: pd.Series):
+        if ds.name in self._data_raw.columns:
+            ic = self._data_raw.columns.get_loc(ds.name)
+            self.setDataFrameValue(
+                slice(0, ds.size), slice(ic, ic + 1), pd.DataFrame(ds)
+            )
+        else:
+            self.assignNewColumn(ds)
+
+    @QBaseTable._mgr.undoable
+    def assignNewColumn(self, ds: pd.Series):
+        self._data_raw[ds.name] = ds
+        self.setDataFrame(self._data_raw)
+
+    @assignNewColumn.undo_def
+    def assignNewColumn(self, ds: pd.Series):
+        del self._data_raw[ds.name]
+        self.setDataFrame(self._data_raw)
 
     def updateValue(self, r, c, value):
         with warnings.catch_warnings():

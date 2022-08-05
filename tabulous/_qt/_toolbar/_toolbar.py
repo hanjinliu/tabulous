@@ -5,19 +5,19 @@ import weakref
 from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtWidgets import QAction
 
-from ._svg import QColoredSVGIcon
-from ._multitips import QHasToolTip
-from ._history import QtFileHistoryManager
+from .._svg import QColoredSVGIcon
+from .._multitips import QHasToolTip
+from .._history import QtFileHistoryManager
 from . import _dialogs as _dlg
 
 
 if TYPE_CHECKING:
-    from ._mainwindow import _QtMainWidgetBase
-    from ..widgets.mainwindow import TableViewerBase
+    from .._mainwindow import _QtMainWidgetBase
+    from ...widgets.mainwindow import TableViewerBase
 
 SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 
-ICON_DIR = Path(__file__).parent / "_icons"
+ICON_DIR = Path(__file__).parent.parent / "_icons"
 
 
 class _QToolBar(QtW.QToolBar, QHasToolTip):
@@ -95,6 +95,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Table", self.query, ICON_DIR / "query.svg")
 
         self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
+        self.registerAction("Analyze", self.eval, ICON_DIR / "query.svg")
         self.registerAction("Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg")
         self.addSeparatorToChild("Analyze")
         # fmt: on
@@ -282,7 +283,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         """Toggle finder"""
         ol = self.parent()._tablestack._overlay
         ol.show()
-        from ._table_stack._finder import QFinderWidget
+        from ._finder import QFinderWidget
 
         if not isinstance(ol.widget(), QFinderWidget):
             _finder = QFinderWidget(ol)
@@ -298,3 +299,16 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         out = _dlg.query(df={"bind": table.data})
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-query")
+
+    def eval(self):
+        """Evaluate a Python expression."""
+
+        ol = self.parent()._tablestack._overlay
+        ol.show()
+        from ._eval import QLiteralEval
+
+        if not isinstance(ol.widget(), QLiteralEval):
+            _evaluator = QLiteralEval(ol)
+            _evaluator.escClicked.connect(ol.hide)
+            ol.addWidget(_evaluator)
+            _evaluator.setFocus()

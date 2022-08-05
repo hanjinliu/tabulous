@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Iterator
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Signal, Qt
 
+from . import _utils
+
 if TYPE_CHECKING:
     from .._mainwindow import _QtMainWidgetBase
     import pandas as pd
@@ -17,7 +19,7 @@ class QFinderWidget(QtW.QWidget):
         self._search_box.textChanged.connect(self.initSearchBox)
         _layout.addWidget(self._search_box)
         self.setLayout(_layout)
-        self._qtable_viewer = _find_parent_table(self)
+        self._qtable_viewer = _utils.find_parent_table_viewer(self)
         self._current_iterator: Iterator[tuple[int, int]] | None = None
         self._find_method = "row"
 
@@ -96,12 +98,3 @@ class QSearchBox(QtW.QLineEdit):
             self.escClicked.emit()
         else:
             super().keyPressEvent(event)
-
-
-def _find_parent_table(qwidget: _QtMainWidgetBase) -> _QtMainWidgetBase:
-    x = qwidget
-    while (parent := x.parent()) is not None:
-        x = parent
-        if hasattr(x, "_table_viewer"):
-            return x
-    raise RuntimeError
