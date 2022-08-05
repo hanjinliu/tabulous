@@ -34,8 +34,3 @@ def pivot(df: TableData, index: str, columns: str, values: str):
 @dialog_factory
 def melt(df: TableData, id_vars: List[str]):
     return pd.melt(df, id_vars)
-
-
-@dialog_factory
-def query(df: TableData, expr: str):
-    return df.query(expr)

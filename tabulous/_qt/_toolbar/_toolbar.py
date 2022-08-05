@@ -92,12 +92,12 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Table", self.melt, ICON_DIR / "melt.svg")
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.find_item, ICON_DIR / "find_item.svg")
-        self.registerAction("Table", self.query, ICON_DIR / "query.svg")
 
         self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
-        self.registerAction("Analyze", self.eval, ICON_DIR / "query.svg")
-        self.registerAction("Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg")
+        self.registerAction("Analyze", self.eval, ICON_DIR / "eval.svg")
+        self.registerAction("Analyze", self.filter, ICON_DIR / "filter.svg")
         self.addSeparatorToChild("Analyze")
+        self.registerAction("Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg")
         # fmt: on
 
     @property
@@ -291,14 +291,21 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             ol.addWidget(_finder)
             _finder.searchBox().setFocus()
 
-    def query(self):
-        """Filter table using a query."""
-        table = self.viewer.current_table
-        if table is None:
-            return
-        out = _dlg.query(df={"bind": table.data})
-        if out is not None:
-            self.viewer.add_table(out, name=f"{table.name}-query")
+    def filter(self):
+        ol = self.parent()._tablestack._overlay
+        ol.show()
+        from ._eval import QLiteralEval
+
+        _evaluator = QLiteralEval(ol)
+
+        @_evaluator.escClicked.connect
+        def _on_escape():
+            ol.hide()
+            self.parent().setCellFocus()
+
+        _evaluator.setMode("filter")
+        ol.addWidget(_evaluator)
+        _evaluator.setFocus()
 
     def eval(self):
         """Evaluate a Python expression."""
@@ -307,8 +314,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         ol.show()
         from ._eval import QLiteralEval
 
-        if not isinstance(ol.widget(), QLiteralEval):
-            _evaluator = QLiteralEval(ol)
-            _evaluator.escClicked.connect(ol.hide)
-            ol.addWidget(_evaluator)
-            _evaluator.setFocus()
+        _evaluator = QLiteralEval(ol)
+
+        @_evaluator.escClicked.connect
+        def _on_escape():
+            ol.hide()
+            self.parent().setCellFocus()
+
+        _evaluator.setMode("eval")
+        ol.addWidget(_evaluator)
+        _evaluator.setFocus()
