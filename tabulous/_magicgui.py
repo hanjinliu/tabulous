@@ -344,7 +344,10 @@ def dialog_factory(function: _F) -> _F:
                 num = 8400
                 if val.size > num:
                     kwargs[argname] = val.head(num // val.shape[1])
-                table.data = function(**kwargs)
+                try:
+                    table.data = function(**kwargs)
+                except Exception:
+                    table.data = []
 
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():

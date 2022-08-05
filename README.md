@@ -11,8 +11,16 @@ A table data viewer for Python.
 
 ### Installation
 
+###### Install all the dependencies including functionalities of loading sample data, plotting, etc.
+
 ```
-pip install tabulous
+pip install tabulous[all]
+```
+
+###### Install with PyQt5 backend.
+
+```
+pip install tabulous[pyqt5]
 ```
 
 ### Documentation
@@ -58,7 +66,7 @@ def _on_selection_change(selections):
 |![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_groupby.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_display.gif)|
 |A table group that corresponds to the returned object of the `groupby` method of `pd.DataFrame`.|A table viewer that hotly reloads data using provided loader function. Useful for streaming data from other softwares.|
 
-# Supported view modes
+### Supported view modes
 
 |**Dual view**|**Popup view**|
 |:-:|:-:|
