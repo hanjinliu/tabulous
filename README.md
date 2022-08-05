@@ -63,3 +63,4 @@ def _on_selection_change(selections):
 |**Dual view**|**Popup view**|
 |:-:|:-:|
 |![](https://github.com/hanjinliu/tabulous/blob/main/image/dual_view.png)|![](https://github.com/hanjinliu/tabulous/blob/main/image/popup_view.png)|
+|Display two locations in a table.|Open a popup window of the table.|
