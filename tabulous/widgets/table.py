@@ -369,7 +369,7 @@ class GroupBy(TableBase):
                 if group in df.columns:
                     raise ValueError("Input data must not have a 'group' column.")
                 data_all.append(df.assign(group=key))
-            data = pd.concat(data_all, axis=0).groupby(group)
+            data = pd.concat(data_all, axis=0, ignore_index=True).groupby(group)
         else:
             raise TypeError("Cannot only add DataFrameGroupBy object.")
         return data

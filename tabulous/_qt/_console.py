@@ -1,9 +1,9 @@
 from __future__ import annotations
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 import weakref
-from typing import TYPE_CHECKING
-from qtpy.QtCore import Signal
-from qtpy import QtWidgets as QtW
+from typing import TYPE_CHECKING, cast
+from qtpy.QtCore import Signal, QEvent, Qt
+from qtpy import QtWidgets as QtW, QtCore, QtGui, QT6
 
 if TYPE_CHECKING:
     from ..widgets.mainwindow import TableViewerBase
@@ -17,6 +17,7 @@ class _QtConsole(RichJupyterWidget):
     codeExecuted = Signal(str)
 
     def __init__(self, *args, **kwargs):
+        self._floated = False
         super().__init__(*args, **kwargs)
         self.setMinimumSize(100, 0)
         self.resize(100, 40)
@@ -144,3 +145,34 @@ class _QtConsole(RichJupyterWidget):
         if not isinstance(widget, QtW.QDockWidget):
             raise TypeError("Parent must be a QDockWidget")
         self._dock_parent = weakref.ref(widget)
+
+    def eventFilter(self, obj, event: QtCore.QEvent):
+        """Reimplemented to ensure a console-like behavior in the underlying
+        text widgets.
+        """
+        etype = event.type()
+        if etype == QtCore.QEvent.Type.KeyPress:
+            event = cast(QtGui.QKeyEvent, event)
+            mod = event.modifiers()
+            if (
+                mod & Qt.KeyboardModifier.ControlModifier
+                and mod & Qt.KeyboardModifier.ShiftModifier
+                and event.key() == Qt.Key.Key_Up
+                and not self._floated
+            ):
+                parent = self.parentWidget()
+                try:
+                    parent.setFloating(True)
+                except AttributeError:
+                    pass
+                else:
+                    _screen_rect = QtW.QApplication.desktop().screen().rect()
+                    _screen_center = _screen_rect.center()
+                    parent.resize(500, 600)
+                    parent.move(_screen_center - self.rect().center())
+                    self._floated = True
+                    parent.setFocus()
+                    self.setFocus()
+                return True
+
+        return super().eventFilter(obj, event)

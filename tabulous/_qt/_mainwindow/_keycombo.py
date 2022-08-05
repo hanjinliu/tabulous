@@ -7,7 +7,7 @@ from ._mainwidgets import QMainWindow, QMainWidget, _QtMainWidgetBase
 @QMainWindow._keymap.bind("Ctrl+K")
 def _(self: _QtMainWidgetBase):
     """Toggle toolbar visibility."""
-    self.setFocus()
+    return self.setFocus()
 
 
 @QMainWidget._keymap.bind("Ctrl+K, Ctrl+T")
@@ -26,6 +26,15 @@ def _(self: _QtMainWidgetBase):
     except Exception:
         pass
     self.setCellFocus()
+
+@QMainWidget._keymap.bind("Ctrl+K, Delete")
+@QMainWindow._keymap.bind("Ctrl+K, Delete")
+def _(self: _QtMainWidgetBase):
+    """Delete current table."""
+    table = self._table_viewer.current_table
+    if table is not None:
+        idx = self._table_viewer.tables.index(table)
+        del self._table_viewer.tables[idx]
 
 @QMainWidget._keymap.bind("Ctrl+K, V", mode="vertical", desc="Vertical dual view mode.")
 @QMainWindow._keymap.bind("Ctrl+K, V", mode="vertical", desc="Vertical dual view mode.")
