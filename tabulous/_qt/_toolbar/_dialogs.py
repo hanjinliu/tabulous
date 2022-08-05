@@ -27,10 +27,15 @@ def vconcat(viewer, names: List[str]):
 
 
 @dialog_factory
-def pivot(df: TableData, index: str, columns: str, values: str):
+def pivot(df: TableData, index: str, columns: str, values: str) -> TableData:
     return df.pivot(index=index, columns=columns, values=values)
 
 
 @dialog_factory
-def melt(df: TableData, id_vars: List[str]):
+def melt(df: TableData, id_vars: List[str]) -> TableData:
     return pd.melt(df, id_vars)
+
+
+@dialog_factory
+def sort(df: TableData, by: List[str], ascending: bool = True) -> TableData:
+    return df.sort_values(by=by, ascending=ascending)

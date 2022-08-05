@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from enum import Enum
 from qtpy import QtWidgets as QtW, QtCore
-from qtpy.QtCore import Signal, Qt
+from qtpy.QtCore import Qt
 
 if TYPE_CHECKING:
     from ._tabwidget import QTabbedTableStack
@@ -22,10 +22,10 @@ class QOverlayWidget(QtW.QDialog):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.SubWindow)
         self._widget = None
+        self.setStyleSheet(parent.styleSheet())
 
         _layout = QtW.QVBoxLayout()
         _layout.setContentsMargins(2, 2, 2, 2)
-        _layout.setSpacing(0)
 
         self.setLayout(_layout)
 

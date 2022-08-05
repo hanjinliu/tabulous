@@ -246,10 +246,12 @@ class TableViewerBase:
         table = SpreadSheet(data, name=name, editable=editable)
         return self.add_layer(table, update=update)
 
-    def add_groupby(self, data, name: str | None = None) -> GroupBy:
+    def add_groupby(
+        self, data, name: str | None = None, update: bool = False
+    ) -> GroupBy:
         """Add a groupby."""
         table = GroupBy(data, name=name)
-        return self.add_layer(table)
+        return self.add_layer(table, update=update)
 
     def add_loader(self, loader, name: str | None = None) -> TableDisplay:
         """Add a table loader."""

@@ -1,13 +1,9 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Iterator
-from qtpy import QtWidgets as QtW, QtCore, QtGui
+from typing import Iterator
+from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Signal, Qt
 
 from . import _utils
-
-if TYPE_CHECKING:
-    from .._mainwindow import _QtMainWidgetBase
-    import pandas as pd
 
 
 class QFinderWidget(QtW.QWidget):

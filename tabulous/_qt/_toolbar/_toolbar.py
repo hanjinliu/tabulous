@@ -92,6 +92,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Table", self.melt, ICON_DIR / "melt.svg")
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.find_item, ICON_DIR / "find_item.svg")
+        self.registerAction("Table", self.sort_table, ICON_DIR / "sort_table.svg")
 
         self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
         self.registerAction("Analyze", self.eval, ICON_DIR / "eval.svg")
@@ -290,6 +291,19 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             _finder.searchBox().escClicked.connect(ol.hide)
             ol.addWidget(_finder)
             _finder.searchBox().setFocus()
+
+    def sort_table(self):
+        """Add sorted table."""
+        table = self.viewer.current_table
+        if table is None:
+            return
+        out = _dlg.sort(
+            df={"bind": table.data},
+            by={"choices": list(table.data.columns), "widget_type": "Select"},
+            ascending={"text": "Sort in ascending order."},
+        )
+        if out is not None:
+            self.viewer.add_table(out, name=f"{table.name}-sorted")
 
     def filter(self):
         ol = self.parent()._tablestack._overlay

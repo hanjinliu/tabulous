@@ -6,7 +6,7 @@ from magicgui.widgets import Widget, Container, ComboBox, Label, Dialog
 from magicgui.widgets._bases import CategoricalWidget
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
-from .widgets import TableViewer, Table, TableViewerWidget
+from .widgets import TableViewer, Table, SpreadSheet, TableViewerWidget
 from .types import (
     TableColumn,
     TableData,
@@ -64,6 +64,36 @@ class MagicTableViewer(Widget, TableViewerWidget):
         self.native.setContentsMargins(0, 0, 0, 0)
 
 
+class MagicTable(Widget, Table):
+    def __init__(
+        self,
+        data: Any | None = None,
+        *,
+        name: str = "",
+        editable: bool = False,
+        label: str = None,
+        tooltip: str | None = None,
+        visible: bool | None = None,
+        enabled: bool = True,
+        gui_only: bool = False,
+    ):
+        Table.__init__(self, data, name=name, editable=editable)
+        super().__init__(
+            widget_type=QBaseWidget,
+            backend_kwargs={"qwidg": QWidget},
+            name=name,
+            label=label,
+            tooltip=tooltip,
+            visible=visible,
+            enabled=enabled,
+            gui_only=gui_only,
+        )
+        self.native: QWidget
+        self.native.setLayout(QVBoxLayout())
+        self.native.layout().addWidget(self._qwidget)
+        self.native.setContentsMargins(0, 0, 0, 0)
+
+
 # #############################################################################
 #    magicgui type registration
 # #############################################################################
@@ -107,7 +137,7 @@ def get_table_data(widget: CategoricalWidget) -> list[tuple[str, Any]]:
 
 
 def open_viewer(gui, result: TableViewer, return_type: type):
-    result.show()
+    return result.show()
 
 
 def add_table_to_viewer(
@@ -125,7 +155,13 @@ def add_table_data_to_viewer(gui: FunctionGui, result: Any, return_type: type) -
     viewer = find_table_viewer_ancestor(gui)
     if viewer is None:
         return
-    viewer.add_table(result, name=f"{gui.name}-{_DEFAULT_NAME}", update=True)
+
+    from pandas.core.groupby.generic import DataFrameGroupBy
+
+    if isinstance(result, DataFrameGroupBy):
+        viewer.add_groupby(result, name=f"{gui.name}-{_DEFAULT_NAME}", update=True)
+    else:
+        viewer.add_table(result, name=f"{gui.name}-{_DEFAULT_NAME}", update=True)
 
 
 def add_table_data_tuple_to_viewer(
@@ -156,6 +192,7 @@ register_type(
     TableViewer, return_callback=open_viewer, choices=find_table_viewer_ancestor
 )
 register_type(Table, return_callback=add_table_to_viewer, choices=get_tables)
+register_type(SpreadSheet, return_callback=add_table_to_viewer, choices=get_tables)
 register_type(
     TableData,
     return_callback=add_table_data_to_viewer,
@@ -284,6 +321,31 @@ def dialog_factory(function: _F) -> _F:
             magic_signature(function, gui_options=param_options).widgets().values()
         )
         dlg = Dialog(widgets=widgets)
+
+        # if return annotation "TableData" is given, add a preview widget.
+        if function.__annotations__.get("return") is TableData:
+            table = MagicTable(
+                data=[],
+                name="preview",
+                editable=False,
+                tooltip="Preview of the result using the head of the input data.",
+                gui_only=True,
+            )
+            table.zoom = 0.8
+            dlg.append(table)
+
+            @dlg.changed.connect
+            def _on_value_change(*_):
+                import pandas as pd
+
+                kwargs = dlg.asdict()
+                argname, val = next(iter(kwargs.items()))
+                assert isinstance(val, pd.DataFrame)
+                num = 8400
+                if val.size > num:
+                    kwargs[argname] = val.head(num // val.shape[1])
+                table.data = function(**kwargs)
+
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
             out = function(**dlg.asdict())
