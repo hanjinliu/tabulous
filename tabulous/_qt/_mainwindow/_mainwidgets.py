@@ -78,6 +78,7 @@ _HIDE_TOOLTIPS = frozenset(
         QEvent.Type.Show,
         QEvent.Type.Hide,
         QEvent.Type.WindowStateChange,
+        QEvent.Type.WindowDeactivate,
     }
 )
 

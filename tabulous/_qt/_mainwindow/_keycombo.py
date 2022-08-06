@@ -94,6 +94,7 @@ def _(self: _QtMainWidgetBase):
 @QMainWindow._keymap.bind("Alt, F", index=0, desc="Move focus to `File` menu tab.")
 @QMainWindow._keymap.bind("Alt, T", index=1, desc="Move focus to `Table` menu tab.")
 @QMainWindow._keymap.bind("Alt, A", index=2, desc="Move focus to `Analyze` menu tab.")
+@QMainWindow._keymap.bind("Alt, P", index=3, desc="Move focus to `Plot` menu tab.")
 def _(self: QMainWindow, index: int):
     self._toolbar.setCurrentIndex(index)
     self._toolbar.currentToolBar().showTabTooltips()

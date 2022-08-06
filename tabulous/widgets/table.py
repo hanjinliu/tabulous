@@ -100,9 +100,12 @@ class PlotInterface(Component["TableBase"]):
         return self._current_widget.ax
 
     def new_widget(self, nrows=1, ncols=1, style=None):
+        """Create a new plot widget and add it to the table."""
         from .._qt._plot import QtMplPlotCanvas
 
-        return QtMplPlotCanvas(nrows=nrows, ncols=ncols, style=style)
+        wdt = QtMplPlotCanvas(nrows=nrows, ncols=ncols, style=style)
+        self.parent.add_side_widget(wdt)
+        return wdt
 
     def figure(self, style=None):
         return self.subplots(style=style)[0]
@@ -112,11 +115,17 @@ class PlotInterface(Component["TableBase"]):
         self.parent.add_side_widget(wdt)
         return wdt.figure, wdt.axes
 
-    def plot(self, x=None, y=None, *args, **kwargs):
-        return self.gca().plot(x, y, *args, **kwargs)
+    def plot(self, *args, **kwargs):
+        return self.gca().plot(*args, **kwargs)
 
-    def scatter(self, x=None, y=None, *args, **kwargs):
-        return self.gca().scatter(x, y, *args, **kwargs)
+    def scatter(self, *args, **kwargs):
+        return self.gca().scatter(*args, **kwargs)
+
+    def hist(self, *args, **kwargs):
+        return self.gca().hist(*args, **kwargs)
+
+    def draw(self):
+        return self._current_widget.draw()
 
 
 class TableBase(ABC):
@@ -125,6 +134,7 @@ class TableBase(ABC):
     _Default_Name = "None"
     cell = CellInterface()
     plt = PlotInterface()
+    filter = FilterProxy()
 
     def __init__(self, data, name: str | None = None, editable: bool = True):
         self._data = self._normalize_data(data)
@@ -136,8 +146,6 @@ class TableBase(ABC):
         self._qwidget = self._create_backend(self._data)
         self._qwidget.connectSelectionChangedSignal(self._emit_selections)
         self._view_mode = ViewMode.normal
-        self._cell = CellInterface(self)
-        self._plt = PlotInterface(self)
 
         if self.mutable:
             self._qwidget.setEditable(editable)
@@ -327,8 +335,6 @@ class TableBase(ABC):
         self._view_mode = mode
         return None
 
-    filter = FilterProxy()
-
     @property
     def undo_manager(self) -> UndoManager:
         """Return the undo manager."""
@@ -340,23 +346,6 @@ class TableBase(ABC):
             wdt = wdt.native
         self._qwidget.addSideWidget(wdt)
         return wdt
-
-    def plot_selection(self):
-        sels = self.selections
-        nsels = len(sels)
-        if nsels < 2:
-            raise SelectionRangeError("At least two selections are needed.")
-
-        x, *y = self.selections.values
-
-        from .._qt._plot import QtMplPlotCanvas
-
-        wdt = QtMplPlotCanvas()
-        self.add_side_widget(wdt)
-        for y0 in y:
-            wdt.ax.plot(x, y0)
-        wdt.draw()
-        return wdt.ax
 
     def _emit_selections(self):
         return self.events.selections.emit(self.selections)

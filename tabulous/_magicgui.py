@@ -18,6 +18,9 @@ from .types import (
 if TYPE_CHECKING:
     import pandas as pd
     from magicgui.widgets import FunctionGui
+    from matplotlib.axes import Axes
+else:
+    Axes = Any
 
 
 # #############################################################################
@@ -348,6 +351,23 @@ def dialog_factory(function: _F) -> _F:
                     table.data = function(**kwargs)
                 except Exception:
                     table.data = []
+
+        elif function.__annotations__.get("ax") is Axes:
+            from ._qt._plot import QtMplPlotCanvas
+
+            plt = QtMplPlotCanvas()
+            dlg.native.layout().addWidget(plt)
+
+            @dlg.changed.connect
+            def _on_value_change(*_):
+                kwargs = dlg.asdict()
+                kwargs["ax"] = plt.ax
+                try:
+                    plt.cla()
+                    function(**kwargs)
+                    plt.draw()
+                except Exception:
+                    pass
 
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():

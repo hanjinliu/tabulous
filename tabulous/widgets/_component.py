@@ -1,6 +1,9 @@
 from __future__ import annotations
 import weakref
-from typing import Any, Generic, TypeVar
+from typing import Generic, Literal, TYPE_CHECKING, TypeVar, overload
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 T = TypeVar("T")
 
@@ -31,7 +34,15 @@ class Component(Generic[T]):
     def __repr__(self) -> str:
         return f"<{type(self).__name__} of {self.parent!r}>"
 
-    def __get__(self, obj: Any, owner=None):
+    @overload
+    def __get__(self, obj: Literal[None], owner=None) -> Self[_NoRef]:
+        ...
+
+    @overload
+    def __get__(self, obj: T, owner=None) -> Self[T]:
+        ...
+
+    def __get__(self, obj, owner=None):
         if obj is None:
             return self
         _id = id(obj)

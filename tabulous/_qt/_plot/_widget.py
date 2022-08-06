@@ -47,6 +47,9 @@ class QtMplPlotCanvas(QtW.QWidget):
         self.setMinimumWidth(100)
         self.setMinimumHeight(100)
 
+    def cla(self):
+        self.ax.cla()
+
     def draw(self):
         self.figure.tight_layout()
         self.canvas.draw()

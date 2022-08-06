@@ -2,7 +2,9 @@ from __future__ import annotations
 from typing import (
     Any,
     Callable,
+    Hashable,
     Iterable,
+    Iterator,
     NewType,
     Sequence,
     Tuple,
@@ -131,8 +133,18 @@ class SelectedData(Sequence["pd.DataFrame"]):
         """Number of selections."""
         return len(self._obj)
 
-    def __iter__(self) -> Iterable[pd.DataFrame]:
+    def __iter__(self) -> Iterator[pd.DataFrame]:
         return (self[i] for i in range(len(self)))
+
+    def itercolumns(self) -> Iterable[tuple[Hashable, pd.Series]]:
+        all_data: dict[Hashable, pd.Series] = {}
+        for data in self:
+            for col in data.columns:
+                if col in all_data.keys():
+                    all_data[col] = pd.concat([all_data[col], data[col]])
+                else:
+                    all_data[col] = data[col]
+        return iter(all_data.items())
 
 
 FilterType = Union[Callable[["pd.DataFrame"], np.ndarray], np.ndarray]

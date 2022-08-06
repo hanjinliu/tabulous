@@ -21,6 +21,8 @@ ICON_DIR = Path(__file__).parent.parent / "_icons"
 
 
 class _QToolBar(QtW.QToolBar, QHasToolTip):
+    """The child toolbar widget."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._button_and_icon: List["tuple[QtW.QToolButton, QColoredSVGIcon]"] = []
@@ -74,32 +76,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
         self.addWidget(self._tab)
         self.setMaximumHeight(120)
-
-        # Add tool buttons
-        # fmt: off
-        self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
-        self.registerAction("File", self.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")
-        self.registerAction("File", self.save_table, ICON_DIR / "save_table.svg")
-
-        self.registerAction("Table", self.copy_as_table, ICON_DIR / "copy_as_table.svg")
-        self.registerAction("Table", self.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")
-        self.registerAction("Table", self.new_spreadsheet, ICON_DIR / "new_spreadsheet.svg")
-        self.addSeparatorToChild("Table")
-        self.registerAction("Table", self.groupby, ICON_DIR / "groupby.svg")
-        self.registerAction("Table", self.hconcat, ICON_DIR / "hconcat.svg")
-        self.registerAction("Table", self.vconcat, ICON_DIR / "vconcat.svg")
-        self.registerAction("Table", self.pivot, ICON_DIR / "pivot.svg")
-        self.registerAction("Table", self.melt, ICON_DIR / "melt.svg")
-        self.addSeparatorToChild("Table")
-        self.registerAction("Table", self.find_item, ICON_DIR / "find_item.svg")
-        self.registerAction("Table", self.sort_table, ICON_DIR / "sort_table.svg")
-
-        self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
-        self.registerAction("Analyze", self.eval, ICON_DIR / "eval.svg")
-        self.registerAction("Analyze", self.filter, ICON_DIR / "filter.svg")
-        self.addSeparatorToChild("Analyze")
-        self.registerAction("Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg")
-        # fmt: on
+        self.initToolbar()
 
     @property
     def viewer(self) -> "TableViewerBase":
@@ -338,3 +315,125 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         _evaluator.setMode("eval")
         ol.addWidget(_evaluator)
         _evaluator.setFocus()
+
+    def plot(self):
+        return self._plot_xy(_dlg.plot)
+
+    def scatter(self):
+        return self._plot_xy(_dlg.scatter)
+
+    def hist(self):
+        table = self.viewer.current_table
+        if table is None:
+            return None
+
+        choices = list(table.selections.values.itercolumns())
+
+        if not choices:
+            choices = list(table.data.iteritems())
+
+        _dlg.hist(
+            ax={"bind": table.plt.gca()},
+            y={"choices": choices, "widget_type": "Select"},
+            alpha={"min": 0, "max": 1, "step": 0.05},
+        )
+        table.plt.draw()
+
+    def swarmplot(self):
+        self._plot_sns(_dlg.swarmplot)
+
+    def barplot(self):
+        self._plot_sns(_dlg.barplot)
+
+    def boxplot(self):
+        self._plot_sns(_dlg.boxplot)
+
+    def boxenplot(self):
+        self._plot_sns(_dlg.boxenplot)
+
+    def _plot_xy(self, dialog):
+        table = self.viewer.current_table
+        if table is None:
+            return None
+
+        choices = list(table.selections.values.itercolumns())
+
+        if not choices:
+            choices = list(table.data.iteritems())
+
+        dialog(
+            ax={"bind": table.plt.gca()},
+            x={"choices": choices, "nullable": True},
+            y={"choices": choices, "widget_type": "Select"},
+            alpha={"min": 0, "max": 1, "step": 0.05},
+        )
+        table.plt.draw()
+
+    def _plot_sns(self, dialog):
+        table = self.viewer.current_table
+        if table is None:
+            return None
+
+        colnames = list(table.data.columns)
+
+        # infer x, y
+        if len(colnames) == 0:
+            raise ValueError("Table must have at least one column.")
+        elif len(colnames) == 1:
+            x = {"bind": None}
+            y = {"bind": None}
+        else:
+            x = {"choices": colnames, "value": colnames[0]}
+            y = {"choices": colnames, "value": colnames[1]}
+
+        dialog(
+            ax={"bind": table.plt.gca()},
+            x=x,
+            y=y,
+            data={"bind": table.data},
+            hue={"choices": colnames, "nullable": True},
+            alpha={"min": 0, "max": 1, "step": 0.05},
+        )
+        table.plt.draw()
+
+    def initToolbar(self):
+        # Add tool buttons
+        # fmt: off
+
+        # File
+        self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
+        self.registerAction("File", self.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")
+        self.registerAction("File", self.save_table, ICON_DIR / "save_table.svg")
+
+        # Table
+        self.registerAction("Table", self.copy_as_table, ICON_DIR / "copy_as_table.svg")
+        self.registerAction("Table", self.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")
+        self.registerAction("Table", self.new_spreadsheet, ICON_DIR / "new_spreadsheet.svg")
+        self.addSeparatorToChild("Table")
+        self.registerAction("Table", self.groupby, ICON_DIR / "groupby.svg")
+        self.registerAction("Table", self.hconcat, ICON_DIR / "hconcat.svg")
+        self.registerAction("Table", self.vconcat, ICON_DIR / "vconcat.svg")
+        self.registerAction("Table", self.pivot, ICON_DIR / "pivot.svg")
+        self.registerAction("Table", self.melt, ICON_DIR / "melt.svg")
+        self.addSeparatorToChild("Table")
+        self.registerAction("Table", self.find_item, ICON_DIR / "find_item.svg")
+        self.registerAction("Table", self.sort_table, ICON_DIR / "sort_table.svg")
+
+        # Analyze
+        self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
+        self.registerAction("Analyze", self.eval, ICON_DIR / "eval.svg")
+        self.registerAction("Analyze", self.filter, ICON_DIR / "filter.svg")
+        self.addSeparatorToChild("Analyze")
+        self.registerAction("Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg")
+
+        # Plot
+        self.registerAction("Plot", self.plot, ICON_DIR / "plot.svg")
+        self.registerAction("Plot", self.scatter, ICON_DIR / "scatter.svg")
+        self.registerAction("Plot", self.hist, ICON_DIR / "hist.svg")
+        self.addSeparatorToChild("Plot")
+        self.registerAction("Plot", self.swarmplot, ICON_DIR / "swarmplot.svg")
+        self.registerAction("Plot", self.barplot, ICON_DIR / "barplot.svg")
+        self.registerAction("Plot", self.boxplot, ICON_DIR / "boxplot.svg")
+        self.registerAction("Plot", self.boxenplot, ICON_DIR / "boxenplot.svg")
+
+        # fmt: on
