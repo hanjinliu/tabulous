@@ -115,7 +115,7 @@ class SelectionRanges(Sequence[tuple[slice, slice]]):
         return SelectedData(self)
 
 
-class SelectedData(Sequence[pd.DataFrame]):
+class SelectedData(Sequence["pd.DataFrame"]):
     """Interface with the selected data."""
 
     def __init__(self, obj: SelectionRanges):

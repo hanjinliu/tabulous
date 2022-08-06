@@ -10,34 +10,28 @@ if TYPE_CHECKING:
     import matplotlib.pyplot as plt
     from matplotlib.figure import Figure
     from matplotlib.axes import Axes
-    from matplotlib.lines import Line2D
-    from matplotlib.collections import PathCollection
-    from matplotlib.text import Text
-    from matplotlib.quiver import Quiver
-    from matplotlib.legend import Legend
 
     import seaborn as sns
     from seaborn.axisgrid import Grid
 
 
-class QPlotCanvas(QtW.QWidget):
+class QtMplPlotCanvas(QtW.QWidget):
     """A matplotlib figure canvas."""
 
     def __init__(
         self,
         nrows=1,
         ncols=1,
-        figsize=(4.0, 3.0),
         style=None,
     ):
         backend = mpl.get_backend()
         try:
             mpl.use("Agg")
             if style is None:
-                fig, _ = plt.subplots(nrows, ncols, figsize=figsize)
+                fig, _ = plt.subplots(nrows, ncols)
             else:
                 with plt.style.context(style):
-                    fig, _ = plt.subplots(nrows, ncols, figsize=figsize)
+                    fig, _ = plt.subplots(nrows, ncols)
         finally:
             mpl.use(backend)
 
@@ -48,9 +42,10 @@ class QPlotCanvas(QtW.QWidget):
 
         super().__init__()
         self.setLayout(QtW.QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().addWidget(canvas)
-        self.setMinimumWidth(40)
-        self.setMinimumHeight(40)
+        self.setMinimumWidth(100)
+        self.setMinimumHeight(100)
 
     def draw(self):
         self.figure.tight_layout()
@@ -88,7 +83,7 @@ def _use_seaborn_grid(f):
     """
 
     @wraps(f)
-    def func(self: QPlotCanvas, *args, **kwargs):
+    def func(self: QtMplPlotCanvas, *args, **kwargs):
         backend = mpl.get_backend()
         try:
             mpl.use("Agg")

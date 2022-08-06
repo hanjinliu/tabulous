@@ -5,8 +5,9 @@ from typing import Any, Callable, TYPE_CHECKING, Hashable
 from psygnal import SignalGroup, Signal
 
 from .filtering import FilterProxy
+from ._component import Component
 
-from ..exceptions import TableImmutableError
+from ..exceptions import SelectionRangeError, TableImmutableError
 from ..types import (
     SelectionRanges,
     ItemInfo,
@@ -58,11 +59,8 @@ class ViewMode(Enum):
         return f"<{type(self).__name__}.{self.name}>"
 
 
-class CellInterface:
+class CellInterface(Component["TableBase"]):
     """The interface for editing cell as if it was manually edited."""
-
-    def __init__(self, parent: TableBase):
-        self.parent = parent
 
     def __getitem__(self, key: tuple[int, int]) -> str:
         r, c = key
@@ -88,10 +86,45 @@ class CellInterface:
         return None
 
 
+class PlotInterface(Component["TableBase"]):
+    _current_widget = None
+
+    def gcf(self):
+        if self._current_widget is None:
+            self._current_widget = self.new_widget()
+        return self._current_widget.figure
+
+    def gca(self):
+        if self._current_widget is None:
+            self._current_widget = self.new_widget()
+        return self._current_widget.ax
+
+    def new_widget(self, nrows=1, ncols=1, style=None):
+        from .._qt._plot import QtMplPlotCanvas
+
+        return QtMplPlotCanvas(nrows=nrows, ncols=ncols, style=style)
+
+    def figure(self, style=None):
+        return self.subplots(style=style)[0]
+
+    def subplots(self, nrows=1, ncols=1, style=None):
+        wdt = self.new_widget(nrows=nrows, ncols=ncols, style=style)
+        self.parent.add_side_widget(wdt)
+        return wdt.figure, wdt.axes
+
+    def plot(self, x=None, y=None, *args, **kwargs):
+        return self.gca().plot(x, y, *args, **kwargs)
+
+    def scatter(self, x=None, y=None, *args, **kwargs):
+        return self.gca().scatter(x, y, *args, **kwargs)
+
+
 class TableBase(ABC):
     """The base class for a table layer."""
 
     _Default_Name = "None"
+    cell = CellInterface()
+    plt = PlotInterface()
 
     def __init__(self, data, name: str | None = None, editable: bool = True):
         self._data = self._normalize_data(data)
@@ -104,6 +137,7 @@ class TableBase(ABC):
         self._qwidget.connectSelectionChangedSignal(self._emit_selections)
         self._view_mode = ViewMode.normal
         self._cell = CellInterface(self)
+        self._plt = PlotInterface(self)
 
         if self.mutable:
             self._qwidget.setEditable(editable)
@@ -155,11 +189,6 @@ class TableBase(ABC):
     def keymap(self) -> QtKeyMap:
         """The keymap object."""
         return self._qwidget._keymap
-
-    @property
-    def cell(self) -> CellInterface:
-        """Cell interface of the table."""
-        return self._cell
 
     @property
     def precision(self) -> int:
@@ -312,6 +341,23 @@ class TableBase(ABC):
         self._qwidget.addSideWidget(wdt)
         return wdt
 
+    def plot_selection(self):
+        sels = self.selections
+        nsels = len(sels)
+        if nsels < 2:
+            raise SelectionRangeError("At least two selections are needed.")
+
+        x, *y = self.selections.values
+
+        from .._qt._plot import QtMplPlotCanvas
+
+        wdt = QtMplPlotCanvas()
+        self.add_side_widget(wdt)
+        for y0 in y:
+            wdt.ax.plot(x, y0)
+        wdt.draw()
+        return wdt.ax
+
     def _emit_selections(self):
         return self.events.selections.emit(self.selections)
 
@@ -325,14 +371,6 @@ class _DataFrameTableLayer(TableBase):
         if not isinstance(data, pd.DataFrame):
             data = pd.DataFrame(data)
         return data
-
-    def plot_selection(self):
-        sels = self.selections
-        nsels = len(sels)
-        if nsels < 2:
-            return
-
-        x, y = self.selections.values
 
 
 class Table(_DataFrameTableLayer):

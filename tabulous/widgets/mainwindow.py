@@ -8,6 +8,7 @@ from psygnal import Signal, SignalGroup
 from .table import Table, SpreadSheet, GroupBy, TableDisplay
 from .tablelist import TableList
 from ._sample import open_sample
+from ._component import Component
 
 from ..types import SelectionType, TabPosition, _TableLike, _SingleSelection
 
@@ -36,15 +37,7 @@ class TableViewerSignal(SignalGroup):
     current_index = Signal(int)
 
 
-class _ComponentProxy:
-    def __init__(self, parent: TableViewerBase):
-        self.parent = parent
-
-    def __repr__(self) -> str:
-        return f"<{type(self).__name__} of {self.parent!r}>"
-
-
-class Toolbar(_ComponentProxy):
+class Toolbar(Component["TableViewerBase"]):
     """The toolbar proxy."""
 
     @property
@@ -65,7 +58,7 @@ class Toolbar(_ComponentProxy):
         raise NotImplementedError()
 
 
-class Console(_ComponentProxy):
+class Console(Component["TableViewerBase"]):
     """The QtConsole proxy."""
 
     @property
@@ -95,6 +88,9 @@ class TableViewerBase:
     events: TableViewerSignal
     _qwidget_class: type[_QtMainWidgetBase]
 
+    toolbar = Toolbar()
+    console = Console()
+
     def __init__(
         self, *, tab_position: TabPosition | str = TabPosition.top, show: bool = True
     ):
@@ -104,8 +100,6 @@ class TableViewerBase:
         self._qwidget = self._qwidget_class(tab_position=tab_position)
         self._qwidget._table_viewer = self
         self._tablist = TableList(parent=self)
-        self._toolbar = Toolbar(parent=self)
-        self._console = Console(parent=self)
         self._link_events()
 
         self.events = TableViewerSignal()
@@ -123,16 +117,6 @@ class TableViewerBase:
     def tables(self) -> TableList:
         """Return the table list object."""
         return self._tablist
-
-    @property
-    def toolbar(self) -> Toolbar:
-        """Return the toolbar interface."""
-        return self._toolbar
-
-    @property
-    def console(self) -> Console:
-        """Return the console interface."""
-        return self._console
 
     @property
     def keymap(self) -> QtKeyMap:

@@ -494,12 +494,12 @@ class QBaseTable(QtW.QSplitter):
 
     def addSideWidget(self, widget: QtW.QWidget):
         if self._side_area is None:
-            wdt = QtW.QScrollArea()
-            wdt.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-            wdt.setAlignment(Qt.AlignmentFlag.AlignTop)
-            self.addWidget(wdt)
-            self._side_area = wdt
-        self._side_area.layout().addWidget(widget)
+            from ._sider_area import QTableSideArea
+
+            area = QTableSideArea()
+            self.addWidget(area)
+            self._side_area = area
+        self._side_area.addWidget(widget)
         return None
 
     def setDualView(self, orientation: str = "horizontal"):

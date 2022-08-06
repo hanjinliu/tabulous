@@ -1,1 +1,1 @@
-from ._widget import QPlotCanvas
+from ._widget import QtMplPlotCanvas
