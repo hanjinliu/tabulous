@@ -357,6 +357,8 @@ def dialog_factory(function: _F) -> _F:
 
             plt = QtMplPlotCanvas()
             dlg.native.layout().addWidget(plt)
+            dlg.height = 400
+            dlg.width = 280
 
             @dlg.changed.connect
             def _on_value_change(*_):

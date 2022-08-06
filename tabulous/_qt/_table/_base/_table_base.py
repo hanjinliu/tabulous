@@ -16,6 +16,7 @@ from ....exceptions import SelectionRangeError, TableImmutableError
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
+    from ._sider_area import QTableSideArea
     from qtpy.QtCore import pyqtBoundSignal
     from typing_extensions import Self
 
@@ -271,7 +272,7 @@ class QBaseTable(QtW.QSplitter):
             self.selectionChangedSignal.emit
         )
 
-        self._side_area = None
+        self._side_area: QTableSideArea = None
         self.model()._editable = self._DEFAULT_EDITABLE
         self.setStyleSheet(
             "QSplitter::handle:horizontal {"
@@ -493,6 +494,7 @@ class QBaseTable(QtW.QSplitter):
         return None
 
     def addSideWidget(self, widget: QtW.QWidget):
+        """Add a widget to the side area of the table."""
         if self._side_area is None:
             from ._sider_area import QTableSideArea
 

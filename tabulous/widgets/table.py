@@ -104,8 +104,11 @@ class PlotInterface(Component["TableBase"]):
         from .._qt._plot import QtMplPlotCanvas
 
         wdt = QtMplPlotCanvas(nrows=nrows, ncols=ncols, style=style)
-        self.parent.add_side_widget(wdt)
         return wdt
+
+    def to_sidearea(self):
+        self.parent.add_side_widget(self._current_widget)
+        return None
 
     def figure(self, style=None):
         return self.subplots(style=style)[0]

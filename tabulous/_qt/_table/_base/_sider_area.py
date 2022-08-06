@@ -16,9 +16,11 @@ class QInnerWidget(QtW.QWidget):
 
     def sizeHint(self):
         h = 0
+        w = self.width()
         for child in self._layout.children():
             h += child.minimumHeight()
-        return QtCore.QSize(self.width(), h)
+            w = min(w, child.minimumWidth())
+        return QtCore.QSize(w, h)
 
     if TYPE_CHECKING:
 

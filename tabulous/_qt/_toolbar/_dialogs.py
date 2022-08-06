@@ -1,4 +1,5 @@
 from typing import List
+from typing_extensions import Annotated
 import numpy as np
 import pandas as pd
 from ..._magicgui import dialog_factory, Axes
@@ -50,6 +51,7 @@ def plot(ax: Axes, x, y, alpha: float = 1.0):
         else:
             _x = x
         ax.plot(_x, _y, alpha=alpha)
+    return True
 
 
 @dialog_factory
@@ -60,6 +62,7 @@ def scatter(ax: Axes, x, y, alpha: float = 1.0):
         else:
             _x = x
         ax.scatter(_x, _y, alpha=alpha)
+    return True
 
 
 @dialog_factory
@@ -67,6 +70,7 @@ def hist(ax: Axes, y, bins: int = 10, alpha: float = 1.0, density: bool = False)
     for _y in y:
         ax.hist(_y, bins=bins, alpha=alpha, density=density)
     ax.axhline(0, color="gray", lw=0.5, alpha=0.5, zorder=-1)
+    return True
 
 
 @dialog_factory
@@ -77,11 +81,12 @@ def swarmplot(
     data,
     hue: str = None,
     dodge: bool = False,
-    alpha: float = 1.0,
+    alpha: Annotated[float, {"min": 0.0, "max": 1.0}] = 1.0,
 ):
     import seaborn as sns
 
     sns.swarmplot(x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax)
+    return True
 
 
 @dialog_factory
@@ -92,12 +97,13 @@ def barplot(
     data,
     hue: str = None,
     dodge: bool = False,
-    alpha: float = 1.0,
+    alpha: Annotated[float, {"min": 0.0, "max": 1.0}] = 1.0,
 ):
     import seaborn as sns
 
     sns.barplot(x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax)
     ax.axhline(0, color="gray", lw=0.5, alpha=0.5, zorder=-1)
+    return True
 
 
 @dialog_factory
@@ -108,11 +114,11 @@ def boxplot(
     data,
     hue: str = None,
     dodge: bool = False,
-    alpha: float = 1.0,
 ):
     import seaborn as sns
 
-    sns.boxplot(x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax)
+    sns.boxplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax)
+    return True
 
 
 @dialog_factory
@@ -123,8 +129,8 @@ def boxenplot(
     data,
     hue: str = None,
     dodge: bool = False,
-    alpha: float = 1.0,
 ):
     import seaborn as sns
 
-    sns.boxenplot(x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax)
+    sns.boxenplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax)
+    return True

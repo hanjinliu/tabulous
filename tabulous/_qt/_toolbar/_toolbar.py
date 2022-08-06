@@ -361,13 +361,14 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if not choices:
             choices = list(table.data.iteritems())
 
-        dialog(
+        if dialog(
             ax={"bind": table.plt.gca()},
             x={"choices": choices, "nullable": True},
             y={"choices": choices, "widget_type": "Select"},
             alpha={"min": 0, "max": 1, "step": 0.05},
-        )
-        table.plt.draw()
+        ):
+            table.plt.to_sidearea()
+            table.plt.draw()
 
     def _plot_sns(self, dialog):
         table = self.viewer.current_table
@@ -386,15 +387,14 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             x = {"choices": colnames, "value": colnames[0]}
             y = {"choices": colnames, "value": colnames[1]}
 
-        dialog(
+        if dialog(
             ax={"bind": table.plt.gca()},
             x=x,
             y=y,
             data={"bind": table.data},
             hue={"choices": colnames, "nullable": True},
-            alpha={"min": 0, "max": 1, "step": 0.05},
-        )
-        table.plt.draw()
+        ):
+            table.plt.draw()
 
     def initToolbar(self):
         # Add tool buttons

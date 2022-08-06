@@ -103,6 +103,7 @@ def _(self: QMainWindow, index: int):
 @QMainWindow._keymap.bind("Alt, F, {}")
 @QMainWindow._keymap.bind("Alt, T, {}")
 @QMainWindow._keymap.bind("Alt, A, {}")
+@QMainWindow._keymap.bind("Alt, P, {}")
 def _(self: QMainWindow, key: str):
     """Push a tool button at the given position."""
     try:
