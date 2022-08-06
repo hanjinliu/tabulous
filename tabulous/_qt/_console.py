@@ -17,7 +17,7 @@ class _QtConsole(RichJupyterWidget):
     codeExecuted = Signal(str)
 
     def __init__(self, *args, **kwargs):
-        self._floated = False
+        self._old_point = None
         super().__init__(*args, **kwargs)
         self.setMinimumSize(100, 0)
         self.resize(100, 40)
@@ -152,27 +152,55 @@ class _QtConsole(RichJupyterWidget):
         """
         etype = event.type()
         if etype == QtCore.QEvent.Type.KeyPress:
+            parent = self.dockParent()
+            if parent is None:
+                return super().eventFilter(obj, event)
+
             event = cast(QtGui.QKeyEvent, event)
+            key = event.key()
             mod = event.modifiers()
+
+            # float/unfloat dock widget
             if (
                 mod & Qt.KeyboardModifier.ControlModifier
                 and mod & Qt.KeyboardModifier.ShiftModifier
-                and event.key() == Qt.Key.Key_Up
-                and not self._floated
+                and key in (Qt.Key.Key_Up, Qt.Key.Key_Down)
             ):
-                parent = self.parentWidget()
-                try:
-                    parent.setFloating(True)
-                except AttributeError:
-                    pass
-                else:
-                    _screen_rect = QtW.QApplication.desktop().screen().rect()
-                    _screen_center = _screen_rect.center()
-                    parent.resize(500, 600)
-                    parent.move(_screen_center - self.rect().center())
-                    self._floated = True
-                    parent.setFocus()
-                    self.setFocus()
+                self.setDockFloating(key == Qt.Key.Key_Up)
                 return True
+            elif (
+                mod & Qt.KeyboardModifier.ControlModifier
+                and mod & Qt.KeyboardModifier.ShiftModifier
+                and key == Qt.Key.Key_C
+            ):
+                if not parent.isFloating():
+                    return super().eventFilter(obj, event)
+                parent.parentWidget().toggleConsoleVisibility()
 
         return super().eventFilter(obj, event)
+
+    def setDockFloating(self, floating: bool):
+        parent = self.dockParent()
+        if parent is None:
+            return
+        if floating:
+            parent.setFloating(True)
+            QtCore.QTimer.singleShot(0, parent.activateWindow)
+        else:
+            parent.setFloating(False)
+            self._control.ensureCursorVisible()
+            self._control.setTextCursor(self._control.textCursor())
+
+        if floating:
+            if self._old_point is None:
+                _screen_rect = QtW.QApplication.desktop().screen().rect()
+                _screen_center = _screen_rect.center()
+                parent.resize(500, 600)
+                pos = _screen_center - self.rect().center()
+            else:
+                pos = self._old_point
+            parent.move(pos)
+            self._old_point = pos
+        parent.setFocus()
+        self.setFocus()
+        return None

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from qtpy import QtWidgets as QtW
-from qtpy.QtCore import Qt, QEvent
+from qtpy.QtCore import Qt, QEvent, QTimer
 
 from ._base import _QtMainWidgetBase
 from .._keymap import QtKeyMap
@@ -127,6 +127,8 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         dock.setVisible(visible)
 
         if visible:
+            if dock.isFloating():
+                QTimer.singleShot(0, dock.activateWindow)
             self._console_widget.setFocus()
         else:
             self.setCellFocus()
