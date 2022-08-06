@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable, Iterable, TYPE_CHECKING, TypeVar
+import warnings
 from qtpy.QtWidgets import QWidget, QVBoxLayout
 from magicgui import register_type
 from magicgui.widgets import Widget, Container, ComboBox, Label, Dialog
@@ -366,7 +367,9 @@ def dialog_factory(function: _F) -> _F:
                 kwargs["ax"] = plt.ax
                 try:
                     plt.cla()
-                    function(**kwargs)
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        function(**kwargs)
                     plt.draw()
                 except Exception:
                     pass

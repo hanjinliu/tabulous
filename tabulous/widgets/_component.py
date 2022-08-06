@@ -9,7 +9,7 @@ T = TypeVar("T")
 
 
 class _NoRef:
-    ...
+    """No reference."""
 
 
 _no_ref = _NoRef()

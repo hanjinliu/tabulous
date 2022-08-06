@@ -91,12 +91,12 @@ class PlotInterface(Component["TableBase"]):
 
     def gcf(self):
         if self._current_widget is None:
-            self._current_widget = self.new_widget()
+            self.new_widget()
         return self._current_widget.figure
 
     def gca(self):
         if self._current_widget is None:
-            self._current_widget = self.new_widget()
+            self.new_widget()
         return self._current_widget.ax
 
     def new_widget(self, nrows=1, ncols=1, style=None):
@@ -104,11 +104,19 @@ class PlotInterface(Component["TableBase"]):
         from .._qt._plot import QtMplPlotCanvas
 
         wdt = QtMplPlotCanvas(nrows=nrows, ncols=ncols, style=style)
+        wdt.canvas.deleteRequested.connect(self.delete_widget)
+        self.parent.add_side_widget(wdt)
+        self._current_widget = wdt
         return wdt
 
-    def to_sidearea(self):
-        self.parent.add_side_widget(self._current_widget)
-        return None
+    def delete_widget(self):
+        try:
+            self.parent._qwidget._side_area.removeWidget(self._current_widget)
+        except Exception:
+            pass
+        self._current_widget.deleteLater()
+        self._current_widget = None
+        return
 
     def figure(self, style=None):
         return self.subplots(style=style)[0]

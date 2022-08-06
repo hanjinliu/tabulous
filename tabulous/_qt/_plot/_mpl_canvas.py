@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvas
 from matplotlib.backend_bases import MouseEvent, MouseButton
 from qtpy import QtWidgets as QtW, QtGui
+from qtpy.QtCore import Signal
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
@@ -14,6 +15,7 @@ class InteractiveFigureCanvas(FigureCanvas):
     """A figure canvas implemented with mouse callbacks."""
 
     figure: Figure
+    deleteRequested = Signal()
 
     def __init__(self, fig):
         super().__init__(fig)
@@ -128,22 +130,29 @@ class InteractiveFigureCanvas(FigureCanvas):
         menu = QtW.QMenu(self)
         menu.addAction("Copy ...", self._copy_canvas)
         menu.addAction("Save As...", self._save_canvas_dialog)
+        menu.addAction("Clear figure", self._clear_figure)
+        menu.addAction("Delete figure", self._delete_figure)
         menu.addSeparator()
         return menu
 
     def _save_canvas_dialog(self, format="PNG"):
         """Open a file dialog and save the current canvas state."""
         dialog = QtW.QFileDialog(self, "Save Image")
-        dialog.setAcceptMode(QtW.QFileDialog.AcceptSave)
+        dialog.setAcceptMode(QtW.QFileDialog.AcceptMode.AcceptSave)
         dialog.setDefaultSuffix(format.lower())
         dialog.setNameFilter(f"{format} file (*.{format.lower()})")
         if dialog.exec_():
             filename = dialog.selectedFiles()[0]
-            self._save_canvas(filename)
+            self.figure.savefig(filename)
 
-    def _save_canvas(self, path: str):
-        """Save current canvas state at the specified path."""
-        self.figure.savefig(path)
+    def _clear_figure(self):
+        for ax in self.figure.axes:
+            ax.cla()
+        self.figure.canvas.draw()
+
+    def _delete_figure(self):
+        self.deleteRequested.emit()
+        self.deleteLater()
 
     def _asarray(self) -> np.ndarray:
         """Convert current canvas state into RGBA numpy array."""

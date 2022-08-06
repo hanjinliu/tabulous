@@ -53,3 +53,5 @@ class QTableSideArea(QtW.QScrollArea):
 
     def removeWidget(self, widget: QtW.QWidget) -> None:
         self.widget().layout().removeWidget(widget)
+        if self.widget().layout().count() == 0:
+            self.parentWidget().setSizes([1, 0])

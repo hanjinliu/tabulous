@@ -502,6 +502,7 @@ class QBaseTable(QtW.QSplitter):
             self.addWidget(area)
             self._side_area = area
         self._side_area.addWidget(widget)
+        self.setSizes([1, 1])
         return None
 
     def setDualView(self, orientation: str = "horizontal"):

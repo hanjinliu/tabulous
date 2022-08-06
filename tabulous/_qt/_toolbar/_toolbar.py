@@ -283,6 +283,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             self.viewer.add_table(out, name=f"{table.name}-sorted")
 
     def filter(self):
+        """Apply filter to the current table."""
         ol = self.parent()._tablestack._overlay
         ol.show()
         from ._eval import QLiteralEval
@@ -317,12 +318,15 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         _evaluator.setFocus()
 
     def plot(self):
+        """Plot curve."""
         return self._plot_xy(_dlg.plot)
 
     def scatter(self):
+        """Scatter plot."""
         return self._plot_xy(_dlg.scatter)
 
     def hist(self):
+        """Histogram."""
         table = self.viewer.current_table
         if table is None:
             return None
@@ -332,24 +336,34 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if not choices:
             choices = list(table.data.iteritems())
 
-        _dlg.hist(
+        if _dlg.hist(
             ax={"bind": table.plt.gca()},
             y={"choices": choices, "widget_type": "Select"},
             alpha={"min": 0, "max": 1, "step": 0.05},
-        )
-        table.plt.draw()
+        ):
+            table.plt.draw()
+        else:
+            table.plt.delete_widget()
 
     def swarmplot(self):
-        self._plot_sns(_dlg.swarmplot)
+        """Swarm plot."""
+        return self._plot_sns(_dlg.swarmplot)
 
     def barplot(self):
-        self._plot_sns(_dlg.barplot)
+        """Bar plot."""
+        return self._plot_sns(_dlg.barplot)
 
     def boxplot(self):
-        self._plot_sns(_dlg.boxplot)
+        """Box plot."""
+        return self._plot_sns(_dlg.boxplot)
 
     def boxenplot(self):
-        self._plot_sns(_dlg.boxenplot)
+        """Boxen plot."""
+        return self._plot_sns(_dlg.boxenplot)
+
+    def new_figure(self):
+        """Add a new figure."""
+        return self.viewer.current_table.plt.new_widget()
 
     def _plot_xy(self, dialog):
         table = self.viewer.current_table
@@ -367,8 +381,9 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             y={"choices": choices, "widget_type": "Select"},
             alpha={"min": 0, "max": 1, "step": 0.05},
         ):
-            table.plt.to_sidearea()
             table.plt.draw()
+        else:
+            table.plt.delete_widget()
 
     def _plot_sns(self, dialog):
         table = self.viewer.current_table
@@ -395,6 +410,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             hue={"choices": colnames, "nullable": True},
         ):
             table.plt.draw()
+        else:
+            table.plt.delete_widget()
 
     def initToolbar(self):
         # Add tool buttons
@@ -435,5 +452,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Plot", self.barplot, ICON_DIR / "barplot.svg")
         self.registerAction("Plot", self.boxplot, ICON_DIR / "boxplot.svg")
         self.registerAction("Plot", self.boxenplot, ICON_DIR / "boxenplot.svg")
+        self.addSeparatorToChild("Plot")
+        self.registerAction("Plot", self.new_figure, ICON_DIR / "new_figure.svg")
 
         # fmt: on
