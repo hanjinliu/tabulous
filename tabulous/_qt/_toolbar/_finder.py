@@ -50,7 +50,7 @@ class QFinderWidget(QtW.QWidget):
 
     def _iter_find_rowwise(self, text: str):
         qtable = self.currentTable()
-        df = qtable.model().df
+        df = qtable.dataShown()
         for r, (_, row) in enumerate(df.iterrows()):
             for c, item in enumerate(row):
                 if qtable is not self.currentTable():
@@ -64,7 +64,7 @@ class QFinderWidget(QtW.QWidget):
 
     def _iter_find_columnwise(self, text: str):
         qtable = self.currentTable()
-        df = qtable.model().df
+        df = qtable.dataShown()
         for c, (_, col) in enumerate(df.iteritems()):
             try:
                 val = qtable.convertValue(0, c, text)

@@ -135,6 +135,11 @@ class TableBase(ABC):
         self._qwidget.setDataFrame(self._data)
 
     @property
+    def data_shown(self) -> pd.DataFrame:
+        """Return the data shown in the table (filter considered)."""
+        return self._qwidget.dataShown()
+
+    @property
     def mutable(self) -> bool:
         """Mutability of the table."""
         from .._qt._table import QMutableTable
@@ -320,6 +325,14 @@ class _DataFrameTableLayer(TableBase):
         if not isinstance(data, pd.DataFrame):
             data = pd.DataFrame(data)
         return data
+
+    def plot_selection(self):
+        sels = self.selections
+        nsels = len(sels)
+        if nsels < 2:
+            return
+
+        x, y = self.selections.values
 
 
 class Table(_DataFrameTableLayer):

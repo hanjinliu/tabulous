@@ -23,10 +23,10 @@ def test_add_groupby_single():
     table = viewer.add_groupby(grouped, name="test")
     each_df = [x[1] for x in grouped]
     assert table.current_group == "A"
-    assert_frame_equal(each_df[0], table._qwidget.model().df)
+    assert_frame_equal(each_df[0], table._qwidget.dataShown())
     table.current_group = "B"
     assert table.current_group == "B"
-    assert_frame_equal(each_df[1], table._qwidget.model().df)
+    assert_frame_equal(each_df[1], table._qwidget.dataShown())
 
 def test_add_groupby_double():
     viewer = TableViewerWidget(show=False)

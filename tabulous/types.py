@@ -7,7 +7,6 @@ from typing import (
     Sequence,
     Tuple,
     List,
-    TypeVar,
     Union,
     TYPE_CHECKING,
     NamedTuple,
@@ -112,22 +111,19 @@ class SelectionRanges(Sequence[tuple[slice, slice]]):
         return iter(self._ranges)
 
     @property
-    def values(self) -> SelectedData[TableBase]:
+    def values(self) -> SelectedData:
         return SelectedData(self)
 
 
-_T = TypeVar("_T", bound="TableBase")
-
-
-class SelectedData(Sequence[_T]):
+class SelectedData(Sequence[pd.DataFrame]):
     """Interface with the selected data."""
 
     def __init__(self, obj: SelectionRanges):
         self._obj = obj
 
-    def __getitem__(self, index: int) -> _T:
+    def __getitem__(self, index: int) -> pd.DataFrame:
         """Get the selected data at the given index of selection."""
-        data = self._obj._data_ref().data
+        data = self._obj._data_ref().data_shown
         sl = self._obj[index]
         return data.iloc[sl]
 
@@ -135,7 +131,7 @@ class SelectedData(Sequence[_T]):
         """Number of selections."""
         return len(self._obj)
 
-    def __iter__(self) -> Iterable[_T]:
+    def __iter__(self) -> Iterable[pd.DataFrame]:
         return (self[i] for i in range(len(self)))
 
 

@@ -343,6 +343,9 @@ class QBaseTable(QtW.QSplitter):
         """Convert value before updating DataFrame."""
         return value
 
+    def dataShown(self) -> pd.DataFrame:
+        return self.model().df
+
     def precision(self) -> int:
         """Return table value precision."""
         return self.itemDelegate().ndigits
@@ -425,7 +428,7 @@ class QBaseTable(QtW.QSplitter):
         if nr > 1 and nc > 1:
             raise SelectionRangeError("Cannot copy selected range.")
         else:
-            data = self.model().df
+            data = self.dataShown()
             if nr == 1:
                 axis = 1
             else:
@@ -491,8 +494,9 @@ class QBaseTable(QtW.QSplitter):
 
     def addSideWidget(self, widget: QtW.QWidget):
         if self._side_area is None:
-            wdt = QtW.QWidget()
-            wdt.setLayout(QtW.QVBoxLayout())
+            wdt = QtW.QScrollArea()
+            wdt.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            wdt.setAlignment(Qt.AlignmentFlag.AlignTop)
             self.addWidget(wdt)
             self._side_area = wdt
         self._side_area.layout().addWidget(widget)
@@ -922,7 +926,7 @@ class QMutableTable(QBaseTable):
     @QBaseTable._mgr.interface
     def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
         qtable = self._qtable_view
-        column_axis = self.model().df.columns
+        column_axis = self.dataShown().columns
         _header = qtable.horizontalHeader()
 
         mapping = {column_axis[index]: value}
@@ -938,12 +942,12 @@ class QMutableTable(QBaseTable):
 
     @setHorizontalHeaderValue.server
     def setHorizontalHeaderValue(self, index: int, value: Any) -> Any:
-        return (index, self.model().df.columns[index]), {}
+        return (index, self.dataShown().columns[index]), {}
 
     @QBaseTable._mgr.interface
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         qtable = self._qtable_view
-        index_axis = self.model().df.index
+        index_axis = self.dataShown().index
         _header = qtable.verticalHeader()
 
         mapping = {index_axis[index]: value}
