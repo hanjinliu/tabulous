@@ -85,6 +85,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
+        self._last_shift_on: tuple[int, int] = None
         vheader, hheader = self.verticalHeader(), self.horizontalHeader()
         self.setFrameStyle(QtW.QFrame.Shape.Box)
         vheader.setFrameStyle(QtW.QFrame.Shape.Box)
@@ -179,8 +180,18 @@ class _QTableViewEnhanced(QtW.QTableView):
                 focused_widget.setText(text)
                 focused_widget.deselect()
             return
+
+        if keys.has_shift() and self._last_shift_on is None:
+            index = self.currentIndex()
+            self._last_shift_on = index.row(), index.column()
+
         if isinstance(parent, QBaseTable):
             parent.keyPressEvent(e)
+
+    def keyReleaseEvent(self, e: QtGui.QKeyEvent) -> None:
+        if not e.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+            self._last_shift_on = None
+        return super().keyReleaseEvent(e)
 
     def zoom(self) -> float:
         """Get current zoom factor."""

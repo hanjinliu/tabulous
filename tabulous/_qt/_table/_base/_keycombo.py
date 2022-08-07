@@ -26,8 +26,10 @@ def _(self: QBaseTable):
     qtable = self._qtable_view
     last_selection = selection[-1]
     sl_row, sl_col = last_selection
-    sl_row = slice(0, sl_row.stop)
-
+    if self._qtable_view._last_shift_on is None:
+        sl_row = slice(0, sl_row.stop)
+    else:
+        sl_row = slice(0, self._qtable_view._last_shift_on[0] + 1)
     c0 = qtable.currentIndex().column()
     self.setSelections([(sl_row, sl_col)])
     self.moveToItem(0, c0)
@@ -44,8 +46,10 @@ def _(self: QBaseTable):
 
     nr = qtable.model().rowCount()
     sl_row, sl_col = last_selection
-    sl_row = slice(sl_row.start, nr)
-
+    if self._qtable_view._last_shift_on is None:
+        sl_row = slice(sl_row.start, nr)
+    else:
+        sl_row = slice(self._qtable_view._last_shift_on[0], nr)
     c0 = qtable.currentIndex().column()
     self.setSelections([(sl_row, sl_col)])
     self.moveToItem(nr - 1, c0)
@@ -61,7 +65,10 @@ def _(self: QBaseTable):
     last_selection = selection[-1]
 
     sl_row, sl_col = last_selection
-    sl_col = slice(0, sl_col.stop)
+    if self._qtable_view._last_shift_on is None:
+        sl_col = slice(0, sl_col.stop)
+    else:
+        sl_col = slice(0, self._qtable_view._last_shift_on[1] + 1)
 
     r0 = qtable.currentIndex().row()
     self.setSelections([(sl_row, sl_col)])
@@ -79,7 +86,10 @@ def _(self: QBaseTable):
 
     nc = qtable.model().columnCount()
     sl_row, sl_col = last_selection
-    sl_col = slice(sl_col.start, self._qtable_view.model().columnCount())
+    if self._qtable_view._last_shift_on is None:
+        sl_col = slice(sl_col.start, nc)
+    else:
+        sl_col = slice(self._qtable_view._last_shift_on[1], nc)
 
     r0 = qtable.currentIndex().row()
     self.setSelections([(sl_row, sl_col)])

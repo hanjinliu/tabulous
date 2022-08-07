@@ -27,6 +27,8 @@ class QTableDualView(QtW.QSplitter):
 
 
 class QTablePopupView(QtW.QWidget):
+    """Popup view widget for a table."""
+
     def __init__(self, table: _QTableViewEnhanced):
         super().__init__()
         self.setLayout(QtW.QHBoxLayout())
