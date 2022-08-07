@@ -97,17 +97,19 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
         self.setFrameStyle(QtW.QFrame.Shape.NoFrame)
 
+    # fmt: off
     if TYPE_CHECKING:
+        def model(self) -> AbstractDataFrameModel: ...
+        def itemDelegate(self) -> TableItemDelegate: ...
+    # fmt: on
 
-        def model(self) -> AbstractDataFrameModel:
-            ...
-
-    def copy(self) -> _QTableViewEnhanced:
+    def copy(self, link: bool = True) -> _QTableViewEnhanced:
         """Make a copy of the table."""
         new = _QTableViewEnhanced(self.parentTable())
-        new.setModel(self.model())
-        new.setSelectionModel(self.selectionModel())
-        new.setItemDelegate(self.itemDelegate())
+        if link:
+            new.setModel(self.model())
+            new.setSelectionModel(self.selectionModel())
+            new.setItemDelegate(self.itemDelegate())
         new.setZoom(self.zoom())
         new.setCurrentIndex(self.currentIndex())
         return new
@@ -474,16 +476,6 @@ class QBaseTable(QtW.QSplitter):
                 raise ValueError("Error in filter. Filter is reset.") from e
         self.refresh()
 
-    def copy(self, link: bool = True) -> Self:
-        if link:
-            copy = self.__class__(self.parent(), self.getDataFrame())
-            copy._qtable_view.setModel(self._qtable_view.model())
-            copy._qtable_view.setSelectionModel(self._qtable_view.selectionModel())
-        else:
-            copy = self.__class__(self.parent(), self.getDataFrame())
-        copy.setZoom(self.zoom())
-        return copy
-
     def refresh(self) -> None:
         """Refresh table view."""
         qtable = self._qtable_view
@@ -834,11 +826,6 @@ class QMutableTable(QBaseTable):
             )
             self.setDataFrameValue(rsel, csel, df)
         return None
-
-    def copy(self, link: bool = True) -> Self:
-        copy = super().copy(link=link)
-        copy.setEditable(self.isEditable())
-        return copy
 
     def editHorizontalHeader(self, index: int):
         """Edit the horizontal header."""

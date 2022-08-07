@@ -17,6 +17,9 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         super().__init__(parent)
         self.ndigits = ndigits
 
+    def replace(self, parent: QtCore.QObject | None = None) -> TableItemDelegate:
+        return TableItemDelegate(parent, self.ndigits)
+
     def displayText(self, value, locale):
         return super().displayText(self._format_number(value), locale)
 
@@ -24,10 +27,10 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         self, parent: QtW.QWidget, option, index: QtCore.QModelIndex
     ) -> QtW.QWidget:
         """Create different type of editors for different dtypes."""
-        qtable: _QTableViewEnhanced = parent.parent()
-        table: QBaseTable = qtable.parentTable()
-        if qtable.model()._editable:
-            model = qtable.model()
+        qtable_view: _QTableViewEnhanced = parent.parent()
+        table: QBaseTable = qtable_view.parentTable()
+        if qtable_view.model()._editable:
+            model = qtable_view.model()
             df = model.df
             row = index.row()
             col = index.column()
@@ -45,7 +48,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 choices = list(map(str, dtype.categories))
                 cbox.addItems(choices)
                 cbox.setCurrentIndex(choices.index(df.iat[row, col]))
-                cbox.currentIndexChanged.connect(qtable.setFocus)
+                cbox.currentIndexChanged.connect(qtable_view.setFocus)
                 return cbox
             elif dtype == "bool":
                 # use checkbox for boolean data
@@ -54,7 +57,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 choices = ["True", "False"]
                 cbox.addItems(choices)
                 cbox.setCurrentIndex(0 if df.iat[row, col] else 1)
-                cbox.currentIndexChanged.connect(qtable.setFocus)
+                cbox.currentIndexChanged.connect(qtable_view.setFocus)
                 return cbox
             elif dtype.kind == "M":
                 dt = QtW.QDateTimeEdit(parent)

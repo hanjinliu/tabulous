@@ -200,8 +200,8 @@ def _(self: _QtMainWidgetBase):
         indices = [idx - 1, idx]
     self._tablestack.tileTables(indices, orientation="horizontal")
 
-@QMainWidget._keymap.bind("\\")
-@QMainWindow._keymap.bind("\\")
+@QMainWidget._keymap.bind("Ctrl+K, \\")
+@QMainWindow._keymap.bind("Ctrl+K, \\")
 def _(self: _QtMainWidgetBase):
     """Untile table."""
     num = self._tablestack.count()

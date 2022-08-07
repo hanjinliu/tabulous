@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from qtpy import QtWidgets as QtW
+from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, Signal
 
 if TYPE_CHECKING:
-    from ._table_base import QBaseTable
+    from ._table_base import QBaseTable, _QTableViewEnhanced
 
 # Wrapper widgets that can be used to wrap a QTableView
 
@@ -20,11 +20,11 @@ class QTableGroup(QtW.QSplitter):
 
         self._tables: list[QBaseTable] = []
         for i, table in enumerate(tables):
-            table_copy = table.copy(link=True)
-            table_copy._qtable_view.focusedSignal.connect(
+            view_copy = table._qtable_view.copy(link=True)
+            view_copy.focusedSignal.connect(
                 lambda: self.focusChanged.emit(self.focusedIndex())
             )
-            self.addWidget(table_copy)
+            self.addWidget(view_copy)
             self.setStretchFactor(i, 1)
             self._tables.append(table)
 
@@ -35,9 +35,11 @@ class QTableGroup(QtW.QSplitter):
 
     @property
     def tables(self) -> list[QBaseTable]:
+        """List of tables."""
         return self._tables.copy()
 
     def pop(self, index: int = -1) -> QBaseTable:
+        """Pop a table from the group."""
         if index < 0:
             index += self.count()
         out = self._tables.pop(index)
@@ -47,6 +49,7 @@ class QTableGroup(QtW.QSplitter):
         return out
 
     def tableIndex(self, table: QBaseTable) -> int:
+        """Return the index of a table in the group."""
         model = table.model()
         for t in self.tables:
             if t.model() is model:
@@ -62,7 +65,12 @@ class QTableGroup(QtW.QSplitter):
 
     def setFocusedIndex(self, index: int) -> None:
         """Set the focused widget to the table at index."""
-        return self.widget(index)._qtable_view.setFocus()
+        for i in range(self.count()):
+            if i != index:
+                self.widget(i).setBackgroundRole(QtGui.QPalette.ColorRole.Dark)
+            else:
+                self.widget(i).setBackgroundRole(QtGui.QPalette.ColorRole.Light)
+        return self.widget(index).setFocus()
 
     def focusedTable(self) -> QBaseTable | None:
         """Return the currently focused table widget."""
@@ -73,7 +81,7 @@ class QTableGroup(QtW.QSplitter):
 
     def tableHasFocus(self, index: int) -> bool:
         """True if the table at index has focus."""
-        return self.widget(index)._qtable_view.hasFocus()
+        return self.widget(index).hasFocus()
 
     def __eq__(self, other: QTableGroup) -> bool:
         if not isinstance(other, QTableGroup):
@@ -84,5 +92,5 @@ class QTableGroup(QtW.QSplitter):
 
     if TYPE_CHECKING:
 
-        def widget(self, index: int) -> QBaseTable:
+        def widget(self, index: int) -> _QTableViewEnhanced:
             ...
