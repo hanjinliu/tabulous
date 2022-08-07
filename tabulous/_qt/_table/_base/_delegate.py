@@ -151,7 +151,7 @@ class QDtypedLineEdit(QtW.QLineEdit):
         nchar = len(self.text())
         r, c = self._pos
         if pos == 0 and keys == "Left" and c > 0:
-            self.parent().parentTable().setFocus()
+            self._table._qtable_view.setFocus()
             index = self._table._qtable_view.model().index(r, c - 1)
             self._table._qtable_view.setCurrentIndex(index)
         elif (
@@ -159,7 +159,7 @@ class QDtypedLineEdit(QtW.QLineEdit):
             and keys == "Right"
             and c < self._table.model().columnCount() - 1
         ):
-            self.parent().parentTable().setFocus()
+            self._table._qtable_view.setFocus()
             index = self._table._qtable_view.model().index(r, c + 1)
             self._table._qtable_view.setCurrentIndex(index)
         return super().keyPressEvent(event)
