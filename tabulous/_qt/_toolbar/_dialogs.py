@@ -17,15 +17,11 @@ def groupby(df: TableData, by: List[str]):
 
 
 @dialog_factory
-def hconcat(viewer, names: List[str]):
+def concat(
+    viewer, names: List[str], axis: int, ignore_index: bool = False
+) -> TableData:
     dfs = [viewer.tables[name].data for name in names]
-    return pd.concat(dfs, axis=0)
-
-
-@dialog_factory
-def vconcat(viewer, names: List[str]):
-    dfs = [viewer.tables[name].data for name in names]
-    return pd.concat(dfs, axis=1)
+    return pd.concat(dfs, axis=axis, ignore_index=ignore_index)
 
 
 @dialog_factory

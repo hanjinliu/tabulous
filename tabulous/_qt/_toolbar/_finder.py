@@ -10,6 +10,12 @@ if TYPE_CHECKING:
     from .._table import QBaseTable
 
 
+class MatchMode:
+    value = "a/1"
+    text = "'a'/'1'"
+    regex = ".*"
+
+
 class QFinderWidget(QtW.QWidget):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -25,7 +31,7 @@ class QFinderWidget(QtW.QWidget):
         _footer.layout().setContentsMargins(0, 0, 0, 0)
 
         self.cbox_match = QtW.QComboBox()
-        self.cbox_match.addItems(["1 == 1", "'1' == '1'", ".*"])
+        self.cbox_match.addItems([MatchMode.value, MatchMode.text, MatchMode.regex])
         self.cbox_match.setCurrentIndex(0)
         self.cbox_match.currentTextChanged.connect(self.setMatchMode)
 
@@ -41,7 +47,7 @@ class QFinderWidget(QtW.QWidget):
         self._qtable_viewer = _utils.find_parent_table_viewer(self)
         self._current_iterator: Iterator[tuple[int, int]] | None = None
         self.setFindOrientation("column")
-        self.setMatchMode("1 == 1")
+        self.setMatchMode(MatchMode.value)
 
     def searchBox(self) -> QSearchBox:
         return self._search_box
@@ -68,11 +74,11 @@ class QFinderWidget(QtW.QWidget):
         return
 
     def setMatchMode(self, mode: str):
-        if mode == "1 == 1":
+        if mode == MatchMode.value:
             self._match_method = self._value_match
-        elif mode == "'1' == '1'":
+        elif mode == MatchMode.text:
             self._match_method = self._text_match
-        elif mode == ".*":
+        elif mode == MatchMode.regex:
             self._match_method = self._text_regex_match
         else:
             raise ValueError(f"Unknown match mode: {mode}")

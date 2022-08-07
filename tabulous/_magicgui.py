@@ -343,11 +343,12 @@ def dialog_factory(function: _F) -> _F:
                 import pandas as pd
 
                 kwargs = dlg.asdict()
+                # Check the first data frame is not too large.
                 argname, val = next(iter(kwargs.items()))
-                assert isinstance(val, pd.DataFrame)
-                num = 8400
-                if val.size > num:
-                    kwargs[argname] = val.head(num // val.shape[1])
+                if isinstance(val, pd.DataFrame):
+                    num = 8400
+                    if val.size > num:
+                        kwargs[argname] = val.head(num // val.shape[1])
                 try:
                     table.data = function(**kwargs)
                 except Exception:

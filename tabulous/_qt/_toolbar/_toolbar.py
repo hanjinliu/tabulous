@@ -1,6 +1,7 @@
 # from __future__ import annotations
 from pathlib import Path
 from typing import Callable, List, TYPE_CHECKING, Union
+from functools import partial
 import weakref
 from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtWidgets import QAction
@@ -182,35 +183,25 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             out = _dlg.groupby(
                 df={"bind": table.data},
                 by={"choices": list(table.data.columns), "widget_type": "Select"},
+                parent=self,
             )
             if out is not None:
                 self.viewer.add_groupby(out, name=f"{table.name}-groupby")
 
-    def hconcat(self):
-        """Concatenate tables horizontally."""
-        out = _dlg.hconcat(
+    def concat(self):
+        """Concatenate tables."""
+        out = _dlg.concat(
             viewer={"bind": self.viewer},
             names={
                 "value": [self.viewer.current_table.name],
                 "widget_type": "Select",
                 "choices": [t.name for t in self.viewer.tables],
             },
+            axis={"choices": [("vertical", 0), ("horizontal", 1)]},
+            parent=self,
         )
         if out is not None:
-            self.viewer.add_table(out, name=f"hconcat")
-
-    def vconcat(self):
-        """Concatenate tables vertically."""
-        out = _dlg.vconcat(
-            viewer={"bind": self.viewer},
-            names={
-                "value": [self.viewer.current_table.name],
-                "widget_type": "Select",
-                "choices": [t.name for t in self.viewer.tables],
-            },
-        )
-        if out is not None:
-            self.viewer.add_table(out, name=f"vconcat")
+            self.viewer.add_table(out, name=f"concat")
 
     def pivot(self):
         """Pivot a table."""
@@ -237,6 +228,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         out = _dlg.melt(
             df={"bind": table.data},
             id_vars={"choices": list(table.data.columns), "widget_type": "Select"},
+            parent=self,
         )
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-melt")
@@ -249,6 +241,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         out = _dlg.summarize_table(
             df={"bind": table.data},
             methods={"choices": SUMMARY_CHOICES, "widget_type": "Select"},
+            parent=self,
         )
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-summary")
@@ -278,6 +271,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             df={"bind": table.data},
             by={"choices": list(table.data.columns), "widget_type": "Select"},
             ascending={"text": "Sort in ascending order."},
+            parent=self,
         )
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-sorted")
@@ -315,6 +309,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         ol.addWidget(_evaluator)
         _evaluator.setFocus()
 
+    def change_view_mode(self, view_mode: str):
+        """Popup view."""
+        table = self.viewer.current_table
+        if table is None:
+            return None
+        table.view_mode = view_mode
+
     def plot(self):
         """Plot curve."""
         return self._plot_xy(_dlg.plot)
@@ -338,6 +339,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             ax={"bind": table.plt.gca()},
             y={"choices": choices, "widget_type": "Select"},
             alpha={"min": 0, "max": 1, "step": 0.05},
+            parent=self,
         ):
             table.plt.draw()
 
@@ -386,6 +388,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             x=x,
             y=y,
             alpha={"min": 0, "max": 1, "step": 0.05},
+            parent=self,
         ):
             table.plt.draw()
 
@@ -412,6 +415,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             y=y,
             data={"bind": table.data},
             hue={"choices": colnames, "nullable": True},
+            parent=self,
         ):
             table.plt.draw()
 
@@ -430,8 +434,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Table", self.new_spreadsheet, ICON_DIR / "new_spreadsheet.svg")
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.groupby, ICON_DIR / "groupby.svg")
-        self.registerAction("Table", self.hconcat, ICON_DIR / "hconcat.svg")
-        self.registerAction("Table", self.vconcat, ICON_DIR / "vconcat.svg")
+        self.registerAction("Table", self.concat, ICON_DIR / "concat.svg")
         self.registerAction("Table", self.pivot, ICON_DIR / "pivot.svg")
         self.registerAction("Table", self.melt, ICON_DIR / "melt.svg")
         self.addSeparatorToChild("Table")
@@ -444,6 +447,12 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Analyze", self.filter, ICON_DIR / "filter.svg")
         self.addSeparatorToChild("Analyze")
         self.registerAction("Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg")
+
+        # View
+        self.registerAction("View", partial(self.change_view_mode, "popup"), ICON_DIR / "view_popup.svg")
+        self.registerAction("View", partial(self.change_view_mode, "horizontal"), ICON_DIR / "view_dual_h.svg")
+        self.registerAction("View", partial(self.change_view_mode, "vertical"), ICON_DIR / "view_dual_v.svg")
+        self.registerAction("View", partial(self.change_view_mode, "normal"), ICON_DIR / "view_reset.svg")
 
         # Plot
         self.registerAction("Plot", self.plot, ICON_DIR / "plot.svg")
