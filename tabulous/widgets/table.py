@@ -87,7 +87,9 @@ class CellInterface(Component["TableBase"]):
 
 
 class PlotInterface(Component["TableBase"]):
-    _current_widget = None
+    def __init__(self, parent=Component._no_ref):
+        super().__init__(parent)
+        self._current_widget = None
 
     def gcf(self):
         if self._current_widget is None:
@@ -109,14 +111,16 @@ class PlotInterface(Component["TableBase"]):
         self._current_widget = wdt
         return wdt
 
-    def delete_widget(self):
+    def delete_widget(self) -> None:
+        if self._current_widget is None:
+            return None
         try:
             self.parent._qwidget._side_area.removeWidget(self._current_widget)
         except Exception:
             pass
         self._current_widget.deleteLater()
         self._current_widget = None
-        return
+        return None
 
     def figure(self, style=None):
         return self.subplots(style=style)[0]

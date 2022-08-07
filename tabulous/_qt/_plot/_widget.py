@@ -48,6 +48,8 @@ class QtMplPlotCanvas(QtW.QWidget):
         self.setMinimumHeight(135)
         self.resize(180, 135)
 
+        # canvas.itemPicked.connect(print)
+
     def cla(self):
         self.ax.cla()
 
@@ -99,3 +101,7 @@ def _use_seaborn_grid(f):
         return grid
 
     return func
+
+
+class QMplEditor:
+    ...

@@ -342,8 +342,6 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             alpha={"min": 0, "max": 1, "step": 0.05},
         ):
             table.plt.draw()
-        else:
-            table.plt.delete_widget()
 
     def swarmplot(self):
         """Swarm plot."""
@@ -372,18 +370,26 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
         choices = list(table.selections.values.itercolumns())
 
-        if not choices:
+        if len(choices) == 0 or len(choices[0][1]) == 1:
+            # no selections or only one cell is selected
             choices = list(table.data.iteritems())
+
+        if len(choices) == 0:
+            raise ValueError("Table must have at least one column.")
+        elif len(choices) == 1:
+            x = {"choices": [], "value": None, "nullable": True}
+            y = {"choices": choices, "widget_type": "Select"}
+        else:
+            x = {"choices": choices, "nullable": True}
+            y = {"choices": choices, "widget_type": "Select"}
 
         if dialog(
             ax={"bind": table.plt.gca()},
-            x={"choices": choices, "nullable": True},
-            y={"choices": choices, "widget_type": "Select"},
+            x=x,
+            y=y,
             alpha={"min": 0, "max": 1, "step": 0.05},
         ):
             table.plt.draw()
-        else:
-            table.plt.delete_widget()
 
     def _plot_sns(self, dialog):
         table = self.viewer.current_table
@@ -410,8 +416,6 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             hue={"choices": colnames, "nullable": True},
         ):
             table.plt.draw()
-        else:
-            table.plt.delete_widget()
 
     def initToolbar(self):
         # Add tool buttons

@@ -16,6 +16,7 @@ class InteractiveFigureCanvas(FigureCanvas):
 
     figure: Figure
     deleteRequested = Signal()
+    itemPicked = Signal(object)
 
     def __init__(self, fig):
         super().__init__(fig)
@@ -27,6 +28,7 @@ class InteractiveFigureCanvas(FigureCanvas):
         self.last_axis: Axes | None = None
         self._interactive = True
         self._mouse_click_callbacks = []
+        fig.canvas.mpl_connect("pick_event", self.itemPicked.emit)
 
     def wheelEvent(self, event):
         """

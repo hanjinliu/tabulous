@@ -12,12 +12,11 @@ class _NoRef:
     """No reference."""
 
 
-_no_ref = _NoRef()
-
-
 class Component(Generic[T]):
+    _no_ref = _NoRef()
+
     def __init__(self, parent: T | _NoRef = _no_ref):
-        if parent is _no_ref:
+        if parent is self._no_ref:
             self._instances: dict[int, T] = {}
         else:
             self._instances = None
