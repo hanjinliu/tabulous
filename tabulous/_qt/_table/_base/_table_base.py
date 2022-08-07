@@ -71,6 +71,18 @@ class _QTableViewEnhanced(QtW.QTableView):
             self._parent_table = parent
         else:
             self._parent_table = None
+
+        from ...._global_variables import table
+
+        # settings
+        self._font_size = table.font_size
+        self._zoom = 1.0
+        self._h_default = table.row_size
+        self._w_default = table.column_size
+        self._font = table.font
+
+        self.setFont(QtGui.QFont(self._font, self._font_size))
+
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
         vheader, hheader = self.verticalHeader(), self.horizontalHeader()
@@ -82,16 +94,11 @@ class _QTableViewEnhanced(QtW.QTableView):
         vheader.setMinimumSectionSize(0)
         hheader.setMinimumSectionSize(0)
 
-        vheader.setDefaultSectionSize(24)
-        hheader.setDefaultSectionSize(100)
+        vheader.setDefaultSectionSize(self._h_default)
+        hheader.setDefaultSectionSize(self._w_default)
 
         hheader.setSectionResizeMode(QtW.QHeaderView.ResizeMode.Fixed)
         vheader.setSectionResizeMode(QtW.QHeaderView.ResizeMode.Fixed)
-
-        self._initial_section_size = (
-            hheader.defaultSectionSize(),
-            vheader.defaultSectionSize(),
-        )
 
         self.setVerticalScrollMode(_SCROLL_PER_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
@@ -177,7 +184,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def zoom(self) -> float:
         """Get current zoom factor."""
-        return self.model()._zoom
+        return self._zoom
 
     def setZoom(self, value: float) -> None:
         """Set zoom factor."""
@@ -191,14 +198,18 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.horizontalScrollBar().setSliderPosition(int(pos * zoom_ratio))
 
         # # Zoom section size of headers
-        h, v = self._initial_section_size
-        self.setSectionSize(int(h * value), int(v * value))
+        self.setSectionSize(int(self._w_default * value), int(self._h_default * value))
 
         # # Update stuff
-        self.model()._zoom = value
+        self._zoom = value
         self.viewport().update()
         self.horizontalHeader().viewport().update()
         self.verticalHeader().viewport().update()
+        font = self.font()
+        font.setPointSize(int(self._font_size * value))
+        self.setFont(font)
+        self.verticalHeader().setFont(font)
+        self.horizontalHeader().setFont(font)
         return
 
     def wheelEvent(self, e: QtGui.QWheelEvent) -> None:

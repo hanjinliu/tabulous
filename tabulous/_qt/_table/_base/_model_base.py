@@ -17,15 +17,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         super().__init__(parent)
         self._df = pd.DataFrame([])
 
-        from ...._global_variables import table
-
-        # settings
         self._editable = False
-        self._font_size = table.font_size
-        self._zoom = 1.0
-        self._h_default = table.row_size
-        self._w_default = table.column_size
-        self._font = table.font
         self._foreground_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
         self._background_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
 
@@ -34,7 +26,6 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             Qt.ItemDataRole.DisplayRole: self._data_display,
             Qt.ItemDataRole.TextColorRole: self._data_text_color,
             Qt.ItemDataRole.ToolTipRole: self._data_tooltip,
-            Qt.ItemDataRole.FontRole: self._data_font,
             Qt.ItemDataRole.BackgroundColorRole: self._data_background_color,
         }
 
@@ -98,9 +89,6 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             return f"{val!r} (dtype: {dtype})"
         return QtCore.QVariant()
 
-    def _data_font(self, index: QtCore.QModelIndex):
-        return QtGui.QFont(self._font, int(self._font_size * self._zoom))
-
     def _data_background_color(self, index: QtCore.QModelIndex):
         r, c = index.row(), index.column()
         if r < self.df.shape[0] and c < self.df.shape[1]:
@@ -150,9 +138,6 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 if section < self.df.index.size:
                     return str(self.df.index[section])
                 return None
-
-        elif role == Qt.ItemDataRole.FontRole:
-            return QtGui.QFont(self._font, int(self._font_size * self._zoom))
 
     def setData(self, index: QtCore.QModelIndex, value, role) -> bool:
         if not index.isValid():
