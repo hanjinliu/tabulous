@@ -17,12 +17,21 @@ class Anchor(Enum):
     bottom_right = "bottom_right"
 
 
+_STYLE = """
+QOverlayWidget {
+    background-color: white;
+    border: 1px solid gray;
+    border-radius: 3px;
+}
+"""
+
+
 class QOverlayWidget(QtW.QDialog):
     def __init__(self, parent: QTabbedTableStack):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.SubWindow)
         self._widget = None
-        self.setStyleSheet(parent.styleSheet())
+        self.setStyleSheet(_STYLE)
 
         _layout = QtW.QVBoxLayout()
         _layout.setContentsMargins(2, 2, 2, 2)
@@ -68,19 +77,19 @@ class QOverlayWidget(QtW.QDialog):
     def sizeHint(self) -> QtCore.QSize:
         return super().sizeHint()
 
-    def alignToParent(self, offset=(8, 8)):
+    def alignToParent(self):
         """Position widget at the bottom right edge of the parent."""
         qtable = self.parentWidget()
         if not qtable:
             return
         if self._anchor == Anchor.bottom_left:
-            self.alignBottomLeft(offset)
+            self.alignBottomLeft()
         elif self._anchor == Anchor.bottom_right:
-            self.alignBottomRight(offset)
+            self.alignBottomRight()
         elif self._anchor == Anchor.top_left:
-            self.alignTopLeft(offset)
+            self.alignTopLeft()
         elif self._anchor == Anchor.top_right:
-            self.alignTopRight(offset)
+            self.alignTopRight()
         else:
             raise RuntimeError
 
@@ -96,19 +105,19 @@ class QOverlayWidget(QtW.QDialog):
         pos.setY(pos.y() + offset[1])
         self.move(pos)
 
-    def alignTopRight(self, offset=(8, 8)):
+    def alignTopRight(self, offset=(26, 8)):
         pos = self.viewRect().topRight()
         pos.setX(pos.x() - self.rect().width() - offset[0])
         pos.setY(pos.y() + offset[1])
         self.move(pos)
 
-    def alignBottomLeft(self, offset=(8, 8)):
+    def alignBottomLeft(self, offset=(8, 26)):
         pos = self.viewRect().bottomLeft()
         pos.setX(pos.x() + offset[0])
         pos.setY(pos.y() - self.rect().height() - offset[1])
         self.move(pos)
 
-    def alignBottomRight(self, offset=(8, 8)):
+    def alignBottomRight(self, offset=(26, 26)):
         pos = self.viewRect().bottomRight()
         pos.setX(pos.x() - self.rect().width() - offset[0])
         pos.setY(pos.y() - self.rect().height() - offset[1])

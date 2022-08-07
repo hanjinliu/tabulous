@@ -288,14 +288,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         ol.show()
         from ._eval import QLiteralEval
 
-        _evaluator = QLiteralEval(ol)
+        _evaluator = QLiteralEval(ol, label="Filter", mode="filter")
 
         @_evaluator.escClicked.connect
         def _on_escape():
             ol.hide()
             self.parent().setCellFocus()
 
-        _evaluator.setMode("filter")
         ol.addWidget(_evaluator)
         _evaluator.setFocus()
 
@@ -306,14 +305,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         ol.show()
         from ._eval import QLiteralEval
 
-        _evaluator = QLiteralEval(ol)
+        _evaluator = QLiteralEval(ol, label="Evaluate", mode="eval")
 
         @_evaluator.escClicked.connect
         def _on_escape():
             ol.hide()
             self.parent().setCellFocus()
 
-        _evaluator.setMode("eval")
         ol.addWidget(_evaluator)
         _evaluator.setFocus()
 
