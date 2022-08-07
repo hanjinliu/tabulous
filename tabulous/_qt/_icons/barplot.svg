@@ -1,1 +1,15 @@
-<svg width="88" height="83" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden"><defs><clipPath id="clip0"><rect x="246" y="470" width="88" height="83"/></clipPath></defs><g clip-path="url(#clip0)" transform="translate(-246 -470)"><path d="M254 470 254 547.609" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/><path d="M0 0 82.6044 0.000104987" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd" transform="matrix(-1 0 0 1 333.604 544)"/><rect x="263.5" y="493.5" width="28" height="49" stroke="#000000" stroke-width="1.33333" stroke-miterlimit="8"/><rect x="297.5" y="510.5" width="28" height="32" stroke="#000000" stroke-width="1.33333" stroke-miterlimit="8"/></g></svg>
+<svg width="88" height="83"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden">
+    <defs>
+        <clipPath id="clip0">
+            <rect x="246" y="470" width="88" height="83"/>
+        </clipPath>
+    </defs>
+    <g clip-path="url(#clip0)" transform="translate(-246 -470)">
+        <path d="M254 470 254 547.609" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M0 0 82.6044 0.000104987" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd" transform="matrix(-1 0 0 1 333.604 544)"/>
+        <rect x="263.5" y="493.5" width="28" height="49" stroke="#000000" stroke-width="1.33333" fill="#000000" stroke-miterlimit="8"/>
+        <rect x="297.5" y="510.5" width="28" height="32" stroke="#000000" stroke-width="1.33333" fill="#000000" stroke-miterlimit="8"/>
+    </g>
+</svg>

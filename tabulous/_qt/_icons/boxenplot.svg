@@ -1,1 +1,21 @@
-<svg width="88" height="83" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden"><defs><clipPath id="clip0"><rect x="371" y="363" width="88" height="83"/></clipPath></defs><g clip-path="url(#clip0)" transform="translate(-371 -363)"><path d="M379 364 379 441.609" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/><path d="M0 0 82.6044 0.000104987" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd" transform="matrix(-1 0 0 1 458.604 438)"/><rect x="388.5" y="390.5" width="28" height="11" stroke="#000000" stroke-width="1.33333" stroke-miterlimit="8"/><rect x="422.5" y="411.5" width="28" height="9" stroke="#000000" stroke-width="1.33333" stroke-miterlimit="8"/><path d="M402 369 402 416.138" stroke="#000000" stroke-width="4" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/><path d="M437 398 437 430.479" stroke="#000000" stroke-width="4" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/><rect x="394.5" y="381.5" width="16" height="8" stroke="#000000" stroke-width="1.33333" stroke-miterlimit="8"/><rect x="394.5" y="401.5" width="16" height="5" stroke="#000000" stroke-width="1.33333" stroke-miterlimit="8"/><rect x="428.5" y="406.5" width="17" height="6" stroke="#000000" stroke-width="1.33333" stroke-miterlimit="8"/><rect x="429.5" y="419.5" width="16" height="5" stroke="#000000" stroke-width="1.33333" stroke-miterlimit="8"/></g></svg>
+<svg width="88" height="83"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden">
+    <defs>
+        <clipPath id="clip0">
+            <rect x="371" y="363" width="88" height="83"/>
+        </clipPath>
+    </defs>
+    <g clip-path="url(#clip0)" transform="translate(-371 -363)">
+        <path d="M379 364 379 441.609" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M0 0 82.6044 0.000104987" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd" transform="matrix(-1 0 0 1 458.604 438)"/>
+        <rect x="388.5" y="390.5" width="28" height="11" stroke="#000000" stroke-width="1.33333" fill="#000000" stroke-miterlimit="8"/>
+        <rect x="422.5" y="411.5" width="28" height="9" stroke="#000000" stroke-width="1.33333" fill="#000000" stroke-miterlimit="8"/>
+        <path d="M402 369 402 416.138" stroke="#000000" stroke-width="4" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M437 398 437 430.479" stroke="#000000" stroke-width="4" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <rect x="394.5" y="381.5" width="16" height="8" stroke="#000000" stroke-width="1.33333" fill="#000000" stroke-miterlimit="8"/>
+        <rect x="394.5" y="401.5" width="16" height="5" stroke="#000000" stroke-width="1.33333" fill="#000000" stroke-miterlimit="8"/>
+        <rect x="428.5" y="406.5" width="17" height="6" stroke="#000000" stroke-width="1.33333" fill="#000000" stroke-miterlimit="8"/>
+        <rect x="429.5" y="419.5" width="16" height="5" stroke="#000000" stroke-width="1.33333" fill="#000000" stroke-miterlimit="8"/>
+    </g>
+</svg>
