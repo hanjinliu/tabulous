@@ -16,6 +16,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
     def __init__(self, parent: QtCore.QObject | None = None, ndigits: int = 4) -> None:
         super().__init__(parent)
         self.ndigits = ndigits
+        self._parent = parent
 
     def replace(self, parent: QtCore.QObject | None = None) -> TableItemDelegate:
         return TableItemDelegate(parent, self.ndigits)
@@ -150,7 +151,7 @@ class QDtypedLineEdit(QtW.QLineEdit):
         nchar = len(self.text())
         r, c = self._pos
         if pos == 0 and keys == "Left" and c > 0:
-            self.parent().setFocus()
+            self.parent().parentTable().setFocus()
             index = self._table._qtable_view.model().index(r, c - 1)
             self._table._qtable_view.setCurrentIndex(index)
         elif (
@@ -158,7 +159,12 @@ class QDtypedLineEdit(QtW.QLineEdit):
             and keys == "Right"
             and c < self._table.model().columnCount() - 1
         ):
-            self.parent().setFocus()
+            self.parent().parentTable().setFocus()
             index = self._table._qtable_view.model().index(r, c + 1)
             self._table._qtable_view.setCurrentIndex(index)
         return super().keyPressEvent(event)
+
+    if TYPE_CHECKING:
+
+        def parent(self) -> _QTableViewEnhanced:
+            ...

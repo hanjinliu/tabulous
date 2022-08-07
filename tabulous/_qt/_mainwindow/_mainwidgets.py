@@ -100,6 +100,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self._console_dock_widget = None
         self.addToolBar(self._toolbar)
         self._tablestack.setMinimumSize(400, 250)
+        self.resize(800, 600)
         self.statusBar()
         QMainWindow._instances.append(self)
 

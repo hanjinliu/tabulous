@@ -97,6 +97,11 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
         self.setFrameStyle(QtW.QFrame.Shape.NoFrame)
 
+        from ._delegate import TableItemDelegate
+
+        delegate = TableItemDelegate(parent=self)
+        self.setItemDelegate(delegate)
+
     # fmt: off
     if TYPE_CHECKING:
         def model(self) -> AbstractDataFrameModel: ...
@@ -109,7 +114,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         if link:
             new.setModel(self.model())
             new.setSelectionModel(self.selectionModel())
-            new.setItemDelegate(self.itemDelegate())
         new.setZoom(self.zoom())
         new.setCurrentIndex(self.currentIndex())
         return new
@@ -155,7 +159,19 @@ class _QTableViewEnhanced(QtW.QTableView):
         keys = QtKeys(e)
         if keys in _TABLE_VIEW_KEY_SET:
             return super().keyPressEvent(e)
+
         parent = self.parentTable()
+        if keys.is_typing() and parent.isEditable():
+            # Enter editing mode
+            text = keys.key_string()
+            if not keys.has_shift():
+                text = text.lower()
+            self.edit(self.currentIndex())
+            focused_widget = QtW.QApplication.focusWidget()
+            if isinstance(focused_widget, QtW.QLineEdit):
+                focused_widget.setText(text)
+                focused_widget.deselect()
+            return
         if isinstance(parent, QBaseTable):
             parent.keyPressEvent(e)
 
@@ -266,10 +282,6 @@ class QBaseTable(QtW.QSplitter):
         self.createModel()
         self.setDataFrame(data)
 
-        from ._delegate import TableItemDelegate
-
-        delegate = TableItemDelegate(parent=self)
-        self._qtable_view.setItemDelegate(delegate)
         self._qtable_view.selectionChangedSignal.connect(
             self.selectionChangedSignal.emit
         )
@@ -338,6 +350,15 @@ class QBaseTable(QtW.QSplitter):
 
     def deleteValues(self, row: int, col: int) -> None:
         raise TableImmutableError("Table is immutable.")
+
+    def isEditable(self) -> bool:
+        """Return the editability of the table."""
+        return False
+
+    def setEditable(self, editable: bool):
+        """Set the editability of the table."""
+        if editable:
+            raise TableImmutableError("Table is immutable.")
 
     def assignColumn(self, ds: pd.Series):
         raise TableImmutableError("Table is immutable.")
@@ -720,22 +741,7 @@ class QMutableTable(QBaseTable):
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
         keys = QtKeys(e)
-        if self._keymap.press_key(keys):
-            return
-
-        if keys.is_typing() and self.isEditable():
-            # Enter editing mode
-            qtable = self._qtable_view
-            text = keys.key_string()
-            if not keys.has_shift():
-                text = text.lower()
-            qtable.edit(qtable.currentIndex())
-            focused_widget = QtW.QApplication.focusWidget()
-            if isinstance(focused_widget, QtW.QLineEdit):
-                focused_widget.setText(text)
-                focused_widget.deselect()
-            return
-        else:
+        if not self._keymap.press_key(keys):
             return super().keyPressEvent(e)
 
     def pasteFromClipBoard(self):
