@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
 from ..._keymap import QtKeys
@@ -8,6 +8,7 @@ from ._table_base import QBaseTable, QMutableTable, _QTableViewEnhanced
 
 if TYPE_CHECKING:
     import numpy as np
+    from pandas.core.dtypes.dtypes import CategoricalDtype
 
 
 class TableItemDelegate(QtW.QStyledItemDelegate):
@@ -46,6 +47,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             dtype: np.dtype = df.dtypes.values[col]
             if dtype == "category":
                 # use combobox for categorical data
+                dtype: CategoricalDtype
                 cbox = QtW.QComboBox(parent)
                 cbox.setFont(font)
                 choices = list(map(str, dtype.categories))
@@ -65,7 +67,8 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             elif dtype.kind == "M":
                 dt = QtW.QDateTimeEdit(parent)
                 dt.setFont(font)
-                dt.setDateTime(df.iat[row, col].to_pydatetime())
+                val = df.iat[row, col]
+                dt.setDateTime(val.to_pydatetime())
                 return dt
             else:
                 line = QDtypedLineEdit(parent, table, (row, col))
@@ -75,6 +78,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
     def setEditorData(self, editor: QtW.QWidget, index: QtCore.QModelIndex) -> None:
         super().setEditorData(editor, index)
         if isinstance(editor, QtW.QComboBox):
+            editor = cast(QtW.QComboBox, editor)
             editor.showPopup()
         return None
 
@@ -85,6 +89,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         index: QtCore.QModelIndex,
     ) -> None:
         if isinstance(editor, QtW.QDateTimeEdit):
+            editor = cast(QtW.QDateTimeEdit, editor)
             dt = editor.dateTime().toPyDateTime()
             model.setData(index, dt, Qt.ItemDataRole.EditRole)
         else:
@@ -113,6 +118,8 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
 
 
 class QDtypedLineEdit(QtW.QLineEdit):
+    """LineEdit widget with dtype checker and custom defocusing."""
+
     def __init__(
         self,
         parent: QtCore.QObject | None = None,

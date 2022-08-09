@@ -7,9 +7,9 @@ from qtpy.QtCore import Signal, Qt
 import numpy as np
 import pandas as pd
 
-from collections_undo import UndoManager
 from ._model_base import AbstractDataFrameModel
 
+from ..._undo import QtUndoManager
 from ..._keymap import QtKeys, QtKeyMap
 from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
 from ....exceptions import SelectionRangeError, TableImmutableError
@@ -33,31 +33,6 @@ for keys in ["Up", "Down", "Left", "Right", "Home", "End", "PageUp", "PageDown",
 _TABLE_VIEW_KEY_SET = frozenset(_TABLE_VIEW_KEY_SET)
 
 # fmt: on
-
-
-def _count_data_size(*args, **kwargs) -> float:
-    total_nbytes = 0
-    for arg in args:
-        total_nbytes += _getsizeof(arg)
-    for v in kwargs.values():
-        total_nbytes += _getsizeof(v)
-    return total_nbytes
-
-
-def _getsizeof(obj) -> float:
-    if isinstance(obj, pd.DataFrame):
-        nbytes = obj.memory_usage(deep=True).sum()
-    elif isinstance(obj, pd.Series):
-        nbytes = obj.memory_usage(deep=True)
-    elif isinstance(obj, np.ndarray):
-        nbytes = obj.nbytes
-    elif isinstance(obj, (list, tuple, set)):
-        nbytes = sum(_getsizeof(x) for x in obj)
-    elif isinstance(obj, dict):
-        nbytes = sum(_getsizeof(x) for x in obj.values())
-    else:
-        nbytes = 1  # approximate
-    return nbytes
 
 
 class _QTableViewEnhanced(QtW.QTableView):
@@ -290,7 +265,7 @@ class QBaseTable(QtW.QSplitter):
 
     selectionChangedSignal = Signal()
     _DEFAULT_EDITABLE = False
-    _mgr = UndoManager(measure=_count_data_size, maxsize=1e7)
+    _mgr = QtUndoManager()
     _keymap = QtKeyMap()
 
     def __init__(
@@ -527,6 +502,12 @@ class QBaseTable(QtW.QSplitter):
         qtable.horizontalHeader().viewport().update()
         qtable.verticalHeader().viewport().update()
         return None
+
+    def undoStackView(self, show: bool = True):
+        out = self._mgr.widget()
+        if show:
+            self.addSideWidget(out)
+        return out
 
     def addSideWidget(self, widget: QtW.QWidget):
         """Add a widget to the side area of the table."""

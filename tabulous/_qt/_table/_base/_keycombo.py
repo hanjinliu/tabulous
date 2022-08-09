@@ -2,6 +2,7 @@ from ._table_base import QBaseTable, QMutableTable
 
 QBaseTable._keymap.bind("Ctrl+C", QBaseTable.copyToClipboard, headers=False)
 QBaseTable._keymap.bind("Ctrl+C, Ctrl+H", QBaseTable.copyToClipboard, headers=True)
+QBaseTable._keymap.bind("Ctrl+H", QBaseTable.undoStackView)
 
 
 @QBaseTable._keymap.bind("Ctrl+Up", row=0, column=None)
