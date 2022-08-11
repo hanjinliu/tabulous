@@ -1,14 +1,14 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
-from collections_undo import UndoManager
+from collections_undo import UndoManager, fmt
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
 
 import numpy as np
 import pandas as pd
 
-if TYPE_CHECKING:
-    from collections_undo._stack import Command
+_MONOSPACE = QtGui.QFont("Monospace")
+_MONOSPACE.setStyleHint(QtGui.QFont.StyleHint.TypeWriter)
 
 
 class QUndoStackViewer(QtW.QListView):
@@ -44,7 +44,10 @@ class QUndoStackModel(QtCore.QAbstractListModel):
             r = index.row()
             stack = self._mgr.stack_undo
             if r < len(stack):
-                return repr(stack[r])
+                return stack[r].format()
+
+        elif role == Qt.ItemDataRole.FontRole:
+            return _MONOSPACE
 
         return QtCore.QVariant()
 
@@ -78,11 +81,6 @@ class QtUndoManager(UndoManager):
             self._widget = QUndoStackViewer(self)
         return self._widget
 
-    if TYPE_CHECKING:
-
-        def __get__(self, obj: QtW.QWidget, objtype: type) -> QtUndoManager:
-            ...
-
 
 def _count_data_size(*args, **kwargs) -> float:
     total_nbytes = 0
@@ -107,3 +105,9 @@ def _getsizeof(obj) -> float:
     else:
         nbytes = 1  # approximate
     return nbytes
+
+
+def fmt_slice(sl: slice) -> str:
+    if not isinstance(sl, slice):
+        return fmt.map_object(sl)
+    return f"{sl.start}:{sl.stop}"

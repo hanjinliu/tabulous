@@ -6,10 +6,11 @@ from qtpy.QtCore import Signal, Qt
 
 import numpy as np
 import pandas as pd
+from collections_undo import fmt
 
 from ._model_base import AbstractDataFrameModel
 
-from ..._undo import QtUndoManager
+from ..._undo import QtUndoManager, fmt_slice
 from ..._keymap import QtKeys, QtKeyMap
 from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
 from ....exceptions import SelectionRangeError, TableImmutableError
@@ -518,7 +519,8 @@ class QBaseTable(QtW.QSplitter):
             self.addWidget(area)
             self._side_area = area
         self._side_area.addWidget(widget)
-        self.setSizes([1, 1])
+
+        self.setSizes([500, 200])
         return None
 
     def setDualView(self, orientation: str = "horizontal"):
@@ -673,10 +675,10 @@ class QMutableTable(QBaseTable):
 
         # emit item changed signal if value changed
         if _equal(_value, _old_value) and self.isEditable():
-            self._set_value(r0, c, r, c, _value, _old_value)
+            self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
         return None
 
-    @QBaseTable._mgr.undoable(name="setDataFrameValue")
+    @QBaseTable._mgr.undoable
     def _set_value(self, r, c, r_ori, c_ori, value, old_value):
         self.updateValue(r, c, value)
         self.setSelections([(r_ori, c_ori)])
@@ -689,6 +691,23 @@ class QMutableTable(QBaseTable):
         self.setSelections([(r_ori, c_ori)])
         self.itemChangedSignal.emit(ItemInfo(r, c, old_value, value))
         return None
+
+    @_set_value.set_formatter
+    def _set_value_fmt(self, r, c, r_ori, c_ori, value, old_value):
+        _r = fmt_slice(r)
+        _c = fmt_slice(c)
+        if isinstance(value, pd.DataFrame):
+            if value.size < 6:
+                _val = str(value.values.tolist())
+            else:
+                _val = "..."
+        else:
+            _val = fmt.map_object(value)
+        return f"df.iloc[{_r}, {_c}] = {_val}"
+
+    @_set_value.set_formatter_inv
+    def _set_value_fmt_inv(self, r, c, r_ori, c_ori, value, old_value):
+        return self._set_value_fmt(r, c, r_ori, c_ori, old_value, value)
 
     def assignColumn(self, ds: pd.Series):
         if ds.name in self._data_raw.columns:

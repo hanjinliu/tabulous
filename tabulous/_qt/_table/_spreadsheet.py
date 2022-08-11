@@ -177,7 +177,7 @@ class QSpreadSheet(QMutableSimpleTable):
                 if text == value:
                     return
 
-        with self._mgr.merging(name="setDataFrameValue"):
+        with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
             super().setDataFrameValue(r, c, value)
