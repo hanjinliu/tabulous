@@ -144,6 +144,10 @@ class QSpreadSheet(QMutableSimpleTable):
     def setDataFrame(self, data):
         return (getattr(self, "_data_raw", None),), {}
 
+    @setDataFrame.set_formatter
+    def _setDataFrame_fmt(self, data: pd.DataFrame):
+        return f"set new data of shape {data.shape}"
+
     def createModel(self) -> None:
         """Create spreadsheet model."""
         model = SpreadSheetModel(self)

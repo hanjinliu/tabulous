@@ -23,6 +23,10 @@ class QTableLayer(QMutableSimpleTable):
         except Exception:
             return None
 
+    @setDataFrame.set_formatter
+    def _setDataFrame_fmt(self, data: pd.DataFrame):
+        return f"set new data of shape {data.shape}"
+
     def createModel(self):
         model = DataFrameModel(self)
         self._qtable_view.setModel(model)
