@@ -4,8 +4,12 @@ from typing import TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtCore import Qt
 
+from ..._titlebar import QTitleBar
+
 
 class QInnerSplitter(QtW.QSplitter):
+    """The inner widget for QTableSideArea."""
+
     def __init__(self, parent: QtW.QWidget = None) -> None:
         super().__init__(Qt.Orientation.Vertical, parent)
 
@@ -37,14 +41,14 @@ class QTableSideArea(QtW.QScrollArea):
         def widget(self) -> QInnerSplitter:
             ...
 
-    def addWidget(self, widget: QtW.QWidget) -> None:
-        dock = QSplitterDockWidget(widget)
+    def addWidget(self, widget: QtW.QWidget, name: str = "") -> None:
+        dock = QSplitterDockWidget(widget, name=name)
         splitter = self.widget()
         splitter.addWidget(dock)
         idx = splitter.count() - 1
         splitter.setCollapsible(idx, False)
 
-        @dock.close_btn.clicked.connect
+        @dock._title_bar.closeSignal.connect
         def _():
             self.removeWidget(dock)
 
@@ -54,38 +58,13 @@ class QTableSideArea(QtW.QScrollArea):
             self.parentWidget().setSizes([1, 0])
 
 
-class QTitleBar(QtW.QWidget):
-    """A custom title bar for a QSplitterDockWidget"""
-
-    def __init__(self, parent: QSplitterDockWidget) -> None:
-        super().__init__(parent)
-        _layout = QtW.QHBoxLayout()
-        _layout.setContentsMargins(4, 0, 4, 0)
-        _layout.setSpacing(0)
-        _frame = QtW.QFrame()
-        _frame.setFrameShape(QtW.QFrame.Shape.HLine)
-        _frame.setFrameShadow(QtW.QFrame.Shadow.Sunken)
-        _frame.setSizePolicy(
-            QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Fixed
-        )
-        self._close_button = QtW.QPushButton("✕")
-        self._close_button.setToolTip("Close the widget.")
-        self._close_button.setFixedSize(QtCore.QSize(16, 16))
-
-        _layout.addWidget(_frame)
-        _layout.addWidget(self._close_button)
-        _layout.setAlignment(self._close_button, Qt.AlignmentFlag.AlignRight)
-        self.setLayout(_layout)
-        self.setMaximumHeight(20)
-
-
 class QSplitterDockWidget(QtW.QWidget):
-    def __init__(self, widget: QtW.QWidget) -> None:
+    def __init__(self, widget: QtW.QWidget, name: str = "") -> None:
         super().__init__()
         _layout = QtW.QVBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.setSpacing(0)
-        title = QTitleBar(self)
+        title = QTitleBar(title=name, parent=self)
         _layout.addWidget(title)
         _layout.addWidget(widget)
         self.setLayout(_layout)

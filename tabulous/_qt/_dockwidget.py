@@ -5,13 +5,15 @@ from typing import Any
 from qtpy.QtWidgets import QDockWidget as _QDockWidget, QMainWindow, QWidget
 from qtpy.QtCore import Qt
 
+from ._titlebar import QTitleBar
+
 
 class QtDockWidget(_QDockWidget):
     areas = {
-        "left": Qt.LeftDockWidgetArea,
-        "right": Qt.RightDockWidgetArea,
-        "top": Qt.TopDockWidgetArea,
-        "bottom": Qt.BottomDockWidgetArea,
+        "left": Qt.DockWidgetArea.LeftDockWidgetArea,
+        "right": Qt.DockWidgetArea.RightDockWidgetArea,
+        "top": Qt.DockWidgetArea.TopDockWidgetArea,
+        "bottom": Qt.DockWidgetArea.BottomDockWidgetArea,
     }
 
     def __init__(
@@ -24,6 +26,13 @@ class QtDockWidget(_QDockWidget):
         allowed_areas: list[str] = None,
     ):
         super().__init__(name, parent)
+
+        # set title bar
+        _titlebar = QTitleBar(name, self)
+        self.setTitleBarWidget(_titlebar)
+        _titlebar.setCursor(Qt.CursorShape.OpenHandCursor)
+        _titlebar.closeSignal.connect(self.close)
+
         areas = self.__class__.areas
 
         if allowed_areas:
@@ -36,7 +45,7 @@ class QtDockWidget(_QDockWidget):
                 )
             allowed_areas = reduce(ior, [areas[a] for a in allowed_areas])
         else:
-            allowed_areas = Qt.AllDockWidgetAreas
+            allowed_areas = Qt.DockWidgetArea.AllDockWidgetAreas
         self.qt_area = areas[area]
         self.setAllowedAreas(allowed_areas)
         self.setWidget(widget)

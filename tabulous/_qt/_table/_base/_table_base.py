@@ -507,10 +507,10 @@ class QBaseTable(QtW.QSplitter):
     def undoStackView(self, show: bool = True):
         out = self._mgr.widget()
         if show:
-            self.addSideWidget(out)
+            self.addSideWidget(out, name="Undo stack")
         return out
 
-    def addSideWidget(self, widget: QtW.QWidget):
+    def addSideWidget(self, widget: QtW.QWidget, name: str = ""):
         """Add a widget to the side area of the table."""
         if self._side_area is None:
             from ._side_area import QTableSideArea
@@ -518,8 +518,8 @@ class QBaseTable(QtW.QSplitter):
             area = QTableSideArea()
             self.addWidget(area)
             self._side_area = area
-        self._side_area.addWidget(widget)
 
+        self._side_area.addWidget(widget, name=name)
         self.setSizes([500, 200])
         return None
 

@@ -355,11 +355,11 @@ class TableBase(ABC):
         """Return the undo manager."""
         return self._qwidget._mgr
 
-    def add_side_widget(self, wdt: QtW.QWidget | Widget):
+    def add_side_widget(self, wdt: QtW.QWidget | Widget, name: str = ""):
         """Add a side widget to the table."""
         if hasattr(wdt, "native"):
             wdt = wdt.native
-        self._qwidget.addSideWidget(wdt)
+        self._qwidget.addSideWidget(wdt, name=name)
         return wdt
 
     def _emit_selections(self):

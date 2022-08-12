@@ -118,7 +118,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
             qtconsole = _QtConsole()
             qtconsole.connect_parent(self._table_viewer)
-            dock = self.addDockWidget(qtconsole, name="console", area="bottom")
+            dock = self.addDockWidget(qtconsole, name="Console", area="bottom")
             qtconsole.setDockParent(dock)
             dock.setSourceObject(qtconsole)
             self._console_widget = qtconsole
