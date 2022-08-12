@@ -23,6 +23,8 @@ class QUndoStackViewer(QtW.QWidget):
 
         self._undo_button = QtW.QPushButton("Undo")
         self._redo_button = QtW.QPushButton("Redo")
+        self._undo_button.setToolTip("Undo the last action")
+        self._redo_button.setToolTip("Redo the last undone action")
 
         _layout = QtW.QVBoxLayout()
         _layout.addWidget(self._listview)

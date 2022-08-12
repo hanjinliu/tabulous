@@ -7,8 +7,8 @@ from ...types import TableData
 
 
 @dialog_factory
-def summarize_table(df: TableData, methods: List[str]):
-    return df.agg(methods)
+def summarize_table(df: TableData, methods: List[str], new_table: bool = False):
+    return df.agg(methods), new_table
 
 
 @dialog_factory

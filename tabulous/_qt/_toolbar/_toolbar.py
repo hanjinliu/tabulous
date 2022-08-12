@@ -244,7 +244,14 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             parent=self,
         )
         if out is not None:
-            self.viewer.add_table(out, name=f"{table.name}-summary")
+            df, new = out
+            if new:
+                self.viewer.add_table(df, name=f"{table.name}-summary")
+            else:
+                from .._table import QTableLayer
+
+                qtable = QTableLayer(data=df)
+                table.add_side_widget(qtable, name="summary")
 
     def toggle_console(self):
         """Toggle embedded console."""
