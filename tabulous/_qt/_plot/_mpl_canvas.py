@@ -133,7 +133,6 @@ class InteractiveFigureCanvas(FigureCanvas):
         menu.addAction("Copy ...", self._copy_canvas)
         menu.addAction("Save As...", self._save_canvas_dialog)
         menu.addAction("Clear figure", self._clear_figure)
-        menu.addAction("Delete figure", self._delete_figure)
         menu.addSeparator()
         return menu
 
@@ -151,10 +150,6 @@ class InteractiveFigureCanvas(FigureCanvas):
         for ax in self.figure.axes:
             ax.cla()
         self.figure.canvas.draw()
-
-    def _delete_figure(self):
-        self.deleteRequested.emit()
-        self.deleteLater()
 
     def _asarray(self) -> np.ndarray:
         """Convert current canvas state into RGBA numpy array."""

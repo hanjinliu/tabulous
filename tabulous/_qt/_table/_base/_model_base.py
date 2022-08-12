@@ -85,7 +85,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         r, c = index.row(), index.column()
         if r < self.df.shape[0] and c < self.df.shape[1]:
             val = self.df.iat[r, c]
-            dtype = self.df.dtypes[c]
+            dtype = self.df.dtypes.values[c]
             return f"{val!r} (dtype: {dtype})"
         return QtCore.QVariant()
 
@@ -129,7 +129,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             elif role == Qt.ItemDataRole.ToolTipRole:
                 if section < self.df.columns.size:
                     name = self.df.columns[section]
-                    dtype = self.df.dtypes[section]
+                    dtype = self.df.dtypes.values[section]
                     return f"{name} (dtype: {dtype})"
                 return None
 

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from collections_undo import UndoManager, fmt
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
@@ -11,22 +11,39 @@ _MONOSPACE = QtGui.QFont("Monospace")
 _MONOSPACE.setStyleHint(QtGui.QFont.StyleHint.TypeWriter)
 
 
-class QUndoStackViewer(QtW.QListView):
-    stackChanged = Signal()
+class QUndoStackViewer(QtW.QWidget):
+    """A viewer of the undo stack"""
 
-    def __init__(self, mgr: UndoManager) -> None:
+    def __init__(self, mgr: UndoManager):
         super().__init__()
-        self.setModel(QUndoStackModel(mgr))
+        self._mgr = mgr
+        self._listview = QtW.QListView()
+        self._listview.setModel(QUndoStackModel(mgr))
         mgr.called.append(self.refresh)
 
-    if TYPE_CHECKING:
+        self._undo_button = QtW.QPushButton("Undo")
+        self._redo_button = QtW.QPushButton("Redo")
 
-        def model(self) -> QUndoStackModel:
-            ...
+        _layout = QtW.QVBoxLayout()
+        _layout.addWidget(self._listview)
+        self.setLayout(_layout)
+
+        _footer = QtW.QWidget()
+        _footer_layout = QtW.QHBoxLayout()
+        _footer_layout.setContentsMargins(0, 0, 0, 0)
+        _footer_layout.addWidget(self._undo_button)
+        _footer_layout.addWidget(self._redo_button)
+        _footer.setLayout(_footer_layout)
+
+        _layout.addWidget(_footer)
+
+        self._undo_button.clicked.connect(self._mgr.undo)
+        self._redo_button.clicked.connect(self._mgr.redo)
+        self.setMinimumHeight(160)
 
     def refresh(self, *_):
-        self.model().updateUndoShape()
-        self.viewport().update()
+        self._listview.model().updateUndoShape()
+        self._listview.viewport().update()
 
 
 class QUndoStackModel(QtCore.QAbstractListModel):
