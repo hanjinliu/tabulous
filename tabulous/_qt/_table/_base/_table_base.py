@@ -674,7 +674,7 @@ class QMutableTable(QBaseTable):
             _old_value = _old_value.copy()  # this is needed for undo
 
         # emit item changed signal if value changed
-        if _equal(_value, _old_value) and self.isEditable():
+        if _was_changed(_value, _old_value) and self.isEditable():
             self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
         return None
 
@@ -1039,16 +1039,16 @@ class QMutableSimpleTable(QMutableTable):
         return None
 
 
-def _equal(val: Any, old_val: Any) -> bool:
+def _was_changed(val: Any, old_val: Any) -> bool:
     # NOTE pd.NA == x returns pd.NA, not False
-    eq = False
+    out = False
     if isinstance(val, pd.DataFrame):
-        eq = True
+        out = True
 
     elif pd.isna(val):
         if not pd.isna(old_val):
-            eq = True
+            out = True
     else:
         if pd.isna(old_val) or val != old_val:
-            eq = True
-    return eq
+            out = True
+    return out

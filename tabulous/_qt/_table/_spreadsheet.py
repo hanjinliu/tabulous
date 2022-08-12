@@ -7,6 +7,7 @@ from qtpy import QtCore, QtWidgets as QtW
 from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
+from .._undo import fmt_slice, fmt
 
 
 class SpreadSheetModel(AbstractDataFrameModel):
@@ -113,8 +114,9 @@ class QSpreadSheet(QMutableSimpleTable):
         if self._data_cache is not None:
             return self._data_cache
         # Convert table data into a DataFrame with the optimal dtypes
-        buf = StringIO(self._data_raw.to_csv(sep="\t", index_label="_INDEX_"))
-        out = pd.read_csv(buf, sep="\t", index_col="_INDEX_")
+        _label = "_INDEX_"
+        buf = StringIO(self._data_raw.to_csv(sep="\t", index_label=_label))
+        out = pd.read_csv(buf, sep="\t", index_col=_label)
         out.index.name = None
         self._data_cache = out
         return out
@@ -284,17 +286,20 @@ class QSpreadSheet(QMutableSimpleTable):
         )
         self.model().removeRows(row, count, QtCore.QModelIndex())
         self.setFilter(self._filter_slice)
+        self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         self._data_cache = None
         return None
 
     @_remove_rows.undo_def
     def _remove_rows(self, row: int, count: int, old_values: pd.DataFrame):
         self.insertRows(row, count)
-        return self.setDataFrameValue(
+        self.setDataFrameValue(
             r=slice(row, row + count),
             c=slice(0, old_values.columns.size),
             value=old_values,
         )
+        self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
+        return None
 
     @_remove_rows.set_formatter
     def _remove_rows_fmt(self, row, count, old_values):
@@ -314,17 +319,24 @@ class QSpreadSheet(QMutableSimpleTable):
         )
         self.model().removeColumns(column, count, QtCore.QModelIndex())
         self.setFilter(self._filter_slice)
+        self.setSelections(
+            [(slice(0, self._data_raw.shape[0]), slice(column, column + 1))]
+        )
         self._data_cache = None
         return None
 
     @_remove_columns.undo_def
     def _remove_columns(self, column: int, count: int, old_values: pd.DataFrame):
         self.insertColumns(column, count)
-        return self.setDataFrameValue(
+        self.setDataFrameValue(
             r=slice(0, old_values.index.size),
             c=slice(column, column + count),
             value=old_values,
         )
+        self.setSelections(
+            [(slice(0, self._data_raw.shape[0]), slice(column, column + 1))]
+        )
+        return None
 
     @_remove_columns.set_formatter
     def _remove_columns_fmt(self, column, count, old_values):
@@ -404,47 +416,28 @@ def _df_full(
 
 def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value="") -> pd.DataFrame:
     if df.empty:
-        return pd.DataFrame(
-            np.full((nr, nc), value),
-            index=range(nr),
-            columns=range(nc),
-            dtype="string",
-        )
+        return _df_full(nr, nc, value, index=range(nr), columns=range(nc))
 
     # pad rows
     if nr > 0:
         if df.size == 0:
-            df = pd.DataFrame(
-                np.full((nr, 1), value),
-                index=range(nr),
-                dtype="string",
-            )
+            df = _df_full(nr, 1, value, index=range(nr))
+
         else:
             _nr, _nc = df.shape
-            ext = pd.DataFrame(
-                np.full((nr, _nc), value),
-                index=range(_nr, _nr + nr),
-                columns=df.columns,
-                dtype="string",
+            ext = _df_full(
+                nr, _nc, value, index=range(_nr, _nr + nr), columns=df.columns
             )
             df = pd.concat([df, ext], axis=0)
 
     # pad columns
     if nc > 0:
         if df.size == 0:
-            df = pd.DataFrame(
-                np.full((1, nc), value),
-                columns=range(nc),
-                dtype="string",
-            )
+            df = _df_full(1, nc, value, columns=range(nc))
+
         else:
             _nr, _nc = df.shape
-            ext = pd.DataFrame(
-                np.full((_nr, nc), value),
-                index=df.index,
-                columns=range(_nc, _nc + nc),
-                dtype="string",
-            )
+            ext = _df_full(_nr, nc, value, index=df.index, columns=range(_nc, _nc + nc))
             df = pd.concat([df, ext], axis=1)
 
     return df
