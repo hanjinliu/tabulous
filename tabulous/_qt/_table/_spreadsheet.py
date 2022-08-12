@@ -30,61 +30,61 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
         return min(self._df.shape[1] + 10, table.max_column_count)
 
-    def insertRows(
-        self, row: int, count: int, parent: QtCore.QModelIndex = None
-    ) -> bool:
-        """Insert rows at the given row number and count."""
-        df = self.df
-        self.beginInsertRows(parent, row, row + count - 1)
-        df0 = df.iloc[:row, :]
-        df1 = pd.DataFrame(
-            np.full((count, df.shape[1]), ""), columns=df.columns, dtype="string"
-        )
-        df2 = df.iloc[row:, :]
-        self.df = pd.concat([df0, df1, df2], axis=0)
-        self.endInsertRows()
-        return True
+    # def insertRows(
+    #     self, row: int, count: int, parent: QtCore.QModelIndex = None
+    # ) -> bool:
+    #     """Insert rows at the given row number and count."""
+    #     df = self.df
+    #     self.beginInsertRows(parent, row, row + count - 1)
+    #     df0 = df.iloc[:row, :]
+    #     df1 = pd.DataFrame(
+    #         np.full((count, df.shape[1]), ""), columns=df.columns, dtype="string"
+    #     )
+    #     df2 = df.iloc[row:, :]
+    #     self.df = pd.concat([df0, df1, df2], axis=0)
+    #     self.endInsertRows()
+    #     return True
 
-    def insertColumns(
-        self, column: int, count: int, parent: QtCore.QModelIndex = None
-    ) -> bool:
-        """Insert columns at the given column number and count."""
-        df = self.df
-        self.beginInsertColumns(parent, column, column + count - 1)
-        df0 = df.iloc[:, :column]
-        df1 = pd.DataFrame(
-            np.full((df.shape[0], count), ""), index=df.index, dtype="string"
-        )
-        df2 = df.iloc[:, column:]
-        self.df = pd.concat([df0, df1, df2], axis=1)
-        self.endInsertColumns()
-        return True
+    # def insertColumns(
+    #     self, column: int, count: int, parent: QtCore.QModelIndex = None
+    # ) -> bool:
+    #     """Insert columns at the given column number and count."""
+    #     df = self.df
+    #     self.beginInsertColumns(parent, column, column + count - 1)
+    #     df0 = df.iloc[:, :column]
+    #     df1 = pd.DataFrame(
+    #         np.full((df.shape[0], count), ""), index=df.index, dtype="string"
+    #     )
+    #     df2 = df.iloc[:, column:]
+    #     self.df = pd.concat([df0, df1, df2], axis=1)
+    #     self.endInsertColumns()
+    #     return True
 
-    def removeRows(
-        self, row: int, count: int, parent: QtCore.QModelIndex = None
-    ) -> bool:
-        """Remove rows at the given column number and count."""
-        if count <= 0:
-            return False
-        df = self.df
-        stop = row + count
-        self.beginRemoveRows(parent, row, stop - 1)
-        self.df = df.drop(index=df.index[row:count])
-        self.endRemoveRows()
-        return True
+    # def removeRows(
+    #     self, row: int, count: int, parent: QtCore.QModelIndex = None
+    # ) -> bool:
+    #     """Remove rows at the given column number and count."""
+    #     if count <= 0:
+    #         return False
+    #     df = self.df
+    #     stop = row + count
+    #     self.beginRemoveRows(parent, row, stop - 1)
+    #     self.df = df.drop(index=df.index[row:count])
+    #     self.endRemoveRows()
+    #     return True
 
-    def removeColumns(
-        self, column: int, count: int, parent: QtCore.QModelIndex = None
-    ) -> bool:
-        """Remove columns at the given column number and count."""
-        if count <= 0:
-            return False
-        df = self.df
-        stop = column + count
-        self.beginRemoveColumns(parent, column, stop - 1)
-        self.df = df.drop(columns=df.columns[column:stop])
-        self.endRemoveColumns()
-        return True
+    # def removeColumns(
+    #     self, column: int, count: int, parent: QtCore.QModelIndex = None
+    # ) -> bool:
+    #     """Remove columns at the given column number and count."""
+    #     if count <= 0:
+    #         return False
+    #     df = self.df
+    #     stop = column + count
+    #     self.beginRemoveColumns(parent, column, stop - 1)
+    #     self.df = df.drop(columns=df.columns[column:stop])
+    #     self.endRemoveColumns()
+    #     return True
 
 
 class QSpreadSheet(QMutableSimpleTable):
@@ -213,6 +213,124 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = None
         return None
 
+    @QMutableSimpleTable._mgr.undoable
+    def insertRows(self, row: int, count: int):
+        """Insert rows at the given row number and count."""
+        if self._filter_slice is not None:
+            raise NotImplementedError("Cannot insert rows during filtering.")
+        self._data_raw = pd.concat(
+            [
+                self._data_raw.iloc[:row, :],
+                _df_full(
+                    count, self._data_raw.shape[1], columns=self._data_raw.columns
+                ),
+                self._data_raw.iloc[row:, :],
+            ],
+            axis=0,
+        )
+        self.model().insertRows(row, count, QtCore.QModelIndex())
+        self.setFilter(self._filter_slice)
+        self._data_cache = None
+        return None
+
+    @insertRows.undo_def
+    def insertRows(self, row: int, count: int):
+        """Insert rows at the given row number and count."""
+        return self.removeRows(row, count)
+
+    @insertRows.set_formatter
+    def _insertRows_fmt(self, row: int, count: int):
+        s = "s" if count > 1 else ""
+        return f"insert {count} row{s} at row={row}"
+
+    @QMutableSimpleTable._mgr.undoable
+    def insertColumns(self, column: int, count: int):
+        """Insert columns at the given column number and count."""
+        if self._filter_slice is not None:
+            raise NotImplementedError("Cannot insert during filtering.")
+        self._data_raw = pd.concat(
+            [
+                self._data_raw.iloc[:, :column],
+                _df_full(self._data_raw.shape[0], count, index=self._data_raw.index),
+                self._data_raw.iloc[:, column:],
+            ],
+            axis=1,
+        )
+        self.model().insertColumns(column, count, QtCore.QModelIndex())
+        self.setFilter(self._filter_slice)
+        self._data_cache = None
+        return None
+
+    @insertColumns.undo_def
+    def insertColumns(self, column: int, count: int):
+        """Insert columns at the given column number and count."""
+        return self.removeColumns(column, count)
+
+    @insertColumns.set_formatter
+    def _insertColumns_fmt(self, column: int, count: int):
+        s = "s" if count > 1 else ""
+        return f"insert {count} column{s} at column={column}"
+
+    def removeRows(self, row: int, count: int):
+        """Remove rows at the given row number and count."""
+        df = self.model().df.iloc[row : row + count, :]
+        return self._remove_rows(row, count, df)
+
+    @QMutableSimpleTable._mgr.undoable
+    def _remove_rows(self, row: int, count: int, old_values: pd.DataFrame):
+        self._data_raw = pd.concat(
+            [self._data_raw.iloc[:row, :], self._data_raw.iloc[row + count :, :]],
+            axis=0,
+        )
+        self.model().removeRows(row, count, QtCore.QModelIndex())
+        self.setFilter(self._filter_slice)
+        self._data_cache = None
+        return None
+
+    @_remove_rows.undo_def
+    def _remove_rows(self, row: int, count: int, old_values: pd.DataFrame):
+        self.insertRows(row, count)
+        return self.setDataFrameValue(
+            r=slice(row, row + count),
+            c=slice(0, old_values.columns.size),
+            value=old_values,
+        )
+
+    @_remove_rows.set_formatter
+    def _remove_rows_fmt(self, row, count, old_values):
+        s = "s" if count > 1 else ""
+        return f"Remove {count} row{s} at row={row}"
+
+    def removeColumns(self, column: int, count: int):
+        """Remove columns at the given column number and count."""
+        df = self.model().df.iloc[:, column : column + count]
+        return self._remove_columns(column, count, df)
+
+    @QMutableSimpleTable._mgr.undoable
+    def _remove_columns(self, column: int, count: int, old_values: pd.DataFrame):
+        self._data_raw = pd.concat(
+            [self._data_raw.iloc[:, :column], self._data_raw.iloc[:, column + count :]],
+            axis=1,
+        )
+        self.model().removeColumns(column, count, QtCore.QModelIndex())
+        self.setFilter(self._filter_slice)
+        self._data_cache = None
+        return None
+
+    @_remove_columns.undo_def
+    def _remove_columns(self, column: int, count: int, old_values: pd.DataFrame):
+        self.insertColumns(column, count)
+        return self.setDataFrameValue(
+            r=slice(0, old_values.index.size),
+            c=slice(column, column + count),
+            value=old_values,
+        )
+
+    @_remove_columns.set_formatter
+    def _remove_columns_fmt(self, column, count, old_values):
+        s = "s" if count > 1 else ""
+        return f"Remove {count} column{s} at columns={column}"
+
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         """Set value of the table vertical header and DataFrame at the index."""
         nrows = self._data_raw.shape[0]
@@ -250,15 +368,14 @@ class QSpreadSheet(QMutableSimpleTable):
         menu = QtW.QMenu(self._qtable_view)
         index = self._qtable_view.indexAt(pos)
         row, col = index.row(), index.column()
-        model = self.model()
 
         # fmt: off
-        menu.addAction("Insert a row above", lambda: model.insertRows(row, 1, QtCore.QModelIndex()))
-        menu.addAction("Insert a row below", lambda: model.insertRows(row + 1, 1, QtCore.QModelIndex()))
-        menu.addAction("Insert a column on the left", lambda: model.insertColumns(col, 1, QtCore.QModelIndex()))
-        menu.addAction("Insert a column on the right", lambda: model.insertColumns(col + 1, 1, QtCore.QModelIndex()))
-        menu.addAction("Remove this row", lambda: model.removeRows(row, 1, QtCore.QModelIndex()))
-        menu.addAction("Remove this column", lambda: model.removeColumns(col, 1, QtCore.QModelIndex()))
+        menu.addAction("Insert a row above", lambda: self.insertRows(row, 1))
+        menu.addAction("Insert a row below", lambda: self.insertRows(row + 1, 1))
+        menu.addAction("Insert a column on the left", lambda: self.insertColumns(col, 1))
+        menu.addAction("Insert a column on the right", lambda: self.insertColumns(col + 1, 1))
+        menu.addAction("Remove this row", lambda: self.removeRows(row, 1))
+        menu.addAction("Remove this column", lambda: self.removeColumns(col, 1))
         # fmt: on
 
         return menu.exec(self._qtable_view.mapToGlobal(pos))
@@ -272,6 +389,17 @@ def _get_limit(a) -> int:
     else:
         raise TypeError(f"Cannot infer limit of type {type(a)}")
     return amax
+
+
+def _df_full(
+    nrows: int, ncols: int, value="", index=None, columns=None
+) -> pd.DataFrame:
+    return pd.DataFrame(
+        np.full((nrows, ncols), value),
+        index=index,
+        columns=columns,
+        dtype="string",
+    )
 
 
 def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value="") -> pd.DataFrame:
