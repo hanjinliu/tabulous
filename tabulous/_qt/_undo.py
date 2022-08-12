@@ -44,7 +44,11 @@ class QUndoStackModel(QtCore.QAbstractListModel):
             r = index.row()
             stack = self._mgr.stack_undo
             if r < len(stack):
-                return stack[r].format()
+                try:
+                    desc = stack[r].format()
+                except Exception as e:
+                    desc = f"{type(e).__name__}: {e}"
+                return desc
 
         elif role == Qt.ItemDataRole.FontRole:
             return _MONOSPACE

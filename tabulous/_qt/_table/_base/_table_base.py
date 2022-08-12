@@ -868,7 +868,7 @@ class QMutableTable(QBaseTable):
             (None, _header.sectionViewportPosition(index)),
             self.columnChangedSignal,
             index,
-            self.model().df.index,
+            self.model().df.columns,
         )
 
         return None
@@ -899,6 +899,24 @@ class QMutableTable(QBaseTable):
         index: int,
         df_axis: pd.Index,
     ):
+        """
+        Prepare a line edit for editing the header.
+
+        Parameters
+        ----------
+        header : QtW.QHeaderView
+            The QHeaderView object to edit.
+        size : tuple of int
+            Size of line edit.
+        topleft : tuple of int
+            Coordinates of the top left corner of the line edit.
+        signal : pyqtBoundSignal
+            Signal to emit when the line edit is finished.
+        index : int
+            Index that is now being edited.
+        df_axis : pd.Index
+            Corresponding axis of the dataframe.
+        """
         _line = QtW.QLineEdit(header)
         width, height = size
         top, left = topleft
@@ -930,13 +948,14 @@ class QMutableTable(QBaseTable):
         def _set_header_data():
             if self._line is None:
                 return None
+            _line.editingFinished.disconnect()
             value = self._line.text()
-            self._line.setHidden(True)
             if not value == old_value:
                 signal.emit(HeaderInfo(index, value, old_value))
-            self._line = None
             header.parent().setFocus()
             header.parent().clearSelection()
+            self._line.setHidden(True)
+            self._line = None
             return None
 
         return _line
@@ -962,6 +981,10 @@ class QMutableTable(QBaseTable):
     def setHorizontalHeaderValue(self, index: int, value: Any) -> Any:
         return (index, self.dataShown().columns[index]), {}
 
+    @setHorizontalHeaderValue.set_formatter
+    def _setHorizontalHeaderValue_fmt(self, index: int, value: Any) -> Any:
+        return f"columns[{index}] = {value!r}"
+
     @QBaseTable._mgr.interface
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         qtable = self._qtable_view
@@ -980,6 +1003,10 @@ class QMutableTable(QBaseTable):
     @setVerticalHeaderValue.server
     def setVerticalHeaderValue(self, index: int, value: Any) -> Any:
         return (index, self.model().df.index[index]), {}
+
+    @setVerticalHeaderValue.set_formatter
+    def _setVerticalHeaderValue_fmt(self, index: int, value: Any) -> Any:
+        return f"index[{index}] = {value!r}"
 
     @QBaseTable._mgr.interface
     def setFilter(self, sl: FilterType):
