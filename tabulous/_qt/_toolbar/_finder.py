@@ -66,7 +66,15 @@ class QFinderWidget(QtW.QWidget):
         self._search_box = QSearchBox()
         self._search_box.enterClicked.connect(self.findNext)
         self._search_box.textChanged.connect(self.initSearchBox)
-        _layout.addWidget(self._search_box)
+        _search_box_widget = QWithButton(self._search_box, text="Find")
+        _search_box_widget.clicked.connect(self.findNext)
+        _layout.addWidget(_search_box_widget)
+
+        self._replace_box = QSearchBox()
+        self._replace_box.enterClicked.connect(self.replaceCurrent)
+        _replace_box_widget = QWithButton(self._replace_box, text="Replace")
+        _layout.addWidget(_replace_box_widget)
+        _replace_box_widget.clicked.connect(self.replaceCurrent)
 
         _footer = QtW.QWidget()
         _layout.addWidget(_footer)
@@ -91,9 +99,16 @@ class QFinderWidget(QtW.QWidget):
         self._current_iterator: Iterator[tuple[int, int]] | None = None
         self.setFindOrientation("column")
         self.setMatchMode(MatchMode.value)
+        self._current_index = None
 
     def searchBox(self) -> QSearchBox:
         return self._search_box
+
+    def replaceBox(self) -> QSearchBox:
+        return self._replace_box
+
+    def setReplaceBoxVisible(self, visible: bool):
+        return self._replace_box.parentWidget().setVisible(visible)
 
     def initSearchBox(self, text: str):
         if self._find_method == "row":
@@ -114,7 +129,18 @@ class QFinderWidget(QtW.QWidget):
         qtable.moveToItem(r + 2, c + 2)
         qtable.moveToItem(r, c)
         qtable.setSelections([(r, c)])
+        self._current_index = (r, c)
         return
+
+    def replaceCurrent(self) -> None:
+        """Replace the current cell with the text in the box"""
+        if self._current_index is None or not self._replace_box.isVisible():
+            return
+        qtable = self.currentTable()
+        r, c = self._current_index
+        value = qtable.convertValue(r, c, self._replace_box.text())
+        qtable.setDataFrameValue(r, c, value)
+        return self.findNext()
 
     def setMatchMode(self, mode: str):
         if mode == MatchMode.value:
@@ -201,3 +227,20 @@ class QSearchBox(QtW.QLineEdit):
             self.escClicked.emit()
         else:
             super().keyPressEvent(event)
+
+
+class QWithButton(QtW.QWidget):
+    clicked = Signal()
+
+    def __init__(self, widget: QtW.QLineEdit, text: str = "...") -> None:
+        super().__init__()
+        _layout = QtW.QHBoxLayout()
+        _layout.setContentsMargins(0, 0, 0, 0)
+        _layout.addWidget(widget)
+        self._btn = QtW.QPushButton(text)
+        _layout.addWidget(self._btn)
+        self.setLayout(_layout)
+        self._btn.clicked.connect(lambda: self.clicked.emit())
+
+    def button(self) -> QtW.QPushButton:
+        return self._btn

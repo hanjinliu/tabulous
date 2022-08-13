@@ -656,6 +656,8 @@ class QMutableTable(QBaseTable):
         return self._data_raw
 
     def setDataFrameValue(self, r: _Sliceable, c: _Sliceable, value: Any) -> None:
+        if not self.isEditable():
+            raise TableImmutableError("Table is immutable.")
         data = self._data_raw
 
         # convert values
