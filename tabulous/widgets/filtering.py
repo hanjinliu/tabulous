@@ -81,20 +81,32 @@ class FilterProxy:
         return arr
 
 
+class _Void:
+    """Private void type."""
+
+
+_void = _Void()
+
+
 class FilterIndexer:
     def __init__(
-        self, table: TableBase, key: Any, *, current_filter: ColumnFilter | None = None
+        self,
+        table: TableBase,
+        key: Any,
+        *,
+        current_filter: ColumnFilter | None | _Void = _void,
     ):
         self._table = table
         self._key = key
         self._filter = current_filter
-        self._table._qwidget.setFilter(current_filter)
+        if current_filter is not _void:
+            self._table._qwidget.setFilter(current_filter)
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} of {self._table!r} at column {self._key!r}>"
 
     def chain(self, other: ColumnFilter) -> ColumnFilter:
-        if self._filter is None:
+        if self._filter is _void or self._filter is None:
             fil = other
         else:
             fil = self._filter & other

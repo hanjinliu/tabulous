@@ -474,6 +474,7 @@ class QBaseTable(QtW.QSplitter):
         """Return the current filter."""
         return self._filter_slice
 
+    @_mgr.interface
     def setFilter(self, sl: FilterType):
         """Set filter to the table view."""
         # NOTE: This method is also called when table needs initialization.
@@ -494,6 +495,18 @@ class QBaseTable(QtW.QSplitter):
                 self._filter_slice = None
                 raise ValueError("Error in filter. Filter is reset.") from e
         self.refresh()
+
+    @setFilter.server
+    def setFilter(self, sl: FilterType):
+        return (self.filter(),), {}
+
+    @setFilter.set_formatter
+    def _setFilter_fmt(self, sl):
+        from ....widgets.filtering import ColumnFilter
+
+        if isinstance(sl, ColumnFilter):
+            return f"table.filter{sl._repr[2:]}"
+        return f"table.filter = {sl!r}"
 
     def refresh(self) -> None:
         """Refresh table view."""
@@ -741,10 +754,19 @@ class QMutableTable(QBaseTable):
         """Return the editability of the table."""
         return self.model()._editable
 
+    @QBaseTable._mgr.interface
     def setEditable(self, editable: bool):
         """Set the editability of the table."""
         self.model()._editable = editable
         return None
+
+    @setEditable.server
+    def setEditable(self, editable: bool):
+        return (self.isEditable(),), {}
+
+    @setEditable.set_formatter
+    def _setEditable_fmt(self, editable: bool):
+        return f"table.editable = {editable}"
 
     def toggleEditability(self) -> None:
         """Toggle editability of the table."""
@@ -1007,15 +1029,6 @@ class QMutableTable(QBaseTable):
     @setVerticalHeaderValue.set_formatter
     def _setVerticalHeaderValue_fmt(self, index: int, value: Any) -> Any:
         return f"index[{index}] = {value!r}"
-
-    @QBaseTable._mgr.interface
-    def setFilter(self, sl: FilterType):
-        """Set filter to the table view. This operation is undoable."""
-        return super().setFilter(sl)
-
-    @setFilter.server
-    def setFilter(self, sl: FilterType):
-        return (self.filter(),), {}
 
     def undo(self) -> Any:
         """Undo last operation."""

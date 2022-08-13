@@ -215,7 +215,8 @@ class TableBase(ABC):
         self._view_mode = ViewMode.normal
 
         if self.mutable:
-            self._qwidget.setEditable(editable)
+            with self._qwidget._mgr.blocked():
+                self._qwidget.setEditable(editable)
             self._qwidget.connectItemChangedSignal(
                 self.events.data.emit,
                 self.events.index.emit,
