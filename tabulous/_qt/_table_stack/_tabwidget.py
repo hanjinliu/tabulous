@@ -121,8 +121,10 @@ class QTabbedTableStack(QtW.QTabWidget):
     def dragEnterEvent(self, e: QtGui.QDragEnterEvent) -> None:
         # This override is necessary for accepting drops from files.
         e.accept()
-
-        if e.source().parentWidget() is not self:
+        source = e.source()
+        if source is None:
+            return
+        if source.parentWidget() is not self:
             return
 
         self._entering_tab_index = self.indexOf(self.widget(self._moving_tab_index))
@@ -133,7 +135,10 @@ class QTabbedTableStack(QtW.QTabWidget):
         if text:
             self.itemDropped.emit(text)
 
-        source_widget: QTabbedTableStack = e.source().parentWidget()
+        source = e.source()
+        if source is None:
+            return
+        source_widget: QTabbedTableStack = source.parentWidget()
         tab_id = source_widget._entering_tab_index
         if source_widget is self:
             return super().dropEvent(e)

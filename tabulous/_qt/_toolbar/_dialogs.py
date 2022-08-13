@@ -62,6 +62,16 @@ def scatter(ax: Axes, x, y, alpha: float = 1.0):
 
 
 @dialog_factory
+def errorbar(ax: Axes, x, y, yerr, alpha: float = 1.0):
+    if x is None:
+        _x = np.arange(len(y))
+    else:
+        _x = x
+    ax.errorbar(_x, y, yerr=yerr, alpha=alpha, fmt="o")
+    return True
+
+
+@dialog_factory
 def hist(ax: Axes, y, bins: int = 10, alpha: float = 1.0, density: bool = False):
     for _y in y:
         ax.hist(_y, bins=bins, alpha=alpha, density=density)

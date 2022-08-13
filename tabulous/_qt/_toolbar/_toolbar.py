@@ -331,6 +331,39 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         """Scatter plot."""
         return self._plot_xy(_dlg.scatter)
 
+    def errorbar(self):
+        """Errorbar plot."""
+        table = self.viewer.current_table
+        if table is None:
+            return None
+
+        choices = list(table.selections.values.itercolumns())
+
+        if len(choices) == 0 or len(choices[0][1]) == 1:
+            # no selections or only one cell is selected
+            choices = list(table.data.iteritems())
+
+        if len(choices) < 2:
+            raise ValueError("Table must have at least two columns.")
+        elif len(choices) == 2:
+            x = {"choices": [], "value": None, "nullable": True}
+            y = {"choices": choices}
+            yerr = {"choices": choices}
+        else:
+            x = {"choices": choices, "nullable": True}
+            y = {"choices": choices}
+            yerr = {"choices": choices}
+
+        if _dlg.errorbar(
+            ax={"bind": table.plt.gca()},
+            x=x,
+            y=y,
+            yerr=yerr,
+            alpha={"min": 0, "max": 1, "step": 0.05},
+            parent=self,
+        ):
+            table.plt.draw()
+
     def hist(self):
         """Histogram."""
         table = self.viewer.current_table
@@ -464,6 +497,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         # Plot
         self.registerAction("Plot", self.plot, ICON_DIR / "plot.svg")
         self.registerAction("Plot", self.scatter, ICON_DIR / "scatter.svg")
+        self.registerAction("Plot", self.errorbar, ICON_DIR / "errorbar.svg")
         self.registerAction("Plot", self.hist, ICON_DIR / "hist.svg")
         self.addSeparatorToChild("Plot")
         self.registerAction("Plot", self.swarmplot, ICON_DIR / "swarmplot.svg")
