@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
     from ._side_area import QTableSideArea
     from qtpy.QtCore import pyqtBoundSignal
-    from typing_extensions import Self
 
 # fmt: off
 # Flags
@@ -66,7 +65,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setFrameStyle(QtW.QFrame.Shape.Box)
         vheader.setFrameStyle(QtW.QFrame.Shape.Box)
         hheader.setFrameStyle(QtW.QFrame.Shape.Box)
-        vheader.resize(16, vheader.height())
+        vheader.resize(36, vheader.height())
         self.setStyleSheet("QHeaderView::section { border: 1px solid black}")
         vheader.setMinimumSectionSize(0)
         hheader.setMinimumSectionSize(0)
@@ -494,7 +493,8 @@ class QBaseTable(QtW.QSplitter):
             except Exception as e:
                 self._filter_slice = None
                 raise ValueError("Error in filter. Filter is reset.") from e
-        self.refresh()
+
+        return self.refresh()
 
     @setFilter.server
     def setFilter(self, sl: FilterType):

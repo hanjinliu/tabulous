@@ -89,6 +89,7 @@ class CellInterface(Component["TableBase"]):
         if 1 in df.shape and (col.stop - col.start, row.stop - row.start) == df.shape:
             # it is natural to set an 1-D array without thinking of the direction.
             df = df.T
+
         table._qwidget.setDataFrameValue(row, col, df)
 
     def __delitem__(self, key: tuple[int | slice, int | slice]) -> None:

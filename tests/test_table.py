@@ -185,3 +185,11 @@ def test_set_list_via_cell_interface():
     assert np.all(table.data.iloc[0, :].values == 2)
     table.cell[:, 5] = [3] * 6
     assert np.all(table.data.iloc[:, 5].values == 3)
+
+def test_cell_interface_in_spreadsheet():
+    viewer = TableViewer(show=False)
+    table = viewer.add_spreadsheet(np.zeros((6, 6)))
+    assert table.data.shape == (6, 6)
+    table.cell[0:8, 0] = np.arange(8)
+    assert table.data.shape == (8, 6)
+    assert np.all(table.data.iloc[0:8, 0].values == np.arange(8))

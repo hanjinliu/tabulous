@@ -183,6 +183,9 @@ class QSpreadSheet(QMutableSimpleTable):
                 if text == value:
                     return
 
+        elif isinstance(value, pd.DataFrame) and any(value.dtypes != "string"):
+            value = value.astype("string")
+
         with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
