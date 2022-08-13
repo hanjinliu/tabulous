@@ -340,14 +340,14 @@ class TableBase(ABC):
         c = data.columns.get_loc(column)
         return self._qwidget.moveToItem(r, c)
 
-    def move_iloc(self, row: int, column: int):
+    def move_iloc(self, row: int | None, column: int | None):
         """
         Move to a location in the table using indices.
         >>> table.move_iloc(2, 4)
         """
         shape = self.table_shape
-        row_outofrange = row >= shape[0]
-        col_outofrange = column >= shape[1]
+        row_outofrange = False if row is None else row >= shape[0]
+        col_outofrange = False if column is None else column >= shape[1]
         if row_outofrange or col_outofrange:
             raise IndexError(
                 f"Indices {(row, column)!r} out of range of table shape {shape!r}."
