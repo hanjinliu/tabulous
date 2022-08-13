@@ -40,8 +40,9 @@ class QTitleBar(QtW.QWidget):
         self.setTitle(title)
 
     def setTitle(self, text: str):
+        """Set the title text."""
         if text == "":
             self._title_label.setVisible(False)
         else:
             self._title_label.setVisible(True)
-            self._title_label.setText(text)
+            self._title_label.setText(f"  {text}  ")

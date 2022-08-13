@@ -59,6 +59,11 @@ class ViewMode(Enum):
         return f"<{type(self).__name__}.{self.name}>"
 
 
+# #####################################################################
+#   Table interfaces
+# #####################################################################
+
+
 class CellInterface(Component["TableBase"]):
     """The interface for editing cell as if it was manually edited."""
 
@@ -160,20 +165,34 @@ class PlotInterface(Component["TableBase"]):
 
     def subplots(self, nrows=1, ncols=1, style=None):
         wdt = self.new_widget(nrows=nrows, ncols=ncols, style=style)
-        self.parent.add_side_widget(wdt)
         return wdt.figure, wdt.axes
 
     def plot(self, *args, **kwargs):
-        return self.gca().plot(*args, **kwargs)
+        """Call ``plt.plot`` on the current side figure."""
+        out = self.gca().plot(*args, **kwargs)
+        self.draw()
+        return out
 
     def scatter(self, *args, **kwargs):
-        return self.gca().scatter(*args, **kwargs)
+        """Call ``plt.scatter`` on the current side figure."""
+        out = self.gca().scatter(*args, **kwargs)
+        self.draw()
+        return out
 
     def hist(self, *args, **kwargs):
-        return self.gca().hist(*args, **kwargs)
+        """Call ``plt.hist`` on the current side figure."""
+        out = self.gca().hist(*args, **kwargs)
+        self.draw()
+        return out
 
     def draw(self):
+        """Update the current side figure."""
         return self._current_widget.draw()
+
+
+# #####################################################################
+#   The abstract base class of tables.
+# #####################################################################
 
 
 class TableBase(ABC):
