@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets package &mdash; tabulous 0.1.1.dev0 documentation</title>
+  <title>tabulous.widgets package &mdash; tabulous 0.1.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -28,7 +28,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.1.dev0
+                0.1.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -46,6 +46,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../main/user_interface.html">User Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/selections.html">Table Selections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/filter.html">Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/cell_color.html">Set Cell Colors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
@@ -657,7 +658,7 @@ which is equivalent to
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tabulous.widgets.table.TableBase.move_iloc">
-<span class="sig-name descname"><span class="pre">move_iloc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableBase.move_iloc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.TableBase.move_iloc" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">move_iloc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableBase.move_iloc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.table.TableBase.move_iloc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Move to a location in the table using indices.
 &gt;&gt;&gt; table.move_iloc(2, 4)</p>
 </dd></dl>
@@ -1783,7 +1784,7 @@ which is equivalent to
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tabulous.widgets.TableBase.move_iloc">
-<span class="sig-name descname"><span class="pre">move_iloc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableBase.move_iloc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableBase.move_iloc" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">move_iloc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#TableBase.move_iloc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableBase.move_iloc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Move to a location in the table using indices.
 &gt;&gt;&gt; table.move_iloc(2, 4)</p>
 </dd></dl>
