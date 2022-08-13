@@ -30,8 +30,10 @@ Basics
 .. toctree::
    :maxdepth: 2
 
+   ./main/user_interface
    ./main/selections
    ./main/filter
+   ./main/cell_color
    ./main/table_advanced
 
 

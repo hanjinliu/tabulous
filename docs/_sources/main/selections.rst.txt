@@ -10,7 +10,14 @@ Data Type of Table Selections
 =============================
 
 You'll get table selections using :attr:`selections` property as a :class:`SelectionRanges`
-object.
+object. For instance, you opened a sample data
+
+.. code-block:: python
+
+    viewer.open_sample("iris")
+
+and selected cells that correspond to ``df.iloc[0:100, 0:1]`` and ``df.iloc[2:3, 2:3]``,
+you'll get following selection ranges.
 
 .. code-block:: python
 
@@ -31,7 +38,7 @@ Each selection is a ``tuple[slice, slice]`` object.
 
     (slice(0, 100, None), slice(0, 1, None))
 
-Thus, you can use them directly in ``iloc`` method of ``DataFrame``.
+Thus, you can use them directly in ``iloc`` method of :class:`DataFrame`.
 
 .. code-block:: python
 
@@ -63,7 +70,11 @@ More simply, you can use :attr:`data` attribute to get values of selected table.
 Catch Change in Table Selections
 ================================
 
-.. code-block::
+You can bind a callback function that will get called on every selection change event.
+The :attr:`events` attribute is a :class:`SignalGroup` object of `psygnal <https://github.com/tlambert03/psygnal>`_.
+``table.events.selections.connect`` registers a callback function to table events.
+
+.. code-block:: python
 
     @table.events.selections.connect
     def _on_change(sel):

@@ -33,8 +33,8 @@ Basics
    ./main/user_interface
    ./main/selections
    ./main/filter
+   ./main/cell_color
    ./main/table_advanced
-   ./main/keycombo
 
 
 Cooperate with Other Widgets

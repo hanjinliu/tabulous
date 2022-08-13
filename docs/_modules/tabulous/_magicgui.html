@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous._magicgui &mdash; tabulous 0.1.0a3 documentation</title>
+  <title>tabulous._magicgui &mdash; tabulous 0.1.1.dev0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -27,7 +27,7 @@
             <a href="../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.0a3
+                0.1.1.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -39,11 +39,13 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../main/quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../main/selections.html">Get Table Selections</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../main/filter.html">Filter Tables</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../main/table_advanced.html">Advanced Usage of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/user_interface.html">User Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/selections.html">Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/filter.html">Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../main/dock_widget.html">Custom Dock widget</a></li>
@@ -77,13 +79,14 @@
   <h1>Source code for tabulous._magicgui</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">TypeVar</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">qtpy.QtWidgets</span> <span class="kn">import</span> <span class="n">QWidget</span><span class="p">,</span> <span class="n">QVBoxLayout</span>
 <span class="kn">from</span> <span class="nn">magicgui</span> <span class="kn">import</span> <span class="n">register_type</span>
 <span class="kn">from</span> <span class="nn">magicgui.widgets</span> <span class="kn">import</span> <span class="n">Widget</span><span class="p">,</span> <span class="n">Container</span><span class="p">,</span> <span class="n">ComboBox</span><span class="p">,</span> <span class="n">Label</span><span class="p">,</span> <span class="n">Dialog</span>
 <span class="kn">from</span> <span class="nn">magicgui.widgets._bases</span> <span class="kn">import</span> <span class="n">CategoricalWidget</span>
 <span class="kn">from</span> <span class="nn">magicgui.backends._qtpy.widgets</span> <span class="kn">import</span> <span class="n">QBaseWidget</span>
 
-<span class="kn">from</span> <span class="nn">.widgets</span> <span class="kn">import</span> <span class="n">TableViewer</span><span class="p">,</span> <span class="n">Table</span><span class="p">,</span> <span class="n">TableViewerWidget</span>
+<span class="kn">from</span> <span class="nn">.widgets</span> <span class="kn">import</span> <span class="n">TableViewer</span><span class="p">,</span> <span class="n">Table</span><span class="p">,</span> <span class="n">SpreadSheet</span><span class="p">,</span> <span class="n">TableViewerWidget</span>
 <span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">TableColumn</span><span class="p">,</span>
     <span class="n">TableData</span><span class="p">,</span>
@@ -95,6 +98,9 @@
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
     <span class="kn">from</span> <span class="nn">magicgui.widgets</span> <span class="kn">import</span> <span class="n">FunctionGui</span>
+    <span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="kn">import</span> <span class="n">Axes</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">Axes</span> <span class="o">=</span> <span class="n">Any</span>
 
 
 <span class="c1"># #############################################################################</span>
@@ -141,6 +147,36 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
 
 
+<span class="k">class</span> <span class="nc">MagicTable</span><span class="p">(</span><span class="n">Widget</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">editable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">visible</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">gui_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">Table</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="n">editable</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">widget_type</span><span class="o">=</span><span class="n">QBaseWidget</span><span class="p">,</span>
+            <span class="n">backend_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;qwidg&quot;</span><span class="p">:</span> <span class="n">QWidget</span><span class="p">},</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+            <span class="n">tooltip</span><span class="o">=</span><span class="n">tooltip</span><span class="p">,</span>
+            <span class="n">visible</span><span class="o">=</span><span class="n">visible</span><span class="p">,</span>
+            <span class="n">enabled</span><span class="o">=</span><span class="n">enabled</span><span class="p">,</span>
+            <span class="n">gui_only</span><span class="o">=</span><span class="n">gui_only</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="p">:</span> <span class="n">QWidget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">QVBoxLayout</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">layout</span><span class="p">()</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+
 <span class="c1"># #############################################################################</span>
 <span class="c1">#    magicgui type registration</span>
 <span class="c1"># #############################################################################</span>
@@ -184,7 +220,7 @@
 
 
 <span class="k">def</span> <span class="nf">open_viewer</span><span class="p">(</span><span class="n">gui</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">TableViewer</span><span class="p">,</span> <span class="n">return_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">):</span>
-    <span class="n">result</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
 
 <span class="k">def</span> <span class="nf">add_table_to_viewer</span><span class="p">(</span>
@@ -202,7 +238,13 @@
     <span class="n">viewer</span> <span class="o">=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">gui</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">viewer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gui</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">_DEFAULT_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">pandas.core.groupby.generic</span> <span class="kn">import</span> <span class="n">DataFrameGroupBy</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">DataFrameGroupBy</span><span class="p">):</span>
+        <span class="n">viewer</span><span class="o">.</span><span class="n">add_groupby</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gui</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">_DEFAULT_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gui</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">_DEFAULT_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">add_table_data_tuple_to_viewer</span><span class="p">(</span>
@@ -233,6 +275,7 @@
     <span class="n">TableViewer</span><span class="p">,</span> <span class="n">return_callback</span><span class="o">=</span><span class="n">open_viewer</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">find_table_viewer_ancestor</span>
 <span class="p">)</span>
 <span class="n">register_type</span><span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_to_viewer</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">get_tables</span><span class="p">)</span>
+<span class="n">register_type</span><span class="p">(</span><span class="n">SpreadSheet</span><span class="p">,</span> <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_to_viewer</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">get_tables</span><span class="p">)</span>
 <span class="n">register_type</span><span class="p">(</span>
     <span class="n">TableData</span><span class="p">,</span>
     <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_data_to_viewer</span><span class="p">,</span>
@@ -361,6 +404,56 @@
             <span class="n">magic_signature</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">gui_options</span><span class="o">=</span><span class="n">param_options</span><span class="p">)</span><span class="o">.</span><span class="n">widgets</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="p">)</span>
         <span class="n">dlg</span> <span class="o">=</span> <span class="n">Dialog</span><span class="p">(</span><span class="n">widgets</span><span class="o">=</span><span class="n">widgets</span><span class="p">)</span>
+
+        <span class="c1"># if return annotation &quot;TableData&quot; is given, add a preview widget.</span>
+        <span class="k">if</span> <span class="n">function</span><span class="o">.</span><span class="vm">__annotations__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;return&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">TableData</span><span class="p">:</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">MagicTable</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;preview&quot;</span><span class="p">,</span>
+                <span class="n">editable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">tooltip</span><span class="o">=</span><span class="s2">&quot;Preview of the result using the head of the input data.&quot;</span><span class="p">,</span>
+                <span class="n">gui_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="mf">0.8</span>
+            <span class="n">dlg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+            <span class="nd">@dlg</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span>
+            <span class="k">def</span> <span class="nf">_on_value_change</span><span class="p">(</span><span class="o">*</span><span class="n">_</span><span class="p">):</span>
+                <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="n">dlg</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
+                <span class="c1"># Check the first data frame is not too large.</span>
+                <span class="n">argname</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+                    <span class="n">num</span> <span class="o">=</span> <span class="mi">8400</span>
+                    <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">num</span><span class="p">:</span>
+                        <span class="n">kwargs</span><span class="p">[</span><span class="n">argname</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">num</span> <span class="o">//</span> <span class="n">val</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">elif</span> <span class="n">function</span><span class="o">.</span><span class="vm">__annotations__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ax&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Axes</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">._qt._plot</span> <span class="kn">import</span> <span class="n">QtMplPlotCanvas</span>
+
+            <span class="n">plt</span> <span class="o">=</span> <span class="n">QtMplPlotCanvas</span><span class="p">()</span>
+            <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">layout</span><span class="p">()</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">plt</span><span class="p">)</span>
+            <span class="n">dlg</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">400</span>
+            <span class="n">dlg</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">280</span>
+
+            <span class="nd">@dlg</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span>
+            <span class="k">def</span> <span class="nf">_on_value_change</span><span class="p">(</span><span class="o">*</span><span class="n">_</span><span class="p">):</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="n">dlg</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">ax</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
+                    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+                        <span class="n">function</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
         <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setParent</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">windowFlags</span><span class="p">())</span>
         <span class="k">if</span> <span class="n">dlg</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
             <span class="n">out</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="o">**</span><span class="n">dlg</span><span class="o">.</span><span class="n">asdict</span><span class="p">())</span>

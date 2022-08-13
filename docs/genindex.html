@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; tabulous 0.1.0 documentation</title>
+  <title>Index &mdash; tabulous 0.1.1.dev0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -27,7 +27,7 @@
             <a href="index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.0
+                0.1.1.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -42,8 +42,10 @@
 <li class="toctree-l1"><a class="reference internal" href="main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="main/user_interface.html">User Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/selections.html">Table Selections</a></li>
-<li class="toctree-l1"><a class="reference internal" href="main/filter.html">Filter Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/filter.html">Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/cell_color.html">Set Cell Colors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
@@ -162,10 +164,10 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.TableBase.cell">cell (tabulous.widgets.table.TableBase property)</a>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.TableBase.cell">cell (tabulous.widgets.table.TableBase attribute)</a>
 
       <ul>
-        <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.cell">(tabulous.widgets.TableBase property)</a>
+        <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.cell">(tabulous.widgets.TableBase attribute)</a>
 </li>
       </ul></li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.CellInterface">CellInterface (class in tabulous.widgets.table)</a>
@@ -186,7 +188,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.Console">Console (class in tabulous.widgets.mainwindow)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.console">console (tabulous.widgets.mainwindow.TableViewerBase property)</a>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.console">console (tabulous.widgets.mainwindow.TableViewerBase attribute)</a>
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.copy_data">copy_data() (tabulous.widgets.mainwindow.TableViewerBase method)</a>
 </li>
@@ -224,6 +226,18 @@
         <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.data">(tabulous.widgets.TableBase property)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.TableBase.data_shown">data_shown (tabulous.widgets.table.TableBase property)</a>
+
+      <ul>
+        <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.data_shown">(tabulous.widgets.TableBase property)</a>
+</li>
+      </ul></li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.PlotInterface.delete_widget">delete_widget() (tabulous.widgets.table.PlotInterface method)</a>
+</li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.PlotInterface.draw">draw() (tabulous.widgets.table.PlotInterface method)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -266,6 +280,8 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.PlotInterface.figure">figure() (tabulous.widgets.table.PlotInterface method)</a>
+</li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.TableBase.filter">filter (tabulous.widgets.table.TableBase attribute)</a>
 
       <ul>
@@ -296,10 +312,14 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.tablelist.TableList.get">get() (tabulous.widgets.tablelist.TableList method)</a>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.PlotInterface.gca">gca() (tabulous.widgets.table.PlotInterface method)</a>
+</li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.PlotInterface.gcf">gcf() (tabulous.widgets.table.PlotInterface method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.tablelist.TableList.get">get() (tabulous.widgets.tablelist.TableList method)</a>
+</li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.GroupBy">GroupBy (class in tabulous.widgets)</a>
 
       <ul>
@@ -313,6 +333,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.html#tabulous.types.HeaderInfo">HeaderInfo (class in tabulous.types)</a>
+</li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.PlotInterface.hist">hist() (tabulous.widgets.table.PlotInterface method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -457,6 +479,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.PlotInterface.new_widget">new_widget() (tabulous.widgets.table.PlotInterface method)</a>
+</li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.ViewMode.normal">normal (tabulous.widgets.table.ViewMode attribute)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.color.normalize_color">normalize_color() (in module tabulous.color)</a>
@@ -493,10 +517,20 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.paste_data">paste_data() (tabulous.widgets.mainwindow.TableViewerBase method)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.ViewMode.popup">popup (tabulous.widgets.table.ViewMode attribute)</a>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.PlotInterface.plot">plot() (tabulous.widgets.table.PlotInterface method)</a>
 </li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.PlotInterface">PlotInterface (class in tabulous.widgets.table)</a>
+</li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.TableBase.plt">plt (tabulous.widgets.table.TableBase attribute)</a>
+
+      <ul>
+        <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.plt">(tabulous.widgets.TableBase attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.ViewMode.popup">popup (tabulous.widgets.table.ViewMode attribute)</a>
+</li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.TableBase.precision">precision (tabulous.widgets.table.TableBase property)</a>
 
       <ul>
@@ -577,6 +611,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.save">save() (tabulous.widgets.mainwindow.TableViewerBase method)</a>
 </li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.PlotInterface.scatter">scatter() (tabulous.widgets.table.PlotInterface method)</a>
+</li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.screenshot">screenshot() (tabulous.widgets.mainwindow.TableViewerBase method)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.exceptions.SelectionRangeError">SelectionRangeError</a>
@@ -613,6 +649,8 @@
         <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewer.status">(tabulous.widgets.TableViewer property)</a>
 </li>
       </ul></li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.table.PlotInterface.subplots">subplots() (tabulous.widgets.table.PlotInterface method)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -763,7 +801,7 @@
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.Toolbar">Toolbar (class in tabulous.widgets.mainwindow)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.toolbar">toolbar (tabulous.widgets.mainwindow.TableViewerBase property)</a>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.toolbar">toolbar (tabulous.widgets.mainwindow.TableViewerBase attribute)</a>
 </li>
   </ul></td>
 </tr></table>

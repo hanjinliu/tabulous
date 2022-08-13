@@ -21,13 +21,13 @@ You can also read table data from files to create a viewer.
 
 .. code-block:: python
 
-    import tabulous as tb
+    import tabulous as tbl
 
     # Read a csv file and add it to the viewer, just like pd.read_csv
-    viewer = tb.read_csv("path/to/data.csv")
+    viewer = tbl.read_csv("path/to/data.csv")
 
     # Read a Excel file and add all the sheets to the viewer.
-    viewer = tb.read_excel("path/to/data.xlsx")
+    viewer = tbl.read_excel("path/to/data.xlsx")
 
 If virtual environment (such as ``conda``) is used, you can use ``tabulous`` command to launch
 a viewer.
@@ -45,8 +45,11 @@ Handle Tables
 Basically, table data is handled based on ``pandas``.
 A :class:`TableViewer` instance has several methods that add :class:`DataFrame` to the viewer.
 
-``Table``
----------
+1. :meth:`add_table` ... add a table data as a ``Table`` object.
+2. :meth:`add_spreadsheet` ... add a table data as a ``SpreadSheet`` object.
+
+Table
+-----
 
 A :class:`Table` is the most simple interface with :class:`DataFrame`.
 
@@ -120,8 +123,8 @@ multi-selection, this property takes a ``list`` of slicable objects.
 
 See :doc:`selections` for more details.
 
-``SpreadSheet``
----------------
+SpreadSheet
+-----------
 
 A ``SpreadSheet`` behaves more like Excel or Google Spreadsheet.
 
@@ -174,11 +177,13 @@ the viewer.
 
     sheet = viewer.add_spreadsheet()  # add an empty spreadsheet
 
-Interface with Viewer Components
-================================
+For more details ...
+--------------------
 
-Get tables
-----------
+See :doc:`/main/table_advanced`.
+
+Table List
+==========
 
 All the table data is available in ``tables`` property. It is a ``list`` like
 object with some extended methods.
@@ -194,21 +199,7 @@ object with some extended methods.
 You can also get currently acitive (visible) table or its index with
 ``viewer.current_table`` or ``viewer.current_index``.
 
-Embedded Console
-================
 
-To programmatically analyze table data, you can just open the embedded
-interpreter. It is dependent on `qtconsole <https://qtconsole.readthedocs.io/en/stable/>`_
-package.
-
-The console is not visible by default. You can show it by setting :attr:`visible`
-property of :attr:`console` interface to ``True``
-
-.. code-block:: python
-
-    viewer.conosole.visible = True
-
-or push ``Ctrl+Shift+C`` shortcut.
 
 Key combo
 =========
@@ -232,3 +223,28 @@ to register custom key combo.
     @viewer.keymap.bind_key("Ctrl+K, Ctrl+Q")
     def function():
         """do something"""
+
+    # overwrite an existing key combo
+    @viewer.keymap.bind_key("Ctrl+K, Ctrl+Q", overwrite=True)
+    def function():
+        """do something"""
+
+
+Embedded Console
+================
+
+To programmatically analyze table data, you can just open the embedded
+interpreter. It is dependent on `qtconsole <https://qtconsole.readthedocs.io/en/stable/>`_
+package.
+
+The console is not visible by default. You can show it in several ways.
+
+
+.. |toggle_console| image:: ../../tabulous/_qt/_icons/toggle_console.svg
+  :height: 1cm
+
+1. Set :attr:`visible` property of :attr:`console` interface to ``True``:
+   ``>>> viewer.conosole.visible = True``
+2. Activate keyboard shortcut ``Ctrl+Shift+C``.
+3. Click the |toggle_console| tool button in the "Analysis" tab of the toolbar.
+4. Click the tool button of (3.) using key combo ``Alt, A, 4``

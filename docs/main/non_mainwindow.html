@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Use Non-main Window Table Viewers &mdash; tabulous 0.1.0 documentation</title>
+  <title>Use Non-main Window Table Viewers &mdash; tabulous 0.1.1.dev0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -29,7 +29,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.0
+                0.1.1.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -44,16 +44,17 @@
 <li class="toctree-l1"><a class="reference internal" href="cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="user_interface.html">User Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="dock_widget.html">Custom Dock widget</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Use Non-main Window Table Viewers</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#use-tableviewer-in-your-qt-widget">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> in Your Qt Widget</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#use-tableviewer-with-magicgui">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> with <code class="docutils literal notranslate"><span class="pre">magicgui</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#use-a-single-table-in-your-widget">Use A Single Table in Your Widget</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-tableviewer-in-your-qt-widget">Use TableViewer in Your Qt Widget</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-tableviewer-with-magicgui">Use TableViewer with magicgui</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-tables-in-your-widget">Use Tables in Your Widget</a></li>
 </ul>
 </li>
 </ul>
@@ -89,13 +90,13 @@ integration to external packages.</p>
 <div class="contents local topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#use-tableviewer-in-your-qt-widget" id="id1">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> in Your Qt Widget</a></p></li>
-<li><p><a class="reference internal" href="#use-tableviewer-with-magicgui" id="id2">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> with <code class="docutils literal notranslate"><span class="pre">magicgui</span></code></a></p></li>
-<li><p><a class="reference internal" href="#use-a-single-table-in-your-widget" id="id3">Use A Single Table in Your Widget</a></p></li>
+<li><p><a class="reference internal" href="#use-tableviewer-in-your-qt-widget" id="id1">Use TableViewer in Your Qt Widget</a></p></li>
+<li><p><a class="reference internal" href="#use-tableviewer-with-magicgui" id="id2">Use TableViewer with magicgui</a></p></li>
+<li><p><a class="reference internal" href="#use-tables-in-your-widget" id="id3">Use Tables in Your Widget</a></p></li>
 </ul>
 </div>
 <section id="use-tableviewer-in-your-qt-widget">
-<h2><a class="toc-backref" href="#id1">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> in Your Qt Widget</a><a class="headerlink" href="#use-tableviewer-in-your-qt-widget" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id1">Use TableViewer in Your Qt Widget</a><a class="headerlink" href="#use-tableviewer-in-your-qt-widget" title="Permalink to this headline">¶</a></h2>
 <p>If you plan to use a table viewer as a child of another <code class="docutils literal notranslate"><span class="pre">QWidget</span></code>, you can use a non-main
 window version of it. The <code class="docutils literal notranslate"><span class="pre">native</span></code> property returns the Qt backend widget.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">TableViewerWidget</span>
@@ -122,7 +123,7 @@ so you have to programmatically open it by <code class="docutils literal notrans
 </div>
 </section>
 <section id="use-tableviewer-with-magicgui">
-<h2><a class="toc-backref" href="#id2">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> with <code class="docutils literal notranslate"><span class="pre">magicgui</span></code></a><a class="headerlink" href="#use-tableviewer-with-magicgui" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id2">Use TableViewer with magicgui</a><a class="headerlink" href="#use-tableviewer-with-magicgui" title="Permalink to this headline">¶</a></h2>
 <p>If you want to use a <a class="reference external" href="https://github.com/napari/magicgui">magicgui</a> version of it, you can
 use <code class="docutils literal notranslate"><span class="pre">MagicTableViewer</span></code>. <code class="docutils literal notranslate"><span class="pre">MagicTableViewer</span></code> is a subclass of <code class="docutils literal notranslate"><span class="pre">TableViewerWidget</span></code> and
 <code class="docutils literal notranslate"><span class="pre">magicgui.widgets.Widget</span></code> so it is compatible with all the <code class="docutils literal notranslate"><span class="pre">magicgui</span></code> functionalities.</p>
@@ -159,9 +160,24 @@ Following example does similar thing as the one above.</p>
 </pre></div>
 </div>
 </section>
-<section id="use-a-single-table-in-your-widget">
-<h2><a class="toc-backref" href="#id3">Use A Single Table in Your Widget</a><a class="headerlink" href="#use-a-single-table-in-your-widget" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
+<section id="use-tables-in-your-widget">
+<h2><a class="toc-backref" href="#id3">Use Tables in Your Widget</a><a class="headerlink" href="#use-tables-in-your-widget" title="Permalink to this headline">¶</a></h2>
+<p>All the tables can also be used in other widgets. For instance, following example shows how to
+use a spreadsheet in your widget.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tabulous.widgets</span> <span class="kn">import</span> <span class="n">SpreadSheet</span>
+<span class="kn">from</span> <span class="nn">qtpy.QtWidgets</span> <span class="kn">import</span> <span class="n">QWidget</span><span class="p">,</span> <span class="n">QVBoxLayout</span>
+
+<span class="k">class</span> <span class="nc">MyWidget</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">QVBoxLayout</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">()</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">SpreadSheet</span><span class="p">()</span><span class="o">.</span><span class="n">native</span><span class="p">)</span>
+
+<span class="n">widget</span> <span class="o">=</span> <span class="n">MyWidget</span><span class="p">()</span>
+<span class="n">widget</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Table-specific shortcuts, such as copy/paste and undo/redo are available in the table.</p>
 </section>
 </section>
 

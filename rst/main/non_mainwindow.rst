@@ -9,8 +9,8 @@ integration to external packages.
     :local:
     :depth: 1
 
-Use ``TableViewer`` in Your Qt Widget
-=====================================
+Use TableViewer in Your Qt Widget
+=================================
 
 If you plan to use a table viewer as a child of another ``QWidget``, you can use a non-main
 window version of it. The ``native`` property returns the Qt backend widget.
@@ -39,8 +39,8 @@ window version of it. The ``native`` property returns the Qt backend widget.
     so you have to programmatically open it by ``viewer.console.visible = True``.
 
 
-Use ``TableViewer`` with ``magicgui``
-=====================================
+Use TableViewer with magicgui
+=============================
 
 If you want to use a `magicgui <https://github.com/napari/magicgui>`_ version of it, you can
 use ``MagicTableViewer``. ``MagicTableViewer`` is a subclass of ``TableViewerWidget`` and
@@ -82,7 +82,24 @@ Following example does similar thing as the one above.
     ui = A()
     ui.show()
 
-Use A Single Table in Your Widget
-=================================
+Use Tables in Your Widget
+=========================
 
-TODO
+All the tables can also be used in other widgets. For instance, following example shows how to
+use a spreadsheet in your widget.
+
+.. code-block:: python
+
+    from tabulous.widgets import SpreadSheet
+    from qtpy.QtWidgets import QWidget, QVBoxLayout
+
+    class MyWidget(QWidget):
+        def __init__(self):
+            super().__init__()
+            self.setLayout(QVBoxLayout())
+            self.layout().addWidget(SpreadSheet().native)
+
+    widget = MyWidget()
+    widget.show()
+
+Table-specific shortcuts, such as copy/paste and undo/redo are available in the table.

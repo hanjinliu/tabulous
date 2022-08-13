@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quickstart &mdash; tabulous 0.1.0 documentation</title>
+  <title>Quickstart &mdash; tabulous 0.1.1.dev0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.0
+                0.1.1.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -44,23 +44,22 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#open-a-table-viewer">Open A Table Viewer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handle-tables">Handle Tables</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#table"><code class="docutils literal notranslate"><span class="pre">Table</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#spreadsheet"><code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#table">Table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spreadsheet">SpreadSheet</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#for-more-details">For more details …</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#interface-with-viewer-components">Interface with Viewer Components</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#get-tables">Get tables</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#embedded-console">Embedded Console</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#table-list">Table List</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#key-combo">Key combo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#embedded-console">Embedded Console</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="user_interface.html">User Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
@@ -99,9 +98,9 @@
 <ul class="simple">
 <li><p><a class="reference internal" href="#open-a-table-viewer" id="id1">Open A Table Viewer</a></p></li>
 <li><p><a class="reference internal" href="#handle-tables" id="id2">Handle Tables</a></p></li>
-<li><p><a class="reference internal" href="#interface-with-viewer-components" id="id3">Interface with Viewer Components</a></p></li>
-<li><p><a class="reference internal" href="#embedded-console" id="id4">Embedded Console</a></p></li>
-<li><p><a class="reference internal" href="#key-combo" id="id5">Key combo</a></p></li>
+<li><p><a class="reference internal" href="#table-list" id="id3">Table List</a></p></li>
+<li><p><a class="reference internal" href="#key-combo" id="id4">Key combo</a></p></li>
+<li><p><a class="reference internal" href="#embedded-console" id="id5">Embedded Console</a></p></li>
 </ul>
 </div>
 <section id="open-a-table-viewer">
@@ -113,13 +112,13 @@
 </pre></div>
 </div>
 <p>You can also read table data from files to create a viewer.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tabulous</span> <span class="k">as</span> <span class="nn">tb</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tabulous</span> <span class="k">as</span> <span class="nn">tbl</span>
 
 <span class="c1"># Read a csv file and add it to the viewer, just like pd.read_csv</span>
-<span class="n">viewer</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;path/to/data.csv&quot;</span><span class="p">)</span>
+<span class="n">viewer</span> <span class="o">=</span> <span class="n">tbl</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;path/to/data.csv&quot;</span><span class="p">)</span>
 
 <span class="c1"># Read a Excel file and add all the sheets to the viewer.</span>
-<span class="n">viewer</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="s2">&quot;path/to/data.xlsx&quot;</span><span class="p">)</span>
+<span class="n">viewer</span> <span class="o">=</span> <span class="n">tbl</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="s2">&quot;path/to/data.xlsx&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If virtual environment (such as <code class="docutils literal notranslate"><span class="pre">conda</span></code>) is used, you can use <code class="docutils literal notranslate"><span class="pre">tabulous</span></code> command to launch
@@ -133,18 +132,22 @@ $ tabulous ./path/to/data.csv  <span class="c1"># open a table file in the viewe
 <section id="handle-tables">
 <h2><a class="toc-backref" href="#id2">Handle Tables</a><a class="headerlink" href="#handle-tables" title="Permalink to this headline">¶</a></h2>
 <p>Basically, table data is handled based on <code class="docutils literal notranslate"><span class="pre">pandas</span></code>.
-A <code class="xref py py-class docutils literal notranslate"><span class="pre">TableViewer</span></code> instance has several methods that add <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> to the viewer.</p>
+A <code class="xref py py-class docutils literal notranslate"><span class="pre">TableViewer</span></code> instance has several methods that add <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> to the viewer.</p>
+<ol class="arabic simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_table()</span></code> … add a table data as a <code class="docutils literal notranslate"><span class="pre">Table</span></code> object.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_spreadsheet()</span></code> … add a table data as a <code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code> object.</p></li>
+</ol>
 <section id="table">
-<h3><code class="docutils literal notranslate"><span class="pre">Table</span></code><a class="headerlink" href="#table" title="Permalink to this headline">¶</a></h3>
-<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> is the most simple interface with <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code>.</p>
+<h3>Table<a class="headerlink" href="#table" title="Permalink to this headline">¶</a></h3>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> is the most simple interface with <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>.</p>
 <ul class="simple">
-<li><p>It stores a copy of an input <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> as is.</p></li>
+<li><p>It stores a copy of an input <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> as is.</p></li>
 <li><p>It is not editable by default.</p></li>
 <li><p>Table shape is fixed unless data is fully updated by <code class="docutils literal notranslate"><span class="pre">table.data</span> <span class="pre">=</span> <span class="pre">new_data</span></code>.</p></li>
 <li><p>When edited, the input value will be checked for the column data type. Wrong input will be
 rejected.</p></li>
 </ul>
-<p>A <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> (or other objects that can be converted into a <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code>) can be added to
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> (or other objects that can be converted into a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) can be added to
 the viewer using <code class="docutils literal notranslate"><span class="pre">add_table</span></code> method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
@@ -159,17 +162,17 @@ the viewer using <code class="docutils literal notranslate"><span class="pre">ad
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The newly added table is stored in <code class="docutils literal notranslate"><span class="pre">tables</span></code> property of the viewer in a <code class="docutils literal notranslate"><span class="pre">list</span></code> like
+<p>The newly added table is stored in <code class="xref py py-attr docutils literal notranslate"><span class="pre">tables</span></code> property of the viewer in a <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> like
 structure.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># the 0-th table</span>
 </pre></div>
 </div>
 </div>
-<p>You can rename a table by <code class="docutils literal notranslate"><span class="pre">name</span></code> property. Tab name is also renamed accordingly.</p>
+<p>You can rename a table by <code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code> property. Tab name is also renamed accordingly.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;new name&quot;</span>
 </pre></div>
 </div>
-<p>You have to pass <code class="docutils literal notranslate"><span class="pre">editable=True</span></code> or set the <code class="docutils literal notranslate"><span class="pre">editable</span></code> property to make it editable on GUI.</p>
+<p>You have to pass <code class="docutils literal notranslate"><span class="pre">editable=True</span></code> or set the <code class="xref py py-attr docutils literal notranslate"><span class="pre">editable</span></code> property to make it editable on GUI.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># pass the option</span>
 <span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># or set the property</span>
@@ -196,10 +199,10 @@ multi-selection, this property takes a <code class="docutils literal notranslate
 <p>See <a class="reference internal" href="selections.html"><span class="doc">Table Selections</span></a> for more details.</p>
 </section>
 <section id="spreadsheet">
-<h3><code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code><a class="headerlink" href="#spreadsheet" title="Permalink to this headline">¶</a></h3>
+<h3>SpreadSheet<a class="headerlink" href="#spreadsheet" title="Permalink to this headline">¶</a></h3>
 <p>A <code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code> behaves more like Excel or Google Spreadsheet.</p>
 <ul class="simple">
-<li><p>It stores a copy of an input <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> as “string” types.</p></li>
+<li><p>It stores a copy of an input <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> as “string” types.</p></li>
 <li><p>It is editable by default and the input value will not be checked.</p></li>
 <li><p>Shape of table is unlimited (as far as it is not too large).</p></li>
 <li><p>The data type is inferred by <code class="docutils literal notranslate"><span class="pre">pd.read_csv</span></code> when it is obtained by <code class="docutils literal notranslate"><span class="pre">data</span></code> property.</p></li>
@@ -226,7 +229,7 @@ multi-selection, this property takes a <code class="docutils literal notranslate
 </tr>
 </tbody>
 </table>
-<p>then you’ll get following <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code>.</p>
+<p>then you’ll get following <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>   <span class="n">A</span>  <span class="n">B</span>
 <span class="mi">0</span>  <span class="mi">2</span>  <span class="n">t</span>
 <span class="mi">1</span>  <span class="mi">3</span>  <span class="n">u</span>
@@ -254,11 +257,13 @@ the viewer.</p>
 </pre></div>
 </div>
 </section>
+<section id="for-more-details">
+<h3>For more details …<a class="headerlink" href="#for-more-details" title="Permalink to this headline">¶</a></h3>
+<p>See <a class="reference internal" href="table_advanced.html"><span class="doc">Working with Tables</span></a>.</p>
 </section>
-<section id="interface-with-viewer-components">
-<h2><a class="toc-backref" href="#id3">Interface with Viewer Components</a><a class="headerlink" href="#interface-with-viewer-components" title="Permalink to this headline">¶</a></h2>
-<section id="get-tables">
-<h3>Get tables<a class="headerlink" href="#get-tables" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="table-list">
+<h2><a class="toc-backref" href="#id3">Table List</a><a class="headerlink" href="#table-list" title="Permalink to this headline">¶</a></h2>
 <p>All the table data is available in <code class="docutils literal notranslate"><span class="pre">tables</span></code> property. It is a <code class="docutils literal notranslate"><span class="pre">list</span></code> like
 object with some extended methods.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># the 0-th table</span>
@@ -270,26 +275,44 @@ object with some extended methods.</p>
 </div>
 <p>You can also get currently acitive (visible) table or its index with
 <code class="docutils literal notranslate"><span class="pre">viewer.current_table</span></code> or <code class="docutils literal notranslate"><span class="pre">viewer.current_index</span></code>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">TableList</span></code> object.</p>
-</section>
-</section>
-<section id="embedded-console">
-<h2><a class="toc-backref" href="#id4">Embedded Console</a><a class="headerlink" href="#embedded-console" title="Permalink to this headline">¶</a></h2>
-<p>To programmatically analyze table data, you can just open the embedded
-interpreter. It is dependent on <a class="reference external" href="https://qtconsole.readthedocs.io/en/stable/">qtconsole</a>
-package.</p>
-<p>The console is not visible by default. You can show it by setting <code class="docutils literal notranslate"><span class="pre">visible</span></code>
-property of <code class="docutils literal notranslate"><span class="pre">console</span></code> interface to <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span><span class="o">.</span><span class="n">conosole</span><span class="o">.</span><span class="n">visible</span> <span class="o">=</span> <span class="kc">True</span>
-</pre></div>
-</div>
-<p>or push <code class="docutils literal notranslate"><span class="pre">Ctrl+Shift+C</span></code> shortcut.</p>
 </section>
 <section id="key-combo">
-<h2><a class="toc-backref" href="#id5">Key combo</a><a class="headerlink" href="#key-combo" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">Key combo</a><a class="headerlink" href="#key-combo" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">tabulous</span></code> supports many keyboard shortcuts including key combo.</p>
 <p>All the global key map is listed in a widget that will be shown when you press
 <code class="docutils literal notranslate"><span class="pre">Ctrl+K,</span> <span class="pre">Shift+?</span></code> key combo.</p>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">keymap</span></code> is the key map registry object of table viewers. You can use <code class="xref py py-meth docutils literal notranslate"><span class="pre">bind_key()</span></code>
+to register custom key combo.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># simple key binding</span>
+<span class="nd">@viewer</span><span class="o">.</span><span class="n">keymap</span><span class="o">.</span><span class="n">bind_key</span><span class="p">(</span><span class="s2">&quot;Ctrl+P&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">function</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;do something&quot;&quot;&quot;</span>
+
+<span class="c1"># key combo</span>
+<span class="nd">@viewer</span><span class="o">.</span><span class="n">keymap</span><span class="o">.</span><span class="n">bind_key</span><span class="p">(</span><span class="s2">&quot;Ctrl+K, Ctrl+Q&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">function</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;do something&quot;&quot;&quot;</span>
+
+<span class="c1"># overwrite an existing key combo</span>
+<span class="nd">@viewer</span><span class="o">.</span><span class="n">keymap</span><span class="o">.</span><span class="n">bind_key</span><span class="p">(</span><span class="s2">&quot;Ctrl+K, Ctrl+Q&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">function</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;do something&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="embedded-console">
+<h2><a class="toc-backref" href="#id5">Embedded Console</a><a class="headerlink" href="#embedded-console" title="Permalink to this headline">¶</a></h2>
+<p>To programmatically analyze table data, you can just open the embedded
+interpreter. It is dependent on <a class="reference external" href="https://qtconsole.readthedocs.io/en/stable/">qtconsole</a>
+package.</p>
+<p>The console is not visible by default. You can show it in several ways.</p>
+<ol class="arabic simple">
+<li><p>Set <code class="xref py py-attr docutils literal notranslate"><span class="pre">visible</span></code> property of <code class="xref py py-attr docutils literal notranslate"><span class="pre">console</span></code> interface to <code class="docutils literal notranslate"><span class="pre">True</span></code>:
+<code class="docutils literal notranslate"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">viewer.conosole.visible</span> <span class="pre">=</span> <span class="pre">True</span></code></p></li>
+<li><p>Activate keyboard shortcut <code class="docutils literal notranslate"><span class="pre">Ctrl+Shift+C</span></code>.</p></li>
+<li><p>Click the <a class="reference internal" href="../_images/toggle_console.svg"><img alt="toggle_console" height="1cm" src="../_images/toggle_console.svg" /></a> tool button in the “Analysis” tab of the toolbar.</p></li>
+<li><p>Click the tool button of (3.) using key combo <code class="docutils literal notranslate"><span class="pre">Alt,</span> <span class="pre">A,</span> <span class="pre">4</span></code></p></li>
+</ol>
 </section>
 </section>
 

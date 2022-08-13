@@ -204,7 +204,7 @@ class TableBase(ABC):
     plt = PlotInterface()
     filter = FilterProxy()
 
-    def __init__(self, data, name: str | None = None, editable: bool = True):
+    def __init__(self, data=None, name: str | None = None, editable: bool = True):
         self._data = self._normalize_data(data)
 
         if name is None:
@@ -418,7 +418,11 @@ class TableBase(ABC):
     def add_side_widget(self, wdt: QtW.QWidget | Widget, name: str = ""):
         """Add a side widget to the table."""
         if hasattr(wdt, "native"):
+            name = name or wdt.name
             wdt = wdt.native
+        else:
+            name = name or wdt.objectName()
+
         self._qwidget.addSideWidget(wdt, name=name)
         return wdt
 

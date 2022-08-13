@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets.mainwindow &mdash; tabulous 0.1.0a3 documentation</title>
+  <title>tabulous.widgets.mainwindow &mdash; tabulous 0.1.1.dev0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -27,7 +27,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.0a3
+                0.1.1.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -39,11 +39,13 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../main/selections.html">Get Table Selections</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../main/filter.html">Filter Tables</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../main/table_advanced.html">Advanced Usage of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/user_interface.html">User Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/selections.html">Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/filter.html">Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/dock_widget.html">Custom Dock widget</a></li>
@@ -85,6 +87,7 @@
 <span class="kn">from</span> <span class="nn">.table</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">SpreadSheet</span><span class="p">,</span> <span class="n">GroupBy</span><span class="p">,</span> <span class="n">TableDisplay</span>
 <span class="kn">from</span> <span class="nn">.tablelist</span> <span class="kn">import</span> <span class="n">TableList</span>
 <span class="kn">from</span> <span class="nn">._sample</span> <span class="kn">import</span> <span class="n">open_sample</span>
+<span class="kn">from</span> <span class="nn">._component</span> <span class="kn">import</span> <span class="n">Component</span>
 
 <span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">SelectionType</span><span class="p">,</span> <span class="n">TabPosition</span><span class="p">,</span> <span class="n">_TableLike</span><span class="p">,</span> <span class="n">_SingleSelection</span>
 
@@ -113,15 +116,7 @@
     <span class="n">current_index</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
 
 
-<span class="k">class</span> <span class="nc">_ComponentProxy</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
-
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="si">!r}</span><span class="s2">&gt;&quot;</span>
-
-
-<div class="viewcode-block" id="Toolbar"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.Toolbar">[docs]</a><span class="k">class</span> <span class="nc">Toolbar</span><span class="p">(</span><span class="n">_ComponentProxy</span><span class="p">):</span>
+<div class="viewcode-block" id="Toolbar"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.Toolbar">[docs]</a><span class="k">class</span> <span class="nc">Toolbar</span><span class="p">(</span><span class="n">Component</span><span class="p">[</span><span class="s2">&quot;TableViewerBase&quot;</span><span class="p">]):</span>
     <span class="sd">&quot;&quot;&quot;The toolbar proxy.&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
@@ -142,7 +137,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="Console"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.Console">[docs]</a><span class="k">class</span> <span class="nc">Console</span><span class="p">(</span><span class="n">_ComponentProxy</span><span class="p">):</span>
+<div class="viewcode-block" id="Console"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.Console">[docs]</a><span class="k">class</span> <span class="nc">Console</span><span class="p">(</span><span class="n">Component</span><span class="p">[</span><span class="s2">&quot;TableViewerBase&quot;</span><span class="p">]):</span>
     <span class="sd">&quot;&quot;&quot;The QtConsole proxy.&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
@@ -172,6 +167,9 @@
     <span class="n">events</span><span class="p">:</span> <span class="n">TableViewerSignal</span>
     <span class="n">_qwidget_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">_QtMainWidgetBase</span><span class="p">]</span>
 
+    <span class="n">toolbar</span> <span class="o">=</span> <span class="n">Toolbar</span><span class="p">()</span>
+    <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tab_position</span><span class="p">:</span> <span class="n">TabPosition</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">TabPosition</span><span class="o">.</span><span class="n">top</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">):</span>
@@ -181,8 +179,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget_class</span><span class="p">(</span><span class="n">tab_position</span><span class="o">=</span><span class="n">tab_position</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_table_viewer</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tablist</span> <span class="o">=</span> <span class="n">TableList</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_toolbar</span> <span class="o">=</span> <span class="n">Toolbar</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_link_events</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">TableViewerSignal</span><span class="p">()</span>
@@ -200,16 +196,6 @@
     <span class="k">def</span> <span class="nf">tables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableList</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the table list object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tablist</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">toolbar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Toolbar</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the toolbar interface.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_toolbar</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">console</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Console</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the console interface.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_console</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">keymap</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QtKeyMap</span><span class="p">:</span>
@@ -323,10 +309,12 @@
         <span class="n">table</span> <span class="o">=</span> <span class="n">SpreadSheet</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="n">editable</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TableViewerBase.add_groupby"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.add_groupby">[docs]</a>    <span class="k">def</span> <span class="nf">add_groupby</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GroupBy</span><span class="p">:</span>
+<div class="viewcode-block" id="TableViewerBase.add_groupby"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.add_groupby">[docs]</a>    <span class="k">def</span> <span class="nf">add_groupby</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GroupBy</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add a groupby.&quot;&quot;&quot;</span>
         <span class="n">table</span> <span class="o">=</span> <span class="n">GroupBy</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TableViewerBase.add_loader"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.add_loader">[docs]</a>    <span class="k">def</span> <span class="nf">add_loader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loader</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableDisplay</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add a table loader.&quot;&quot;&quot;</span>
@@ -595,7 +583,7 @@
 <span class="k">def</span> <span class="nf">_copy_dataframe</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
-    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_find_parent_table</span><span class="p">(</span><span class="n">qwidget</span><span class="p">:</span> <span class="n">_QtMainWidgetBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableViewerBase</span><span class="p">:</span>

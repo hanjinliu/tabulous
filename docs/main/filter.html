@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Filter Tables &mdash; tabulous 0.1.0 documentation</title>
+  <title>Filter Table Data &mdash; tabulous 0.1.1.dev0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,7 +18,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Working with Tables" href="table_advanced.html" />
+    <link rel="next" title="Set Cell Colors" href="cell_color.html" />
     <link rel="prev" title="Table Selections" href="selections.html" />
 </head>
 
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.0
+                0.1.1.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -45,12 +45,14 @@
 <li class="toctree-l1"><a class="reference internal" href="cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 </ul>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="user_interface.html">User Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Filter Tables</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Filter Table Data</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#apply-filters-programmatically">Apply Filters Programmatically</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#use-query-style-filtering">Use Query-style Filtering</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="cell_color.html">Set Cell Colors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
@@ -72,7 +74,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Filter Tables</li>
+      <li>Filter Table Data</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/main/filter.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -82,8 +84,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
 
-  <section id="filter-tables">
-<h1>Filter Tables<a class="headerlink" href="#filter-tables" title="Permalink to this headline">¶</a></h1>
+  <section id="filter-table-data">
+<h1>Filter Table Data<a class="headerlink" href="#filter-table-data" title="Permalink to this headline">¶</a></h1>
 <p>You can apply a filter to a table without converting the internal data.</p>
 <div class="contents local topic" id="contents">
 <p class="topic-title">Contents</p>
@@ -94,12 +96,12 @@
 </div>
 <section id="apply-filters-programmatically">
 <h2><a class="toc-backref" href="#id1">Apply Filters Programmatically</a><a class="headerlink" href="#apply-filters-programmatically" title="Permalink to this headline">¶</a></h2>
-<p>You only have to set a function that maps a <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> to a 1-D boolean array to
+<p>You only have to set a function that maps a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> to a 1-D boolean array to
 the property <code class="docutils literal notranslate"><span class="pre">filter</span></code>. For instance, following code</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">filter</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">df</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;A&quot;</span>
 </pre></div>
 </div>
-<p>is essentially equivalent to slicing a <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> with <code class="docutils literal notranslate"><span class="pre">df[df[&quot;label&quot;]</span> <span class="pre">==</span> <span class="pre">&quot;A&quot;]</span></code>.</p>
+<p>is essentially equivalent to slicing a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> with <code class="docutils literal notranslate"><span class="pre">df[df[&quot;label&quot;]</span> <span class="pre">==</span> <span class="pre">&quot;A&quot;]</span></code>.</p>
 <p>If the table is</p>
 <table class="docutils align-default">
 <colgroup>
@@ -155,7 +157,13 @@ the property <code class="docutils literal notranslate"><span class="pre">filter
 </section>
 <section id="use-query-style-filtering">
 <h2><a class="toc-backref" href="#id2">Use Query-style Filtering</a><a class="headerlink" href="#use-query-style-filtering" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
+<p>You can open a overlay dialog to filter the table data from the <a class="reference internal" href="../_images/filter.svg"><img alt="filter" height="10px" src="../_images/filter.svg" /></a> button in the toolbar,
+or push key combo <code class="docutils literal notranslate"><span class="pre">Alt,</span> <span class="pre">A,</span> <span class="pre">2</span></code>.</p>
+<p>In this widget you have to specify a query-style expression to apply the filter. For details,
+see <a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.eval.html">the API reference of pandas.eval</a>.
+The line edit for filter expression supports auto-completion (Tab) and history browsing
+(↑, ↓).</p>
+<img alt="../_images/filter.png" src="../_images/filter.png" />
 </section>
 </section>
 
@@ -164,7 +172,7 @@ the property <code class="docutils literal notranslate"><span class="pre">filter
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="selections.html" class="btn btn-neutral float-left" title="Table Selections" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="table_advanced.html" class="btn btn-neutral float-right" title="Working with Tables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="cell_color.html" class="btn btn-neutral float-right" title="Set Cell Colors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -1,4 +1,6 @@
 .vscode/
+_build/
+make_doc.bat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

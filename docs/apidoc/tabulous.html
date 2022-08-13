@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous package &mdash; tabulous 0.1.0 documentation</title>
+  <title>tabulous package &mdash; tabulous 0.1.1.dev0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -28,7 +28,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.0
+                0.1.1.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -43,8 +43,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main/user_interface.html">User Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/selections.html">Table Selections</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../main/filter.html">Filter Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/filter.html">Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
@@ -174,6 +175,15 @@
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.types.</span></span><span class="sig-name descname"><span class="pre">HeaderInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/types.html#HeaderInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.types.HeaderInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
 <p>A named tuple for header update.</p>
+<p>Value takes (index, value, old_value) where</p>
+<dl class="simple">
+<dt>index<span class="classifier">int</span></dt><dd><p>Index where item edited.</p>
+</dd>
+<dt>value<span class="classifier">Any</span></dt><dd><p>New value of the item.</p>
+</dd>
+<dt>old_value<span class="classifier">Any</span></dt><dd><p>Old value of the item.</p>
+</dd>
+</dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="tabulous.types.HeaderInfo.index">
 <span class="sig-name descname"><span class="pre">index</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#tabulous.types.HeaderInfo.index" title="Permalink to this definition">¶</a></dt>
@@ -199,6 +209,17 @@
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.types.</span></span><span class="sig-name descname"><span class="pre">ItemInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">slice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">slice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/types.html#ItemInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.types.ItemInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
 <p>A named tuple for item update.</p>
+<p>Value takes (row, column, value, old_value) where</p>
+<dl class="simple">
+<dt>row<span class="classifier">int or slice</span></dt><dd><p>Row index or slice where item edited.</p>
+</dd>
+<dt>column<span class="classifier">int or slice</span></dt><dd><p>Column index or slice where item edited.</p>
+</dd>
+<dt>value<span class="classifier">Any</span></dt><dd><p>New value of the item.</p>
+</dd>
+<dt>old_value<span class="classifier">Any</span></dt><dd><p>Old value of the item.</p>
+</dd>
+</dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="tabulous.types.ItemInfo.column">
 <span class="sig-name descname"><span class="pre">column</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span> <span class="p"><span class="pre">|</span></span> <span class="pre">slice</span></em><a class="headerlink" href="#tabulous.types.ItemInfo.column" title="Permalink to this definition">¶</a></dt>
@@ -232,7 +253,7 @@
 <p>A table data specific selection range list.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="tabulous.types.SelectionRanges.values">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">values</span></span><em class="property"><span class="pre">:</span> <span class="pre">SelectedData</span><span class="p"><span class="pre">[</span></span><span class="pre">TableBase</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tabulous.types.SelectionRanges.values" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">values</span></span><em class="property"><span class="pre">:</span> <span class="pre">tabulous.types.SelectedData</span></em><a class="headerlink" href="#tabulous.types.SelectionRanges.values" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -280,7 +301,7 @@ in a compatible way with magicgui and napari.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tabulous.Table">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">Table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#Table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.Table" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">Table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span> <span class="p"><span class="pre">|</span></span> <span class="pre">None</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/table.html#Table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.Table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets.table._DataFrameTableLayer</span></code></p>
 </dd></dl>
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Working with Tables &mdash; tabulous 0.1.0 documentation</title>
+  <title>Working with Tables &mdash; tabulous 0.1.1.dev0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,7 +19,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Custom Dock widget" href="dock_widget.html" />
-    <link rel="prev" title="Filter Tables" href="filter.html" />
+    <link rel="prev" title="Set Cell Colors" href="cell_color.html" />
 </head>
 
 <body class="wy-body-for-nav">
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.0
+                0.1.1.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -45,18 +45,31 @@
 <li class="toctree-l1"><a class="reference internal" href="cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 </ul>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="user_interface.html">User Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cell_color.html">Set Cell Colors</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Working with Tables</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#dual-view">Dual View</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#popup-view">Popup View</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#tile-view">Tile View</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#how-tiling-works">How tiling works</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#untiling">Untiling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-view-modes">Use View Modes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dual-view">Dual View</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#popup-view">Popup View</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tile-view">Tile View</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#how-tiling-works">How tiling works</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#untiling">Untiling</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#side-area">Side Area</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#emulate-editing-cells">Emulate Editing Cells</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#side-area">Side Area</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#custom-widgets">Custom widgets</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#plot-canvas">Plot Canvas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#undo-stack">Undo Stack</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#update-cell-values">Update Cell Values</a></li>
 </ul>
 </li>
 </ul>
@@ -94,15 +107,27 @@
 <div class="contents local topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#dual-view" id="id1">Dual View</a></p></li>
-<li><p><a class="reference internal" href="#popup-view" id="id2">Popup View</a></p></li>
-<li><p><a class="reference internal" href="#tile-view" id="id3">Tile View</a></p></li>
-<li><p><a class="reference internal" href="#side-area" id="id4">Side Area</a></p></li>
-<li><p><a class="reference internal" href="#emulate-editing-cells" id="id5">Emulate Editing Cells</a></p></li>
+<li><p><a class="reference internal" href="#use-view-modes" id="id1">Use View Modes</a></p>
+<ul>
+<li><p><a class="reference internal" href="#dual-view" id="id2">Dual View</a></p></li>
+<li><p><a class="reference internal" href="#popup-view" id="id3">Popup View</a></p></li>
+<li><p><a class="reference internal" href="#tile-view" id="id4">Tile View</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#side-area" id="id5">Side Area</a></p>
+<ul>
+<li><p><a class="reference internal" href="#custom-widgets" id="id6">Custom widgets</a></p></li>
+<li><p><a class="reference internal" href="#plot-canvas" id="id7">Plot Canvas</a></p></li>
+<li><p><a class="reference internal" href="#undo-stack" id="id8">Undo Stack</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#update-cell-values" id="id9">Update Cell Values</a></p></li>
 </ul>
 </div>
+<section id="use-view-modes">
+<h2><a class="toc-backref" href="#id1">Use View Modes</a><a class="headerlink" href="#use-view-modes" title="Permalink to this headline">¶</a></h2>
 <section id="dual-view">
-<h2><a class="toc-backref" href="#id1">Dual View</a><a class="headerlink" href="#dual-view" title="Permalink to this headline">¶</a></h2>
+<h3><a class="toc-backref" href="#id2">Dual View</a><a class="headerlink" href="#dual-view" title="Permalink to this headline">¶</a></h3>
 <p>In dual view mode, table is split into two part and each part can be scrolled
 and zoomed independently. This mode is useful to inspect large data.</p>
 <p>Dual view is enabled by setting <code class="docutils literal notranslate"><span class="pre">table.view_mode</span> <span class="pre">=</span> <span class="pre">&quot;horizontal&quot;</span></code> for horizontal
@@ -116,10 +141,10 @@ view, and <code class="docutils literal notranslate"><span class="pre">table.vie
 </pre></div>
 </div>
 <p>Dual view can also be turned on by key combo <code class="docutils literal notranslate"><span class="pre">Ctrl+K,</span> <span class="pre">H</span></code> (horizontal) or
-<code class="docutils literal notranslate"><span class="pre">Ctrl+K,</span> <span class="pre">V</span></code> (vertical). Resetting it by key combo <code class="docutils literal notranslate"><span class="pre">Ctrl+K,</span> <span class="pre">N</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">Ctrl+K,</span> <span class="pre">V</span></code> (vertical). Reset it by key combo <code class="docutils literal notranslate"><span class="pre">Ctrl+K,</span> <span class="pre">N</span></code>.</p>
 </section>
 <section id="popup-view">
-<h2><a class="toc-backref" href="#id2">Popup View</a><a class="headerlink" href="#popup-view" title="Permalink to this headline">¶</a></h2>
+<h3><a class="toc-backref" href="#id3">Popup View</a><a class="headerlink" href="#popup-view" title="Permalink to this headline">¶</a></h3>
 <p>In popup view mode, a large popup window appears and the table data is shown
 inside it. This mode is useful when you want to focus on seeing or editing one
 table, or the table viewer widget is docked in other widget so it is very small.</p>
@@ -132,11 +157,11 @@ similar to dual view by <code class="docutils literal notranslate"><span class="
 <p>Dual view can also be turned on by key combo <code class="docutils literal notranslate"><span class="pre">Ctrl+K,</span> <span class="pre">P</span></code>.</p>
 </section>
 <section id="tile-view">
-<h2><a class="toc-backref" href="#id3">Tile View</a><a class="headerlink" href="#tile-view" title="Permalink to this headline">¶</a></h2>
+<h3><a class="toc-backref" href="#id4">Tile View</a><a class="headerlink" href="#tile-view" title="Permalink to this headline">¶</a></h3>
 <p>Tile view is a mode that shows different tables in a same window, while the
 structure of table list and tabs are not affected.</p>
 <section id="how-tiling-works">
-<h3>How tiling works<a class="headerlink" href="#how-tiling-works" title="Permalink to this headline">¶</a></h3>
+<h4>How tiling works<a class="headerlink" href="#how-tiling-works" title="Permalink to this headline">¶</a></h4>
 <p>For instance, if you tiled tables “A” and “B”, they will appear in the same
 window, but tabs named “A” and “B” still exist in the tab bar. <code class="docutils literal notranslate"><span class="pre">viewer.tables[i]</span></code>
 also returns the same table as before. When tab “A” or “B” is clicked, the tiled
@@ -145,26 +170,78 @@ table with “A” and “B” is shown as <code class="docutils literal notrans
 You can also programmatically tile tables by calling <code class="docutils literal notranslate"><span class="pre">viewer.tables.tile([0,</span> <span class="pre">1,</span> <span class="pre">2])</span></code>.</p>
 </section>
 <section id="untiling">
-<h3>Untiling<a class="headerlink" href="#untiling" title="Permalink to this headline">¶</a></h3>
+<h4>Untiling<a class="headerlink" href="#untiling" title="Permalink to this headline">¶</a></h4>
 <p>Untiling is also well-defined operation. Let’s say tabs “A”, “B” and “C” is tiled so
 these tabs show tiled view <code class="docutils literal notranslate"><span class="pre">A|B|C</span></code>. If you untiled “B”, “A” and “C” are re-tiled
 while “B” returns the original state. Therefore, tabs “A” and “C” shows <code class="docutils literal notranslate"><span class="pre">A|C</span></code> and
 tab “B” shows <code class="docutils literal notranslate"><span class="pre">B</span></code>.</p>
-<p>You can untile the current table by shortcut <code class="docutils literal notranslate"><span class="pre">\</span></code>.
+<p>You can untile the current table by shortcut <code class="docutils literal notranslate"><span class="pre">Ctrl+K,</span> <span class="pre">\</span></code>.
 You can also programmatically untile tables by calling <code class="docutils literal notranslate"><span class="pre">viewer.tables.untile([0,</span> <span class="pre">1,</span> <span class="pre">2])</span></code>.</p>
 </section>
 </section>
+</section>
 <section id="side-area">
-<h2><a class="toc-backref" href="#id4">Side Area</a><a class="headerlink" href="#side-area" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">Side Area</a><a class="headerlink" href="#side-area" title="Permalink to this headline">¶</a></h2>
+<p>Every table has a side area that can be used to add table-specific widgets or show
+table-specific information.</p>
+<section id="custom-widgets">
+<h3><a class="toc-backref" href="#id6">Custom widgets</a><a class="headerlink" href="#custom-widgets" title="Permalink to this headline">¶</a></h3>
+<p>Custom Qt widgets or <code class="docutils literal notranslate"><span class="pre">magicgui</span></code> widgets can be added to the side area using
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">add_side_widget()</span></code> method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">table</span><span class="o">.</span><span class="n">add_side_widget</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+<span class="c1"># if you want to give a name to the widget</span>
+<span class="n">table</span><span class="o">.</span><span class="n">add_side_widget</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;widget name&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="examples">
+<h4>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">magicgui</span> <span class="kn">import</span> <span class="n">magicgui</span>
+
+<span class="nd">@magicgui</span>
+<span class="k">def</span> <span class="nf">func</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+
+<span class="n">table</span><span class="o">.</span><span class="n">add_side_widget</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="emulate-editing-cells">
-<h2><a class="toc-backref" href="#id5">Emulate Editing Cells</a><a class="headerlink" href="#emulate-editing-cells" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="plot-canvas">
+<h3><a class="toc-backref" href="#id7">Plot Canvas</a><a class="headerlink" href="#plot-canvas" title="Permalink to this headline">¶</a></h3>
+<p>Since plotting is a common use case for table data analysis, plot canvases are implemented
+by default. The basic plot functions are available in <code class="xref py py-attr docutils literal notranslate"><span class="pre">plt</span></code> attribute with the
+similar API as <code class="docutils literal notranslate"><span class="pre">matplotlib.pyplot</span></code> module.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;new value&quot;</span>
+<span class="n">table</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">table</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">table</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also update plot canvas from the “Plot” tab of the toolbar.</p>
+</section>
+<section id="undo-stack">
+<h3><a class="toc-backref" href="#id8">Undo Stack</a><a class="headerlink" href="#undo-stack" title="Permalink to this headline">¶</a></h3>
+<p>Undo/redo is implemented for each table. You can see the registered operations in a list
+view in the side area. You can open it by pressing <code class="docutils literal notranslate"><span class="pre">Ctrl+H</span></code>.</p>
+</section>
+</section>
+<section id="update-cell-values">
+<h2><a class="toc-backref" href="#id9">Update Cell Values</a><a class="headerlink" href="#update-cell-values" title="Permalink to this headline">¶</a></h2>
+<p>To set new table data, <code class="xref py py-meth docutils literal notranslate"><span class="pre">loc()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">iloc()</span></code> is not safe.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># set new data</span>
+</pre></div>
+</div>
+<p>This is not equivalent to editing cells directly for several reasons.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Table</span></code> data will be updated in this way but <code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code> will not since the returned
+data is a copy.</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">loc</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">iloc</span></code> does not check data type.</p></li>
+<li><p>Table will not be updated immediately.</p></li>
+</ul>
+<p>Better way is to use <code class="xref py py-attr docutils literal notranslate"><span class="pre">cell</span></code> attribute.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
 </pre></div>
 </div>
 </section>
@@ -174,7 +251,7 @@ You can also programmatically untile tables by calling <code class="docutils lit
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="filter.html" class="btn btn-neutral float-left" title="Filter Tables" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cell_color.html" class="btn btn-neutral float-left" title="Set Cell Colors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="dock_widget.html" class="btn btn-neutral float-right" title="Custom Dock widget" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

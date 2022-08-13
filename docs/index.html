@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous &mdash; tabulous 0.1.0 documentation</title>
+  <title>tabulous &mdash; tabulous 0.1.1.dev0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -29,7 +29,7 @@
             <a href="#" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.0
+                0.1.1.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -44,8 +44,10 @@
 <li class="toctree-l1"><a class="reference internal" href="main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="main/user_interface.html">User Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/selections.html">Table Selections</a></li>
-<li class="toctree-l1"><a class="reference internal" href="main/filter.html">Filter Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/filter.html">Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/cell_color.html">Set Cell Colors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
@@ -102,22 +104,26 @@ Qt widgets for more trained users.</p>
 <h2>Basics<a class="headerlink" href="#basics" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="main/user_interface.html">User Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="main/user_interface.html#tables">Tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/user_interface.html#toolbar">Toolbar</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="main/selections.html">Table Selections</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="main/selections.html#data-type-of-table-selections">Data Type of Table Selections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="main/selections.html#catch-change-in-table-selections">Catch Change in Table Selections</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="main/filter.html">Filter Tables</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="main/filter.html">Filter Table Data</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="main/filter.html#apply-filters-programmatically">Apply Filters Programmatically</a></li>
 <li class="toctree-l2"><a class="reference internal" href="main/filter.html#use-query-style-filtering">Use Query-style Filtering</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="main/cell_color.html">Set Cell Colors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/table_advanced.html">Working with Tables</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="main/table_advanced.html#dual-view">Dual View</a></li>
-<li class="toctree-l2"><a class="reference internal" href="main/table_advanced.html#popup-view">Popup View</a></li>
-<li class="toctree-l2"><a class="reference internal" href="main/table_advanced.html#tile-view">Tile View</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/table_advanced.html#use-view-modes">Use View Modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="main/table_advanced.html#side-area">Side Area</a></li>
-<li class="toctree-l2"><a class="reference internal" href="main/table_advanced.html#emulate-editing-cells">Emulate Editing Cells</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/table_advanced.html#update-cell-values">Update Cell Values</a></li>
 </ul>
 </li>
 </ul>
@@ -133,9 +139,9 @@ Qt widgets for more trained users.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="main/non_mainwindow.html">Use Non-main Window Table Viewers</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="main/non_mainwindow.html#use-tableviewer-in-your-qt-widget">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> in Your Qt Widget</a></li>
-<li class="toctree-l2"><a class="reference internal" href="main/non_mainwindow.html#use-tableviewer-with-magicgui">Use <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> with <code class="docutils literal notranslate"><span class="pre">magicgui</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="main/non_mainwindow.html#use-a-single-table-in-your-widget">Use A Single Table in Your Widget</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/non_mainwindow.html#use-tableviewer-in-your-qt-widget">Use TableViewer in Your Qt Widget</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/non_mainwindow.html#use-tableviewer-with-magicgui">Use TableViewer with magicgui</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/non_mainwindow.html#use-tables-in-your-widget">Use Tables in Your Widget</a></li>
 </ul>
 </li>
 </ul>

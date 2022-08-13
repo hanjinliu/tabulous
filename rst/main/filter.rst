@@ -1,6 +1,6 @@
-=============
-Filter Tables
-=============
+=================
+Filter Table Data
+=================
 
 You can apply a filter to a table without converting the internal data.
 
@@ -48,4 +48,15 @@ then it looks like following after applying the filter.
 Use Query-style Filtering
 =========================
 
-TODO
+.. |filter| image:: ../../tabulous/_qt/_icons/filter.svg
+  :height: 10px
+
+You can open a overlay dialog to filter the table data from the |filter| button in the toolbar,
+or push key combo ``Alt, A, 2``.
+
+In this widget you have to specify a query-style expression to apply the filter. For details,
+see `the API reference of pandas.eval <https://pandas.pydata.org/docs/reference/api/pandas.eval.html>`_.
+The line edit for filter expression supports auto-completion (Tab) and history browsing
+(↑, ↓).
+
+.. image:: ../fig/filter.png
