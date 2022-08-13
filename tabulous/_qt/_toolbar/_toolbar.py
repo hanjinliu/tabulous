@@ -291,13 +291,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
         _evaluator = QLiteralEval(ol, label="Filter", mode="filter")
 
-        @_evaluator.escClicked.connect
+        @_evaluator._line.escClicked.connect
         def _on_escape():
             ol.hide()
             self.parent().setCellFocus()
 
         ol.addWidget(_evaluator)
-        _evaluator.setFocus()
+        _evaluator._line.setFocus()
 
     def eval(self):
         """Evaluate a Python expression."""
@@ -308,13 +308,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
         _evaluator = QLiteralEval(ol, label="Evaluate", mode="eval")
 
-        @_evaluator.escClicked.connect
+        @_evaluator._line.escClicked.connect
         def _on_escape():
             ol.hide()
             self.parent().setCellFocus()
 
         ol.addWidget(_evaluator)
-        _evaluator.setFocus()
+        _evaluator._line.setFocus()
 
     def change_view_mode(self, view_mode: str):
         """Popup view."""

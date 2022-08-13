@@ -11,9 +11,52 @@ if TYPE_CHECKING:
 
 
 class MatchMode:
-    value = "a/1"
-    text = "'a'/'1'"
+    value = "1"
+    text = "'1'"
     regex = ".*"
+
+
+class QComboButtons(QtW.QWidget):
+    """Collection of buttons to choose between match modes"""
+
+    currentTextChanged = Signal(str)
+
+    def __init__(self, choices: list[str]) -> None:
+        super().__init__()
+        _layout = QtW.QHBoxLayout()
+        _layout.setContentsMargins(0, 0, 0, 0)
+        _layout.setSpacing(2)
+        self.setLayout(_layout)
+        buttons = [QtW.QPushButton(choice, self) for choice in choices]
+        buttons[0].setToolTip("Match by value")
+        buttons[1].setToolTip("Match by text")
+        buttons[2].setToolTip("Match by regular expression")
+
+        for i, btn in enumerate(buttons):
+            _layout.addWidget(btn)
+            btn.setCheckable(True)
+            btn.setFont(QtGui.QFont("Arial", 9))
+            btn.setFixedSize(18, 18)
+            btn.clicked.connect(lambda checked, idx=i: self.setCurrentIndex(idx))
+
+        self._buttons = buttons
+        self.setCurrentIndex(0)
+
+    def currentIndex(self) -> int:
+        for i, btn in enumerate(self._buttons):
+            if btn.isChecked():
+                return i
+        return -1
+
+    def setCurrentIndex(self, index: int) -> None:
+        for i, btn in enumerate(self._buttons):
+            checked = i == index
+            btn.setChecked(checked)
+            font = btn.font()
+            font.setBold(checked)
+            btn.setFont(font)
+        text = self._buttons[index].text()
+        self.currentTextChanged.emit(text)
 
 
 class QFinderWidget(QtW.QWidget):
@@ -30,9 +73,9 @@ class QFinderWidget(QtW.QWidget):
         _footer.setLayout(QtW.QHBoxLayout())
         _footer.layout().setContentsMargins(0, 0, 0, 0)
 
-        self.cbox_match = QtW.QComboBox()
-        self.cbox_match.addItems([MatchMode.value, MatchMode.text, MatchMode.regex])
-        self.cbox_match.setCurrentIndex(0)
+        self.cbox_match = QComboButtons(
+            [MatchMode.value, MatchMode.text, MatchMode.regex]
+        )
         self.cbox_match.currentTextChanged.connect(self.setMatchMode)
 
         self.cbox_ori = QtW.QComboBox()

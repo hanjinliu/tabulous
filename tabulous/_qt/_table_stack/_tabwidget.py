@@ -73,6 +73,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     def addTable(self, table: QBaseTable, name: str = "None"):
         """Add `table` to stack as name `name`."""
         self.addTab(table, name)
+        table._qtable_view.resizedSignal.connect(self.resizedSignal.emit)
         return None
 
     def takeTable(self, index: int) -> QBaseTable:

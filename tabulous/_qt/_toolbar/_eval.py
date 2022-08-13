@@ -1,13 +1,20 @@
 from __future__ import annotations
 from qtpy import QtWidgets as QtW
+import pandas as pd
 from . import _utils
 
 
 class QLiteralEval(QtW.QWidget):
-    def __init__(self, parent=None, label="", mode="eval"):
+    def __init__(
+        self, parent: QtW.QWidget | None = None, label: str = "", mode: str = "eval"
+    ):
         super().__init__(parent)
         self._label = QtW.QLabel(label, self)
         self._line = _utils.QCompletableLineEdit(self)
+        _layout = QtW.QHBoxLayout()
+        _layout.addWidget(self._label)
+        _layout.addWidget(self._line)
+        self.setLayout(_layout)
         self.setMode(mode)
 
     def eval(self):
@@ -31,7 +38,7 @@ class QLiteralEval(QtW.QWidget):
             return
         table = self._line.currentPyTable()
         sl = table.data.eval(text, inplace=False)
-        table.filter = sl
+        table.filter = EvalArray(sl, literal=text)
         self._line.toHistory()
 
     def query(self):
@@ -59,3 +66,12 @@ class QLiteralEval(QtW.QWidget):
             self._line.enterClicked.connect(self.query)
         else:
             raise ValueError(mode)
+
+
+class EvalArray(pd.Series):
+    def __init__(self, data=None, literal: str = ""):
+        super().__init__(data)
+        self._literal = literal
+
+    def __repr__(self):
+        return f"lambda df: df.eval({self._literal!r})"

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from enum import Enum
-from qtpy import QtWidgets as QtW, QtCore
+from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
 
 if TYPE_CHECKING:
@@ -42,6 +42,10 @@ class QOverlayWidget(QtW.QDialog):
         self.setAnchor(Anchor.bottom_right)
         self.hide()
 
+        effect = QtW.QGraphicsOpacityEffect(self)
+        self.setGraphicsEffect(effect)
+        self._effect = effect
+
     def addWidget(self, widget: QtW.QWidget):
         if self.layout().count() > 0:
             self.removeWidget()
@@ -74,9 +78,6 @@ class QOverlayWidget(QtW.QDialog):
         super().show()
         return self.alignToParent()
 
-    def sizeHint(self) -> QtCore.QSize:
-        return super().sizeHint()
-
     def alignToParent(self):
         """Position widget at the bottom right edge of the parent."""
         qtable = self.parentWidget()
@@ -96,7 +97,8 @@ class QOverlayWidget(QtW.QDialog):
     def viewRect(self) -> QtCore.QRect:
         """Return the parent table rect."""
         parent = self.parentWidget()
-        rect = parent.rect()
+        qtable = parent.tableAtIndex(parent.currentIndex())
+        rect = qtable.widget(0).rect()
         return rect
 
     def alignTopLeft(self, offset=(8, 8)):
@@ -111,13 +113,13 @@ class QOverlayWidget(QtW.QDialog):
         pos.setY(pos.y() + offset[1])
         self.move(pos)
 
-    def alignBottomLeft(self, offset=(8, 26)):
+    def alignBottomLeft(self, offset=(8, 8)):
         pos = self.viewRect().bottomLeft()
         pos.setX(pos.x() + offset[0])
         pos.setY(pos.y() - self.rect().height() - offset[1])
         self.move(pos)
 
-    def alignBottomRight(self, offset=(26, 26)):
+    def alignBottomRight(self, offset=(26, 8)):
         pos = self.viewRect().bottomRight()
         pos.setX(pos.x() - self.rect().width() - offset[0])
         pos.setY(pos.y() - self.rect().height() - offset[1])

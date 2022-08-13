@@ -39,6 +39,7 @@ class _QTableViewEnhanced(QtW.QTableView):
     selectionChangedSignal = Signal()
     rightClickedSignal = Signal(QtCore.QPoint)
     focusedSignal = Signal()
+    resizedSignal = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -225,6 +226,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.focusedSignal.emit()
         return super().focusInEvent(e)
 
+    def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
+        self.resizedSignal.emit()
+        return super().resizeEvent(e)
+
     def parentTable(self) -> QBaseTable | None:
         parent = self._parent_table
         if not isinstance(parent, QBaseTable):
@@ -298,6 +303,11 @@ class QBaseTable(QtW.QSplitter):
     def createHandle(self) -> QTableHandle:
         """Create custom handle."""
         return QTableHandle(Qt.Orientation.Horizontal, self)
+
+    # fmt: off
+    if TYPE_CHECKING:
+        def handle(self, pos: int) -> QTableHandle: ...
+    # fmt: on
 
     @property
     def _qtable_view(self) -> _QTableViewEnhanced:
