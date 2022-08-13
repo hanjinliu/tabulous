@@ -62,28 +62,61 @@ class ViewMode(Enum):
 class CellInterface(Component["TableBase"]):
     """The interface for editing cell as if it was manually edited."""
 
-    def __getitem__(self, key: tuple[int, int]) -> str:
-        r, c = key
-        model = self.parent._qwidget.model()
-        index = model.index(r, c)
-        return model.data(index)
+    def __getitem__(self, key: tuple[int | slice, int | slice]):
+        return self.parent._qwidget.model().df.iloc[key]
 
-    def __setitem__(self, key: tuple[int, int], value: Any) -> None:
-        row, col = key
-        if self.parent.editable:
-            self.parent._qwidget.setDataFrameValue(row, col, value)
-        else:
+    def __setitem__(self, key: tuple[int | slice, int | slice], value: Any) -> None:
+        table = self.parent
+        if not table.editable:
             raise TableImmutableError("Table is not editable.")
+        import pandas as pd
+
+        if isinstance(value, str) or not hasattr(value, "__iter__"):
+            _value = [[value]]
+        else:
+            _value = value
+        try:
+            df = pd.DataFrame(_value)
+        except ValueError:
+            raise ValueError(f"Could not convert value {_value!r} to DataFrame.")
+        row, col = self._normalize_key(key)
+
+        if 1 in df.shape and (col.stop - col.start, row.stop - row.start) == df.shape:
+            # it is natural to set an 1-D array without thinking of the direction.
+            df = df.T
+        table._qwidget.setDataFrameValue(row, col, df)
+
+    def __delitem__(self, key: tuple[int | slice, int | slice]) -> None:
+        table = self.parent
+        if not table.editable:
+            raise TableImmutableError("Table is not editable.")
+        row, col = key
+        table._qwidget.setSelections([(row, col)])
+        table._qwidget.deleteValues()
         return None
 
-    def __delitem__(self, key: tuple[int, int]) -> None:
+    def _normalize_key(
+        self,
+        key: tuple[int | slice, int | slice],
+    ) -> tuple[slice, slice]:
+        if len(key) == 1:
+            key = (key, slice(None))
         row, col = key
-        if self.parent.editable:
-            self.parent._qwidget.setSelections([(row, col)])
-            self.parent._qwidget.deleteValues()
+        _row_is_slice = isinstance(row, slice)
+        _col_is_slice = isinstance(col, slice)
+        if _row_is_slice:
+            row = slice(*row.indices(self.parent.table_shape[0]))
+            if row.step != 1:
+                raise ValueError("Row slice step must be 1.")
         else:
-            raise TableImmutableError("Table is not editable.")
-        return None
+            row = slice(row, row + 1)
+        if _col_is_slice:
+            col = slice(*col.indices(self.parent.table_shape[1]))
+            if col.step != 1:
+                raise ValueError("Column slice step must be 1.")
+        else:
+            col = slice(col, col + 1)
+        return row, col
 
 
 class PlotInterface(Component["TableBase"]):
@@ -276,15 +309,21 @@ class TableBase(ABC):
         """Refresh the table view."""
         return self._qwidget.refresh()
 
-    def move_loc(self, row: Any, column: Any):
-        """Move to a location in the table using axis label."""
+    def move_loc(self, row: Hashable, column: Hashable):
+        """
+        Move to a location in the table using axis label.
+        >>> table.move_loc("index-2", "column-4")
+        """
         data = self.data
         r = data.index.get_loc(row)
         c = data.columns.get_loc(column)
         return self._qwidget.moveToItem(r, c)
 
     def move_iloc(self, row: int, column: int):
-        """Move to a location in the table using indices."""
+        """
+        Move to a location in the table using indices.
+        >>> table.move_iloc(2, 4)
+        """
         shape = self.table_shape
         row_outofrange = row >= shape[0]
         col_outofrange = column >= shape[1]

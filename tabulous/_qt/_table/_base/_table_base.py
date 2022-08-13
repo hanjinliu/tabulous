@@ -346,7 +346,7 @@ class QBaseTable(QtW.QSplitter):
     def setDataFrameValue(self, row: int, col: int, value: Any) -> None:
         raise TableImmutableError("Table is immutable.")
 
-    def deleteValues(self, row: int, col: int) -> None:
+    def deleteValues(self) -> None:
         raise TableImmutableError("Table is immutable.")
 
     def isEditable(self) -> bool:

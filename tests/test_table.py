@@ -165,3 +165,23 @@ def test_color_mapper():
     @table.background_colormap("b")
     def _(val):
         return "green" if val < 20 else None
+
+def test_set_scalar_via_cell_interface():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(np.zeros((6, 6)), editable=True)
+    table.cell[2:4, 2:4] = 1
+    assert np.all(table.data.iloc[2:4, 2:4].values == 1)
+    table.cell[0, :] = 2
+    assert np.all(table.data.iloc[0, :].values == 2)
+    table.cell[:, 5] = 3
+    assert np.all(table.data.iloc[:, 5].values == 3)
+
+def test_set_list_via_cell_interface():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(np.zeros((6, 6)), editable=True)
+    table.cell[2:4, 2:4] = [[1, 1], [1, 1]]
+    assert np.all(table.data.iloc[2:4, 2:4].values == 1)
+    table.cell[0, :] = [2] * 6
+    assert np.all(table.data.iloc[0, :].values == 2)
+    table.cell[:, 5] = [3] * 6
+    assert np.all(table.data.iloc[:, 5].values == 3)
