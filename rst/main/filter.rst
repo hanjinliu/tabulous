@@ -49,7 +49,7 @@ Use Query-style Filtering
 =========================
 
 .. |filter| image:: ../../tabulous/_qt/_icons/filter.svg
-  :height: 10px
+  :width: 20em
 
 You can open a overlay dialog to filter the table data from the |filter| button in the toolbar,
 or push key combo ``Alt, A, 2``.

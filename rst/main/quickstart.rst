@@ -241,7 +241,7 @@ The console is not visible by default. You can show it in several ways.
 
 
 .. |toggle_console| image:: ../../tabulous/_qt/_icons/toggle_console.svg
-  :height: 1cm
+  :width: 20em
 
 1. Set :attr:`visible` property of :attr:`console` interface to ``True``:
    ``>>> viewer.conosole.visible = True``
