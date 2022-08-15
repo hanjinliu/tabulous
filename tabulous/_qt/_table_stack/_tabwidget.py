@@ -63,15 +63,40 @@ class QTabbedTableStack(QtW.QTabWidget):
         # NOTE: this is needed to correctly refocus table groups.
         self.tabBarClicked.connect(self.setCurrentIndex)
 
+        # add overlay widget
         from ._overlay import QOverlayWidget
 
         self._overlay = QOverlayWidget(self)
 
+        # contextmenu
         self._qt_context_menu = QTabContextMenu(self)
-        self._line: QtW.QLineEdit | None = None  # temporal QLineEdit for editing tabs
+
+        # temporal QLineEdit for editing tabs
+        self._line: QtW.QLineEdit | None = None
+
+        # "new tab" button
+        tb = QtW.QToolButton()
+        tb.setText("+")
+        tb.setToolTip("New spreadsheet")
+        self.setCornerWidget(tb)
+        self.addEmptyWidget()
+        self.setStyleSheet(
+            "QTabBar::tab::disabled {width: 0; height: 20; border: none;} "
+        )
+
+    def addEmptyWidget(self):
+        """Add empty widget to stack."""
+        assert self.count() == 0
+        self.addTab(QEmptyWidget(), "")
+        return self.setTabEnabled(0, False)
+
+    def isEmpty(self) -> bool:
+        return self.count() == 1 and isinstance(self.widget(0), QEmptyWidget)
 
     def addTable(self, table: QBaseTable, name: str = "None"):
         """Add `table` to stack as name `name`."""
+        if self.isEmpty():
+            self.removeTab(0)
         self.addTab(table, name)
         table._qtable_view.resizedSignal.connect(self.resizedSignal.emit)
         return None
@@ -81,6 +106,8 @@ class QTabbedTableStack(QtW.QTabWidget):
         table = self.tableAtIndex(index)
         self.untileTable(index)
         self.removeTab(index)
+        if self.count() == 0:
+            self.addEmptyWidget()
         return table
 
     def renameTable(self, index: int, name: str):
@@ -100,6 +127,8 @@ class QTabbedTableStack(QtW.QTabWidget):
     def tableAtIndex(self, i: int) -> QBaseTable:
         """Get the table at `i`."""
         wdt = self.widget(i)
+        if isinstance(wdt, QEmptyWidget):
+            return None
         if isinstance(wdt, QTableGroup):
             wdt = cast(QTableGroup, wdt)
             idx = self._tab_index_to_group_index(i)
@@ -150,6 +179,8 @@ class QTabbedTableStack(QtW.QTabWidget):
         return super().dropEvent(e)
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent):
+        if self.isEmpty():
+            return
         pos_global = self.mapToGlobal(e.pos())
         tabbar = self.tabBar()
         pos_intab = tabbar.mapFromGlobal(pos_global)
@@ -204,6 +235,8 @@ class QTabbedTableStack(QtW.QTabWidget):
 
     def enterEditingMode(self, index: int):
         """Enter edit table name mode."""
+        if self.isEmpty():
+            return
         rect = self.tabRect(index)
 
         # set geometry
@@ -410,7 +443,7 @@ class QTabContextMenu(QtW.QMenu):
 
     def addMenu(self, title: str) -> QTabContextMenu:
         """Add a submenu to the contextmenu."""
-        menu = self.__class__()
+        menu = self.__class__(self)
         action = super().addMenu(menu)
         action.setText(title)
         action.setMenu(menu)
@@ -437,3 +470,19 @@ class QTabContextMenu(QtW.QMenu):
             if k == name:
                 return action
         return None
+
+
+class QEmptyWidget(QtW.QLabel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setText(
+            "Push 'Ctrl + N' or click '+' to add a spreadsheet.\n"
+            "Push 'Ctrl + O' or drag-and-drop to open a table data."
+        )
+        font = QtGui.QFont("Arial", 16)
+        self.setFont(font)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        return None
+
+    def widget(self, i):
+        return self

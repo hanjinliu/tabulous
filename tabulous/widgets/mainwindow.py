@@ -386,6 +386,8 @@ class TableViewerBase:
         _tablist.events.changed.connect(self.reset_choices)
         _tablist.events.renamed.connect(self.reset_choices)
 
+        _qtablist.cornerWidget().clicked.connect(lambda: self.add_spreadsheet())
+
 
 class TableViewerWidget(TableViewerBase):
     """The non-main table viewer widget."""

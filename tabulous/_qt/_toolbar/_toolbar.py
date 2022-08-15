@@ -471,7 +471,6 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         # Table
         self.registerAction("Table", self.copy_as_table, ICON_DIR / "copy_as_table.svg")
         self.registerAction("Table", self.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")
-        self.registerAction("Table", self.new_spreadsheet, ICON_DIR / "new_spreadsheet.svg")
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.groupby, ICON_DIR / "groupby.svg")
         self.registerAction("Table", self.concat, ICON_DIR / "concat.svg")
