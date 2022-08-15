@@ -80,7 +80,13 @@ def _(self: _QtMainWidgetBase):
 @QMainWindow._keymap.bind("Ctrl+O")
 def _(self: _QtMainWidgetBase):
     """Open a file as a table."""
-    return self._toolbar.open_table()
+    return self.openFromDialog(type="table")
+
+@QMainWidget._keymap.bind("Ctrl+K, Ctrl+O")
+@QMainWindow._keymap.bind("Ctrl+K, Ctrl+O")
+def _(self: _QtMainWidgetBase):
+    """Open a file as a table."""
+    return self.openFromDialog(type="spreadsheet")
 
 
 @QMainWidget._keymap.bind("Ctrl+S")

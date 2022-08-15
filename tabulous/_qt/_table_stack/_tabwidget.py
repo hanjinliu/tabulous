@@ -90,11 +90,6 @@ class QTabbedTableStack(QtW.QTabWidget):
         """Add empty widget to stack."""
         assert self.count() == 0
         startup = QStartupWidget()
-        startup._open_file_btn.clicked.connect(lambda: self.parent().openFromDialog())
-        startup._open_new_btn.clicked.connect(lambda: self.parent().newSpreadSheet())
-        startup._path_list.pathClicked.connect(
-            lambda path: self.parent()._table_viewer.open(path)
-        )
         self.addTab(startup, "")
         self.tabBar().hide()
         return
