@@ -45,7 +45,7 @@ def _(self: QBaseTable):
     qtable = self._qtable_view
     last_selection = selection[-1]
 
-    nr = qtable.model().rowCount()
+    nr = self.dataShape()[0]
     sl_row, sl_col = last_selection
     if self._qtable_view._last_shift_on is None:
         sl_row = slice(sl_row.start, nr)
@@ -85,7 +85,7 @@ def _(self: QBaseTable):
     qtable = self._qtable_view
     last_selection = selection[-1]
 
-    nc = qtable.model().columnCount()
+    nc = self.dataShape()[1]
     sl_row, sl_col = last_selection
     if self._qtable_view._last_shift_on is None:
         sl_col = slice(sl_col.start, nc)
