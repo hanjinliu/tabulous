@@ -55,6 +55,47 @@ def test_activated_callback():
     keymap.press_key("Ctrl+C")
     mock.assert_called_once()
 
+def test_activate_modifier_only():
+    keymap = QtKeyMap()
+    mock1 = MagicMock()
+    mock2 = MagicMock()
+
+    keymap.bind(["Alt"], mock1)
+    keymap.bind(["Alt", "A"], mock2)
+
+    keymap.press_key("Alt")
+    mock1.assert_called_once()
+    mock1.reset_mock()
+
+    keymap.press_key("A")
+    mock2.assert_called_once()
+
+    keymap.press_key("Alt")
+    mock1.assert_called_once()
+    mock1.reset_mock()
+
+    keymap.press_key("Alt")
+    mock1.assert_not_called()
+
+    keymap.press_key("Alt")
+    mock1.assert_called_once()
+
+# def test_combo_with_conflicted_modifier():
+#     """In Qt, Alt is activated before Alt+A is activated."""
+
+#     keymap = QtKeyMap()
+#     mock1 = MagicMock()
+#     mock2 = MagicMock()
+
+#     keymap.bind(["Alt"], mock1)
+#     keymap.bind(["Alt", "A"], mock2)
+
+#     keymap.press_key("Alt")
+#     mock1.assert_called_once()
+
+#     keymap.press_key("Alt+A")
+#     mock2.assert_called_once()
+
 def test_deactivated_callback():
     keymap = QtKeyMap()
     mock = MagicMock()

@@ -83,7 +83,6 @@ def _(self: _QtMainWidgetBase):
     return self._toolbar.save_table()
 
 
-@QMainWidget._keymap.bind("Alt")
 @QMainWindow._keymap.bind("Alt")
 def _(self: _QtMainWidgetBase):
     """Move focus to toolbar."""

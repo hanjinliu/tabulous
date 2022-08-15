@@ -264,7 +264,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     ):
         self._keymap: dict[QtKeys, QtKeyMap | Callable] = {}
         self._current_map: QtKeyMap | None = None
-        self._last_pressed: QtKeys | None = None
+        self._current_combo: list[QtKeys] = []
         self._activated_callback = activated or _DUMMY_CALLBACK
         self._deactivated_callback = deactivated or _DUMMY_CALLBACK
         self._instances: dict[int, QtKeyMap] = {}
@@ -276,6 +276,16 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         if self._current_map is None:
             return self
         return self._current_map
+
+    @property
+    def previous_map(self) -> Self | None:
+        """Return the parent of the current active keymap object."""
+        if len(self._current_combo) == 0:
+            return None
+        current = self
+        for k in self._current_combo[:-1]:
+            current = current._keymap[k]
+        return current
 
     @property
     def activated_callback(self) -> BoundCallback | None:
@@ -294,7 +304,9 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     @property
     def last_pressed(self) -> QtKeys | None:
         """The last pressed key."""
-        return self._last_pressed
+        if self._current_combo:
+            return self._current_combo[-1]
+        return None
 
     def __get__(self, obj, objtype=None):
         if obj is None:
@@ -512,7 +524,6 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             return out
 
     def _press_one_key(self, key: QtKeys) -> bool:
-        self._last_pressed = key
         current = self.current_map
         _is_parametric = False
         try:
@@ -522,9 +533,14 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                 callback = current[key._reduce_key()]
             except KeyError:
                 # Don't lose the combo if only a modifier is pressed
-                if key.key != ExtKey.No:
+                last = self.last_pressed
+                if key.key != ExtKey.No or self.current_map is not self:
                     current.deactivate()
-                    self._current_map = None
+                    self.initialize()
+
+                if last is not None and last.key == ExtKey.No and key.key != ExtKey.No:
+                    return self._press_one_key(key)
+
                 return False
             _is_parametric = True
 
@@ -533,13 +549,18 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             self.activate(key)
         else:
             current.deactivate()
-            self._current_map = None
+            self.initialize()
             if self._obj is not None:
                 callback = callback.__get__(self._obj)
             if _is_parametric:
                 callback(key.key_string())
             else:
                 callback()
+
+        last = self.last_pressed
+        if last is not None and last.key == ExtKey.No and last.modifier == key.modifier:
+            self._current_combo.pop()
+        self._current_combo.append(key)
         return True
 
     def activate(self, key: KeyType) -> None:
@@ -549,7 +570,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         old = self.current_map
         current = self.current_map[QtKeys(key)]
         if not isinstance(current, QtKeyMap):
-            self._current_map = None
+            self.initialize()
             raise KeyError(f"Key {key} is not a child")
         self._current_map = current
         if current._obj is None:
@@ -565,6 +586,11 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             self._deactivated_callback()
         else:
             self._deactivated_callback(self._obj)
+        return None
+
+    def initialize(self):
+        self._current_map = None
+        self._current_combo.clear()
         return None
 
     def to_widget(self):
