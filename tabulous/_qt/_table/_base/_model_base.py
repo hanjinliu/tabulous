@@ -86,7 +86,10 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         if r < self.df.shape[0] and c < self.df.shape[1]:
             val = self.df.iat[r, c]
             dtype = self.df.dtypes.values[c]
-            return f"{val!r} (dtype: {dtype})"
+            if dtype != object:
+                return f"{val!r} (dtype: {dtype})"
+            else:
+                return f"{val!r} (dtype: {dtype}; type: {type(val).__name__})"
         return QtCore.QVariant()
 
     def _data_background_color(self, index: QtCore.QModelIndex):

@@ -283,7 +283,7 @@ class TableViewerBase:
             df_dict: dict[str, pd.DataFrame] = pd.read_excel(path, sheet_name=None)
             for sheet_name, df in df_dict.items():
                 fopen(df, name=sheet_name)
-        elif suf in (".parquet",):
+        elif suf in (".parquet", ".pq"):
             df = pd.read_parquet(path)
             fopen(df)
         else:
