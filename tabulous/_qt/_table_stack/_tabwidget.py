@@ -4,10 +4,10 @@ from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, Signal
 
+from ._start import QStartupWidget
 from ._utils import create_temporal_line_edit
 
 from .._table._base._table_group import QTableGroup
-from ..._utils import load_file_open_path
 
 if TYPE_CHECKING:
     from .._table import QBaseTable
@@ -76,22 +76,37 @@ class QTabbedTableStack(QtW.QTabWidget):
         tb = QtW.QToolButton()
         tb.setText("+")
         tb.setToolTip("New spreadsheet")
+        tb.clicked.connect(lambda: self.parent().newSpreadSheet())
         self.setCornerWidget(tb)
         self.addEmptyWidget()
+
+    if TYPE_CHECKING:
+        from .._mainwindow._base import _QtMainWidgetBase
+
+        def parent(self) -> _QtMainWidgetBase:
+            ...
 
     def addEmptyWidget(self):
         """Add empty widget to stack."""
         assert self.count() == 0
-        self.addTab(QEmptyWidget(), "")
-        return self.setTabEnabled(0, False)
+        startup = QStartupWidget()
+        startup._open_file_btn.clicked.connect(lambda: self.parent().openFromDialog())
+        startup._open_new_btn.clicked.connect(lambda: self.parent().newSpreadSheet())
+        startup._path_list.pathClicked.connect(
+            lambda path: self.parent()._table_viewer.open(path)
+        )
+        self.addTab(startup, "")
+        self.tabBar().hide()
+        return
 
     def isEmpty(self) -> bool:
-        return self.count() == 1 and isinstance(self.widget(0), QEmptyWidget)
+        return self.count() == 1 and isinstance(self.widget(0), QStartupWidget)
 
     def addTable(self, table: QBaseTable, name: str = "None"):
         """Add `table` to stack as name `name`."""
         if self.isEmpty():
             self.removeTab(0)
+            self.tabBar().show()
         self.addTab(table, name)
         table._qtable_view.resizedSignal.connect(self.resizedSignal.emit)
         return None
@@ -122,7 +137,7 @@ class QTabbedTableStack(QtW.QTabWidget):
     def tableAtIndex(self, i: int) -> QBaseTable:
         """Get the table at `i`."""
         wdt = self.widget(i)
-        if isinstance(wdt, QEmptyWidget):
+        if isinstance(wdt, QStartupWidget):
             return None
         if isinstance(wdt, QTableGroup):
             wdt = cast(QTableGroup, wdt)
@@ -467,67 +482,4 @@ class QTabContextMenu(QtW.QMenu):
         for k, action in self._actions.items():
             if k == name:
                 return action
-        return None
-
-
-class QEmptyWidget(QtW.QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        _layout = QtW.QGridLayout()
-        self.setLayout(_layout)
-        self._open_file_btn = QClickableLabel("Open Files\n(Ctrl+O)")
-        self._open_new_btn = QClickableLabel("New Spreasheet\n(Ctrl+N)")
-        self._path_list = QPathList()
-        _layout.addWidget(self._open_file_btn, 0, 0)
-        _layout.addWidget(self._open_new_btn, 0, 1)
-        _layout.addWidget(self._path_list, 1, 0, 1, 2)
-        self.setMinimumSize(0, 0)
-        return None
-
-    def widget(self, i):
-        return self
-
-    def sizeHint(self) -> QtCore.QSize:
-        return QtCore.QSize(0, 0)
-
-
-class QClickableLabel(QtW.QLabel):
-    clicked = Signal()
-
-    def __init__(self, text: str, parent=None):
-        super().__init__(text, parent)
-        self.setFont(QtGui.QFont("Arial", 8))
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        return None
-
-    def mousePressEvent(self, ev: QtGui.QMouseEvent) -> None:
-        self.clicked.emit()
-        return super().mousePressEvent(ev)
-
-    def enterEvent(self, a0: QtCore.QEvent) -> None:
-        font = QtGui.QFont("Arial", 10)
-        font.setBold(True)
-        self.setFont(font)
-        return super().enterEvent(a0)
-
-    def leaveEvent(self, a0: QtCore.QEvent) -> None:
-        font = QtGui.QFont("Arial", 8)
-        font.setBold(False)
-        self.setFont(font)
-        return super().leaveEvent(a0)
-
-
-class QPathList(QtW.QGroupBox):
-    pathClicked = Signal(str)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setTitle("Recent")
-        self._layout = QtW.QVBoxLayout()
-        self.setLayout(self._layout)
-        paths = load_file_open_path()
-        for path in paths:
-            btn = QClickableLabel(path)
-            btn.clicked.connect(lambda path=path: self.pathClicked.emit(path))
-            self._layout.addWidget(btn)
         return None

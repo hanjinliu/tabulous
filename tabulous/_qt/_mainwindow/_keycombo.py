@@ -69,6 +69,13 @@ def _(self: _QtMainWidgetBase):
     return self.setCellFocus()
 
 
+@QMainWindow._keymap.bind("Ctrl+Shift+N")
+def _(self: _QtMainWidgetBase):
+    """New window"""
+    viewer = self._table_viewer.__class__()
+    return viewer._qwidget.activateWindow()
+
+
 @QMainWidget._keymap.bind("Ctrl+O")
 @QMainWindow._keymap.bind("Ctrl+O")
 def _(self: _QtMainWidgetBase):

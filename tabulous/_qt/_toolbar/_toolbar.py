@@ -8,7 +8,6 @@ from qtpy.QtWidgets import QAction
 
 from .._svg import QColoredSVGIcon
 from .._multitips import QHasToolTip
-from .._history import QtFileHistoryManager
 from . import _dialogs as _dlg
 
 
@@ -61,8 +60,6 @@ class _QToolBar(QtW.QToolBar, QHasToolTip):
 
 
 class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
-    _hist_mgr = QtFileHistoryManager()
-
     def __init__(self, parent: "_QtMainWidgetBase"):
         super().__init__(parent)
 
@@ -139,24 +136,15 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
     def open_table(self):
         """Open a file as a table."""
-        return self._open(type="table")
+        return self.viewer._qwidget.openFromDialog(type="table")
 
     def open_spreadsheet(self):
         """Open a file as a spreadsheet."""
-        return self._open(type="spreadsheet")
-
-    def _open(self, type):
-        paths = self._hist_mgr.openFileDialog(mode="rm", caption="Open file(s)")
-        for path in paths:
-            self.viewer.open(path, type=type)
-        return None
+        return self.viewer._qwidget.openFromDialog(type="spreadsheet")
 
     def save_table(self):
         """Save current table."""
-        path = self._hist_mgr.openFileDialog(mode="w", caption="Save table")
-        if path:
-            self.viewer.save(path)
-        return None
+        return self.viewer._qwidget.saveFromDialog()
 
     def copy_as_table(self):
         """Make a copy of the current table."""

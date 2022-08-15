@@ -6,6 +6,7 @@ from qtpy.QtCore import QEvent, Signal
 
 from .._table_stack import QTabbedTableStack
 from .._keymap import QtKeyMap
+from .._history import QtFileHistoryManager
 from ...types import TabPosition
 
 if TYPE_CHECKING:
@@ -29,6 +30,8 @@ class _QtMainWidgetBase(QtW.QWidget):
     _tablestack: QTabbedTableStack
     _toolbar: QTableStackToolBar
     _keymap: QtKeyMap
+
+    _hist_mgr = QtFileHistoryManager()
 
     def __init__(
         self,
@@ -132,3 +135,19 @@ class _QtMainWidgetBase(QtW.QWidget):
     def toggleConsoleVisibility(self) -> None:
         """Toggle visibility of embeded console widget."""
         return self.setConsoleVisible(not self.consoleVisible())
+
+    def openFromDialog(self, type="table") -> None:
+        paths = self._hist_mgr.openFileDialog(mode="rm", caption="Open file(s)")
+        for path in paths:
+            self._table_viewer.open(path, type=type)
+        return None
+
+    def saveFromDialog(self) -> None:
+        path = self._hist_mgr.openFileDialog(mode="w", caption="Save table")
+        if path:
+            self._table_viewer.save(path)
+        return None
+
+    def newSpreadSheet(self) -> None:
+        self._table_viewer.add_spreadsheet()
+        return None

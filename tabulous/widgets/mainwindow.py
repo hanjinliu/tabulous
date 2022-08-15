@@ -287,7 +287,7 @@ class TableViewerBase:
             df = pd.read_parquet(path)
             fopen(df)
         else:
-            raise ValueError(f"Extension {suf} not supported.")
+            raise ValueError(f"Extension {suf!r} not supported.")
         _utils.dump_file_open_path(path)
         return None
 
@@ -388,8 +388,6 @@ class TableViewerBase:
         _tablist.events.moved.connect(self.reset_choices)
         _tablist.events.changed.connect(self.reset_choices)
         _tablist.events.renamed.connect(self.reset_choices)
-
-        _qtablist.cornerWidget().clicked.connect(lambda: self.add_spreadsheet())
 
 
 class TableViewerWidget(TableViewerBase):

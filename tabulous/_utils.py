@@ -5,17 +5,25 @@ TXT_PATH = Path(__file__).parent / "_tabulous_history.txt"
 
 
 def dump_file_open_path(path: str):
+    path = str(path)
     try:
         if not TXT_PATH.exists():
             TXT_PATH.write_text("")
         with open(TXT_PATH, "r+") as f:
-            lines = f.readlines() + [str(path)]
-            if len(lines) > 16:
-                lines = lines[-16:]
+            lines = [s.strip() for s in f.readlines()]
+            if path in lines:
+                lines.remove(path)
+                lines.append(path)
+            else:
+                lines.append(path)
+                if len(lines) > 16:
+                    lines = lines[-16:]
             f.truncate(0)
+            f.seek(0)
             f.write("\n".join(lines))
+
     except Exception as e:
-        print(e)
+        _warn_exc(e)
     return None
 
 
@@ -24,8 +32,14 @@ def load_file_open_path() -> list[str]:
         return []
     try:
         with open(TXT_PATH) as f:
-            lines = f.readlines()
+            lines = [s.strip() for s in f.readlines()]
     except Exception as e:
-        print(e)
+        _warn_exc(e)
         lines = []
     return lines
+
+
+def _warn_exc(e: Exception) -> None:
+    import warnings
+
+    return warnings.warn(f"{type(e).__name__}: {e}", UserWarning)

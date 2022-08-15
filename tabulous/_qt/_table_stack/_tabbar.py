@@ -12,9 +12,6 @@ class QTabulousTabBar(QtW.QTabBar):
         self.setStyleSheet("QTabWidget::pane { border: 1px solid #C4C4C3; top: -1px; }")
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.setStyleSheet(
-            "QTabulousTabBar::tab::disabled {width: 0; height: 20; border: none;} "
-        )
 
 
 class _QSideBar(QTabulousTabBar):
