@@ -3,6 +3,7 @@ from pathlib import Path
 from enum import Enum
 from typing import Callable, Literal, overload
 from qtpy import QtWidgets as QtW, QtCore
+from .._utils import load_file_open_path
 
 # Modified from magicgui
 # See https://github.com/napari/magicgui/blob/main/magicgui/backends/_qtpy/widgets.py
@@ -29,7 +30,7 @@ class QtFileHistoryManager(QtCore.QObject):
         default_path: Path | str | bytes | None = None,
     ):
         super().__init__()
-        self._hist: list[Path] = []
+        self._hist: list[Path] = [Path(path.strip()) for path in load_file_open_path()]
         self.default_path = default_path or Path.cwd()
         self._instances: dict[int, QtFileHistoryManager] = {}
         self._parent_class = None

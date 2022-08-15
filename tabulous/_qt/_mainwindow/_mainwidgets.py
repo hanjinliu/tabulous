@@ -9,6 +9,7 @@ from ...types import TabPosition
 
 if TYPE_CHECKING:
     from ...widgets import TableViewer
+    from .._table_stack import QTabbedTableStack
 
 
 class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
@@ -20,9 +21,12 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
         self.setOrientation(Qt.Orientation.Vertical)
         self._toolbar = None
 
-    def setCentralWidget(self, wdt: QtW.QWidget):
+    def setCentralWidget(self, wdt: QTabbedTableStack):
         """Mimicking QMainWindow's method by adding a widget to the layout."""
         self.addWidget(wdt)
+        wdt.setMinimumSize(200, 200)
+        self.setMinimumSize(200, 200)
+        return None
 
     def toolBarVisible(self) -> bool:
         """Visibility of toolbar"""

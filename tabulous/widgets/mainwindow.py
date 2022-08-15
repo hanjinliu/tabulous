@@ -11,6 +11,7 @@ from ._sample import open_sample
 from ._component import Component
 
 from ..types import SelectionType, TabPosition, _TableLike, _SingleSelection
+from .. import _utils
 
 if TYPE_CHECKING:
     from .table import TableBase
@@ -287,6 +288,8 @@ class TableViewerBase:
             fopen(df)
         else:
             raise ValueError(f"Extension {suf} not supported.")
+        _utils.dump_file_open_path(path)
+        return None
 
     def save(self, path: PathLike) -> None:
         """Save current table."""

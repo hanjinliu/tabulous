@@ -7,6 +7,7 @@ from qtpy.QtCore import Qt, Signal
 from ._utils import create_temporal_line_edit
 
 from .._table._base._table_group import QTableGroup
+from ..._utils import load_file_open_path
 
 if TYPE_CHECKING:
     from .._table import QBaseTable
@@ -29,29 +30,26 @@ class QTabbedTableStack(QtW.QTabWidget):
         tab_position: str = "top",
     ):
         super().__init__(parent)
-        if tab_position == "top":
-            pass
-        elif tab_position == "left":
-            from ._sidebar import QLeftSideBar
+        from . import _tabbar
 
-            self.setTabBar(QLeftSideBar(self))
+        if tab_position == "top":
+            self.setTabBar(_tabbar.QTabulousTabBar(self))
+        elif tab_position == "left":
+            self.setTabBar(_tabbar.QLeftSideBar(self))
             self.setTabPosition(QtW.QTabWidget.TabPosition.West)
         elif tab_position == "bottom":
+            self.setTabBar(_tabbar.QTabulousTabBar(self))
             self.setTabPosition(QtW.QTabWidget.TabPosition.South)
         elif tab_position == "right":
-            from ._sidebar import QRightSideBar
-
-            self.setTabBar(QRightSideBar(self))
+            self.setTabBar(_tabbar.QRightSideBar(self))
             self.setTabPosition(QtW.QTabWidget.TabPosition.East)
         else:
             raise ValueError(f"Unknown position {tab_position!r}.")
 
         self.setAcceptDrops(True)
         self.setMovable(True)
-        self.tabBar().setMouseTracking(True)
         self.setStyleSheet("QTabWidget::pane { border: 1px solid #C4C4C3; top: -1px; }")
 
-        self.tabBar().setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tabBar().customContextMenuRequested.connect(self.showContextMenu)
         self.currentChanged.connect(self.currentTableChanged.emit)
         self.tabCloseRequested.connect(self.takeTable)
@@ -80,9 +78,6 @@ class QTabbedTableStack(QtW.QTabWidget):
         tb.setToolTip("New spreadsheet")
         self.setCornerWidget(tb)
         self.addEmptyWidget()
-        self.setStyleSheet(
-            "QTabBar::tab::disabled {width: 0; height: 20; border: none;} "
-        )
 
     def addEmptyWidget(self):
         """Add empty widget to stack."""
@@ -157,11 +152,13 @@ class QTabbedTableStack(QtW.QTabWidget):
             return
 
         self._entering_tab_index = self.indexOf(self.widget(self._moving_tab_index))
+        return None
 
     def dropEvent(self, e: QtGui.QDropEvent) -> None:
         mime = e.mimeData()
         text = mime.text()
         if text:
+            # File is dropped.
             self.itemDropped.emit(text)
 
         source = e.source()
@@ -172,6 +169,7 @@ class QTabbedTableStack(QtW.QTabWidget):
         if source_widget is self:
             return super().dropEvent(e)
 
+        # Tab from other stack is dropped.
         e.setDropAction(Qt.DropAction.MoveAction)
         e.accept()
 
@@ -472,17 +470,64 @@ class QTabContextMenu(QtW.QMenu):
         return None
 
 
-class QEmptyWidget(QtW.QLabel):
+class QEmptyWidget(QtW.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setText(
-            "Push 'Ctrl + N' or click '+' to add a spreadsheet.\n"
-            "Push 'Ctrl + O' or drag-and-drop to open a table data."
-        )
-        font = QtGui.QFont("Arial", 16)
-        self.setFont(font)
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        _layout = QtW.QGridLayout()
+        self.setLayout(_layout)
+        self._open_file_btn = QClickableLabel("Open Files\n(Ctrl+O)")
+        self._open_new_btn = QClickableLabel("New Spreasheet\n(Ctrl+N)")
+        self._path_list = QPathList()
+        _layout.addWidget(self._open_file_btn, 0, 0)
+        _layout.addWidget(self._open_new_btn, 0, 1)
+        _layout.addWidget(self._path_list, 1, 0, 1, 2)
+        self.setMinimumSize(0, 0)
         return None
 
     def widget(self, i):
         return self
+
+    def sizeHint(self) -> QtCore.QSize:
+        return QtCore.QSize(0, 0)
+
+
+class QClickableLabel(QtW.QLabel):
+    clicked = Signal()
+
+    def __init__(self, text: str, parent=None):
+        super().__init__(text, parent)
+        self.setFont(QtGui.QFont("Arial", 8))
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        return None
+
+    def mousePressEvent(self, ev: QtGui.QMouseEvent) -> None:
+        self.clicked.emit()
+        return super().mousePressEvent(ev)
+
+    def enterEvent(self, a0: QtCore.QEvent) -> None:
+        font = QtGui.QFont("Arial", 10)
+        font.setBold(True)
+        self.setFont(font)
+        return super().enterEvent(a0)
+
+    def leaveEvent(self, a0: QtCore.QEvent) -> None:
+        font = QtGui.QFont("Arial", 8)
+        font.setBold(False)
+        self.setFont(font)
+        return super().leaveEvent(a0)
+
+
+class QPathList(QtW.QGroupBox):
+    pathClicked = Signal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setTitle("Recent")
+        self._layout = QtW.QVBoxLayout()
+        self.setLayout(self._layout)
+        paths = load_file_open_path()
+        for path in paths:
+            btn = QClickableLabel(path)
+            btn.clicked.connect(lambda path=path: self.pathClicked.emit(path))
+            self._layout.addWidget(btn)
+        return None

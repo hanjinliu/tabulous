@@ -17,21 +17,14 @@ class Anchor(Enum):
     bottom_right = "bottom_right"
 
 
-_STYLE = """
-QOverlayWidget {
-    background-color: white;
-    border: 1px solid gray;
-    border-radius: 3px;
-}
-"""
-
-
 class QOverlayWidget(QtW.QDialog):
     def __init__(self, parent: QTabbedTableStack):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.SubWindow)
         self._widget = None
-        self.setStyleSheet(_STYLE)
+        self.setStyleSheet(
+            "QOverlayWidget {" "    border: 1px solid gray;" "    border-radius: 3px;}"
+        )
 
         _layout = QtW.QVBoxLayout()
         _layout.setContentsMargins(2, 2, 2, 2)
@@ -47,6 +40,7 @@ class QOverlayWidget(QtW.QDialog):
         self._effect = effect
 
     def addWidget(self, widget: QtW.QWidget):
+        """Set the central widget."""
         if self.layout().count() > 0:
             self.removeWidget()
         self.layout().addWidget(widget)
@@ -60,12 +54,15 @@ class QOverlayWidget(QtW.QDialog):
         self.resize(QtCore.QSize(0, 0))
 
     def widget(self) -> QtW.QWidget:
+        """The central widget."""
         return self._widget
 
     def anchor(self) -> Anchor:
+        """Anchor position."""
         return self._anchor
 
     def setAnchor(self, anc: Anchor | str) -> None:
+        """Set anchor position of the overlay widget."""
         self._anchor = Anchor(anc)
         return self.alignToParent()
 

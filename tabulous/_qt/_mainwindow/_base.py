@@ -101,7 +101,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         table.selections = [sels[0]]
         return None
 
-    def setCentralWidget(self, wdt: QtW.QWidget):
+    def setCentralWidget(self, wdt: QTabbedTableStack):
         """Set the splitter widget."""
         raise NotImplementedError()
 
