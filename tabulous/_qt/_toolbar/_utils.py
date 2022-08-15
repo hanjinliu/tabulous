@@ -86,21 +86,29 @@ class QCompletableLineEdit(QtW.QLineEdit):
         elif self.cursorPosition() < len(self.text()):
             return
 
-        last_word = _OPERATORS.split(text)[-1].strip()
-        if not last_word.isidentifier():
-            return
-        matched: list[str] = []
-        for name in self.currentPyTable().data.columns:
-            name = str(name)
-            if name.startswith(last_word):
-                matched.append(name)
+        new_text = _complete(text, self.currentPyTable().data.columns)
+        if new_text is not None:
+            self.blockSignals(True)
+            self.setText(new_text)
+            self.blockSignals(False)
+            self.setCursorPosition(len(text))
+            self.setSelection(len(text), len(new_text))
 
-        if not matched:
-            return
 
-        matched.sort()
-        _to_complete = matched[0].lstrip(last_word)
-        new_text = text + _to_complete
-        self.setText(new_text)
-        self.setCursorPosition(len(text))
-        self.setSelection(len(text), len(new_text))
+def _complete(text: str, words: list) -> str | None:
+    last_word = _OPERATORS.split(text)[-1].strip()
+    if not last_word.isidentifier():
+        return
+    matched: list[str] = []
+    for name in words:
+        name = str(name)
+        if name.startswith(last_word):
+            matched.append(name)
+
+    if not matched:
+        return None
+
+    matched.sort()
+    _to_complete = matched[0][len(last_word) :]
+    print(f"{text=}, {_to_complete=}, {last_word=}")
+    return text + _to_complete
