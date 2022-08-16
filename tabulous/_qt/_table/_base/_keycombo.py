@@ -119,6 +119,24 @@ def _(self: QBaseTable):
     self.moveToItem(r0, nc - 1)
 
 
+@QBaseTable._keymap.bind("Ctrl+Alt+Up", dr=-1, dc=0)
+@QBaseTable._keymap.bind("Ctrl+Alt+Down", dr=1, dc=0)
+@QBaseTable._keymap.bind("Ctrl+Alt+Left", dr=0, dc=-1)
+@QBaseTable._keymap.bind("Ctrl+Alt+Right", dr=0, dc=1)
+@QBaseTable._keymap.bind("Ctrl+Alt+PageUp", dr=-5, dc=0)
+@QBaseTable._keymap.bind("Ctrl+Alt+PageDown", dr=5, dc=0)
+@QBaseTable._keymap.bind("Ctrl+Alt+Home", dr=0, dc=-5)
+@QBaseTable._keymap.bind("Ctrl+Alt+End", dr=0, dc=5)
+def _(self: QBaseTable, dr, dc):
+    """Scroll without moving the selection."""
+    vbar = self._qtable_view.verticalScrollBar()
+    hbar = self._qtable_view.horizontalScrollBar()
+    dv = dr * 75 * self._qtable_view._zoom
+    dh = dc * 75 * self._qtable_view._zoom
+    vbar.setValue(max(vbar.minimum(), min(vbar.maximum(), vbar.value() + dv)))
+    hbar.setValue(max(hbar.minimum(), min(hbar.maximum(), hbar.value() + dh)))
+
+
 @QMutableTable._keymap.bind("Ctrl+X")
 def _(self: QMutableTable):
     self.copyToClipboard(headers=False)
