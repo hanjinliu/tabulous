@@ -62,11 +62,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._was_right_dragging: bool = False
         self._last_shift_on: tuple[int, int] = None
         vheader, hheader = self.verticalHeader(), self.horizontalHeader()
-        self.setFrameStyle(QtW.QFrame.Shape.Box)
-        vheader.setFrameStyle(QtW.QFrame.Shape.Box)
-        hheader.setFrameStyle(QtW.QFrame.Shape.Box)
+
         vheader.resize(36, vheader.height())
-        self.setStyleSheet("QHeaderView::section { border: 1px solid black}")
         vheader.setMinimumSectionSize(0)
         hheader.setMinimumSectionSize(0)
 
@@ -108,6 +105,7 @@ class _QTableViewEnhanced(QtW.QTableView):
     ) -> None:
         """Evoked when table selection range is changed."""
         self.selectionChangedSignal.emit()
+        self.update()  # this is needed to update the selection rectangle
         return super().selectionChanged(selected, deselected)
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
@@ -228,6 +226,22 @@ class _QTableViewEnhanced(QtW.QTableView):
     def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
         self.resizedSignal.emit()
         return super().resizeEvent(e)
+
+    def paintEvent(self, event: QtGui.QPaintEvent):
+        super().paintEvent(event)
+        if not self.hasFocus():
+            return
+        sels = self.selectionModel().selection()
+        if len(sels) == 0:
+            return
+        sel = sels[len(sels) - 1]
+        indexes = sel.indexes()
+        ninds = len(indexes)
+        rect = self.visualRect(indexes[0]) | self.visualRect(indexes[ninds - 1])
+        pen = QtGui.QPen(Qt.GlobalColor.darkBlue, 3)
+        painter = QtGui.QPainter(self.viewport())
+        painter.setPen(pen)
+        painter.drawRect(rect)
 
     def parentTable(self) -> QBaseTable | None:
         parent = self._parent_table

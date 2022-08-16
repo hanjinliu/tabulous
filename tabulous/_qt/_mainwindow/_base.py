@@ -41,6 +41,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         self.setObjectName(f"tabulous.{type(self).__name__}")
         tab_position = TabPosition(tab_position)
         self._tablestack = QTabbedTableStack(tab_position=tab_position.name)
+        self._toolbar = None
         self.setCentralWidget(self._tablestack)
 
         # NOTE: Event filter must be stored as an attribute, otherwise it will be

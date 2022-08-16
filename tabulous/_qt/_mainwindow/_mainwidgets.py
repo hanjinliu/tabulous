@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .._table_stack import QTabbedTableStack
 
 ICON_DIR = Path(__file__).parent.parent / "_icons"
+STYLE_DIR = Path(__file__).parent.parent
 
 
 class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
@@ -103,6 +104,9 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         _QtMainWidgetBase.__init__(self, tab_position=tab_position)
         self.setWindowTitle("tabulous")
         self.setWindowIcon(QtGui.QIcon(str(ICON_DIR / "window_icon.png")))
+        with open(STYLE_DIR / "_style.qss") as f:
+            style = f.read()
+        self.setStyleSheet(style)
 
         from .._toolbar import QTableStackToolBar
 

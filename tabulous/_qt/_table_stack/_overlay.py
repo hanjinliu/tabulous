@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from enum import Enum
-from qtpy import QtWidgets as QtW, QtCore, QtGui
+from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtCore import Qt
 
 if TYPE_CHECKING:
@@ -23,7 +23,7 @@ class QOverlayWidget(QtW.QDialog):
         self.setWindowFlags(Qt.WindowType.SubWindow)
         self._widget = None
         self.setStyleSheet(
-            "QOverlayWidget {" "    border: 1px solid gray;" "    border-radius: 3px;}"
+            "QOverlayWidget {border: 1px solid gray; border-radius: 3px;}"
         )
 
         _layout = QtW.QVBoxLayout()
@@ -77,6 +77,8 @@ class QOverlayWidget(QtW.QDialog):
 
     def alignToParent(self):
         """Position widget at the bottom right edge of the parent."""
+        if not self.isVisible():
+            return
         qtable = self.parentWidget()
         if not qtable or qtable.isEmpty():
             return
@@ -95,7 +97,11 @@ class QOverlayWidget(QtW.QDialog):
         """Return the parent table rect."""
         parent = self.parentWidget()
         qtable = parent.tableAtIndex(parent.currentIndex())
-        rect = qtable.widget(0).rect()
+        wdt = qtable.widget(0)
+        if wdt is None:
+            rect = qtable.rect()
+        else:
+            rect = qtable.widget(0).rect()
         return rect
 
     def alignTopLeft(self, offset=(8, 8)):

@@ -4,6 +4,7 @@ from typing import Callable, List, TYPE_CHECKING, Union
 from functools import partial
 import weakref
 from qtpy import QtWidgets as QtW, QtCore
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QAction
 
 from .._svg import QColoredSVGIcon
@@ -20,7 +21,7 @@ SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 ICON_DIR = Path(__file__).parent.parent / "_icons"
 
 
-class _QToolBar(QtW.QToolBar, QHasToolTip):
+class QSubToolBar(QtW.QToolBar, QHasToolTip):
     """The child toolbar widget."""
 
     def __init__(self, parent=None):
@@ -66,10 +67,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self._tab = QtW.QTabWidget(self)
         self._tab.setContentsMargins(0, 0, 0, 0)
         self._tab.setStyleSheet(
-            r"QTabWidget {margin: 0px, 0px, 0px, 0px; padding: 0px;}"
+            "QTabWidget {margin: 0px, 0px, 0px, 0px; padding: 0px;}"
+        )
+        self.setSizePolicy(
+            QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Minimum
         )
         self._child_widgets: weakref.WeakValueDictionary[
-            str, _QToolBar
+            str, QSubToolBar
         ] = weakref.WeakValueDictionary()
 
         self.addWidget(self._tab)
@@ -89,7 +93,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         """Set current tab index."""
         return self._tab.setCurrentIndex(index)
 
-    def currentToolBar(self) -> _QToolBar:
+    def currentToolBar(self) -> QSubToolBar:
         """Current toolbar."""
         return self._child_widgets[self._tab.tabText(self._tab.currentIndex())]
 
@@ -111,7 +115,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         """Add a tab of toolbar of name ``name``."""
         if name in self._child_widgets.keys():
             raise ValueError(f"Tab with name {name!r} already exists.")
-        toolbar = _QToolBar(self)
+        toolbar = QSubToolBar(self)
         toolbar.setContentsMargins(0, 0, 0, 0)
         self._tab.addTab(toolbar, name)
         self._child_widgets[name] = toolbar
