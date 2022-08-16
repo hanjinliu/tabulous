@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from qtpy import QtWidgets as QtW
+from pathlib import Path
+from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, QEvent, QTimer
 
 from ._base import _QtMainWidgetBase
@@ -10,6 +11,8 @@ from ...types import TabPosition
 if TYPE_CHECKING:
     from ...widgets import TableViewer
     from .._table_stack import QTabbedTableStack
+
+ICON_DIR = Path(__file__).parent.parent / "_icons"
 
 
 class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
@@ -98,11 +101,14 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         super().__init__()
         _QtMainWidgetBase.__init__(self, tab_position=tab_position)
         self.setWindowTitle("tabulous")
+        self.setWindowIcon(QtGui.QIcon(str(ICON_DIR / "window_icon.png")))
+
         from .._toolbar import QTableStackToolBar
 
         self._toolbar = QTableStackToolBar(self)
         self._console_dock_widget = None
         self.addToolBar(self._toolbar)
+        self._toolbar.setMovable(False)  # nested toolbar causes layout problems
         self._tablestack.setMinimumSize(400, 250)
         self.resize(800, 600)
         self.statusBar()

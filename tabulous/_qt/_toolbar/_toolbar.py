@@ -160,10 +160,6 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if table is not None:
             viewer.add_spreadsheet(table.data, name=f"{table.name}-copy")
 
-    def new_spreadsheet(self):
-        """Create a new spreadsheet."""
-        self.viewer.add_spreadsheet(name="New")
-
     def groupby(self):
         """Group table data by its column value."""
         table = self.viewer.current_table
