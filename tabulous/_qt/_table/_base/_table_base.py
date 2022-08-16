@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING, cast
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -27,8 +27,7 @@ _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 # Built-in table view key press events
 _TABLE_VIEW_KEY_SET = set()
 for keys in ["Up", "Down", "Left", "Right", "Home", "End", "PageUp", "PageDown", "F2", "Escape",
-             "Shift+Up", "Shift+Down", "Shift+Left", "Shift+Right", "Shift+Home", "Shift+End",
-             "Shift+PageUp", "Shift+PageDown", "Ctrl+A"]:
+             "Shift+Home", "Shift+End", "Shift+PageUp", "Shift+PageDown", "Ctrl+A"]:
     _TABLE_VIEW_KEY_SET.add(QtKeys(keys))
 _TABLE_VIEW_KEY_SET = frozenset(_TABLE_VIEW_KEY_SET)
 
@@ -161,6 +160,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             self.edit(self.currentIndex())
             focused_widget = QtW.QApplication.focusWidget()
             if isinstance(focused_widget, QtW.QLineEdit):
+                focused_widget = cast(QtW.QLineEdit, focused_widget)
                 focused_widget.setText(text)
                 focused_widget.deselect()
             return

@@ -18,6 +18,28 @@ def _(self: QBaseTable, row, column):
     self.setSelections([(row, column)])
 
 
+@QBaseTable._keymap.bind("Shift+Up", dr=-1, dc=0)
+@QBaseTable._keymap.bind("Shift+Down", dr=1, dc=0)
+@QBaseTable._keymap.bind("Shift+Left", dr=0, dc=-1)
+@QBaseTable._keymap.bind("Shift+Right", dr=0, dc=1)
+def _(self: QBaseTable, dr, dc):
+    index = self._qtable_view.currentIndex()
+    r0, c0 = index.row(), index.column()
+    nr, nc = self.tableShape()
+    r1 = r0 + dr if 0 <= r0 + dr < nr else r0
+    c1 = c0 + dc if 0 <= c0 + dc < nc else c0
+    self.moveToItem(r1, c1)
+
+    if self._qtable_view._last_shift_on is None:
+        sel = (slice(r0, r1 + 1), slice(c0, c1 + 1))
+    else:
+        r, c = self._qtable_view._last_shift_on
+        _r0, _r1 = sorted([r1, r])
+        _c0, _c1 = sorted([c1, c])
+        sel = (slice(_r0, _r1 + 1), slice(_c0, _c1 + 1))
+    self.setSelections([(sel)])
+
+
 @QBaseTable._keymap.bind("Ctrl+Shift+Up")
 def _(self: QBaseTable):
     selection = self.selections()
