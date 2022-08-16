@@ -215,6 +215,10 @@ class QtKeys:
         """True if Alt is pressed."""
         return self.modifier & Qt.KeyboardModifier.AltModifier
 
+    def has_key(self) -> bool:
+        """True if non-modifier key is pressed."""
+        return self.key != ExtKey.No
+
 
 _K = TypeVar("_K", bound=Hashable)
 _V = TypeVar("_V")

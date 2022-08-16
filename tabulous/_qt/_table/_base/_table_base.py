@@ -141,6 +141,14 @@ class _QTableViewEnhanced(QtW.QTableView):
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
         """Evoke parent keyPressEvent."""
         keys = QtKeys(e)
+
+        if keys.has_shift():
+            if self._last_shift_on is None:
+                index = self.currentIndex()
+                self._last_shift_on = index.row(), index.column()
+        elif keys.has_key():
+            self._last_shift_on = None
+
         if keys in _TABLE_VIEW_KEY_SET:
             return super().keyPressEvent(e)
 
@@ -157,17 +165,8 @@ class _QTableViewEnhanced(QtW.QTableView):
                 focused_widget.deselect()
             return
 
-        if keys.has_shift() and self._last_shift_on is None:
-            index = self.currentIndex()
-            self._last_shift_on = index.row(), index.column()
-
         if isinstance(parent, QBaseTable):
             parent.keyPressEvent(e)
-
-    def keyReleaseEvent(self, e: QtGui.QKeyEvent) -> None:
-        if not e.modifiers() & Qt.KeyboardModifier.ShiftModifier:
-            self._last_shift_on = None
-        return super().keyReleaseEvent(e)
 
     def zoom(self) -> float:
         """Get current zoom factor."""

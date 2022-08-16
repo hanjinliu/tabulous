@@ -46,6 +46,14 @@ Cooperate with Other Widgets
    ./main/dock_widget
    ./main/non_mainwindow
 
+API Reference
+-------------
+
+.. toctree::
+   :maxdepth: 1
+
+   ./apidoc/modules
+
 
 Indices and tables
 ==================
