@@ -35,25 +35,47 @@ class QTableSideArea(QtW.QScrollArea):
         widget_inside = QInnerSplitter(self)
         self.setMinimumWidth(180)
         self.setWidget(widget_inside)
+        self._widgets: list[QtW.QWidget] = []
 
+    # fmt: off
     if TYPE_CHECKING:
-
-        def widget(self) -> QInnerSplitter:
-            ...
+        def widget(self) -> QInnerSplitter: ...
+        def parentWidget(self) -> QtW.QSplitter: ...
+    # fmt: on
 
     def addWidget(self, widget: QtW.QWidget, name: str = "") -> None:
+        if widget in self._widgets:
+            return
+
         dock = QSplitterDockWidget(widget, name=name)
         splitter = self.widget()
         splitter.addWidget(dock)
+        self._widgets.append(widget)
         idx = splitter.count() - 1
         splitter.setCollapsible(idx, False)
 
         @dock._title_bar.closeSignal.connect
         def _():
-            self.removeWidget(dock)
+            self.removeWidget(widget)
 
     def removeWidget(self, widget: QtW.QWidget) -> None:
-        widget.setParent(None)
+        """Remove gi-en widget from the side area."""
+        idx = -1
+        for i, wdt in enumerate(self._widgets):
+            if wdt is widget:
+                # NOTE: To avoid the child of the dock widget get deleted,
+                # it must be removed from its parent before the removal of
+                # the dock widget.
+                dock = wdt.parent()
+                wdt.setParent(None)
+                dock.setParent(None)
+                idx = i
+                break
+        else:
+            raise RuntimeError("Widget not found in the list.")
+
+        del self._widgets[idx]
+
         if self.widget().count() == 0:
             self.parentWidget().setSizes([1, 0])
 
