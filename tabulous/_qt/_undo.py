@@ -116,7 +116,11 @@ def _count_data_size(*args, **kwargs) -> float:
 
 def _getsizeof(obj) -> float:
     if isinstance(obj, pd.DataFrame):
-        nbytes = obj.memory_usage(deep=True).sum()
+        if obj.size == 0:
+            # The dtype might be object
+            nbytes = 0
+        else:
+            nbytes = obj.memory_usage(deep=True).sum()
     elif isinstance(obj, pd.Series):
         nbytes = obj.memory_usage(deep=True)
     elif isinstance(obj, np.ndarray):

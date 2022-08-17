@@ -70,7 +70,6 @@ class QClickableLabel(QtW.QLabel):
             QtW.QSizePolicy.Policy.Minimum, QtW.QSizePolicy.Policy.Expanding
         )
         self.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self._pressing = self._dragged = False
         self.setStyleSheet("QClickableLabel { color: #319DFF; }")
         self.setText(text)
         self._tooltip_func = lambda: ""
@@ -83,19 +82,9 @@ class QClickableLabel(QtW.QLabel):
         self.setFixedWidth(width)
         return super().setText(text)
 
-    def mousePressEvent(self, ev: QtGui.QMouseEvent) -> None:
-        self._pressing = True
-        return super().mousePressEvent(ev)
-
-    def mouseMoveEvent(self, ev: QtGui.QMouseEvent) -> None:
-        if self._pressing:
-            self._dragged = True
-        return super().mouseMoveEvent(ev)
-
     def mouseReleaseEvent(self, ev: QtGui.QMouseEvent) -> None:
-        if not self._dragged and ev.button() == Qt.MouseButton.LeftButton:
+        if ev.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit()
-        self._pressing = self._dragged = False
         return super().mouseReleaseEvent(ev)
 
     def enterEvent(self, a0: QtCore.QEvent) -> None:

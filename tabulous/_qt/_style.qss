@@ -40,6 +40,10 @@ QTabWidget {
     background-color: #BADEF4;
 }
 
+QTabWidget::tab-bar {
+    left: 0;
+}
+
 QTabBar::tab {
     border: 1px solid black;
     border-bottom: 0px;

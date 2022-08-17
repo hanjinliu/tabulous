@@ -37,7 +37,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             row = index.row()
             col = index.column()
             font = QtGui.QFont(
-                qtable_view._font, qtable_view._font_size * qtable_view.zoom()
+                qtable_view._font, int(qtable_view._font_size * qtable_view.zoom())
             )
             if row >= df.shape[0] or col >= df.shape[1]:
                 line = QDtypedLineEdit(parent, table, (row, col))
