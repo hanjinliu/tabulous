@@ -79,7 +79,7 @@ class QClickableLabel(QtW.QLabel):
     def setText(self, text: str):
         fm = QtGui.QFontMetrics(self.font())
         width = fm.width(text)
-        self.setFixedWidth(width)
+        self.setFixedWidth(width + 18)
         return super().setText(text)
 
     def mouseReleaseEvent(self, ev: QtGui.QMouseEvent) -> None:
@@ -107,7 +107,8 @@ class QClickableLabel(QtW.QLabel):
         return None
 
     def event(self, event: QtCore.QEvent):
-        if event.type() == QtCore.QEvent.Type.ToolTip:
+        tp = event.type()
+        if tp == QtCore.QEvent.Type.ToolTip:
             tooltip = self._tooltip_func()
             QtW.QToolTip.showText(QtGui.QCursor.pos(), tooltip, self)
             return True
