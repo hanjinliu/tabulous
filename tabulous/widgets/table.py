@@ -328,7 +328,7 @@ class TableBase(ABC):
 
     def refresh(self) -> None:
         """Refresh the table view."""
-        return self._qwidget.refresh()
+        return self._qwidget.refreshTable()
 
     def move_loc(self, row: Hashable, column: Hashable):
         """

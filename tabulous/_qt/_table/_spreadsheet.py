@@ -131,7 +131,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.model().setShape(data.index.size + 10, data.columns.size + 10)
         self._data_cache = None
         self.setFilter(None)
-        self.refresh()
+        self.refreshTable()
         return
 
     def updateValue(self, r, c, val):

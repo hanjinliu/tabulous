@@ -155,4 +155,4 @@ class QTableDisplay(QBaseTable):
             self._qtimer.start()
         else:
             self._qtimer.stop()
-        return super().refresh()
+        return super().refreshTable()

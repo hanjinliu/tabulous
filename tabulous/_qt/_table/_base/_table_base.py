@@ -149,6 +149,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             return super().keyPressEvent(e)
 
         parent = self.parentTable()
+
         if keys.is_typing() and parent.isEditable():
             # Enter editing mode
             text = keys.key_string()
@@ -242,6 +243,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         painter = QtGui.QPainter(self.viewport())
         painter.setPen(pen)
         painter.drawRect(rect)
+        return None
 
     def parentTable(self) -> QBaseTable | None:
         parent = self._parent_table
@@ -520,7 +522,7 @@ class QBaseTable(QtW.QSplitter):
                 self._filter_slice = None
                 raise ValueError("Error in filter. Filter is reset.") from e
 
-        return self.refresh()
+        return self.refreshTable()
 
     @setFilter.server
     def setFilter(self, sl: FilterType):
@@ -534,7 +536,7 @@ class QBaseTable(QtW.QSplitter):
             return f"table.filter{sl._repr[2:]}"
         return f"table.filter = {sl!r}"
 
-    def refresh(self) -> None:
+    def refreshTable(self) -> None:
         """Refresh table view."""
         qtable = self._qtable_view
         qtable.viewport().update()
@@ -776,7 +778,7 @@ class QMutableTable(QBaseTable):
 
         if self._filter_slice is not None:
             self.setFilter(self._filter_slice)
-        self.refresh()
+        self.refreshTable()
 
     def isEditable(self) -> bool:
         """Return the editability of the table."""
@@ -1024,7 +1026,7 @@ class QMutableTable(QBaseTable):
         size_hint = _header.sectionSizeHint(index)
         if _header.sectionSize(index) < size_hint:
             _header.resizeSection(index, size_hint)
-        self.refresh()
+        self.refreshTable()
         return None
 
     @setHorizontalHeaderValue.server
@@ -1047,7 +1049,7 @@ class QMutableTable(QBaseTable):
         self.model().df.rename(index=mapping, inplace=True)
         _width_hint = _header.sizeHint().width()
         _header.resize(QtCore.QSize(_width_hint, _header.height()))
-        self.refresh()
+        self.refreshTable()
         return None
 
     @setVerticalHeaderValue.server
