@@ -2,8 +2,8 @@ from __future__ import annotations
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 import weakref
 from typing import TYPE_CHECKING, cast
-from qtpy.QtCore import Signal, QEvent, Qt
-from qtpy import QtWidgets as QtW, QtCore, QtGui, QT6
+from qtpy.QtCore import Signal, Qt
+from qtpy import QtWidgets as QtW, QtCore, QtGui
 
 if TYPE_CHECKING:
     from ..widgets.mainwindow import TableViewerBase
