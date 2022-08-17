@@ -39,6 +39,10 @@ class QTitleBar(QtW.QWidget):
 
         self.setTitle(title)
 
+    def title(self) -> str:
+        """The title text."""
+        return self._title_label.text()
+
     def setTitle(self, text: str):
         """Set the title text."""
         if text == "":

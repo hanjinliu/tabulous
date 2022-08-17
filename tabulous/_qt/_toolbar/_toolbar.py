@@ -255,6 +255,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             _finder = QFinderWidget(ol)
             _finder.searchBox().escClicked.connect(ol.hide)
             ol.addWidget(_finder)
+            ol.setTitle("Find/Replace")
             _finder.searchBox().setFocus()
 
     def sort_table(self):
@@ -285,6 +286,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             self.parent().setCellFocus()
 
         ol.addWidget(_evaluator)
+        ol.setTitle("Filter")
         _evaluator._line.setFocus()
 
     def eval(self):
@@ -302,6 +304,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             self.parent().setCellFocus()
 
         ol.addWidget(_evaluator)
+        ol.setTitle("Evaluation")
         _evaluator._line.setFocus()
 
     def change_view_mode(self, view_mode: str):

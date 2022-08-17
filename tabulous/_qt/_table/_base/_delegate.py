@@ -165,6 +165,7 @@ class QDtypedLineEdit(QtW.QLineEdit):
                 self._table._qtable_view.setFocus()
                 index = self._table._qtable_view.model().index(r, c - 1)
                 self._table._qtable_view.setCurrentIndex(index)
+                return
             elif (
                 pos == nchar
                 and keys == "Right"
@@ -173,14 +174,17 @@ class QDtypedLineEdit(QtW.QLineEdit):
                 self._table._qtable_view.setFocus()
                 index = self._table._qtable_view.model().index(r, c + 1)
                 self._table._qtable_view.setCurrentIndex(index)
+                return
             elif keys == "Up" and r > 0:
                 self._table._qtable_view.setFocus()
                 index = self._table._qtable_view.model().index(r - 1, c)
                 self._table._qtable_view.setCurrentIndex(index)
+                return
             elif keys == "Down" and r < self._table.model().rowCount() - 1:
                 self._table._qtable_view.setFocus()
                 index = self._table._qtable_view.model().index(r + 1, c)
                 self._table._qtable_view.setCurrentIndex(index)
+                return
 
         return super().keyPressEvent(event)
 

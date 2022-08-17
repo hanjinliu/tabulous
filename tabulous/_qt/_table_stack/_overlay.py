@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from enum import Enum
 from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtCore import Qt
+from .._titlebar import QTitleBar
 
 if TYPE_CHECKING:
     from ._tabwidget import QTabbedTableStack
@@ -18,6 +19,8 @@ class Anchor(Enum):
 
 
 class QOverlayWidget(QtW.QDialog):
+    """The overlay widget appears at the fixed position."""
+
     def __init__(self, parent: QTabbedTableStack):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.SubWindow)
@@ -26,8 +29,12 @@ class QOverlayWidget(QtW.QDialog):
             "QOverlayWidget {border: 1px solid gray; border-radius: 3px;}"
         )
 
+        titlebar = QTitleBar("", self)
+        titlebar.closeSignal.connect(self.hide)
+        self._title_bar = titlebar
         _layout = QtW.QVBoxLayout()
         _layout.setContentsMargins(2, 2, 2, 2)
+        _layout.addWidget(titlebar)
 
         self.setLayout(_layout)
 
@@ -41,16 +48,17 @@ class QOverlayWidget(QtW.QDialog):
 
     def addWidget(self, widget: QtW.QWidget):
         """Set the central widget."""
-        if self.layout().count() > 0:
+        if self._widget is not None:
             self.removeWidget()
         self.layout().addWidget(widget)
-        self.resize(widget.sizeHint())
+        self.resize(widget.sizeHint() + self._title_bar.sizeHint())
         self._widget = widget
         self.alignToParent()
 
     def removeWidget(self):
+        """Remove the central widget."""
+        self._widget.setParent(None)
         self._widget = None
-        self.layout().removeWidget(self.layout().itemAt(0).widget())
         self.resize(QtCore.QSize(0, 0))
 
     def widget(self) -> QtW.QWidget:
@@ -65,6 +73,12 @@ class QOverlayWidget(QtW.QDialog):
         """Set anchor position of the overlay widget."""
         self._anchor = Anchor(anc)
         return self.alignToParent()
+
+    def title(self) -> str:
+        return self._title_bar.title()
+
+    def setTitle(self, title: str) -> None:
+        return self._title_bar.setTitle(title)
 
     if TYPE_CHECKING:
 
