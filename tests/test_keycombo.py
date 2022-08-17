@@ -96,6 +96,20 @@ def test_activate_modifier_only():
 #     keymap.press_key("Alt+A")
 #     mock2.assert_called_once()
 
+def test_combo_with_different_modifiers():
+    keymap = QtKeyMap()
+    mock = MagicMock()
+
+    keymap.bind("Ctrl+K, Shift+A", mock)
+
+    keymap.press_key("Ctrl+K")
+    keymap.press_key("Shift+A")
+    mock.assert_called_once()
+    mock.reset_mock()
+
+    keymap.press_key("Shift+A")
+    mock.assert_not_called()
+
 def test_deactivated_callback():
     keymap = QtKeyMap()
     mock = MagicMock()

@@ -544,7 +544,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             except KeyError:
                 # Don't lose the combo if only a modifier is pressed
                 last = self.last_pressed
-                if key.key != ExtKey.No or self.current_map is not self:
+                if key.key != ExtKey.No:
                     current.deactivate()
                     self.initialize()
 

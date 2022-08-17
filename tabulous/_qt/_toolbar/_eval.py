@@ -4,14 +4,16 @@ import pandas as pd
 from . import _utils
 
 
-class QLiteralEvalWidget(QtW.QWidget):
+class QAbstractEval(QtW.QWidget):
+    _BUTTON_TEXT = ""
+
     def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
         self._label = QtW.QLabel(">>>", self)
         self._line = _utils.QCompletableLineEdit(self)
-        self._btn = QtW.QPushButton("Eval")
-        self._btn.clicked.connect(self.eval)
-        self._line.enterClicked.connect(self.eval)
+        self._btn = QtW.QPushButton(self._BUTTON_TEXT)
+        self._btn.clicked.connect(self.callback)
+        self._line.enterClicked.connect(self.callback)
 
         _layout = QtW.QHBoxLayout()
         _layout.addWidget(self._label)
@@ -19,7 +21,23 @@ class QLiteralEvalWidget(QtW.QWidget):
         _layout.addWidget(self._btn)
         self.setLayout(_layout)
 
-    def eval(self):
+        self.setToolTip(self.__class__.__doc__.replace("\n    ", "\n").strip())
+
+    def callback(self):
+        raise NotImplementedError()
+
+
+class QLiteralEvalWidget(QAbstractEval):
+    """
+    Evaluate literal string.
+
+    >>> result = val * 3  # Update or create "result" column
+    >>> val_norm = val - val.mean()  # Use DataFrame method
+    """
+
+    _BUTTON_TEXT = "Eval"
+
+    def callback(self):
         """Evaluate the current text as a Python expression."""
         text = self._line.text()
         if text == "":
@@ -34,29 +52,30 @@ class QLiteralEvalWidget(QtW.QWidget):
         self._line.toHistory()
 
 
-class QLiteralFilterWidget(QtW.QWidget):
-    def __init__(self, parent: QtW.QWidget | None = None):
-        super().__init__(parent)
-        self._label = QtW.QLabel(">>>", self)
-        self._line = _utils.QCompletableLineEdit(self)
-        self._btn = QtW.QPushButton("Filter")
-        self._btn.clicked.connect(self.filter)
-        self._line.enterClicked.connect(self.filter)
+class QLiteralFilterWidget(QAbstractEval):
+    """
+    Apply filter using literal string.
 
-        _layout = QtW.QHBoxLayout()
-        _layout.addWidget(self._label)
-        _layout.addWidget(self._line)
-        _layout.addWidget(self._btn)
-        self.setLayout(_layout)
+    Examples
+    --------
+    >>> variable < 1.4  # values in "variable" column is < 1.4
+    >>> a < b  # values in "a" column < values in "b" column
+    >>> None  # reset filter
+    """
 
-    def filter(self):
+    _BUTTON_TEXT = "Filter"
+
+    def callback(self):
         """Update the filter of the current table using the expression."""
         text = self._line.text()
         if text == "":
             return
         table = self._line.currentPyTable()
         sl = table.data.eval(text, inplace=False)
-        table.filter = EvalArray(sl, literal=text)
+        if isinstance(sl, pd.Series):
+            table.filter = EvalArray(sl, literal=text)
+        else:
+            table.filter = sl
         self._line.toHistory()
 
 
