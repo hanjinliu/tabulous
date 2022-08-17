@@ -110,5 +110,4 @@ def _complete(text: str, words: list) -> str | None:
 
     matched.sort()
     _to_complete = matched[0][len(last_word) :]
-    print(f"{text=}, {_to_complete=}, {last_word=}")
     return text + _to_complete

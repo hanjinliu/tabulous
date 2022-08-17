@@ -35,7 +35,11 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
     def appendAction(self, f: Callable, qicon: "QColoredSVGIcon"):
         action = self.addAction(qicon, "")
         action.triggered.connect(f)
-        action.setToolTip(f.__doc__)
+        if isinstance(f, partial):
+            doc = f.func.__doc__
+        else:
+            doc = f.__doc__
+        action.setToolTip(doc)
         btn = self.widgetForAction(action)
         self._button_and_icon.append((btn, qicon))
         return None
@@ -276,9 +280,9 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         """Apply filter to the current table."""
         ol = self.parent()._tablestack._overlay
         ol.show()
-        from ._eval import QLiteralEval
+        from ._eval import QLiteralFilterWidget
 
-        _evaluator = QLiteralEval(ol, label="Filter", mode="filter")
+        _evaluator = QLiteralFilterWidget(ol)
 
         @_evaluator._line.escClicked.connect
         def _on_escape():
@@ -294,9 +298,9 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
         ol = self.parent()._tablestack._overlay
         ol.show()
-        from ._eval import QLiteralEval
+        from ._eval import QLiteralEvalWidget
 
-        _evaluator = QLiteralEval(ol, label="Evaluate", mode="eval")
+        _evaluator = QLiteralEvalWidget(ol)
 
         @_evaluator._line.escClicked.connect
         def _on_escape():
