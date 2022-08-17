@@ -46,13 +46,13 @@ QTabBar::tab {
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
     padding: 3px 6px;
-    background-color: #DFDFDF;
     height: 14px;
     margin-top: 4px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FEFEFE, stop:1 #DFDFDF);
 }
 
 QTabBar::tab:selected {
-    background-color: #BADEF4;
     height: 18px;
     margin-top: 0px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #C9D4FF, stop:1 #BADEF4);
 }
