@@ -1,6 +1,9 @@
+from pathlib import Path
 from qtpy.QtWidgets import QApplication
 from qtpy.QtCore import Qt
-from qtpy import PYQT5
+from qtpy import PYQT5, QtGui
+
+ICON_PATH = Path(__file__).parent / "_icons"
 
 APPLICATION = None
 
@@ -38,9 +41,12 @@ def get_app():
     app = QApplication.instance()
     if app is None:
         if PYQT5:
-            QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-            QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+            QApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
+            QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
         app = QApplication([])
+
+    if app.windowIcon().isNull():
+        app.setWindowIcon(QtGui.QIcon(str(ICON_PATH / "window_icon.png")))
     APPLICATION = app
     return app
 

@@ -60,9 +60,9 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
     def setConsoleVisible(self, visible: bool) -> None:
         """Set visibility of embeded console widget."""
         if visible and self._console_widget is None:
-            from .._console import _QtConsole
+            from .._console import QtConsole
 
-            qtconsole = _QtConsole()
+            qtconsole = QtConsole()
             qtconsole.connect_parent(self._table_viewer)
             self.addWidget(qtconsole)
             self._console_widget = qtconsole
@@ -129,9 +129,9 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     def setConsoleVisible(self, visible: bool) -> None:
         """Set visibility of embeded console widget."""
         if visible and self._console_widget is None:
-            from .._console import _QtConsole
+            from .._console import QtConsole
 
-            qtconsole = _QtConsole()
+            qtconsole = QtConsole()
             qtconsole.connect_parent(self._table_viewer)
             dock = self.addDockWidget(qtconsole, name="Console", area="bottom")
             qtconsole.setDockParent(dock)

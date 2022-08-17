@@ -1,7 +1,3 @@
-QWidget {
-    font: 9pt 'Arial';
-}
-
 QHeaderView:section {
     border: 1px solid black;
     background-color: #BADEF4;
