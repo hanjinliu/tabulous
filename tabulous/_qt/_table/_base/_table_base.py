@@ -75,7 +75,6 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         self.setVerticalScrollMode(_SCROLL_PER_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
-        self.setFrameStyle(QtW.QFrame.Shape.NoFrame)
 
         from ._delegate import TableItemDelegate
 
@@ -232,12 +231,13 @@ class _QTableViewEnhanced(QtW.QTableView):
         if not self.hasFocus():
             return
         sels = self.selectionModel().selection()
-        if len(sels) == 0:
+        nsel = len(sels)
+        if nsel == 0:
             return
-        sel = sels[len(sels) - 1]
-        indexes = sel.indexes()
-        ninds = len(indexes)
-        rect = self.visualRect(indexes[0]) | self.visualRect(indexes[ninds - 1])
+        sel = sels[nsel - 1]
+        top_left = self.model().index(sel.top(), sel.left())
+        bottom_right = self.model().index(sel.bottom(), sel.right())
+        rect = self.visualRect(top_left) | self.visualRect(bottom_right)
         pen = QtGui.QPen(Qt.GlobalColor.darkBlue, 3)
         painter = QtGui.QPainter(self.viewport())
         painter.setPen(pen)
@@ -363,7 +363,7 @@ class QBaseTable(QtW.QSplitter):
         return QtW.QTableView.itemDelegate(self._qtable_view)
 
     def model(self) -> AbstractDataFrameModel:
-        return QtW.QTableView.model(self._qtable_view)
+        return self._qtable_view.model()
 
     def setDataFrameValue(self, row: int, col: int, value: Any) -> None:
         raise TableImmutableError("Table is immutable.")
@@ -400,6 +400,7 @@ class QBaseTable(QtW.QSplitter):
         if ndigits <= 0:
             raise ValueError("Cannot set negative precision.")
         self.itemDelegate().ndigits = ndigits
+        return None
 
     def connectSelectionChangedSignal(self, slot):
         self.selectionChangedSignal.connect(slot)
@@ -410,7 +411,6 @@ class QBaseTable(QtW.QSplitter):
         qtable = self._qtable_view
         selections = qtable.selectionModel().selection()
 
-        # selections = self.selectedRanges()
         out: SelectionType = []
         for i in range(len(selections)):
             sel = selections[i]
@@ -425,7 +425,10 @@ class QBaseTable(QtW.QSplitter):
     def setSelections(self, selections: SelectionType):
         """Set list of selections."""
         qtable = self._qtable_view
+        selection_model = qtable.selectionModel()
+        selection_model.blockSignals(True)
         qtable.clearSelection()
+        selection_model.blockSignals(False)
 
         model = self.model()
         nr, nc = self.tableShape()
@@ -448,7 +451,7 @@ class QBaseTable(QtW.QSplitter):
                 selection = QtCore.QItemSelection(
                     model.index(r0, c0), model.index(r1 - 1, c1 - 1)
                 )
-                qtable.selectionModel().select(
+                selection_model.select(
                     selection, QtCore.QItemSelectionModel.SelectionFlag.Select
                 )
 
