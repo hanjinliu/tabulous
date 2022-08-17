@@ -40,7 +40,7 @@ QTabWidget::tab-bar {
     left: 0;
 }
 
-QTabBar::tab {
+QTabBar::tab:top {
     border: 1px solid black;
     border-bottom: 0px;
     border-top-left-radius: 4px;
@@ -51,8 +51,25 @@ QTabBar::tab {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FEFEFE, stop:1 #DFDFDF);
 }
 
-QTabBar::tab:selected {
+QTabBar::tab:top:selected {
     height: 18px;
     margin-top: 0px;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #C9D4FF, stop:1 #BADEF4);
+}
+
+QTabBar::tab:bottom {
+    border: 1px solid black;
+    border-top: 0px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    padding: 3px 6px;
+    height: 14px;
+    margin-bottom: 4px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #DFDFDF, stop:1 #FEFEFE);
+}
+
+QTabBar::tab:bottom:selected {
+    height: 18px;
+    margin-bottom: 0px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #BADEF4, stop:1 #C9D4FF);
 }
