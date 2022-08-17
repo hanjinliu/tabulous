@@ -139,7 +139,7 @@ class QDtypedLineEdit(QtW.QLineEdit):
             return False
         return True
 
-    def onTextChanged(self, text: str):
+    def onTextChanged(self, text: str) -> None:
         """Change text color to red if invalid."""
         palette = QtGui.QPalette()
         table = self._table
@@ -152,6 +152,7 @@ class QDtypedLineEdit(QtW.QLineEdit):
 
         palette.setColor(QtGui.QPalette.ColorRole.Text, col)
         self.setPalette(palette)
+        return None
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         """Handle key press events."""
@@ -159,18 +160,28 @@ class QDtypedLineEdit(QtW.QLineEdit):
         pos = self.cursorPosition()
         nchar = len(self.text())
         r, c = self._pos
-        if pos == 0 and keys == "Left" and c > 0:
-            self._table._qtable_view.setFocus()
-            index = self._table._qtable_view.model().index(r, c - 1)
-            self._table._qtable_view.setCurrentIndex(index)
-        elif (
-            pos == nchar
-            and keys == "Right"
-            and c < self._table.model().columnCount() - 1
-        ):
-            self._table._qtable_view.setFocus()
-            index = self._table._qtable_view.model().index(r, c + 1)
-            self._table._qtable_view.setCurrentIndex(index)
+        if keys.is_moving():
+            if pos == 0 and keys == "Left" and c > 0:
+                self._table._qtable_view.setFocus()
+                index = self._table._qtable_view.model().index(r, c - 1)
+                self._table._qtable_view.setCurrentIndex(index)
+            elif (
+                pos == nchar
+                and keys == "Right"
+                and c < self._table.model().columnCount() - 1
+            ):
+                self._table._qtable_view.setFocus()
+                index = self._table._qtable_view.model().index(r, c + 1)
+                self._table._qtable_view.setCurrentIndex(index)
+            elif keys == "Up" and r > 0:
+                self._table._qtable_view.setFocus()
+                index = self._table._qtable_view.model().index(r - 1, c)
+                self._table._qtable_view.setCurrentIndex(index)
+            elif keys == "Down" and r < self._table.model().rowCount() - 1:
+                self._table._qtable_view.setFocus()
+                index = self._table._qtable_view.model().index(r + 1, c)
+                self._table._qtable_view.setCurrentIndex(index)
+
         return super().keyPressEvent(event)
 
     if TYPE_CHECKING:

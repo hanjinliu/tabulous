@@ -428,7 +428,7 @@ class QBaseTable(QtW.QSplitter):
         qtable.clearSelection()
 
         model = self.model()
-        nr, nc = model.df.shape
+        nr, nc = self.tableShape()
         try:
             for sel in selections:
                 r, c = sel

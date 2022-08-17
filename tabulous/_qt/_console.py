@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 # Modified from napari_console https://github.com/napari/napari-console
-class _QtConsole(RichJupyterWidget):
+class QtConsole(RichJupyterWidget):
     codeExecuted = Signal(str)
 
     def __init__(self, *args, **kwargs):

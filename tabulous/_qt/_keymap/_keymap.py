@@ -132,6 +132,9 @@ KeyType = Union[QtGui.QKeyEvent, "QtKeys", str]
 MODIFIER_KEYS = frozenset(
     {Qt.Key.Key_Shift, Qt.Key.Key_Control, Qt.Key.Key_Meta, Qt.Key.Key_Alt}
 )
+ARROW_KEYS = frozenset(
+    {Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Left, Qt.Key.Key_Right}
+)
 
 
 class QtKeys:
@@ -194,6 +197,9 @@ class QtKeys:
             Qt.KeyboardModifier.NoModifier,
             Qt.KeyboardModifier.ShiftModifier,
         ) and (Qt.Key.Key_Exclam <= self.key <= Qt.Key.Key_ydiaeresis)
+
+    def is_moving(self) -> bool:
+        return self.key in ARROW_KEYS
 
     def key_string(self) -> str:
         """Get clicked key in string form."""

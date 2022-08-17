@@ -11,7 +11,7 @@ from ...types import TabPosition
 
 if TYPE_CHECKING:
     from .._toolbar import QTableStackToolBar
-    from .._console import _QtConsole
+    from .._console import QtConsole
     from ...widgets import TableViewer
 
 
@@ -49,7 +49,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._event_filter = _EventFilter()
         self.installEventFilter(self._event_filter)
         self._event_filter.styleChanged.connect(self.updateToolButtons)
-        self._console_widget: _QtConsole | None = None
+        self._console_widget: QtConsole | None = None
         self._keymap_widget = None
 
     def updateToolButtons(self):
