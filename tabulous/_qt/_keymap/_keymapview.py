@@ -1,7 +1,8 @@
 from __future__ import annotations
 from typing import Sequence, TYPE_CHECKING
 
-from qtpy import QtWidgets as QtW
+from qtpy import QtWidgets as QtW, QtGui
+from qtpy.QtCore import Signal
 
 from ._callback import BoundCallback
 from ._keymap import QtKeys, QtKeyMap
@@ -15,9 +16,10 @@ class QtKeyMapView(QtW.QWidget):
         self.setWindowTitle("Keymaps")
         _layout = QtW.QVBoxLayout(self)
         self._list = QKeyMapList()
-        # self._keyseq_edit = QtW.QKeySequenceEdit()
+        self._keyseq_edit = QKeyComboEdit()
         _layout.addWidget(self._list)
-        # _layout.addWidget(self._keyseq_edit)
+        _layout.addWidget(self._keyseq_edit)
+        self._keyseq_edit.seqChanged.connect(self._on_keyseq_change)
 
         self.setLayout(_layout)
         self._layout = _layout
@@ -37,25 +39,72 @@ class QtKeyMapView(QtW.QWidget):
                     self._list.addKeyMapItem(current_keys, c)
                 self.loadKeyMap(child, current_keys)
             else:
-                self._list.addKeyMapItem(current_keys, child)
+                self._list.addKeyMapItem(list(current_keys), child)
+        return None
+
+    def _on_keyseq_change(self, seq: QtGui.QKeySequence):
+        keys = [QtKeys(s) for s in seq.toString().split(", ") if s]
+        self._list.filter(keys)
+
+
+class QKeySequenceEdit(QtW.QKeySequenceEdit):
+    def timerEvent(self, a0) -> None:
         return None
 
 
+class QKeyComboEdit(QtW.QWidget):
+    seqChanged = Signal(QtGui.QKeySequence)
+
+    def __init__(self, parent: QtW.QWidget | None = None) -> None:
+        super().__init__(parent)
+        _layout = QtW.QHBoxLayout(self)
+        _layout.setContentsMargins(0, 0, 0, 0)
+
+        label = QtW.QLabel("Filter: ")
+        seq = QKeySequenceEdit()
+        apply_btn = QtW.QPushButton("Apply")
+        clear_btn = QtW.QPushButton("Clear")
+
+        _layout.addWidget(label)
+        _layout.addWidget(seq)
+        _layout.addWidget(apply_btn)
+        _layout.addWidget(clear_btn)
+
+        self.setLayout(_layout)
+
+        apply_btn.clicked.connect(self.emitKeySequence)
+        clear_btn.clicked.connect(self.clear)
+
+        self._keyseq_edit = seq
+
+    def emitKeySequence(self):
+        return self.seqChanged.emit(self._keyseq_edit.keySequence())
+
+    def clear(self):
+        self._keyseq_edit.clear()
+        self.emitKeySequence()
+
+
+# ##############################################################################
+#    List widget of all the keycombos
+# ##############################################################################
+
+
 class QKeyMapList(QtW.QListWidget):
-    def addKeyMapItem(self, keys: Sequence[QtKeys], callback: BoundCallback):
+    def addKeyMapItem(self, keys: list[QtKeys], callback: BoundCallback):
         item = QtW.QListWidgetItem()
         self.addItem(item)
         self.setItemWidget(item, QtKeyBindItem(key=keys, desc=callback.desc))
         return None
 
-    # def filter(self, string: str):
-    #     # TODO
-    #     keys = QtKeys(string)
-    #     for i in self.count():
-    #         item = self.item(i)
-    #         widget = self.itemWidget(item)
-    #         widget.key.key | widget.key.modifier
-    #         item.setHidden(False)
+    def filter(self, keys: QtKeys | list[QtKeys]):
+        if isinstance(keys, QtKeys):
+            keys = [keys]
+        for i in range(self.count()):
+            item = self.item(i)
+            widget = self.itemWidget(item)
+            item.setHidden(not widget.startswith(keys))
+        return None
 
     if TYPE_CHECKING:
 
@@ -64,6 +113,8 @@ class QKeyMapList(QtW.QListWidget):
 
 
 class QtKeyBindItem(QtW.QWidget):
+    """Item widget for QKeyMapList."""
+
     def __init__(
         self, parent=None, key: QtKeys | Sequence[QtKeys] | None = None, desc: str = ""
     ):
@@ -90,3 +141,14 @@ class QtKeyBindItem(QtW.QWidget):
 
     def setDescription(self, desc: str) -> None:
         return self._desc.setText(desc)
+
+    def startswith(self, prefix: list[QtKeys]) -> bool:
+        """True if the key sequence starts with the given prefix."""
+        nkey_pref = len(prefix)
+        if nkey_pref == 0:
+            return True
+        elif isinstance(self.key, QtKeys):
+            return nkey_pref == 1 and self.key == prefix[0]
+        else:
+            nkey = len(self.key)
+            return nkey_pref <= nkey and prefix == self.key[:nkey_pref]

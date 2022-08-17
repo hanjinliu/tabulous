@@ -484,6 +484,7 @@ class QBaseTable(QtW.QSplitter):
                 axis = 0
             ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
             ref.to_clipboard(index=headers, header=headers)
+        return None
 
     def pasteFromClipBoard(self):
         raise TableImmutableError("Table is immutable.")
@@ -546,6 +547,7 @@ class QBaseTable(QtW.QSplitter):
         return None
 
     def undoStackView(self, show: bool = True):
+        """Show undo stack viewer."""
         out = self._mgr.widget()
         if show:
             self.addSideWidget(out, name="Undo stack")
@@ -612,6 +614,7 @@ class QBaseTable(QtW.QSplitter):
         return None
 
     def moveToItem(self, row: int | None = None, column: int | None = None):
+        """Move current index."""
         if row is None:
             row = self._qtable_view.currentIndex().row()
         elif row < 0:

@@ -42,6 +42,7 @@ _MODIFIERS = {
 }
 
 _SYMBOLS = {
+    "Esc": "Escape",
     "!": "Exclam",
     '"': "QuoteDbl",
     "#": "NumberSign",
@@ -253,7 +254,7 @@ class RecursiveMapping(MutableMapping[_K, _V]):
 _F = TypeVar("_F", bound=Callable)
 
 
-def _normalize_key_combo(s):
+def _normalize_key_combo(s: list[str] | str) -> list[str] | str:
     if not isinstance(s, str):
         return s
     s = s.replace(" ", "")  # delete space

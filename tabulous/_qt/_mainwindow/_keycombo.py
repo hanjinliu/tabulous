@@ -6,7 +6,7 @@ from ._mainwidgets import QMainWindow, QMainWidget, _QtMainWidgetBase
 @QMainWidget._keymap.bind("Ctrl+K")
 @QMainWindow._keymap.bind("Ctrl+K")
 def _(self: _QtMainWidgetBase):
-    """Toggle toolbar visibility."""
+    """Basic sequence to trigger key combo."""
     return self.setFocus()
 
 
@@ -197,13 +197,13 @@ def _(self: _QtMainWidgetBase):
 @QMainWidget._keymap.bind("Ctrl+F")
 @QMainWindow._keymap.bind("Ctrl+F")
 def _(self: _QtMainWidgetBase):
-    """Tile table."""
+    """Open finder."""
     self._toolbar.find_item()
 
 @QMainWidget._keymap.bind("Ctrl+K, ^")
 @QMainWindow._keymap.bind("Ctrl+K, ^")
 def _(self: _QtMainWidgetBase):
-    """Tile table."""
+    """Tile tables."""
     num = self._tablestack.count()
     if num < 2:
         return None
@@ -217,7 +217,7 @@ def _(self: _QtMainWidgetBase):
 @QMainWidget._keymap.bind("Ctrl+K, \\")
 @QMainWindow._keymap.bind("Ctrl+K, \\")
 def _(self: _QtMainWidgetBase):
-    """Untile table."""
+    """Untile tables."""
     num = self._tablestack.count()
     if num < 2:
         return None
