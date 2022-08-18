@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from collections_undo import fmt
 
-from ._model_base import AbstractDataFrameModel
+from ._item_model import AbstractDataFrameModel
 
 from ..._undo import QtUndoManager, fmt_slice
 from ..._keymap import QtKeys, QtKeyMap
@@ -27,7 +27,8 @@ _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 # Built-in table view key press events
 _TABLE_VIEW_KEY_SET = set()
 for keys in ["Up", "Down", "Left", "Right", "Home", "End", "PageUp", "PageDown", "F2", "Escape",
-             "Shift+Home", "Shift+End", "Shift+PageUp", "Shift+PageDown", "Ctrl+A"]:
+             "Shift+Up", "Shift+Down", "Shift+Left", "Shift+Right",
+             "Shift+Home", "Shift+End", "Shift+PageUp", "Shift+PageDown"]:
     _TABLE_VIEW_KEY_SET.add(QtKeys(keys))
 _TABLE_VIEW_KEY_SET = frozenset(_TABLE_VIEW_KEY_SET)
 
@@ -55,12 +56,16 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._h_default = table.row_size
         self._w_default = table.column_size
         self._font = table.font
-
         self.setFont(QtGui.QFont(self._font, self._font_size))
+
+        # selections
+        self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.SingleSelection)
+        self._selections: list[tuple[slice, slice]] = []
 
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
         self._last_shift_on: tuple[int, int] = None
+        self._shift_is_pressed: bool = False
         vheader, hheader = self.verticalHeader(), self.horizontalHeader()
 
         vheader.resize(36, vheader.height())
@@ -87,6 +92,30 @@ class _QTableViewEnhanced(QtW.QTableView):
         def itemDelegate(self) -> TableItemDelegate: ...
     # fmt: on
 
+    def _on_current_change(
+        self, current: QtCore.QModelIndex, previous: QtCore.QModelIndex
+    ):
+        r1 = current.row()
+        c1 = current.column()
+
+        # calculate the new current selection
+        if self._last_shift_on is None:
+            idx = (slice(r1, r1 + 1), slice(c1, c1 + 1))
+        else:
+            r0, c0 = self._last_shift_on
+            _r0, _r1 = sorted([r0, r1])
+            _c0, _c1 = sorted([c0, c1])
+            idx = (slice(_r0, _r1 + 1), slice(_c0, _c1 + 1))
+
+        # update selection
+        if self._selections:
+            self._selections[-1] = idx
+        else:
+            self._selections = [idx]
+        self.update()
+        self.selectionChangedSignal.emit()
+        return None
+
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
         """Make a copy of the table."""
         new = _QTableViewEnhanced(self.parentTable())
@@ -109,7 +138,11 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         """Register clicked position"""
-        if e.button() == Qt.MouseButton.RightButton:
+        if e.button() == Qt.MouseButton.LeftButton:
+            if not self._shift_is_pressed:
+                index = self.indexAt(e.pos())
+                self._last_shift_on = index.row(), index.column()
+        elif e.button() == Qt.MouseButton.RightButton:
             self._last_pos = e.pos()
             self._was_right_dragging = False
         return super().mousePressEvent(e)
@@ -131,6 +164,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         if e.button() == Qt.MouseButton.RightButton and not self._was_right_dragging:
             self.rightClickedSignal.emit(e.pos())
         self._last_pos = None
+        if not self._shift_is_pressed:
+            self._last_shift_on = None
         self._was_right_dragging = False
         return super().mouseReleaseEvent(e)
 
@@ -142,6 +177,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             if self._last_shift_on is None:
                 index = self.currentIndex()
                 self._last_shift_on = index.row(), index.column()
+            self._shift_is_pressed = True
         elif keys.has_key():
             self._last_shift_on = None
 
@@ -165,6 +201,10 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         if isinstance(parent, QBaseTable):
             parent.keyPressEvent(e)
+
+    def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
+        self._shift_is_pressed = False
+        return super().keyReleaseEvent(a0)
 
     def zoom(self) -> float:
         """Get current zoom factor."""
@@ -231,13 +271,13 @@ class _QTableViewEnhanced(QtW.QTableView):
         super().paintEvent(event)
         if not self.hasFocus():
             return
-        sels = self.selectionModel().selection()
+        sels = self._selections
         nsel = len(sels)
         if nsel == 0:
             return
-        sel = sels[nsel - 1]
-        top_left = self.model().index(sel.top(), sel.left())
-        bottom_right = self.model().index(sel.bottom(), sel.right())
+        rr, cc = sels[nsel - 1]
+        top_left = self.model().index(rr.start, cc.start)
+        bottom_right = self.model().index(rr.stop - 1, cc.stop - 1)
         rect = self.visualRect(top_left) | self.visualRect(bottom_right)
         pen = QtGui.QPen(Qt.GlobalColor.darkBlue, 3)
         painter = QtGui.QPainter(self.viewport())
@@ -297,6 +337,9 @@ class QBaseTable(QtW.QSplitter):
 
         self.createQTableView()
         self.createModel()
+        self._qtable_view.selectionModel().currentChanged.connect(
+            self._qtable_view._on_current_change
+        )
         self.setDataFrame(data)
 
         self._qtable_view.selectionChangedSignal.connect(
@@ -411,55 +454,32 @@ class QBaseTable(QtW.QSplitter):
     def selections(self) -> SelectionType:
         """Get list of selections as slicable tuples"""
         qtable = self._qtable_view
-        selections = qtable.selectionModel().selection()
-
-        out: SelectionType = []
-        for i in range(len(selections)):
-            sel = selections[i]
-            r0 = sel.top()
-            r1 = sel.bottom() + 1
-            c0 = sel.left()
-            c1 = sel.right() + 1
-            out.append((slice(r0, r1), slice(c0, c1)))
-
-        return out
+        return qtable._selections
 
     def setSelections(self, selections: SelectionType):
         """Set list of selections."""
         qtable = self._qtable_view
-        selection_model = qtable.selectionModel()
-        selection_model.blockSignals(True)
-        qtable.clearSelection()
-        selection_model.blockSignals(False)
-
-        model = self.model()
+        qtable._selections.clear()
+        _new_selections: list[tuple[slice, slice]] = []
         nr, nc = self.tableShape()
-        try:
-            for sel in selections:
-                r, c = sel
-                # if int is used instead of slice
-                if not isinstance(r, slice):
-                    _r = r.__index__()
-                    if _r < 0:
-                        _r += nr
-                    r = slice(_r, _r + 1)
-                if not isinstance(c, slice):
-                    _c = c.__index__()
-                    if _c < 0:
-                        _c += nc
-                    c = slice(_c, _c + 1)
-                r0, r1, _ = r.indices(nr)
-                c0, c1, _ = c.indices(nc)
-                selection = QtCore.QItemSelection(
-                    model.index(r0, c0), model.index(r1 - 1, c1 - 1)
-                )
-                selection_model.select(
-                    selection, QtCore.QItemSelectionModel.SelectionFlag.Select
-                )
+        for sel in selections:
+            r, c = sel
+            # if int is used instead of slice
+            if not isinstance(r, slice):
+                _r = r.__index__()
+                if _r < 0:
+                    _r += nr
+                r = slice(_r, _r + 1)
+            if not isinstance(c, slice):
+                _c = c.__index__()
+                if _c < 0:
+                    _c += nc
+                c = slice(_c, _c + 1)
+            _new_selections.append((r, c))
 
-        except Exception as e:
-            qtable.clearSelection()
-            raise e
+        qtable._selections = _new_selections
+        self.update()
+        return None
 
     def copyToClipboard(self, headers: bool = True):
         """Copy currently selected cells to clipboard."""
