@@ -9,6 +9,7 @@ import pandas as pd
 from collections_undo import fmt
 
 from ._item_model import AbstractDataFrameModel
+from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
 
 from ..._undo import QtUndoManager, fmt_slice
 from ..._keymap import QtKeys, QtKeyMap
@@ -58,7 +59,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._font = table.font
         self.setFont(QtGui.QFont(self._font, self._font_size))
 
-        # selections
+        # use custom selection model
         self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.NoSelection)
         self._selections: list[tuple[slice, slice]] = []
 
@@ -67,7 +68,18 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._last_shift_on: tuple[int, int] = None
         self._ctrl_is_pressed: bool = False
         self._shift_is_pressed: bool = False
-        vheader, hheader = self.verticalHeader(), self.horizontalHeader()
+
+        vheader = QVerticalHeaderView()
+        hheader = QHorizontalHeaderView()
+        self.setVerticalHeader(vheader)
+        self.setHorizontalHeader(hheader)
+
+        vheader.selectionChangedSignal.connect(
+            self._on_vertical_header_selection_change
+        )
+        hheader.selectionChangedSignal.connect(
+            self._on_horizontal_header_selection_change
+        )
 
         vheader.resize(36, vheader.height())
         vheader.setMinimumSectionSize(0)
@@ -75,9 +87,6 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         vheader.setDefaultSectionSize(self._h_default)
         hheader.setDefaultSectionSize(self._w_default)
-
-        hheader.setSectionResizeMode(QtW.QHeaderView.ResizeMode.Fixed)
-        vheader.setSectionResizeMode(QtW.QHeaderView.ResizeMode.Fixed)
 
         self.setVerticalScrollMode(_SCROLL_PER_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
@@ -91,11 +100,13 @@ class _QTableViewEnhanced(QtW.QTableView):
     if TYPE_CHECKING:
         def model(self) -> AbstractDataFrameModel: ...
         def itemDelegate(self) -> TableItemDelegate: ...
+        def verticalHeader(self) -> QVerticalHeaderView: ...
+        def horizontalHeader(self) -> QHorizontalHeaderView: ...
     # fmt: on
 
-    def _on_current_change(
+    def currentChanged(
         self, current: QtCore.QModelIndex, previous: QtCore.QModelIndex
-    ):
+    ) -> None:
         r1 = current.row()
         c1 = current.column()
 
@@ -112,7 +123,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         if self._selections:
             self._selections[-1] = idx
         else:
-            self._selections = [idx]
+            self.set_selections([idx])
         self.update()
         self.selectionChangedSignal.emit()
         return None
@@ -123,6 +134,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         if link:
             new.setModel(self.model())
             new.setSelectionModel(self.selectionModel())
+            new._selections = self._selections
         new.setZoom(self.zoom())
         new.setCurrentIndex(self.currentIndex())
         return new
@@ -130,7 +142,45 @@ class _QTableViewEnhanced(QtW.QTableView):
     def selectAll(self) -> None:
         """Override selectAll slot to update custom selections."""
         model = self.model()
-        self._selections = [(slice(0, model.rowCount()), slice(0, model.columnCount()))]
+        self.set_selections(
+            [(slice(0, model.rowCount()), slice(0, model.columnCount()))]
+        )
+        return None
+
+    def selections(self) -> list[tuple[slice, slice]]:
+        """Get current selections."""
+        return self._selections
+
+    def clear_selections(self) -> None:
+        """Clear current selections."""
+        self._selections.clear()
+        self.update()
+        return None
+
+    def set_selections(self, selections: list[tuple[slice, slice]]) -> None:
+        """Set current selections."""
+        self._selections.clear()
+        self._selections = selections
+        self.update()
+        return None
+
+    def _on_vertical_header_selection_change(self, r0: int, r1: int) -> None:
+        """Set current row selections."""
+        model = self.model()
+        self.setCurrentIndex(model.index(r1, 0))
+        csel = slice(0, model.columnCount())
+        _r0, _r1 = sorted([r0, r1])
+        self.selections()[-1] = (slice(_r0, _r1 + 1), csel)
+        self.update()
+        return None
+
+    def _on_horizontal_header_selection_change(self, c0: int, c1: int) -> None:
+        """Set current row selections."""
+        model = self.model()
+        self.setCurrentIndex(model.index(0, c1))
+        rsel = slice(0, self.model().rowCount())
+        _c0, _c1 = sorted([c0, c1])
+        self.selections()[-1] = (rsel, slice(_c0, _c1 + 1))
         self.update()
         return None
 
@@ -143,9 +193,9 @@ class _QTableViewEnhanced(QtW.QTableView):
                 # NOTE: mouse press is identical to shift+arrow key press
                 self._last_shift_on = (r, c)
             if not self._ctrl_is_pressed:
-                self._selections = []
+                self.clear_selections()
             else:
-                self._selections.append((slice(r, r + 1), slice(c, c + 1)))
+                self.selections().append((slice(r, r + 1), slice(c, c + 1)))
         elif e.button() == Qt.MouseButton.RightButton:
             self._last_pos = e.pos()
             self._was_right_dragging = False
@@ -237,14 +287,14 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # # Update stuff
         self._zoom = value
-        self.viewport().update()
-        self.horizontalHeader().viewport().update()
-        self.verticalHeader().viewport().update()
         font = self.font()
         font.setPointSize(int(self._font_size * value))
         self.setFont(font)
         self.verticalHeader().setFont(font)
         self.horizontalHeader().setFont(font)
+        self.viewport().update()
+        self.horizontalHeader().viewport().update()
+        self.verticalHeader().viewport().update()
         return
 
     def wheelEvent(self, e: QtGui.QWheelEvent) -> None:
@@ -281,7 +331,7 @@ class _QTableViewEnhanced(QtW.QTableView):
     def paintEvent(self, event: QtGui.QPaintEvent):
         super().paintEvent(event)
         focused = int(self.hasFocus())
-        sels = self._selections
+        sels = self.selections()
         nsel = len(sels)
         painter = QtGui.QPainter(self.viewport())
         model = self.model()
@@ -346,9 +396,6 @@ class QBaseTable(QtW.QSplitter):
 
         self.createQTableView()
         self.createModel()
-        self._qtable_view.selectionModel().currentChanged.connect(
-            self._qtable_view._on_current_change
-        )
         self.setDataFrame(data)
 
         self._qtable_view.selectionChangedSignal.connect(
@@ -463,12 +510,12 @@ class QBaseTable(QtW.QSplitter):
     def selections(self) -> SelectionType:
         """Get list of selections as slicable tuples"""
         qtable = self._qtable_view
-        return qtable._selections
+        return qtable.selections()
 
     def setSelections(self, selections: SelectionType):
         """Set list of selections."""
         qtable = self._qtable_view
-        qtable._selections.clear()
+        qtable.clear_selections()
         _new_selections: list[tuple[slice, slice]] = []
         nr, nc = self.tableShape()
         for sel in selections:
@@ -486,7 +533,7 @@ class QBaseTable(QtW.QSplitter):
                 c = slice(_c, _c + 1)
             _new_selections.append((r, c))
 
-        qtable._selections = _new_selections
+        qtable.set_selections(_new_selections)
         self.selectionChangedSignal.emit()
         self.update()
         return None

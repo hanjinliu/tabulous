@@ -21,9 +21,9 @@ class QTableDualView(QtW.QSplitter):
         second = table.copy()
 
         self.addWidget(table)
-        self.setStretchFactor(0, 1)
+        self.setStretchFactor(0, 500)
         self.addWidget(second)
-        self.setStretchFactor(1, 1)
+        self.setStretchFactor(1, 500)
 
 
 class QTablePopupView(QtW.QWidget):
