@@ -126,16 +126,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         new.setCurrentIndex(self.currentIndex())
         return new
 
-    def selectionChanged(
-        self,
-        selected: QtCore.QItemSelection,
-        deselected: QtCore.QItemSelection,
-    ) -> None:
-        """Evoked when table selection range is changed."""
-        self.selectionChangedSignal.emit()
-        self.update()  # this is needed to update the selection rectangle
-        return super().selectionChanged(selected, deselected)
-
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         """Register clicked position"""
         if e.button() == Qt.MouseButton.LeftButton:
@@ -269,20 +259,18 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def paintEvent(self, event: QtGui.QPaintEvent):
         super().paintEvent(event)
-        if not self.hasFocus():
-            return
+        focused = int(self.hasFocus())
         sels = self._selections
         nsel = len(sels)
-        if nsel == 0:
-            return
-        rr, cc = sels[nsel - 1]
-        top_left = self.model().index(rr.start, cc.start)
-        bottom_right = self.model().index(rr.stop - 1, cc.stop - 1)
-        rect = self.visualRect(top_left) | self.visualRect(bottom_right)
-        pen = QtGui.QPen(Qt.GlobalColor.darkBlue, 3)
         painter = QtGui.QPainter(self.viewport())
-        painter.setPen(pen)
-        painter.drawRect(rect)
+        model = self.model()
+        for i, (rr, cc) in enumerate(sels):
+            top_left = model.index(rr.start, cc.start)
+            bottom_right = model.index(rr.stop - 1, cc.stop - 1)
+            rect = self.visualRect(top_left) | self.visualRect(bottom_right)
+            pen = QtGui.QPen(Qt.GlobalColor.darkBlue, 2 + int(nsel == i + 1) * focused)
+            painter.setPen(pen)
+            painter.drawRect(rect)
         return None
 
     def parentTable(self) -> QBaseTable | None:
@@ -478,6 +466,7 @@ class QBaseTable(QtW.QSplitter):
             _new_selections.append((r, c))
 
         qtable._selections = _new_selections
+        self.selectionChangedSignal.emit()
         self.update()
         return None
 
