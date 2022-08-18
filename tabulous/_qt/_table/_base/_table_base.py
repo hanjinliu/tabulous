@@ -10,6 +10,7 @@ from collections_undo import fmt
 
 from ._item_model import AbstractDataFrameModel
 from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
+from ._selection_model import SelectionModel
 
 from ..._undo import QtUndoManager, fmt_slice
 from ..._keymap import QtKeys, QtKeyMap
@@ -61,13 +62,10 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # use custom selection model
         self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.NoSelection)
-        self._selections: list[tuple[slice, slice]] = []
+        self._selection_model = SelectionModel()
 
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
-        self._last_shift_on: tuple[int, int] = None
-        self._ctrl_is_pressed: bool = False
-        self._shift_is_pressed: bool = False
 
         vheader = QVerticalHeaderView()
         hheader = QHorizontalHeaderView()
@@ -111,21 +109,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         c1 = current.column()
 
         # calculate the new current selection
-        if self._last_shift_on is None:
-            idx = (slice(r1, r1 + 1), slice(c1, c1 + 1))
-        else:
-            r0, c0 = self._last_shift_on
-            _r0, _r1 = sorted([r0, r1])
-            _c0, _c1 = sorted([c0, c1])
-            idx = (slice(_r0, _r1 + 1), slice(_c0, _c1 + 1))
-
-        # update selection
-        if self._selections:
-            self._selections[-1] = idx
-        else:
-            self.set_selections([idx])
+        self._selection_model.drag_to(r1, c1)
         self.update()
         self.selectionChangedSignal.emit()
+        self.scrollTo(current)
         return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
@@ -134,7 +121,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         if link:
             new.setModel(self.model())
             new.setSelectionModel(self.selectionModel())
-            new._selections = self._selections
+            new._selection_model = self._selection_model
         new.setZoom(self.zoom())
         new.setCurrentIndex(self.currentIndex())
         return new
@@ -149,38 +136,39 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def selections(self) -> list[tuple[slice, slice]]:
         """Get current selections."""
-        return self._selections
+        return self._selection_model._selections
 
     def clear_selections(self) -> None:
         """Clear current selections."""
-        self._selections.clear()
+        self._selection_model.clear()
         self.update()
         return None
 
     def set_selections(self, selections: list[tuple[slice, slice]]) -> None:
         """Set current selections."""
-        self._selections.clear()
-        self._selections = selections
+        self._selection_model.set_selections(selections)
         self.update()
         return None
 
     def _on_vertical_header_selection_change(self, r0: int, r1: int) -> None:
         """Set current row selections."""
         model = self.model()
-        self.setCurrentIndex(model.index(r1, 0))
         csel = slice(0, model.columnCount())
         _r0, _r1 = sorted([r0, r1])
-        self.selections()[-1] = (slice(_r0, _r1 + 1), csel)
+        self._selection_model._selections[-1] = (slice(_r0, _r1 + 1), csel)
+        with self._selection_model.blocked():
+            self.setCurrentIndex(model.index(r1, 0))
         self.update()
         return None
 
     def _on_horizontal_header_selection_change(self, c0: int, c1: int) -> None:
         """Set current row selections."""
         model = self.model()
-        self.setCurrentIndex(model.index(0, c1))
         rsel = slice(0, self.model().rowCount())
         _c0, _c1 = sorted([c0, c1])
-        self.selections()[-1] = (rsel, slice(_c0, _c1 + 1))
+        self._selection_model._selections[-1] = (rsel, slice(_c0, _c1 + 1))
+        with self._selection_model.blocked():
+            self.setCurrentIndex(model.index(0, c1))
         self.update()
         return None
 
@@ -189,13 +177,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         if e.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(e.pos())
             r, c = index.row(), index.column()
-            if not self._shift_is_pressed:
-                # NOTE: mouse press is identical to shift+arrow key press
-                self._last_shift_on = (r, c)
-            if not self._ctrl_is_pressed:
-                self.clear_selections()
-            else:
-                self.selections().append((slice(r, r + 1), slice(c, c + 1)))
+            self._selection_model.drag_start(r, c)
         elif e.button() == Qt.MouseButton.RightButton:
             self._last_pos = e.pos()
             self._was_right_dragging = False
@@ -219,8 +201,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         if e.button() == Qt.MouseButton.RightButton and not self._was_right_dragging:
             self.rightClickedSignal.emit(e.pos())
         self._last_pos = None
-        if not self._shift_is_pressed:
-            self._last_shift_on = None
+        self._selection_model.drag_end()
         self._was_right_dragging = False
         return super().mouseReleaseEvent(e)
 
@@ -229,17 +210,15 @@ class _QTableViewEnhanced(QtW.QTableView):
         keys = QtKeys(e)
 
         if keys.has_shift():
-            if self._last_shift_on is None:
-                index = self.currentIndex()
-                self._last_shift_on = index.row(), index.column()
-            self._shift_is_pressed = True
+            index = self.currentIndex()
+            self._selection_model.shift_start(index.row(), index.column())
         elif keys.has_key():
-            self._last_shift_on = None
+            self._selection_model.shift_end()
 
         if keys.has_ctrl():
-            self._ctrl_is_pressed = True
+            self._selection_model.set_ctrl(True)
         elif keys.has_key():
-            self._ctrl_is_pressed = False
+            self._selection_model.set_ctrl(False)
 
         if keys in _TABLE_VIEW_KEY_SET:
             return super().keyPressEvent(e)
@@ -263,8 +242,8 @@ class _QTableViewEnhanced(QtW.QTableView):
             parent.keyPressEvent(e)
 
     def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
-        self._shift_is_pressed = False
-        self._ctrl_is_pressed = False
+        self._selection_model.set_ctrl(False)
+        self._selection_model.set_shift(False)
         return super().keyReleaseEvent(a0)
 
     def zoom(self) -> float:

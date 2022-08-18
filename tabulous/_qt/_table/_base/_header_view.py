@@ -25,11 +25,10 @@ class QDataFrameHeaderView(QtW.QHeaderView):
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         self._index_start = self._index_stop = self.logicalIndexAt(e.pos())
-        qtable = self.parentWidget()
-        if not qtable._ctrl_is_pressed:
-            qtable.clear_selections()
-        # This slice will be updated immediately
-        qtable.selections().append((slice(0, 0), slice(0, 0)))
+        _selection_model = self.parentWidget()._selection_model
+        if not _selection_model._ctrl_on:
+            _selection_model.clear()
+        _selection_model._selections.append((slice(0, 0), slice(0, 0)))  # temporary
         self.selectionChangedSignal.emit(self._index_start, self._index_stop)
         return super().mousePressEvent(e)
 
