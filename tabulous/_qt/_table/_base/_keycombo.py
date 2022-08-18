@@ -19,10 +19,7 @@ def _(self: QBaseTable, row, column):
 
 @QBaseTable._keymap.bind("Ctrl+A")
 def _(self: QBaseTable):
-    model = self._qtable_view.model()
-    rsel = slice(0, model.rowCount())
-    csel = slice(0, model.columnCount())
-    return self.setSelections([(rsel, csel)])
+    return self._qtable_view.selectAll()
 
 
 @QBaseTable._keymap.bind("Ctrl+Alt+Up", dr=-1, dc=0)

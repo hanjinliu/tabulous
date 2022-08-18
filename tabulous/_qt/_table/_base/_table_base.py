@@ -59,12 +59,13 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setFont(QtGui.QFont(self._font, self._font_size))
 
         # selections
-        self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.NoSelection)
         self._selections: list[tuple[slice, slice]] = []
 
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
         self._last_shift_on: tuple[int, int] = None
+        self._ctrl_is_pressed: bool = False
         self._shift_is_pressed: bool = False
         vheader, hheader = self.verticalHeader(), self.horizontalHeader()
 
@@ -126,15 +127,29 @@ class _QTableViewEnhanced(QtW.QTableView):
         new.setCurrentIndex(self.currentIndex())
         return new
 
+    def selectAll(self) -> None:
+        """Override selectAll slot to update custom selections."""
+        model = self.model()
+        self._selections = [(slice(0, model.rowCount()), slice(0, model.columnCount()))]
+        self.update()
+        return None
+
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         """Register clicked position"""
         if e.button() == Qt.MouseButton.LeftButton:
+            index = self.indexAt(e.pos())
+            r, c = index.row(), index.column()
             if not self._shift_is_pressed:
-                index = self.indexAt(e.pos())
-                self._last_shift_on = index.row(), index.column()
+                # NOTE: mouse press is identical to shift+arrow key press
+                self._last_shift_on = (r, c)
+            if not self._ctrl_is_pressed:
+                self._selections = []
+            else:
+                self._selections.append((slice(r, r + 1), slice(c, c + 1)))
         elif e.button() == Qt.MouseButton.RightButton:
             self._last_pos = e.pos()
             self._was_right_dragging = False
+            return
         return super().mousePressEvent(e)
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
@@ -171,6 +186,11 @@ class _QTableViewEnhanced(QtW.QTableView):
         elif keys.has_key():
             self._last_shift_on = None
 
+        if keys.has_ctrl():
+            self._ctrl_is_pressed = True
+        elif keys.has_key():
+            self._ctrl_is_pressed = False
+
         if keys in _TABLE_VIEW_KEY_SET:
             return super().keyPressEvent(e)
 
@@ -194,6 +214,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
         self._shift_is_pressed = False
+        self._ctrl_is_pressed = False
         return super().keyReleaseEvent(a0)
 
     def zoom(self) -> float:
