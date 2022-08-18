@@ -36,6 +36,7 @@ QTabWidget {
     background-color: #BADEF4;
 }
 
+/* In MacOS, the positions of tabs are centered. */
 QTabWidget::tab-bar {
     left: 0;
 }
