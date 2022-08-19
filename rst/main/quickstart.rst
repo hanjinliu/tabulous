@@ -38,6 +38,21 @@ a viewer.
 
     $ tabulous ./path/to/data.csv  # open a table file in the viewer
 
+Open an Interpreter
+===================
+
+``tabulous`` viewer has an embedded Python interpreter console. It is not visible by default
+but you can show it in several ways.
+
+.. |toggle_console| image:: ../../tabulous/_qt/_icons/toggle_console.svg
+  :width: 20em
+
+1. Set :attr:`visible` property of :attr:`console` interface to ``True``:
+   ``>>> viewer.conosole.visible = True``
+2. Activate keyboard shortcut ``Ctrl+Shift+C``.
+3. Click the |toggle_console| tool button in the "Analysis" tab of the toolbar.
+4. Click the tool button of (3.) using key combo ``Alt, A, 4``
+
 
 Handle Tables
 =============
@@ -228,23 +243,3 @@ to register custom key combo.
     @viewer.keymap.bind_key("Ctrl+K, Ctrl+Q", overwrite=True)
     def function():
         """do something"""
-
-
-Embedded Console
-================
-
-To programmatically analyze table data, you can just open the embedded
-interpreter. It is dependent on `qtconsole <https://qtconsole.readthedocs.io/en/stable/>`_
-package.
-
-The console is not visible by default. You can show it in several ways.
-
-
-.. |toggle_console| image:: ../../tabulous/_qt/_icons/toggle_console.svg
-  :width: 20em
-
-1. Set :attr:`visible` property of :attr:`console` interface to ``True``:
-   ``>>> viewer.conosole.visible = True``
-2. Activate keyboard shortcut ``Ctrl+Shift+C``.
-3. Click the |toggle_console| tool button in the "Analysis" tab of the toolbar.
-4. Click the tool button of (3.) using key combo ``Alt, A, 4``

@@ -1,4 +1,4 @@
-from ._model_base import AbstractDataFrameModel, DataFrameModel
+from ._item_model import AbstractDataFrameModel, DataFrameModel
 from ._table_base import (
     QBaseTable,
     QMutableTable,

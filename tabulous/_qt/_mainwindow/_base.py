@@ -101,8 +101,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         sels = table.selections
         table._qwidget._qtable_view.setFocus()
         if len(sels) == 0:
-            sels = [(slice(0, 1), slice(0, 1))]
-        table.selections = [sels[0]]
+            table.selections = [(slice(0, 1), slice(0, 1))]
         return None
 
     def setCentralWidget(self, wdt: QTabbedTableStack):

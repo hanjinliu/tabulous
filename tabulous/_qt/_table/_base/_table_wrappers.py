@@ -13,7 +13,9 @@ class QTableDualView(QtW.QSplitter):
     """Dual view of the same table."""
 
     def __init__(
-        self, table: _QTableViewEnhanced, orientation=Qt.Orientation.Horizontal
+        self,
+        table: _QTableViewEnhanced,
+        orientation=Qt.Orientation.Horizontal,
     ):
         super().__init__(orientation)
         self.setChildrenCollapsible(False)
@@ -21,9 +23,8 @@ class QTableDualView(QtW.QSplitter):
         second = table.copy()
 
         self.addWidget(table)
-        self.setStretchFactor(0, 1)
         self.addWidget(second)
-        self.setStretchFactor(1, 1)
+        self.setSizes([500, 500])
 
 
 class QTablePopupView(QtW.QWidget):

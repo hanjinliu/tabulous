@@ -36,6 +36,7 @@ QTabWidget {
     background-color: #BADEF4;
 }
 
+/* In MacOS, the positions of tabs are centered. */
 QTabWidget::tab-bar {
     left: 0;
 }
@@ -72,4 +73,8 @@ QTabBar::tab:bottom:selected {
     height: 18px;
     margin-bottom: 0px;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #BADEF4, stop:1 #C9D4FF);
+}
+
+QDtypedLineEdit {
+    border: none;
 }
