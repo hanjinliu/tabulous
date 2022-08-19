@@ -28,7 +28,7 @@ _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
 # Built-in table view key press events
 _TABLE_VIEW_KEY_SET = set()
-for keys in ["Up", "Down", "Left", "Right", "Home", "End", "PageUp", "PageDown", "F2", "Escape",
+for keys in ["Up", "Down", "Left", "Right", "Home", "End", "PageUp", "PageDown", "Escape",
              "Shift+Up", "Shift+Down", "Shift+Left", "Shift+Right",
              "Shift+Home", "Shift+End", "Shift+PageUp", "Shift+PageDown"]:
     _TABLE_VIEW_KEY_SET.add(QtKeys(keys))

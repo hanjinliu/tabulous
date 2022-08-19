@@ -13,10 +13,14 @@ class SelectionModel:
         self._blocked = False
 
     def set_ctrl(self, on: bool) -> None:
+        """Equivalent to pressing Ctrl."""
         self._ctrl_on = on
+        return None
 
     def set_shift(self, on: bool) -> None:
+        """Equivalent to pressing Shift."""
         self._shift_on = on
+        return None
 
     def shift_start(self, r: int, c: int) -> None:
         if self._selection_start is None and not self._blocked:
@@ -28,6 +32,7 @@ class SelectionModel:
         self._shift_on = False
 
     def drag_start(self, r: int, c: int) -> None:
+        """Start dragging selection at (r, c)."""
         if self._blocked:
             return None
         if not self._shift_on:
@@ -39,7 +44,7 @@ class SelectionModel:
         return None
 
     def drag_end(self) -> None:
-        pass
+        """Finish dragging selection."""
 
     def set_selections(self, selections: list[tuple[slice, slice]]) -> None:
         if self._blocked:
@@ -48,6 +53,7 @@ class SelectionModel:
         return self._selections.extend(selections)
 
     def drag_to(self, r: int, c: int):
+        """Drag to (r, c) to select cells."""
         if self._blocked:
             return None
         if self._selection_start is None:

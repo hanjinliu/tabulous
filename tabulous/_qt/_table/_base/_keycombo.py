@@ -22,14 +22,22 @@ def _(self: QBaseTable):
     return self._qtable_view.selectAll()
 
 
+@QBaseTable._keymap.bind("F2")
+def _(self: QBaseTable):
+    if not self.isEditable():
+        return  # TODO: raise notification
+    qtable = self._qtable_view
+    return qtable.edit(qtable.currentIndex())
+
+
 @QBaseTable._keymap.bind("Ctrl+Alt+Up", dr=-1, dc=0)
 @QBaseTable._keymap.bind("Ctrl+Alt+Down", dr=1, dc=0)
 @QBaseTable._keymap.bind("Ctrl+Alt+Left", dr=0, dc=-1)
 @QBaseTable._keymap.bind("Ctrl+Alt+Right", dr=0, dc=1)
-@QBaseTable._keymap.bind("Ctrl+Alt+PageUp", dr=-5, dc=0)
-@QBaseTable._keymap.bind("Ctrl+Alt+PageDown", dr=5, dc=0)
-@QBaseTable._keymap.bind("Ctrl+Alt+Home", dr=0, dc=-5)
-@QBaseTable._keymap.bind("Ctrl+Alt+End", dr=0, dc=5)
+@QBaseTable._keymap.bind("Ctrl+Alt+PageUp", dr=-10, dc=0)
+@QBaseTable._keymap.bind("Ctrl+Alt+PageDown", dr=10, dc=0)
+@QBaseTable._keymap.bind("Ctrl+Alt+Home", dr=0, dc=-10)
+@QBaseTable._keymap.bind("Ctrl+Alt+End", dr=0, dc=10)
 def _(self: QBaseTable, dr, dc):
     """Scroll without moving the selection."""
     vbar = self._qtable_view.verticalScrollBar()
