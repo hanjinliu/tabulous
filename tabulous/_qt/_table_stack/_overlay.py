@@ -105,6 +105,7 @@ class QOverlayWidget(QtW.QDialog):
     # fmt: on
 
     def show(self):
+        """Show the overlay widget with animation."""
         super().show()
         self.alignToParent()
         self.opacity_anim.setDuration(self._duration)
@@ -114,6 +115,7 @@ class QOverlayWidget(QtW.QDialog):
         return None
 
     def hide(self) -> None:
+        """Hide the overlay widget with animation."""
         self.parentWidget().parent().setCellFocus()
         self.opacity_anim.setDuration(self._duration)
         self.opacity_anim.setStartValue(0.9)

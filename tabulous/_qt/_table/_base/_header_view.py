@@ -17,6 +17,9 @@ class QDataFrameHeaderView(QtW.QHeaderView):
         self._index_start = None
         self._index_stop = None
         self.setSelectionMode(QtW.QHeaderView.SelectionMode.SingleSelection)
+        self.sectionClicked.connect(self._on_section_clicked)
+        self.sectionResized.connect(self._on_section_resized)
+        self._selectable = True
 
     # fmt: off
     if TYPE_CHECKING:
@@ -24,6 +27,8 @@ class QDataFrameHeaderView(QtW.QHeaderView):
     # fmt: on
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
+        if not self._selectable:
+            return super().mousePressEvent(e)
         self._index_start = self._index_stop = self.logicalIndexAt(e.pos())
         _selection_model = self.parentWidget()._selection_model
         if not _selection_model._ctrl_on:
@@ -33,7 +38,7 @@ class QDataFrameHeaderView(QtW.QHeaderView):
         return super().mousePressEvent(e)
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
-        if self._index_start is None:
+        if self._index_start is None or not self._selectable:
             return super().mouseMoveEvent(e)
         pos = self.logicalIndexAt(e.pos())
         if self._index_stop != pos:
@@ -44,6 +49,12 @@ class QDataFrameHeaderView(QtW.QHeaderView):
     def mouseReleaseEvent(self, e: QtGui.QMouseEvent) -> None:
         self._index_start = None
         return super().mouseReleaseEvent(e)
+
+    def _on_section_clicked(self):
+        self._selectable = False
+
+    def _on_section_resized(self):
+        self._selectable = True
 
 
 class QHorizontalHeaderView(QDataFrameHeaderView):
