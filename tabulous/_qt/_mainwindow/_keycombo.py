@@ -23,6 +23,7 @@ def _(self: _QtMainWidgetBase):
     table = self._table_viewer.current_table
     try:
         table.editable = not table.editable
+        self._tablestack._notifier.setVisible(False)
     except Exception:
         pass
     self.setCellFocus()

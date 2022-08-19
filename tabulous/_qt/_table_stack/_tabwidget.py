@@ -13,6 +13,7 @@ from .._clickable_label import QClickableLabel
 
 if TYPE_CHECKING:
     from .._table import QBaseTable, QMutableTable
+    from ._overlay import QOverlayWidget
     from .._mainwindow._base import _QtMainWidgetBase
 
 
@@ -520,5 +521,11 @@ class QEditabilityNotifier(QtW.QWidget):
         table = self._table()
         if table is not None:
             table.setEditable(True)
-            self.parentWidget().hide()
+            ol: QOverlayWidget = self.parentWidget()
+            ol.setVisible(False)
         return None
+
+    if TYPE_CHECKING:
+
+        def parentWidget(self) -> QOverlayWidget:
+            ...

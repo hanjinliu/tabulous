@@ -30,6 +30,10 @@ QTableView:item:hover {
     border: 2px solid #E8E8F6;
 }
 
+QTableView:item:focus {
+    background-color: gray;
+}
+
 QTabWidget {
     border: 1px solid black;
     background-color: #BADEF4;
@@ -76,4 +80,5 @@ QTabBar::tab:bottom:selected {
 
 QDtypedLineEdit {
     border: none;
+    border-bottom: 2px solid #BADEF4;
 }

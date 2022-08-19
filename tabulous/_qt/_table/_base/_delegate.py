@@ -117,6 +117,13 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
 
         return text
 
+    def initStyleOption(
+        self, option: QtW.QStyleOptionViewItem, index: QtCore.QModelIndex
+    ):
+        super().initStyleOption(option, index)
+        if option.state & QtW.QStyle.StateFlag.State_HasFocus:
+            option.state = option.state & ~QtW.QStyle.StateFlag.State_HasFocus
+
 
 class QDtypedLineEdit(QtW.QLineEdit):
     """LineEdit widget with dtype checker and custom defocusing."""

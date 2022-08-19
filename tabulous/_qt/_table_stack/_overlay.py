@@ -97,7 +97,12 @@ class QOverlayWidget(QtW.QDialog):
 
     def hideLater(self, sec: float = 5):
         """Hide overlay widget after a delay."""
-        return QtCore.QTimer.singleShot(int(sec * 1000), self.hide)
+        return QtCore.QTimer.singleShot(int(sec * 1000), self._hide)
+
+    def _hide(self):
+        if self.isVisible():
+            self.setVisible(False)
+        return None
 
     # fmt: off
     if TYPE_CHECKING:
@@ -124,7 +129,8 @@ class QOverlayWidget(QtW.QDialog):
 
         @self.opacity_anim.finished.connect
         def _on_vanished():
-            self.setVisible(False)
+            if self.isVisible():
+                self.setVisible(False)
             self.opacity_anim.finished.disconnect()
 
         return None
