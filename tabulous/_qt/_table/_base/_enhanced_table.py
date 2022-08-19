@@ -103,7 +103,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._selection_model.drag_to(r1, c1)
         self.update()
         self.selectionChangedSignal.emit()
-        self.scrollTo(current)
+        if self.hasFocus():
+            self.scrollTo(current)
         return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
