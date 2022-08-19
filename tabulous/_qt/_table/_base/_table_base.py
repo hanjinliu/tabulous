@@ -174,6 +174,11 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         """Register clicked position"""
+        # initialize just in case
+        _selection_model = self._selection_model
+        _selection_model.set_ctrl(e.modifiers() & Qt.KeyboardModifier.ControlModifier)
+        _selection_model.set_shift(e.modifiers() & Qt.KeyboardModifier.ShiftModifier)
+
         if e.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(e.pos())
             r, c = index.row(), index.column()

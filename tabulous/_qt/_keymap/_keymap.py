@@ -212,15 +212,15 @@ class QtKeys:
 
     def has_ctrl(self) -> bool:
         """True if Ctrl is pressed."""
-        return self.modifier & Qt.KeyboardModifier.ControlModifier
+        return bool(self.modifier & Qt.KeyboardModifier.ControlModifier)
 
     def has_shift(self) -> bool:
         """True if Shift is pressed."""
-        return self.modifier & Qt.KeyboardModifier.ShiftModifier
+        return bool(self.modifier & Qt.KeyboardModifier.ShiftModifier)
 
     def has_alt(self) -> bool:
         """True if Alt is pressed."""
-        return self.modifier & Qt.KeyboardModifier.AltModifier
+        return bool(self.modifier & Qt.KeyboardModifier.AltModifier)
 
     def has_key(self) -> bool:
         """True if non-modifier key is pressed."""
