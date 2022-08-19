@@ -1,14 +1,19 @@
-QHeaderView:section {
+QDataFrameHeaderView:section {
     border: 1px solid black;
     background-color: #BADEF4;
 }
 
-QHeaderView:section:selected {
+QHorizontalHeaderView:section:hover {
     border: 1px solid black;
-    background-color: lightgray;
+    border-bottom: 3px solid #7575F2;
 }
 
-QHeaderView:section:selected:focus {
+QVerticalHeaderView:section:hover {
+    border: 1px solid black;
+    border-right: 3px solid #7575F2;
+}
+
+QDataFrameHeaderView:section:checked {
     border: 1px solid black;
     background-color: lightgray;
 }
@@ -21,14 +26,8 @@ QTableView:focus {
     border: 2px solid gray;
 }
 
-QTableView:item:selected {
-    background-color: lightgray;
-    color: black;
-}
-
-QTableView:item:selected:focus {
-    background-color: lightgray;
-    color: black;
+QTableView:item:hover {
+    border: 2px solid #E8E8F6;
 }
 
 QTabWidget {

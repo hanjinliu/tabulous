@@ -146,7 +146,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         model = self.model()
         csel = slice(0, model.columnCount())
         _r0, _r1 = sorted([r0, r1])
-        self._selection_model._selections[-1] = (slice(_r0, _r1 + 1), csel)
+        if len(self._selection_model._selections) == 0:
+            self._selection_model._selections.append((slice(_r0, _r1 + 1), csel))
+        else:
+            self._selection_model._selections[-1] = (slice(_r0, _r1 + 1), csel)
         with self._selection_model.blocked():
             self.setCurrentIndex(model.index(r1, 0))
         self.update()
@@ -157,7 +160,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         model = self.model()
         rsel = slice(0, self.model().rowCount())
         _c0, _c1 = sorted([c0, c1])
-        self._selection_model._selections[-1] = (rsel, slice(_c0, _c1 + 1))
+        if len(self._selection_model._selections) == 0:
+            self._selection_model._selections.append((rsel, slice(_c0, _c1 + 1)))
+        else:
+            self._selection_model._selections[-1] = (rsel, slice(_c0, _c1 + 1))
         with self._selection_model.blocked():
             self.setCurrentIndex(model.index(0, c1))
         self.update()

@@ -31,6 +31,10 @@ class SelectionModel:
         self._selection_start = None
         self._shift_on = False
 
+    def add_dummy(self) -> None:
+        self._selections.append((slice(0, 0), slice(0, 0)))
+        return None
+
     def drag_start(self, r: int, c: int) -> None:
         """Start dragging selection at (r, c)."""
         if self._blocked:
