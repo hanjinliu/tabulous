@@ -17,6 +17,7 @@ class QDataFrameHeaderView(QtW.QHeaderView):
         self._index_stop = None
         self.setSelectionMode(QtW.QHeaderView.SelectionMode.SingleSelection)
         self.setSectionsClickable(True)
+        self.setMinimumSectionSize(18)
         self.sectionPressed.connect(self._on_section_pressed)  # pressed
         self.sectionClicked.connect(self._on_section_clicked)  # released
         self.sectionEntered.connect(self._on_section_entered)  # dragged
