@@ -215,11 +215,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         elif keys.has_key():
             self._selection_model.shift_end()
 
-        if keys.has_ctrl():
-            self._selection_model.set_ctrl(True)
-        elif keys.has_key():
-            self._selection_model.set_ctrl(False)
-
         if keys in _TABLE_VIEW_KEY_SET:
             return super().keyPressEvent(e)
 
@@ -238,12 +233,18 @@ class _QTableViewEnhanced(QtW.QTableView):
                 focused_widget.deselect()
             return
 
+        if keys.has_ctrl():
+            self._selection_model.set_ctrl(True)
+        elif keys.has_key():
+            self._selection_model.set_ctrl(False)
+
         if isinstance(parent, QBaseTable):
-            parent.keyPressEvent(e)
+            return parent.keyPressEvent(e)
 
     def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
-        self._selection_model.set_ctrl(False)
-        self._selection_model.set_shift(False)
+        keys = QtKeys(a0)
+        self._selection_model.set_ctrl(keys.has_ctrl())
+        self._selection_model.set_shift(keys.has_shift())
         return super().keyReleaseEvent(a0)
 
     def zoom(self) -> float:
@@ -671,17 +672,19 @@ class QBaseTable(QtW.QSplitter):
 
     def moveToItem(self, row: int | None = None, column: int | None = None):
         """Move current index."""
+        qtable = self._qtable_view
         if row is None:
-            row = self._qtable_view.currentIndex().row()
+            row = qtable.currentIndex().row()
         elif row < 0:
             row += self.dataShape()[0]
 
         if column is None:
-            column = self._qtable_view.currentIndex().column()
+            column = qtable.currentIndex().column()
         elif column < 0:
             column += self.dataShape()[1]
 
-        self._qtable_view.selectionModel().setCurrentIndex(
+        qtable._selection_model.clear()
+        qtable.selectionModel().setCurrentIndex(
             self.model().index(row, column),
             QtCore.QItemSelectionModel.SelectionFlag.Current,
         )

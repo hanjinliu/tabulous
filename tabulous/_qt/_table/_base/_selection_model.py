@@ -35,12 +35,15 @@ class SelectionModel:
         """Start dragging selection at (r, c)."""
         if self._blocked:
             return None
+
         if not self._shift_on:
             self._selection_start = (r, c)
 
         if not self._ctrl_on:
             self.clear()
-        self._selections.append((slice(r, r + 1), slice(c, c + 1)))
+        else:
+            self._selections.append((slice(r, r + 1), slice(c, c + 1)))
+        self.drag_to(r, c)
         return None
 
     def drag_end(self) -> None:
@@ -59,12 +62,17 @@ class SelectionModel:
         if self._selection_start is None:
             if not self._ctrl_on:
                 self._selections.clear()
-            self._selections.append((slice(r, r + 1), slice(c, c + 1)))
+            _r0 = _r1 = r
+            _c0 = _c1 = c
         else:
             r0, c0 = self._selection_start
             _r0, _r1 = sorted([r0, r])
             _c0, _c1 = sorted([c0, c])
+
+        if len(self._selections) > 0:
             self._selections[-1] = (slice(_r0, _r1 + 1), slice(_c0, _c1 + 1))
+        else:
+            self._selections.append((slice(_r0, _r1 + 1), slice(_c0, _c1 + 1)))
         return None
 
     def clear(self) -> None:
