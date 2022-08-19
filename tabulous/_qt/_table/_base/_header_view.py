@@ -5,7 +5,7 @@ from qtpy.QtCore import Qt, Signal
 import pandas as pd
 
 if TYPE_CHECKING:
-    from ._table_base import _QTableViewEnhanced
+    from ._enhanced_table import _QTableViewEnhanced
 
 
 class QDataFrameHeaderView(QtW.QHeaderView):

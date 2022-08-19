@@ -4,11 +4,12 @@ from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
 from ..._keymap import QtKeys
 
-from ._table_base import QBaseTable, QMutableTable, _QTableViewEnhanced
+from ._table_base import QBaseTable, QMutableTable
 
 if TYPE_CHECKING:
     import numpy as np
     from pandas.core.dtypes.dtypes import CategoricalDtype
+    from ._enhanced_table import _QTableViewEnhanced
 
 
 class TableItemDelegate(QtW.QStyledItemDelegate):

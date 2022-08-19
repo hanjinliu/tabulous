@@ -3,9 +3,9 @@ from ._table_base import (
     QBaseTable,
     QMutableTable,
     QMutableSimpleTable,
-    _QTableViewEnhanced,
 )
 from ._table_group import QTableGroup
+from ._enhanced_table import _QTableViewEnhanced
 
 # activate key combo
 from . import _keycombo

@@ -4,7 +4,8 @@ from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, Signal
 
 if TYPE_CHECKING:
-    from ._table_base import QBaseTable, _QTableViewEnhanced
+    from ._table_base import QBaseTable
+    from ._enhanced_table import _QTableViewEnhanced
 
 # Wrapper widgets that can be used to wrap a QTableView
 
