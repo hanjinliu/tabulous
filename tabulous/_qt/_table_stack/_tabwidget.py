@@ -255,8 +255,10 @@ class QTabbedTableStack(QtW.QTabWidget):
         def _():
             self._line.setHidden(True)
             text = self._line.text()
-            self.setTabText(index, text)
-            self.tableRenamed.emit(index, text)
+            if text:
+                # do not rename if text is empty
+                self.setTabText(index, text)
+                self.tableRenamed.emit(index, text)
 
         return None
 

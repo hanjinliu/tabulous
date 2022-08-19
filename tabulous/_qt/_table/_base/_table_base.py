@@ -1046,6 +1046,7 @@ class QMutableTable(QBaseTable):
             edit_geometry.moveTop(top)
         if left is not None:
             edit_geometry.moveLeft(left)
+        edit_geometry.adjust(2, 1, -2, -1)
         _line.setGeometry(edit_geometry)
         _line.setHidden(False)
         _line.setAlignment(Qt.AlignmentFlag.AlignCenter)

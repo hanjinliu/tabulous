@@ -4,7 +4,7 @@ from qtpy import QtWidgets as QtW, QtCore
 
 def create_temporal_line_edit(
     rect: QtCore.QRect,
-    parent: QtW.QWidget, 
+    parent: QtW.QWidget,
     text: str,
 ) -> QtW.QLineEdit:
     line = QtW.QLineEdit(parent=parent)
@@ -12,7 +12,7 @@ def create_temporal_line_edit(
     geometry.setWidth(rect.width())
     geometry.setHeight(rect.height())
     geometry.moveCenter(rect.center())
-    # edit_geometry.moveTo(rect.topLeft())
+    geometry.adjust(4, 4, -2, -2)
     line.setGeometry(geometry)
     line.setText(text)
     line.setHidden(False)

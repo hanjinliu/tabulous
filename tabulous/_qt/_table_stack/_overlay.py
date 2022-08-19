@@ -26,7 +26,7 @@ class QOverlayWidget(QtW.QDialog):
         self.setWindowFlags(Qt.WindowType.SubWindow)
         self._widget = None
         self.setStyleSheet(
-            "QOverlayWidget {border: 1px solid gray; border-radius: 3px;}"
+            "QOverlayWidget {border: 1px solid gray; border-radius: 3px; background-color: white;}"
         )
 
         titlebar = QTitleBar("", self)
@@ -43,6 +43,7 @@ class QOverlayWidget(QtW.QDialog):
         self.hide()
 
         effect = QtW.QGraphicsOpacityEffect(self)
+        effect.setOpacity(0.9)
         self.setGraphicsEffect(effect)
         self._effect = effect
 
