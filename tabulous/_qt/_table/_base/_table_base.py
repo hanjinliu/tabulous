@@ -8,7 +8,9 @@ import numpy as np
 import pandas as pd
 from collections_undo import fmt
 
-from ._model_base import AbstractDataFrameModel
+from ._item_model import AbstractDataFrameModel
+from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
+from ._selection_model import SelectionModel
 
 from ..._undo import QtUndoManager, fmt_slice
 from ..._keymap import QtKeys, QtKeyMap
@@ -26,8 +28,9 @@ _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
 # Built-in table view key press events
 _TABLE_VIEW_KEY_SET = set()
-for keys in ["Up", "Down", "Left", "Right", "Home", "End", "PageUp", "PageDown", "F2", "Escape",
-             "Shift+Home", "Shift+End", "Shift+PageUp", "Shift+PageDown", "Ctrl+A"]:
+for keys in ["Up", "Down", "Left", "Right", "Home", "End", "PageUp", "PageDown", "Escape",
+             "Shift+Up", "Shift+Down", "Shift+Left", "Shift+Right",
+             "Shift+Home", "Shift+End", "Shift+PageUp", "Shift+PageDown"]:
     _TABLE_VIEW_KEY_SET.add(QtKeys(keys))
 _TABLE_VIEW_KEY_SET = frozenset(_TABLE_VIEW_KEY_SET)
 
@@ -55,13 +58,26 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._h_default = table.row_size
         self._w_default = table.column_size
         self._font = table.font
-
         self.setFont(QtGui.QFont(self._font, self._font_size))
+
+        # use custom selection model
+        self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.NoSelection)
+        self._selection_model = SelectionModel()
 
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
-        self._last_shift_on: tuple[int, int] = None
-        vheader, hheader = self.verticalHeader(), self.horizontalHeader()
+
+        vheader = QVerticalHeaderView()
+        hheader = QHorizontalHeaderView()
+        self.setVerticalHeader(vheader)
+        self.setHorizontalHeader(hheader)
+
+        vheader.selectionChangedSignal.connect(
+            self._on_vertical_header_selection_change
+        )
+        hheader.selectionChangedSignal.connect(
+            self._on_horizontal_header_selection_change
+        )
 
         vheader.resize(36, vheader.height())
         vheader.setMinimumSectionSize(0)
@@ -69,9 +85,6 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         vheader.setDefaultSectionSize(self._h_default)
         hheader.setDefaultSectionSize(self._w_default)
-
-        hheader.setSectionResizeMode(QtW.QHeaderView.ResizeMode.Fixed)
-        vheader.setSectionResizeMode(QtW.QHeaderView.ResizeMode.Fixed)
 
         self.setVerticalScrollMode(_SCROLL_PER_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
@@ -85,7 +98,22 @@ class _QTableViewEnhanced(QtW.QTableView):
     if TYPE_CHECKING:
         def model(self) -> AbstractDataFrameModel: ...
         def itemDelegate(self) -> TableItemDelegate: ...
+        def verticalHeader(self) -> QVerticalHeaderView: ...
+        def horizontalHeader(self) -> QHorizontalHeaderView: ...
     # fmt: on
+
+    def currentChanged(
+        self, current: QtCore.QModelIndex, previous: QtCore.QModelIndex
+    ) -> None:
+        r1 = current.row()
+        c1 = current.column()
+
+        # calculate the new current selection
+        self._selection_model.drag_to(r1, c1)
+        self.update()
+        self.selectionChangedSignal.emit()
+        self.scrollTo(current)
+        return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
         """Make a copy of the table."""
@@ -93,25 +121,72 @@ class _QTableViewEnhanced(QtW.QTableView):
         if link:
             new.setModel(self.model())
             new.setSelectionModel(self.selectionModel())
+            new._selection_model = self._selection_model
         new.setZoom(self.zoom())
         new.setCurrentIndex(self.currentIndex())
         return new
 
-    def selectionChanged(
-        self,
-        selected: QtCore.QItemSelection,
-        deselected: QtCore.QItemSelection,
-    ) -> None:
-        """Evoked when table selection range is changed."""
-        self.selectionChangedSignal.emit()
-        self.update()  # this is needed to update the selection rectangle
-        return super().selectionChanged(selected, deselected)
+    def selectAll(self) -> None:
+        """Override selectAll slot to update custom selections."""
+        model = self.model()
+        self.set_selections(
+            [(slice(0, model.rowCount()), slice(0, model.columnCount()))]
+        )
+        return None
+
+    def selections(self) -> list[tuple[slice, slice]]:
+        """Get current selections."""
+        return self._selection_model._selections
+
+    def clear_selections(self) -> None:
+        """Clear current selections."""
+        self._selection_model.clear()
+        self.update()
+        return None
+
+    def set_selections(self, selections: list[tuple[slice, slice]]) -> None:
+        """Set current selections."""
+        self._selection_model.set_selections(selections)
+        self.update()
+        return None
+
+    def _on_vertical_header_selection_change(self, r0: int, r1: int) -> None:
+        """Set current row selections."""
+        model = self.model()
+        csel = slice(0, model.columnCount())
+        _r0, _r1 = sorted([r0, r1])
+        self._selection_model._selections[-1] = (slice(_r0, _r1 + 1), csel)
+        with self._selection_model.blocked():
+            self.setCurrentIndex(model.index(r1, 0))
+        self.update()
+        return None
+
+    def _on_horizontal_header_selection_change(self, c0: int, c1: int) -> None:
+        """Set current row selections."""
+        model = self.model()
+        rsel = slice(0, self.model().rowCount())
+        _c0, _c1 = sorted([c0, c1])
+        self._selection_model._selections[-1] = (rsel, slice(_c0, _c1 + 1))
+        with self._selection_model.blocked():
+            self.setCurrentIndex(model.index(0, c1))
+        self.update()
+        return None
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         """Register clicked position"""
-        if e.button() == Qt.MouseButton.RightButton:
+        # initialize just in case
+        _selection_model = self._selection_model
+        _selection_model.set_ctrl(e.modifiers() & Qt.KeyboardModifier.ControlModifier)
+        _selection_model.set_shift(e.modifiers() & Qt.KeyboardModifier.ShiftModifier)
+
+        if e.button() == Qt.MouseButton.LeftButton:
+            index = self.indexAt(e.pos())
+            r, c = index.row(), index.column()
+            self._selection_model.drag_start(r, c)
+        elif e.button() == Qt.MouseButton.RightButton:
             self._last_pos = e.pos()
             self._was_right_dragging = False
+            return
         return super().mousePressEvent(e)
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
@@ -131,6 +206,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         if e.button() == Qt.MouseButton.RightButton and not self._was_right_dragging:
             self.rightClickedSignal.emit(e.pos())
         self._last_pos = None
+        self._selection_model.drag_end()
         self._was_right_dragging = False
         return super().mouseReleaseEvent(e)
 
@@ -139,11 +215,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         keys = QtKeys(e)
 
         if keys.has_shift():
-            if self._last_shift_on is None:
-                index = self.currentIndex()
-                self._last_shift_on = index.row(), index.column()
+            index = self.currentIndex()
+            self._selection_model.shift_start(index.row(), index.column())
         elif keys.has_key():
-            self._last_shift_on = None
+            self._selection_model.shift_end()
 
         if keys in _TABLE_VIEW_KEY_SET:
             return super().keyPressEvent(e)
@@ -163,8 +238,19 @@ class _QTableViewEnhanced(QtW.QTableView):
                 focused_widget.deselect()
             return
 
+        if keys.has_ctrl():
+            self._selection_model.set_ctrl(True)
+        elif keys.has_key():
+            self._selection_model.set_ctrl(False)
+
         if isinstance(parent, QBaseTable):
-            parent.keyPressEvent(e)
+            return parent.keyPressEvent(e)
+
+    def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
+        keys = QtKeys(a0)
+        self._selection_model.set_ctrl(keys.has_ctrl())
+        self._selection_model.set_shift(keys.has_shift())
+        return super().keyReleaseEvent(a0)
 
     def zoom(self) -> float:
         """Get current zoom factor."""
@@ -186,14 +272,14 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # # Update stuff
         self._zoom = value
-        self.viewport().update()
-        self.horizontalHeader().viewport().update()
-        self.verticalHeader().viewport().update()
         font = self.font()
         font.setPointSize(int(self._font_size * value))
         self.setFont(font)
         self.verticalHeader().setFont(font)
         self.horizontalHeader().setFont(font)
+        self.viewport().update()
+        self.horizontalHeader().viewport().update()
+        self.verticalHeader().viewport().update()
         return
 
     def wheelEvent(self, e: QtGui.QWheelEvent) -> None:
@@ -229,20 +315,18 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def paintEvent(self, event: QtGui.QPaintEvent):
         super().paintEvent(event)
-        if not self.hasFocus():
-            return
-        sels = self.selectionModel().selection()
+        focused = int(self.hasFocus())
+        sels = self.selections()
         nsel = len(sels)
-        if nsel == 0:
-            return
-        sel = sels[nsel - 1]
-        top_left = self.model().index(sel.top(), sel.left())
-        bottom_right = self.model().index(sel.bottom(), sel.right())
-        rect = self.visualRect(top_left) | self.visualRect(bottom_right)
-        pen = QtGui.QPen(Qt.GlobalColor.darkBlue, 3)
         painter = QtGui.QPainter(self.viewport())
-        painter.setPen(pen)
-        painter.drawRect(rect)
+        model = self.model()
+        for i, (rr, cc) in enumerate(sels):
+            top_left = model.index(rr.start, cc.start)
+            bottom_right = model.index(rr.stop - 1, cc.stop - 1)
+            rect = self.visualRect(top_left) | self.visualRect(bottom_right)
+            pen = QtGui.QPen(Qt.GlobalColor.darkBlue, 2 + int(nsel == i + 1) * focused)
+            painter.setPen(pen)
+            painter.drawRect(rect)
         return None
 
     def parentTable(self) -> QBaseTable | None:
@@ -411,55 +495,33 @@ class QBaseTable(QtW.QSplitter):
     def selections(self) -> SelectionType:
         """Get list of selections as slicable tuples"""
         qtable = self._qtable_view
-        selections = qtable.selectionModel().selection()
-
-        out: SelectionType = []
-        for i in range(len(selections)):
-            sel = selections[i]
-            r0 = sel.top()
-            r1 = sel.bottom() + 1
-            c0 = sel.left()
-            c1 = sel.right() + 1
-            out.append((slice(r0, r1), slice(c0, c1)))
-
-        return out
+        return qtable.selections()
 
     def setSelections(self, selections: SelectionType):
         """Set list of selections."""
         qtable = self._qtable_view
-        selection_model = qtable.selectionModel()
-        selection_model.blockSignals(True)
-        qtable.clearSelection()
-        selection_model.blockSignals(False)
-
-        model = self.model()
+        qtable.clear_selections()
+        _new_selections: list[tuple[slice, slice]] = []
         nr, nc = self.tableShape()
-        try:
-            for sel in selections:
-                r, c = sel
-                # if int is used instead of slice
-                if not isinstance(r, slice):
-                    _r = r.__index__()
-                    if _r < 0:
-                        _r += nr
-                    r = slice(_r, _r + 1)
-                if not isinstance(c, slice):
-                    _c = c.__index__()
-                    if _c < 0:
-                        _c += nc
-                    c = slice(_c, _c + 1)
-                r0, r1, _ = r.indices(nr)
-                c0, c1, _ = c.indices(nc)
-                selection = QtCore.QItemSelection(
-                    model.index(r0, c0), model.index(r1 - 1, c1 - 1)
-                )
-                selection_model.select(
-                    selection, QtCore.QItemSelectionModel.SelectionFlag.Select
-                )
+        for sel in selections:
+            r, c = sel
+            # if int is used instead of slice
+            if not isinstance(r, slice):
+                _r = r.__index__()
+                if _r < 0:
+                    _r += nr
+                r = slice(_r, _r + 1)
+            if not isinstance(c, slice):
+                _c = c.__index__()
+                if _c < 0:
+                    _c += nc
+                c = slice(_c, _c + 1)
+            _new_selections.append((r, c))
 
-        except Exception as e:
-            qtable.clearSelection()
-            raise e
+        qtable.set_selections(_new_selections)
+        self.selectionChangedSignal.emit()
+        self.update()
+        return None
 
     def copyToClipboard(self, headers: bool = True):
         """Copy currently selected cells to clipboard."""
@@ -615,17 +677,19 @@ class QBaseTable(QtW.QSplitter):
 
     def moveToItem(self, row: int | None = None, column: int | None = None):
         """Move current index."""
+        qtable = self._qtable_view
         if row is None:
-            row = self._qtable_view.currentIndex().row()
+            row = qtable.currentIndex().row()
         elif row < 0:
             row += self.dataShape()[0]
 
         if column is None:
-            column = self._qtable_view.currentIndex().column()
+            column = qtable.currentIndex().column()
         elif column < 0:
             column += self.dataShape()[1]
 
-        self._qtable_view.selectionModel().setCurrentIndex(
+        qtable._selection_model.clear()
+        qtable.selectionModel().setCurrentIndex(
             self.model().index(row, column),
             QtCore.QItemSelectionModel.SelectionFlag.Current,
         )
