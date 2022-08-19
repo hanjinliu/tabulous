@@ -9,8 +9,6 @@ import pandas as pd
 from collections_undo import fmt
 
 from ._item_model import AbstractDataFrameModel
-from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
-from ._selection_model import SelectionModel
 
 from ..._undo import QtUndoManager, fmt_slice
 from ..._keymap import QtKeys, QtKeyMap
@@ -18,10 +16,11 @@ from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceabl
 from ....exceptions import SelectionRangeError, TableImmutableError
 
 if TYPE_CHECKING:
+    from qtpy.QtCore import pyqtBoundSignal
     from ._delegate import TableItemDelegate
     from ._side_area import QTableSideArea
-    from qtpy.QtCore import pyqtBoundSignal
     from ._enhanced_table import _QTableViewEnhanced
+    from ..._table_stack import QTabbedTableStack
 
 
 class QTableHandle(QtW.QSplitterHandle):
@@ -162,6 +161,7 @@ class QBaseTable(QtW.QSplitter):
         return value
 
     def dataShown(self) -> pd.DataFrame:
+        """Return the shown dataframe (consider filter)."""
         return self.model().df
 
     def precision(self) -> int:
@@ -382,6 +382,10 @@ class QBaseTable(QtW.QSplitter):
             QtCore.QItemSelectionModel.SelectionFlag.Current,
         )
         return None
+
+    def tableStack(self) -> QTabbedTableStack:
+        """Return the table stack."""
+        return self.parentWidget().parentWidget()
 
 
 class QMutableTable(QBaseTable):
@@ -665,7 +669,7 @@ class QMutableTable(QBaseTable):
     def editHorizontalHeader(self, index: int):
         """Edit the horizontal header."""
         if not self.isEditable():
-            return
+            return self.tableStack().notifyEditability()
 
         qtable = self._qtable_view
         _header = qtable.horizontalHeader()
@@ -682,7 +686,7 @@ class QMutableTable(QBaseTable):
 
     def editVerticalHeader(self, index: int):
         if not self.isEditable():
-            return
+            return self.tableStack().notifyEditability()
 
         qtable = self._qtable_view
         _header = qtable.verticalHeader()

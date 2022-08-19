@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Callable, TYPE_CHECKING, Literal, cast
+import weakref
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, Signal
@@ -8,9 +9,11 @@ from ._start import QStartupWidget
 from ._utils import create_temporal_line_edit
 
 from .._table._base._table_group import QTableGroup
+from .._clickable_label import QClickableLabel
 
 if TYPE_CHECKING:
-    from .._table import QBaseTable
+    from .._table import QBaseTable, QMutableTable
+    from .._mainwindow._base import _QtMainWidgetBase
 
 
 class QTabbedTableStack(QtW.QTabWidget):
@@ -65,6 +68,8 @@ class QTabbedTableStack(QtW.QTabWidget):
         from ._overlay import QOverlayWidget
 
         self._overlay = QOverlayWidget(self)
+        self._notifier = QOverlayWidget(self, duration=200)
+        self._notifier.setAnchor("top_right")
 
         # contextmenu
         self._qt_context_menu = QTabContextMenu(self)
@@ -80,11 +85,11 @@ class QTabbedTableStack(QtW.QTabWidget):
         self.setCornerWidget(tb)
         self.addEmptyWidget()
 
+    # fmt: off
     if TYPE_CHECKING:
-        from .._mainwindow._base import _QtMainWidgetBase
-
-        def parent(self) -> _QtMainWidgetBase:
-            ...
+        def parent(self) -> _QtMainWidgetBase: ...
+        def parentWidget(self) -> _QtMainWidgetBase: ...
+    # fmt: on
 
     def addEmptyWidget(self):
         """Add empty widget to stack."""
@@ -174,7 +179,9 @@ class QTabbedTableStack(QtW.QTabWidget):
         source = e.source()
         if source is None:
             return
-        source_widget: QTabbedTableStack = source.parentWidget()
+        source_widget: QTabbedTableStack = source.parent()
+        if not isinstance(source_widget, QTabbedTableStack):
+            return
         tab_id = source_widget._entering_tab_index
         if source_widget is self:
             return super().dropEvent(e)
@@ -292,6 +299,16 @@ class QTabbedTableStack(QtW.QTabWidget):
         index = self.tableIndex(table)
         self._qt_context_menu.execAtIndex(QtGui.QCursor().pos(), index)
         return
+
+    def notifyEditability(self):
+        """Show a notification saying that the table is not editable."""
+        idx = self.currentIndex()
+        qtable = self.tableAtIndex(idx)
+        name = self.tabText(idx)
+        self._notifier.addWidget(QEditabilityNotifier(qtable, name))
+        self._notifier.show()
+        self._notifier.hideLater()
+        return None
 
     def setCurrentIndex(self, index: int):
         """Set current active index."""
@@ -479,4 +496,29 @@ class QTabContextMenu(QtW.QMenu):
         for k, action in self._actions.items():
             if k == name:
                 return action
+        return None
+
+
+class QEditabilityNotifier(QtW.QWidget):
+    def __init__(self, table: QMutableTable, name: str) -> None:
+        super().__init__()
+        if len(name) > 20:
+            name = name[:17] + "..."
+
+        btn = QClickableLabel("Set editable (Ctrl+K, E)")
+        btn.clicked.connect(self._on_button_clicked)
+        self.setFont(QtGui.QFont("Arial"))
+
+        _layout = QtW.QVBoxLayout()
+        _layout.addWidget(QtW.QLabel(f"Table {name!r} is not editable."))
+        _layout.addWidget(btn)
+
+        self._table = weakref.ref(table)
+        self.setLayout(_layout)
+
+    def _on_button_clicked(self):
+        table = self._table()
+        if table is not None:
+            table.setEditable(True)
+            self.parentWidget().hide()
         return None

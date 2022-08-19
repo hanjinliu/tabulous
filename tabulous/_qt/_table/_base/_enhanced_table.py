@@ -3,10 +3,6 @@ from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
-import numpy as np
-import pandas as pd
-from collections_undo import fmt
-
 from ._item_model import AbstractDataFrameModel
 from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
 from ._selection_model import SelectionModel
@@ -205,6 +201,20 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._was_right_dragging = False
         return super().mouseReleaseEvent(e)
 
+    def mouseDoubleClickEvent(self, e: QtGui.QMouseEvent) -> None:
+        index = self.indexAt(e.pos())
+        if not index.isValid():
+            return None
+        from ._table_base import QMutableTable
+
+        table = self.parentTable()
+        if isinstance(table, QMutableTable):
+            if table.isEditable():
+                self.edit(index)
+            else:
+                table.tableStack().notifyEditability()
+        return None
+
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
         """Evoke parent keyPressEvent."""
         keys = QtKeys(e)
@@ -309,6 +319,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         return super().resizeEvent(e)
 
     def paintEvent(self, event: QtGui.QPaintEvent):
+        """Paint table and the selection."""
         super().paintEvent(event)
         focused = int(self.hasFocus())
         sels = self.selections()

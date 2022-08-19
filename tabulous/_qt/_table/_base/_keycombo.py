@@ -24,8 +24,8 @@ def _(self: QBaseTable):
 
 @QBaseTable._keymap.bind("F2")
 def _(self: QBaseTable):
-    if not self.isEditable():
-        return  # TODO: raise notification
+    if isinstance(self, QMutableTable):
+        return self.tableStack().notifyEditability()
     qtable = self._qtable_view
     return qtable.edit(qtable.currentIndex())
 

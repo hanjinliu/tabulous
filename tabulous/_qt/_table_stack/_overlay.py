@@ -21,7 +21,17 @@ class Anchor(Enum):
 class QOverlayWidget(QtW.QDialog):
     """The overlay widget appears at the fixed position."""
 
-    def __init__(self, parent: QTabbedTableStack):
+    def __init__(self, parent: QTabbedTableStack, duration: int = 50):
+        """
+        The overlay widget appears at the fixed position.
+
+        Parameters
+        ----------
+        parent : QTabbedTableStack
+            Parent table stack
+        duration : int, default is 50
+            Animation duration in msec.
+        """
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.SubWindow)
         self._widget = None
@@ -40,12 +50,14 @@ class QOverlayWidget(QtW.QDialog):
 
         parent.resizedSignal.connect(self.alignToParent)
         self.setAnchor(Anchor.bottom_right)
-        self.hide()
+        self.setVisible(False)
 
         effect = QtW.QGraphicsOpacityEffect(self)
         effect.setOpacity(0.9)
         self.setGraphicsEffect(effect)
         self._effect = effect
+        self.opacity_anim = QtCore.QPropertyAnimation(self._effect, b"opacity", self)
+        self._duration = duration
 
     def addWidget(self, widget: QtW.QWidget):
         """Set the central widget."""
@@ -76,19 +88,44 @@ class QOverlayWidget(QtW.QDialog):
         return self.alignToParent()
 
     def title(self) -> str:
+        """Title of the overlay widget."""
         return self._title_bar.title()
 
     def setTitle(self, title: str) -> None:
+        """Set the title of the overlay widget."""
         return self._title_bar.setTitle(title)
 
-    if TYPE_CHECKING:
+    def hideLater(self, sec: float = 5):
+        """Hide overlay widget after a delay."""
+        return QtCore.QTimer.singleShot(int(sec * 1000), self.hide)
 
-        def parentWidget(self) -> QTabbedTableStack:
-            ...
+    # fmt: off
+    if TYPE_CHECKING:
+        def parentWidget(self) -> QTabbedTableStack: ...
+    # fmt: on
 
     def show(self):
         super().show()
-        return self.alignToParent()
+        self.alignToParent()
+        self.opacity_anim.setDuration(self._duration)
+        self.opacity_anim.setStartValue(0)
+        self.opacity_anim.setEndValue(0.9)
+        self.opacity_anim.start()
+        return None
+
+    def hide(self) -> None:
+        self.parentWidget().parent().setCellFocus()
+        self.opacity_anim.setDuration(self._duration)
+        self.opacity_anim.setStartValue(0.9)
+        self.opacity_anim.setEndValue(0)
+        self.opacity_anim.start()
+
+        @self.opacity_anim.finished.connect
+        def _on_vanished():
+            self.setVisible(False)
+            self.opacity_anim.finished.disconnect()
+
+        return None
 
     def alignToParent(self):
         """Position widget at the bottom right edge of the parent."""
