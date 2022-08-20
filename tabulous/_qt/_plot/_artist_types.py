@@ -8,7 +8,7 @@ from matplotlib.patches import Patch
 
 from matplotlib.artist import Artist
 
-from magicgui.widgets import ComboBox, Container, FloatSpinBox
+from magicgui.widgets import ComboBox, Container, SpinBox, FloatSpinBox
 
 
 class Marker(Enum):
@@ -57,7 +57,10 @@ class Line2DEdit(Container):
         self._line = weakref.ref(line)
 
         # line color
-        _color_edit = ColorEdit(name="color", value=line.get_color())
+        color = line.get_color()
+        if not isinstance(color, str):
+            color = [int(c * 255) for c in color]
+        _color_edit = ColorEdit(name="color", value=color)
         _color_edit.changed.connect(self.set_color)
 
         # line style
@@ -72,7 +75,11 @@ class Line2DEdit(Container):
         )
         _lw_edit.changed.connect(self.set_linewidth)
 
-        super().__init__(widgets=[_color_edit, _ls_edit, _lw_edit])
+        # zorder
+        _zorder = SpinBox(min=-10000, max=10000, value=line.get_zorder(), name="zorder")
+        _zorder.changed.connect(self.set_zorder)
+
+        super().__init__(widgets=[_color_edit, _ls_edit, _lw_edit, _zorder])
 
     @property
     def line(self) -> Line2D:
@@ -92,6 +99,9 @@ class Line2DEdit(Container):
     def set_linewidth(self, lw: float):
         self.line.set_linewidth(lw)
 
+    def set_zorder(self, zorder: int):
+        self.line.set_zorder(zorder)
+
 
 class ScatterEdit(Container):
     def __init__(self, scatter: PathCollection) -> None:
@@ -100,7 +110,7 @@ class ScatterEdit(Container):
         self._line = weakref.ref(scatter)
 
         # scatter color
-        _facecolor = ColorEdit(name="color", value=scatter.get_facecolor()[0] * 255)
+        _facecolor = ColorEdit(name="facecolor", value=scatter.get_facecolor()[0] * 255)
         _facecolor.changed.connect(self.set_facecolor)
 
         _edgecolor = ColorEdit(name="edgecolor", value=scatter.get_edgecolor()[0] * 255)
@@ -114,7 +124,14 @@ class ScatterEdit(Container):
             min=0.0, max=500.0, step=0.5, value=scatter.get_sizes()[0], name="size"
         )
         _size_edit.changed.connect(self.set_size)
-        super().__init__(widgets=[_facecolor, _edgecolor, _size_edit])
+
+        # zorder
+        _zorder = SpinBox(
+            min=-10000, max=10000, value=scatter.get_zorder(), name="zorder"
+        )
+        _zorder.changed.connect(self.set_zorder)
+
+        super().__init__(widgets=[_facecolor, _edgecolor, _size_edit, _zorder])
 
     @property
     def scatter(self) -> PathCollection:
@@ -137,6 +154,9 @@ class ScatterEdit(Container):
 
     def set_size(self, size: int) -> None:
         self.scatter.set_sizes([size])
+
+    def set_zorder(self, zorder: int):
+        self.scatter.set_zorder(zorder)
 
 
 def pick_container(artist: Artist) -> Container:

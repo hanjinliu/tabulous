@@ -72,7 +72,7 @@ class QtErrorMessageBox(QtW.QMessageBox):
     @classmethod
     def raise_(cls, e: Exception, parent=None):
         """Raise exception in the message box."""
-        self = cls(type(e).__name__, e, parent)
+        self = cls(type(e).__name__, str(e)[:1000], parent)
         self.exec_()
 
     def _get_traceback(self):

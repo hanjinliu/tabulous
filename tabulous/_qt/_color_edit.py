@@ -52,15 +52,6 @@ class QColorSwatch(QtW.QFrame):
             self.colorChanged.emit()
 
 
-class QColorStringValidator(QtGui.QValidator):
-    def validate(self, input: str, pos: int):
-        try:
-            normalize_color(input)
-        except ValueError:
-            return False
-        return True
-
-
 class QColorLineEdit(QtW.QLineEdit):
     colorChanged = Signal()
 
