@@ -164,7 +164,7 @@ class QTabbedTableStack(QtW.QTabWidget):
         source = e.source()
         if source is None:
             return
-        if source.parentWidget() is not self:
+        if source.parent() is not self:
             return
 
         self._entering_tab_index = self.indexOf(self.widget(self._moving_tab_index))
@@ -346,6 +346,7 @@ class QTabbedTableStack(QtW.QTabWidget):
         current_index = self.currentIndex()
         indices = sorted(indices)
 
+        # untile tables before tiling with others
         tables: list[QBaseTable] = []
         for i in indices:
             table = self.widget(i)
@@ -359,19 +360,17 @@ class QTabbedTableStack(QtW.QTabWidget):
             wdt = widgets[j]
             self.replaceWidget(index, wdt)
 
-            @wdt.focusChanged.connect
-            def _(idx, wdt: QTableGroup = wdt):
-                idx_dst = self._group_index_to_tab_index(wdt, idx)
-                dst = cast(QTableGroup, self.widget(idx_dst))
-                wdt.blockSignals(True)
-                dst.blockSignals(True)
-                self.setCurrentIndex(idx_dst)
-                dst.setFocusedIndex(idx)
-                dst.blockSignals(False)
-                wdt.blockSignals(False)
-
         self.setCurrentIndex(current_index)
         return None
+
+    def tiledIndices(self, idx: int) -> list[int]:
+        """Return indices of tables that are tiled with one at idx."""
+        wdt = self.widget(idx)
+        if isinstance(wdt, QTableGroup):
+            wdt = cast(QTableGroup, wdt)
+            return [self.tableIndex(table) for table in wdt.tables]
+        else:
+            return [idx]
 
     def replaceWidget(self, index: int, new: QtW.QWidget) -> None:
         """

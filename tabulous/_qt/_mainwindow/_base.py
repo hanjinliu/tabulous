@@ -99,9 +99,16 @@ class _QtMainWidgetBase(QtW.QWidget):
         if table is None or table.table_shape[0] * table.table_shape[1] == 0:
             return None
         sels = table.selections
-        table._qwidget._qtable_view.setFocus()
         if len(sels) == 0:
             table.selections = [(slice(0, 1), slice(0, 1))]
+
+        # set focus
+        idx = self._tablestack.currentIndex()
+        if len(self._tablestack.tiledIndices(idx)) > 1:
+            idx_group = self._tablestack._tab_index_to_group_index(idx)
+            self._tablestack.widget(idx).setFocusedIndex(idx_group)
+        else:
+            table._qwidget._qtable_view.setFocus()
         return None
 
     def setCentralWidget(self, wdt: QTabbedTableStack):

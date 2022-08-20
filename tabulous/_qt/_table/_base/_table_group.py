@@ -1,11 +1,12 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, Signal
 
 if TYPE_CHECKING:
     from ._table_base import QBaseTable
     from ._enhanced_table import _QTableViewEnhanced
+    from ..._table_stack import QTabbedTableStack
 
 # Wrapper widgets that can be used to wrap a QTableView
 
@@ -28,6 +29,8 @@ class QTableGroup(QtW.QSplitter):
             self.addWidget(view_copy)
             self.setStretchFactor(i, 1)
             self._tables.append(table)
+
+        self.focusChanged.connect(self._on_focus_changed)
 
     def copy(self) -> QTableGroup:
         """Make a copy of this widget."""
@@ -90,6 +93,23 @@ class QTableGroup(QtW.QSplitter):
         # NOTE: This should be safe. Table groups derived from the same ancestor
         # will always have exclusively the same set of tables.
         return self._tables[0].model() is other._tables[0].model()
+
+    def _on_focus_changed(self, idx: int):
+        stack = self.tableStack()
+        try:
+            idx_dst = stack._group_index_to_tab_index(self, idx)
+        except ValueError:
+            return
+        dst = cast(QTableGroup, stack.widget(idx_dst))
+        self.blockSignals(True)
+        dst.blockSignals(True)
+        stack.setCurrentIndex(idx_dst)
+        dst.setFocusedIndex(idx)
+        dst.blockSignals(False)
+        self.blockSignals(False)
+
+    def tableStack(self) -> QTabbedTableStack:
+        return self.parent().parent()
 
     if TYPE_CHECKING:
 

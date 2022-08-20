@@ -158,6 +158,7 @@ def _(self: _QtMainWidgetBase):
     if src == 0:
         return
     self._tablestack.setCurrentIndex(src - 1)
+    return self.setCellFocus()
 
 @QMainWidget._keymap.bind("Alt+Right")
 @QMainWindow._keymap.bind("Alt+Right")
@@ -170,6 +171,7 @@ def _(self: _QtMainWidgetBase):
     if src == num - 1:
         return
     self._tablestack.setCurrentIndex(src + 1)
+    return self.setCellFocus()
 
 @QMainWidget._keymap.bind("Alt+Shift+Left")
 @QMainWindow._keymap.bind("Alt+Shift+Left")
@@ -213,7 +215,12 @@ def _(self: _QtMainWidgetBase):
         indices = [idx, idx + 1]
     else:
         indices = [idx - 1, idx]
-    self._tablestack.tileTables(indices, orientation="horizontal")
+    all_indices = []
+    for i in indices:
+        all_indices.extend(self._tablestack.tiledIndices(i))
+
+    all_indices = list(set(all_indices))
+    return self._tablestack.tileTables(all_indices, orientation="horizontal")
 
 @QMainWidget._keymap.bind("Ctrl+K, \\")
 @QMainWindow._keymap.bind("Ctrl+K, \\")
