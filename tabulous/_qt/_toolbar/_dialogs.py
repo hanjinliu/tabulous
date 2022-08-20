@@ -47,7 +47,7 @@ def plot(ax: Axes, x: str, y: List[str], data, alpha: float = 1.0):
             xdata = np.arange(len(ylabel))
         else:
             xdata = data[x]
-        ax.plot(xdata, ydata, alpha=alpha, label=ylabel)
+        ax.plot(xdata, ydata, alpha=alpha, label=ylabel, picker=True)
     return True
 
 
@@ -59,7 +59,7 @@ def scatter(ax: Axes, x: str, y: List[str], data, alpha: float = 1.0):
             xdata = np.arange(len(ylabel))
         else:
             xdata = data[x]
-        ax.scatter(xdata, ydata, alpha=alpha, label=ylabel)
+        ax.scatter(xdata, ydata, alpha=alpha, label=ylabel, picker=True)
     return True
 
 
@@ -69,7 +69,9 @@ def errorbar(ax: Axes, x: str, y: str, yerr: str, data, alpha: float = 1.0):
         xdata = np.arange(len(y))
     else:
         xdata = data[x]
-    ax.errorbar(xdata, data[y], yerr=data[yerr], alpha=alpha, fmt="o", label=y)
+    ax.errorbar(
+        xdata, data[y], yerr=data[yerr], alpha=alpha, fmt="o", label=y, picker=True
+    )
     return True
 
 
@@ -77,7 +79,7 @@ def errorbar(ax: Axes, x: str, y: str, yerr: str, data, alpha: float = 1.0):
 def hist(ax: Axes, y, data, bins: int = 10, alpha: float = 1.0, density: bool = False):
     for _y in y:
         ydata = data[_y]
-        ax.hist(ydata, bins=bins, alpha=alpha, density=density, label=_y)
+        ax.hist(ydata, bins=bins, alpha=alpha, density=density, label=_y, picker=True)
     ax.axhline(0, color="gray", lw=0.5, alpha=0.5, zorder=-1)
     return True
 

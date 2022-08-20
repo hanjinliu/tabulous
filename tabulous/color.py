@@ -2,7 +2,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Iterable, Union
 
-__all__ = ["normalize_color"]
+__all__ = ["normalize_color", "rgba_to_str"]
 
 
 def normalize_color(color: str | Iterable[int]) -> tuple[int, int, int, int]:
@@ -18,6 +18,16 @@ def normalize_color(color: str | Iterable[int]) -> tuple[int, int, int, int]:
             raise ValueError(f"Invalid color: {color!r}")
         return out
     raise ValueError(f"Invalid color: {color!r}")
+
+
+def rgba_to_str(rgba: tuple[int, int, int, int]) -> str:
+    color_name = COLORS_BY_VALUE.get(rgba, None)
+    if color_name is None:
+        code = "#" + "".join(hex(c)[2:].upper().zfill(2) for c in rgba)
+        if code.endswith("FF"):
+            code = code[:-2]
+        return code
+    return color_name
 
 
 ColorType = Union[str, Iterable[int]]
@@ -193,3 +203,5 @@ COLORS_BY_NAME = {
     "yellow": (255, 255, 0, 255),
     "yellowgreen": (154, 205, 50, 255),
 }
+
+COLORS_BY_VALUE = {v: k for k, v in COLORS_BY_NAME.items()}

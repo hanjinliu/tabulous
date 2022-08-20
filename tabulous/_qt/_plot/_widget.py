@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     import matplotlib.pyplot as plt
     from matplotlib.figure import Figure
     from matplotlib.axes import Axes
+    from matplotlib.artist import Artist
 
     import seaborn as sns
     from seaborn.axisgrid import Grid
@@ -48,7 +49,7 @@ class QtMplPlotCanvas(QtW.QWidget):
         self.setMinimumHeight(135)
         self.resize(180, 135)
 
-        # canvas.itemPicked.connect(print)
+        canvas.itemPicked.connect(self._edit_artist)
 
     def cla(self):
         self.ax.cla()
@@ -80,6 +81,15 @@ class QtMplPlotCanvas(QtW.QWidget):
         self.layout().addWidget(canvas)
         if draw:
             self.draw()
+
+    def _edit_artist(self, artist: Artist):
+        from ._artist_types import pick_container
+
+        cnt = pick_container(artist)
+        cnt.native.setParent(self, cnt.native.windowFlags())
+        cnt.changed.connect(self.canvas.draw)
+        cnt.show()
+        return None
 
 
 def _use_seaborn_grid(f):

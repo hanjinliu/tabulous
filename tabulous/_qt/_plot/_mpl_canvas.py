@@ -1,8 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 import numpy as np
+from matplotlib.artist import Artist
 from matplotlib.backends.backend_qt5agg import FigureCanvas
 from matplotlib.backend_bases import MouseEvent, MouseButton
+
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Signal
 
@@ -17,7 +19,7 @@ class InteractiveFigureCanvas(FigureCanvas):
 
     figure: Figure
     deleteRequested = Signal()
-    itemPicked = Signal(object)
+    itemPicked = Signal(Artist)
 
     def __init__(self, fig):
         super().__init__(fig)
@@ -29,7 +31,15 @@ class InteractiveFigureCanvas(FigureCanvas):
         self.last_axis: Axes | None = None
         self._interactive = True
         self._mouse_click_callbacks = []
-        fig.canvas.mpl_connect("pick_event", self.itemPicked.emit)
+        fig.canvas.mpl_connect("pick_event", self._emit_pick_event)
+        self._artist_emit_lock = False
+
+    def _emit_pick_event(self, event):
+        if event.mouseevent.inaxes:
+            if self._artist_emit_lock:
+                return
+            self.itemPicked.emit(event.artist)
+            self._artist_emit_lock = True
 
     def wheelEvent(self, event):
         """
@@ -48,15 +58,16 @@ class InteractiveFigureCanvas(FigureCanvas):
         self.figure.canvas.draw()
         return None
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QtGui.QMouseEvent):
         """Record the starting coordinates of mouse drag."""
 
-        event = self.get_mouse_event(event)
-        self.lastx_pressed = self.lastx = event.xdata
-        self.lasty_pressed = self.lasty = event.ydata
-        if event.inaxes:
-            self.pressed = event.button
-            self.last_axis = event.inaxes
+        mouse_event = self.get_mouse_event(event)
+        self.lastx_pressed = self.lastx = mouse_event.xdata
+        self.lasty_pressed = self.lasty = mouse_event.ydata
+        if mouse_event.inaxes:
+            self.pressed = mouse_event.button
+            self.last_axis = mouse_event.inaxes
+            self._artist_emit_lock = False
         return None
 
     def mouseMoveEvent(self, event):
@@ -90,26 +101,39 @@ class InteractiveFigureCanvas(FigureCanvas):
         self.figure.canvas.draw()
         return None
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent):
         """Stop dragging state."""
         pos = event.pos()
-        event = self.get_mouse_event(event)
-        if self.lastx == event.xdata and self.lasty == event.ydata:
+        mouse_event = self.get_mouse_event(event)
+
+        if self.lastx == mouse_event.xdata and self.lasty == mouse_event.ydata:
+            # clicked, not dragged
             if self.pressed == MouseButton.LEFT:
                 for callbacks in self._mouse_click_callbacks:
-                    callbacks(event)
+                    callbacks(mouse_event)
+
             elif self.pressed == MouseButton.RIGHT:
                 menu = self._make_context_menu()
                 menu.exec_(self.mapToGlobal(pos))
+
         self.pressed = None
+
         return None
 
-    def mouseDoubleClickEvent(self, event):
+    def mouseDoubleClickEvent(self, event: QtGui.QMouseEvent):
         """Adjust layout upon dougle click."""
         if not self._interactive:
             return
-        self.figure.tight_layout()
-        self.figure.canvas.draw()
+        x, y = self.mouseEventCoords(event.pos())
+        button = self.buttond.get(event.button())
+
+        if button is not None:
+            # native button press event to pick artists
+            self.button_press_event(x, y, button, guiEvent=event)
+
+        if not self._artist_emit_lock:
+            self.figure.tight_layout()
+            self.figure.canvas.draw()
         return None
 
     def resizeEvent(self, event):
