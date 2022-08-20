@@ -11,8 +11,9 @@ if TYPE_CHECKING:
 
 
 class MatchMode:
-    value = "1"
-    text = "'1'"
+    value = "12"
+    text = "'12'"
+    text_partial = "'1'2"
     regex = ".*"
 
 
@@ -21,8 +22,14 @@ class QComboButtons(QtW.QWidget):
 
     currentTextChanged = Signal(str)
 
-    def __init__(self, choices: list[str]) -> None:
+    def __init__(self) -> None:
         super().__init__()
+        choices = [
+            MatchMode.value,
+            MatchMode.text,
+            MatchMode.text_partial,
+            MatchMode.regex,
+        ]
         _layout = QtW.QHBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.setSpacing(2)
@@ -30,25 +37,28 @@ class QComboButtons(QtW.QWidget):
         buttons = [QtW.QPushButton(choice, self) for choice in choices]
         buttons[0].setToolTip("Match by value")
         buttons[1].setToolTip("Match by text")
-        buttons[2].setToolTip("Match by regular expression")
+        buttons[2].setToolTip("Partial match by text")
+        buttons[3].setToolTip("Match by regular expression")
 
         for i, btn in enumerate(buttons):
             _layout.addWidget(btn)
             btn.setCheckable(True)
-            btn.setFont(QtGui.QFont("Arial", 9))
-            btn.setFixedSize(18, 18)
+            btn.setFont(QtGui.QFont("Arial"))
+            btn.setFixedSize(32, 18)
             btn.clicked.connect(lambda checked, idx=i: self.setCurrentIndex(idx))
 
         self._buttons = buttons
         self.setCurrentIndex(0)
 
     def currentIndex(self) -> int:
+        """Currently selected index."""
         for i, btn in enumerate(self._buttons):
             if btn.isChecked():
                 return i
         return -1
 
     def setCurrentIndex(self, index: int) -> None:
+        """Set currently selected index."""
         for i, btn in enumerate(self._buttons):
             checked = i == index
             btn.setChecked(checked)
@@ -81,9 +91,7 @@ class QFinderWidget(QtW.QWidget):
         _footer.setLayout(QtW.QHBoxLayout())
         _footer.layout().setContentsMargins(0, 0, 0, 0)
 
-        self.cbox_match = QComboButtons(
-            [MatchMode.value, MatchMode.text, MatchMode.regex]
-        )
+        self.cbox_match = QComboButtons()
         self.cbox_match.currentTextChanged.connect(self.setMatchMode)
 
         self.cbox_ori = QtW.QComboBox()
@@ -147,6 +155,8 @@ class QFinderWidget(QtW.QWidget):
             self._match_method = self._value_match
         elif mode == MatchMode.text:
             self._match_method = self._text_match
+        elif mode == MatchMode.text_partial:
+            self._match_method = self._text_partial_match
         elif mode == MatchMode.regex:
             self._match_method = self._text_regex_match
         else:
@@ -203,6 +213,11 @@ class QFinderWidget(QtW.QWidget):
         data = qtable.model().data(index, Qt.ItemDataRole.DisplayRole)
         displayed_text = qtable.itemDelegate()._format_number(data)
         return displayed_text == text
+
+    def _text_partial_match(
+        self, qtable: QBaseTable, r: int, c: int, item, text: str
+    ) -> bool:
+        return text in str(item)
 
     def _text_regex_match(
         self, qtable: QBaseTable, r: int, c: int, item, text: str
