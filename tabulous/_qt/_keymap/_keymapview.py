@@ -19,7 +19,7 @@ class QtKeyMapView(QtW.QWidget):
         self._keyseq_edit = QKeyComboEdit()
         _layout.addWidget(self._list)
         _layout.addWidget(self._keyseq_edit)
-        self._keyseq_edit.seqChanged.connect(self._on_keyseq_change)
+        self._keyseq_edit.seqChanged.connect(self._list.filter)
 
         self.setLayout(_layout)
         self._layout = _layout
@@ -42,18 +42,18 @@ class QtKeyMapView(QtW.QWidget):
                 self._list.addKeyMapItem(list(current_keys), child)
         return None
 
-    def _on_keyseq_change(self, seq: QtGui.QKeySequence):
-        keys = [QtKeys(s) for s in seq.toString().split(", ") if s]
-        self._list.filter(keys)
-
 
 class QKeySequenceEdit(QtW.QKeySequenceEdit):
     def timerEvent(self, a0) -> None:
         return None
 
+    def keyCombo(self) -> list[QtKeys]:
+        seq = self.keySequence()
+        return [QtKeys(s) for s in seq.toString().split(", ") if s]
+
 
 class QKeyComboEdit(QtW.QWidget):
-    seqChanged = Signal(QtGui.QKeySequence)
+    seqChanged = Signal(list)
 
     def __init__(self, parent: QtW.QWidget | None = None) -> None:
         super().__init__(parent)
@@ -78,7 +78,7 @@ class QKeyComboEdit(QtW.QWidget):
         self._keyseq_edit = seq
 
     def emitKeySequence(self):
-        return self.seqChanged.emit(self._keyseq_edit.keySequence())
+        return self.seqChanged.emit(self._keyseq_edit.keyCombo())
 
     def clear(self):
         self._keyseq_edit.clear()
@@ -91,6 +91,10 @@ class QKeyComboEdit(QtW.QWidget):
 
 
 class QKeyMapList(QtW.QListWidget):
+    def __init__(self, parent: QtW.QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.NoSelection)
+
     def addKeyMapItem(self, keys: list[QtKeys], callback: BoundCallback):
         item = QtW.QListWidgetItem()
         self.addItem(item)

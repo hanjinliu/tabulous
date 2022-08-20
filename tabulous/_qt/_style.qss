@@ -82,3 +82,13 @@ QDtypedLineEdit {
     border: none;
     border-bottom: 2px solid #BADEF4;
 }
+
+QListView:item {
+    border-top: 1px solid lightgray;
+    border-bottom: 1px solid lightgray;
+}
+
+QListView:item:hover {
+    border-top: 2px solid #BADEF4;
+    border-bottom: 2px solid #BADEF4;
+}
