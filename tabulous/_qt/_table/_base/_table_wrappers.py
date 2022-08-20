@@ -76,6 +76,7 @@ class QPopupWidget(QtW.QWidget):
         self._drag_start: QtCore.QPoint | None = None
 
     def setTitle(self, text: str):
+        """Set the title of the popup."""
         return self._title.setText(text)
 
     def closeEvent(self, a0) -> None:

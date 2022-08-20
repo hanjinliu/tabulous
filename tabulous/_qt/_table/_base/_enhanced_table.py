@@ -250,6 +250,11 @@ class _QTableViewEnhanced(QtW.QTableView):
                 focused_widget.deselect()
             return
 
+        elif keys == "F2":
+            if not parent.isEditable():
+                return parent.tableStack().notifyEditability()
+            return self.edit(self.currentIndex())
+
         if keys.has_ctrl():
             self._selection_model.set_ctrl(True)
         elif keys.has_key():

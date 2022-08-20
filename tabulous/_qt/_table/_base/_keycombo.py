@@ -22,15 +22,6 @@ def _(self: QBaseTable):
     return self._qtable_view.selectAll()
 
 
-@QBaseTable._keymap.bind("F2")
-def _(self: QBaseTable):
-    if isinstance(self, QMutableTable):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        qtable = self._qtable_view
-        return qtable.edit(qtable.currentIndex())
-
-
 @QBaseTable._keymap.bind("Ctrl+Alt+Up", dr=-1, dc=0)
 @QBaseTable._keymap.bind("Ctrl+Alt+Down", dr=1, dc=0)
 @QBaseTable._keymap.bind("Ctrl+Alt+Left", dr=0, dc=-1)
