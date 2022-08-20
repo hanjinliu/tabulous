@@ -65,10 +65,3 @@ def _on_selection_change(selections):
 |:-:|:-:|
 |![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_groupby.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_display.gif)|
 |A table group that corresponds to the returned object of the `groupby` method of `pd.DataFrame`.|A table viewer that hotly reloads data using provided loader function. Useful for streaming data from other softwares.|
-
-### Supported view modes
-
-|**Dual view**|**Popup view**|
-|:-:|:-:|
-|![](https://github.com/hanjinliu/tabulous/blob/main/image/dual_view.png)|![](https://github.com/hanjinliu/tabulous/blob/main/image/popup_view.png)|
-|Display two locations in a table.|Open a popup window of the table.|
