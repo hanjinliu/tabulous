@@ -9,6 +9,7 @@ from qtpy.QtCore import Signal
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
     from matplotlib.axes import Axes
+    from matplotlib.legend import Legend
 
 
 class InteractiveFigureCanvas(FigureCanvas):
@@ -133,6 +134,7 @@ class InteractiveFigureCanvas(FigureCanvas):
         menu.addAction("Copy ...", self._copy_canvas)
         menu.addAction("Save As...", self._save_canvas_dialog)
         menu.addAction("Clear figure", self._clear_figure)
+        menu.addAction("Legend", self._toggle_legend)
         menu.addSeparator()
         return menu
 
@@ -152,8 +154,12 @@ class InteractiveFigureCanvas(FigureCanvas):
         self.figure.canvas.draw()
 
     def _toggle_legend(self):
-        legend = self.last_axis.get_legend()
-        legend.set_visible(not legend.get_visible())
+        legend: Legend = self.last_axis.get_legend()
+        if legend is None:
+            self.last_axis.legend()
+        else:
+            legend.set_visible(not legend.get_visible())
+        self.figure.canvas.draw()
 
     def _asarray(self) -> np.ndarray:
         """Convert current canvas state into RGBA numpy array."""
@@ -164,7 +170,7 @@ class InteractiveFigureCanvas(FigureCanvas):
         arr = self._asarray()
         clipboard = QtW.QApplication.clipboard()
         h, w, _ = arr.shape
-        image = QtGui.QImage(arr, w, h, QtGui.QImage.Format_RGBA8888)
+        image = QtGui.QImage(arr, w, h, QtGui.QImage.Format.Format_RGBA8888)
         clipboard.setImage(image)
 
 
