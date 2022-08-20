@@ -1,6 +1,6 @@
-# from __future__ import annotations
+from __future__ import annotations
 from pathlib import Path
-from typing import Callable, List, TYPE_CHECKING, Union
+from typing import Callable, Hashable, List, TYPE_CHECKING, Union
 from functools import partial
 import weakref
 from qtpy import QtWidgets as QtW, QtCore
@@ -13,8 +13,10 @@ from . import _dialogs as _dlg
 
 
 if TYPE_CHECKING:
+    import pandas as pd
     from .._mainwindow import _QtMainWidgetBase
     from ...widgets.mainwindow import TableViewerBase
+    from ...widgets import TableBase
 
 SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 
@@ -26,13 +28,13 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._button_and_icon: List["tuple[QtW.QToolButton, QColoredSVGIcon]"] = []
+        self._button_and_icon: List[tuple[QtW.QToolButton, QColoredSVGIcon]] = []
 
     def updateIconColor(self, color):
         for button, icon in self._button_and_icon:
             button.setIcon(icon.colored(color))
 
-    def appendAction(self, f: Callable, qicon: "QColoredSVGIcon"):
+    def appendAction(self, f: Callable, qicon: QColoredSVGIcon):
         action = self.addAction(qicon, "")
         action.triggered.connect(f)
         if isinstance(f, partial):
@@ -65,7 +67,7 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
 
 
 class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
-    def __init__(self, parent: "_QtMainWidgetBase"):
+    def __init__(self, parent: _QtMainWidgetBase):
         super().__init__(parent)
 
         self._tab = QtW.QTabWidget(self)
@@ -85,7 +87,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.initToolbar()
 
     @property
-    def viewer(self) -> "TableViewerBase":
+    def viewer(self) -> TableViewerBase:
         """The parent viewer object."""
         return self.parent()._table_viewer
 
@@ -112,7 +114,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
     if TYPE_CHECKING:
 
-        def parent(self) -> "_QtMainWidgetBase":
+        def parent(self) -> _QtMainWidgetBase:
             ...
 
     def addToolBar(self, name: str):
@@ -332,28 +334,25 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if table is None:
             return None
 
-        choices = list(table.selections.values.itercolumns())
-
-        if len(choices) == 0 or len(choices[0][1]) == 1:
-            # no selections or only one cell is selected
-            choices = list(table.data.iteritems())
+        data, choices = _get_data_and_choices(table)
 
         if len(choices) < 2:
             raise ValueError("Table must have at least two columns.")
         elif len(choices) == 2:
             x = {"choices": [], "value": None, "nullable": True}
-            y = {"choices": choices}
-            yerr = {"choices": choices}
+            y = {"choices": choices, "value": choices[0]}
+            yerr = {"choices": choices, "value": choices[1]}
         else:
-            x = {"choices": choices, "nullable": True}
-            y = {"choices": choices}
-            yerr = {"choices": choices}
+            x = {"choices": choices, "nullable": True, "value": choices[0]}
+            y = {"choices": choices, "value": choices[1]}
+            yerr = {"choices": choices, "value": choices[2]}
 
         if _dlg.errorbar(
             ax={"bind": table.plt.gca()},
             x=x,
             y=y,
             yerr=yerr,
+            data={"bind": data},
             alpha={"min": 0, "max": 1, "step": 0.05},
             parent=self,
         ):
@@ -365,14 +364,12 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if table is None:
             return None
 
-        choices = list(table.selections.values.itercolumns())
-
-        if not choices:
-            choices = list(table.data.iteritems())
+        data, choices = _get_data_and_choices(table)
 
         if _dlg.hist(
             ax={"bind": table.plt.gca()},
-            y={"choices": choices, "widget_type": "Select"},
+            y={"choices": choices, "widget_type": "Select", "value": choices[0]},
+            data={"bind": data},
             alpha={"min": 0, "max": 1, "step": 0.05},
             parent=self,
         ):
@@ -403,25 +400,22 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if table is None:
             return None
 
-        choices = list(table.selections.values.itercolumns())
-
-        if len(choices) == 0 or len(choices[0][1]) == 1:
-            # no selections or only one cell is selected
-            choices = list(table.data.iteritems())
+        data, choices = _get_data_and_choices(table)
 
         if len(choices) == 0:
             raise ValueError("Table must have at least one column.")
         elif len(choices) == 1:
             x = {"choices": [], "value": None, "nullable": True}
-            y = {"choices": choices, "widget_type": "Select"}
+            y = {"choices": choices, "widget_type": "Select", "value": choices[0]}
         else:
-            x = {"choices": choices, "nullable": True}
-            y = {"choices": choices, "widget_type": "Select"}
+            x = {"choices": choices, "nullable": True, "value": choices[0]}
+            y = {"choices": choices, "widget_type": "Select", "value": choices[1]}
 
         if dialog(
             ax={"bind": table.plt.gca()},
             x=x,
             y=y,
+            data={"bind": data},
             alpha={"min": 0, "max": 1, "step": 0.05},
             parent=self,
         ):
@@ -502,3 +496,17 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Plot", self.new_figure, ICON_DIR / "new_figure.svg")
 
         # fmt: on
+
+
+def _get_data_and_choices(
+    table: TableBase,
+) -> tuple[dict[Hashable, pd.Series], list[Hashable]]:
+    data = dict(table.selections.values.itercolumns())
+    choices = list(data.keys())
+
+    if len(choices) == 0 or len(next(iter(data.values()))) == 1:
+        # no selections or only one cell is selected
+        data = dict(table.data.items())
+        choices = list(table.data.columns)
+
+    return data, choices

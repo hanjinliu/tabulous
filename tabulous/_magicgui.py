@@ -375,6 +375,8 @@ def dialog_factory(function: _F) -> _F:
                 except Exception:
                     pass
 
+            dlg.changed.emit()
+
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
             out = function(**dlg.asdict())

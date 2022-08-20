@@ -40,41 +40,44 @@ def sort(df: TableData, by: List[str], ascending: bool = True) -> TableData:
 
 
 @dialog_factory
-def plot(ax: Axes, x, y, alpha: float = 1.0):
-    for _y in y:
+def plot(ax: Axes, x: str, y: List[str], data, alpha: float = 1.0):
+    for ylabel in y:
+        ydata: pd.Series = data[ylabel]
         if x is None:
-            _x = np.arange(len(_y))
+            xdata = np.arange(len(ylabel))
         else:
-            _x = x
-        ax.plot(_x, _y, alpha=alpha)
+            xdata = data[x]
+        ax.plot(xdata, ydata, alpha=alpha, label=ylabel)
     return True
 
 
 @dialog_factory
-def scatter(ax: Axes, x, y, alpha: float = 1.0):
-    for _y in y:
+def scatter(ax: Axes, x: str, y: List[str], data, alpha: float = 1.0):
+    for ylabel in y:
+        ydata: pd.Series = data[ylabel]
         if x is None:
-            _x = np.arange(len(_y))
+            xdata = np.arange(len(ylabel))
         else:
-            _x = x
-        ax.scatter(_x, _y, alpha=alpha)
+            xdata = data[x]
+        ax.scatter(xdata, ydata, alpha=alpha, label=ylabel)
     return True
 
 
 @dialog_factory
-def errorbar(ax: Axes, x, y, yerr, alpha: float = 1.0):
+def errorbar(ax: Axes, x: str, y: str, yerr: str, data, alpha: float = 1.0):
     if x is None:
-        _x = np.arange(len(y))
+        xdata = np.arange(len(y))
     else:
-        _x = x
-    ax.errorbar(_x, y, yerr=yerr, alpha=alpha, fmt="o")
+        xdata = data[x]
+    ax.errorbar(xdata, data[y], yerr=data[yerr], alpha=alpha, fmt="o", label=y)
     return True
 
 
 @dialog_factory
-def hist(ax: Axes, y, bins: int = 10, alpha: float = 1.0, density: bool = False):
+def hist(ax: Axes, y, data, bins: int = 10, alpha: float = 1.0, density: bool = False):
     for _y in y:
-        ax.hist(_y, bins=bins, alpha=alpha, density=density)
+        ydata = data[_y]
+        ax.hist(ydata, bins=bins, alpha=alpha, density=density, label=_y)
     ax.axhline(0, color="gray", lw=0.5, alpha=0.5, zorder=-1)
     return True
 
