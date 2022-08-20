@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Callable, Hashable, List, TYPE_CHECKING, Union
+from typing import Callable, Hashable, TYPE_CHECKING, Union
 from functools import partial
 import weakref
 from qtpy import QtWidgets as QtW, QtCore
@@ -28,7 +28,7 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._button_and_icon: List[tuple[QtW.QToolButton, QColoredSVGIcon]] = []
+        self._button_and_icon: list[tuple[QtW.QToolButton, QColoredSVGIcon]] = []
 
     def updateIconColor(self, color):
         for button, icon in self._button_and_icon:

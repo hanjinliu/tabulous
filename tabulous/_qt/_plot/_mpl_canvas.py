@@ -151,6 +151,10 @@ class InteractiveFigureCanvas(FigureCanvas):
             ax.cla()
         self.figure.canvas.draw()
 
+    def _toggle_legend(self):
+        legend = self.last_axis.get_legend()
+        legend.set_visible(not legend.get_visible())
+
     def _asarray(self) -> np.ndarray:
         """Convert current canvas state into RGBA numpy array."""
         return np.asarray(self.renderer.buffer_rgba(), dtype=np.uint8)
