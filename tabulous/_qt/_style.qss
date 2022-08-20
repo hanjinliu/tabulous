@@ -36,7 +36,6 @@ QTableView:item:focus {
 
 QTabWidget {
     border: 1px solid black;
-    background-color: #BADEF4;
 }
 
 /* In MacOS, the positions of tabs are centered. */

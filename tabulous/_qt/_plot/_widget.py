@@ -49,14 +49,22 @@ class QtMplPlotCanvas(QtW.QWidget):
         self.setMinimumHeight(135)
         self.resize(180, 135)
 
+        self._editor = QMplEditor()
+        self._editor.setParent(self, self._editor.windowFlags())
+
         canvas.itemPicked.connect(self._edit_artist)
+        canvas.doubleClicked.connect(self._editor.clear)
 
-    def cla(self):
+    def cla(self) -> None:
+        """Clear the current axis."""
         self.ax.cla()
+        return None
 
-    def draw(self):
+    def draw(self) -> None:
+        """Draw (update) the figure."""
         self.figure.tight_layout()
         self.canvas.draw()
+        return None
 
     @property
     def axes(self):
@@ -86,9 +94,9 @@ class QtMplPlotCanvas(QtW.QWidget):
         from ._artist_types import pick_container
 
         cnt = pick_container(artist)
-        cnt.native.setParent(self, cnt.native.windowFlags())
         cnt.changed.connect(self.canvas.draw)
-        cnt.show()
+        self._editor.addTab(cnt.native, artist.get_label())
+        self._editor.show()
         return None
 
 
@@ -113,5 +121,17 @@ def _use_seaborn_grid(f):
     return func
 
 
-class QMplEditor:
-    ...
+class QMplEditor(QtW.QTabWidget):
+    def __init__(self, parent: QtW.QWidget | None = None):
+        super().__init__(parent)
+        self.setWindowTitle("Matplotlib Artist Editor")
+
+    def addTab(self, widget: QtW.QWidget, label: str) -> int:
+        """Add a tab to the editor."""
+        area = QtW.QScrollArea(self)
+        widget.setSizePolicy(
+            QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Expanding
+        )
+        out = super().addTab(area, label)
+        area.setWidget(widget)
+        return out

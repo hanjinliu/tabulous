@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 import numpy as np
 from matplotlib.artist import Artist
+from matplotlib.collections import Collection
 from matplotlib.backends.backend_qt5agg import FigureCanvas
 from matplotlib.backend_bases import MouseEvent, MouseButton
 
@@ -20,6 +21,7 @@ class InteractiveFigureCanvas(FigureCanvas):
     figure: Figure
     deleteRequested = Signal()
     itemPicked = Signal(Artist)
+    doubleClicked = Signal()  # emitted *before* itemPicked event
 
     def __init__(self, fig):
         super().__init__(fig)
@@ -32,14 +34,19 @@ class InteractiveFigureCanvas(FigureCanvas):
         self._interactive = True
         self._mouse_click_callbacks = []
         fig.canvas.mpl_connect("pick_event", self._emit_pick_event)
-        self._artist_emit_lock = False
 
     def _emit_pick_event(self, event):
-        if event.mouseevent.inaxes:
-            if self._artist_emit_lock:
-                return
-            self.itemPicked.emit(event.artist)
-            self._artist_emit_lock = True
+        ax: Axes = event.mouseevent.inaxes
+        if ax:
+            artist = event.artist
+            if ax.containers:
+                for container in ax.containers:
+                    # if an artist is in a container, emit the container instead
+                    if artist in container.get_children():
+                        self.itemPicked.emit(container)
+                        break
+            else:
+                self.itemPicked.emit(event.artist)
 
     def wheelEvent(self, event):
         """
@@ -67,7 +74,6 @@ class InteractiveFigureCanvas(FigureCanvas):
         if mouse_event.inaxes:
             self.pressed = mouse_event.button
             self.last_axis = mouse_event.inaxes
-            self._artist_emit_lock = False
         return None
 
     def mouseMoveEvent(self, event):
@@ -124,6 +130,8 @@ class InteractiveFigureCanvas(FigureCanvas):
         """Adjust layout upon dougle click."""
         if not self._interactive:
             return
+
+        self.doubleClicked.emit()
         x, y = self.mouseEventCoords(event.pos())
         button = self.buttond.get(event.button())
 
@@ -131,9 +139,8 @@ class InteractiveFigureCanvas(FigureCanvas):
             # native button press event to pick artists
             self.button_press_event(x, y, button, guiEvent=event)
 
-        if not self._artist_emit_lock:
-            self.figure.tight_layout()
-            self.figure.canvas.draw()
+        self.figure.tight_layout()
+        self.figure.canvas.draw()
         return None
 
     def resizeEvent(self, event):
