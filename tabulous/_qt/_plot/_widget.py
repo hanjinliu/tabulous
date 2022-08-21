@@ -91,11 +91,11 @@ class QtMplPlotCanvas(QtW.QWidget):
             self.draw()
 
     def _edit_artist(self, artist: Artist):
-        from ._artist_types import pick_container
+        from ._artist_editors import pick_container
 
         cnt = pick_container(artist)
         cnt.changed.connect(self.canvas.draw)
-        self._editor.addTab(cnt.native, artist.get_label())
+        self._editor.addTab(cnt.native, cnt.get_label())
         self._editor.show()
         return None
 

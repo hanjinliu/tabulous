@@ -91,3 +91,9 @@ QKeyMapList:item:hover {
     border-top: 2px solid #BADEF4;
     border-bottom: 2px solid #BADEF4;
 }
+
+QToolButton:hover {
+    border: 2px solid lightgray;
+    border-radius: 4px;
+    padding: 2px;
+}

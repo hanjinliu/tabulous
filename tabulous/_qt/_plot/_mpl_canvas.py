@@ -20,7 +20,7 @@ class InteractiveFigureCanvas(FigureCanvas):
 
     figure: Figure
     deleteRequested = Signal()
-    itemPicked = Signal(Artist)
+    itemPicked = Signal(object)
     doubleClicked = Signal()  # emitted *before* itemPicked event
 
     def __init__(self, fig):
@@ -42,11 +42,11 @@ class InteractiveFigureCanvas(FigureCanvas):
             if ax.containers:
                 for container in ax.containers:
                     # if an artist is in a container, emit the container instead
-                    if artist in container.get_children():
+                    if artist in container:
                         self.itemPicked.emit(container)
                         break
             else:
-                self.itemPicked.emit(event.artist)
+                self.itemPicked.emit(artist)
 
     def wheelEvent(self, event):
         """
