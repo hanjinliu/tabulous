@@ -46,7 +46,7 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
 
             self._toolbar = QTableStackToolBar(self)
             self.insertWidget(0, self._toolbar)
-            self.updateToolButtons()
+            self.updateWidgetStyle()
 
         return self._toolbar.setVisible(visible)
 

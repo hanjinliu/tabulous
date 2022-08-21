@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import lru_cache
 from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -12,6 +13,7 @@ from ..._keymap import QtKeys
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
+    from ..._mainwindow import _QtMainWidgetBase
 
 # fmt: off
 # Flags
@@ -338,17 +340,30 @@ class _QTableViewEnhanced(QtW.QTableView):
         nsel = len(sels)
         painter = QtGui.QPainter(self.viewport())
         model = self.model()
+        if self.parentViewer()._white_background:
+            pen_color = Qt.GlobalColor.darkBlue
+        else:
+            pen_color = Qt.GlobalColor.cyan
         for i, (rr, cc) in enumerate(sels):
             top_left = model.index(rr.start, cc.start)
             bottom_right = model.index(rr.stop - 1, cc.stop - 1)
             rect = self.visualRect(top_left) | self.visualRect(bottom_right)
-            pen = QtGui.QPen(Qt.GlobalColor.darkBlue, 2 + int(nsel == i + 1) * focused)
+            pen = QtGui.QPen(pen_color, 2 + int(nsel == i + 1) * focused)
             painter.setPen(pen)
             painter.drawRect(rect)
         return None
 
     def parentTable(self) -> QBaseTable | None:
+        """The parent QBaseTable widget."""
         parent = self._parent_table
         if not isinstance(parent, QBaseTable):
             parent = None
+        return parent
+
+    @lru_cache(maxsize=1)
+    def parentViewer(self) -> _QtMainWidgetBase:
+        """The parent table viewer widget."""
+        parent = self.parentTable().parent()
+        while not hasattr(parent, "_table_viewer"):
+            parent = parent.parent()
         return parent

@@ -48,19 +48,21 @@ class _QtMainWidgetBase(QtW.QWidget):
         # garbage collected.
         self._event_filter = _EventFilter()
         self.installEventFilter(self._event_filter)
-        self._event_filter.styleChanged.connect(self.updateToolButtons)
+        self._white_background = True
+        self._event_filter.styleChanged.connect(self.updateWidgetStyle)
         self._console_widget: QtConsole | None = None
         self._keymap_widget = None
 
-    def updateToolButtons(self):
-        if self._toolbar is None:
-            return
+    def updateWidgetStyle(self):
         bg = self.palette().color(self.backgroundRole())
         whiteness = bg.red() + bg.green() + bg.blue()
-        if whiteness < 128 * 3:
-            self._toolbar.setToolButtonColor("#FFFFFF")
+        self._white_background = whiteness > 128 * 3
+        if self._white_background:
+            if self._toolbar is not None:
+                self._toolbar.setToolButtonColor("#000000")
         else:
-            self._toolbar.setToolButtonColor("#000000")
+            if self._toolbar is not None:
+                self._toolbar.setToolButtonColor("#FFFFFF")
 
     def screenshot(self):
         """Create an array of pixel data of the current view."""

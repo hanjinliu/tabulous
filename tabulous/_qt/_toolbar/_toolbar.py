@@ -31,6 +31,7 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
         self._button_and_icon: list[tuple[QtW.QToolButton, QColoredSVGIcon]] = []
 
     def updateIconColor(self, color):
+        """Update all the icons with the given color."""
         for button, icon in self._button_and_icon:
             button.setIcon(icon.colored(color))
 
@@ -314,7 +315,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         _evaluator._line.setFocus()
 
     def change_view_mode(self, view_mode: str):
-        """Popup view."""
+        """Change view mode."""
         table = self.viewer.current_table
         if table is None:
             return None

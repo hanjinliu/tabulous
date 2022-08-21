@@ -131,22 +131,29 @@ class PlotInterface(Component["TableBase"]):
         self._current_widget = None
 
     def gcf(self):
+        """Get current figure."""
         if self._current_widget is None:
             self.new_widget()
         return self._current_widget.figure
 
     def gca(self):
+        """Get current axis."""
         if self._current_widget is None:
             self.new_widget()
         return self._current_widget.ax
 
-    def new_widget(self, nrows=1, ncols=1, style=None):
+    def new_widget(self, nrows=1, ncols=1):
         """Create a new plot widget and add it to the table."""
         from .._qt._plot import QtMplPlotCanvas
 
+        table = self.parent
+        if table._qwidget._qtable_view.parentViewer()._white_background:
+            style = None
+        else:
+            style = "dark_background"
         wdt = QtMplPlotCanvas(nrows=nrows, ncols=ncols, style=style)
         wdt.canvas.deleteRequested.connect(self.delete_widget)
-        self.parent.add_side_widget(wdt)
+        table.add_side_widget(wdt, name="Plot")
         self._current_widget = wdt
         return wdt
 

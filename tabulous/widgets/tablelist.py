@@ -188,13 +188,13 @@ class TableList(EventedList[TableBase]):
 
         @self.register_action("Tile>Horizontal tiling")
         def _tile_h(index: int):
-            if index == self.count() - 1:
+            if index == len(self) - 1:
                 index -= 1
             self.tile([index, index + 1])
 
         @self.register_action("Tile>Vertical tiling")
         def _tile_v(index: int):
-            if index == self.count() - 1:
+            if index == len(self) - 1:
                 index -= 1
             self.tile([index, index + 1], orientation="vertical")
 
