@@ -371,6 +371,10 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             y={"choices": choices, "widget_type": "Select", "value": choices[0]},
             data={"bind": data},
             alpha={"min": 0, "max": 1, "step": 0.05},
+            histtype={
+                "choices": ["bar", "step", "stepfilled", "barstacked"],
+                "value": "bar",
+            },
             parent=self,
         ):
             table.plt.draw()
@@ -435,8 +439,15 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             x = {"bind": None}
             y = {"bind": None}
         else:
-            x = {"choices": colnames, "value": colnames[0]}
-            y = {"choices": colnames, "value": colnames[1]}
+            for i, dtype in enumerate(table.data.dtypes):
+                if dtype == "categorical":
+                    x = {"choices": colnames, "value": colnames[i], "nullable": True}
+                    j = 0 if i > 0 else 1
+                    y = {"choices": colnames, "value": colnames[j], "nullable": True}
+                    break
+            else:
+                x = {"choices": colnames, "value": None, "nullable": True}
+                y = {"choices": colnames, "value": None, "nullable": True}
 
         if dialog(
             ax={"bind": table.plt.gca()},
@@ -449,9 +460,9 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             table.plt.draw()
 
     def initToolbar(self):
-        # Add tool buttons
-        # fmt: off
+        """Add tool buttons"""
 
+        # fmt: off
         # File
         self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
         self.registerAction("File", self.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")

@@ -76,10 +76,26 @@ def errorbar(ax: Axes, x: str, y: str, yerr: str, data, alpha: float = 1.0):
 
 
 @dialog_factory
-def hist(ax: Axes, y, data, bins: int = 10, alpha: float = 1.0, density: bool = False):
+def hist(
+    ax: Axes,
+    y,
+    data,
+    bins: int = 10,
+    alpha: float = 1.0,
+    density: bool = False,
+    histtype: str = "bar",
+):
     for _y in y:
         ydata = data[_y]
-        ax.hist(ydata, bins=bins, alpha=alpha, density=density, label=_y, picker=True)
+        ax.hist(
+            ydata,
+            bins=bins,
+            alpha=alpha,
+            density=density,
+            label=_y,
+            histtype=histtype,
+            picker=True,
+        )
     ax.axhline(0, color="gray", lw=0.5, alpha=0.5, zorder=-1)
     return True
 
@@ -96,7 +112,9 @@ def swarmplot(
 ):
     import seaborn as sns
 
-    sns.swarmplot(x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax)
+    sns.swarmplot(
+        x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax, picker=True
+    )
     return True
 
 
@@ -112,7 +130,9 @@ def barplot(
 ):
     import seaborn as sns
 
-    sns.barplot(x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax)
+    sns.barplot(
+        x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax, picker=True
+    )
     ax.axhline(0, color="gray", lw=0.5, alpha=0.5, zorder=-1)
     return True
 
@@ -143,5 +163,5 @@ def boxenplot(
 ):
     import seaborn as sns
 
-    sns.boxenplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax)
+    sns.boxenplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax, picker=True)
     return True

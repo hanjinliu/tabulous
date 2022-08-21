@@ -209,30 +209,22 @@ class ScatterEdit(ArtistEditor[PathCollection]):
 
         return [_facecolor, _edgecolor, _size_edit, _zorder]
 
-    @property
-    def scatter(self) -> PathCollection:
-        """Return the Line2D object."""
-        out = self._line()
-        if out is None:
-            raise ValueError("PathCollection object has been deleted.")
-        return out
-
     def set_facecolor(self, rgba: tuple[int, int, int, int]) -> None:
         """Set face colors of the scatter."""
-        self.scatter.set_facecolor(_to_float_rgba(rgba))
+        self.artist.set_facecolor(_to_float_rgba(rgba))
 
     def set_edgecolor(self, rgba: tuple[int, int, int, int]) -> None:
         """Set edge colors of the scatter."""
-        self.scatter.set_edgecolors(_to_float_rgba(rgba))
+        self.artist.set_edgecolors(_to_float_rgba(rgba))
 
     # def set_marker(self, marker: str):
     #     self.line.set_marker(marker)
 
     def set_size(self, size: int) -> None:
-        self.scatter.set_sizes([size])
+        self.artist.set_sizes([size])
 
     def set_zorder(self, zorder: int):
-        self.scatter.set_zorder(zorder)
+        self.artist.set_zorder(zorder)
 
 
 class PatchContainerEdit(ArtistEditor[BarContainer]):
