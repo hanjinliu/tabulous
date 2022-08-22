@@ -2,13 +2,14 @@ from __future__ import annotations
 from pathlib import Path
 import weakref
 from enum import Enum
-from typing import TYPE_CHECKING, Callable, Union
+from typing import TYPE_CHECKING, Any, Callable, Union
 from psygnal import Signal, SignalGroup
 
 from .table import Table, SpreadSheet, GroupBy, TableDisplay
 from .tablelist import TableList
 from ._sample import open_sample
 from ._component import Component
+from . import _doc
 
 from ..types import SelectionType, TabPosition, _TableLike, _SingleSelection
 from .. import _utils
@@ -86,6 +87,8 @@ class Console(Component["TableViewerBase"]):
 
 
 class TableViewerBase:
+    """The base class of a table viewer widget."""
+
     events: TableViewerSignal
     _qwidget_class: type[_QtMainWidgetBase]
 
@@ -162,6 +165,7 @@ class TableViewerBase:
         """Get screenshot of the widget."""
         return self._qwidget.screenshot()
 
+    @_doc.update_doc
     def add_table(
         self,
         data: _TableLike | None = None,
@@ -169,9 +173,9 @@ class TableViewerBase:
         name: str | None = None,
         editable: bool = False,
         copy: bool = True,
+        metadata: dict[str, Any] | None = None,
         update: bool = False,
-    ) -> TableBase:
-
+    ) -> Table:
         """
         Add data as a table.
 
@@ -179,23 +183,16 @@ class TableViewerBase:
         ----------
         data : DataFrame like, optional
             Table data to add.
-        name : str, optional
-            Name of the table.
-        editable : bool, default is False
-            Whether the table is editable via UI.
-        copy : bool, default is True
-            Whether to copy the data before adding to avoid overwriting the original one.
-        update : bool, default is False
-            If True, update the table data if a table of same name exists.
+        {name}{editable}{copy}{metadata}{update}
 
         Returns
         -------
-        TableLayerBase
+        Table
             The added table object.
         """
         if copy:
             data = _copy_dataframe(data)
-        table = Table(data, name=name, editable=editable)
+        table = Table(data, name=name, editable=editable, metadata=metadata)
         return self.add_layer(table, update=update)
 
     def add_spreadsheet(
@@ -205,6 +202,7 @@ class TableViewerBase:
         name: str | None = None,
         editable: bool = True,
         copy: bool = True,
+        metadata: dict[str, Any] | None = None,
         update: bool = False,
     ) -> SpreadSheet:
         """
@@ -214,12 +212,7 @@ class TableViewerBase:
         ----------
         data : DataFrame like, optional
             Table data to add.
-        name : str, optional
-            Name of the table.
-        editable : bool, default is False
-            Whether the table is editable via UI.
-        copy : bool, default is True
-            Whether to copy the data before adding to avoid overwriting the original one.
+        {name}{editable}{copy}{metadata}{update}
 
         Returns
         -------
@@ -228,20 +221,58 @@ class TableViewerBase:
         """
         if copy:
             data = _copy_dataframe(data)
-        table = SpreadSheet(data, name=name, editable=editable)
+        table = SpreadSheet(data, name=name, editable=editable, metadata=metadata)
         return self.add_layer(table, update=update)
 
     def add_groupby(
-        self, data, name: str | None = None, update: bool = False
+        self,
+        data,
+        *,
+        name: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        update: bool = False,
     ) -> GroupBy:
-        """Add a groupby."""
-        table = GroupBy(data, name=name)
+        """
+        Add a groupby object.
+
+        Parameters
+        ----------
+        data : DataFrameGroupBy like object
+            The groupby object to add.
+        {name}{metadata}{update}
+
+        Returns
+        -------
+        GroupBy
+            A groupby table.
+        """
+        table = GroupBy(data, name=name, metadata=metadata)
         return self.add_layer(table, update=update)
 
-    def add_loader(self, loader, name: str | None = None) -> TableDisplay:
-        """Add a table loader."""
-        table = TableDisplay(loader, name=name)
-        return self.add_layer(table)
+    def add_loader(
+        self,
+        loader: Callable[[], _TableLike],
+        *,
+        name: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        update: bool = False,
+    ) -> TableDisplay:
+        """
+        Add a data frame loader function and continuously update the table.
+
+        Parameters
+        ----------
+        loader : callable
+            The loader function.
+        {name}{metadata}{update}
+
+        Returns
+        -------
+        TableDisplay
+            A table display object.
+        """
+        table = TableDisplay(loader, name=name, metadata=metadata)
+        return self.add_layer(table, update=update)
 
     def add_layer(self, input: TableBase, *, update: bool = False):
         if (

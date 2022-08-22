@@ -6,8 +6,9 @@ from psygnal import SignalGroup, Signal
 
 from .filtering import FilterProxy
 from ._component import Component
+from . import _doc
 
-from ..exceptions import SelectionRangeError, TableImmutableError
+from ..exceptions import TableImmutableError
 from ..types import (
     SelectionRanges,
     ItemInfo,
@@ -93,6 +94,8 @@ class CellInterface(Component["TableBase"]):
         table._qwidget.setDataFrameValue(row, col, df)
 
     def __delitem__(self, key: tuple[int | slice, int | slice]) -> None:
+        """Deleting cell, equivalent to pushing Delete key."""
+
         table = self.parent
         if not table.editable:
             raise TableImmutableError("Table is not editable.")
@@ -126,6 +129,8 @@ class CellInterface(Component["TableBase"]):
 
 
 class PlotInterface(Component["TableBase"]):
+    """The interface of plotting."""
+
     def __init__(self, parent=Component._no_ref):
         super().__init__(parent)
         self._current_widget = None
@@ -211,7 +216,13 @@ class TableBase(ABC):
     plt = PlotInterface()
     filter = FilterProxy()
 
-    def __init__(self, data=None, name: str | None = None, editable: bool = True):
+    def __init__(
+        self,
+        data: Any = None,
+        name: str | None = None,
+        editable: bool = True,
+        metadata: dict[str, Any] = None,
+    ):
         self._data = self._normalize_data(data)
 
         if name is None:
@@ -221,6 +232,7 @@ class TableBase(ABC):
         self._qwidget = self._create_backend(self._data)
         self._qwidget.connectSelectionChangedSignal(self._emit_selections)
         self._view_mode = ViewMode.normal
+        self._metadata: dict[str, Any] = metadata or {}
 
         if self.mutable:
             with self._qwidget._mgr.blocked():
@@ -282,6 +294,16 @@ class TableBase(ABC):
     @precision.setter
     def precision(self, value: int) -> None:
         return self._qwidget.setPrecision(value)
+
+    @property
+    def metadata(self) -> dict[str, Any]:
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, value: dict[str, Any]) -> None:
+        if not isinstance(value, dict):
+            raise TypeError("metadata must be a dict")
+        self._metadata = value
 
     @property
     def zoom(self) -> float:
@@ -448,7 +470,18 @@ class _DataFrameTableLayer(TableBase):
         return data
 
 
+@_doc.update_doc
 class Table(_DataFrameTableLayer):
+    """
+    A table implemented with type checking.
+
+    Parameters
+    ----------
+    data : DataFrame like, optional
+        Table data to add.
+    {name}{editable}{metadata}
+    """
+
     _Default_Name = "table"
     _qwidget: QTableLayer
 
@@ -459,6 +492,16 @@ class Table(_DataFrameTableLayer):
 
 
 class SpreadSheet(_DataFrameTableLayer):
+    """
+    A table that behaves like a spreadsheet.
+
+    Parameters
+    ----------
+    data : DataFrame like, optional
+        Table data to add.
+    {name}{editable}{metadata}
+    """
+
     _Default_Name = "sheet"
     _qwidget: QSpreadSheet
 
@@ -469,6 +512,16 @@ class SpreadSheet(_DataFrameTableLayer):
 
 
 class GroupBy(TableBase):
+    """
+    A group of tables.
+
+    Parameters
+    ----------
+    data : DataFrameGroupBy like, optional
+        Groupby data to add.
+    {name}{metadata}{update}
+    """
+
     _Default_Name = "groupby"
     _qwidget: QTableGroupBy
 
@@ -511,6 +564,16 @@ class GroupBy(TableBase):
 
 
 class TableDisplay(TableBase):
+    """
+    A table that is hotly reloaded by the given function.
+
+    Parameters
+    ----------
+    data : callable, optional
+        The loader function.
+    {name}{metadata}{update}
+    """
+
     _Default_Name = "display"
     _qwidget: QTableDisplay
 
