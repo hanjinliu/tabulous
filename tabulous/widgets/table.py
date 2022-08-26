@@ -163,6 +163,7 @@ class PlotInterface(Component["TableBase"]):
         return wdt
 
     def delete_widget(self) -> None:
+        """Delete the current widget from the side area."""
         if self._current_widget is None:
             return None
         try:

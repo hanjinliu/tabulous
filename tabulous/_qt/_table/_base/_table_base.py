@@ -207,7 +207,6 @@ class QBaseTable(QtW.QSplitter):
             _new_selections.append((r, c))
 
         qtable.set_selections(_new_selections)
-        self.selectionChangedSignal.emit()
         self.update()
         return None
 

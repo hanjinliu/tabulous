@@ -141,6 +141,7 @@ class _QTableViewEnhanced(QtW.QTableView):
     def set_selections(self, selections: list[tuple[slice, slice]]) -> None:
         """Set current selections."""
         self._selection_model.set_selections(selections)
+        self.selectionChangedSignal.emit()
         self.update()
         return None
 

@@ -20,7 +20,7 @@ def update_doc(f: _T) -> _T:
     if doc:
         doc_lines = doc.splitlines()
         indent = doc_lines[1][: -len(doc_lines[1].lstrip())]
-        doc = doc.replace("}{", "}\n{")
+        doc = doc.replace("}{", f"}}\n{indent}{{")
         params = {k: _expand_indent(v, indent) for k, v in _PARAMETERS.items()}
         doc = doc.format(**params)
     f.__doc__ = doc
@@ -28,4 +28,5 @@ def update_doc(f: _T) -> _T:
 
 
 def _expand_indent(s: str, indent: str) -> str:
-    return f"\n    ".join(indent + s0 for s0 in s.split("\n"))
+    line0, line1 = s.split("\n")
+    return f"{line0}\n{indent}{line1}"
