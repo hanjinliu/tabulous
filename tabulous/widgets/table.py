@@ -384,9 +384,21 @@ class TableBase(ABC):
         return self._qwidget.moveToItem(row, column)
 
     def foreground_colormap(
-        self, column_name: Hashable, func: ColorMapping | None = None
+        self,
+        column_name: Hashable,
+        /,
+        colormap: ColorMapping | None = None,
     ):
-        """Set foreground rule."""
+        """
+        Set foreground color rule.
+
+        Parameters
+        ----------
+        column_name : Hashable
+            Target column name.
+        colormap : callable, optional
+            colormap function. Must return a color-like object.
+        """
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
             model = self._qwidget.model()
@@ -394,12 +406,24 @@ class TableBase(ABC):
             self.refresh()
             return f
 
-        return _wrapper(func) if func is not None else _wrapper
+        return _wrapper(colormap) if colormap is not None else _wrapper
 
     def background_colormap(
-        self, column_name: Hashable, func: ColorMapping | None = None
+        self,
+        column_name: Hashable,
+        /,
+        colormap: ColorMapping | None = None,
     ):
-        """Set background rule."""
+        """
+        Set background color rule.
+
+        Parameters
+        ----------
+        column_name : Hashable
+            Target column name.
+        colormap : callable, optional
+            colormap function. Must return a color-like object.
+        """
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
             model = self._qwidget.model()
@@ -407,7 +431,7 @@ class TableBase(ABC):
             self.refresh()
             return f
 
-        return _wrapper(func) if func is not None else _wrapper
+        return _wrapper(colormap) if colormap is not None else _wrapper
 
     @property
     def view_mode(self) -> str:

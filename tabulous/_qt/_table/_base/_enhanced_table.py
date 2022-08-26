@@ -220,6 +220,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         if isinstance(table, QMutableTable):
             if table.isEditable():
                 self.edit(index)
+                self._selection_model.shift_end()
             else:
                 table.tableStack().notifyEditability()
         return None
@@ -245,6 +246,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             if not keys.has_shift():
                 text = text.lower()
             self.edit(self.currentIndex())
+            self._selection_model.shift_end()
             focused_widget = QtW.QApplication.focusWidget()
             if isinstance(focused_widget, QtW.QLineEdit):
                 focused_widget = cast(QtW.QLineEdit, focused_widget)
@@ -270,12 +272,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._selection_model.set_ctrl(keys.has_ctrl())
         self._selection_model.set_shift(keys.has_shift())
         return super().keyReleaseEvent(a0)
-
-    def edit(self, index: QtCore.QModelIndex, *args) -> None:
-        """Edit cell at index."""
-        self._selection_model.shift_end()  # when cell is edited by Shift + any key.
-        super().edit(index, *args)
-        return None
 
     def zoom(self) -> float:
         """Get current zoom factor."""

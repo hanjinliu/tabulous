@@ -21,6 +21,14 @@ class Anchor(Enum):
 class QOverlayWidget(QtW.QDialog):
     """The overlay widget appears at the fixed position."""
 
+    _Style = """
+    QOverlayWidget {{
+        border: 1px solid gray;
+        border-radius: 3px;
+        background-color: {backgroundcolor};
+    }}
+    """
+
     def __init__(self, parent: QTabbedTableStack, duration: int = 50):
         """
         The overlay widget appears at the fixed position.
@@ -35,9 +43,6 @@ class QOverlayWidget(QtW.QDialog):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.SubWindow)
         self._widget = None
-        self.setStyleSheet(
-            "QOverlayWidget {border: 1px solid gray; border-radius: 3px; background-color: white;}"
-        )
 
         titlebar = QTitleBar("", self)
         titlebar.closeSignal.connect(self.hide)
@@ -113,6 +118,11 @@ class QOverlayWidget(QtW.QDialog):
         """Show the overlay widget with animation."""
         super().show()
         self.alignToParent()
+        if self.parentWidget().parent()._white_background:
+            bgcolor = "white"
+        else:
+            bgcolor = "black"
+        self.setStyleSheet(self._Style.format(backgroundcolor=bgcolor))
         self.opacity_anim.setDuration(self._duration)
         self.opacity_anim.setStartValue(0)
         self.opacity_anim.setEndValue(0.9)
