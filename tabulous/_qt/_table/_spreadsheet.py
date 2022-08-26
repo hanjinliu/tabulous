@@ -7,7 +7,6 @@ from qtpy import QtCore, QtWidgets as QtW
 from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
-from .._undo import fmt_slice, fmt
 
 
 class SpreadSheetModel(AbstractDataFrameModel):
@@ -31,62 +30,6 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
         return min(self._df.shape[1] + 10, table.max_column_count)
 
-    # def insertRows(
-    #     self, row: int, count: int, parent: QtCore.QModelIndex = None
-    # ) -> bool:
-    #     """Insert rows at the given row number and count."""
-    #     df = self.df
-    #     self.beginInsertRows(parent, row, row + count - 1)
-    #     df0 = df.iloc[:row, :]
-    #     df1 = pd.DataFrame(
-    #         np.full((count, df.shape[1]), ""), columns=df.columns, dtype="string"
-    #     )
-    #     df2 = df.iloc[row:, :]
-    #     self.df = pd.concat([df0, df1, df2], axis=0)
-    #     self.endInsertRows()
-    #     return True
-
-    # def insertColumns(
-    #     self, column: int, count: int, parent: QtCore.QModelIndex = None
-    # ) -> bool:
-    #     """Insert columns at the given column number and count."""
-    #     df = self.df
-    #     self.beginInsertColumns(parent, column, column + count - 1)
-    #     df0 = df.iloc[:, :column]
-    #     df1 = pd.DataFrame(
-    #         np.full((df.shape[0], count), ""), index=df.index, dtype="string"
-    #     )
-    #     df2 = df.iloc[:, column:]
-    #     self.df = pd.concat([df0, df1, df2], axis=1)
-    #     self.endInsertColumns()
-    #     return True
-
-    # def removeRows(
-    #     self, row: int, count: int, parent: QtCore.QModelIndex = None
-    # ) -> bool:
-    #     """Remove rows at the given column number and count."""
-    #     if count <= 0:
-    #         return False
-    #     df = self.df
-    #     stop = row + count
-    #     self.beginRemoveRows(parent, row, stop - 1)
-    #     self.df = df.drop(index=df.index[row:count])
-    #     self.endRemoveRows()
-    #     return True
-
-    # def removeColumns(
-    #     self, column: int, count: int, parent: QtCore.QModelIndex = None
-    # ) -> bool:
-    #     """Remove columns at the given column number and count."""
-    #     if count <= 0:
-    #         return False
-    #     df = self.df
-    #     stop = column + count
-    #     self.beginRemoveColumns(parent, column, stop - 1)
-    #     self.df = df.drop(columns=df.columns[column:stop])
-    #     self.endRemoveColumns()
-    #     return True
-
 
 class QSpreadSheet(QMutableSimpleTable):
     """
@@ -105,10 +48,10 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = None
         self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
 
+    # fmt: off
     if TYPE_CHECKING:
-
-        def model(self) -> SpreadSheetModel:
-            ...
+        def model(self) -> SpreadSheetModel: ...
+    # fmt: on
 
     def getDataFrame(self) -> pd.DataFrame:
         if self._data_cache is not None:
@@ -417,30 +360,19 @@ def _df_full(
     )
 
 
-def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value="") -> pd.DataFrame:
-    if df.empty:
+def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.DataFrame:
+    if df.shape == (0, 0):
         return _df_full(nr, nc, value, index=range(nr), columns=range(nc))
 
     # pad rows
+    _nr, _nc = df.shape
     if nr > 0:
-        if df.size == 0:
-            df = _df_full(nr, 1, value, index=range(nr))
-
-        else:
-            _nr, _nc = df.shape
-            ext = _df_full(
-                nr, _nc, value, index=range(_nr, _nr + nr), columns=df.columns
-            )
-            df = pd.concat([df, ext], axis=0)
+        ext = _df_full(nr, _nc, value, index=range(_nr, _nr + nr), columns=df.columns)
+        df = pd.concat([df, ext], axis=0)
 
     # pad columns
     if nc > 0:
-        if df.size == 0:
-            df = _df_full(1, nc, value, columns=range(nc))
-
-        else:
-            _nr, _nc = df.shape
-            ext = _df_full(_nr, nc, value, index=df.index, columns=range(_nc, _nc + nc))
-            df = pd.concat([df, ext], axis=1)
+        ext = _df_full(_nr, nc, value, index=df.index, columns=range(_nc, _nc + nc))
+        df = pd.concat([df, ext], axis=1)
 
     return df

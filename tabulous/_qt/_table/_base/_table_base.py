@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
     from ._side_area import QTableSideArea
     from ._enhanced_table import _QTableViewEnhanced
+    from ._header_view import QDataFrameHeaderView
     from ..._table_stack import QTabbedTableStack
 
 
@@ -702,7 +703,7 @@ class QMutableTable(QBaseTable):
 
     def _prepare_header_line_edit(
         self,
-        header: QtW.QHeaderView,
+        header: QDataFrameHeaderView,
         size: tuple[int, int],
         topleft: tuple[int, int],
         signal: pyqtBoundSignal,
@@ -714,7 +715,7 @@ class QMutableTable(QBaseTable):
 
         Parameters
         ----------
-        header : QtW.QHeaderView
+        header : QDataFrameHeaderView
             The QHeaderView object to edit.
         size : tuple of int
             Size of line edit.
@@ -763,8 +764,9 @@ class QMutableTable(QBaseTable):
             value = self._line.text()
             if not value == old_value:
                 signal.emit(HeaderInfo(index, value, old_value))
-            header.parent().setFocus()
-            header.parent().clearSelection()
+            table = header.parentWidget()
+            table.setFocus()
+            table.clearSelection()
             self._line.setHidden(True)
             self._line = None
             return None
