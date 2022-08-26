@@ -271,6 +271,12 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._selection_model.set_shift(keys.has_shift())
         return super().keyReleaseEvent(a0)
 
+    def edit(self, index: QtCore.QModelIndex, *args) -> None:
+        """Edit cell at index."""
+        self._selection_model.shift_end()  # when cell is edited by Shift + any key.
+        super().edit(index, *args)
+        return None
+
     def zoom(self) -> float:
         """Get current zoom factor."""
         return self._zoom
