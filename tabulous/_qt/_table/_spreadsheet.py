@@ -291,36 +291,33 @@ class QSpreadSheet(QMutableSimpleTable):
 
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         """Set value of the table vertical header and DataFrame at the index."""
+        if value == "":
+            return
         nrows = self._data_raw.shape[0]
-        if index >= nrows:
-            if value == "":
-                return
-            self._data_raw = _pad_dataframe(self._data_raw, index - nrows + 1, 0)
 
-        new_shape = self._data_raw.shape
-
-        with self._mgr.blocked():
+        with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
+            if index >= nrows:
+                self.expandDataFrame(index - nrows + 1, 0)
             self.setFilter(self._filter_slice)
-        self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
-        self._data_cache = None
-        return super().setVerticalHeaderValue(index, value)
+            super().setVerticalHeaderValue(index, value)
+            self._data_cache = None
+
+        return None
 
     def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
         """Set value of the table horizontal header and DataFrame at the index."""
+        if value == "":
+            return
         ncols = self._data_raw.shape[1]
-        if index >= ncols:
-            if value == "":
-                return
-            self._data_raw = _pad_dataframe(self._data_raw, 0, index - ncols + 1)
 
-        new_shape = self._data_raw.shape
-
-        with self._mgr.blocked():
+        with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
+            if index >= ncols:
+                self.expandDataFrame(0, index - ncols + 1)
             self.setFilter(self._filter_slice)
-        self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
+            super().setHorizontalHeaderValue(index, value)
+            self._data_cache = None
 
-        self._data_cache = None
-        return super().setHorizontalHeaderValue(index, value)
+        return None
 
     def showContextMenu(self, pos: QtCore.QPoint):
         menu = QtW.QMenu(self._qtable_view)
@@ -352,6 +349,7 @@ def _get_limit(a) -> int:
 def _df_full(
     nrows: int, ncols: int, value="", index=None, columns=None
 ) -> pd.DataFrame:
+    """A DataFrame filled with the given value."""
     return pd.DataFrame(
         np.full((nrows, ncols), value),
         index=index,
@@ -361,6 +359,7 @@ def _df_full(
 
 
 def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.DataFrame:
+    """Pad a dataframe by nr rows and nr columns with the given value."""
     if df.shape == (0, 0):
         return _df_full(nr, nc, value, index=range(nr), columns=range(nc))
 
@@ -371,6 +370,7 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
         df = pd.concat([df, ext], axis=0)
 
     # pad columns
+    _nr, _nc = df.shape  # NOTE: shape may have changed
     if nc > 0:
         ext = _df_full(_nr, nc, value, index=df.index, columns=range(_nc, _nc + nc))
         df = pd.concat([df, ext], axis=1)
