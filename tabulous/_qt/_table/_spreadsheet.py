@@ -295,7 +295,7 @@ class QSpreadSheet(QMutableSimpleTable):
             return
         nrows = self._data_raw.shape[0]
 
-        with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
+        with self._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
             if index >= nrows:
                 self.expandDataFrame(index - nrows + 1, 0)
             self.setFilter(self._filter_slice)
@@ -310,7 +310,7 @@ class QSpreadSheet(QMutableSimpleTable):
             return
         ncols = self._data_raw.shape[1]
 
-        with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
+        with self._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
             if index >= ncols:
                 self.expandDataFrame(0, index - ncols + 1)
             self.setFilter(self._filter_slice)

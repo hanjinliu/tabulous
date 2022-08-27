@@ -145,6 +145,12 @@ class QBaseTable(QtW.QSplitter):
     def deleteValues(self) -> None:
         raise TableImmutableError("Table is immutable.")
 
+    def setVerticalHeaderValue(self, index: int, value: Any) -> None:
+        raise TableImmutableError("Table is immutable.")
+
+    def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
+        raise TableImmutableError("Table is immutable.")
+
     def isEditable(self) -> bool:
         """Return the editability of the table."""
         return False
