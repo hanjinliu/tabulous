@@ -186,6 +186,21 @@ def test_set_list_via_cell_interface():
     table.cell[:, 5] = [3] * 6
     assert np.all(table.data.iloc[:, 5].values == 3)
 
+def test_header_interface():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(np.zeros((6, 6)), editable=True)
+
+    assert table.index[0] == 0
+    table.index[0] = "a"
+    assert table.index[0] == "a"
+    assert table.data.index[0] == "a"
+
+    assert table.columns[0] == 0
+    table.columns[0] = "x"
+    assert table.columns[0] == "x"
+    assert table.data.columns[0] == "x"
+
+
 def test_cell_interface_in_spreadsheet():
     viewer = TableViewer(show=False)
     table = viewer.add_spreadsheet(np.zeros((6, 6)))

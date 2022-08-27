@@ -84,7 +84,7 @@ class TableBase(ABC):
         data: Any = None,
         name: str | None = None,
         editable: bool = True,
-        metadata: dict[str, Any] = None,
+        metadata: dict[str, Any] | None = None,
     ):
         self._data = self._normalize_data(data)
 

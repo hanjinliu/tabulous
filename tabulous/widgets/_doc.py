@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Callable, TypeVar
 
-_T = TypeVar("_T", type, Callable)
+_T = TypeVar("_T", bound=Callable)
 
 # fmt: off
 _PARAMETERS = dict(
