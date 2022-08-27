@@ -4,7 +4,7 @@ from typing import Any, TYPE_CHECKING, Callable, overload, TypeVar
 from psygnal import Signal, SignalGroup, SignalInstance
 from psygnal.containers import EventedList
 
-from .table import TableBase
+from ._table import TableBase
 
 if TYPE_CHECKING:
     from .mainwindow import TableViewer
@@ -202,7 +202,5 @@ class TableList(EventedList[TableBase]):
                 index -= 1
             self.tile([index, index + 1], orientation="vertical")
 
-        @self.register_action("Tile>Untile")
-        def _untile(index: int):
-            self.untile(index)
+        self.register_action("Tile>Untile")(self.untile)
         # fmt: on

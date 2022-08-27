@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets.table &mdash; tabulous 0.1.1 documentation</title>
+  <title>tabulous.widgets._table &mdash; tabulous 0.1.2 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,6 +13,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -27,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.1
+                0.1.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -52,6 +53,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../main/dock_widget.html">Custom Dock widget</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidoc/modules.html">tabulous</a></li>
+</ul>
 
         </div>
       </div>
@@ -68,7 +72,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>tabulous.widgets.table</li>
+      <li>tabulous.widgets._table</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -77,7 +81,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
 
-  <h1>Source code for tabulous.widgets.table</h1><div class="highlight"><pre>
+  <h1>Source code for tabulous.widgets._table</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
@@ -85,9 +89,14 @@
 <span class="kn">from</span> <span class="nn">psygnal</span> <span class="kn">import</span> <span class="n">SignalGroup</span><span class="p">,</span> <span class="n">Signal</span>
 
 <span class="kn">from</span> <span class="nn">.filtering</span> <span class="kn">import</span> <span class="n">FilterProxy</span>
-<span class="kn">from</span> <span class="nn">._component</span> <span class="kn">import</span> <span class="n">Component</span>
+<span class="kn">from</span> <span class="nn">._component</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CellInterface</span><span class="p">,</span>
+    <span class="n">HorizontalHeaderInterface</span><span class="p">,</span>
+    <span class="n">VerticalHeaderInterface</span><span class="p">,</span>
+    <span class="n">PlotInterface</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_doc</span>
 
-<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">SelectionRangeError</span><span class="p">,</span> <span class="n">TableImmutableError</span>
 <span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">SelectionRanges</span><span class="p">,</span>
     <span class="n">ItemInfo</span><span class="p">,</span>
@@ -111,7 +120,7 @@
     <span class="n">ColorMapping</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">ColorType</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="TableSignals"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableSignals">[docs]</a><span class="k">class</span> <span class="nc">TableSignals</span><span class="p">(</span><span class="n">SignalGroup</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">TableSignals</span><span class="p">(</span><span class="n">SignalGroup</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Signal group for a Table.&quot;&quot;&quot;</span>
 
     <span class="n">data</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="n">ItemInfo</span><span class="p">)</span>
@@ -119,10 +128,10 @@
     <span class="n">columns</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="n">HeaderInfo</span><span class="p">)</span>
     <span class="n">selections</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="n">SelectionRanges</span><span class="p">)</span>
     <span class="n">zoom</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
-    <span class="n">renamed</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span></div>
+    <span class="n">renamed</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ViewMode"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.ViewMode">[docs]</a><span class="k">class</span> <span class="nc">ViewMode</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">ViewMode</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Enum of view modes&quot;&quot;&quot;</span>
 
     <span class="n">normal</span> <span class="o">=</span> <span class="s2">&quot;normal&quot;</span>
@@ -136,139 +145,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&gt;&quot;</span></div>
-
-
-<span class="c1"># #####################################################################</span>
-<span class="c1">#   Table interfaces</span>
-<span class="c1"># #####################################################################</span>
-
-
-<div class="viewcode-block" id="CellInterface"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.CellInterface">[docs]</a><span class="k">class</span> <span class="nc">CellInterface</span><span class="p">(</span><span class="n">Component</span><span class="p">[</span><span class="s2">&quot;TableBase&quot;</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot;The interface for editing cell as if it was manually edited.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">]):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">],</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">table</span><span class="o">.</span><span class="n">editable</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TableImmutableError</span><span class="p">(</span><span class="s2">&quot;Table is not editable.&quot;</span><span class="p">)</span>
-        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">):</span>
-            <span class="n">_value</span> <span class="o">=</span> <span class="p">[[</span><span class="n">value</span><span class="p">]]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">_value</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not convert value </span><span class="si">{</span><span class="n">_value</span><span class="si">!r}</span><span class="s2"> to DataFrame.&quot;</span><span class="p">)</span>
-        <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="mi">1</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span> <span class="ow">and</span> <span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">col</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">row</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">==</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
-            <span class="c1"># it is natural to set an 1-D array without thinking of the direction.</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">T</span>
-
-        <span class="n">table</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setDataFrameValue</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">table</span><span class="o">.</span><span class="n">editable</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TableImmutableError</span><span class="p">(</span><span class="s2">&quot;Table is not editable.&quot;</span><span class="p">)</span>
-        <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">key</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setSelections</span><span class="p">([(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)])</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">deleteValues</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">def</span> <span class="nf">_normalize_key</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">key</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">slice</span><span class="p">,</span> <span class="nb">slice</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
-        <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">key</span>
-        <span class="n">_row_is_slice</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="nb">slice</span><span class="p">)</span>
-        <span class="n">_col_is_slice</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="nb">slice</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">_row_is_slice</span><span class="p">:</span>
-            <span class="n">row</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">row</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">table_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-            <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">step</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Row slice step must be 1.&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">row</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">_col_is_slice</span><span class="p">:</span>
-            <span class="n">col</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">col</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">table_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-            <span class="k">if</span> <span class="n">col</span><span class="o">.</span><span class="n">step</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Column slice step must be 1.&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">col</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">col</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span></div>
-
-
-<div class="viewcode-block" id="PlotInterface"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.PlotInterface">[docs]</a><span class="k">class</span> <span class="nc">PlotInterface</span><span class="p">(</span><span class="n">Component</span><span class="p">[</span><span class="s2">&quot;TableBase&quot;</span><span class="p">]):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">Component</span><span class="o">.</span><span class="n">_no_ref</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_current_widget</span> <span class="o">=</span> <span class="kc">None</span>
-
-<div class="viewcode-block" id="PlotInterface.gcf"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.PlotInterface.gcf">[docs]</a>    <span class="k">def</span> <span class="nf">gcf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_widget</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">new_widget</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_widget</span><span class="o">.</span><span class="n">figure</span></div>
-
-<div class="viewcode-block" id="PlotInterface.gca"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.PlotInterface.gca">[docs]</a>    <span class="k">def</span> <span class="nf">gca</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_widget</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">new_widget</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_widget</span><span class="o">.</span><span class="n">ax</span></div>
-
-<div class="viewcode-block" id="PlotInterface.new_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.PlotInterface.new_widget">[docs]</a>    <span class="k">def</span> <span class="nf">new_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a new plot widget and add it to the table.&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.._qt._plot</span> <span class="kn">import</span> <span class="n">QtMplPlotCanvas</span>
-
-        <span class="n">wdt</span> <span class="o">=</span> <span class="n">QtMplPlotCanvas</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
-        <span class="n">wdt</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">deleteRequested</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delete_widget</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">add_side_widget</span><span class="p">(</span><span class="n">wdt</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_current_widget</span> <span class="o">=</span> <span class="n">wdt</span>
-        <span class="k">return</span> <span class="n">wdt</span></div>
-
-<div class="viewcode-block" id="PlotInterface.delete_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.PlotInterface.delete_widget">[docs]</a>    <span class="k">def</span> <span class="nf">delete_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_widget</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_side_area</span><span class="o">.</span><span class="n">removeWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_widget</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_current_widget</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_current_widget</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="kc">None</span></div>
-
-<div class="viewcode-block" id="PlotInterface.figure"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.PlotInterface.figure">[docs]</a>    <span class="k">def</span> <span class="nf">figure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
-
-<div class="viewcode-block" id="PlotInterface.subplots"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.PlotInterface.subplots">[docs]</a>    <span class="k">def</span> <span class="nf">subplots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">wdt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_widget</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">wdt</span><span class="o">.</span><span class="n">figure</span><span class="p">,</span> <span class="n">wdt</span><span class="o">.</span><span class="n">axes</span></div>
-
-<div class="viewcode-block" id="PlotInterface.plot"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.PlotInterface.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call ``plt.plot`` on the current side figure.&quot;&quot;&quot;</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">out</span></div>
-
-<div class="viewcode-block" id="PlotInterface.scatter"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.PlotInterface.scatter">[docs]</a>    <span class="k">def</span> <span class="nf">scatter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call ``plt.scatter`` on the current side figure.&quot;&quot;&quot;</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">out</span></div>
-
-<div class="viewcode-block" id="PlotInterface.hist"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.PlotInterface.hist">[docs]</a>    <span class="k">def</span> <span class="nf">hist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call ``plt.hist`` on the current side figure.&quot;&quot;&quot;</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">out</span></div>
-
-<div class="viewcode-block" id="PlotInterface.draw"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.PlotInterface.draw">[docs]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update the current side figure.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_widget</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
 
 
 <span class="c1"># #####################################################################</span>
@@ -281,10 +158,18 @@
 
     <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;None&quot;</span>
     <span class="n">cell</span> <span class="o">=</span> <span class="n">CellInterface</span><span class="p">()</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">VerticalHeaderInterface</span><span class="p">()</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="n">HorizontalHeaderInterface</span><span class="p">()</span>
     <span class="n">plt</span> <span class="o">=</span> <span class="n">PlotInterface</span><span class="p">()</span>
     <span class="nb">filter</span> <span class="o">=</span> <span class="n">FilterProxy</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">editable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">editable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -294,6 +179,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_backend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">connectSelectionChangedSignal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_emit_selections</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_view_mode</span> <span class="o">=</span> <span class="n">ViewMode</span><span class="o">.</span><span class="n">normal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span> <span class="ow">or</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutable</span><span class="p">:</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">blocked</span><span class="p">():</span>
@@ -357,6 +243,16 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setPrecision</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span>
+
+    <span class="nd">@metadata</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;metadata must be a dict&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">zoom</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Zoom factor of table.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">zoom</span><span class="p">()</span>
@@ -408,7 +304,7 @@
 
 <div class="viewcode-block" id="TableBase.refresh"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableBase.refresh">[docs]</a>    <span class="k">def</span> <span class="nf">refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Refresh the table view.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">refreshTable</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="TableBase.move_loc"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableBase.move_loc">[docs]</a>    <span class="k">def</span> <span class="nf">move_loc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -435,9 +331,21 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">moveToItem</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TableBase.foreground_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableBase.foreground_colormap">[docs]</a>    <span class="k">def</span> <span class="nf">foreground_colormap</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">column_name</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">ColorMapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">column_name</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span>
+        <span class="o">/</span><span class="p">,</span>
+        <span class="n">colormap</span><span class="p">:</span> <span class="n">ColorMapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set foreground rule.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set foreground color rule.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        column_name : Hashable</span>
+<span class="sd">            Target column name.</span>
+<span class="sd">        colormap : callable, optional</span>
+<span class="sd">            colormap function. Must return a color-like object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">_wrapper</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">ColorMapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorMapping</span><span class="p">:</span>
             <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
@@ -445,12 +353,24 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">f</span>
 
-        <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_wrapper</span></div>
+        <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span> <span class="k">if</span> <span class="n">colormap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_wrapper</span></div>
 
 <div class="viewcode-block" id="TableBase.background_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableBase.background_colormap">[docs]</a>    <span class="k">def</span> <span class="nf">background_colormap</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">column_name</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">ColorMapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">column_name</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span>
+        <span class="o">/</span><span class="p">,</span>
+        <span class="n">colormap</span><span class="p">:</span> <span class="n">ColorMapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set background rule.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set background color rule.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        column_name : Hashable</span>
+<span class="sd">            Target column name.</span>
+<span class="sd">        colormap : callable, optional</span>
+<span class="sd">            colormap function. Must return a color-like object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">_wrapper</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">ColorMapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorMapping</span><span class="p">:</span>
             <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
@@ -458,7 +378,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">f</span>
 
-        <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_wrapper</span></div>
+        <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span> <span class="k">if</span> <span class="n">colormap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_wrapper</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">view_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -521,7 +441,18 @@
         <span class="k">return</span> <span class="n">data</span>
 
 
-<div class="viewcode-block" id="Table"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.Table">[docs]</a><span class="k">class</span> <span class="nc">Table</span><span class="p">(</span><span class="n">_DataFrameTableLayer</span><span class="p">):</span>
+<div class="viewcode-block" id="Table"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.Table">[docs]</a><span class="nd">@_doc</span><span class="o">.</span><span class="n">update_doc</span>
+<span class="k">class</span> <span class="nc">Table</span><span class="p">(</span><span class="n">_DataFrameTableLayer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A table implemented with type checking.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : DataFrame like, optional</span>
+<span class="sd">        Table data to add.</span>
+<span class="sd">    {name}{editable}{metadata}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;table&quot;</span>
     <span class="n">_qwidget</span><span class="p">:</span> <span class="n">QTableLayer</span>
 
@@ -532,6 +463,16 @@
 
 
 <div class="viewcode-block" id="SpreadSheet"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.SpreadSheet">[docs]</a><span class="k">class</span> <span class="nc">SpreadSheet</span><span class="p">(</span><span class="n">_DataFrameTableLayer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A table that behaves like a spreadsheet.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : DataFrame like, optional</span>
+<span class="sd">        Table data to add.</span>
+<span class="sd">    {name}{editable}{metadata}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;sheet&quot;</span>
     <span class="n">_qwidget</span><span class="p">:</span> <span class="n">QSpreadSheet</span>
 
@@ -542,6 +483,16 @@
 
 
 <div class="viewcode-block" id="GroupBy"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.GroupBy">[docs]</a><span class="k">class</span> <span class="nc">GroupBy</span><span class="p">(</span><span class="n">TableBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A group of tables.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : DataFrameGroupBy like, optional</span>
+<span class="sd">        Groupby data to add.</span>
+<span class="sd">    {name}{metadata}{update}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;groupby&quot;</span>
     <span class="n">_qwidget</span><span class="p">:</span> <span class="n">QTableGroupBy</span>
 
@@ -584,6 +535,16 @@
 
 
 <div class="viewcode-block" id="TableDisplay"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableDisplay">[docs]</a><span class="k">class</span> <span class="nc">TableDisplay</span><span class="p">(</span><span class="n">TableBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A table that is hotly reloaded by the given function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : callable, optional</span>
+<span class="sd">        The loader function.</span>
+<span class="sd">    {name}{metadata}{update}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;display&quot;</span>
     <span class="n">_qwidget</span><span class="p">:</span> <span class="n">QTableDisplay</span>
 

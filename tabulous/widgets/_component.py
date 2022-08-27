@@ -5,7 +5,7 @@ from ..exceptions import TableImmutableError
 
 if TYPE_CHECKING:
     from typing_extensions import Self
-    from .table import TableBase
+    from ._table import TableBase
 
 T = TypeVar("T")
 

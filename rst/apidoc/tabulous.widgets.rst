@@ -20,22 +20,6 @@ tabulous.widgets.mainwindow module
    :undoc-members:
    :show-inheritance:
 
-tabulous.widgets.table module
------------------------------
-
-.. automodule:: tabulous.widgets.table
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-tabulous.widgets.tablelist module
----------------------------------
-
-.. automodule:: tabulous.widgets.tablelist
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

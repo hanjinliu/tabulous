@@ -215,7 +215,6 @@ You can also get currently acitive (visible) table or its index with
 ``viewer.current_table`` or ``viewer.current_index``.
 
 
-
 Key combo
 =========
 

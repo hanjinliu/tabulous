@@ -1,4 +1,4 @@
-__version__ = "0.1.2.dev0"
+__version__ = "0.1.2"
 
 from .widgets import Table, TableViewer, TableViewerWidget
 from .core import (

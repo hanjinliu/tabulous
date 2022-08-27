@@ -5,8 +5,8 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Union
 from psygnal import Signal, SignalGroup
 
-from .table import Table, SpreadSheet, GroupBy, TableDisplay
-from .tablelist import TableList
+from ._table import Table, SpreadSheet, GroupBy, TableDisplay
+from ._tablelist import TableList
 from ._sample import open_sample
 from ._component import Component
 from . import _doc
@@ -15,7 +15,7 @@ from ..types import SelectionType, TabPosition, _TableLike, _SingleSelection
 from .. import _utils
 
 if TYPE_CHECKING:
-    from .table import TableBase
+    from ._table import TableBase
     from .._qt import QMainWindow, QMainWidget
     from .._qt._dockwidget import QtDockWidget
     from .._qt._mainwindow import _QtMainWidgetBase

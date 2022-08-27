@@ -5,7 +5,7 @@ import operator as op
 from ..types import FilterType
 
 if TYPE_CHECKING:
-    from .table import TableBase
+    from ._table import TableBase
     import pandas as pd
 
 

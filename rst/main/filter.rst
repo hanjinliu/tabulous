@@ -52,11 +52,11 @@ Use Query-style Filtering
   :width: 20em
 
 You can open a overlay dialog to filter the table data from the |filter| button in the toolbar,
-or push key combo ``Alt, A, 2``.
+push key combo ``Alt, A, 2``, or right click on the tab.
 
 In this widget you have to specify a query-style expression to apply the filter. For details,
 see `the API reference of pandas.eval <https://pandas.pydata.org/docs/reference/api/pandas.eval.html>`_.
 The line edit for filter expression supports auto-completion (Tab) and history browsing
 (↑, ↓).
 
-.. image:: ../fig/filter.png
+.. image:: ../fig/filter.gif

@@ -1,4 +1,4 @@
-from .table import TableBase, Table, SpreadSheet, GroupBy, TableDisplay
+from ._table import TableBase, Table, SpreadSheet, GroupBy, TableDisplay
 from .mainwindow import TableViewer, TableViewerWidget
 
 __all__ = [

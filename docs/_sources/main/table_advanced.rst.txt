@@ -154,3 +154,10 @@ Better way is to use :attr:`cell` attribute.
 
     table.cell[1, 2] = -1
     table.cell[1, 0:5] = [1, 2, 3, 4, 5]
+
+The same applies to headers. Use :attr:`index` and :attr:`column` attributes.
+
+.. code-block:: python
+
+    table.index[1] = "index_name"
+    table.columns[2] = "column_name"

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Interface &mdash; tabulous 0.1.1 documentation</title>
+  <title>User Interface &mdash; tabulous 0.1.2 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -30,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.1
+                0.1.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -48,6 +49,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">User Interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#tables">Tables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#toolbar">Toolbar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plot-canvas">Plot canvas</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections</a></li>
@@ -58,6 +60,9 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dock_widget.html">Custom Dock widget</a></li>
 <li class="toctree-l1"><a class="reference internal" href="non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../apidoc/modules.html">tabulous</a></li>
 </ul>
 
         </div>
@@ -85,23 +90,33 @@
            <div itemprop="articleBody">
 
   <section id="user-interface">
-<h1>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h1>
+<h1>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this heading">¶</a></h1>
 <section id="tables">
-<h2>Tables<a class="headerlink" href="#tables" title="Permalink to this headline">¶</a></h2>
+<h2>Tables<a class="headerlink" href="#tables" title="Permalink to this heading">¶</a></h2>
 <p>Arrow keys <code class="docutils literal notranslate"><span class="pre">→</span></code>, <code class="docutils literal notranslate"><span class="pre">←</span></code>, <code class="docutils literal notranslate"><span class="pre">↑</span></code>, <code class="docutils literal notranslate"><span class="pre">↓</span></code> with <code class="docutils literal notranslate"><span class="pre">Ctrl</span></code> (or <code class="docutils literal notranslate"><span class="pre">⌘</span></code> in Mac), <code class="docutils literal notranslate"><span class="pre">Shift</span></code> modifier
-work as you expects in most of table data editors. <code class="docutils literal notranslate"><span class="pre">Ctrl</span></code> + <code class="docutils literal notranslate"><span class="pre">mouse</span> <span class="pre">wheel</span></code> zooms in/out
-the table.</p>
+work as you expects in most of table data editors.</p>
+<p>Additionally, <code class="docutils literal notranslate"><span class="pre">Ctrl</span></code> + <code class="docutils literal notranslate"><span class="pre">mouse</span> <span class="pre">wheel</span></code> zooms in/out the table. <code class="docutils literal notranslate"><span class="pre">Ctrl</span></code> + <code class="docutils literal notranslate"><span class="pre">Alt</span></code> + arrow
+keys scrolls the table to the desired direction.</p>
 <img alt="../_images/table_interface_0.gif" src="../_images/table_interface_0.gif" />
 <p>If a table is editable, you can edit the values with your keyboard. If you are editing
 on a <code class="docutils literal notranslate"><span class="pre">Table</span></code>, data type will be checked.</p>
 <img alt="../_images/table_interface_1.gif" src="../_images/table_interface_1.gif" />
 </section>
 <section id="toolbar">
-<h2>Toolbar<a class="headerlink" href="#toolbar" title="Permalink to this headline">¶</a></h2>
+<h2>Toolbar<a class="headerlink" href="#toolbar" title="Permalink to this heading">¶</a></h2>
 <p>Toolbar contains many functions that help you with analyzing the table data.</p>
 <p>You can “click” any buttons in the toolbar using the keyboard; push <code class="docutils literal notranslate"><span class="pre">Alt</span></code> (or <code class="docutils literal notranslate"><span class="pre">⌥</span></code> in
 Mac)  to change focus to the toolbar, and follow the tooltip labels to find the appropriate
 key combo to get to the button you want (similar to Microsoft Office).</p>
+</section>
+<section id="plot-canvas">
+<h2>Plot canvas<a class="headerlink" href="#plot-canvas" title="Permalink to this heading">¶</a></h2>
+<p>The embedded plot canvas is interactive.
+You can also double click the objects in plot canvas to edit its color, line width, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The matplotlib editor is WIP now.</p>
+</div>
 </section>
 </section>
 

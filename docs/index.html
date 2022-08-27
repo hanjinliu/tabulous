@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous &mdash; tabulous 0.1.1 documentation</title>
+  <title>tabulous &mdash; tabulous 0.1.2 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -29,7 +30,7 @@
             <a href="#" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.1
+                0.1.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -53,6 +54,9 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="main/dock_widget.html">Custom Dock widget</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apidoc/modules.html">tabulous</a></li>
 </ul>
 
         </div>
@@ -80,14 +84,14 @@
            <div itemprop="articleBody">
 
   <section id="tabulous">
-<h1>tabulous<a class="headerlink" href="#tabulous" title="Permalink to this headline">¶</a></h1>
+<h1>tabulous<a class="headerlink" href="#tabulous" title="Permalink to this heading">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">tabulous</span></code> is a Qt based table data viewer for Python.</p>
 <p>This package is strongly inspired by <a class="reference external" href="https://github.com/napari/napari">napari</a>
 in the design and API. Accordingly, custom widget creation is easily achievable
 for beginners using <a class="reference external" href="https://github.com/napari/magicgui">magicgui</a>, or any
 Qt widgets for more trained users.</p>
 <section id="highlight">
-<h2>Highlight<a class="headerlink" href="#highlight" title="Permalink to this headline">¶</a></h2>
+<h2>Highlight<a class="headerlink" href="#highlight" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Implemented with interactive table viewer and editor.</p></li>
 <li><p>Highly customizable and extensible.</p></li>
@@ -101,12 +105,13 @@ Qt widgets for more trained users.</p>
 </div>
 </section>
 <section id="basics">
-<h2>Basics<a class="headerlink" href="#basics" title="Permalink to this headline">¶</a></h2>
+<h2>Basics<a class="headerlink" href="#basics" title="Permalink to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="main/user_interface.html">User Interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="main/user_interface.html#tables">Tables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="main/user_interface.html#toolbar">Toolbar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/user_interface.html#plot-canvas">Plot canvas</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="main/selections.html">Table Selections</a><ul>
@@ -130,7 +135,7 @@ Qt widgets for more trained users.</p>
 </div>
 </section>
 <section id="cooperate-with-other-widgets">
-<h2>Cooperate with Other Widgets<a class="headerlink" href="#cooperate-with-other-widgets" title="Permalink to this headline">¶</a></h2>
+<h2>Cooperate with Other Widgets<a class="headerlink" href="#cooperate-with-other-widgets" title="Permalink to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="main/dock_widget.html">Custom Dock widget</a><ul>
@@ -146,8 +151,16 @@ Qt widgets for more trained users.</p>
 </li>
 </ul>
 </div>
+</section>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apidoc/modules.html">tabulous</a></li>
+</ul>
+</div>
 <section id="indices-and-tables">
-<h3>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h3>
+<h3>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>

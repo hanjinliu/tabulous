@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quickstart &mdash; tabulous 0.1.1 documentation</title>
+  <title>Quickstart &mdash; tabulous 0.1.2 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -30,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.1
+                0.1.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -43,6 +44,7 @@
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#open-a-table-viewer">Open A Table Viewer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#open-an-interpreter">Open an Interpreter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handle-tables">Handle Tables</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#table">Table</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#spreadsheet">SpreadSheet</a></li>
@@ -51,7 +53,6 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#table-list">Table List</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#key-combo">Key combo</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#embedded-console">Embedded Console</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
@@ -66,6 +67,9 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dock_widget.html">Custom Dock widget</a></li>
 <li class="toctree-l1"><a class="reference internal" href="non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../apidoc/modules.html">tabulous</a></li>
 </ul>
 
         </div>
@@ -93,19 +97,19 @@
            <div itemprop="articleBody">
 
   <section id="quickstart">
-<h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this heading">¶</a></h1>
 <div class="contents local topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#open-a-table-viewer" id="id1">Open A Table Viewer</a></p></li>
-<li><p><a class="reference internal" href="#handle-tables" id="id2">Handle Tables</a></p></li>
-<li><p><a class="reference internal" href="#table-list" id="id3">Table List</a></p></li>
-<li><p><a class="reference internal" href="#key-combo" id="id4">Key combo</a></p></li>
-<li><p><a class="reference internal" href="#embedded-console" id="id5">Embedded Console</a></p></li>
+<li><p><a class="reference internal" href="#open-an-interpreter" id="id2">Open an Interpreter</a></p></li>
+<li><p><a class="reference internal" href="#handle-tables" id="id3">Handle Tables</a></p></li>
+<li><p><a class="reference internal" href="#table-list" id="id4">Table List</a></p></li>
+<li><p><a class="reference internal" href="#key-combo" id="id5">Key combo</a></p></li>
 </ul>
 </div>
 <section id="open-a-table-viewer">
-<h2><a class="toc-backref" href="#id1">Open A Table Viewer</a><a class="headerlink" href="#open-a-table-viewer" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id1">Open A Table Viewer</a><a class="headerlink" href="#open-a-table-viewer" title="Permalink to this heading">¶</a></h2>
 <p>The main window of <code class="docutils literal notranslate"><span class="pre">tabulous</span></code> is a <code class="docutils literal notranslate"><span class="pre">TableViewer</span></code> instance.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">TableViewer</span>
 
@@ -130,8 +134,20 @@ $ tabulous ./path/to/data.csv  <span class="c1"># open a table file in the viewe
 </pre></div>
 </div>
 </section>
+<section id="open-an-interpreter">
+<h2><a class="toc-backref" href="#id2">Open an Interpreter</a><a class="headerlink" href="#open-an-interpreter" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">tabulous</span></code> viewer has an embedded Python interpreter console. It is not visible by default
+but you can show it in several ways.</p>
+<ol class="arabic simple">
+<li><p>Set <code class="xref py py-attr docutils literal notranslate"><span class="pre">visible</span></code> property of <code class="xref py py-attr docutils literal notranslate"><span class="pre">console</span></code> interface to <code class="docutils literal notranslate"><span class="pre">True</span></code>:
+<code class="docutils literal notranslate"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">viewer.conosole.visible</span> <span class="pre">=</span> <span class="pre">True</span></code></p></li>
+<li><p>Activate keyboard shortcut <code class="docutils literal notranslate"><span class="pre">Ctrl+Shift+C</span></code>.</p></li>
+<li><p>Click the <a class="reference internal" href="../_images/toggle_console.svg"><img alt="toggle_console" src="../_images/toggle_console.svg" width="20em" /></a> tool button in the “Analysis” tab of the toolbar.</p></li>
+<li><p>Click the tool button of (3.) using key combo <code class="docutils literal notranslate"><span class="pre">Alt,</span> <span class="pre">A,</span> <span class="pre">4</span></code></p></li>
+</ol>
+</section>
 <section id="handle-tables">
-<h2><a class="toc-backref" href="#id2">Handle Tables</a><a class="headerlink" href="#handle-tables" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id3">Handle Tables</a><a class="headerlink" href="#handle-tables" title="Permalink to this heading">¶</a></h2>
 <p>Basically, table data is handled based on <code class="docutils literal notranslate"><span class="pre">pandas</span></code>.
 A <code class="xref py py-class docutils literal notranslate"><span class="pre">TableViewer</span></code> instance has several methods that add <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> to the viewer.</p>
 <ol class="arabic simple">
@@ -139,7 +155,7 @@ A <code class="xref py py-class docutils literal notranslate"><span class="pre">
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_spreadsheet()</span></code> … add a table data as a <code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code> object.</p></li>
 </ol>
 <section id="table">
-<h3>Table<a class="headerlink" href="#table" title="Permalink to this headline">¶</a></h3>
+<h3>Table<a class="headerlink" href="#table" title="Permalink to this heading">¶</a></h3>
 <p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> is the most simple interface with <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>.</p>
 <ul class="simple">
 <li><p>It stores a copy of an input <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> as is.</p></li>
@@ -200,7 +216,7 @@ multi-selection, this property takes a <code class="docutils literal notranslate
 <p>See <a class="reference internal" href="selections.html"><span class="doc">Table Selections</span></a> for more details.</p>
 </section>
 <section id="spreadsheet">
-<h3>SpreadSheet<a class="headerlink" href="#spreadsheet" title="Permalink to this headline">¶</a></h3>
+<h3>SpreadSheet<a class="headerlink" href="#spreadsheet" title="Permalink to this heading">¶</a></h3>
 <p>A <code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code> behaves more like Excel or Google Spreadsheet.</p>
 <ul class="simple">
 <li><p>It stores a copy of an input <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> as “string” types.</p></li>
@@ -259,12 +275,12 @@ the viewer.</p>
 </div>
 </section>
 <section id="for-more-details">
-<h3>For more details …<a class="headerlink" href="#for-more-details" title="Permalink to this headline">¶</a></h3>
+<h3>For more details …<a class="headerlink" href="#for-more-details" title="Permalink to this heading">¶</a></h3>
 <p>See <a class="reference internal" href="table_advanced.html"><span class="doc">Working with Tables</span></a>.</p>
 </section>
 </section>
 <section id="table-list">
-<h2><a class="toc-backref" href="#id3">Table List</a><a class="headerlink" href="#table-list" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">Table List</a><a class="headerlink" href="#table-list" title="Permalink to this heading">¶</a></h2>
 <p>All the table data is available in <code class="docutils literal notranslate"><span class="pre">tables</span></code> property. It is a <code class="docutils literal notranslate"><span class="pre">list</span></code> like
 object with some extended methods.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># the 0-th table</span>
@@ -278,7 +294,7 @@ object with some extended methods.</p>
 <code class="docutils literal notranslate"><span class="pre">viewer.current_table</span></code> or <code class="docutils literal notranslate"><span class="pre">viewer.current_index</span></code>.</p>
 </section>
 <section id="key-combo">
-<h2><a class="toc-backref" href="#id4">Key combo</a><a class="headerlink" href="#key-combo" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">Key combo</a><a class="headerlink" href="#key-combo" title="Permalink to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">tabulous</span></code> supports many keyboard shortcuts including key combo.</p>
 <p>All the global key map is listed in a widget that will be shown when you press
 <code class="docutils literal notranslate"><span class="pre">Ctrl+K,</span> <span class="pre">Shift+?</span></code> key combo.</p>
@@ -300,20 +316,6 @@ to register custom key combo.</p>
     <span class="sd">&quot;&quot;&quot;do something&quot;&quot;&quot;</span>
 </pre></div>
 </div>
-</section>
-<section id="embedded-console">
-<h2><a class="toc-backref" href="#id5">Embedded Console</a><a class="headerlink" href="#embedded-console" title="Permalink to this headline">¶</a></h2>
-<p>To programmatically analyze table data, you can just open the embedded
-interpreter. It is dependent on <a class="reference external" href="https://qtconsole.readthedocs.io/en/stable/">qtconsole</a>
-package.</p>
-<p>The console is not visible by default. You can show it in several ways.</p>
-<ol class="arabic simple">
-<li><p>Set <code class="xref py py-attr docutils literal notranslate"><span class="pre">visible</span></code> property of <code class="xref py py-attr docutils literal notranslate"><span class="pre">console</span></code> interface to <code class="docutils literal notranslate"><span class="pre">True</span></code>:
-<code class="docutils literal notranslate"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">viewer.conosole.visible</span> <span class="pre">=</span> <span class="pre">True</span></code></p></li>
-<li><p>Activate keyboard shortcut <code class="docutils literal notranslate"><span class="pre">Ctrl+Shift+C</span></code>.</p></li>
-<li><p>Click the <a class="reference internal" href="../_images/toggle_console.svg"><img alt="toggle_console" height="1cm" src="../_images/toggle_console.svg" /></a> tool button in the “Analysis” tab of the toolbar.</p></li>
-<li><p>Click the tool button of (3.) using key combo <code class="docutils literal notranslate"><span class="pre">Alt,</span> <span class="pre">A,</span> <span class="pre">4</span></code></p></li>
-</ol>
 </section>
 </section>
 
