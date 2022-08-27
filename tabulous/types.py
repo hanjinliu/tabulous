@@ -84,7 +84,7 @@ class TableInfoInstance(Tuple["pd.DataFrame", List[str]]):
         raise TypeError(f"Type {cls.__name__} cannot be instantiated.")
 
 
-class SelectionRanges(Sequence[tuple[slice, slice]]):
+class SelectionRanges(Sequence[Tuple[slice, slice]]):
     """A table data specific selection range list."""
 
     def __init__(self, data: TableBase, ranges: Iterable[tuple[slice, slice]] = ()):

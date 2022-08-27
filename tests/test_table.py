@@ -15,7 +15,7 @@ def get_cell_value(table, row, col):
 def edit_cell(table, row, col, value):
     table.model().dataEdited.emit(row, col, value)
 
-def slice_equal(s1: tuple[slice, slice], s2: tuple[slice, slice]):
+def slice_equal(s1: "tuple[slice, slice]", s2: "tuple[slice, slice]"):
     return (
         s1[0].start == s2[0].start and
         s1[1].start == s2[1].start and
@@ -23,7 +23,7 @@ def slice_equal(s1: tuple[slice, slice], s2: tuple[slice, slice]):
         s1[1].stop == s2[1].stop
     )
 
-def selection_equal(sel1: list[tuple[slice, slice]], sel2: list[tuple[slice, slice]]):
+def selection_equal(sel1: "list[tuple[slice, slice]]", sel2: "list[tuple[slice, slice]]"):
     if len(sel1) != len(sel2):
         return False
     for s1, s2 in zip(sel1, sel2):
