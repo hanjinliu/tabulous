@@ -439,6 +439,8 @@ class QTabbedTableStack(QtW.QTabWidget):
 
     def openFinderDialog(self, index: int):
         """Open a dialog to find data in the table at index."""
+        if index is not None:
+            self.setCurrentIndex(index)
         ol = self._overlay
         ol.show()
         from ._finder import QFinderWidget
