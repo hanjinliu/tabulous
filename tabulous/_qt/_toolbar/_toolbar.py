@@ -132,7 +132,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if tabname not in self._child_widgets:
             self.addToolBar(tabname)
         toolbar = self._child_widgets[tabname]
-        qicon = QColoredSVGIcon.fromfile(str(icon))
+        qicon = QColoredSVGIcon.fromfile(icon)
         toolbar.appendAction(f, qicon)
         return None
 

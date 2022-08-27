@@ -180,6 +180,11 @@ class TableList(EventedList[TableBase]):
         self.register_action("Copy all")(self._parent._qwidget._tablestack.copyData)
         self.register_action("Rename")(self._parent._qwidget._tablestack.enterEditingMode)
         self.register_action("Delete")(self.__delitem__)
+        @self.register_action("Filter")
+        def _filter(index: int):
+            _main = self._parent._qwidget
+            _main._tablestack.setCurrentIndex(index)
+            _main._toolbar.filter()
 
         self.register_action("View>Horizontal dual view")(view_mode_setter("horizontal"))
         self.register_action("View>Vertical dual view")(view_mode_setter("vertical"))

@@ -1,21 +1,25 @@
 QDataFrameHeaderView:section {
     border: 1px solid black;
     background-color: #BADEF4;
+    color: black;
 }
 
 QHorizontalHeaderView:section:hover {
     border: 1px solid black;
     border-bottom: 3px solid #7575F2;
+    color: black;
 }
 
 QVerticalHeaderView:section:hover {
     border: 1px solid black;
     border-right: 3px solid #7575F2;
+    color: black;
 }
 
 QDataFrameHeaderView:section:checked {
     border: 1px solid black;
     background-color: lightgray;
+    color: black;
 }
 
 QTableView {
@@ -52,12 +56,14 @@ QTabBar::tab:top {
     height: 14px;
     margin-top: 4px;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FEFEFE, stop:1 #DFDFDF);
+    color: black;
 }
 
 QTabBar::tab:top:selected {
     height: 18px;
     margin-top: 0px;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #C9D4FF, stop:1 #BADEF4);
+    color: black;
 }
 
 QTabBar::tab:bottom {
@@ -69,12 +75,14 @@ QTabBar::tab:bottom {
     height: 14px;
     margin-bottom: 4px;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #DFDFDF, stop:1 #FEFEFE);
+    color: black;
 }
 
 QTabBar::tab:bottom:selected {
     height: 18px;
     margin-bottom: 0px;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #BADEF4, stop:1 #C9D4FF);
+    color: black;
 }
 
 QDtypedLineEdit {

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pathlib import Path
 from typing import Any, Callable, TYPE_CHECKING
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
@@ -11,6 +12,7 @@ from collections_undo import fmt
 from ._item_model import AbstractDataFrameModel
 
 from ..._undo import QtUndoManager, fmt_slice
+from ..._svg import QColoredSVGIcon
 from ..._keymap import QtKeys, QtKeyMap
 from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
 from ....exceptions import SelectionRangeError, TableImmutableError
@@ -22,6 +24,8 @@ if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
     from ._header_view import QDataFrameHeaderView
     from ..._table_stack import QTabbedTableStack
+
+ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
 
 
 class QTableHandle(QtW.QSplitterHandle):
@@ -268,6 +272,7 @@ class QBaseTable(QtW.QSplitter):
 
         if sl is None:
             self.model().df = data_sliced
+            icon = QtGui.QIcon()
         else:
             try:
                 if callable(sl):
@@ -278,6 +283,18 @@ class QBaseTable(QtW.QSplitter):
             except Exception as e:
                 self._filter_slice = None
                 raise ValueError("Error in filter. Filter is reset.") from e
+            icon = QColoredSVGIcon.fromfile(ICON_DIR / "filter.svg")
+
+        # update filter icon
+        if stack := self.tableStack():
+            idx = stack.tableIndex(self)
+            bg = self.palette().color(self.backgroundRole())
+            whiteness = bg.red() + bg.green() + bg.blue()
+            if not icon.isNull() and whiteness <= 128 * 3:
+                icon = icon.colored("#FFFFFF")
+            stack.setTabIcon(idx, icon)
+            if not icon.isNull():
+                stack.setIconSize(QtCore.QSize(12, 12))
 
         return self.refreshTable()
 
@@ -389,9 +406,13 @@ class QBaseTable(QtW.QSplitter):
         )
         return None
 
-    def tableStack(self) -> QTabbedTableStack:
+    def tableStack(self) -> QTabbedTableStack | None:
         """Return the table stack."""
-        return self.parentWidget().parentWidget()
+        try:
+            stack = self.parentWidget().parentWidget()
+        except AttributeError:
+            stack = None
+        return stack
 
 
 class QMutableTable(QBaseTable):
