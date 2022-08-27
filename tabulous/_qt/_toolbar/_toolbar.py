@@ -254,16 +254,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
     def find_item(self):
         """Toggle finder"""
-        ol = self.parent()._tablestack._overlay
-        ol.show()
-        from ._finder import QFinderWidget
-
-        if not isinstance(ol.widget(), QFinderWidget):
-            _finder = QFinderWidget(ol)
-            _finder.searchBox().escClicked.connect(ol.hide)
-            ol.addWidget(_finder)
-            ol.setTitle("Find/Replace")
-            _finder.searchBox().setFocus()
+        return self.parent()._tablestack.openFinderDialog()
 
     def sort_table(self):
         """Add sorted table."""
@@ -281,38 +272,11 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
     def filter(self):
         """Apply filter to the current table."""
-        ol = self.parent()._tablestack._overlay
-        ol.show()
-        from ._eval import QLiteralFilterWidget
-
-        _evaluator = QLiteralFilterWidget(ol)
-
-        @_evaluator._line.escClicked.connect
-        def _on_escape():
-            ol.hide()
-            self.parent().setCellFocus()
-
-        ol.addWidget(_evaluator)
-        ol.setTitle("Filter")
-        _evaluator._line.setFocus()
+        return self.parent()._tablestack.openFilterDialog()
 
     def eval(self):
         """Evaluate a Python expression."""
-
-        ol = self.parent()._tablestack._overlay
-        ol.show()
-        from ._eval import QLiteralEvalWidget
-
-        _evaluator = QLiteralEvalWidget(ol)
-
-        @_evaluator._line.escClicked.connect
-        def _on_escape():
-            ol.hide()
-            self.parent().setCellFocus()
-
-        ol.addWidget(_evaluator)
-        ol.setTitle("Evaluation")
-        _evaluator._line.setFocus()
+        return self.parent()._tablestack.openEvalDialog()
 
     def change_view_mode(self, view_mode: str):
         """Change view mode."""

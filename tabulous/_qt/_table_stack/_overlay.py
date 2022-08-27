@@ -49,6 +49,7 @@ class QOverlayWidget(QtW.QDialog):
         self._title_bar = titlebar
         _layout = QtW.QVBoxLayout()
         _layout.setContentsMargins(2, 2, 2, 2)
+        _layout.setSpacing(0)
         _layout.addWidget(titlebar)
 
         self.setLayout(_layout)

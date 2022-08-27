@@ -437,6 +437,56 @@ class QTabbedTableStack(QtW.QTabWidget):
         table.setSelections([])
         return None
 
+    def openFinderDialog(self, index: int):
+        """Open a dialog to find data in the table at index."""
+        ol = self._overlay
+        ol.show()
+        from ._finder import QFinderWidget
+
+        if not isinstance(ol.widget(), QFinderWidget):
+            _finder = QFinderWidget(ol)
+            _finder.searchBox().escClicked.connect(ol.hide)
+            ol.addWidget(_finder)
+            ol.setTitle("Find/Replace")
+            _finder.searchBox().setFocus()
+        return None
+
+    def openFilterDialog(self, index: int | None = None):
+        if index is not None:
+            self.setCurrentIndex(index)
+        ol = self._overlay
+        ol.show()
+        from ._eval import QLiteralFilterWidget
+
+        _evaluator = QLiteralFilterWidget(ol)
+
+        @_evaluator._line.escClicked.connect
+        def _on_escape():
+            ol.hide()
+            self.parent().setCellFocus()
+
+        ol.addWidget(_evaluator)
+        ol.setTitle("Filter")
+        _evaluator._line.setFocus()
+
+    def openEvalDialog(self, index: int | None = None):
+        if index is not None:
+            self.setCurrentIndex(index)
+        ol = self._overlay
+        ol.show()
+        from ._eval import QLiteralEvalWidget
+
+        _evaluator = QLiteralEvalWidget(ol)
+
+        @_evaluator._line.escClicked.connect
+        def _on_escape():
+            ol.hide()
+            self.parent().setCellFocus()
+
+        ol.addWidget(_evaluator)
+        ol.setTitle("Evaluation")
+        _evaluator._line.setFocus()
+
     def _group_index_to_tab_index(self, group: QTableGroup, index: int) -> int:
         # return the global in index of `index`-th table in `group`
         count = 0
