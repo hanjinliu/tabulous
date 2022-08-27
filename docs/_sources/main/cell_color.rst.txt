@@ -10,18 +10,16 @@ must return a RGBA array (0-255) or a standard color name.
 
     # set a continuous colormap to the "sepal_length" column
     @table.foreground_colormap("sepal_length")
-    def f(v):
-        i = (v - 4) / 4
-        return [255, 0, int(255 * i), 255]
+    def _(x: float):
+        red = np.array([255, 0, 0, 255], dtype=np.uint8)
+        blue = np.array([0, 0, 255, 255], dtype=np.uint8)
+        return (x - lmin) / lrange * blue + (lmax - x) / lrange * red
 
 .. code-block:: python
 
     # set a discrete colormap to the "sepal_width" column
     @table.background_colormap("sepal_width")
-    def f(v):
-        if v < 3.2:
-            return "green"
-        else:
-            return "purple"
+    def _(x: float):
+        return "green" if x < 3.2 else "violet"
 
 .. image:: ../fig/colormap.png
