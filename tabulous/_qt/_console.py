@@ -193,7 +193,7 @@ class QtConsole(RichJupyterWidget):
 
         if floating:
             if self._old_point is None:
-                _screen_rect = QtW.QApplication.desktop().screen().rect()
+                _screen_rect = QtGui.QGuiApplication.primaryScreen().geometry()
                 _screen_center = _screen_rect.center()
                 parent.resize(500, 600)
                 pos = _screen_center - self.rect().center()
