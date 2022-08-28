@@ -274,15 +274,15 @@ class QTabbedTableStack(QtW.QTabWidget):
         locs = location.split(">")
         menu = self._qt_context_menu
         for loc in locs[:-1]:
-            a = menu.searchAction(loc)
+            a = menu.searchChild(loc)
             if a is None:
                 menu = menu.addMenu(loc)
+            elif not isinstance(a, QTabContextMenu):
+                i = locs.index(loc)
+                err_loc = ">".join(locs[:i])
+                raise TypeError(f"{err_loc} is not a menu.")
             else:
-                menu = a.menu()
-                if menu is None:
-                    i = locs.index(loc)
-                    err_loc = ">".join(locs[:i])
-                    raise TypeError(f"{err_loc} is not a menu.")
+                menu = a
 
         def wrapper(f: Callable):
             action = QAction(locs[-1], self)
@@ -525,8 +525,7 @@ class QTabContextMenu(QtW.QMenu):
         menu = self.__class__(self)
         action = super().addMenu(menu)
         action.setText(title)
-        action.setMenu(menu)
-        self._actions[title] = action
+        self._actions[title] = menu
         return menu
 
     def addAction(self, action: QAction) -> None:
@@ -543,12 +542,9 @@ class QTabContextMenu(QtW.QMenu):
             self._current_index = None
         return None
 
-    def searchAction(self, name: str) -> QAction | None:
+    def searchChild(self, name: str) -> QAction | QTabContextMenu | None:
         """Return a action that matches the name."""
-        for k, action in self._actions.items():
-            if k == name:
-                return action
-        return None
+        return self._actions.get(name, None)
 
 
 class QEditabilityNotifier(QtW.QWidget):
