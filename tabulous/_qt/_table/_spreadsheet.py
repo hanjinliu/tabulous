@@ -333,6 +333,7 @@ class QSpreadSheet(QMutableSimpleTable):
         menu.addAction("Remove this column", lambda: self.removeColumns(col, 1))
         # fmt: on
 
+        self.setSelections([(row, col)])
         return menu.exec(self._qtable_view.mapToGlobal(pos))
 
 
