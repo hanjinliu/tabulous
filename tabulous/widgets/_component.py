@@ -202,6 +202,24 @@ class CellInterface(Component["TableBase"]):
             col = slice(col, col + 1)
         return row, col
 
+    # fmt: off
+    @overload
+    def register_action(self, val: str) -> Callable[[_F], _F]: ...
+    @overload
+    def register_action(self, val: _F) -> _F: ...
+    # fmt: on
+
+    def register_action(self, val: str | Callable[[tuple[int, int]], Any]):
+        """Register an contextmenu action to the tablelist."""
+        table = self.parent._qwidget
+        if isinstance(val, str):
+            return table.registerAction(val)
+        elif callable(val):
+            location = val.__name__.replace("_", " ")
+            return table.registerAction(location)(val)
+        else:
+            raise ValueError("input must be a string or callable.")
+
 
 class PlotInterface(Component["TableBase"]):
     """The interface of plotting."""

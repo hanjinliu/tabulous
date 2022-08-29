@@ -74,6 +74,9 @@ class QContextMenu(QtW.QMenu):
 
     def execAtIndex(self, pos: QtCore.QPoint, index: _T):
         """Execute contextmenu at index."""
+        if not self._actions:
+            # don't show contextmenu if no action is registered.
+            return None
         self._current_index = index
         try:
             self.exec_(pos)
