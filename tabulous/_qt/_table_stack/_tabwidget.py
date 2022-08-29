@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, TYPE_CHECKING, Literal, cast
+from typing import Literal, TYPE_CHECKING, cast
 import weakref
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtWidgets import QAction
@@ -10,6 +10,7 @@ from ._utils import create_temporal_line_edit
 
 from .._table._base._table_group import QTableGroup
 from .._clickable_label import QClickableLabel
+from .._action_registry import QActionRegistry
 
 if TYPE_CHECKING:
     from .._table import QBaseTable, QMutableTable
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
     from .._mainwindow._base import _QtMainWidgetBase
 
 
-class QTabbedTableStack(QtW.QTabWidget):
+class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
     """Tab widget used for table stack."""
 
     currentTableChanged = Signal(int)  # index
@@ -33,7 +34,9 @@ class QTabbedTableStack(QtW.QTabWidget):
         parent=None,
         tab_position: str = "top",
     ):
-        super().__init__(parent)
+        QtW.QTabWidget.__init__(self, parent)
+        QActionRegistry.__init__(self)
+
         from . import _tabbar
 
         if tab_position == "top":
@@ -71,9 +74,6 @@ class QTabbedTableStack(QtW.QTabWidget):
         self._overlay = QOverlayWidget(self)
         self._notifier = QOverlayWidget(self, duration=200)
         self._notifier.setAnchor("top_right")
-
-        # contextmenu
-        self._qt_context_menu = QTabContextMenu(self)
 
         # temporal QLineEdit for editing tabs
         self._line: QtW.QLineEdit | None = None
@@ -270,36 +270,13 @@ class QTabbedTableStack(QtW.QTabWidget):
 
         return None
 
-    def registerAction(self, location: str):
-        locs = location.split(">")
-        menu = self._qt_context_menu
-        for loc in locs[:-1]:
-            a = menu.searchChild(loc)
-            if a is None:
-                menu = menu.addMenu(loc)
-            elif not isinstance(a, QTabContextMenu):
-                i = locs.index(loc)
-                err_loc = ">".join(locs[:i])
-                raise TypeError(f"{err_loc} is not a menu.")
-            else:
-                menu = a
-
-        def wrapper(f: Callable):
-            action = QAction(locs[-1], self)
-            action.triggered.connect(lambda: f(self._qt_context_menu._current_index))
-            menu.addAction(action)
-            return f
-
-        return wrapper
-
     def showContextMenu(self, pos: QtCore.QPoint) -> None:
         """Execute contextmenu."""
         table = self.tableAt(pos)
         if table is None:
             return
         index = self.tableIndex(table)
-        self._qt_context_menu.execAtIndex(QtGui.QCursor().pos(), index)
-        return
+        return self.execContextMenu(index)
 
     def notifyEditability(self):
         """Show a notification saying that the table is not editable."""
@@ -510,41 +487,6 @@ class QTabbedTableStack(QtW.QTabWidget):
             return count
         else:
             raise ValueError(f"Widget at {index} is not a table group.")
-
-
-class QTabContextMenu(QtW.QMenu):
-    """Contextmenu for the tabs on the QTabWidget."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._current_index = None
-        self._actions: dict[str, QAction | QTabContextMenu] = {}
-
-    def addMenu(self, title: str) -> QTabContextMenu:
-        """Add a submenu to the contextmenu."""
-        menu = self.__class__(self)
-        action = super().addMenu(menu)
-        action.setText(title)
-        self._actions[title] = menu
-        return menu
-
-    def addAction(self, action: QAction) -> None:
-        super().addAction(action)
-        self._actions[action.text()] = action
-        return None
-
-    def execAtIndex(self, pos: QtCore.QPoint, index: int):
-        """Execute contextmenu at index."""
-        self._current_index = index
-        try:
-            self.exec_(pos)
-        finally:
-            self._current_index = None
-        return None
-
-    def searchChild(self, name: str) -> QAction | QTabContextMenu | None:
-        """Return a action that matches the name."""
-        return self._actions.get(name, None)
 
 
 class QEditabilityNotifier(QtW.QWidget):

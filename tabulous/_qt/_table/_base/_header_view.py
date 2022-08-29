@@ -1,18 +1,23 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from qtpy import QtWidgets as QtW
+from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtCore import Qt, Signal
+
+from ..._action_registry import QActionRegistry
 
 if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
 
 
-class QDataFrameHeaderView(QtW.QHeaderView):
+class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
+    """The header view for the tabulous tables."""
+
     _Orientation: Qt.Orientation
     selectionChangedSignal = Signal(int, int)
 
     def __init__(self, parent: QtW.QWidget | None = None) -> None:
-        super().__init__(self._Orientation, parent)
+        QtW.QHeaderView.__init__(self, self._Orientation, parent)
+        QActionRegistry.__init__(self)
         self._index_start = None
         self._index_stop = None
         self.setSelectionMode(QtW.QHeaderView.SelectionMode.SingleSelection)
@@ -20,6 +25,9 @@ class QDataFrameHeaderView(QtW.QHeaderView):
         self.sectionPressed.connect(self._on_section_pressed)  # pressed
         self.sectionClicked.connect(self._on_section_clicked)  # released
         self.sectionEntered.connect(self._on_section_entered)  # dragged
+
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._show_context_menu)
 
     # fmt: off
     if TYPE_CHECKING:
@@ -44,6 +52,10 @@ class QDataFrameHeaderView(QtW.QHeaderView):
 
     def _on_section_clicked(self, logicalIndex) -> None:
         self._index_start = None
+
+    def _show_context_menu(self, pos: QtCore.QPoint) -> None:
+        index = self.logicalIndexAt(pos)
+        return self.execContextMenu(index)
 
 
 class QHorizontalHeaderView(QDataFrameHeaderView):
