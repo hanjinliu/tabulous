@@ -94,9 +94,22 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             "    border-radius: 2px;}"
         )
 
+        self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
+        self._install_actions()
+
     def createHandle(self) -> QTableHandle:
         """Create custom handle."""
         return QTableHandle(Qt.Orientation.Horizontal, self)
+
+    def showContextMenu(self, pos: QtCore.QPoint):
+        index = self._qtable_view.indexAt(pos)
+        row, col = index.row(), index.column()
+
+        self.setSelections([(row, col)])
+        return self.execContextMenu((row, col))
+
+    def _install_actions(self):
+        pass
 
     # fmt: off
     if TYPE_CHECKING:

@@ -46,8 +46,6 @@ class QSpreadSheet(QMutableSimpleTable):
     def __init__(self, parent=None, data: pd.DataFrame | None = None):
         super().__init__(parent, data)
         self._data_cache = None
-        self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
-        self._install_actions()
 
     # fmt: off
     if TYPE_CHECKING:
@@ -339,6 +337,7 @@ class QSpreadSheet(QMutableSimpleTable):
         return self.removeColumns(col, 1)
 
     def _install_actions(self):
+        # fmt: off
         vheader = self._qtable_view.verticalHeader()
         vheader.registerAction("Insert row above")(self._insert_row_above)
         vheader.registerAction("Insert row below")(self._insert_row_below)
@@ -349,24 +348,13 @@ class QSpreadSheet(QMutableSimpleTable):
         hheader.registerAction("Insert column right")(self._insert_column_right)
         hheader.registerAction("Remove this column")(self._remove_this_column)
 
-        self.registerAction("Insert a row above")(
-            lambda idx: self._insert_row_above(idx[0])
-        )
-        self.registerAction("Insert a row below")(
-            lambda idx: self._insert_row_below(idx[0])
-        )
-        self.registerAction("Insert a column on the left")(
-            lambda idx: self.insertColumns(idx[1])
-        )
-        self.registerAction("Insert a column on the right")(
-            lambda idx: self.insertColumns(idx[1])
-        )
-        self.registerAction("Remove this row")(
-            lambda idx: self._remove_this_row(idx[0])
-        )
-        self.registerAction("Remove this column")(
-            lambda idx: self._remove_this_column(idx[1])
-        )
+        self.registerAction("Insert a row above")(lambda idx: self._insert_row_above(idx[0]))
+        self.registerAction("Insert a row below")(lambda idx: self._insert_row_below(idx[0]))
+        self.registerAction("Insert a column on the left")(lambda idx: self.insertColumns(idx[1]))
+        self.registerAction("Insert a column on the right")(lambda idx: self.insertColumns(idx[1]))
+        self.registerAction("Remove this row")(lambda idx: self._remove_this_row(idx[0]))
+        self.registerAction("Remove this column")(lambda idx: self._remove_this_column(idx[1]))
+        # fmt: on
         return None
 
     def showContextMenu(self, pos: QtCore.QPoint):
