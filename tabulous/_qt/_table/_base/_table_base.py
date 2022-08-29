@@ -109,7 +109,16 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return self.execContextMenu((row, col))
 
     def _install_actions(self):
-        pass
+        hheader = self._qtable_view.horizontalHeader()
+        hheader.registerAction("Set forground colormap")(self._set_forground_colormap)
+        hheader.registerAction("Set background colormap")(self._set_background_colormap)
+        hheader.registerAction("Reset forground colormap")(
+            self._reset_forground_colormap
+        )
+        hheader.registerAction("Reset background colormap")(
+            self._reset_background_colormap
+        )
+        return None
 
     # fmt: off
     if TYPE_CHECKING:
@@ -429,6 +438,36 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         except AttributeError:
             stack = None
         return stack
+
+    def _set_forground_colormap(self, index: int):
+        from ._colormap import exec_colormap_dialog
+
+        df = self.dataShown()
+        column_name = df.columns[index]
+        if cmap := exec_colormap_dialog(df[column_name], self):
+            self.model()._foreground_colormap[column_name] = cmap
+            self.refresh()
+        return None
+
+    def _reset_forground_colormap(self, index: int):
+        df = self.dataShown()
+        column_name = df.columns[index]
+        return self.model()._foreground_colormap.pop(column_name)
+
+    def _set_background_colormap(self, index: int):
+        from ._colormap import exec_colormap_dialog
+
+        df = self.dataShown()
+        column_name = df.columns[index]
+        if cmap := exec_colormap_dialog(df[column_name], self):
+            self.model()._background_colormap[column_name] = cmap
+            self.refresh()
+        return None
+
+    def _reset_background_colormap(self, index: int):
+        df = self.dataShown()
+        column_name = df.columns[index]
+        return self.model()._background_colormap.pop(column_name)
 
 
 class QMutableTable(QBaseTable):

@@ -63,6 +63,13 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = out
         return out
 
+    def dataShown(self) -> pd.DataFrame:
+        _label = "_INDEX_"
+        buf = StringIO(super().dataShown().to_csv(sep="\t", index_label=_label))
+        out = pd.read_csv(buf, sep="\t", index_col=_label)
+        out.index.name = None
+        return out
+
     def dataShape(self) -> tuple[int, int]:
         return self._data_raw.shape
 
@@ -355,6 +362,8 @@ class QSpreadSheet(QMutableSimpleTable):
         self.registerAction("Remove this row")(lambda idx: self._remove_this_row(idx[0]))
         self.registerAction("Remove this column")(lambda idx: self._remove_this_column(idx[1]))
         # fmt: on
+
+        super()._install_actions()
         return None
 
     def showContextMenu(self, pos: QtCore.QPoint):

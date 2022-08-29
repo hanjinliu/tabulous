@@ -69,12 +69,14 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 try:
                     col = mapper(val)
                     if col is None:
+                        if pd.isna(val):
+                            return QtGui.QColor(Qt.GlobalColor.gray)
                         return QtCore.QVariant()
                     rgba = normalize_color(col)
                 except Exception as e:
                     # since this method is called many times, errorous function should be
                     # deleted from the mapper.
-                    self._foreground_colormap.pop(c)
+                    self._foreground_colormap.pop(colname)
                     raise e
                 return QtGui.QColor(*rgba)
             if pd.isna(val):
