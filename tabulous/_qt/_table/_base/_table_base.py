@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Any, Callable, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING, Tuple
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -14,6 +14,7 @@ from ._item_model import AbstractDataFrameModel
 from ..._undo import QtUndoManager, fmt_slice
 from ..._svg import QColoredSVGIcon
 from ..._keymap import QtKeys, QtKeyMap
+from ..._action_registry import QActionRegistry
 from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
 from ....exceptions import SelectionRangeError, TableImmutableError
 
@@ -46,7 +47,7 @@ class QTableHandle(QtW.QSplitterHandle):
         return super().mouseDoubleClickEvent(a0)
 
 
-class QBaseTable(QtW.QSplitter):
+class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     """
     The base widget for a table.
 
@@ -67,7 +68,9 @@ class QBaseTable(QtW.QSplitter):
     def __init__(
         self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None
     ):
-        super().__init__(parent)
+        QtW.QSplitter.__init__(self, parent)
+        QActionRegistry.__init__(self)
+
         self._filter_slice: FilterType | None = None
         self.setContentsMargins(0, 0, 0, 0)
 

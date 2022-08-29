@@ -7,6 +7,20 @@ _T = TypeVar("_T")
 
 
 class QActionRegistry(QtCore.QObject, Generic[_T]):
+    """
+    An contextmenu action registry.
+
+    This class must be subclassed with other QWidget class like below.
+
+    >>> class MyWidget(QWidget, QActionRegistry[int]):
+    >>>     def __init__(self, parent=None):
+    >>>         QWidget.__init__(self, parent)
+    >>>         QActionRegistry.__init__(self)
+
+    Now you can register any Python function with signature f(i: _T) to the context
+    menu.
+    """
+
     def __init__(self, *args, **kwargs) -> None:
         self._qt_context_menu = QContextMenu(self)
 
@@ -33,6 +47,7 @@ class QActionRegistry(QtCore.QObject, Generic[_T]):
         return wrapper
 
     def execContextMenu(self, index: _T) -> None:
+        """Execute the context menu at the given index."""
         return self._qt_context_menu.execAtIndex(QtGui.QCursor().pos(), index)
 
 

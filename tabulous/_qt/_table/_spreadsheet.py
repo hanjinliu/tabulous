@@ -47,6 +47,7 @@ class QSpreadSheet(QMutableSimpleTable):
         super().__init__(parent, data)
         self._data_cache = None
         self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
+        self._install_actions()
 
     # fmt: off
     if TYPE_CHECKING:
@@ -319,22 +320,61 @@ class QSpreadSheet(QMutableSimpleTable):
 
         return None
 
+    def _insert_row_above(self, row: int):
+        return self.insertRows(row, 1)
+
+    def _insert_row_below(self, row: int):
+        return self.insertRows(row + 1, 1)
+
+    def _insert_column_left(self, col: int):
+        return self.insertColumns(col, 1)
+
+    def _insert_column_right(self, col: int):
+        return self.insertColumns(col + 1, 1)
+
+    def _remove_this_row(self, row: int):
+        return self.removeRows(row, 1)
+
+    def _remove_this_column(self, col: int):
+        return self.removeColumns(col, 1)
+
+    def _install_actions(self):
+        vheader = self._qtable_view.verticalHeader()
+        vheader.registerAction("Insert row above")(self._insert_row_above)
+        vheader.registerAction("Insert row below")(self._insert_row_below)
+        vheader.registerAction("Remove this row")(self._remove_this_row)
+
+        hheader = self._qtable_view.horizontalHeader()
+        hheader.registerAction("Insert column left")(self._insert_column_left)
+        hheader.registerAction("Insert column right")(self._insert_column_right)
+        hheader.registerAction("Remove this column")(self._remove_this_column)
+
+        self.registerAction("Insert a row above")(
+            lambda idx: self._insert_row_above(idx[0])
+        )
+        self.registerAction("Insert a row below")(
+            lambda idx: self._insert_row_below(idx[0])
+        )
+        self.registerAction("Insert a column on the left")(
+            lambda idx: self.insertColumns(idx[1])
+        )
+        self.registerAction("Insert a column on the right")(
+            lambda idx: self.insertColumns(idx[1])
+        )
+        self.registerAction("Remove this row")(
+            lambda idx: self._remove_this_row(idx[0])
+        )
+        self.registerAction("Remove this column")(
+            lambda idx: self._remove_this_column(idx[1])
+        )
+        return None
+
     def showContextMenu(self, pos: QtCore.QPoint):
-        menu = QtW.QMenu(self._qtable_view)
         index = self._qtable_view.indexAt(pos)
         row, col = index.row(), index.column()
 
-        # fmt: off
-        menu.addAction("Insert a row above", lambda: self.insertRows(row, 1))
-        menu.addAction("Insert a row below", lambda: self.insertRows(row + 1, 1))
-        menu.addAction("Insert a column on the left", lambda: self.insertColumns(col, 1))
-        menu.addAction("Insert a column on the right", lambda: self.insertColumns(col + 1, 1))
-        menu.addAction("Remove this row", lambda: self.removeRows(row, 1))
-        menu.addAction("Remove this column", lambda: self.removeColumns(col, 1))
-        # fmt: on
-
         self.setSelections([(row, col)])
-        return menu.exec(self._qtable_view.mapToGlobal(pos))
+        return self.execContextMenu((row, col))
 
 
 def _get_limit(a) -> int:
