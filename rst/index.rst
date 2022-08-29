@@ -33,6 +33,7 @@ Basics
    ./main/user_interface
    ./main/selections
    ./main/filter
+   ./main/register_action
    ./main/cell_color
    ./main/table_advanced
 
