@@ -1,6 +1,6 @@
 from __future__ import annotations
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Signal, Qt
 
@@ -39,6 +39,19 @@ def find_parent_table_viewer(qwidget: _QtMainWidgetBase) -> _QtMainWidgetBase:
 _OPERATORS = re.compile(r"\+|-|\*|/|\s|\(|\)|%|<|>|=")
 
 
+class _EventFilter(QtCore.QObject):
+    """An event filter for text completion by tab."""
+
+    def eventFilter(self, o: QtCore.QObject, e: QtCore.QEvent):
+        if e.type() == QtCore.QEvent.Type.KeyPress:
+            e = cast(QtGui.QKeyEvent, e)
+            if e.key() == Qt.Key.Key_Tab:
+                l = cast(QCompletableLineEdit, self.parent())
+                l.setSelection(len(l.text()), len(l.text()))
+                return True
+        return False
+
+
 class QCompletableLineEdit(QtW.QLineEdit):
     enterClicked = Signal()
     escClicked = Signal()
@@ -53,6 +66,8 @@ class QCompletableLineEdit(QtW.QLineEdit):
         self.textChanged.connect(self.setCompletion)
         self._history: list[str] = []
         self._history_pos: int = -1
+        self._event_filter = _EventFilter(self)
+        self.installEventFilter(self._event_filter)
 
     def currentQTable(self):
         tablestack = self._qtable_viewer._tablestack

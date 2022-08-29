@@ -80,10 +80,12 @@ class SelectionModel:
         return None
 
     def clear(self) -> None:
+        """Clear all the selections"""
         return self._selections.clear()
 
     @contextmanager
     def blocked(self) -> None:
+        """Block selection updates in this context."""
         self._blocked = True
         try:
             yield
