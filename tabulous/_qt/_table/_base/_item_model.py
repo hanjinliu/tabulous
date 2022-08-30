@@ -52,8 +52,9 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
 
     def _data_display(self, index: QtCore.QModelIndex):
         r, c = index.row(), index.column()
-        if r < self.df.shape[0] and c < self.df.shape[1]:
-            val = self.df.iat[r, c]
+        df = self.df
+        if r < df.shape[0] and c < df.shape[1]:
+            val = df.iat[r, c]
             if pd.isna(val):
                 return "NA"
             return str(val)
@@ -61,9 +62,10 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
 
     def _data_text_color(self, index: QtCore.QModelIndex):
         r, c = index.row(), index.column()
-        if r < self.df.shape[0] and c < self.df.shape[1]:
-            colname = self.df.columns[c]
-            val = self.df.iat[r, c]
+        df = self.df
+        if r < df.shape[0] and c < df.shape[1]:
+            colname = df.columns[c]
+            val = df.iat[r, c]
             if mapper := self._foreground_colormap.get(colname, None):
                 # If mapper is given for the column, call it.
                 try:
@@ -96,10 +98,11 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
 
     def _data_background_color(self, index: QtCore.QModelIndex):
         r, c = index.row(), index.column()
-        if r < self.df.shape[0] and c < self.df.shape[1]:
-            colname = self.df.columns[c]
+        df = self.df
+        if r < df.shape[0] and c < df.shape[1]:
+            colname = df.columns[c]
             if mapper := self._background_colormap.get(colname, None):
-                val = self.df.iat[r, c]
+                val = df.iat[r, c]
                 try:
                     col = mapper(val)
                     if col is None:

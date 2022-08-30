@@ -70,6 +70,10 @@ class QSpreadSheet(QMutableSimpleTable):
         out.index.name = None
         return out
 
+    def tableSlice(self) -> pd.DataFrame:
+        """Return 2D table for display."""
+        return self.getDataFrame()
+
     def dataShape(self) -> tuple[int, int]:
         return self._data_raw.shape
 
