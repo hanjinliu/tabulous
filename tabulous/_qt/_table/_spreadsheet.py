@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any
 from io import StringIO
 import numpy as np
 import pandas as pd
-from qtpy import QtCore, QtWidgets as QtW
+from qtpy import QtCore
 from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
@@ -13,7 +13,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
     """A DataFrameModel for a spreadsheet."""
 
     @property
-    def df(self) -> pd.DataFrame:
+    def df(self) -> pd.DataFrame:  # NOTE: this returns a string data frame
         return self._df
 
     @df.setter
@@ -56,23 +56,26 @@ class QSpreadSheet(QMutableSimpleTable):
         if self._data_cache is not None:
             return self._data_cache
         # Convert table data into a DataFrame with the optimal dtypes
-        _label = "_INDEX_"
-        buf = StringIO(self._data_raw.to_csv(sep="\t", index_label=_label))
-        out = pd.read_csv(buf, sep="\t", index_col=_label)
-        out.index.name = None
+        _sep = "\t"
+        data_raw = self._data_raw
+        if data_raw.shape[1] > 0:
+            val = data_raw.to_csv(sep=_sep, index=False)
+            buf = StringIO(val)
+            out = pd.read_csv(
+                buf,
+                sep=_sep,
+                header=0,
+                names=data_raw.columns,
+            )
+            out.index = data_raw.index
+        else:
+            out = pd.DataFrame(index=data_raw.index, columns=[])
         self._data_cache = out
         return out
 
-    def dataShown(self) -> pd.DataFrame:
-        _label = "_INDEX_"
-        buf = StringIO(super().dataShown().to_csv(sep="\t", index_label=_label))
-        out = pd.read_csv(buf, sep="\t", index_col=_label)
-        out.index.name = None
-        return out
-
-    def tableSlice(self) -> pd.DataFrame:
-        """Return 2D table for display."""
-        return self.getDataFrame()
+    # def dataShown(self) -> pd.DataFrame:
+    #     df = self.getDataFrame()
+    #     return df.loc[list(self._filtered_index), list(self._filtered_columns)]
 
     def dataShape(self) -> tuple[int, int]:
         return self._data_raw.shape
@@ -142,13 +145,14 @@ class QSpreadSheet(QMutableSimpleTable):
         with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
+                self._data_cache = None
             super().setDataFrameValue(r, c, value)
+            self._data_cache = None
             self.setFilter(self._filter_slice)
 
         self._qtable_view.verticalHeader().resize(
             self._qtable_view.verticalHeader().sizeHint()
         )
-        self._data_cache = None
         return None
 
     @QMutableSimpleTable._mgr.undoable

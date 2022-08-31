@@ -75,6 +75,9 @@ class VerticalHeaderInterface(Component["TableBase"]):
             qtable.setVerticalHeaderValue(idx, value)
         return None
 
+    def __len__(self) -> int:
+        return len(self.parent.data.index)
+
     # fmt: off
     @overload
     def register_action(self, val: str) -> Callable[[_F], _F]: ...
@@ -117,6 +120,9 @@ class HorizontalHeaderInterface(Component["TableBase"]):
             idx = key.__index__()
             qtable.setHorizontalHeaderValue(idx, value)
         return None
+
+    def __len__(self) -> int:
+        return len(self.parent.data.columns)
 
     # fmt: off
     @overload
