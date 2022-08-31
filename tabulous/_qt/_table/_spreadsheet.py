@@ -383,12 +383,35 @@ class QSpreadSheet(QMutableSimpleTable):
         super()._install_actions()
         return None
 
-    def showContextMenu(self, pos: QtCore.QPoint):
-        index = self._qtable_view.indexAt(pos)
-        row, col = index.row(), index.column()
+    def _set_forground_colormap(self, index: int):
+        from ._base._colormap import exec_colormap_dialog
 
-        self.setSelections([(row, col)])
-        return self.execContextMenu((row, col))
+        column_name = self._filtered_columns[index]
+        df = self.getDataFrame()
+        dtype: np.dtype = df.dtypes[column_name]
+        if cmap := exec_colormap_dialog(df[column_name], self):
+
+            def _cmap(val):
+                return cmap(dtype.type(val))
+
+            self.model()._foreground_colormap[column_name] = _cmap
+            self.refresh()
+        return None
+
+    def _set_background_colormap(self, index: int):
+        from ._base._colormap import exec_colormap_dialog
+
+        column_name = self._filtered_columns[index]
+        df = self.getDataFrame()
+        dtype: np.dtype = df.dtypes[column_name]
+        if cmap := exec_colormap_dialog(df[column_name], self):
+
+            def _cmap(val):
+                return cmap(dtype.type(val))
+
+            self.model()._background_colormap[column_name] = _cmap
+            self.refresh()
+        return None
 
 
 def _get_limit(a) -> int:

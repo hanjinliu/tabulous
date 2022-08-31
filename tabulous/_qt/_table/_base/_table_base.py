@@ -459,7 +459,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         from ._colormap import exec_colormap_dialog
 
         column_name = self._filtered_columns[index]
-        if cmap := exec_colormap_dialog(self.dataShown()[column_name], self):
+        if cmap := exec_colormap_dialog(self.getDataFrame()[column_name], self):
             self.model()._foreground_colormap[column_name] = cmap
             self.refresh()
         return None
@@ -472,7 +472,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         from ._colormap import exec_colormap_dialog
 
         column_name = self._filtered_columns[index]
-        if cmap := exec_colormap_dialog(self.dataShown()[column_name], self):
+        if cmap := exec_colormap_dialog(self.getDataFrame()[column_name], self):
             self.model()._background_colormap[column_name] = cmap
             self.refresh()
         return None
@@ -827,7 +827,7 @@ class QMutableTable(QBaseTable):
         top, left = topleft
         edit_geometry = _line.geometry()
         edit_geometry.setHeight(height)
-        edit_geometry.setWidth(max(width, 140))
+        edit_geometry.setWidth(max(width, 60))
         if top is not None:
             edit_geometry.moveTop(top)
         if left is not None:
