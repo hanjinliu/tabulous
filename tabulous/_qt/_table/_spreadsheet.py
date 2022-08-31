@@ -47,6 +47,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     def __init__(self, parent=None, data: pd.DataFrame | None = None):
         super().__init__(parent, data)
+        self._qtable_view.verticalHeader().setMinimumWidth(20)
         self._data_cache = None
 
     # fmt: off

@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import Any, Hashable, Iterable, Sequence, TYPE_CHECKING
-from collections_undo import UndoManager
 from pandas.core.groupby.generic import DataFrameGroupBy
 from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Signal, Qt

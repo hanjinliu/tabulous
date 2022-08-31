@@ -826,8 +826,7 @@ class QMutableTable(QBaseTable):
         width, height = size
         top, left = topleft
         edit_geometry = _line.geometry()
-        edit_geometry.setHeight(height)
-        edit_geometry.setWidth(max(width, 60))
+        edit_geometry.setSize(QtCore.QSize(width, height))
         if top is not None:
             edit_geometry.moveTop(top)
         if left is not None:
@@ -955,12 +954,14 @@ def _was_changed(val: Any, old_val: Any) -> bool:
 
 
 def _rename_row(df: pd.DataFrame, idx: int, new_name: str) -> None:
+    """Rename row label at the given index."""
     rowname = df.index[idx]
     df.rename(index={rowname: new_name}, inplace=True)
     return None
 
 
 def _rename_column(df: pd.DataFrame, idx: int, new_name: str) -> None:
+    """Rename column label at the given index."""
     colname = df.columns[idx]
     df.rename(columns={colname: new_name}, inplace=True)
     return None
