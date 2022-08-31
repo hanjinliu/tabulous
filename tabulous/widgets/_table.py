@@ -10,6 +10,7 @@ from ._component import (
     HorizontalHeaderInterface,
     VerticalHeaderInterface,
     PlotInterface,
+    ColumnDtypeInterface,
 )
 from . import _doc
 
@@ -389,17 +390,14 @@ class SpreadSheet(_DataFrameTableLayer):
     {name}{editable}{metadata}
     """
 
-    _Default_Name = "sheet"
     _qwidget: QSpreadSheet
+    _Default_Name = "sheet"
+    dtypes = ColumnDtypeInterface()
 
     def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
         from .._qt import QSpreadSheet
 
         return QSpreadSheet(data=data)
-
-    def set_dtype(self, name, dtype):
-        self._qwidget.setColumnDtype(name, dtype)
-        return None
 
 
 class GroupBy(TableBase):

@@ -375,7 +375,7 @@ class QSpreadSheet(QMutableSimpleTable):
         return None
 
     @QMutableSimpleTable._mgr.interface
-    def setColumnDtype(self, label: Hashable, dtype: Any) -> None:
+    def setColumnDtype(self, label: Hashable, dtype: Any | None) -> None:
         """Set the dtype of the column with the given label."""
         if dtype is None:
             self._columns_dtype.pop(label, None)
