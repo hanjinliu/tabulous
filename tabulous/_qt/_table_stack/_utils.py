@@ -53,6 +53,8 @@ class _EventFilter(QtCore.QObject):
 
 
 class QCompletableLineEdit(QtW.QLineEdit):
+    """A QLineEdit implemented with completion."""
+
     enterClicked = Signal()
     escClicked = Signal()
 

@@ -3,17 +3,19 @@ from typing import TYPE_CHECKING, Any
 from io import StringIO
 import numpy as np
 import pandas as pd
-from qtpy import QtCore, QtWidgets as QtW
+from qtpy import QtCore
 from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
+
+_OUT_OF_BOUND_SIZE = 10
 
 
 class SpreadSheetModel(AbstractDataFrameModel):
     """A DataFrameModel for a spreadsheet."""
 
     @property
-    def df(self) -> pd.DataFrame:
+    def df(self) -> pd.DataFrame:  # NOTE: this returns a string data frame
         return self._df
 
     @df.setter
@@ -23,12 +25,12 @@ class SpreadSheetModel(AbstractDataFrameModel):
     def rowCount(self, parent=None):
         from ..._global_variables import table
 
-        return min(self._df.shape[0] + 10, table.max_row_count)
+        return min(self._df.shape[0] + _OUT_OF_BOUND_SIZE, table.max_row_count)
 
     def columnCount(self, parent=None):
         from ..._global_variables import table
 
-        return min(self._df.shape[1] + 10, table.max_column_count)
+        return min(self._df.shape[1] + _OUT_OF_BOUND_SIZE, table.max_column_count)
 
 
 class QSpreadSheet(QMutableSimpleTable):
@@ -45,8 +47,8 @@ class QSpreadSheet(QMutableSimpleTable):
 
     def __init__(self, parent=None, data: pd.DataFrame | None = None):
         super().__init__(parent, data)
+        self._qtable_view.verticalHeader().setMinimumWidth(20)
         self._data_cache = None
-        self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
 
     # fmt: off
     if TYPE_CHECKING:
@@ -57,12 +59,26 @@ class QSpreadSheet(QMutableSimpleTable):
         if self._data_cache is not None:
             return self._data_cache
         # Convert table data into a DataFrame with the optimal dtypes
-        _label = "_INDEX_"
-        buf = StringIO(self._data_raw.to_csv(sep="\t", index_label=_label))
-        out = pd.read_csv(buf, sep="\t", index_col=_label)
-        out.index.name = None
+        _sep = "\t"
+        data_raw = self._data_raw
+        if data_raw.shape[1] > 0:
+            val = data_raw.to_csv(sep=_sep, index=False)
+            buf = StringIO(val)
+            out = pd.read_csv(
+                buf,
+                sep=_sep,
+                header=0,
+                names=data_raw.columns,
+            )
+            out.index = data_raw.index
+        else:
+            out = pd.DataFrame(index=data_raw.index, columns=[])
         self._data_cache = out
         return out
+
+    # def dataShown(self) -> pd.DataFrame:
+    #     df = self.getDataFrame()
+    #     return df.loc[list(self._filtered_index), list(self._filtered_columns)]
 
     def dataShape(self) -> tuple[int, int]:
         return self._data_raw.shape
@@ -71,7 +87,10 @@ class QSpreadSheet(QMutableSimpleTable):
     def setDataFrame(self, data: pd.DataFrame) -> None:
         """Set data frame as a string table."""
         self._data_raw = data.astype("string")
-        self.model().setShape(data.index.size + 10, data.columns.size + 10)
+        self.model().setShape(
+            data.index.size + _OUT_OF_BOUND_SIZE,
+            data.columns.size + _OUT_OF_BOUND_SIZE,
+        )
         self._data_cache = None
         self.setFilter(None)
         self.refreshTable()
@@ -132,13 +151,14 @@ class QSpreadSheet(QMutableSimpleTable):
         with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
+                self._data_cache = None
             super().setDataFrameValue(r, c, value)
+            self._data_cache = None
             self.setFilter(self._filter_slice)
 
         self._qtable_view.verticalHeader().resize(
             self._qtable_view.verticalHeader().sizeHint()
         )
-        self._data_cache = None
         return None
 
     @QMutableSimpleTable._mgr.undoable
@@ -148,14 +168,18 @@ class QSpreadSheet(QMutableSimpleTable):
             return None
         self._data_raw = _pad_dataframe(self._data_raw, nrows, ncols)
         new_shape = self._data_raw.shape
-        self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
+        self.model().setShape(
+            new_shape[0] + _OUT_OF_BOUND_SIZE,
+            new_shape[1] + _OUT_OF_BOUND_SIZE,
+        )
         return None
 
     @expandDataFrame.undo_def
     def expandDataFrame(self, nrows: int, ncols: int):
         nr, nc = self._data_raw.shape
-        self.model().removeRows(nr - nrows, nrows, QtCore.QModelIndex())
-        self.model().removeColumns(nc - ncols, ncols, QtCore.QModelIndex())
+        model = self.model()
+        model.removeRows(nr - nrows, nrows, QtCore.QModelIndex())
+        model.removeColumns(nc - ncols, ncols, QtCore.QModelIndex())
         self._data_raw = self._data_raw.iloc[: nr - nrows, : nc - ncols]
         self.setFilter(self._filter_slice)
         self._data_cache = None
@@ -319,22 +343,76 @@ class QSpreadSheet(QMutableSimpleTable):
 
         return None
 
-    def showContextMenu(self, pos: QtCore.QPoint):
-        menu = QtW.QMenu(self._qtable_view)
-        index = self._qtable_view.indexAt(pos)
-        row, col = index.row(), index.column()
+    def _insert_row_above(self, row: int):
+        return self.insertRows(row, 1)
 
+    def _insert_row_below(self, row: int):
+        return self.insertRows(row + 1, 1)
+
+    def _insert_column_left(self, col: int):
+        return self.insertColumns(col, 1)
+
+    def _insert_column_right(self, col: int):
+        return self.insertColumns(col + 1, 1)
+
+    def _remove_this_row(self, row: int):
+        return self.removeRows(row, 1)
+
+    def _remove_this_column(self, col: int):
+        return self.removeColumns(col, 1)
+
+    def _install_actions(self):
         # fmt: off
-        menu.addAction("Insert a row above", lambda: self.insertRows(row, 1))
-        menu.addAction("Insert a row below", lambda: self.insertRows(row + 1, 1))
-        menu.addAction("Insert a column on the left", lambda: self.insertColumns(col, 1))
-        menu.addAction("Insert a column on the right", lambda: self.insertColumns(col + 1, 1))
-        menu.addAction("Remove this row", lambda: self.removeRows(row, 1))
-        menu.addAction("Remove this column", lambda: self.removeColumns(col, 1))
+        vheader = self._qtable_view.verticalHeader()
+        vheader.registerAction("Insert row above")(self._insert_row_above)
+        vheader.registerAction("Insert row below")(self._insert_row_below)
+        vheader.registerAction("Remove this row")(self._remove_this_row)
+
+        hheader = self._qtable_view.horizontalHeader()
+        hheader.registerAction("Insert column left")(self._insert_column_left)
+        hheader.registerAction("Insert column right")(self._insert_column_right)
+        hheader.registerAction("Remove this column")(self._remove_this_column)
+
+        self.registerAction("Insert a row above")(lambda idx: self._insert_row_above(idx[0]))
+        self.registerAction("Insert a row below")(lambda idx: self._insert_row_below(idx[0]))
+        self.registerAction("Insert a column on the left")(lambda idx: self.insertColumns(idx[1]))
+        self.registerAction("Insert a column on the right")(lambda idx: self.insertColumns(idx[1]))
+        self.registerAction("Remove this row")(lambda idx: self._remove_this_row(idx[0]))
+        self.registerAction("Remove this column")(lambda idx: self._remove_this_column(idx[1]))
         # fmt: on
 
-        self.setSelections([(row, col)])
-        return menu.exec(self._qtable_view.mapToGlobal(pos))
+        super()._install_actions()
+        return None
+
+    def _set_forground_colormap(self, index: int):
+        from ._base._colormap import exec_colormap_dialog
+
+        column_name = self._filtered_columns[index]
+        df = self.getDataFrame()
+        dtype: np.dtype = df.dtypes[column_name]
+        if cmap := exec_colormap_dialog(df[column_name], self):
+
+            def _cmap(val):
+                return cmap(dtype.type(val))
+
+            self.model()._foreground_colormap[column_name] = _cmap
+            self.refresh()
+        return None
+
+    def _set_background_colormap(self, index: int):
+        from ._base._colormap import exec_colormap_dialog
+
+        column_name = self._filtered_columns[index]
+        df = self.getDataFrame()
+        dtype: np.dtype = df.dtypes[column_name]
+        if cmap := exec_colormap_dialog(df[column_name], self):
+
+            def _cmap(val):
+                return cmap(dtype.type(val))
+
+            self.model()._background_colormap[column_name] = _cmap
+            self.refresh()
+        return None
 
 
 def _get_limit(a) -> int:

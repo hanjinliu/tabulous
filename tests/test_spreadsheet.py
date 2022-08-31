@@ -80,14 +80,19 @@ def test_setting_header_out_of_bound():
 
     qtable.setHorizontalHeaderValue(1, "col1")
     assert sheet.data.shape == (0, 2)
+    assert list(sheet.data.columns) == [0, "col1"]
     qtable.setHorizontalHeaderValue(2, "col2")
     assert sheet.data.shape == (0, 3)
+    assert list(sheet.data.columns) == [0, "col1", "col2"]
     qtable.setVerticalHeaderValue(2, "row2")
     assert sheet.data.shape == (3, 3)
+    assert list(sheet.data.index) == [0, 1, "row2"]
 
     qtable.undo()
     assert sheet.data.shape == (0, 3)
+    assert list(sheet.data.columns) == [0, "col1", "col2"]
     qtable.undo()
     assert sheet.data.shape == (0, 2)
+    assert list(sheet.data.columns) == [0, "col1"]
     qtable.undo()
     assert sheet.data.shape == (0, 0)

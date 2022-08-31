@@ -1,13 +1,15 @@
 from __future__ import annotations
 import weakref
-from typing import Generic, Literal, TYPE_CHECKING, TypeVar, overload, Any
+from typing import Generic, Literal, TYPE_CHECKING, TypeVar, overload, Any, Callable
 from ..exceptions import TableImmutableError
 
 if TYPE_CHECKING:
     from typing_extensions import Self
     from ._table import TableBase
+    from .._qt._table._base._header_view import QDataFrameHeaderView
 
 T = TypeVar("T")
+_F = TypeVar("_F", bound=Callable)
 
 
 class _NoRef:
@@ -53,6 +55,8 @@ class Component(Generic[T]):
 
 
 class VerticalHeaderInterface(Component["TableBase"]):
+    """The interface for the vertical header of the tablelist."""
+
     def __getitem__(self, key: int | slice):
         return self.parent._qwidget.model().df.index[key]
 
@@ -71,8 +75,34 @@ class VerticalHeaderInterface(Component["TableBase"]):
             qtable.setVerticalHeaderValue(idx, value)
         return None
 
+    def __len__(self) -> int:
+        return len(self.parent.data.index)
+
+    # fmt: off
+    @overload
+    def register_action(self, val: str) -> Callable[[_F], _F]: ...
+    @overload
+    def register_action(self, val: _F) -> _F: ...
+    # fmt: on
+
+    def register_action(self, val: str | Callable[[int], Any]):
+        """Register an contextmenu action to the tablelist."""
+        header = self._get_header()
+        if isinstance(val, str):
+            return header.registerAction(val)
+        elif callable(val):
+            location = val.__name__.replace("_", " ")
+            return header.registerAction(location)(val)
+        else:
+            raise ValueError("input must be a string or callable.")
+
+    def _get_header(self) -> QDataFrameHeaderView:
+        return self.parent._qwidget._qtable_view.verticalHeader()
+
 
 class HorizontalHeaderInterface(Component["TableBase"]):
+    """The interface for the horizontal header of the tablelist."""
+
     def __getitem__(self, key: int | slice):
         return self.parent._qwidget.model().df.columns[key]
 
@@ -90,6 +120,30 @@ class HorizontalHeaderInterface(Component["TableBase"]):
             idx = key.__index__()
             qtable.setHorizontalHeaderValue(idx, value)
         return None
+
+    def __len__(self) -> int:
+        return len(self.parent.data.columns)
+
+    # fmt: off
+    @overload
+    def register_action(self, val: str) -> Callable[[_F], _F]: ...
+    @overload
+    def register_action(self, val: _F) -> _F: ...
+    # fmt: on
+
+    def register_action(self, val: str | Callable[[int], Any]):
+        """Register an contextmenu action to the tablelist."""
+        header = self._get_header()
+        if isinstance(val, str):
+            return header.registerAction(val)
+        elif callable(val):
+            location = val.__name__.replace("_", " ")
+            return header.registerAction(location)(val)
+        else:
+            raise ValueError("input must be a string or callable.")
+
+    def _get_header(self) -> QDataFrameHeaderView:
+        return self.parent._qwidget._qtable_view.horizontalHeader()
 
 
 class CellInterface(Component["TableBase"]):
@@ -153,6 +207,24 @@ class CellInterface(Component["TableBase"]):
         else:
             col = slice(col, col + 1)
         return row, col
+
+    # fmt: off
+    @overload
+    def register_action(self, val: str) -> Callable[[_F], _F]: ...
+    @overload
+    def register_action(self, val: _F) -> _F: ...
+    # fmt: on
+
+    def register_action(self, val: str | Callable[[tuple[int, int]], Any]):
+        """Register an contextmenu action to the tablelist."""
+        table = self.parent._qwidget
+        if isinstance(val, str):
+            return table.registerAction(val)
+        elif callable(val):
+            location = val.__name__.replace("_", " ")
+            return table.registerAction(location)(val)
+        else:
+            raise ValueError("input must be a string or callable.")
 
 
 class PlotInterface(Component["TableBase"]):

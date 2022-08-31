@@ -136,21 +136,21 @@ class TableList(EventedList[TableBase]):
 
         return new_name
 
+    # fmt: off
     @overload
-    def register_action(self, val: str) -> Callable[[_F], _F]:
-        ...
-
+    def register_action(self, val: str) -> Callable[[_F], _F]: ...
     @overload
-    def register_action(self, val: _F) -> _F:
-        ...
+    def register_action(self, val: _F) -> _F: ...
+    # fmt: on
 
-    def register_action(self, val):
+    def register_action(self, val: str | Callable):
         """Register an contextmenu action to the tablelist."""
+        stack = self._parent._qwidget._tablestack
         if isinstance(val, str):
-            return self._parent._qwidget._tablestack.registerAction(val)
+            return stack.registerAction(val)
         elif callable(val):
             location = val.__name__.replace("_", " ")
-            return self._parent._qwidget._tablestack.registerAction(location)(val)
+            return stack.registerAction(location)(val)
         else:
             raise ValueError("input must be a string or callable.")
 

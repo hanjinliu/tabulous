@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Any, Callable, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING, Tuple
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -14,6 +14,7 @@ from ._item_model import AbstractDataFrameModel
 from ..._undo import QtUndoManager, fmt_slice
 from ..._svg import QColoredSVGIcon
 from ..._keymap import QtKeys, QtKeyMap
+from ..._action_registry import QActionRegistry
 from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
 from ....exceptions import SelectionRangeError, TableImmutableError
 
@@ -26,6 +27,16 @@ if TYPE_CHECKING:
     from ..._table_stack import QTabbedTableStack
 
 ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
+
+_SplitterStyle = """
+QSplitter::handle:horizontal {
+    background-color: gray;
+    border: 0px;
+    width: 4px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border-radius: 2px;}
+"""
 
 
 class QTableHandle(QtW.QSplitterHandle):
@@ -46,7 +57,7 @@ class QTableHandle(QtW.QSplitterHandle):
         return super().mouseDoubleClickEvent(a0)
 
 
-class QBaseTable(QtW.QSplitter):
+class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     """
     The base widget for a table.
 
@@ -67,8 +78,12 @@ class QBaseTable(QtW.QSplitter):
     def __init__(
         self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None
     ):
-        super().__init__(parent)
+        QtW.QSplitter.__init__(self, parent)
+        QActionRegistry.__init__(self)
+
         self._filter_slice: FilterType | None = None
+        self._filtered_index: pd.Index | None = None
+        self._filtered_columns: pd.Index | None = None
         self.setContentsMargins(0, 0, 0, 0)
 
         self.createQTableView()
@@ -81,19 +96,33 @@ class QBaseTable(QtW.QSplitter):
 
         self._side_area: QTableSideArea = None
         self.model()._editable = self._DEFAULT_EDITABLE
-        self.setStyleSheet(
-            "QSplitter::handle:horizontal {"
-            "    background-color: gray;"
-            "    border: 0px;"
-            "    width: 4px;"
-            "    margin-top: 5px;"
-            "    margin-bottom: 5px;"
-            "    border-radius: 2px;}"
-        )
+        self.setStyleSheet(_SplitterStyle)
+
+        self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
+        self._install_actions()
 
     def createHandle(self) -> QTableHandle:
         """Create custom handle."""
         return QTableHandle(Qt.Orientation.Horizontal, self)
+
+    def showContextMenu(self, pos: QtCore.QPoint):
+        index = self._qtable_view.indexAt(pos)
+        row, col = index.row(), index.column()
+
+        self.setSelections([(row, col)])
+        return self.execContextMenu((row, col))
+
+    def _install_actions(self):
+        hheader = self._qtable_view.horizontalHeader()
+        hheader.registerAction("Set forground colormap")(self._set_forground_colormap)
+        hheader.registerAction("Set background colormap")(self._set_background_colormap)
+        hheader.registerAction("Reset forground colormap")(
+            self._reset_forground_colormap
+        )
+        hheader.registerAction("Reset background colormap")(
+            self._reset_background_colormap
+        )
+        return None
 
     # fmt: off
     if TYPE_CHECKING:
@@ -174,6 +203,12 @@ class QBaseTable(QtW.QSplitter):
     def dataShown(self) -> pd.DataFrame:
         """Return the shown dataframe (consider filter)."""
         return self.model().df
+
+    def rowHeaderShown(self) -> pd.Series:
+        ...
+
+    def columnHeaderShown(self) -> pd.Series:
+        ...
 
     def precision(self) -> int:
         """Return table value precision."""
@@ -271,7 +306,7 @@ class QBaseTable(QtW.QSplitter):
         data_sliced = self.tableSlice()
 
         if sl is None:
-            self.model().df = data_sliced
+            df_filt = data_sliced
             icon = QtGui.QIcon()
         else:
             try:
@@ -279,11 +314,17 @@ class QBaseTable(QtW.QSplitter):
                     sl_filt = sl(data_sliced)
                 else:
                     sl_filt = sl
-                self.model().df = data_sliced[sl_filt]
+                df_filt = data_sliced[sl_filt]
+
             except Exception as e:
-                self._filter_slice = None
+                self.setFilter(None)
                 raise ValueError("Error in filter. Filter is reset.") from e
             icon = QColoredSVGIcon.fromfile(ICON_DIR / "filter.svg")
+
+        # update data
+        self.model().df = df_filt
+        self._filtered_index = df_filt.index
+        self._filtered_columns = df_filt.columns
 
         # update filter icon
         if stack := self.tableStack():
@@ -413,6 +454,32 @@ class QBaseTable(QtW.QSplitter):
         except AttributeError:
             stack = None
         return stack
+
+    def _set_forground_colormap(self, index: int):
+        from ._colormap import exec_colormap_dialog
+
+        column_name = self._filtered_columns[index]
+        if cmap := exec_colormap_dialog(self.getDataFrame()[column_name], self):
+            self.model()._foreground_colormap[column_name] = cmap
+            self.refresh()
+        return None
+
+    def _reset_forground_colormap(self, index: int):
+        column_name = self._filtered_columns[index]
+        return self.model()._foreground_colormap.pop(column_name)
+
+    def _set_background_colormap(self, index: int):
+        from ._colormap import exec_colormap_dialog
+
+        column_name = self._filtered_columns[index]
+        if cmap := exec_colormap_dialog(self.getDataFrame()[column_name], self):
+            self.model()._background_colormap[column_name] = cmap
+            self.refresh()
+        return None
+
+    def _reset_background_colormap(self, index: int):
+        column_name = self._filtered_columns[index]
+        return self.model()._background_colormap.pop(column_name)
 
 
 class QMutableTable(QBaseTable):
@@ -759,8 +826,7 @@ class QMutableTable(QBaseTable):
         width, height = size
         top, left = topleft
         edit_geometry = _line.geometry()
-        edit_geometry.setHeight(height)
-        edit_geometry.setWidth(width)
+        edit_geometry.setSize(QtCore.QSize(width, height))
         if top is not None:
             edit_geometry.moveTop(top)
         if left is not None:
@@ -803,17 +869,16 @@ class QMutableTable(QBaseTable):
     @QBaseTable._mgr.interface
     def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
         qtable = self._qtable_view
-        column_axis = self.dataShown().columns
         _header = qtable.horizontalHeader()
 
-        mapping = {column_axis[index]: value}
+        _rename_column(self._data_raw, index, value)
+        _rename_column(self.model().df, index, value)
 
-        self._data_raw.rename(columns=mapping, inplace=True)
-        self.model().df.rename(columns=mapping, inplace=True)
-
+        # adjust header size
         size_hint = _header.sectionSizeHint(index)
         if _header.sectionSize(index) < size_hint:
             _header.resizeSection(index, size_hint)
+        # update
         self.refreshTable()
         return None
 
@@ -828,15 +893,16 @@ class QMutableTable(QBaseTable):
     @QBaseTable._mgr.interface
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         qtable = self._qtable_view
-        index_axis = self.dataShown().index
         _header = qtable.verticalHeader()
 
-        mapping = {index_axis[index]: value}
+        _rename_row(self._data_raw, index, value)  # TODO: incompatible with filter
+        _rename_row(self.model().df, index, value)
 
-        self._data_raw.rename(index=mapping, inplace=True)
-        self.model().df.rename(index=mapping, inplace=True)
+        # adjust size
         _width_hint = _header.sizeHint().width()
         _header.resize(QtCore.QSize(_width_hint, _header.height()))
+
+        # update
         self.refreshTable()
         return None
 
@@ -885,3 +951,17 @@ def _was_changed(val: Any, old_val: Any) -> bool:
         if pd.isna(old_val) or val != old_val:
             out = True
     return out
+
+
+def _rename_row(df: pd.DataFrame, idx: int, new_name: str) -> None:
+    """Rename row label at the given index."""
+    rowname = df.index[idx]
+    df.rename(index={rowname: new_name}, inplace=True)
+    return None
+
+
+def _rename_column(df: pd.DataFrame, idx: int, new_name: str) -> None:
+    """Rename column label at the given index."""
+    colname = df.columns[idx]
+    df.rename(columns={colname: new_name}, inplace=True)
+    return None

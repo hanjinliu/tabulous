@@ -1,9 +1,12 @@
 from __future__ import annotations
 import sys
 import re
-from typing import Callable, Generator
+from typing import Callable, Generator, TYPE_CHECKING
 
 from qtpy import QtWidgets as QtW
+
+if TYPE_CHECKING:
+    pass
 
 if sys.platform == "win32":
     _FONT = "Consolas"
@@ -44,13 +47,16 @@ class QtErrorMessageBox(QtW.QMessageBox):
             text = text_or_exception
             exc = None
         else:
-            text = text_or_exception.args[0]
+            if len(text_or_exception.args) == 0:
+                text = ""
+            else:
+                text = text_or_exception.args[0]
             exc = text_or_exception
         MBox = QtW.QMessageBox
         super().__init__(
             MBox.Icon.Critical,
             str(title),
-            str(text),
+            str(text)[:1000],
             MBox.StandardButton.Ok | MBox.StandardButton.Help,
             parent=parent,
         )
@@ -72,7 +78,7 @@ class QtErrorMessageBox(QtW.QMessageBox):
     @classmethod
     def raise_(cls, e: Exception, parent=None):
         """Raise exception in the message box."""
-        self = cls(type(e).__name__, str(e)[:1000], parent)
+        self = cls(type(e).__name__, e, parent)
         self.exec_()
 
     def _get_traceback(self):
@@ -80,6 +86,7 @@ class QtErrorMessageBox(QtW.QMessageBox):
             import traceback
 
             tb = traceback.format_exc()
+            print(tb)
         else:
             tb = get_tb_formatter()(self._exc, as_html=True)
         return tb
