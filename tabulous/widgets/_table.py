@@ -397,6 +397,10 @@ class SpreadSheet(_DataFrameTableLayer):
 
         return QSpreadSheet(data=data)
 
+    def set_dtype(self, name, dtype):
+        self._qwidget.setColumnDtype(name, dtype)
+        return None
+
 
 class GroupBy(TableBase):
     """

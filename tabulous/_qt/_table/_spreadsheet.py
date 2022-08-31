@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Hashable
 from io import StringIO
 import numpy as np
 import pandas as pd
@@ -7,8 +7,9 @@ from qtpy import QtCore
 from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
+from ._dtype import get_converter
 
-_OUT_OF_BOUND_SIZE = 10
+_OUT_OF_BOUND_SIZE = 10  # 10 more rows and columns will be displayed.
 
 
 class SpreadSheetModel(AbstractDataFrameModel):
@@ -32,6 +33,31 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
         return min(self._df.shape[1] + _OUT_OF_BOUND_SIZE, table.max_column_count)
 
+    def _column_tooltip(self, section: int):
+        name = self.df.columns[section]
+        if dtype := self.parent()._columns_dtype.get(name, None):
+            return f"{name} (dtype: {dtype})"
+        else:
+            dtype = self.df.dtypes.values[section]
+            return f"{name} (dtype: infer)"
+
+    def _data_tooltip(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        if r < self.df.shape[0] and c < self.df.shape[1]:
+            val = self.df.iat[r, c]
+            name = self.df.columns[c]
+            dtype = self.parent()._columns_dtype.get(name, None)
+            if dtype is None:
+                return f"{val!r} (dtype: infer)"
+            else:
+                return f"{val!r} (dtype: {dtype})"
+        return QtCore.QVariant()
+
+    # fmt: off
+    if TYPE_CHECKING:
+        def parent(self) -> QSpreadSheet: ...
+    # fmt: on
+
 
 class QSpreadSheet(QMutableSimpleTable):
     """
@@ -49,6 +75,7 @@ class QSpreadSheet(QMutableSimpleTable):
         super().__init__(parent, data)
         self._qtable_view.verticalHeader().setMinimumWidth(20)
         self._data_cache = None
+        self._columns_dtype: dict[Hashable, np.dtype] = {}
 
     # fmt: off
     if TYPE_CHECKING:
@@ -69,6 +96,7 @@ class QSpreadSheet(QMutableSimpleTable):
                 sep=_sep,
                 header=0,
                 names=data_raw.columns,
+                dtype=self._columns_dtype,
             )
             out.index = data_raw.index
         else:
@@ -337,11 +365,34 @@ class QSpreadSheet(QMutableSimpleTable):
         with self._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
             if index >= ncols:
                 self.expandDataFrame(0, index - ncols + 1)
+            colname = self._data_raw.columns[index]
             self.setFilter(self._filter_slice)
             super().setHorizontalHeaderValue(index, value)
+            if colname in self._columns_dtype.keys():
+                self.setColumnDtype(colname, self._columns_dtype[colname])
             self._data_cache = None
 
         return None
+
+    @QMutableSimpleTable._mgr.interface
+    def setColumnDtype(self, label: Hashable, dtype: Any) -> None:
+        """Set the dtype of the column with the given label."""
+        if dtype is None:
+            self._columns_dtype.pop(label, None)
+            return None
+        if label not in self._data_raw.columns:
+            raise KeyError(f"Column {label} not found.")
+        from pandas.core.dtypes.common import pandas_dtype
+
+        dtype = pandas_dtype(dtype)
+        if self._columns_dtype.get(label, None) is not dtype:
+            self._columns_dtype[label] = dtype
+            self._data_cache = None
+        return None
+
+    @setColumnDtype.server
+    def setColumnDtype(self, label: Hashable, dtype: Any):
+        return (label, self._columns_dtype.get(label, None)), {}
 
     def _insert_row_above(self, row: int):
         return self.insertRows(row, 1)
@@ -385,32 +436,29 @@ class QSpreadSheet(QMutableSimpleTable):
         return None
 
     def _set_forground_colormap(self, index: int):
-        from ._base._colormap import exec_colormap_dialog
-
-        column_name = self._filtered_columns[index]
-        df = self.getDataFrame()
-        dtype: np.dtype = df.dtypes[column_name]
-        if cmap := exec_colormap_dialog(df[column_name], self):
-
-            def _cmap(val):
-                return cmap(dtype.type(val))
-
-            self.model()._foreground_colormap[column_name] = _cmap
-            self.refresh()
-        return None
+        return self._set_colormap(index, self.model()._foreground_colormap)
 
     def _set_background_colormap(self, index: int):
+        return self._set_colormap(index, self.model()._background_colormap)
+
+    def _set_colormap(self, index, colormap_dict: dict):
         from ._base._colormap import exec_colormap_dialog
 
         column_name = self._filtered_columns[index]
         df = self.getDataFrame()
         dtype: np.dtype = df.dtypes[column_name]
+        _converter = get_converter(dtype.kind)
         if cmap := exec_colormap_dialog(df[column_name], self):
 
             def _cmap(val):
-                return cmap(dtype.type(val))
+                try:
+                    _val = _converter(val)
+                except Exception:
+                    return None
+                else:
+                    return cmap(_val)
 
-            self.model()._background_colormap[column_name] = _cmap
+            colormap_dict[column_name] = _cmap
             self.refresh()
         return None
 

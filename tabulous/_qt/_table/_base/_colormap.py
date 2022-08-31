@@ -48,7 +48,9 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
             )
 
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            f"Dtype {dtype!r} not supported. Please set colormap programmatically."
+        )
 
     return None
 
