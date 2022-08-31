@@ -827,7 +827,7 @@ class QMutableTable(QBaseTable):
         top, left = topleft
         edit_geometry = _line.geometry()
         edit_geometry.setHeight(height)
-        edit_geometry.setWidth(max(width, 28))
+        edit_geometry.setWidth(max(width, 140))
         if top is not None:
             edit_geometry.moveTop(top)
         if left is not None:

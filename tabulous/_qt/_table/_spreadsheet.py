@@ -8,6 +8,8 @@ from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 
+_OUT_OF_BOUND_SIZE = 10
+
 
 class SpreadSheetModel(AbstractDataFrameModel):
     """A DataFrameModel for a spreadsheet."""
@@ -23,12 +25,12 @@ class SpreadSheetModel(AbstractDataFrameModel):
     def rowCount(self, parent=None):
         from ..._global_variables import table
 
-        return min(self._df.shape[0] + 10, table.max_row_count)
+        return min(self._df.shape[0] + _OUT_OF_BOUND_SIZE, table.max_row_count)
 
     def columnCount(self, parent=None):
         from ..._global_variables import table
 
-        return min(self._df.shape[1] + 10, table.max_column_count)
+        return min(self._df.shape[1] + _OUT_OF_BOUND_SIZE, table.max_column_count)
 
 
 class QSpreadSheet(QMutableSimpleTable):
@@ -84,7 +86,10 @@ class QSpreadSheet(QMutableSimpleTable):
     def setDataFrame(self, data: pd.DataFrame) -> None:
         """Set data frame as a string table."""
         self._data_raw = data.astype("string")
-        self.model().setShape(data.index.size + 10, data.columns.size + 10)
+        self.model().setShape(
+            data.index.size + _OUT_OF_BOUND_SIZE,
+            data.columns.size + _OUT_OF_BOUND_SIZE,
+        )
         self._data_cache = None
         self.setFilter(None)
         self.refreshTable()
@@ -162,14 +167,18 @@ class QSpreadSheet(QMutableSimpleTable):
             return None
         self._data_raw = _pad_dataframe(self._data_raw, nrows, ncols)
         new_shape = self._data_raw.shape
-        self.model().setShape(new_shape[0] + 10, new_shape[1] + 10)
+        self.model().setShape(
+            new_shape[0] + _OUT_OF_BOUND_SIZE,
+            new_shape[1] + _OUT_OF_BOUND_SIZE,
+        )
         return None
 
     @expandDataFrame.undo_def
     def expandDataFrame(self, nrows: int, ncols: int):
         nr, nc = self._data_raw.shape
-        self.model().removeRows(nr - nrows, nrows, QtCore.QModelIndex())
-        self.model().removeColumns(nc - ncols, ncols, QtCore.QModelIndex())
+        model = self.model()
+        model.removeRows(nr - nrows, nrows, QtCore.QModelIndex())
+        model.removeColumns(nc - ncols, ncols, QtCore.QModelIndex())
         self._data_raw = self._data_raw.iloc[: nr - nrows, : nc - ncols]
         self.setFilter(self._filter_slice)
         self._data_cache = None
