@@ -11,7 +11,7 @@ from typing import (
 )
 import numpy as np
 import pandas as pd
-from qtpy import QtWidgets as QtW
+from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtCore import Qt
 
 if TYPE_CHECKING:
@@ -125,6 +125,14 @@ class QDtypeWidget(QtW.QTreeWidget):
         _btn_box.accepted.connect(dlg.accept)
         _btn_box.rejected.connect(dlg.reject)
         dlg.layout().addWidget(_btn_box)
+
+        @self.doubleClicked.connect
+        def _on_double_click(index: QtCore.QModelIndex):
+            item = self.itemFromIndex(index)
+            if item.childCount() == 0:
+                dlg.accept()
+            return
+
         dlg.setWindowTitle("Select a dtype")
         if dlg.exec():
             out = self.dtypeText()
@@ -138,12 +146,17 @@ _V = TypeVar("_V", bound="_DTypeLike")
 
 
 class DTypeMap(MutableMapping[_K, _V]):
-    """Mapping storage of dtypes."""
+    """
+    Mapping storage of dtypes.
+
+    The dtype map cannot be simply represented as a dict because datetime, timedelta
+    and complex must be passed differently in pd.read_csv.
+    """
 
     def __init__(self) -> None:
         self._dict: dict[Hashable, _DTypeLike] = {}
         self._datetime_dict: dict[Hashable, _DTypeLike] = {}
-        self._timedelta_dict: dict[Hashable, _DTypeLike] = {}
+        self._need_parsing_dict: dict[Hashable, _DTypeLike] = {}
 
     def __repr__(self) -> str:
         clsname = type(self).__name__
@@ -154,30 +167,30 @@ class DTypeMap(MutableMapping[_K, _V]):
         if out is None:
             out = self._datetime_dict.get(key, None)
             if out is None:
-                out = self._timedelta_dict[key]
+                out = self._need_parsing_dict[key]
         return out
 
     def __setitem__(self, key: _K, value: _V) -> None:
-        if value.kind not in ("M", "m"):
+        if value.kind not in ("M", "m", "c"):
             self._dict[key] = value
         elif value.kind == "M":
             self._datetime_dict[key] = value
         else:
-            self._timedelta_dict[key] = value
+            self._need_parsing_dict[key] = value
 
     def __delitem__(self, key: _K) -> None:
         self._dict.pop(key, None) or self._datetime_dict.pop(
             key, None
-        ) or self._timedelta_dict.pop(key, None)
+        ) or self._need_parsing_dict.pop(key, None)
         return None
 
     def __iter__(self) -> Iterator[_K]:
         yield from iter(self._dict)
         yield from iter(self._datetime_dict)
-        yield from iter(self._timedelta_dict)
+        yield from iter(self._need_parsing_dict)
 
     def __len__(self) -> int:
-        return len(self._dict) + len(self._datetime_dict) + len(self._timedelta_dict)
+        return len(self._dict) + len(self._datetime_dict) + len(self._need_parsing_dict)
 
     def as_pandas_kwargs(self) -> dict[str, Any]:
         """Create a dict ready for being passed to ``pd.read_csv``."""
@@ -187,9 +200,10 @@ class DTypeMap(MutableMapping[_K, _V]):
                 parse_dates=list(self._datetime_dict.keys()),
                 infer_datetime_format=True,
             )
-        if self._timedelta_dict:
-            cvt = get_converter("m")
+        if self._need_parsing_dict:
             kwargs.update(
-                converters={k: cvt for k in self._timedelta_dict.keys()},
+                converters={
+                    k: get_converter(v.kind) for k, v in self._need_parsing_dict.items()
+                },
             )
         return kwargs
