@@ -387,7 +387,7 @@ class QSpreadSheet(QMutableSimpleTable):
             self._columns_dtype.pop(label, None)
             return None
         if label not in self._data_raw.columns:
-            raise KeyError(f"Column {label} not found.")
+            raise ValueError(f"Column {label!r} not found.")
         from pandas.core.dtypes.common import pandas_dtype
 
         dtype = pandas_dtype(dtype)

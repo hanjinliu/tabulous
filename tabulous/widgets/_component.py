@@ -10,6 +10,8 @@ from typing import (
     Any,
     Callable,
     Union,
+    MutableMapping,
+    Iterator,
 )
 
 import numpy as np
@@ -318,7 +320,9 @@ class PlotInterface(Component["TableBase"]):
         return self._current_widget.draw()
 
 
-class ColumnDtypeInterface(Component["SpreadSheet"]):
+class ColumnDtypeInterface(
+    Component["SpreadSheet"], MutableMapping[Hashable, "_DtypeLike"]
+):
     """Interface to the column dtype of spreadsheet."""
 
     def __getitem__(self, key: Hashable) -> _DtypeLike | None:
@@ -334,3 +338,9 @@ class ColumnDtypeInterface(Component["SpreadSheet"]):
         clsname = type(self).__name__
         dict = self.parent._qwidget._columns_dtype
         return f"{clsname}({dict!r})"
+
+    def __len__(self) -> str:
+        return len(self.parent._qwidget._columns_dtype)
+
+    def __iter__(self) -> Iterator[Hashable]:
+        return iter(self.parent._qwidget._columns_dtype)
