@@ -229,31 +229,27 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def selections(self) -> SelectionType:
         """Get list of selections as slicable tuples"""
-        qtable = self._qtable_view
-        return qtable.selections()
+        return self._qtable_view._selection_model._highlights
 
     def setSelections(self, selections: SelectionType):
         """Set list of selections."""
         qtable = self._qtable_view
         qtable.clear_selections()
-        _new_selections: list[tuple[slice, slice]] = []
         nr, nc = self.tableShape()
-        for sel in selections:
-            r, c = sel
-            # if int is used instead of slice
-            if not isinstance(r, slice):
-                _r = r.__index__()
-                if _r < 0:
-                    _r += nr
-                r = slice(_r, _r + 1)
-            if not isinstance(c, slice):
-                _c = c.__index__()
-                if _c < 0:
-                    _c += nc
-                c = slice(_c, _c + 1)
-            _new_selections.append((r, c))
+        qtable.set_selections(_normalize_selections(selections, nr, nc))
+        self.update()
+        return None
 
-        qtable.set_selections(_new_selections)
+    def highlights(self) -> SelectionType:
+        """Get list of selections as slicable tuples"""
+        return self._qtable_view._highlight_model._highlights
+
+    def setHighlights(self, selections: SelectionType):
+        """Set list of selections."""
+        qtable = self._qtable_view
+        qtable.clear_highlights()
+        nr, nc = self.tableShape()
+        qtable.set_highlights(_normalize_selections(selections, nr, nc))
         self.update()
         return None
 
@@ -992,6 +988,33 @@ def _was_changed(val: Any, old_val: Any) -> bool:
         if pd.isna(old_val) or val != old_val:
             out = True
     return out
+
+
+def _normalize_selections(
+    selections: SelectionType, nr: int, nc: int
+) -> list[tuple[slice, slice]]:
+    _new_selections: list[tuple[slice, slice]] = []
+    for sel in selections:
+        r, c = sel
+        # if int is used instead of slice
+        r = _normalize_one(r, nr)
+        c = _normalize_one(c, nc)
+        _new_selections.append((r, c))
+    return _new_selections
+
+
+def _normalize_one(r, nr: int) -> slice:
+    if not isinstance(r, slice):
+        _r = r.__index__()
+        if _r < 0:
+            _r += nr
+        r = slice(_r, _r + 1)
+    else:
+        start, stop, step = r.indices(nr)
+        if step != 1:
+            raise ValueError("step must be 1")
+        r = slice(start, stop)
+    return r
 
 
 def _rename_row(df: pd.DataFrame, idx: int, new_name: str) -> None:
