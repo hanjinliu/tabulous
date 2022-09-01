@@ -363,6 +363,10 @@ class TableViewerBase:
             self.current_table.selections = selections
         return self.current_table._qwidget.pasteFromClipBoard()
 
+    def close(self):
+        """Close the viewer."""
+        return self._qwidget.close()
+
     def _link_events(self):
         _tablist = self._tablist
         _qtablist = self._qwidget._tablestack

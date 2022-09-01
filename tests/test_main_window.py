@@ -83,6 +83,8 @@ def test_components(viewer_cls: type[TableViewerWidget]):
     viewer.toolbar.visible = False
     assert not viewer.toolbar.visible
 
+    viewer.close()
+
 @pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
 def test_bind_keycombo(viewer_cls: type[TableViewerWidget]):
     viewer = viewer_cls()
@@ -97,3 +99,5 @@ def test_bind_keycombo(viewer_cls: type[TableViewerWidget]):
     with pytest.raises(Exception):
         viewer.keymap.bind("T")(mock)
     viewer.keymap.bind("T", overwrite=True)(print)
+
+    viewer.close()
