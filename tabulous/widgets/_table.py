@@ -265,9 +265,7 @@ class TableBase(ABC):
         """
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
-            model = self._qwidget.model()
-            model._foreground_colormap[column_name] = f
-            self.refresh()
+            self._qwidget.setForegroundColormap(column_name, f)
             return f
 
         return _wrapper(colormap) if colormap is not None else _wrapper
@@ -290,9 +288,7 @@ class TableBase(ABC):
         """
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
-            model = self._qwidget.model()
-            model._background_colormap[column_name] = f
-            self.refresh()
+            self._qwidget.setBackgroundColormap(column_name, f)
             return f
 
         return _wrapper(colormap) if colormap is not None else _wrapper

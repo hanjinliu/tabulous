@@ -311,6 +311,12 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.undoable
     def _remove_columns(self, column: int, count: int, old_values: pd.DataFrame):
+        model = self.model()
+        for index in range(column, column + count):
+            colname = model.df.columns[index]
+            model._background_colormap.pop(colname, None)
+            model._foreground_colormap.pop(colname, None)
+
         self._data_raw = pd.concat(
             [self._data_raw.iloc[:, :column], self._data_raw.iloc[:, column + count :]],
             axis=1,
@@ -412,6 +418,11 @@ class QSpreadSheet(QMutableSimpleTable):
     def _remove_this_column(self, col: int):
         return self.removeColumns(col, 1)
 
+    def _set_column_dtype(self, col: int):
+        from magicgui.widgets import Dialog
+
+        # TODO: use a dialog to set the dtype
+
     def _install_actions(self):
         # fmt: off
         vheader = self._qtable_view.verticalHeader()
@@ -423,6 +434,7 @@ class QSpreadSheet(QMutableSimpleTable):
         hheader.registerAction("Insert column left")(self._insert_column_left)
         hheader.registerAction("Insert column right")(self._insert_column_right)
         hheader.registerAction("Remove this column")(self._remove_this_column)
+        hheader.registerAction("Set column dtype")(self._set_column_dtype)
 
         self.registerAction("Insert a row above")(lambda idx: self._insert_row_above(idx[0]))
         self.registerAction("Insert a row below")(lambda idx: self._insert_row_below(idx[0]))

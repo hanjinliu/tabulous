@@ -351,6 +351,40 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             return f"table.filter{sl._repr[2:]}"
         return f"table.filter = {sl!r}"
 
+    @_mgr.interface
+    def setForegroundColormap(self, name: str, colormap: Callable | None):
+        """Set the colormap for the foreground."""
+        if colormap is None:
+            self.model()._foreground_colormap.pop(name, None)
+        else:
+            if not callable(colormap):
+                raise TypeError("Cannot use non-callable objects as colormaps.")
+            self.model()._foreground_colormap[name] = colormap
+        self.refreshTable()
+        return None
+
+    @setForegroundColormap.server
+    def setForegroundColormap(self, name: str, colormap: Callable):
+        cmap = self.model()._foreground_colormap.get(name, None)
+        return (name, cmap), {}
+
+    @_mgr.interface
+    def setBackgroundColormap(self, name: str, colormap: Callable | None):
+        """Set the colormap for the foreground."""
+        if colormap is None:
+            self.model()._background_colormap.pop(name, None)
+        else:
+            if not callable(colormap):
+                raise TypeError("Cannot use non-callable objects as colormaps.")
+            self.model()._background_colormap[name] = colormap
+        self.refreshTable()
+        return None
+
+    @setBackgroundColormap.server
+    def setBackgroundColormap(self, name: str, colormap: Callable):
+        cmap = self.model()._background_colormap.get(name, None)
+        return (name, cmap), {}
+
     def refreshTable(self) -> None:
         """Refresh table view."""
         qtable = self._qtable_view
@@ -460,26 +494,24 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         column_name = self._filtered_columns[index]
         if cmap := exec_colormap_dialog(self.getDataFrame()[column_name], self):
-            self.model()._foreground_colormap[column_name] = cmap
-            self.refresh()
+            self.setForegroundColormap(column_name, cmap)
         return None
 
     def _reset_forground_colormap(self, index: int):
         column_name = self._filtered_columns[index]
-        return self.model()._foreground_colormap.pop(column_name)
+        return self.setForegroundColormap(column_name, None)
 
     def _set_background_colormap(self, index: int):
         from ._colormap import exec_colormap_dialog
 
         column_name = self._filtered_columns[index]
         if cmap := exec_colormap_dialog(self.getDataFrame()[column_name], self):
-            self.model()._background_colormap[column_name] = cmap
-            self.refresh()
+            self.setBackgroundColormap(column_name, cmap)
         return None
 
     def _reset_background_colormap(self, index: int):
         column_name = self._filtered_columns[index]
-        return self.model()._background_colormap.pop(column_name)
+        return self.setBackgroundColormap(column_name, None)
 
 
 class QMutableTable(QBaseTable):
@@ -871,8 +903,16 @@ class QMutableTable(QBaseTable):
         qtable = self._qtable_view
         _header = qtable.horizontalHeader()
 
+        model = self.model()
+
+        colname = model.df.columns[index]
+        if background_colormap := model._background_colormap.pop(colname, None):
+            model._background_colormap[value] = background_colormap
+        if foreground_colormap := model._foreground_colormap.pop(colname, None):
+            model._foreground_colormap[value] = foreground_colormap
+
         _rename_column(self._data_raw, index, value)
-        _rename_column(self.model().df, index, value)
+        _rename_column(model.df, index, value)
 
         # adjust header size
         size_hint = _header.sectionSizeHint(index)
@@ -884,7 +924,7 @@ class QMutableTable(QBaseTable):
 
     @setHorizontalHeaderValue.server
     def setHorizontalHeaderValue(self, index: int, value: Any) -> Any:
-        return (index, self.dataShown().columns[index]), {}
+        return (index, self.model().df.columns[index]), {}
 
     @setHorizontalHeaderValue.set_formatter
     def _setHorizontalHeaderValue_fmt(self, index: int, value: Any) -> Any:
