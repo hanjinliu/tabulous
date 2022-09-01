@@ -115,10 +115,11 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _install_actions(self):
         hheader = self._qtable_view.horizontalHeader()
         hheader.registerAction("Set forground colormap")(self._set_forground_colormap)
-        hheader.registerAction("Set background colormap")(self._set_background_colormap)
         hheader.registerAction("Reset forground colormap")(
             self._reset_forground_colormap
         )
+        self.addSeparator()
+        hheader.registerAction("Set background colormap")(self._set_background_colormap)
         hheader.registerAction("Reset background colormap")(
             self._reset_background_colormap
         )

@@ -419,9 +419,13 @@ class QSpreadSheet(QMutableSimpleTable):
         return self.removeColumns(col, 1)
 
     def _set_column_dtype(self, col: int):
-        from magicgui.widgets import Dialog
+        from ._dtype import QDtypeWidget
 
-        # TODO: use a dialog to set the dtype
+        if val := QDtypeWidget.requestValue(self):
+            if val == "unset":
+                val = None
+            self.setColumnDtype(self._filtered_columns[col], val)
+        return None
 
     def _install_actions(self):
         # fmt: off
@@ -429,19 +433,24 @@ class QSpreadSheet(QMutableSimpleTable):
         vheader.registerAction("Insert row above")(self._insert_row_above)
         vheader.registerAction("Insert row below")(self._insert_row_below)
         vheader.registerAction("Remove this row")(self._remove_this_row)
+        vheader.addSeparator()
 
         hheader = self._qtable_view.horizontalHeader()
         hheader.registerAction("Insert column left")(self._insert_column_left)
         hheader.registerAction("Insert column right")(self._insert_column_right)
         hheader.registerAction("Remove this column")(self._remove_this_column)
+        hheader.addSeparator()
         hheader.registerAction("Set column dtype")(self._set_column_dtype)
+        hheader.addSeparator()
 
         self.registerAction("Insert a row above")(lambda idx: self._insert_row_above(idx[0]))
         self.registerAction("Insert a row below")(lambda idx: self._insert_row_below(idx[0]))
+        self.registerAction("Remove this row")(lambda idx: self._remove_this_row(idx[0]))
+        self.addSeparator()
         self.registerAction("Insert a column on the left")(lambda idx: self.insertColumns(idx[1]))
         self.registerAction("Insert a column on the right")(lambda idx: self.insertColumns(idx[1]))
-        self.registerAction("Remove this row")(lambda idx: self._remove_this_row(idx[0]))
         self.registerAction("Remove this column")(lambda idx: self._remove_this_column(idx[1]))
+        self.addSeparator()
         # fmt: on
 
         super()._install_actions()
