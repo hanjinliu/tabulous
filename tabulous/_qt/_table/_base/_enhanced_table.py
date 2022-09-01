@@ -353,11 +353,11 @@ class _QTableViewEnhanced(QtW.QTableView):
         white_bg = self.parentViewer()._white_background
 
         # draw highlights
-        h_color = Qt.GlobalColor.darkRed if white_bg else Qt.GlobalColor.magenta
-        pen = QtGui.QPen(h_color, 2)
-        painter.setPen(pen)
+        h_color = (
+            QtGui.QColor(255, 96, 96, 128) if white_bg else QtGui.QColor(255, 0, 0, 128)
+        )
         for i, rect in enumerate(self._highlight_model.highlightRectangles(self)):
-            painter.drawRect(rect)
+            painter.fillRect(rect, h_color)
 
         # draw selections
         s_color = Qt.GlobalColor.darkBlue if white_bg else Qt.GlobalColor.cyan
