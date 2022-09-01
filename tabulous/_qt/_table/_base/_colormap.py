@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, Hashable, Sequence, TYPE_CHECKING
+from typing import Callable, Hashable, Sequence, TYPE_CHECKING, TypeVar
 import numpy as np
 import pandas as pd
 
@@ -29,15 +29,17 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
                 dtype.categories, [w.value for w in widgets]
             )
 
-    elif dtype.kind in "uif":
+    elif dtype.kind in "uif":  # unsigned int, int, float
         min_ = ColorEdit(value=_DEFAULT_MIN, label="Min")
         max_ = ColorEdit(value=_DEFAULT_MAX, label="Max")
         dlg = Dialog(widgets=[min_, max_])
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
-            return _define_colormap(ds.min(), ds.max(), min_.value, max_.value)
+            return _define_continuous_colormap(
+                ds.min(), ds.max(), min_.value, max_.value
+            )
 
-    elif dtype.kind in "b":
+    elif dtype.kind == "b":  # boolean
         false_ = ColorEdit(value=_DEFAULT_MIN, label="False")
         true_ = ColorEdit(value=_DEFAULT_MAX, label="True")
         dlg = Dialog(widgets=[false_, true_])
@@ -47,6 +49,14 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
                 [False, True], [false_.value, true_.value]
             )
 
+    elif dtype.kind in "mM":  # time stamp or time delta
+        min_ = ColorEdit(value=_DEFAULT_MIN, label="Min")
+        max_ = ColorEdit(value=_DEFAULT_MAX, label="Max")
+        dlg = Dialog(widgets=[min_, max_])
+        dlg.native.setParent(parent, dlg.native.windowFlags())
+        if dlg.exec():
+            return _define_time_colormap(ds.min(), ds.max(), min_.value, max_.value)
+
     else:
         raise NotImplementedError(
             f"Dtype {dtype!r} not supported. Please set colormap programmatically."
@@ -55,7 +65,7 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
     return None
 
 
-def _define_colormap(
+def _define_continuous_colormap(
     min: float, max: float, min_color: _ColorType, max_color: _ColorType
 ):
     def _colormap(value: float) -> _ColorType:
@@ -81,6 +91,34 @@ def _define_categorical_colormap(
 
     def _colormap(value: Hashable) -> _ColorType:
         return map.get(value, None)
+
+    return _colormap
+
+
+_T = TypeVar("_T", pd.Timestamp, pd.Timedelta)
+
+
+def _define_time_colormap(
+    min: _T, max: _T, min_color: _ColorType, max_color: _ColorType
+):
+    min_t = min.value
+    max_t = max.value
+
+    def _colormap(value: _T) -> _ColorType:
+        nonlocal min_color, max_color
+        if pd.isna(value):
+            return None
+        value = value.value
+        if value < min_t:
+            return min_color
+        elif value > max_t:
+            return max_color
+        else:
+            min_color = np.array(min_color, dtype=np.float64)
+            max_color = np.array(max_color, dtype=np.float64)
+            return (value - min_t) / (max_t - min_t) * (
+                max_color - min_color
+            ) + min_color
 
     return _colormap
 
