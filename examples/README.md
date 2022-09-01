@@ -4,7 +4,7 @@
 
 ### 01. Use Magicgui
 
-### 02. Apply filters
+### 02. Use Table Components
 
 ### 03. Connect Signals
 
