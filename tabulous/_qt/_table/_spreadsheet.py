@@ -312,6 +312,7 @@ class QSpreadSheet(QMutableSimpleTable):
             colname = model.df.columns[index]
             model._background_colormap.pop(colname, None)
             model._foreground_colormap.pop(colname, None)
+            self._columns_dtype.pop(colname, None)
 
         self._data_raw = pd.concat(
             [self._data_raw.iloc[:, :column], self._data_raw.iloc[:, column + count :]],
@@ -367,11 +368,11 @@ class QSpreadSheet(QMutableSimpleTable):
         with self._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
             if index >= ncols:
                 self.expandDataFrame(0, index - ncols + 1)
-            colname = self._data_raw.columns[index]
+            old_name = self._data_raw.columns[index]
             self.setFilter(self._filter_slice)
             super().setHorizontalHeaderValue(index, value)
-            if colname in self._columns_dtype.keys():
-                self.setColumnDtype(colname, self._columns_dtype[colname])
+            if old_name in self._columns_dtype.keys():
+                self.setColumnDtype(value, self._columns_dtype.pop(old_name))
             self._data_cache = None
 
         return None

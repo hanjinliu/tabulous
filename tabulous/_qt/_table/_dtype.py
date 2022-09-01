@@ -145,6 +145,10 @@ class DTypeMap(MutableMapping[_K, _V]):
         self._datetime_dict: dict[Hashable, _DTypeLike] = {}
         self._timedelta_dict: dict[Hashable, _DTypeLike] = {}
 
+    def __repr__(self) -> str:
+        clsname = type(self).__name__
+        return f"{clsname}{dict(**self)!r}"
+
     def __getitem__(self, key: _K) -> _V:
         out = self._dict.get(key, None)
         if out is None:

@@ -34,3 +34,29 @@ def test_timedelta():
 
     sheet.dtypes["timedelta"] = "timedelta64[ns]"
     assert sheet.data.dtypes[0] == "timedelta64[ns]"
+
+def test_updating_column_name():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet({"number": [1, 2, 3], "char": ["a", "b", "a"]})
+
+    sheet.dtypes["number"] = "float32"
+    sheet.dtypes["char"] = "category"
+
+    assert sheet.dtypes == {"number": "float32", "char": "category"}
+
+    sheet.columns[0] = "new_name"
+
+    assert sheet.dtypes == {"new_name": "float32", "char": "category"}
+
+def test_deleting_column_name():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet({"number": [1, 2, 3], "char": ["a", "b", "a"]})
+
+    sheet.dtypes["number"] = "float32"
+    sheet.dtypes["char"] = "category"
+
+    assert sheet.dtypes == {"number": "float32", "char": "category"}
+
+    sheet.native.removeColumns(0, 1)
+
+    assert sheet.dtypes == {"char": "category"}
