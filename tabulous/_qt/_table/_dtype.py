@@ -1,8 +1,23 @@
 from __future__ import annotations
-from typing import Any, Callable
+from typing import (
+    Any,
+    Callable,
+    Hashable,
+    Iterator,
+    MutableMapping,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+)
+import numpy as np
 import pandas as pd
 from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Qt
+
+if TYPE_CHECKING:
+    from pandas.core.dtypes.dtypes import ExtensionDtype
+
+    _DTypeLike = Union[np.dtype, ExtensionDtype]
 
 _NAN_STRINGS = frozenset({"", "nan", "na", "n/a", "<na>", "NaN", "NA", "N/A", "<NA>"})
 
@@ -116,3 +131,61 @@ class QDtypeWidget(QtW.QTreeWidget):
         else:
             out = None
         return out
+
+
+_K = TypeVar("_K", bound=Hashable)
+_V = TypeVar("_V", bound="_DTypeLike")
+
+
+class DTypeMap(MutableMapping[_K, _V]):
+    """Mapping storage of dtypes."""
+
+    def __init__(self) -> None:
+        self._dict: dict[Hashable, _DTypeLike] = {}
+        self._datetime_dict: dict[Hashable, _DTypeLike] = {}
+        self._timedelta_dict: dict[Hashable, _DTypeLike] = {}
+
+    def __getitem__(self, key: _K) -> _V:
+        out = self._dict.get(key, None)
+        if out is None:
+            out = self._datetime_dict.get(key, None)
+            if out is None:
+                out = self._timedelta_dict[key]
+        return out
+
+    def __setitem__(self, key: _K, value: _V) -> None:
+        if value.kind not in ("M", "m"):
+            self._dict[key] = value
+        elif value.kind == "M":
+            self._datetime_dict[key] = value
+        else:
+            self._timedelta_dict[key] = value
+
+    def __delitem__(self, key: _K) -> None:
+        self._dict.pop(key, None) or self._datetime_dict.pop(
+            key, None
+        ) or self._timedelta_dict.pop(key, None)
+        return None
+
+    def __iter__(self) -> Iterator[_K]:
+        yield from iter(self._dict)
+        yield from iter(self._datetime_dict)
+        yield from iter(self._timedelta_dict)
+
+    def __len__(self) -> int:
+        return len(self._dict) + len(self._datetime_dict) + len(self._timedelta_dict)
+
+    def as_pandas_kwargs(self) -> dict[str, Any]:
+        """Create a dict ready for being passed to ``pd.read_csv``."""
+        kwargs = {"dtype": self._dict}
+        if self._datetime_dict:
+            kwargs.update(
+                parse_dates=list(self._datetime_dict.keys()),
+                infer_datetime_format=True,
+            )
+        if self._timedelta_dict:
+            cvt = get_converter("m")
+            kwargs.update(
+                converters={k: cvt for k in self._timedelta_dict.keys()},
+            )
+        return kwargs

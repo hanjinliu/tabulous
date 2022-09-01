@@ -7,7 +7,7 @@ from qtpy import QtCore
 from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
-from ._dtype import get_converter
+from ._dtype import get_converter, DTypeMap
 
 _OUT_OF_BOUND_SIZE = 10  # 10 more rows and columns will be displayed.
 
@@ -75,7 +75,7 @@ class QSpreadSheet(QMutableSimpleTable):
         super().__init__(parent, data)
         self._qtable_view.verticalHeader().setMinimumWidth(20)
         self._data_cache = None
-        self._columns_dtype: dict[Hashable, np.dtype] = {}
+        self._columns_dtype = DTypeMap()
 
     # fmt: off
     if TYPE_CHECKING:
@@ -91,22 +91,18 @@ class QSpreadSheet(QMutableSimpleTable):
         if data_raw.shape[1] > 0:
             val = data_raw.to_csv(sep=_sep, index=False)
             buf = StringIO(val)
-            out = pd.read_csv(
+            out: pd.DataFrame = pd.read_csv(
                 buf,
                 sep=_sep,
                 header=0,
                 names=data_raw.columns,
-                dtype=self._columns_dtype,
+                **self._columns_dtype.as_pandas_kwargs(),
             )
             out.index = data_raw.index
         else:
             out = pd.DataFrame(index=data_raw.index, columns=[])
         self._data_cache = out
         return out
-
-    # def dataShown(self) -> pd.DataFrame:
-    #     df = self.getDataFrame()
-    #     return df.loc[list(self._filtered_index), list(self._filtered_columns)]
 
     def dataShape(self) -> tuple[int, int]:
         return self._data_raw.shape
@@ -424,7 +420,7 @@ class QSpreadSheet(QMutableSimpleTable):
         if val := QDtypeWidget.requestValue(self):
             if val == "unset":
                 val = None
-            self.setColumnDtype(self._filtered_columns[col], val)
+            self.setColumnDtype(self._data_raw.columns[col], val)
         return None
 
     def _install_actions(self):
