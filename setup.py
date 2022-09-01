@@ -28,6 +28,7 @@ setup(
         "qtpy>=1.10.0",
         "pandas>=1.0.0",
         "collections-undo>=0.0.6",
+        "appdirs>=1.4.4",
         "qtconsole",
     ],
     extras_require={"all": ["seaborn>=0.11", "matplotlib>=3.1", "pyqt5>=5.12.3"]},
