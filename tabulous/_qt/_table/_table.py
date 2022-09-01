@@ -1,7 +1,9 @@
 from __future__ import annotations
 from typing import Any
 import pandas as pd
+
 from ._base import QMutableSimpleTable, DataFrameModel
+from ._dtype import convert_value
 
 
 class QTableLayer(QMutableSimpleTable):
@@ -35,44 +37,4 @@ class QTableLayer(QMutableSimpleTable):
     def convertValue(self, r: int, c: int, value: Any) -> Any:
         """Convert value to the type of the table."""
         kind = self._data_raw.dtypes[c].kind
-        return _DTYPE_CONVERTER[kind](value)
-
-
-def _bool_converter(val: Any):
-    if isinstance(val, str):
-        if val in ("True", "1", "true"):
-            return True
-        elif val in ("False", "0", "false"):
-            return False
-        else:
-            raise ValueError(f"Cannot convert {val} to bool.")
-    else:
-        return bool(val)
-
-
-_NAN_STRINGS = frozenset({"", "nan", "na", "n/a", "<na>", "NaN", "NA", "N/A", "<NA>"})
-
-
-def _float_or_nan(x: Any):
-    if x in _NAN_STRINGS:
-        return float("nan")
-    return float(x)
-
-
-def _complex_or_nan(x: Any):
-    if x in _NAN_STRINGS:
-        return float("nan")
-    return complex(x)
-
-
-_DTYPE_CONVERTER = {
-    "i": int,
-    "f": _float_or_nan,
-    "u": int,
-    "b": _bool_converter,
-    "U": str,
-    "O": lambda e: e,
-    "c": _complex_or_nan,
-    "M": pd.to_datetime,
-    "m": pd.to_timedelta,
-}
+        return convert_value(kind, value)

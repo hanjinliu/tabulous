@@ -1,13 +1,15 @@
 from __future__ import annotations
 from pathlib import Path
+from appdirs import user_state_dir
 
-TXT_PATH = Path(__file__).parent / "_tabulous_history.txt"
+TXT_PATH = Path(user_state_dir("tabulous", "tabulous", "history.txt"))
 
 
 def dump_file_open_path(path: str):
     path = str(path)
     try:
         if not TXT_PATH.exists():
+            TXT_PATH.parent.mkdir(parents=True, exist_ok=True)
             TXT_PATH.write_text("")
         with open(TXT_PATH, "r+") as f:
             lines = [s.strip() for s in f.readlines()]

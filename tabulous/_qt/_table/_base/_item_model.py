@@ -111,7 +111,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 except Exception as e:
                     # since this method is called many times, errorous function should be
                     # deleted from the mapper.
-                    self._background_colormap.pop(c)
+                    self._background_colormap.pop(colname)
                     raise e
                 return QtGui.QColor(*rgba)
         return QtCore.QVariant()
@@ -136,9 +136,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 return None
             elif role == Qt.ItemDataRole.ToolTipRole:
                 if section < self.df.columns.size:
-                    name = self.df.columns[section]
-                    dtype = self.df.dtypes.values[section]
-                    return f"{name} (dtype: {dtype})"
+                    return self._column_tooltip(section)
                 return None
 
         if orientation == Qt.Orientation.Vertical:
@@ -146,6 +144,11 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 if section < self.df.index.size:
                     return str(self.df.index[section])
                 return None
+
+    def _column_tooltip(self, section: int):
+        name = self.df.columns[section]
+        dtype = self.df.dtypes.values[section]
+        return f"{name} (dtype: {dtype})"
 
     def setData(self, index: QtCore.QModelIndex, value, role) -> bool:
         if not index.isValid():

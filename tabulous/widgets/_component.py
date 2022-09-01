@@ -1,12 +1,29 @@
 from __future__ import annotations
 import weakref
-from typing import Generic, Literal, TYPE_CHECKING, TypeVar, overload, Any, Callable
+from typing import (
+    Generic,
+    Hashable,
+    Literal,
+    TYPE_CHECKING,
+    TypeVar,
+    overload,
+    Any,
+    Callable,
+    Union,
+    MutableMapping,
+    Iterator,
+)
+
+import numpy as np
 from ..exceptions import TableImmutableError
 
 if TYPE_CHECKING:
     from typing_extensions import Self
-    from ._table import TableBase
+    from pandas.core.dtypes.dtypes import ExtensionDtype
+    from ._table import TableBase, SpreadSheet
     from .._qt._table._base._header_view import QDataFrameHeaderView
+
+    _DtypeLike = Union[np.dtype, ExtensionDtype]
 
 T = TypeVar("T")
 _F = TypeVar("_F", bound=Callable)
@@ -301,3 +318,29 @@ class PlotInterface(Component["TableBase"]):
     def draw(self):
         """Update the current side figure."""
         return self._current_widget.draw()
+
+
+class ColumnDtypeInterface(
+    Component["SpreadSheet"], MutableMapping[Hashable, "_DtypeLike"]
+):
+    """Interface to the column dtype of spreadsheet."""
+
+    def __getitem__(self, key: Hashable) -> _DtypeLike | None:
+        return self.parent._qwidget._columns_dtype.get(key, None)
+
+    def __setitem__(self, key: Hashable, dtype: Any) -> None:
+        return self.parent._qwidget.setColumnDtype(key, dtype)
+
+    def __delitem__(self, key: Hashable) -> None:
+        return self.parent._qwidget.setColumnDtype(None)
+
+    def __repr__(self) -> str:
+        clsname = type(self).__name__
+        dict = self.parent._qwidget._columns_dtype
+        return f"{clsname}({dict!r})"
+
+    def __len__(self) -> str:
+        return len(self.parent._qwidget._columns_dtype)
+
+    def __iter__(self) -> Iterator[Hashable]:
+        return iter(self.parent._qwidget._columns_dtype)

@@ -153,6 +153,7 @@ def test_popup_view():
 
     table.selections = [(slice(1, 2), slice(0, 2))]
     selection_equal(table.selections, [(slice(1, 2), slice(0, 2))])
+    table.view_mode = "normal"
 
 def test_color_mapper():
     viewer = TableViewer(show=False)

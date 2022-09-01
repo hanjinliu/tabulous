@@ -139,11 +139,6 @@ class TableViewerBase:
         """Return the index of currently visible table."""
         return self._qwidget._tablestack.currentIndex()
 
-    @property
-    def native(self) -> _QtMainWidgetBase:
-        """Return the native widget."""
-        return self._qwidget
-
     @current_index.setter
     def current_index(self, index: int | str):
         if isinstance(index, str):
@@ -151,6 +146,11 @@ class TableViewerBase:
         elif index < 0:
             index += len(self.tables)
         return self._qwidget._tablestack.setCurrentIndex(index)
+
+    @property
+    def native(self) -> _QtMainWidgetBase:
+        """Return the native widget."""
+        return self._qwidget
 
     def show(self, *, run: bool = True) -> None:
         """Show the widget."""
@@ -204,6 +204,7 @@ class TableViewerBase:
         copy: bool = True,
         metadata: dict[str, Any] | None = None,
         update: bool = False,
+        dtyped: bool = False,
     ) -> SpreadSheet:
         """
         Add data as a spreadsheet.
@@ -213,6 +214,9 @@ class TableViewerBase:
         data : DataFrame like, optional
             Table data to add.
         {name}{editable}{copy}{metadata}{update}
+        dtyped : bool, default is False
+            If True, dtypes of the dataframe columns will be saved in the spreadsheet.
+            Typed spreadsheet is safer for data recovery but less flexible for editing.
 
         Returns
         -------
@@ -222,6 +226,8 @@ class TableViewerBase:
         if copy:
             data = _copy_dataframe(data)
         table = SpreadSheet(data, name=name, editable=editable, metadata=metadata)
+        if dtyped:
+            table.dtypes.update(data.dtypes)
         return self.add_layer(table, update=update)
 
     def add_groupby(
@@ -362,6 +368,10 @@ class TableViewerBase:
         if selections is not None:
             self.current_table.selections = selections
         return self.current_table._qwidget.pasteFromClipBoard()
+
+    def close(self):
+        """Close the viewer."""
+        return self._qwidget.close()
 
     def _link_events(self):
         _tablist = self._tablist

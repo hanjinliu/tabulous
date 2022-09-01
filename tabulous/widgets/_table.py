@@ -10,6 +10,7 @@ from ._component import (
     HorizontalHeaderInterface,
     VerticalHeaderInterface,
     PlotInterface,
+    ColumnDtypeInterface,
 )
 from . import _doc
 
@@ -264,9 +265,7 @@ class TableBase(ABC):
         """
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
-            model = self._qwidget.model()
-            model._foreground_colormap[column_name] = f
-            self.refresh()
+            self._qwidget.setForegroundColormap(column_name, f)
             return f
 
         return _wrapper(colormap) if colormap is not None else _wrapper
@@ -289,9 +288,7 @@ class TableBase(ABC):
         """
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
-            model = self._qwidget.model()
-            model._background_colormap[column_name] = f
-            self.refresh()
+            self._qwidget.setBackgroundColormap(column_name, f)
             return f
 
         return _wrapper(colormap) if colormap is not None else _wrapper
@@ -389,8 +386,9 @@ class SpreadSheet(_DataFrameTableLayer):
     {name}{editable}{metadata}
     """
 
-    _Default_Name = "sheet"
     _qwidget: QSpreadSheet
+    _Default_Name = "sheet"
+    dtypes = ColumnDtypeInterface()
 
     def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
         from .._qt import QSpreadSheet

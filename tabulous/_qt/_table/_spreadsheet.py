@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Hashable
 from io import StringIO
 import numpy as np
 import pandas as pd
@@ -7,8 +7,9 @@ from qtpy import QtCore
 from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
+from ._dtype import get_converter, DTypeMap
 
-_OUT_OF_BOUND_SIZE = 10
+_OUT_OF_BOUND_SIZE = 10  # 10 more rows and columns will be displayed.
 
 
 class SpreadSheetModel(AbstractDataFrameModel):
@@ -32,6 +33,31 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
         return min(self._df.shape[1] + _OUT_OF_BOUND_SIZE, table.max_column_count)
 
+    def _column_tooltip(self, section: int):
+        name = self.df.columns[section]
+        if dtype := self.parent()._columns_dtype.get(name, None):
+            return f"{name} (dtype: {dtype})"
+        else:
+            dtype = self.df.dtypes.values[section]
+            return f"{name} (dtype: infer)"
+
+    def _data_tooltip(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        if r < self.df.shape[0] and c < self.df.shape[1]:
+            val = self.df.iat[r, c]
+            name = self.df.columns[c]
+            dtype = self.parent()._columns_dtype.get(name, None)
+            if dtype is None:
+                return f"{val!r} (dtype: infer)"
+            else:
+                return f"{val!r} (dtype: {dtype})"
+        return QtCore.QVariant()
+
+    # fmt: off
+    if TYPE_CHECKING:
+        def parent(self) -> QSpreadSheet: ...
+    # fmt: on
+
 
 class QSpreadSheet(QMutableSimpleTable):
     """
@@ -49,6 +75,7 @@ class QSpreadSheet(QMutableSimpleTable):
         super().__init__(parent, data)
         self._qtable_view.verticalHeader().setMinimumWidth(20)
         self._data_cache = None
+        self._columns_dtype = DTypeMap()
 
     # fmt: off
     if TYPE_CHECKING:
@@ -64,21 +91,18 @@ class QSpreadSheet(QMutableSimpleTable):
         if data_raw.shape[1] > 0:
             val = data_raw.to_csv(sep=_sep, index=False)
             buf = StringIO(val)
-            out = pd.read_csv(
+            out: pd.DataFrame = pd.read_csv(
                 buf,
                 sep=_sep,
                 header=0,
                 names=data_raw.columns,
+                **self._columns_dtype.as_pandas_kwargs(),
             )
             out.index = data_raw.index
         else:
             out = pd.DataFrame(index=data_raw.index, columns=[])
         self._data_cache = out
         return out
-
-    # def dataShown(self) -> pd.DataFrame:
-    #     df = self.getDataFrame()
-    #     return df.loc[list(self._filtered_index), list(self._filtered_columns)]
 
     def dataShape(self) -> tuple[int, int]:
         return self._data_raw.shape
@@ -283,6 +307,13 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.undoable
     def _remove_columns(self, column: int, count: int, old_values: pd.DataFrame):
+        model = self.model()
+        for index in range(column, column + count):
+            colname = model.df.columns[index]
+            model._background_colormap.pop(colname, None)
+            model._foreground_colormap.pop(colname, None)
+            self._columns_dtype.pop(colname, None)
+
         self._data_raw = pd.concat(
             [self._data_raw.iloc[:, :column], self._data_raw.iloc[:, column + count :]],
             axis=1,
@@ -337,11 +368,34 @@ class QSpreadSheet(QMutableSimpleTable):
         with self._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
             if index >= ncols:
                 self.expandDataFrame(0, index - ncols + 1)
+            old_name = self._data_raw.columns[index]
             self.setFilter(self._filter_slice)
             super().setHorizontalHeaderValue(index, value)
+            if old_name in self._columns_dtype.keys():
+                self.setColumnDtype(value, self._columns_dtype.pop(old_name))
             self._data_cache = None
 
         return None
+
+    @QMutableSimpleTable._mgr.interface
+    def setColumnDtype(self, label: Hashable, dtype: Any | None) -> None:
+        """Set the dtype of the column with the given label."""
+        if dtype is None:
+            self._columns_dtype.pop(label, None)
+            return None
+        if label not in self._data_raw.columns:
+            raise ValueError(f"Column {label!r} not found.")
+        from pandas.core.dtypes.common import pandas_dtype
+
+        dtype = pandas_dtype(dtype)
+        if self._columns_dtype.get(label, None) is not dtype:
+            self._columns_dtype[label] = dtype
+            self._data_cache = None
+        return None
+
+    @setColumnDtype.server
+    def setColumnDtype(self, label: Hashable, dtype: Any):
+        return (label, self._columns_dtype.get(label, None)), {}
 
     def _insert_row_above(self, row: int):
         return self.insertRows(row, 1)
@@ -361,56 +415,68 @@ class QSpreadSheet(QMutableSimpleTable):
     def _remove_this_column(self, col: int):
         return self.removeColumns(col, 1)
 
+    def _set_column_dtype(self, col: int):
+        from ._dtype import QDtypeWidget
+
+        if val := QDtypeWidget.requestValue(self):
+            if val == "unset":
+                val = None
+            self.setColumnDtype(self._data_raw.columns[col], val)
+        return None
+
     def _install_actions(self):
         # fmt: off
         vheader = self._qtable_view.verticalHeader()
         vheader.registerAction("Insert row above")(self._insert_row_above)
         vheader.registerAction("Insert row below")(self._insert_row_below)
         vheader.registerAction("Remove this row")(self._remove_this_row)
+        vheader.addSeparator()
 
         hheader = self._qtable_view.horizontalHeader()
         hheader.registerAction("Insert column left")(self._insert_column_left)
         hheader.registerAction("Insert column right")(self._insert_column_right)
         hheader.registerAction("Remove this column")(self._remove_this_column)
+        hheader.addSeparator()
+        hheader.registerAction("Set column dtype")(self._set_column_dtype)
+        hheader.addSeparator()
 
         self.registerAction("Insert a row above")(lambda idx: self._insert_row_above(idx[0]))
         self.registerAction("Insert a row below")(lambda idx: self._insert_row_below(idx[0]))
+        self.registerAction("Remove this row")(lambda idx: self._remove_this_row(idx[0]))
+        self.addSeparator()
         self.registerAction("Insert a column on the left")(lambda idx: self.insertColumns(idx[1]))
         self.registerAction("Insert a column on the right")(lambda idx: self.insertColumns(idx[1]))
-        self.registerAction("Remove this row")(lambda idx: self._remove_this_row(idx[0]))
         self.registerAction("Remove this column")(lambda idx: self._remove_this_column(idx[1]))
+        self.addSeparator()
         # fmt: on
 
         super()._install_actions()
         return None
 
     def _set_forground_colormap(self, index: int):
-        from ._base._colormap import exec_colormap_dialog
-
-        column_name = self._filtered_columns[index]
-        df = self.getDataFrame()
-        dtype: np.dtype = df.dtypes[column_name]
-        if cmap := exec_colormap_dialog(df[column_name], self):
-
-            def _cmap(val):
-                return cmap(dtype.type(val))
-
-            self.model()._foreground_colormap[column_name] = _cmap
-            self.refresh()
-        return None
+        return self._set_colormap(index, self.model()._foreground_colormap)
 
     def _set_background_colormap(self, index: int):
+        return self._set_colormap(index, self.model()._background_colormap)
+
+    def _set_colormap(self, index, colormap_dict: dict):
         from ._base._colormap import exec_colormap_dialog
 
         column_name = self._filtered_columns[index]
         df = self.getDataFrame()
         dtype: np.dtype = df.dtypes[column_name]
+        _converter = get_converter(dtype.kind)
         if cmap := exec_colormap_dialog(df[column_name], self):
 
             def _cmap(val):
-                return cmap(dtype.type(val))
+                try:
+                    _val = _converter(val)
+                except Exception:
+                    return None
+                else:
+                    return cmap(_val)
 
-            self.model()._background_colormap[column_name] = _cmap
+            colormap_dict[column_name] = _cmap
             self.refresh()
         return None
 

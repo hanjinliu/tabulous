@@ -14,6 +14,8 @@ _HEIGHT = 24
 
 
 class QStartupWidget(QtW.QWidget):
+    """The startup widget which is shown when no table exists."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         _layout = QtW.QVBoxLayout()
@@ -21,19 +23,17 @@ class QStartupWidget(QtW.QWidget):
         _layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.setLayout(_layout)
 
+        # fmt: off
         self._open_table_btn = QClickableLabel("Open File as Table (Ctrl+O)")
-        self._open_spreadsheet_btn = QClickableLabel(
-            "Open File as Spreadsheet (Ctrl+K, Ctrl+O)"
-        )
+        self._open_spreadsheet_btn = QClickableLabel("Open File as Spreadsheet (Ctrl+K, Ctrl+O)")
         self._open_new_btn = QClickableLabel("New Spreadsheet (Ctrl+N)")
         self._path_list = QPathList()
 
-        self._open_table_btn.clicked.connect(lambda: self.mainWidget().openFromDialog())
+        self._open_table_btn.clicked.connect(lambda: self.mainWidget().openFromDialog(type="table"))
+        self._open_spreadsheet_btn.clicked.connect(lambda: self.mainWidget().openFromDialog(type="spreadsheet"))
         self._open_new_btn.clicked.connect(lambda: self.mainWidget().newSpreadSheet())
-        self._path_list.pathClicked.connect(
-            lambda path: self.mainWidget()._table_viewer.open(path)
-        )
-
+        self._path_list.pathClicked.connect(lambda path: self.mainWidget()._table_viewer.open(path))
+        # fmt: on
         _layout.addWidget(self._open_table_btn)
         _layout.addWidget(self._open_spreadsheet_btn)
         _layout.addWidget(self._open_new_btn)

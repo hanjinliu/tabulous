@@ -46,6 +46,9 @@ class QActionRegistry(QtCore.QObject, Generic[_T]):
 
         return wrapper
 
+    def addSeparator(self):
+        return self._qt_context_menu.addSeparator()
+
     def execContextMenu(self, index: _T) -> None:
         """Execute the context menu at the given index."""
         return self._qt_context_menu.execAtIndex(QtGui.QCursor().pos(), index)
