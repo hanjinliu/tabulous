@@ -426,7 +426,7 @@ class SelectionRanges(_TableRanges):
     """A table data specific selection range list."""
 
     def _get_list(self):
-        return self.parent._qwidget.selections()
+        return list(self.parent._qwidget.selections())
 
     def update(self, value: SelectionRanges):
         """Update the selection ranges."""
@@ -437,7 +437,7 @@ class HighlightRanges(_TableRanges):
     """A table data specific highlight list."""
 
     def _get_list(self):
-        return self.parent._qwidget.highlights()
+        return list(self.parent._qwidget.highlights())
 
     def update(self, value: SelectionRanges):
         """Update the highlight ranges."""

@@ -64,3 +64,15 @@ def test_selection_signal_recursive():
     mock.assert_not_called()
     table.selections = [(1, 1)]
     mock.assert_called_once()
+
+def test_list_like_methods():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(df0)
+    table.selections.append((0, 0))
+    assert selection_equal(table.selections, [(slice(0, 1), slice(0, 1))])
+    table.selections.append((slice(1, 3), slice(1, 2)))
+    assert selection_equal(table.selections, [(slice(0, 1), slice(0, 1)), (slice(1, 3), slice(1, 2))])
+    table.selections.pop(0)
+    assert selection_equal(table.selections, [(slice(1, 3), slice(1, 2))])
+    table.selections.clear()
+    assert selection_equal(table.selections, [])

@@ -290,6 +290,11 @@ class TableViewerBase:
             return table
         self.tables.append(input)
         self.current_index = -1  # activate the last table
+
+        # initialize highlights and selections
+        input.highlights.clear()
+        input.selections.clear()
+
         return input
 
     def open(self, path: PathLike, *, type: TableType | str = TableType.table) -> None:
