@@ -2,11 +2,8 @@ from __future__ import annotations
 from typing import (
     Any,
     Callable,
-    Hashable,
     Iterable,
-    Iterator,
     NewType,
-    Sequence,
     Tuple,
     List,
     Union,
@@ -15,7 +12,6 @@ from typing import (
     SupportsIndex,
 )
 from enum import Enum
-import weakref
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -82,69 +78,6 @@ class TableInfo(metaclass=TableInfoAlias):
 class TableInfoInstance(Tuple["pd.DataFrame", List[str]]):
     def __new__(cls, *args, **kwargs):
         raise TypeError(f"Type {cls.__name__} cannot be instantiated.")
-
-
-class SelectionRanges(Sequence[Tuple[slice, slice]]):
-    """A table data specific selection range list."""
-
-    def __init__(self, data: TableBase, ranges: Iterable[tuple[slice, slice]] = ()):
-        # NOTE: it's better to use NamedTuple for a rectangular selection but
-        # unfortunately DataFrame does not support slicing with NamedTuple.
-        self._ranges = list(ranges)
-        self._data_ref = weakref.ref(data)
-
-    def __repr__(self) -> str:
-        rng_str: list[str] = []
-        for rng in self:
-            r, c = rng
-            rng_str.append(f"[{r.start}:{r.stop}, {c.start}:{c.stop}]")
-        return f"{self.__class__.__name__}({', '.join(rng_str)})"
-
-    def __getitem__(self, index: int) -> tuple[slice, slice]:
-        """The selected range at the given index."""
-        return self._ranges[index]
-
-    def __len__(self) -> int:
-        """Number of selections."""
-        return len(self._ranges)
-
-    def __iter__(self):
-        """Iterate over the selection ranges."""
-        return iter(self._ranges)
-
-    @property
-    def values(self) -> SelectedData:
-        return SelectedData(self)
-
-
-class SelectedData(Sequence["pd.DataFrame"]):
-    """Interface with the selected data."""
-
-    def __init__(self, obj: SelectionRanges):
-        self._obj = obj
-
-    def __getitem__(self, index: int) -> pd.DataFrame:
-        """Get the selected data at the given index of selection."""
-        data = self._obj._data_ref().data_shown
-        sl = self._obj[index]
-        return data.iloc[sl]
-
-    def __len__(self) -> int:
-        """Number of selections."""
-        return len(self._obj)
-
-    def __iter__(self) -> Iterator[pd.DataFrame]:
-        return (self[i] for i in range(len(self)))
-
-    def itercolumns(self) -> Iterable[tuple[Hashable, pd.Series]]:
-        all_data: dict[Hashable, pd.Series] = {}
-        for data in self:
-            for col in data.columns:
-                if col in all_data.keys():
-                    all_data[col] = pd.concat([all_data[col], data[col]])
-                else:
-                    all_data[col] = data[col]
-        return iter(all_data.items())
 
 
 FilterType = Union[Callable[["pd.DataFrame"], np.ndarray], np.ndarray]

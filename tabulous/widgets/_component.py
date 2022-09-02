@@ -1,11 +1,16 @@
 from __future__ import annotations
+from abc import abstractmethod
+from contextlib import contextmanager
 import weakref
 from typing import (
     Generic,
     Hashable,
     Literal,
     TYPE_CHECKING,
+    MutableSequence,
+    Sequence,
     TypeVar,
+    Tuple,
     overload,
     Any,
     Callable,
@@ -16,9 +21,11 @@ from typing import (
 
 import numpy as np
 from ..exceptions import TableImmutableError
+from ..types import _SingleSelection, SelectionType
 
 if TYPE_CHECKING:
     from typing_extensions import Self
+    import pandas as pd
     from pandas.core.dtypes.dtypes import ExtensionDtype
     from ._table import TableBase, SpreadSheet
     from .._qt._table._base._header_view import QDataFrameHeaderView
@@ -38,7 +45,7 @@ class Component(Generic[T]):
 
     def __init__(self, parent: T | _NoRef = _no_ref):
         if parent is self._no_ref:
-            self._instances: dict[int, T] = {}
+            self._instances: dict[int, Self] = {}
         else:
             self._instances = None
         self._parent_ref = weakref.ref(parent)
@@ -69,6 +76,18 @@ class Component(Generic[T]):
         if (out := self._instances.get(_id)) is None:
             out = self._instances[_id] = self.__class__(obj)
         return out
+
+    def __set__(self, obj: T, value: Any) -> None:
+        if obj is None:
+            raise AttributeError("Cannot set attribute.")
+        _id = id(obj)
+        if (ins := self._instances.get(_id)) is None:
+            ins = self._instances[_id] = self.__class__(obj)
+
+        return ins._set_value(value)
+
+    def _set_value(self, value: Any):
+        raise AttributeError("Cannot set attribute.")
 
 
 class VerticalHeaderInterface(Component["TableBase"]):
@@ -139,6 +158,7 @@ class HorizontalHeaderInterface(Component["TableBase"]):
         return None
 
     def __len__(self) -> int:
+        """Number of columns."""
         return len(self.parent.data.columns)
 
     # fmt: off
@@ -318,6 +338,142 @@ class PlotInterface(Component["TableBase"]):
     def draw(self):
         """Update the current side figure."""
         return self._current_widget.draw()
+
+
+_Range = Tuple[slice, slice]
+
+
+class _TableRanges(Component["TableBase"], MutableSequence[_Range]):
+    def __init__(self, parent: T | _NoRef = Component._no_ref):
+        super().__init__(parent)
+        self._is_blocked = False
+
+    @abstractmethod
+    def _get_list(self) -> list[_Range]:
+        """Get the list of ranges."""
+
+    @abstractmethod
+    def update(self, val: list[_Range]) -> None:
+        """Set a list of ranges."""
+
+    def __repr__(self) -> str:
+        rng_str: list[str] = []
+        for rng in self:
+            r, c = rng
+            rng_str.append(f"[{r.start}:{r.stop}, {c.start}:{c.stop}]")
+        return f"{self.__class__.__name__}({', '.join(rng_str)})"
+
+    def __getitem__(self, index: int) -> _Range:
+        """The selected range at the given index."""
+        return self._get_list()[index]
+
+    def __setitem__(self, index: int, val: _SingleSelection) -> None:
+        if self._is_blocked:
+            raise RuntimeError("Cannot set item while blocked.")
+        lst = self._get_list()
+        lst[index] = val
+        return self.update(lst)
+
+    def __delitem__(self, index: int) -> None:
+        if self._is_blocked:
+            raise RuntimeError("Cannot delete item while blocked.")
+        lst = self._get_list()
+        del lst[index]
+        return self.update(lst)
+
+    def __len__(self) -> int:
+        """Number of selections."""
+        return len(self._get_list())
+
+    def __iter__(self):
+        """Iterate over the selection ranges."""
+        return iter(self._get_list())
+
+    def _set_value(self, value: SelectionType):
+        if self._is_blocked:
+            raise RuntimeError("Cannot set item(s) while blocked.")
+        if not isinstance(value, list):
+            value = [value]
+        return self.update(value)
+
+    @property
+    def values(self) -> SelectedData:
+        return SelectedData(self)
+
+    def insert(self, index: int, rng: _Range) -> None:
+        if self._is_blocked:
+            raise RuntimeError("Cannot insert item while blocked.")
+        lst = self._get_list()
+        lst.insert(index, rng)
+        return self.update(lst)
+
+    @contextmanager
+    def blocked(self, block: bool = True):
+        _was_blocked = self._is_blocked
+        self._is_blocked = block
+        try:
+            yield
+        finally:
+            self._is_blocked = _was_blocked
+
+    def block(self, block: bool = True) -> bool:
+        """Block or unblock changing ranges."""
+        self._is_blocked = block
+        return block
+
+
+class SelectionRanges(_TableRanges):
+    """A table data specific selection range list."""
+
+    def _get_list(self):
+        return list(self.parent._qwidget.selections())
+
+    def update(self, value: SelectionRanges):
+        """Update the selection ranges."""
+        return self.parent._qwidget.setSelections(value)
+
+
+class HighlightRanges(_TableRanges):
+    """A table data specific highlight list."""
+
+    def _get_list(self):
+        return list(self.parent._qwidget.highlights())
+
+    def update(self, value: SelectionRanges):
+        """Update the highlight ranges."""
+        return self.parent._qwidget.setHighlights(value)
+
+
+class SelectedData(Sequence["pd.DataFrame"]):
+    """Interface with the selected data."""
+
+    def __init__(self, obj: SelectionRanges):
+        self._obj = obj
+
+    def __getitem__(self, index: int) -> pd.DataFrame:
+        """Get the selected data at the given index of selection."""
+        data = self._obj.parent.data_shown
+        sl = self._obj[index]
+        return data.iloc[sl]
+
+    def __len__(self) -> int:
+        """Number of selections."""
+        return len(self._obj)
+
+    def __iter__(self) -> Iterator[pd.DataFrame]:
+        return (self[i] for i in range(len(self)))
+
+    def itercolumns(self) -> Iterator[tuple[Hashable, pd.Series]]:
+        all_data: dict[Hashable, pd.Series] = {}
+        import pandas as pd
+
+        for data in self:
+            for col in data.columns:
+                if col in all_data.keys():
+                    all_data[col] = pd.concat([all_data[col], data[col]])
+                else:
+                    all_data[col] = data[col]
+        return iter(all_data.items())
 
 
 class ColumnDtypeInterface(

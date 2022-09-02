@@ -6,7 +6,7 @@ from qtpy.QtCore import Signal, Qt
 
 from ._item_model import AbstractDataFrameModel
 from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
-from ._selection_model import SelectionModel
+from ._selection_model import HighlightModel, SelectionModel
 from ._table_base import QBaseTable
 
 from ..._keymap import QtKeys
@@ -56,6 +56,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         # use custom selection model
         self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.NoSelection)
         self._selection_model = SelectionModel()
+        self._highlight_model = HighlightModel()
 
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
@@ -128,10 +129,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         )
         return None
 
-    def selections(self) -> list[tuple[slice, slice]]:
-        """Get current selections."""
-        return self._selection_model._selections
-
     def clear_selections(self) -> None:
         """Clear current selections."""
         self._selection_model.clear()
@@ -140,8 +137,20 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def set_selections(self, selections: list[tuple[slice, slice]]) -> None:
         """Set current selections."""
-        self._selection_model.set_selections(selections)
+        self._selection_model.set_highlights(selections)
         self.selectionChangedSignal.emit()
+        self.update()
+        return None
+
+    def clear_highlights(self) -> None:
+        """Clear current highlights."""
+        self._highlight_model.clear()
+        self.update()
+        return None
+
+    def set_highlights(self, highlights: list[tuple[slice, slice]]) -> None:
+        """Set current highlights."""
+        self._highlight_model.set_highlights(highlights)
         self.update()
         return None
 
@@ -150,10 +159,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         model = self.model()
         csel = slice(0, model.columnCount())
         _r0, _r1 = sorted([r0, r1])
-        if len(self._selection_model._selections) == 0:
-            self._selection_model._selections.append((slice(_r0, _r1 + 1), csel))
+        if len(self._selection_model) == 0:
+            self._selection_model.append((slice(_r0, _r1 + 1), csel))
         else:
-            self._selection_model._selections[-1] = (slice(_r0, _r1 + 1), csel)
+            self._selection_model.update_last((slice(_r0, _r1 + 1), csel))
         with self._selection_model.blocked():
             self.setCurrentIndex(model.index(r1, 0))
         self.update()
@@ -164,10 +173,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         model = self.model()
         rsel = slice(0, self.model().rowCount())
         _c0, _c1 = sorted([c0, c1])
-        if len(self._selection_model._selections) == 0:
-            self._selection_model._selections.append((rsel, slice(_c0, _c1 + 1)))
+        if len(self._selection_model) == 0:
+            self._selection_model.append((rsel, slice(_c0, _c1 + 1)))
         else:
-            self._selection_model._selections[-1] = (rsel, slice(_c0, _c1 + 1))
+            self._selection_model.update_last((rsel, slice(_c0, _c1 + 1)))
         with self._selection_model.blocked():
             self.setCurrentIndex(model.index(0, c1))
         self.update()
@@ -339,19 +348,21 @@ class _QTableViewEnhanced(QtW.QTableView):
         """Paint table and the selection."""
         super().paintEvent(event)
         focused = int(self.hasFocus())
-        sels = self.selections()
-        nsel = len(sels)
+        nsel = len(self._selection_model)
         painter = QtGui.QPainter(self.viewport())
-        model = self.model()
-        if self.parentViewer()._white_background:
-            pen_color = Qt.GlobalColor.darkBlue
-        else:
-            pen_color = Qt.GlobalColor.cyan
-        for i, (rr, cc) in enumerate(sels):
-            top_left = model.index(rr.start, cc.start)
-            bottom_right = model.index(rr.stop - 1, cc.stop - 1)
-            rect = self.visualRect(top_left) | self.visualRect(bottom_right)
-            pen = QtGui.QPen(pen_color, 2 + int(nsel == i + 1) * focused)
+        white_bg = self.parentViewer()._white_background
+
+        # draw highlights
+        h_color = (
+            QtGui.QColor(255, 96, 96, 128) if white_bg else QtGui.QColor(255, 0, 0, 128)
+        )
+        for i, rect in enumerate(self._highlight_model.highlightRectangles(self)):
+            painter.fillRect(rect, h_color)
+
+        # draw selections
+        s_color = Qt.GlobalColor.darkBlue if white_bg else Qt.GlobalColor.cyan
+        for i, rect in enumerate(self._selection_model.highlightRectangles(self)):
+            pen = QtGui.QPen(s_color, 2 + int(nsel == i + 1) * focused)
             painter.setPen(pen)
             painter.drawRect(rect)
         return None
