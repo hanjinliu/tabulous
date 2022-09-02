@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, Iterable, Iterator
 from contextlib import contextmanager
 
 if TYPE_CHECKING:
@@ -15,6 +15,7 @@ class RangesModel:
     def __init__(self):
         self._ranges: list[Range] = []
         self._blocked = False
+        self._selected_indices: set[int] = set()
 
     def __len__(self) -> int:
         return len(self._ranges)
@@ -24,19 +25,19 @@ class RangesModel:
         self._ranges.append((slice(0, 0), slice(0, 0)))
         return None
 
-    def append(self, highlight: Range) -> None:
-        self._ranges.append(highlight)
+    def append(self, range: Range) -> None:
+        self._ranges.append(range)
         return None
 
-    def update_last(self, highlight: Range) -> None:
-        self._ranges[-1] = highlight
+    def update_last(self, range: Range) -> None:
+        self._ranges[-1] = range
         return None
 
-    def set_highlights(self, highlights: list[Range]) -> None:
+    def set_ranges(self, ranges: list[Range]) -> None:
         if self._blocked:
             return None
         self._ranges.clear()
-        return self._ranges.extend(highlights)
+        return self._ranges.extend(ranges)
 
     def clear(self) -> None:
         """Clear all the selections"""
@@ -51,9 +52,33 @@ class RangesModel:
         finally:
             self._blocked = False
 
-    def set_current(self, idx: int):
+    def move_to_last(self, idx: int):
         rng = self._ranges.pop(idx)
         self._ranges.append(rng)
+        return None
+
+    def select(self, indices: Iterable[int]) -> None:
+        self._selected_indices = set(indices)
+        return None
+
+    def add_selection(self, index: int) -> None:
+        nranges = len(self._ranges)
+        if index < 0:
+            index += nranges
+        if 0 <= index < nranges:
+            self._selected_indices.add(index)
+        else:
+            raise ValueError(f"Index {index} out of range")
+        return None
+
+    def delete_selected(self):
+        remain = [
+            self._ranges[i]
+            for i in range(len(self._ranges))
+            if i not in self._selected_indices
+        ]
+        self._ranges = remain
+        self._selected_indices = set()
         return None
 
     def iter_ranges_under_index(
@@ -63,6 +88,7 @@ class RangesModel:
         *,
         reverse: bool = True,
     ) -> Iterator[tuple[int, Range]]:
+        """Iterate over all the ranges that are under the specified position."""
         if reverse:
             rmax = len(self._ranges) - 1
             for i, (rr, cc) in enumerate(reversed(self._ranges)):
@@ -74,6 +100,7 @@ class RangesModel:
                     yield i, (rr, cc)
 
     def range_under_index(self, row: int, col: int) -> tuple[int, Range | None]:
+        """Get the last range that is under the specified position."""
         try:
             out = next(self.iter_ranges_under_index(row, col))
         except StopIteration:
@@ -137,7 +164,7 @@ class SelectionModel(RangesModel):
     def drag_end(self) -> None:
         """Finish dragging selection."""
 
-    def set_highlights(self, selections: list[Range]) -> None:
+    def set_ranges(self, selections: list[Range]) -> None:
         if self._blocked:
             return None
         self._ranges.clear()

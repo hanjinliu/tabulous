@@ -112,21 +112,28 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         row, col = index.row(), index.column()
         sel_model = self._qtable_view._selection_model
+        highlight_model = self._qtable_view._highlight_model
 
         if sel_model._ctrl_on:
             # if Ctrl is on, select the highlight under the cursor.
-            idx, rng = self._qtable_view._highlight_model.range_under_index(row, col)
+            idx, rng = highlight_model.range_under_index(row, col)
             if rng is not None:
-                self.setSelections([rng])
+                if len(highlight_model._selected_indices) == 0:
+                    self.setSelections([rng])
+                else:
+                    self.setSelections(self.selections() + [rng])
+                highlight_model.add_selection(idx)
             else:
                 self.setSelections([(row, col)])
+                highlight_model.select([])
         else:
             idx, rng = sel_model.range_under_index(row, col)
             if rng is not None:
-                sel_model.set_current(idx)
+                sel_model.move_to_last(idx)
                 self.update()
             else:
                 self.setSelections([(row, col)])
+            highlight_model.select([])
 
         return self.execContextMenu((row, col))
 
@@ -141,7 +148,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         self.registerAction("Copy")(lambda index: self.copyToClipboard(headers=False))
         self.registerAction("Paste")(lambda index: self.pasteFromClipBoard())
-        self.registerAction("Highlight")(lambda index: self.setHighlights(self.highlights() + self.selections()))
+        self.registerAction("Add highlight")(lambda index: self.setHighlights(self.highlights() + self.selections()))
+        self.registerAction("Delete highlight")(lambda index: self._qtable_view._highlight_model.delete_selected())
         self.addSeparator()
         # fmt: on
         return None

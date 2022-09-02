@@ -28,8 +28,8 @@ for keys in ["Up", "Down", "Left", "Right", "Home", "End", "PageUp", "PageDown",
 _TABLE_VIEW_KEY_SET = frozenset(_TABLE_VIEW_KEY_SET)
 
 # Selection colors
-H_COLOR_W = QtGui.QColor(255, 96, 96, 128)
-H_COLOR_B = QtGui.QColor(255, 0, 0, 128)
+H_COLOR_W = QtGui.QColor(255, 96, 96, 86)
+H_COLOR_B = QtGui.QColor(255, 0, 0, 86)
 S_COLOR_W = Qt.GlobalColor.darkBlue
 S_COLOR_B = Qt.GlobalColor.cyan
 
@@ -143,7 +143,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def set_selections(self, selections: list[tuple[slice, slice]]) -> None:
         """Set current selections."""
-        self._selection_model.set_highlights(selections)
+        self._selection_model.set_ranges(selections)
         self.selectionChangedSignal.emit()
         self.update()
         return None
@@ -156,7 +156,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def set_highlights(self, highlights: list[tuple[slice, slice]]) -> None:
         """Set current highlights."""
-        self._highlight_model.set_highlights(highlights)
+        self._highlight_model.set_ranges(highlights)
         self.update()
         return None
 
