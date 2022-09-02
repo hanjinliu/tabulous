@@ -113,10 +113,10 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def toolTipCount(self) -> int:
         return self._tab.count()
 
+    # fmt: off
     if TYPE_CHECKING:
-
-        def parent(self) -> _QtMainWidgetBase:
-            ...
+        def parent(self) -> _QtMainWidgetBase: ...
+    # fmt: on
 
     def addToolBar(self, name: str):
         """Add a tab of toolbar of name ``name``."""
@@ -269,6 +269,14 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         )
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-sorted")
+
+    def selections_to_highlights(self):
+        """Highlight selected regions."""
+        table = self.viewer.current_table
+        if table is None:
+            return
+        table.highlights = list(table.selections)
+        return None
 
     def filter(self):
         """Apply filter to the current table."""
@@ -444,6 +452,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.find_item, ICON_DIR / "find_item.svg")
         self.registerAction("Table", self.sort_table, ICON_DIR / "sort_table.svg")
+        self.registerAction("Table", self.selections_to_highlights, ICON_DIR / "selections_to_highlights.svg")
 
         # Analyze
         self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
