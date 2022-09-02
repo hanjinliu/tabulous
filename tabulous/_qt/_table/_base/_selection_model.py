@@ -1,43 +1,46 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterator
 from contextlib import contextmanager
 
 if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
     from qtpy import QtCore
 
+    Range = tuple[slice, slice]
 
-class HighlightModel:
-    """Custom highlight model for efficient overlay handling on a large table."""
+
+class RangesModel:
+    """Custom range model for efficient overlay handling on a large table."""
 
     def __init__(self):
-        self._highlights: list[tuple[slice, slice]] = []
+        self._ranges: list[Range] = []
         self._blocked = False
 
     def __len__(self) -> int:
-        return len(self._highlights)
+        return len(self._ranges)
 
     def add_dummy(self) -> None:
-        self._highlights.append((slice(0, 0), slice(0, 0)))
+        """Add dummy ranges."""
+        self._ranges.append((slice(0, 0), slice(0, 0)))
         return None
 
-    def append(self, highlight: tuple[slice, slice]) -> None:
-        self._highlights.append(highlight)
+    def append(self, highlight: Range) -> None:
+        self._ranges.append(highlight)
         return None
 
-    def update_last(self, highlight: tuple[slice, slice]) -> None:
-        self._highlights[-1] = highlight
+    def update_last(self, highlight: Range) -> None:
+        self._ranges[-1] = highlight
         return None
 
-    def set_highlights(self, highlights: list[tuple[slice, slice]]) -> None:
+    def set_highlights(self, highlights: list[Range]) -> None:
         if self._blocked:
             return None
-        self._highlights.clear()
-        return self._highlights.extend(highlights)
+        self._ranges.clear()
+        return self._ranges.extend(highlights)
 
     def clear(self) -> None:
         """Clear all the selections"""
-        return self._highlights.clear()
+        return self._ranges.clear()
 
     @contextmanager
     def blocked(self) -> None:
@@ -48,10 +51,39 @@ class HighlightModel:
         finally:
             self._blocked = False
 
-    def highlightRectangles(self, qtable: _QTableViewEnhanced) -> list[QtCore.QRect]:
+    def set_current(self, idx: int):
+        rng = self._ranges.pop(idx)
+        self._ranges.append(rng)
+        return None
+
+    def iter_ranges_under_index(
+        self,
+        row: int,
+        col: int,
+        *,
+        reverse: bool = True,
+    ) -> Iterator[tuple[int, Range]]:
+        if reverse:
+            rmax = len(self._ranges) - 1
+            for i, (rr, cc) in enumerate(reversed(self._ranges)):
+                if rr.start <= row < rr.stop and cc.start <= col < cc.stop:
+                    yield rmax - i, (rr, cc)
+        else:
+            for i, (rr, cc) in enumerate(self._ranges):
+                if rr.start <= row < rr.stop and cc.start <= col < cc.stop:
+                    yield i, (rr, cc)
+
+    def range_under_index(self, row: int, col: int) -> tuple[int, Range | None]:
+        try:
+            out = next(self.iter_ranges_under_index(row, col))
+        except StopIteration:
+            out = -1, None
+        return out
+
+    def rangeRects(self, qtable: _QTableViewEnhanced) -> list[QtCore.QRect]:
         model = qtable.model()
         _rects = []
-        for rr, cc in self._highlights:
+        for rr, cc in self._ranges:
             top_left = model.index(rr.start, cc.start)
             bottom_right = model.index(rr.stop - 1, cc.stop - 1)
             rect = qtable.visualRect(top_left) | qtable.visualRect(bottom_right)
@@ -59,8 +91,8 @@ class HighlightModel:
         return _rects
 
 
-class SelectionModel(HighlightModel):
-    """A specialized highlight model with item-selection-like behavior."""
+class SelectionModel(RangesModel):
+    """A specialized range model with item-selection-like behavior."""
 
     def __init__(self):
         super().__init__()
@@ -70,12 +102,12 @@ class SelectionModel(HighlightModel):
 
     def set_ctrl(self, on: bool) -> None:
         """Equivalent to pressing Ctrl."""
-        self._ctrl_on = on
+        self._ctrl_on = bool(on)
         return None
 
     def set_shift(self, on: bool) -> None:
         """Equivalent to pressing Shift."""
-        self._shift_on = on
+        self._shift_on = bool(on)
         return None
 
     def shift_start(self, r: int, c: int) -> None:
@@ -98,18 +130,18 @@ class SelectionModel(HighlightModel):
         if not self._ctrl_on:
             self.clear()
         else:
-            self._highlights.append((slice(r, r + 1), slice(c, c + 1)))
+            self._ranges.append((slice(r, r + 1), slice(c, c + 1)))
         self.drag_to(r, c)
         return None
 
     def drag_end(self) -> None:
         """Finish dragging selection."""
 
-    def set_highlights(self, selections: list[tuple[slice, slice]]) -> None:
+    def set_highlights(self, selections: list[Range]) -> None:
         if self._blocked:
             return None
-        self._highlights.clear()
-        return self._highlights.extend(selections)
+        self._ranges.clear()
+        return self._ranges.extend(selections)
 
     def drag_to(self, r: int, c: int):
         """Drag to (r, c) to select cells."""
@@ -117,7 +149,7 @@ class SelectionModel(HighlightModel):
             return None
         if self._selection_start is None:
             if not self._ctrl_on:
-                self._highlights.clear()
+                self._ranges.clear()
             _r0 = _r1 = r
             _c0 = _c1 = c
         else:
@@ -125,8 +157,8 @@ class SelectionModel(HighlightModel):
             _r0, _r1 = sorted([r0, r])
             _c0, _c1 = sorted([c0, c])
 
-        if len(self._highlights) > 0:
-            self._highlights[-1] = (slice(_r0, _r1 + 1), slice(_c0, _c1 + 1))
+        if len(self._ranges) > 0:
+            self._ranges[-1] = (slice(_r0, _r1 + 1), slice(_c0, _c1 + 1))
         else:
-            self._highlights.append((slice(_r0, _r1 + 1), slice(_c0, _c1 + 1)))
+            self._ranges.append((slice(_r0, _r1 + 1), slice(_c0, _c1 + 1)))
         return None

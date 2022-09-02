@@ -270,14 +270,6 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-sorted")
 
-    def selections_to_highlights(self):
-        """Highlight selected regions."""
-        table = self.viewer.current_table
-        if table is None:
-            return
-        table.highlights = list(table.selections)
-        return None
-
     def filter(self):
         """Apply filter to the current table."""
         return self.parent()._tablestack.openFilterDialog()
@@ -452,7 +444,6 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.find_item, ICON_DIR / "find_item.svg")
         self.registerAction("Table", self.sort_table, ICON_DIR / "sort_table.svg")
-        self.registerAction("Table", self.selections_to_highlights, ICON_DIR / "selections_to_highlights.svg")
 
         # Analyze
         self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")

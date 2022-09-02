@@ -107,22 +107,43 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def showContextMenu(self, pos: QtCore.QPoint):
         index = self._qtable_view.indexAt(pos)
-        row, col = index.row(), index.column()
+        if not index.isValid():
+            return None
 
-        self.setSelections([(row, col)])
+        row, col = index.row(), index.column()
+        sel_model = self._qtable_view._selection_model
+
+        if sel_model._ctrl_on:
+            # if Ctrl is on, select the highlight under the cursor.
+            idx, rng = self._qtable_view._highlight_model.range_under_index(row, col)
+            if rng is not None:
+                self.setSelections([rng])
+            else:
+                self.setSelections([(row, col)])
+        else:
+            idx, rng = sel_model.range_under_index(row, col)
+            if rng is not None:
+                sel_model.set_current(idx)
+                self.update()
+            else:
+                self.setSelections([(row, col)])
+
         return self.execContextMenu((row, col))
 
     def _install_actions(self):
+        # fmt: off
         hheader = self._qtable_view.horizontalHeader()
         hheader.registerAction("Set forground colormap")(self._set_forground_colormap)
-        hheader.registerAction("Reset forground colormap")(
-            self._reset_forground_colormap
-        )
-        self.addSeparator()
+        hheader.registerAction("Reset forground colormap")(self._reset_forground_colormap)
+        hheader.addSeparator()
         hheader.registerAction("Set background colormap")(self._set_background_colormap)
-        hheader.registerAction("Reset background colormap")(
-            self._reset_background_colormap
-        )
+        hheader.registerAction("Reset background colormap")(self._reset_background_colormap)
+
+        self.registerAction("Copy")(lambda index: self.copyToClipboard(headers=False))
+        self.registerAction("Paste")(lambda index: self.pasteFromClipBoard())
+        self.registerAction("Highlight")(lambda index: self.setHighlights(self.highlights() + self.selections()))
+        self.addSeparator()
+        # fmt: on
         return None
 
     # fmt: off
@@ -205,11 +226,11 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Return the shown dataframe (consider filter)."""
         return self.model().df
 
-    def rowHeaderShown(self) -> pd.Series:
-        ...
+    # def rowHeaderShown(self) -> pd.Series:
+    #     ...
 
-    def columnHeaderShown(self) -> pd.Series:
-        ...
+    # def columnHeaderShown(self) -> pd.Series:
+    #     ...
 
     def precision(self) -> int:
         """Return table value precision."""
@@ -229,7 +250,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def selections(self) -> SelectionType:
         """Get list of selections as slicable tuples"""
-        return self._qtable_view._selection_model._highlights
+        return self._qtable_view._selection_model._ranges
 
     def setSelections(self, selections: SelectionType):
         """Set list of selections."""
@@ -242,7 +263,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def highlights(self) -> SelectionType:
         """Get list of selections as slicable tuples"""
-        return self._qtable_view._highlight_model._highlights
+        return self._qtable_view._highlight_model._ranges
 
     def setHighlights(self, selections: SelectionType):
         """Set list of selections."""
@@ -714,8 +735,10 @@ class QMutableTable(QBaseTable):
         """
         selections = self.selections()
         n_selections = len(selections)
-        if n_selections == 0 or not self.isEditable():
+        if n_selections == 0:
             return
+        elif not self.isEditable():
+            return self.tableStack().notifyEditability()
         elif n_selections > 1:
             raise ValueError("Cannot paste to multiple selections.")
 

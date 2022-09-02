@@ -6,7 +6,7 @@ from qtpy.QtCore import Signal, Qt
 
 from ._item_model import AbstractDataFrameModel
 from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
-from ._selection_model import HighlightModel, SelectionModel
+from ._selection_model import RangesModel, SelectionModel
 from ._table_base import QBaseTable
 
 from ..._keymap import QtKeys
@@ -26,6 +26,12 @@ for keys in ["Up", "Down", "Left", "Right", "Home", "End", "PageUp", "PageDown",
              "Shift+Home", "Shift+End", "Shift+PageUp", "Shift+PageDown"]:
     _TABLE_VIEW_KEY_SET.add(QtKeys(keys))
 _TABLE_VIEW_KEY_SET = frozenset(_TABLE_VIEW_KEY_SET)
+
+# Selection colors
+H_COLOR_W = QtGui.QColor(255, 96, 96, 128)
+H_COLOR_B = QtGui.QColor(255, 0, 0, 128)
+S_COLOR_W = Qt.GlobalColor.darkBlue
+S_COLOR_B = Qt.GlobalColor.cyan
 
 # fmt: on
 
@@ -56,7 +62,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         # use custom selection model
         self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.NoSelection)
         self._selection_model = SelectionModel()
-        self._highlight_model = HighlightModel()
+        self._highlight_model = RangesModel()
 
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
@@ -353,15 +359,14 @@ class _QTableViewEnhanced(QtW.QTableView):
         white_bg = self.parentViewer()._white_background
 
         # draw highlights
-        h_color = (
-            QtGui.QColor(255, 96, 96, 128) if white_bg else QtGui.QColor(255, 0, 0, 128)
-        )
-        for i, rect in enumerate(self._highlight_model.highlightRectangles(self)):
+        h_color = H_COLOR_W if white_bg else H_COLOR_B
+
+        for i, rect in enumerate(self._highlight_model.rangeRects(self)):
             painter.fillRect(rect, h_color)
 
         # draw selections
-        s_color = Qt.GlobalColor.darkBlue if white_bg else Qt.GlobalColor.cyan
-        for i, rect in enumerate(self._selection_model.highlightRectangles(self)):
+        s_color = S_COLOR_W if white_bg else S_COLOR_B
+        for i, rect in enumerate(self._selection_model.rangeRects(self)):
             pen = QtGui.QPen(s_color, 2 + int(nsel == i + 1) * focused)
             painter.setPen(pen)
             painter.drawRect(rect)
