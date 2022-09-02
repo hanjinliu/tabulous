@@ -11,11 +11,13 @@ from ._component import (
     VerticalHeaderInterface,
     PlotInterface,
     ColumnDtypeInterface,
+    SelectionRanges,
+    HighlightRanges,
 )
 from . import _doc
 
 from ..types import (
-    SelectionRanges,
+    # SelectionRanges,
     ItemInfo,
     HeaderInfo,
     SelectionType,
@@ -79,6 +81,8 @@ class TableBase(ABC):
     columns = HorizontalHeaderInterface()
     plt = PlotInterface()
     filter = FilterProxy()
+    selections = SelectionRanges()
+    highlights = HighlightRanges()
 
     def __init__(
         self,
@@ -202,28 +206,6 @@ class TableBase(ABC):
             self._qwidget.setEditable(value)
         elif value:
             raise ValueError("Table is not mutable.")
-
-    @property
-    def highlights(self) -> SelectionRanges:
-        """Get the SelectionRanges object of current table highlights."""
-        return SelectionRanges(self, self._qwidget.highlights())
-
-    @highlights.setter
-    def highlights(self, value: SelectionType | _SingleSelection) -> None:
-        if not isinstance(value, list):
-            value = [value]
-        return self._qwidget.setHighlights(value)
-
-    @property
-    def selections(self) -> SelectionRanges:
-        """Get the SelectionRanges object of current table selection."""
-        return SelectionRanges(self, self._qwidget.selections())
-
-    @selections.setter
-    def selections(self, value: SelectionType | _SingleSelection) -> None:
-        if not isinstance(value, list):
-            value = [value]
-        return self._qwidget.setSelections(value)
 
     @property
     def native(self) -> QBaseTable:
@@ -351,7 +333,10 @@ class TableBase(ABC):
         return wdt
 
     def _emit_selections(self):
-        return self.events.selections.emit(self.selections)
+        with self.selections.blocked():
+            # Block selection to avoid recursive update.
+            self.events.selections.emit(self.selections)
+        return None
 
 
 class _DataFrameTableLayer(TableBase):
