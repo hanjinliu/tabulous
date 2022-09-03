@@ -149,7 +149,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.registerAction("Copy")(lambda index: self.copyToClipboard(headers=False))
         self.registerAction("Paste")(lambda index: self.pasteFromClipBoard())
         self.registerAction("Add highlight")(lambda index: self.setHighlights(self.highlights() + self.selections()))
-        self.registerAction("Delete highlight")(lambda index: self._qtable_view._highlight_model.delete_selected())
+        self.registerAction("Delete highlight")(lambda index: self._delete_selected_highlights())
         self.addSeparator()
         # fmt: on
         return None
@@ -538,6 +538,10 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _reset_background_colormap(self, index: int):
         column_name = self._filtered_columns[index]
         return self.setBackgroundColormap(column_name, None)
+
+    def _delete_selected_highlights(self):
+        self._qtable_view._highlight_model.delete_selected()
+        self._qtable_view._selection_model.set_ctrl(False)
 
 
 class QMutableTable(QBaseTable):

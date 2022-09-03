@@ -108,17 +108,16 @@ class _QTableViewEnhanced(QtW.QTableView):
         r1 = current.row()
         c1 = current.column()
 
-        # calculate the new current selection
-        self._selection_model.drag_to(r1, c1)
+        # update current selection if header is not selected
+        if (
+            self.verticalHeader()._index_current is None
+            and self.horizontalHeader()._index_current is None
+        ):
+            self._selection_model.drag_to(r1, c1)
+            self.scrollTo(current)
 
         self.update()
         self.selectionChangedSignal.emit()
-        if (
-            self.hasFocus()
-            and self.verticalHeader()._index_current is None
-            and self.horizontalHeader()._index_current is None
-        ):
-            self.scrollTo(current)
 
         return None
 
@@ -202,7 +201,9 @@ class _QTableViewEnhanced(QtW.QTableView):
             self._last_pos = e.pos()
             self._was_right_dragging = False
             return
-        return super().mousePressEvent(e)
+        super().mousePressEvent(e)
+        self.update()
+        return None
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
         """Scroll table plane when mouse is moved with right click."""

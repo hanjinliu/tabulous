@@ -177,8 +177,5 @@ class SelectionModel(RangesModel):
             _r0, _r1 = sorted([r0, r])
             _c0, _c1 = sorted([c0, c])
 
-        if len(self._ranges) > 0:
-            self._ranges[-1] = (slice(_r0, _r1 + 1), slice(_c0, _c1 + 1))
-        else:
-            self._ranges.append((slice(_r0, _r1 + 1), slice(_c0, _c1 + 1)))
+        self.update_last((slice(_r0, _r1 + 1), slice(_c0, _c1 + 1)))
         return None
