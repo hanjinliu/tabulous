@@ -202,13 +202,17 @@ class QtKeys:
     def is_moving(self) -> bool:
         return self.key in ARROW_KEYS
 
-    def key_string(self) -> str:
+    def key_string(self, check_shift: bool = False) -> str:
         """Get clicked key in string form."""
         if self.key == -1:
             return ""
         elif self.key == -2:
             return "{}"
-        return QtGui.QKeySequence(self.key).toString()
+
+        s = QtGui.QKeySequence(self.key).toString()
+        if check_shift and not self.has_shift():
+            s = s.lower()
+        return s
 
     def has_ctrl(self) -> bool:
         """True if Ctrl is pressed."""

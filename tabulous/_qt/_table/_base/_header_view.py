@@ -20,6 +20,7 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         QActionRegistry.__init__(self)
         self._index_start = None
         self._index_stop = None
+        self._index_current = None
         self.setSelectionMode(QtW.QHeaderView.SelectionMode.SingleSelection)
         self.setSectionsClickable(True)
         self.sectionPressed.connect(self._on_section_pressed)  # pressed
@@ -35,18 +36,19 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
     # fmt: on
 
     def _on_section_pressed(self, logicalIndex: int) -> None:
-        self._index_start = self._index_stop = logicalIndex
+        self._reset_others()
+        self._index_start = self._index_stop = self._index_current = logicalIndex
         _selection_model = self.parentWidget()._selection_model
         if not _selection_model._ctrl_on:
             _selection_model.clear()
-        self.parentWidget()._selection_model.add_dummy()
+        _selection_model.add_dummy()
         self.selectionChangedSignal.emit(self._index_start, self._index_stop)
         return None
 
     def _on_section_entered(self, logicalIndex: int) -> None:
         if self._index_start is None:
             return None
-        self._index_stop = logicalIndex
+        self._index_stop = self._index_current = logicalIndex
         self.selectionChangedSignal.emit(self._index_start, self._index_stop)
         return None
 
@@ -57,10 +59,21 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         index = self.logicalIndexAt(pos)
         return self.execContextMenu(index)
 
+    def _reset_others(self) -> None:
+        pass
+
 
 class QHorizontalHeaderView(QDataFrameHeaderView):
     _Orientation = Qt.Orientation.Horizontal
 
+    def _reset_others(self) -> None:
+        self.parentWidget().verticalHeader()._index_current = None
+        return None
+
 
 class QVerticalHeaderView(QDataFrameHeaderView):
     _Orientation = Qt.Orientation.Vertical
+
+    def _reset_others(self) -> None:
+        self.parentWidget().horizontalHeader()._index_current = None
+        return None

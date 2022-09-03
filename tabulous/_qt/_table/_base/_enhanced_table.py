@@ -1,13 +1,13 @@
 from __future__ import annotations
 from functools import lru_cache
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Iterator, cast
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
 from ._item_model import AbstractDataFrameModel
 from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
 from ._selection_model import RangesModel, SelectionModel
-from ._table_base import QBaseTable
+from ._table_base import QBaseTable, QMutableTable
 
 from ..._keymap import QtKeys
 
@@ -110,10 +110,16 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # calculate the new current selection
         self._selection_model.drag_to(r1, c1)
+
         self.update()
         self.selectionChangedSignal.emit()
-        if self.hasFocus():
+        if (
+            self.hasFocus()
+            and self.verticalHeader()._index_current is None
+            and self.horizontalHeader()._index_current is None
+        ):
             self.scrollTo(current)
+
         return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
@@ -162,29 +168,21 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def _on_vertical_header_selection_change(self, r0: int, r1: int) -> None:
         """Set current row selections."""
-        model = self.model()
-        csel = slice(0, model.columnCount())
+        csel = slice(0, self.model().columnCount())
         _r0, _r1 = sorted([r0, r1])
-        if len(self._selection_model) == 0:
-            self._selection_model.append((slice(_r0, _r1 + 1), csel))
-        else:
-            self._selection_model.update_last((slice(_r0, _r1 + 1), csel))
+        self._selection_model.update_last((slice(_r0, _r1 + 1), csel))
         with self._selection_model.blocked():
-            self.setCurrentIndex(model.index(r1, 0))
+            self.setCurrentIndex(self.model().index(r1, 0))
         self.update()
         return None
 
     def _on_horizontal_header_selection_change(self, c0: int, c1: int) -> None:
         """Set current row selections."""
-        model = self.model()
         rsel = slice(0, self.model().rowCount())
         _c0, _c1 = sorted([c0, c1])
-        if len(self._selection_model) == 0:
-            self._selection_model.append((rsel, slice(_c0, _c1 + 1)))
-        else:
-            self._selection_model.update_last((rsel, slice(_c0, _c1 + 1)))
+        self._selection_model.update_last((rsel, slice(_c0, _c1 + 1)))
         with self._selection_model.blocked():
-            self.setCurrentIndex(model.index(0, c1))
+            self.setCurrentIndex(self.model().index(0, c1))
         self.update()
         return None
 
@@ -194,7 +192,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         _selection_model = self._selection_model
         _selection_model.set_ctrl(e.modifiers() & Qt.KeyboardModifier.ControlModifier)
         _selection_model.set_shift(e.modifiers() & Qt.KeyboardModifier.ShiftModifier)
-
+        self.verticalHeader()._index_current = None
+        self.horizontalHeader()._index_current = None
         if e.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(e.pos())
             r, c = index.row(), index.column()
@@ -257,23 +256,39 @@ class _QTableViewEnhanced(QtW.QTableView):
         parent = self.parentTable()
 
         if keys.is_typing() and parent.isEditable():
-            # Enter editing mode
-            text = keys.key_string()
-            if not keys.has_shift():
-                text = text.lower()
-            self.edit(self.currentIndex())
+            # First check if either header is selected. If not, then edit
+            # the current table cell.
+            parent = cast(QMutableTable, parent)
             self._selection_model.shift_end()
-            focused_widget = QtW.QApplication.focusWidget()
+
+            if (idx := self.horizontalHeader()._index_current) is not None:
+                focused_widget = parent.editHorizontalHeader(idx)
+
+            elif (idx := self.verticalHeader()._index_current) is not None:
+                focused_widget = parent.editVerticalHeader(idx)
+
+            else:
+                self.edit(self.currentIndex())
+                focused_widget = QtW.QApplication.focusWidget()
+
             if isinstance(focused_widget, QtW.QLineEdit):
                 focused_widget = cast(QtW.QLineEdit, focused_widget)
-                focused_widget.setText(text)
+                focused_widget.setText(keys.key_string(check_shift=True))
                 focused_widget.deselect()
-            return
+            return None
 
         elif keys == "F2":
             if not parent.isEditable():
                 return parent.tableStack().notifyEditability()
-            return self.edit(self.currentIndex())
+            parent = cast(QMutableTable, parent)
+
+            if (idx := self.horizontalHeader()._index_current) is not None:
+                parent.editHorizontalHeader(idx)
+            elif (idx := self.verticalHeader()._index_current) is not None:
+                parent.editVerticalHeader(idx)
+            else:
+                self.edit(self.currentIndex())
+            return None
 
         if keys.has_ctrl():
             self._selection_model.set_ctrl(True)
@@ -361,12 +376,12 @@ class _QTableViewEnhanced(QtW.QTableView):
         # draw highlights
         h_color = H_COLOR_W if white_bg else H_COLOR_B
 
-        for i, rect in enumerate(self._highlight_model.rangeRects(self)):
+        for i, rect in enumerate(self.rectFromRanges(self._highlight_model)):
             painter.fillRect(rect, h_color)
 
         # draw selections
         s_color = S_COLOR_W if white_bg else S_COLOR_B
-        for i, rect in enumerate(self._selection_model.rangeRects(self)):
+        for i, rect in enumerate(self.rectFromRanges(self._selection_model)):
             pen = QtGui.QPen(s_color, 2 + int(nsel == i + 1) * focused)
             painter.setPen(pen)
             painter.drawRect(rect)
@@ -386,3 +401,12 @@ class _QTableViewEnhanced(QtW.QTableView):
         while not hasattr(parent, "_table_viewer"):
             parent = parent.parent()
         return parent
+
+    def rectFromRanges(self, ranges_model: RangesModel) -> Iterator[QtCore.QRect]:
+        """Convert range models into rectangles."""
+        model = self.model()
+        for rr, cc in ranges_model._ranges:
+            top_left = model.index(rr.start, cc.start)
+            bottom_right = model.index(rr.stop - 1, cc.stop - 1)
+            rect = self.visualRect(top_left) | self.visualRect(bottom_right)
+            yield rect

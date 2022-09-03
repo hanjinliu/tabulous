@@ -102,5 +102,8 @@ represented as a tuple of slices. Highlightened cells in a table are always pain
 
 Differences between a selection and a highlight are:
 
-- Highlights cannot be set by mouse/keyboard input.
-- Highlights don't emit signals.
+- Highlights cannot be set as dynamically as selections. You have to convert selections
+  into highlights from right-click context menu or programatically using attribute
+  :attr:`highlights`.
+- Highlights do not vanish with mouse or keyboard operations.
+- Highlights do not emit signals.

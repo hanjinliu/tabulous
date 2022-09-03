@@ -3,18 +3,16 @@ from typing import TYPE_CHECKING, Iterable, Iterator
 from contextlib import contextmanager
 
 if TYPE_CHECKING:
-    from ._enhanced_table import _QTableViewEnhanced
-    from qtpy import QtCore
 
     Range = tuple[slice, slice]
 
 
 class RangesModel:
-    """Custom range model for efficient overlay handling on a large table."""
+    """Custom 2D range model for efficient overlay handling on a large table."""
 
     def __init__(self):
         self._ranges: list[Range] = []
-        self._blocked = False
+        self._is_blocked = False
         self._selected_indices: set[int] = set()
 
     def __len__(self) -> int:
@@ -30,11 +28,16 @@ class RangesModel:
         return None
 
     def update_last(self, range: Range) -> None:
-        self._ranges[-1] = range
+        if self._is_blocked:
+            return None
+        if self._ranges:
+            self._ranges[-1] = range
+        else:
+            self._ranges.append(range)
         return None
 
     def set_ranges(self, ranges: list[Range]) -> None:
-        if self._blocked:
+        if self._is_blocked:
             return None
         self._ranges.clear()
         return self._ranges.extend(ranges)
@@ -46,11 +49,11 @@ class RangesModel:
     @contextmanager
     def blocked(self) -> None:
         """Block selection updates in this context."""
-        self._blocked = True
+        self._is_blocked = True
         try:
             yield
         finally:
-            self._blocked = False
+            self._is_blocked = False
 
     def move_to_last(self, idx: int):
         rng = self._ranges.pop(idx)
@@ -107,16 +110,6 @@ class RangesModel:
             out = -1, None
         return out
 
-    def rangeRects(self, qtable: _QTableViewEnhanced) -> list[QtCore.QRect]:
-        model = qtable.model()
-        _rects = []
-        for rr, cc in self._ranges:
-            top_left = model.index(rr.start, cc.start)
-            bottom_right = model.index(rr.stop - 1, cc.stop - 1)
-            rect = qtable.visualRect(top_left) | qtable.visualRect(bottom_right)
-            _rects.append(rect)
-        return _rects
-
 
 class SelectionModel(RangesModel):
     """A specialized range model with item-selection-like behavior."""
@@ -138,7 +131,7 @@ class SelectionModel(RangesModel):
         return None
 
     def shift_start(self, r: int, c: int) -> None:
-        if self._selection_start is None and not self._blocked:
+        if self._selection_start is None and not self._is_blocked:
             self._selection_start = r, c
         self._shift_on = True
 
@@ -148,7 +141,7 @@ class SelectionModel(RangesModel):
 
     def drag_start(self, r: int, c: int) -> None:
         """Start dragging selection at (r, c)."""
-        if self._blocked:
+        if self._is_blocked:
             return None
 
         if not self._shift_on:
@@ -165,14 +158,14 @@ class SelectionModel(RangesModel):
         """Finish dragging selection."""
 
     def set_ranges(self, selections: list[Range]) -> None:
-        if self._blocked:
+        if self._is_blocked:
             return None
         self._ranges.clear()
         return self._ranges.extend(selections)
 
     def drag_to(self, r: int, c: int):
         """Drag to (r, c) to select cells."""
-        if self._blocked:
+        if self._is_blocked:
             return None
         if self._selection_start is None:
             if not self._ctrl_on:

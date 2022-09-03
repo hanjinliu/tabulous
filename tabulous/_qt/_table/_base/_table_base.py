@@ -820,14 +820,14 @@ class QMutableTable(QBaseTable):
             self.setDataFrameValue(rsel, csel, df)
         return None
 
-    def editHorizontalHeader(self, index: int):
+    def editHorizontalHeader(self, index: int) -> QtW.QLineEdit:
         """Edit the horizontal header."""
         if not self.isEditable():
             return self.tableStack().notifyEditability()
 
         qtable = self._qtable_view
         _header = qtable.horizontalHeader()
-        self._prepare_header_line_edit(
+        return self._prepare_header_line_edit(
             _header,
             (_header.sectionSize(index), _header.height()),
             (None, _header.sectionViewportPosition(index)),
@@ -836,15 +836,13 @@ class QMutableTable(QBaseTable):
             self.model().df.columns,
         )
 
-        return None
-
-    def editVerticalHeader(self, index: int):
+    def editVerticalHeader(self, index: int) -> QtW.QLineEdit:
         if not self.isEditable():
             return self.tableStack().notifyEditability()
 
         qtable = self._qtable_view
         _header = qtable.verticalHeader()
-        self._prepare_header_line_edit(
+        return self._prepare_header_line_edit(
             _header,
             (_header.width(), _header.sectionSize(index)),
             (_header.sectionViewportPosition(index), None),
@@ -852,8 +850,6 @@ class QMutableTable(QBaseTable):
             index,
             self.model().df.index,
         )
-
-        return None
 
     def _prepare_header_line_edit(
         self,
