@@ -91,11 +91,22 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         painter = QtGui.QPainter(self.viewport())
         pen = QtGui.QPen(Qt.GlobalColor.darkBlue, 3)
         painter.setPen(pen)
+
+        # paint selections
         for _slice in self._selected_ranges:
             rect_start = self.visualRectAtIndex(_slice.start)
             rect_stop = self.visualRectAtIndex(_slice.stop - 1)
             rect = rect_start | rect_stop
             self.drawBorder(painter, rect)
+
+        # paint current
+        if self._index_current is not None:
+            rect_current = self.visualRectAtIndex(self._index_current)
+            rect_current.adjust(2, 2, -2, -2)
+            pen = QtGui.QPen(QtGui.QColor(128, 128, 128, 108), 4)
+            painter.setPen(pen)
+            painter.drawRect(rect_current)
+
         return None
 
 
@@ -118,7 +129,8 @@ class QHorizontalHeaderView(QDataFrameHeaderView):
         width = self.sectionSize(index)
         return QtCore.QRect(x, y, width, height)
 
-    def drawBorder(self, painter: QtGui.QPainter, rect: QtCore.QRect):
+    @staticmethod
+    def drawBorder(painter: QtGui.QPainter, rect: QtCore.QRect):
         painter.drawPolyline(
             rect.bottomLeft(),
             rect.topLeft(),
@@ -146,7 +158,8 @@ class QVerticalHeaderView(QDataFrameHeaderView):
         width = self.width()
         return QtCore.QRect(x, y, width, height)
 
-    def drawBorder(self, painter: QtGui.QPainter, rect: QtCore.QRect):
+    @staticmethod
+    def drawBorder(painter: QtGui.QPainter, rect: QtCore.QRect):
         painter.drawPolyline(
             rect.topRight(),
             rect.topLeft(),

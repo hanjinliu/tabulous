@@ -138,11 +138,15 @@ class _QTableViewEnhanced(QtW.QTableView):
             hheader._selected_ranges.clear()
         if vheader_inactive and not ctrl_on:
             vheader._selected_ranges.clear()
+
+        # repaint
         self.update()
         hheader.update()
         hheader.viewport().update()
         vheader.update()
         vheader.viewport().update()
+
+        # emit signal
         self.selectionChangedSignal.emit()
 
         return None
