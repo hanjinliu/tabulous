@@ -108,15 +108,41 @@ class _QTableViewEnhanced(QtW.QTableView):
         r1 = current.row()
         c1 = current.column()
 
+        vheader = self.verticalHeader()
+        hheader = self.horizontalHeader()
+        vheader_inactive = vheader._index_current is None
+        hheader_inactive = hheader._index_current is None
+        ctrl_on = self._selection_model._ctrl_on
+        shift_on = self._selection_model._shift_on
+
         # update current selection if header is not selected
-        if (
-            self.verticalHeader()._index_current is None
-            and self.horizontalHeader()._index_current is None
-        ):
+        if vheader_inactive and hheader_inactive:
             self._selection_model.drag_to(r1, c1)
             self.scrollTo(current)
+        elif not vheader_inactive:
+            vheader._index_current = r1
+            if shift_on:
+                vheader._index_start = vheader._selected_ranges[-1].start
+            else:
+                vheader._index_start = r1
+            vheader._on_section_entered(r1)
+        elif not hheader_inactive:
+            hheader._index_current = c1
+            if shift_on:
+                hheader._index_start = hheader._selected_ranges[-1].start
+            else:
+                hheader._index_start = c1
+            hheader._on_section_entered(c1)
 
+        if hheader_inactive and not ctrl_on:
+            hheader._selected_ranges.clear()
+        if vheader_inactive and not ctrl_on:
+            vheader._selected_ranges.clear()
         self.update()
+        hheader.update()
+        hheader.viewport().update()
+        vheader.update()
+        vheader.viewport().update()
         self.selectionChangedSignal.emit()
 
         return None
