@@ -39,7 +39,7 @@ def _(self: QBaseTable, dr, dc):
 @QBaseTable._keymap.bind("Ctrl+Shift+Left", row=None, column=0)
 @QBaseTable._keymap.bind("Ctrl+Shift+Right", row=None, column=-1)
 def _(self: QBaseTable, row, column):
-    return self.moveToItem(row, column)
+    return self.moveToItem(row, column, clear_selection=False)
 
 
 @QBaseTable._keymap.bind("Ctrl+A")

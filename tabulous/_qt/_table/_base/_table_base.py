@@ -487,21 +487,29 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         return None
 
-    def moveToItem(self, row: int | None = None, column: int | None = None):
+    def moveToItem(
+        self,
+        row: int | None = None,
+        column: int | None = None,
+        clear_selection: bool = True,
+    ):
         """Move current index."""
-        qtable = self._qtable_view
+        selection_model = self._qtable_view._selection_model
         if row is None:
-            row = qtable._selection_model.index_current.row
+            row = selection_model.index_current.row
         elif row < 0:
             row += self.dataShape()[0]
 
         if column is None:
-            column = qtable._selection_model.index_current.column
+            column = selection_model.index_current.column
         elif column < 0:
             column += self.dataShape()[1]
 
-        qtable._selection_model.clear()
-        qtable._selection_model.jump_to(row, column)
+        if clear_selection or not (
+            selection_model._ctrl_on or selection_model._shift_on
+        ):
+            selection_model.clear()
+        selection_model.move_to(row, column)
         return None
 
     def tableStack(self) -> QTabbedTableStack | None:

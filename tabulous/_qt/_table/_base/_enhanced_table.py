@@ -152,26 +152,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.update()
         return None
 
-    # def _on_vertical_header_selection_change(self, r0: int, r1: int) -> None:
-    #     """Set current row selections."""
-    #     csel = slice(0, self.model().columnCount())
-    #     _r0, _r1 = sorted([r0, r1])
-    #     self._selection_model.update_last((slice(_r0, _r1 + 1), csel), row=True)
-    #     self.horizontalHeader()._index_current = None
-    #     with self._selection_model.blocked():
-    #         self.setCurrentIndex(self.model().index(r1, 0))
-    #     self.update()
-    #     return None
-
-    # def _on_horizontal_header_selection_change(self, c0: int, c1: int) -> None:
-    #     """Set current row selections."""
-    #     self._selection_model.drag_col_to(c1, self.model().rowCount())
-    #     self.verticalHeader()._index_current = None
-    #     with self._selection_model.blocked():
-    #         self.setCurrentIndex(self.model().index(0, c1))
-    #     self.update()
-    #     return None
     def _edit_current(self) -> None:
+        """Enter edit mode for current cell."""
         index = self.model().index(*self._selection_model.index_current)
         return self.edit(index)
 
@@ -191,9 +173,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             self._was_right_dragging = False
             return
         _selection_model.set_shift(True)
-        super().mousePressEvent(e)
-        self.update()
-        return None
+        return super().mousePressEvent(e)
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
         """Scroll table plane when mouse is moved with right click."""
