@@ -129,7 +129,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         else:
             idx, rng = sel_model.range_under_index(row, col)
             if rng is not None:
-                sel_model.move_to_last(idx)
+                sel_model.reorder_to_last(idx)
                 self.update()
             else:
                 self.setSelections([(row, col)])
@@ -491,20 +491,17 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Move current index."""
         qtable = self._qtable_view
         if row is None:
-            row = qtable.currentIndex().row()
+            row = qtable._selection_model.index_current.row
         elif row < 0:
             row += self.dataShape()[0]
 
         if column is None:
-            column = qtable.currentIndex().column()
+            column = qtable._selection_model.index_current.column
         elif column < 0:
             column += self.dataShape()[1]
 
         qtable._selection_model.clear()
-        qtable.selectionModel().setCurrentIndex(
-            self.model().index(row, column),
-            QtCore.QItemSelectionModel.SelectionFlag.Current,
-        )
+        qtable._selection_model.jump_to(row, column)
         return None
 
     def tableStack(self) -> QTabbedTableStack | None:

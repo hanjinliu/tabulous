@@ -6,7 +6,7 @@ from qtpy.QtCore import Signal, Qt
 
 from ._item_model import AbstractDataFrameModel
 from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
-from ._selection_model import RangesModel, SelectionModel
+from ...._selection_model import RangesModel, SelectionModel
 from ._table_base import QBaseTable, QMutableTable
 
 from ..._keymap import QtKeys
@@ -18,14 +18,6 @@ if TYPE_CHECKING:
 # fmt: off
 # Flags
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
-
-# Built-in table view key press events
-_TABLE_VIEW_KEY_SET = set()
-for keys in ["Up", "Down", "Left", "Right", "Home", "End", "PageUp", "PageDown", "Escape",
-             "Shift+Up", "Shift+Down", "Shift+Left", "Shift+Right",
-             "Shift+Home", "Shift+End", "Shift+PageUp", "Shift+PageDown"]:
-    _TABLE_VIEW_KEY_SET.add(QtKeys(keys))
-_TABLE_VIEW_KEY_SET = frozenset(_TABLE_VIEW_KEY_SET)
 
 # Selection colors
 H_COLOR_W = QtGui.QColor(255, 96, 96, 86)
@@ -61,7 +53,11 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # use custom selection model
         self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.NoSelection)
-        self._selection_model = SelectionModel()
+        self._selection_model = SelectionModel(
+            lambda: self.model().rowCount(),
+            lambda: self.model().columnCount(),
+        )
+        self._selection_model.moved.connect(self._on_moved)
         self._highlight_model = RangesModel()
 
         self._last_pos: QtCore.QPoint | None = None
@@ -72,16 +68,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setVerticalHeader(vheader)
         self.setHorizontalHeader(hheader)
 
-        vheader.selectionChangedSignal.connect(
-            self._on_vertical_header_selection_change
-        )
-        hheader.selectionChangedSignal.connect(
-            self._on_horizontal_header_selection_change
-        )
-
         vheader.resize(36, vheader.height())
-        vheader.setMinimumSectionSize(0)
-        hheader.setMinimumSectionSize(0)
+        vheader.setMinimumSectionSize(5)
+        hheader.setMinimumSectionSize(5)
 
         vheader.setDefaultSectionSize(self._h_default)
         hheader.setDefaultSectionSize(self._w_default)
@@ -102,53 +91,21 @@ class _QTableViewEnhanced(QtW.QTableView):
         def horizontalHeader(self) -> QHorizontalHeaderView: ...
     # fmt: on
 
-    def currentChanged(
-        self, current: QtCore.QModelIndex, previous: QtCore.QModelIndex
-    ) -> None:
-        r1 = current.row()
-        c1 = current.column()
-
+    def update(self, *args):
+        super().update(*args)
         vheader = self.verticalHeader()
         hheader = self.horizontalHeader()
-        vheader_inactive = vheader._index_current is None
-        hheader_inactive = hheader._index_current is None
-        ctrl_on = self._selection_model._ctrl_on
-        shift_on = self._selection_model._shift_on
-
-        # update current selection if header is not selected
-        if vheader_inactive and hheader_inactive:
-            self._selection_model.drag_to(r1, c1)
-            self.scrollTo(current)
-        elif not vheader_inactive:
-            vheader._index_current = r1
-            if shift_on:
-                vheader._index_start = vheader._selected_ranges[-1].start
-            else:
-                vheader._index_start = r1
-            vheader._on_section_entered(r1)
-        elif not hheader_inactive:
-            hheader._index_current = c1
-            if shift_on:
-                hheader._index_start = hheader._selected_ranges[-1].start
-            else:
-                hheader._index_start = c1
-            hheader._on_section_entered(c1)
-
-        if hheader_inactive and not ctrl_on:
-            hheader._selected_ranges.clear()
-        if vheader_inactive and not ctrl_on:
-            vheader._selected_ranges.clear()
-
-        # repaint
-        self.update()
         hheader.update()
         hheader.viewport().update()
         vheader.update()
         vheader.viewport().update()
+        return None
 
-        # emit signal
-        self.selectionChangedSignal.emit()
-
+    def _on_moved(self, index: tuple[int, int]) -> None:
+        """Update current index."""
+        self.update()
+        if index >= (0, 0):
+            self.scrollTo(self.model().index(*index))
         return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
@@ -159,7 +116,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             new.setSelectionModel(self.selectionModel())
             new._selection_model = self._selection_model
         new.setZoom(self.zoom())
-        new.setCurrentIndex(self.currentIndex())
+        new._selection_model.index_current = self._selection_model.index_current
         return new
 
     def selectAll(self) -> None:
@@ -195,42 +152,45 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.update()
         return None
 
-    def _on_vertical_header_selection_change(self, r0: int, r1: int) -> None:
-        """Set current row selections."""
-        csel = slice(0, self.model().columnCount())
-        _r0, _r1 = sorted([r0, r1])
-        self._selection_model.update_last((slice(_r0, _r1 + 1), csel))
-        with self._selection_model.blocked():
-            self.setCurrentIndex(self.model().index(r1, 0))
-        self.update()
-        return None
+    # def _on_vertical_header_selection_change(self, r0: int, r1: int) -> None:
+    #     """Set current row selections."""
+    #     csel = slice(0, self.model().columnCount())
+    #     _r0, _r1 = sorted([r0, r1])
+    #     self._selection_model.update_last((slice(_r0, _r1 + 1), csel), row=True)
+    #     self.horizontalHeader()._index_current = None
+    #     with self._selection_model.blocked():
+    #         self.setCurrentIndex(self.model().index(r1, 0))
+    #     self.update()
+    #     return None
 
-    def _on_horizontal_header_selection_change(self, c0: int, c1: int) -> None:
-        """Set current row selections."""
-        rsel = slice(0, self.model().rowCount())
-        _c0, _c1 = sorted([c0, c1])
-        self._selection_model.update_last((rsel, slice(_c0, _c1 + 1)))
-        with self._selection_model.blocked():
-            self.setCurrentIndex(self.model().index(0, c1))
-        self.update()
-        return None
+    # def _on_horizontal_header_selection_change(self, c0: int, c1: int) -> None:
+    #     """Set current row selections."""
+    #     self._selection_model.drag_col_to(c1, self.model().rowCount())
+    #     self.verticalHeader()._index_current = None
+    #     with self._selection_model.blocked():
+    #         self.setCurrentIndex(self.model().index(0, c1))
+    #     self.update()
+    #     return None
+    def _edit_current(self) -> None:
+        index = self.model().index(*self._selection_model.index_current)
+        return self.edit(index)
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         """Register clicked position"""
         # initialize just in case
         _selection_model = self._selection_model
         _selection_model.set_ctrl(e.modifiers() & Qt.KeyboardModifier.ControlModifier)
-        _selection_model.set_shift(e.modifiers() & Qt.KeyboardModifier.ShiftModifier)
         self.verticalHeader()._index_current = None
         self.horizontalHeader()._index_current = None
         if e.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(e.pos())
             r, c = index.row(), index.column()
-            self._selection_model.drag_start(r, c)
+            self._selection_model.jump_to(r, c)
         elif e.button() == Qt.MouseButton.RightButton:
             self._last_pos = e.pos()
             self._was_right_dragging = False
             return
+        _selection_model.set_shift(True)
         super().mousePressEvent(e)
         self.update()
         return None
@@ -245,6 +205,13 @@ class _QTableViewEnhanced(QtW.QTableView):
             self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - dx)
             self._last_pos = pos
             self._was_right_dragging = True
+        else:
+            index = self.indexAt(e.pos())
+            if index.isValid():
+                r, c = index.row(), index.column()
+                if self._selection_model.index_current != (r, c):
+                    self._selection_model.move_to(r, c)
+
         return super().mouseMoveEvent(e)
 
     def mouseReleaseEvent(self, e: QtGui.QMouseEvent) -> None:
@@ -252,7 +219,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         if e.button() == Qt.MouseButton.RightButton and not self._was_right_dragging:
             self.rightClickedSignal.emit(e.pos())
         self._last_pos = None
-        self._selection_model.drag_end()
+        self._selection_model.set_shift(
+            e.modifiers() & Qt.KeyboardModifier.ShiftModifier
+        )
         self._was_right_dragging = False
         return super().mouseReleaseEvent(e)
 
@@ -266,7 +235,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         if isinstance(table, QMutableTable):
             if table.isEditable():
                 self.edit(index)
-                self._selection_model.shift_end()
+                self._selection_model.set_shift(False)
             else:
                 table.tableStack().notifyEditability()
         return None
@@ -276,13 +245,11 @@ class _QTableViewEnhanced(QtW.QTableView):
         keys = QtKeys(e)
 
         if keys.has_shift():
-            index = self.currentIndex()
-            self._selection_model.shift_start(index.row(), index.column())
-        elif keys.has_key():
-            self._selection_model.shift_end()
-
-        if keys in _TABLE_VIEW_KEY_SET:
-            return super().keyPressEvent(e)
+            self._selection_model.set_shift(True)
+        else:
+            self._selection_model.set_shift(False)
+            if keys.has_key():
+                self._selection_model.reset()
 
         parent = self.parentTable()
 
@@ -290,7 +257,8 @@ class _QTableViewEnhanced(QtW.QTableView):
             # First check if either header is selected. If not, then edit
             # the current table cell.
             parent = cast(QMutableTable, parent)
-            self._selection_model.shift_end()
+            self._selection_model.set_shift(False)
+            self._selection_model.reset()
 
             if (idx := self.horizontalHeader()._index_current) is not None:
                 focused_widget = parent.editHorizontalHeader(idx)
@@ -299,7 +267,7 @@ class _QTableViewEnhanced(QtW.QTableView):
                 focused_widget = parent.editVerticalHeader(idx)
 
             else:
-                self.edit(self.currentIndex())
+                self._edit_current()
                 focused_widget = QtW.QApplication.focusWidget()
 
             if isinstance(focused_widget, QtW.QLineEdit):
@@ -318,7 +286,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             elif (idx := self.verticalHeader()._index_current) is not None:
                 parent.editVerticalHeader(idx)
             else:
-                self.edit(self.currentIndex())
+                self._edit_current()
             return None
 
         if keys.has_ctrl():

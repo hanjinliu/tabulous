@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterator
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
 
@@ -18,10 +18,7 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
     def __init__(self, parent: QtW.QWidget | None = None) -> None:
         QtW.QHeaderView.__init__(self, self._Orientation, parent)
         QActionRegistry.__init__(self)
-        self._index_start = None
-        self._index_stop = None
         self._index_current = None
-        self._selected_ranges: list[slice] = []
         self.setSelectionMode(QtW.QHeaderView.SelectionMode.SingleSelection)
         self.setSectionsClickable(True)
         self.sectionPressed.connect(self._on_section_pressed)  # pressed
@@ -36,47 +33,35 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         def parentWidget(self) -> _QTableViewEnhanced: ...
     # fmt: on
 
+    @property
+    def selection_model(self):
+        return self.parentWidget()._selection_model
+
     def _on_section_pressed(self, logicalIndex: int) -> None:
-        ctrl_on = self._is_ctrl_on()
-        self._reset_others(ctrl_on)
-        self._index_start = self._index_stop = self._index_current = logicalIndex
-        _selection_model = self.parentWidget()._selection_model
-        if not ctrl_on:
-            _selection_model.clear()
-            self._selected_ranges.clear()
-        _selection_model.add_dummy()
-        self._selected_ranges.append(slice(self._index_start, self._index_stop + 1))
-        self.selectionChangedSignal.emit(self._index_start, self._index_stop)
-        self.update()
-        self.viewport().update()
+        self._index_current = logicalIndex
+        self.selection_model.jump_to(*self._index_for_selection_model(logicalIndex))
         return None
 
     def _on_section_entered(self, logicalIndex: int) -> None:
-        if self._index_start is None:
+        if self._index_current is None:
             return None
-        self._index_stop = self._index_current = logicalIndex
-        self._selected_ranges[-1] = slice(self._index_start, self._index_stop + 1)
-        self.selectionChangedSignal.emit(self._index_start, self._index_stop)
-        self.update()
+        self._index_current = logicalIndex
+        self.selection_model.move_to(*self._index_for_selection_model(logicalIndex))
         return None
 
     def _on_section_clicked(self, logicalIndex) -> None:
-        self._index_start = None
-        self.update()
-
-    def _is_ctrl_on(self) -> bool:
-        return self.parentWidget()._selection_model._ctrl_on
+        self._index_current = None
 
     def _show_context_menu(self, pos: QtCore.QPoint) -> None:
         index = self.logicalIndexAt(pos)
         return self.execContextMenu(index)
 
-    def _reset_selections(self) -> None:
-        self._index_current = None
-        self._selected_ranges.clear()
+    def _iter_selections(self) -> Iterator[slice]:
+        """Iterate selections"""
+        raise NotImplementedError()
 
-    def _reset_others(self, ctrl_on: bool) -> None:
-        """This method should be defined in the child class."""
+    def _index_for_selection_model(self, logicalIndex: int) -> tuple[int, int]:
+        raise NotImplementedError()
 
     def visualRectAtIndex(self, index: int) -> QtCore.QRect:
         """Return the visual rect of the given index."""
@@ -93,7 +78,7 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         painter.setPen(pen)
 
         # paint selections
-        for _slice in self._selected_ranges:
+        for _slice in self._iter_selections():
             rect_start = self.visualRectAtIndex(_slice.start)
             rect_stop = self.visualRectAtIndex(_slice.stop - 1)
             rect = rect_start | rect_stop
@@ -113,15 +98,6 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
 class QHorizontalHeaderView(QDataFrameHeaderView):
     _Orientation = Qt.Orientation.Horizontal
 
-    def _reset_others(self, ctrl_on: bool) -> None:
-        vheader = self.parentWidget().verticalHeader()
-        vheader._index_current = None
-        if not ctrl_on:
-            vheader._selected_ranges.clear()
-        vheader.update()
-        vheader.viewport().update()
-        return None
-
     def visualRectAtIndex(self, index: int) -> QtCore.QRect:
         x = self.sectionViewportPosition(index)
         y = self.rect().top()
@@ -138,18 +114,15 @@ class QHorizontalHeaderView(QDataFrameHeaderView):
             rect.bottomRight(),
         )
 
+    def _iter_selections(self):
+        yield from self.selection_model.iter_col_selections()
+
+    def _index_for_selection_model(self, logicalIndex):
+        return -1, logicalIndex
+
 
 class QVerticalHeaderView(QDataFrameHeaderView):
     _Orientation = Qt.Orientation.Vertical
-
-    def _reset_others(self, ctrl_on: bool) -> None:
-        hheader = self.parentWidget().horizontalHeader()
-        hheader._index_current = None
-        if not ctrl_on:
-            hheader._selected_ranges.clear()
-        hheader.update()
-        hheader.viewport().update()
-        return None
 
     def visualRectAtIndex(self, index: int) -> QtCore.QRect:
         x = self.rect().left()
@@ -166,3 +139,9 @@ class QVerticalHeaderView(QDataFrameHeaderView):
             rect.bottomLeft(),
             rect.bottomRight(),
         )
+
+    def _iter_selections(self):
+        yield from self.selection_model.iter_row_selections()
+
+    def _index_for_selection_model(self, logicalIndex):
+        return logicalIndex, -1
