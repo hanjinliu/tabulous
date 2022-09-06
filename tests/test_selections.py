@@ -68,6 +68,7 @@ def test_selection_signal_recursive():
 def test_list_like_methods():
     viewer = TableViewer(show=False)
     table = viewer.add_table(df0)
+    table.selections.clear()
     table.selections.append((0, 0))
     assert selection_equal(table.selections, [(slice(0, 1), slice(0, 1))])
     table.selections.append((slice(1, 3), slice(1, 2)))

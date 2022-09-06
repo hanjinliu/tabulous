@@ -192,8 +192,7 @@ class _QTableViewEnhanced(QtW.QTableView):
                 r, c = index.row(), index.column()
                 if self._selection_model.index_current != (r, c):
                     self._selection_model.move_to(r, c)
-
-        return super().mouseMoveEvent(e)
+        return None
 
     def mouseReleaseEvent(self, e: QtGui.QMouseEvent) -> None:
         """Delete last position."""

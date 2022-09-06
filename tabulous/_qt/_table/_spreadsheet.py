@@ -15,6 +15,12 @@ _OUT_OF_BOUND_SIZE = 10  # 10 more rows and columns will be displayed.
 class SpreadSheetModel(AbstractDataFrameModel):
     """A DataFrameModel for a spreadsheet."""
 
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        from ..._global_variables import table
+
+        self._table_vars = table
+
     @property
     def df(self) -> pd.DataFrame:  # NOTE: this returns a string data frame
         return self._df
@@ -24,14 +30,16 @@ class SpreadSheetModel(AbstractDataFrameModel):
         self._df = data
 
     def rowCount(self, parent=None):
-        from ..._global_variables import table
-
-        return min(self._df.shape[0] + _OUT_OF_BOUND_SIZE, table.max_row_count)
+        return min(
+            self._df.shape[0] + _OUT_OF_BOUND_SIZE,
+            self._table_vars.max_row_count,
+        )
 
     def columnCount(self, parent=None):
-        from ..._global_variables import table
-
-        return min(self._df.shape[1] + _OUT_OF_BOUND_SIZE, table.max_column_count)
+        return min(
+            self._df.shape[1] + _OUT_OF_BOUND_SIZE,
+            self._table_vars.max_column_count,
+        )
 
     def _column_tooltip(self, section: int):
         name = self.df.columns[section]

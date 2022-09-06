@@ -3,11 +3,14 @@ from typing import Any, Callable, Hashable
 import warnings
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
+import numpy as np
 import pandas as pd
 
 from ....color import normalize_color, ColorType
 
 # https://ymt-lab.com/post/2020/pyqt5-qtableview-pandas-qabstractitemmodel/
+
+_READ_ONLY = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 
 
 class AbstractDataFrameModel(QtCore.QAbstractTableModel):
@@ -55,12 +58,14 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
             val = df.iat[r, c]
-            if pd.isna(val):
+            if _isna(val):
                 return "NA"
             return str(val)
         return QtCore.QVariant()
 
     def _data_text_color(self, index: QtCore.QModelIndex):
+        if not self._foreground_colormap:
+            return QtCore.QVariant()
         r, c = index.row(), index.column()
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
@@ -71,7 +76,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 try:
                     col = mapper(val)
                     if col is None:
-                        if pd.isna(val):
+                        if _isna(val):
                             return QtGui.QColor(Qt.GlobalColor.gray)
                         return QtCore.QVariant()
                     rgba = normalize_color(col)
@@ -81,7 +86,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                     self._foreground_colormap.pop(colname)
                     raise e
                 return QtGui.QColor(*rgba)
-            if pd.isna(val):
+            if _isna(val):
                 return QtGui.QColor(Qt.GlobalColor.gray)
         return QtCore.QVariant()
 
@@ -97,6 +102,8 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return QtCore.QVariant()
 
     def _data_background_color(self, index: QtCore.QModelIndex):
+        if not self._background_colormap:
+            return QtCore.QVariant()
         r, c = index.row(), index.column()
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
@@ -117,11 +124,10 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return QtCore.QVariant()
 
     def flags(self, index):
-        _read_only = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
         if self._editable:
-            return Qt.ItemFlag.ItemIsEditable | _read_only
+            return Qt.ItemFlag.ItemIsEditable | _READ_ONLY
         else:
-            return _read_only
+            return _READ_ONLY
 
     def headerData(
         self,
@@ -205,3 +211,29 @@ class DataFrameModel(AbstractDataFrameModel):
 
     def columnCount(self, parent=None):
         return self.df.shape[1]
+
+
+_NANS = {np.nan, pd.NA}
+
+
+def _isna(val):
+    # NOTE: pd.isna is slow.
+    return val in _NANS
+
+
+# def _format_float(value, ndigits: int) -> str:
+#     """convert string to int or float if possible"""
+#     if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+#         text = f"{value:.{ndigits}f}"
+#     else:
+#         text = f"{value:.{ndigits-1}e}"
+
+#     return text
+
+# def _format_int(value, ndigits: int) -> str:
+#     if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+#         text = str(value)
+#     else:
+#         text = f"{value:.{ndigits-1}e}"
+
+#     return text
