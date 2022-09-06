@@ -458,6 +458,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self._qtable_view.setParent(None)
         dual = QTableDualView(self._qtable_view, qori)
         self.insertWidget(0, dual)
+        self._qtable_view.setFocus()
         return dual
 
     def setPopupView(self):

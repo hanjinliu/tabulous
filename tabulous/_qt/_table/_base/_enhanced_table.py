@@ -165,8 +165,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._last_pos = e.pos()
         if e.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(e.pos())
-            r, c = index.row(), index.column()
-            self._selection_model.jump_to(r, c)
+            if index.isValid():
+                r, c = index.row(), index.column()
+                self._selection_model.jump_to(r, c)
             self._last_mouse_button = "left"
         elif e.button() == Qt.MouseButton.RightButton:
             self._was_right_dragging = False
