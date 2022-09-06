@@ -62,6 +62,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
+        self._last_mouse_button: str | None = None
 
         vheader = QVerticalHeaderView()
         hheader = QHorizontalHeaderView()
@@ -82,6 +83,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         delegate = TableItemDelegate(parent=self)
         self.setItemDelegate(delegate)
+        self.update()
 
     # fmt: off
     if TYPE_CHECKING:
@@ -163,20 +165,22 @@ class _QTableViewEnhanced(QtW.QTableView):
         # initialize just in case
         _selection_model = self._selection_model
         _selection_model.set_ctrl(e.modifiers() & Qt.KeyboardModifier.ControlModifier)
+        self._last_pos = e.pos()
         if e.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(e.pos())
             r, c = index.row(), index.column()
             self._selection_model.jump_to(r, c)
+            self._last_mouse_button = "left"
         elif e.button() == Qt.MouseButton.RightButton:
-            self._last_pos = e.pos()
             self._was_right_dragging = False
+            self._last_mouse_button = "right"
             return
         _selection_model.set_shift(True)
         return super().mousePressEvent(e)
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
         """Scroll table plane when mouse is moved with right click."""
-        if self._last_pos is not None:
+        if self._last_mouse_button == "right":
             pos = e.pos()
             dy = pos.y() - self._last_pos.y()
             dx = pos.x() - self._last_pos.x()
@@ -198,6 +202,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         if e.button() == Qt.MouseButton.RightButton and not self._was_right_dragging:
             self.rightClickedSignal.emit(e.pos())
         self._last_pos = None
+        self._last_mouse_button = None
         self._selection_model.set_shift(
             e.modifiers() & Qt.KeyboardModifier.ShiftModifier
         )
@@ -283,9 +288,7 @@ class _QTableViewEnhanced(QtW.QTableView):
     def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
         keys = QtKeys(a0)
         self._selection_model.set_ctrl(keys.has_ctrl())
-        self._selection_model.set_shift(
-            keys.has_shift() or self._selection_model._shift_on
-        )
+        self._selection_model.set_shift(keys.has_shift() or self._last_pos is not None)
         return super().keyReleaseEvent(a0)
 
     def zoom(self) -> float:
