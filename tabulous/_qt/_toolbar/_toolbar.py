@@ -371,14 +371,17 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
         data, choices = _get_data_and_choices(table)
 
+        # fmt: off
+        # set proper options
         if len(choices) == 0:
             raise ValueError("Table must have at least one column.")
         elif len(choices) == 1:
-            x = {"choices": [], "value": None, "nullable": True}
+            x = {"choices": [], "widget_type": "ComboBox", "value": None, "nullable": True}
             y = {"choices": choices, "widget_type": "Select", "value": choices[0]}
         else:
             x = {"choices": choices, "nullable": True, "value": choices[0]}
             y = {"choices": choices, "widget_type": "Select", "value": choices[1]}
+        # fmt on
 
         if dialog(
             ax={"bind": table.plt.gca()},

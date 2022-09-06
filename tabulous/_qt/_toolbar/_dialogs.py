@@ -44,7 +44,7 @@ def plot(ax: Axes, x: str, y: List[str], data, alpha: float = 1.0):
     for ylabel in y:
         ydata: pd.Series = data[ylabel]
         if x is None:
-            xdata = np.arange(len(ylabel))
+            xdata = np.arange(len(ydata))
         else:
             xdata = data[x]
         ax.plot(xdata, ydata, alpha=alpha, label=ylabel, picker=True)
@@ -56,7 +56,7 @@ def scatter(ax: Axes, x: str, y: List[str], data, alpha: float = 1.0):
     for ylabel in y:
         ydata: pd.Series = data[ylabel]
         if x is None:
-            xdata = np.arange(len(ylabel))
+            xdata = np.arange(len(ydata))
         else:
             xdata = data[x]
         ax.scatter(xdata, ydata, alpha=alpha, label=ylabel, picker=True)
