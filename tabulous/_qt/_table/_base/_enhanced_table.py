@@ -95,17 +95,18 @@ class _QTableViewEnhanced(QtW.QTableView):
         super().update(*args)
         vheader = self.verticalHeader()
         hheader = self.horizontalHeader()
-        hheader.update()
+        # hheader.update()
         hheader.viewport().update()
-        vheader.update()
+        # vheader.update()
         vheader.viewport().update()
         return None
 
     def _on_moved(self, index: tuple[int, int]) -> None:
         """Update current index."""
-        self.update()
         if index >= (0, 0):
             self.scrollTo(self.model().index(*index))
+        self.update()
+
         return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
@@ -162,8 +163,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         # initialize just in case
         _selection_model = self._selection_model
         _selection_model.set_ctrl(e.modifiers() & Qt.KeyboardModifier.ControlModifier)
-        self.verticalHeader()._index_current = None
-        self.horizontalHeader()._index_current = None
         if e.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(e.pos())
             r, c = index.row(), index.column()
@@ -224,12 +223,14 @@ class _QTableViewEnhanced(QtW.QTableView):
         """Evoke parent keyPressEvent."""
         keys = QtKeys(e)
 
+        sel_mod = self._selection_model
+
         if keys.has_shift():
-            self._selection_model.set_shift(True)
+            sel_mod.set_shift(True)
         else:
-            self._selection_model.set_shift(False)
+            sel_mod.set_shift(False)
             if keys.has_key():
-                self._selection_model.reset()
+                sel_mod.reset()
 
         parent = self.parentTable()
 
@@ -237,14 +238,16 @@ class _QTableViewEnhanced(QtW.QTableView):
             # First check if either header is selected. If not, then edit
             # the current table cell.
             parent = cast(QMutableTable, parent)
-            self._selection_model.set_shift(False)
-            self._selection_model.reset()
+            sel_mod.set_shift(False)
+            sel_mod.reset()
 
-            if (idx := self.horizontalHeader()._index_current) is not None:
-                focused_widget = parent.editHorizontalHeader(idx)
+            if sel_mod.index_current.row < 0:
+                focused_widget = parent.editHorizontalHeader(
+                    sel_mod.index_current.column
+                )
 
-            elif (idx := self.verticalHeader()._index_current) is not None:
-                focused_widget = parent.editVerticalHeader(idx)
+            elif sel_mod.index_current.column < 0:
+                focused_widget = parent.editVerticalHeader(sel_mod.index_current.row)
 
             else:
                 self._edit_current()
@@ -261,18 +264,18 @@ class _QTableViewEnhanced(QtW.QTableView):
                 return parent.tableStack().notifyEditability()
             parent = cast(QMutableTable, parent)
 
-            if (idx := self.horizontalHeader()._index_current) is not None:
-                parent.editHorizontalHeader(idx)
-            elif (idx := self.verticalHeader()._index_current) is not None:
-                parent.editVerticalHeader(idx)
+            if sel_mod.index_current.row < 0:
+                parent.editHorizontalHeader(sel_mod.index_current.column)
+            elif sel_mod.index_current.column < 0:
+                parent.editVerticalHeader(sel_mod.index_current.row)
             else:
                 self._edit_current()
             return None
 
         if keys.has_ctrl():
-            self._selection_model.set_ctrl(True)
+            sel_mod.set_ctrl(True)
         elif keys.has_key():
-            self._selection_model.set_ctrl(False)
+            sel_mod.set_ctrl(False)
 
         if isinstance(parent, QBaseTable):
             return parent.keyPressEvent(e)
@@ -280,7 +283,9 @@ class _QTableViewEnhanced(QtW.QTableView):
     def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
         keys = QtKeys(a0)
         self._selection_model.set_ctrl(keys.has_ctrl())
-        self._selection_model.set_shift(keys.has_shift())
+        self._selection_model.set_shift(
+            keys.has_shift() or self._selection_model._shift_on
+        )
         return super().keyReleaseEvent(a0)
 
     def zoom(self) -> float:
@@ -364,6 +369,16 @@ class _QTableViewEnhanced(QtW.QTableView):
             pen = QtGui.QPen(s_color, 2 + int(nsel == i + 1) * focused)
             painter.setPen(pen)
             painter.drawRect(rect)
+
+        # current index
+        idx = self._selection_model.index_current
+        if idx >= (0, 0):
+            rect_current = self.visualRect(self.model().index(*idx))
+            rect_current.adjust(2, 2, -2, -2)
+            pen = QtGui.QPen(QtGui.QColor(128, 128, 128, 108), 4)
+            painter.setPen(pen)
+            painter.drawRect(rect_current)
+
         return None
 
     def parentTable(self) -> QBaseTable | None:

@@ -200,12 +200,6 @@ class SelectionModel(RangesModel):
     def reset(self) -> None:
         self._selection_start = None
 
-    def set_ranges(self, selections: list[Range]) -> None:
-        if self._is_blocked:
-            return None
-        self.clear()
-        return self._ranges.extend(selections)
-
     def jump_to(self, r: int, c: int):
         """Emulate mouse click at cell (r, c)."""
         if self._ctrl_on and not self._shift_on:
@@ -231,16 +225,16 @@ class SelectionModel(RangesModel):
 
         if _r0 < 0:
             rsl = slice(0, self._row_count_getter())
-            row = True
-        else:
-            rsl = slice(_r0, _r1 + 1)
-            row = False
-        if _c0 < 0:
-            csl = slice(0, self._col_count_getter())
             col = True
         else:
-            csl = slice(_c0, _c1 + 1)
+            rsl = slice(_r0, _r1 + 1)
             col = False
+        if _c0 < 0:
+            csl = slice(0, self._col_count_getter())
+            row = True
+        else:
+            csl = slice(_c0, _c1 + 1)
+            row = False
 
         if not self._shift_on:
             if not self._ctrl_on:

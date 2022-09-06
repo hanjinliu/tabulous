@@ -14,7 +14,7 @@ QBaseTable._keymap.bind("Ctrl+H", QBaseTable.undoStackView)
 @QBaseTable._keymap.bind("Home", dr=0, dc=-10)
 @QBaseTable._keymap.bind("End", dr=0, dc=10)
 def _(self: QBaseTable, dr, dc):
-    return self._qtable_view._selection_model.move(dr, dc)
+    return self._qtable_view._selection_model.move(dr, dc, allow_header=True)
 
 
 @QBaseTable._keymap.bind("Shift+Up", dr=-1, dc=0)

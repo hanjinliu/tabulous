@@ -18,7 +18,6 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
     def __init__(self, parent: QtW.QWidget | None = None) -> None:
         QtW.QHeaderView.__init__(self, self._Orientation, parent)
         QActionRegistry.__init__(self)
-        self._index_current = None
         self.setSelectionMode(QtW.QHeaderView.SelectionMode.SingleSelection)
         self.setSectionsClickable(True)
         self.sectionPressed.connect(self._on_section_pressed)  # pressed
@@ -38,19 +37,16 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         return self.parentWidget()._selection_model
 
     def _on_section_pressed(self, logicalIndex: int) -> None:
-        self._index_current = logicalIndex
         self.selection_model.jump_to(*self._index_for_selection_model(logicalIndex))
+        self.selection_model.set_shift(True)
         return None
 
     def _on_section_entered(self, logicalIndex: int) -> None:
-        if self._index_current is None:
-            return None
-        self._index_current = logicalIndex
         self.selection_model.move_to(*self._index_for_selection_model(logicalIndex))
         return None
 
     def _on_section_clicked(self, logicalIndex) -> None:
-        self._index_current = None
+        self.selection_model.set_shift(False)
 
     def _show_context_menu(self, pos: QtCore.QPoint) -> None:
         index = self.logicalIndexAt(pos)
@@ -67,8 +63,13 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         """Return the visual rect of the given index."""
         raise NotImplementedError()
 
-    def drawBorder(self, painter: QtGui.QPainter, rect: QtCore.QRect):
+    @staticmethod
+    def drawBorder(painter: QtGui.QPainter, rect: QtCore.QRect):
         """Draw the opened border of a section."""
+        raise NotImplementedError()
+
+    def drawCurrent(self, painter: QtGui.QPainter, rect: QtCore.QRect):
+        """Draw the current index if exists."""
         raise NotImplementedError()
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
@@ -85,13 +86,7 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
             self.drawBorder(painter, rect)
 
         # paint current
-        if self._index_current is not None:
-            rect_current = self.visualRectAtIndex(self._index_current)
-            rect_current.adjust(2, 2, -2, -2)
-            pen = QtGui.QPen(QtGui.QColor(128, 128, 128, 108), 4)
-            painter.setPen(pen)
-            painter.drawRect(rect_current)
-
+        self.drawCurrent(painter)
         return None
 
 
@@ -107,12 +102,22 @@ class QHorizontalHeaderView(QDataFrameHeaderView):
 
     @staticmethod
     def drawBorder(painter: QtGui.QPainter, rect: QtCore.QRect):
-        painter.drawPolyline(
+        return painter.drawPolyline(
             rect.bottomLeft(),
             rect.topLeft(),
             rect.topRight(),
             rect.bottomRight(),
         )
+
+    def drawCurrent(self, painter: QtGui.QPainter):
+        row, col = self.selection_model.index_current
+        if row < 0 and col >= 0:
+            rect_current = self.visualRectAtIndex(col)
+            rect_current.adjust(2, 2, -2, -2)
+            pen = QtGui.QPen(QtGui.QColor(128, 128, 128, 108), 4)
+            painter.setPen(pen)
+            painter.drawRect(rect_current)
+        return None
 
     def _iter_selections(self):
         yield from self.selection_model.iter_col_selections()
@@ -133,12 +138,22 @@ class QVerticalHeaderView(QDataFrameHeaderView):
 
     @staticmethod
     def drawBorder(painter: QtGui.QPainter, rect: QtCore.QRect):
-        painter.drawPolyline(
+        return painter.drawPolyline(
             rect.topRight(),
             rect.topLeft(),
             rect.bottomLeft(),
             rect.bottomRight(),
         )
+
+    def drawCurrent(self, painter: QtGui.QPainter):
+        row, col = self.selection_model.index_current
+        if col < 0 and row >= 0:
+            rect_current = self.visualRectAtIndex(row)
+            rect_current.adjust(2, 2, -2, -2)
+            pen = QtGui.QPen(QtGui.QColor(128, 128, 128, 108), 4)
+            painter.setPen(pen)
+            painter.drawRect(rect_current)
+        return None
 
     def _iter_selections(self):
         yield from self.selection_model.iter_row_selections()
