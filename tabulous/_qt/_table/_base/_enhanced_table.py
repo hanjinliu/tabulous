@@ -97,9 +97,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         super().update(*args)
         vheader = self.verticalHeader()
         hheader = self.horizontalHeader()
-        # hheader.update()
         hheader.viewport().update()
-        # vheader.update()
         vheader.viewport().update()
         return None
 
@@ -108,7 +106,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         if index >= (0, 0):
             self.scrollTo(self.model().index(*index))
         self.update()
-
         return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
@@ -116,8 +113,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         new = _QTableViewEnhanced(self.parentTable())
         if link:
             new.setModel(self.model())
-            new.setSelectionModel(self.selectionModel())
             new._selection_model = self._selection_model
+            new._selection_model.moved.connect(new._on_moved)
         new.setZoom(self.zoom())
         new._selection_model.index_current = self._selection_model.index_current
         return new
