@@ -5,6 +5,31 @@ QBaseTable._keymap.bind("Ctrl+C, Ctrl+H", QBaseTable.copyToClipboard, headers=Tr
 QBaseTable._keymap.bind("Ctrl+H", QBaseTable.undoStackView)
 
 
+@QBaseTable._keymap.bind("Up", dr=-1, dc=0)
+@QBaseTable._keymap.bind("Down", dr=1, dc=0)
+@QBaseTable._keymap.bind("Left", dr=0, dc=-1)
+@QBaseTable._keymap.bind("Right", dr=0, dc=1)
+@QBaseTable._keymap.bind("PageUp", dr=-10, dc=0)
+@QBaseTable._keymap.bind("PageDown", dr=10, dc=0)
+@QBaseTable._keymap.bind("Home", dr=0, dc=-10)
+@QBaseTable._keymap.bind("End", dr=0, dc=10)
+def _(self: QBaseTable, dr, dc):
+    return self._qtable_view._selection_model.move(dr, dc, allow_header=True)
+
+
+@QBaseTable._keymap.bind("Shift+Up", dr=-1, dc=0)
+@QBaseTable._keymap.bind("Shift+Down", dr=1, dc=0)
+@QBaseTable._keymap.bind("Shift+Left", dr=0, dc=-1)
+@QBaseTable._keymap.bind("Shift+Right", dr=0, dc=1)
+@QBaseTable._keymap.bind("Shift+PageUp", dr=-10, dc=0)
+@QBaseTable._keymap.bind("Shift+PageDown", dr=10, dc=0)
+@QBaseTable._keymap.bind("Shift+Home", dr=0, dc=-10)
+@QBaseTable._keymap.bind("Shift+End", dr=0, dc=10)
+def _(self: QBaseTable, dr, dc):
+    self._qtable_view._selection_model.set_shift(True)
+    return self._qtable_view._selection_model.move(dr, dc)
+
+
 @QBaseTable._keymap.bind("Ctrl+Up", row=0, column=None)
 @QBaseTable._keymap.bind("Ctrl+Down", row=-1, column=None)
 @QBaseTable._keymap.bind("Ctrl+Left", row=None, column=0)
@@ -14,7 +39,7 @@ QBaseTable._keymap.bind("Ctrl+H", QBaseTable.undoStackView)
 @QBaseTable._keymap.bind("Ctrl+Shift+Left", row=None, column=0)
 @QBaseTable._keymap.bind("Ctrl+Shift+Right", row=None, column=-1)
 def _(self: QBaseTable, row, column):
-    return self.moveToItem(row, column)
+    return self.moveToItem(row, column, clear_selection=False)
 
 
 @QBaseTable._keymap.bind("Ctrl+A")

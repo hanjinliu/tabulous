@@ -129,7 +129,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         else:
             idx, rng = sel_model.range_under_index(row, col)
             if rng is not None:
-                sel_model.move_to_last(idx)
+                sel_model.reorder_to_last(idx)
                 self.update()
             else:
                 self.setSelections([(row, col)])
@@ -149,7 +149,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.registerAction("Copy")(lambda index: self.copyToClipboard(headers=False))
         self.registerAction("Paste")(lambda index: self.pasteFromClipBoard())
         self.registerAction("Add highlight")(lambda index: self.setHighlights(self.highlights() + self.selections()))
-        self.registerAction("Delete highlight")(lambda index: self._qtable_view._highlight_model.delete_selected())
+        self.registerAction("Delete highlight")(lambda index: self._delete_selected_highlights())
         self.addSeparator()
         # fmt: on
         return None
@@ -487,24 +487,29 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         return None
 
-    def moveToItem(self, row: int | None = None, column: int | None = None):
+    def moveToItem(
+        self,
+        row: int | None = None,
+        column: int | None = None,
+        clear_selection: bool = True,
+    ):
         """Move current index."""
-        qtable = self._qtable_view
+        selection_model = self._qtable_view._selection_model
         if row is None:
-            row = qtable.currentIndex().row()
+            row = selection_model.index_current.row
         elif row < 0:
             row += self.dataShape()[0]
 
         if column is None:
-            column = qtable.currentIndex().column()
+            column = selection_model.index_current.column
         elif column < 0:
             column += self.dataShape()[1]
 
-        qtable._selection_model.clear()
-        qtable.selectionModel().setCurrentIndex(
-            self.model().index(row, column),
-            QtCore.QItemSelectionModel.SelectionFlag.Current,
-        )
+        if clear_selection or not (
+            selection_model._ctrl_on or selection_model._shift_on
+        ):
+            selection_model.clear()
+        selection_model.move_to(row, column)
         return None
 
     def tableStack(self) -> QTabbedTableStack | None:
@@ -538,6 +543,10 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _reset_background_colormap(self, index: int):
         column_name = self._filtered_columns[index]
         return self.setBackgroundColormap(column_name, None)
+
+    def _delete_selected_highlights(self):
+        self._qtable_view._highlight_model.delete_selected()
+        self._qtable_view._selection_model.set_ctrl(False)
 
 
 class QMutableTable(QBaseTable):
@@ -820,14 +829,14 @@ class QMutableTable(QBaseTable):
             self.setDataFrameValue(rsel, csel, df)
         return None
 
-    def editHorizontalHeader(self, index: int):
+    def editHorizontalHeader(self, index: int) -> QtW.QLineEdit:
         """Edit the horizontal header."""
         if not self.isEditable():
             return self.tableStack().notifyEditability()
 
         qtable = self._qtable_view
         _header = qtable.horizontalHeader()
-        self._prepare_header_line_edit(
+        return self._prepare_header_line_edit(
             _header,
             (_header.sectionSize(index), _header.height()),
             (None, _header.sectionViewportPosition(index)),
@@ -836,15 +845,13 @@ class QMutableTable(QBaseTable):
             self.model().df.columns,
         )
 
-        return None
-
-    def editVerticalHeader(self, index: int):
+    def editVerticalHeader(self, index: int) -> QtW.QLineEdit:
         if not self.isEditable():
             return self.tableStack().notifyEditability()
 
         qtable = self._qtable_view
         _header = qtable.verticalHeader()
-        self._prepare_header_line_edit(
+        return self._prepare_header_line_edit(
             _header,
             (_header.width(), _header.sectionSize(index)),
             (_header.sectionViewportPosition(index), None),
@@ -852,8 +859,6 @@ class QMutableTable(QBaseTable):
             index,
             self.model().df.index,
         )
-
-        return None
 
     def _prepare_header_line_edit(
         self,
