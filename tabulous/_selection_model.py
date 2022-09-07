@@ -45,6 +45,10 @@ class RangesModel:
         """Iterate over all the ranges."""
         return iter(self._ranges)
 
+    def __getitem__(self, index: int) -> Range:
+        """Get the range at the specified index."""
+        return self._ranges[index]
+
     @property
     def ranges(self) -> list[Range]:
         return list(self._ranges)
@@ -201,9 +205,18 @@ class SelectionModel(RangesModel):
             return self._ranges[-1]
         return None
 
+    @property
+    def start(self) -> Index | None:
+        """The selection starting index."""
+        return self._selection_start
+
     def is_jumping(self) -> bool:
         """Whether the selection is jumping or not."""
         return len(self._ranges) > 0 and self._ranges[-1] is _DUMMY_RANGE
+
+    def is_moving_to_edge(self) -> bool:
+        """Whether the selection is moving to the edge by Ctrl+arrow key."""
+        return not self.is_jumping() and self._ctrl_on
 
     def set_ctrl(self, on: bool) -> None:
         """Equivalent to pressing Ctrl."""
@@ -213,7 +226,7 @@ class SelectionModel(RangesModel):
     def set_shift(self, on: bool) -> None:
         """Equivalent to pressing Shift."""
         self._shift_on = bool(on)
-        if self._selection_start is None:
+        if on and self._selection_start is None:
             self._selection_start = self._current_index
         return None
 
@@ -260,7 +273,7 @@ class SelectionModel(RangesModel):
             row = False
 
         if not self._shift_on:
-            if not self._ctrl_on:
+            if not self.is_jumping():
                 self.clear()
         elif self._selection_start is None:
             self._selection_start = self._current_index

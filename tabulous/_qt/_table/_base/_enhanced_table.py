@@ -105,23 +105,32 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.verticalHeader().viewport().update()
         return None
 
+    def _update_rect(self, rect: QtCore.QRect) -> None:
+        rect.adjust(-2, -2, 2, 2)
+        return self.viewport().update(rect)
+
+    def _range_rect(self, rng: tuple[slice, slice]) -> QtCore.QRect:
+        rsel, csel = rng
+        model = self.model()
+        rect = self.visualRect(model.index(rsel.start, csel.start))
+        rect |= self.visualRect(model.index(rsel.stop - 1, csel.stop - 1))
+        return rect
+
     def _on_moving(self, src: Index, dst: Index) -> None:
+        model = self.model()
+        rect: QtCore.QRect
         if not self._selection_model.is_jumping():
             # clear all the multi-selections
-            model = self.model()
             for sel in self._selection_model:
-                rsel, csel = sel
-                rect: QtCore.QRect = self.visualRect(
-                    model.index(rsel.start, csel.start)
-                )
-                rect |= self.visualRect(model.index(rsel.stop - 1, csel.stop - 1))
-                rect.adjust(-2, -2, 2, 2)
-                self.viewport().update(rect)
+                self._update_rect(self._range_rect(sel))
 
-            if self._selection_model._ctrl_on:
-                rect: QtCore.QRect = self.visualRect(model.index(*src))
-                rect.adjust(-2, -2, 2, 2)
-                self.viewport().update(rect)
+        else:
+            if len(self._selection_model) > 1:
+                self._update_rect(self._range_rect(self._selection_model[-2]))
+
+        if self._selection_model.is_moving_to_edge():
+            rect = self.visualRect(model.index(*src))
+            self._update_rect(rect)
 
         return None
 
@@ -133,21 +142,14 @@ class _QTableViewEnhanced(QtW.QTableView):
         if dst >= (0, 0):
             self.scrollTo(index_dst)
 
-        ctrl_on = self._selection_model._ctrl_on
-
         # rect is the region that needs to be updated
-        rect = self.visualRect(index_dst)
-        if not ctrl_on:
+        rect: QtCore.QRect = self.visualRect(index_dst)
+        if not self._selection_model.is_jumping():
             rect |= self.visualRect(index_src)
-
-        if (sel := self._selection_model.current_range) is not None:
-            rsel, csel = sel
-            rect |= self.visualRect(model.index(rsel.start, csel.start))
-            rect |= self.visualRect(model.index(rsel.stop - 1, csel.stop - 1))
-        if self._selection_model._selection_start is not None:
-            rect |= self.visualRect(
-                model.index(*self._selection_model._selection_start)
-            )
+        if sel := self._selection_model.current_range:
+            rect |= self._range_rect(sel)
+        if start := self._selection_model.start:
+            rect |= self.visualRect(model.index(*start))
 
         if src.row < 0 or dst.row < 0:
             rect.setBottom(99999)
