@@ -413,12 +413,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def refreshTable(self) -> None:
         """Refresh table view."""
-        qtable = self._qtable_view
-        qtable.viewport().update()
-        # headers have also to be updated.
-        qtable.horizontalHeader().viewport().update()
-        qtable.verticalHeader().viewport().update()
-        return None
+        return self._qtable_view._update_all()
 
     def undoStackView(self, show: bool = True):
         """Show undo stack viewer."""

@@ -118,8 +118,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         return rect
 
     def _on_moving(self, src: Index, dst: Index) -> None:
-        model = self.model()
-        rect: QtCore.QRect
         if not self._selection_model.is_jumping():
             # clear all the multi-selections
             for sel in self._selection_model:
@@ -130,8 +128,8 @@ class _QTableViewEnhanced(QtW.QTableView):
                 self._update_rect(self._range_rect(self._selection_model[-2]))
 
         if self._selection_model.is_moving_to_edge():
-            rect = self.visualRect(model.index(*src))
-            self._update_rect(rect)
+            if len(self._selection_model) > 0:
+                self._update_rect(self._range_rect(self._selection_model[-1]))
 
         return None
 
