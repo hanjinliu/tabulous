@@ -6,7 +6,7 @@ from qtpy.QtCore import Signal, Qt
 
 from ._item_model import AbstractDataFrameModel
 from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
-from ...._selection_model import RangesModel, SelectionModel
+from ...._selection_model import RangesModel, SelectionModel, Index
 from ._table_base import QBaseTable, QMutableTable
 
 from ..._keymap import QtKeys
@@ -57,8 +57,8 @@ class _QTableViewEnhanced(QtW.QTableView):
             lambda: self.model().rowCount(),
             lambda: self.model().columnCount(),
         )
+        self._selection_model.moving.connect(self._on_moving)
         self._selection_model.moved.connect(self._on_moved)
-        self._selection_model.cleared.connect(self._update_all)
         self._highlight_model = RangesModel()
 
         self._last_pos: QtCore.QPoint | None = None
@@ -95,20 +95,66 @@ class _QTableViewEnhanced(QtW.QTableView):
     # fmt: on
 
     def _update_all(self, rect: QtCore.QRect | None = None) -> None:
+        """repaint the table and the headers."""
         if rect is None:
             self.viewport().update()
         else:
+            rect.adjust(-2, -2, 2, 2)
             self.viewport().update(rect)
         self.horizontalHeader().viewport().update()
         self.verticalHeader().viewport().update()
         return None
 
-    def _on_moved(self, src: tuple[int, int], dst: tuple[int, int]) -> None:
-        """Update current index."""
-        index_dst = self.model().index(*dst)
+    def _on_moving(self, src: Index, dst: Index) -> None:
+        if not self._selection_model.is_jumping():
+            # clear all the multi-selections
+            model = self.model()
+            for sel in self._selection_model:
+                rsel, csel = sel
+                rect: QtCore.QRect = self.visualRect(
+                    model.index(rsel.start, csel.start)
+                )
+                rect |= self.visualRect(model.index(rsel.stop - 1, csel.stop - 1))
+                rect.adjust(-2, -2, 2, 2)
+                self.viewport().update(rect)
+
+            if self._selection_model._ctrl_on:
+                rect: QtCore.QRect = self.visualRect(model.index(*src))
+                rect.adjust(-2, -2, 2, 2)
+                self.viewport().update(rect)
+
+        return None
+
+    def _on_moved(self, src: Index, dst: Index) -> None:
+        """Update the view."""
+        model = self.model()
+        index_src = model.index(*src.as_uint())
+        index_dst = model.index(*dst.as_uint())
         if dst >= (0, 0):
             self.scrollTo(index_dst)
-        self._update_all()
+
+        ctrl_on = self._selection_model._ctrl_on
+
+        # rect is the region that needs to be updated
+        rect = self.visualRect(index_dst)
+        if not ctrl_on:
+            rect |= self.visualRect(index_src)
+
+        if (sel := self._selection_model.current_range) is not None:
+            rsel, csel = sel
+            rect |= self.visualRect(model.index(rsel.start, csel.start))
+            rect |= self.visualRect(model.index(rsel.stop - 1, csel.stop - 1))
+        if self._selection_model._selection_start is not None:
+            rect |= self.visualRect(
+                model.index(*self._selection_model._selection_start)
+            )
+
+        if src.row < 0 or dst.row < 0:
+            rect.setBottom(99999)
+        if src.column < 0 or dst.column < 0:
+            rect.setRight(99999)
+        self._update_all(rect)
+
         return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
@@ -119,7 +165,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             new._selection_model = self._selection_model
             new._selection_model.moved.connect(new._on_moved)
         new.setZoom(self.zoom())
-        new._selection_model.index_current = self._selection_model.index_current
+        new._selection_model.current_index = self._selection_model.current_index
         return new
 
     def selectAll(self) -> None:
@@ -157,7 +203,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def _edit_current(self) -> None:
         """Enter edit mode for current cell."""
-        index = self.model().index(*self._selection_model.index_current)
+        index = self.model().index(*self._selection_model.current_index)
         return self.edit(index)
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
@@ -193,7 +239,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             index = self.indexAt(e.pos())
             if index.isValid():
                 r, c = index.row(), index.column()
-                if self._selection_model.index_current != (r, c):
+                if self._selection_model.current_index != (r, c):
                     self._selection_model.move_to(r, c)
         return None
 
@@ -246,13 +292,13 @@ class _QTableViewEnhanced(QtW.QTableView):
             sel_mod.set_shift(False)
             sel_mod.reset()
 
-            if sel_mod.index_current.row < 0:
+            if sel_mod.current_index.row < 0:
                 focused_widget = parent.editHorizontalHeader(
-                    sel_mod.index_current.column
+                    sel_mod.current_index.column
                 )
 
-            elif sel_mod.index_current.column < 0:
-                focused_widget = parent.editVerticalHeader(sel_mod.index_current.row)
+            elif sel_mod.current_index.column < 0:
+                focused_widget = parent.editVerticalHeader(sel_mod.current_index.row)
 
             else:
                 self._edit_current()
@@ -269,10 +315,10 @@ class _QTableViewEnhanced(QtW.QTableView):
                 return parent.tableStack().notifyEditability()
             parent = cast(QMutableTable, parent)
 
-            if sel_mod.index_current.row < 0:
-                parent.editHorizontalHeader(sel_mod.index_current.column)
-            elif sel_mod.index_current.column < 0:
-                parent.editVerticalHeader(sel_mod.index_current.row)
+            if sel_mod.current_index.row < 0:
+                parent.editHorizontalHeader(sel_mod.current_index.column)
+            elif sel_mod.current_index.column < 0:
+                parent.editVerticalHeader(sel_mod.current_index.row)
             else:
                 self._edit_current()
             return None
@@ -374,7 +420,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             painter.drawRect(rect)
 
         # current index
-        idx = self._selection_model.index_current
+        idx = self._selection_model.current_index
         if idx >= (0, 0):
             rect_current = self.visualRect(self.model().index(*idx))
             rect_current.adjust(2, 2, -2, -2)

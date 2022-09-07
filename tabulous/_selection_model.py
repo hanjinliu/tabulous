@@ -14,6 +14,18 @@ class Index(NamedTuple):
     row: int
     column: int
 
+    def as_uint(self) -> Index:
+        """Return unsigned Index"""
+        return Index(max(self.row, 0), max(self.column, 0))
+
+
+class DummyRange(NamedTuple):
+    row: slice
+    column: slice
+
+
+_DUMMY_RANGE = DummyRange(slice(0, 0), slice(0, 0))
+
 
 class RangesModel:
     """Custom 2D range model for efficient overlay handling on a large table."""
@@ -44,11 +56,6 @@ class RangesModel:
     def iter_col_selections(self) -> Iterator[slice]:
         for i in self._col_selection_indices:
             yield self._ranges[i][1]
-
-    def add_dummy(self) -> None:
-        """Add dummy ranges."""
-        self._ranges.append((slice(0, 0), slice(0, 0)))
-        return None
 
     def append(self, range: Range, row: bool = False, column: bool = False) -> None:
         """Append a new range."""
@@ -166,6 +173,7 @@ class RangesModel:
 class SelectionModel(RangesModel):
     """A specialized range model with item-selection-like behavior."""
 
+    moving = Signal(Index, Index)
     moved = Signal(Index, Index)
     cleared = Signal()
 
@@ -174,17 +182,28 @@ class SelectionModel(RangesModel):
         self._ctrl_on = False
         self._shift_on = False
         self._selection_start: Index | None = None
-        self._index_current = Index(0, 0)
+        self._current_index = Index(0, 0)
         self._row_count_getter = row_count
         self._col_count_getter = col_count
 
     @property
-    def index_current(self) -> Index:
-        return self._index_current
+    def current_index(self) -> Index:
+        """Current position of the selection cursor."""
+        return self._current_index
 
-    @index_current.setter
-    def index_current(self, index: tuple[int, int]):
-        self._index_current = Index(*index)
+    @current_index.setter
+    def current_index(self, index: tuple[int, int]):
+        self._current_index = Index(*index)
+
+    @property
+    def current_range(self) -> tuple[slice, slice] | None:
+        if len(self._ranges) > 0:
+            return self._ranges[-1]
+        return None
+
+    def is_jumping(self) -> bool:
+        """Whether the selection is jumping or not."""
+        return len(self._ranges) > 0 and self._ranges[-1] is _DUMMY_RANGE
 
     def set_ctrl(self, on: bool) -> None:
         """Equivalent to pressing Ctrl."""
@@ -195,7 +214,7 @@ class SelectionModel(RangesModel):
         """Equivalent to pressing Shift."""
         self._shift_on = bool(on)
         if self._selection_start is None:
-            self._selection_start = self._index_current
+            self._selection_start = self._current_index
         return None
 
     def reset(self) -> None:
@@ -204,13 +223,15 @@ class SelectionModel(RangesModel):
     def jump_to(self, r: int, c: int):
         """Emulate mouse click at cell (r, c)."""
         if self._ctrl_on and not self._shift_on:
-            self.add_dummy()
+            self._ranges.append(_DUMMY_RANGE)
         return self.move_to(r, c)
 
     def move_to(self, r: int, c: int):
         """Emulate dragging to cell (r, c)."""
-        src = self._index_current
-        self._index_current = Index(r, c)
+        src = self._current_index
+        dst = Index(r, c)
+        self.moving.emit(src, dst)
+        self._current_index = dst
         if self._is_blocked:
             return None
 
@@ -242,14 +263,14 @@ class SelectionModel(RangesModel):
             if not self._ctrl_on:
                 self.clear()
         elif self._selection_start is None:
-            self._selection_start = self._index_current
+            self._selection_start = self._current_index
 
         self.update_last((rsl, csl), row=row, col=col)
-        self.moved.emit(src, self._index_current)
+        self.moved.emit(src, dst)
         return None
 
     def move(self, dr: int, dc: int, allow_header: bool = False):
-        r, c = self._index_current
+        r, c = self._current_index
         idx_min = -int(allow_header)
 
         if dr != 0:

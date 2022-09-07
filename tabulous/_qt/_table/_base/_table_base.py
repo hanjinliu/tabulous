@@ -497,12 +497,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Move current index."""
         selection_model = self._qtable_view._selection_model
         if row is None:
-            row = selection_model.index_current.row
+            row = selection_model.current_index.row
         elif row < 0:
             row += self.dataShape()[0]
 
         if column is None:
-            column = selection_model.index_current.column
+            column = selection_model.current_index.column
         elif column < 0:
             column += self.dataShape()[1]
 

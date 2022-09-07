@@ -110,7 +110,7 @@ class QHorizontalHeaderView(QDataFrameHeaderView):
         )
 
     def drawCurrent(self, painter: QtGui.QPainter):
-        row, col = self.selection_model.index_current
+        row, col = self.selection_model.current_index
         if row < 0 and col >= 0:
             rect_current = self.visualRectAtIndex(col)
             rect_current.adjust(2, 2, -2, -2)
@@ -146,7 +146,7 @@ class QVerticalHeaderView(QDataFrameHeaderView):
         )
 
     def drawCurrent(self, painter: QtGui.QPainter):
-        row, col = self.selection_model.index_current
+        row, col = self.selection_model.current_index
         if col < 0 and row >= 0:
             rect_current = self.visualRectAtIndex(row)
             rect_current.adjust(2, 2, -2, -2)
