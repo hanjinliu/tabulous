@@ -164,6 +164,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         if link:
             new.setModel(self.model())
             new._selection_model = self._selection_model
+            new._selection_model.moving.connect(new._on_moving)
             new._selection_model.moved.connect(new._on_moved)
         new.setZoom(self.zoom())
         new._selection_model.current_index = self._selection_model.current_index

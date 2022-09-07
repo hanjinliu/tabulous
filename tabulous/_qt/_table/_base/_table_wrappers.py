@@ -30,6 +30,7 @@ class QTableDualView(QtW.QSplitter):
         self._second = second
 
     def deleteLater(self) -> None:
+        self._second._selection_model.moving.disconnect(self._second._on_moving)
         self._second._selection_model.moved.disconnect(self._second._on_moved)
         return super().deleteLater()
 
@@ -55,6 +56,7 @@ class QTablePopupView(QtW.QWidget):
         self.popup._widget.setFocus()
 
     def deleteLater(self) -> None:
+        self._second._selection_model.moving.disconnect(self._second._on_moving)
         self._second._selection_model.moved.disconnect(self._second._on_moved)
         return super().deleteLater()
 

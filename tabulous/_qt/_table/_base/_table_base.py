@@ -464,7 +464,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         if widget0 is not self._qtable_view:
             widget0.setParent(None)
             widget0.deleteLater()
-
         self._qtable_view.setParent(None)
         view = QTablePopupView(self._qtable_view)
         self.insertWidget(0, view)
