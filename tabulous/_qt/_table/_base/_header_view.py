@@ -75,7 +75,8 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
         super().paintEvent(event)
         painter = QtGui.QPainter(self.viewport())
-        pen = QtGui.QPen(Qt.GlobalColor.darkBlue, 3)
+        color = self.parentWidget()._get_selection_color()
+        pen = QtGui.QPen(color, 3)
         painter.setPen(pen)
 
         # paint selections
@@ -113,8 +114,9 @@ class QHorizontalHeaderView(QDataFrameHeaderView):
         row, col = self.selection_model.current_index
         if row < 0 and col >= 0:
             rect_current = self.visualRectAtIndex(col)
-            rect_current.adjust(2, 2, -2, -2)
-            pen = QtGui.QPen(QtGui.QColor(128, 128, 128, 108), 4)
+            rect_current.adjust(1, 1, -1, -1)
+            color = self.parentWidget()._get_current_index_color()
+            pen = QtGui.QPen(color, 3)
             painter.setPen(pen)
             painter.drawRect(rect_current)
         return None
@@ -149,8 +151,9 @@ class QVerticalHeaderView(QDataFrameHeaderView):
         row, col = self.selection_model.current_index
         if col < 0 and row >= 0:
             rect_current = self.visualRectAtIndex(row)
-            rect_current.adjust(2, 2, -2, -2)
-            pen = QtGui.QPen(QtGui.QColor(128, 128, 128, 108), 4)
+            rect_current.adjust(1, 1, -1, -1)
+            color = self.parentWidget()._get_current_index_color()
+            pen = QtGui.QPen(color, 4)
             painter.setPen(pen)
             painter.drawRect(rect_current)
         return None

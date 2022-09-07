@@ -24,6 +24,7 @@ H_COLOR_W = QtGui.QColor(255, 96, 96, 86)
 H_COLOR_B = QtGui.QColor(255, 0, 0, 86)
 S_COLOR_W = Qt.GlobalColor.darkBlue
 S_COLOR_B = Qt.GlobalColor.cyan
+CUR_COLOR = QtGui.QColor(128, 128, 128, 108)
 
 # fmt: on
 
@@ -400,22 +401,31 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.resizedSignal.emit()
         return super().resizeEvent(e)
 
+    def _get_selection_color(self):
+        white_bg = self.parentViewer()._white_background
+        return S_COLOR_W if white_bg else S_COLOR_B
+
+    def _get_highlight_color(self):
+        white_bg = self.parentViewer()._white_background
+        return H_COLOR_W if white_bg else H_COLOR_B
+
+    def _get_current_index_color(self):
+        return CUR_COLOR
+
     def paintEvent(self, event: QtGui.QPaintEvent):
         """Paint table and the selection."""
         super().paintEvent(event)
         focused = int(self.hasFocus())
         nsel = len(self._selection_model)
         painter = QtGui.QPainter(self.viewport())
-        white_bg = self.parentViewer()._white_background
 
         # draw highlights
-        h_color = H_COLOR_W if white_bg else H_COLOR_B
-
+        h_color = self._get_highlight_color()
         for i, rect in enumerate(self.rectFromRanges(self._highlight_model)):
             painter.fillRect(rect, h_color)
 
         # draw selections
-        s_color = S_COLOR_W if white_bg else S_COLOR_B
+        s_color = self._get_selection_color()
         for i, rect in enumerate(self.rectFromRanges(self._selection_model)):
             pen = QtGui.QPen(s_color, 2 + int(nsel == i + 1) * focused)
             painter.setPen(pen)
@@ -425,8 +435,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         idx = self._selection_model.current_index
         if idx >= (0, 0):
             rect_current = self.visualRect(self.model().index(*idx))
-            rect_current.adjust(2, 2, -2, -2)
-            pen = QtGui.QPen(QtGui.QColor(128, 128, 128, 108), 4)
+            rect_current.adjust(1, 1, -1, -1)
+            pen = QtGui.QPen(CUR_COLOR, 3)
             painter.setPen(pen)
             painter.drawRect(rect_current)
 
