@@ -26,6 +26,14 @@ class QTableDualView(QtW.QSplitter):
         self.addWidget(second)
         self.setSizes([500, 500])
 
+        self._table = table
+        self._second = second
+
+    def deleteLater(self) -> None:
+        self._second._selection_model.moving.disconnect(self._second._on_moving)
+        self._second._selection_model.moved.disconnect(self._second._on_moved)
+        return super().deleteLater()
+
 
 class QTablePopupView(QtW.QWidget):
     """Popup view widget for a table."""
@@ -38,6 +46,7 @@ class QTablePopupView(QtW.QWidget):
 
         self._table = table
         view = table.copy()
+        self._second = view
 
         popup = QPopupWidget(table, view)
         self.popup = popup
@@ -45,6 +54,11 @@ class QTablePopupView(QtW.QWidget):
     def exec(self):
         self.popup.show()
         self.popup._widget.setFocus()
+
+    def deleteLater(self) -> None:
+        self._second._selection_model.moving.disconnect(self._second._on_moving)
+        self._second._selection_model.moved.disconnect(self._second._on_moved)
+        return super().deleteLater()
 
 
 class QPopupWidget(QtW.QWidget):

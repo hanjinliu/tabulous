@@ -413,12 +413,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def refreshTable(self) -> None:
         """Refresh table view."""
-        qtable = self._qtable_view
-        qtable.viewport().update()
-        # headers have also to be updated.
-        qtable.horizontalHeader().viewport().update()
-        qtable.verticalHeader().viewport().update()
-        return None
+        return self._qtable_view._update_all()
 
     def undoStackView(self, show: bool = True):
         """Show undo stack viewer."""
@@ -458,6 +453,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self._qtable_view.setParent(None)
         dual = QTableDualView(self._qtable_view, qori)
         self.insertWidget(0, dual)
+        self._qtable_view.setFocus()
         return dual
 
     def setPopupView(self):
@@ -468,7 +464,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         if widget0 is not self._qtable_view:
             widget0.setParent(None)
             widget0.deleteLater()
-
         self._qtable_view.setParent(None)
         view = QTablePopupView(self._qtable_view)
         self.insertWidget(0, view)
@@ -496,12 +491,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Move current index."""
         selection_model = self._qtable_view._selection_model
         if row is None:
-            row = selection_model.index_current.row
+            row = selection_model.current_index.row
         elif row < 0:
             row += self.dataShape()[0]
 
         if column is None:
-            column = selection_model.index_current.column
+            column = selection_model.current_index.column
         elif column < 0:
             column += self.dataShape()[1]
 

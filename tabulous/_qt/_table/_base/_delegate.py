@@ -100,18 +100,24 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
     def _format_number(self, text: str) -> str:
         """convert string to int or float if possible"""
         try:
-            value: int | float | None = int(text)
+            value = int(text)
         except ValueError:
             try:
                 value = float(text)
             except ValueError:
-                value = None
+                return text
 
         ndigits = self.ndigits
 
-        if isinstance(value, (int, float)):
+        if isinstance(value, int):
             if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
-                text = str(value) if isinstance(value, int) else f"{value:.{ndigits}f}"
+                text = str(value)
+            else:
+                text = f"{value:.{ndigits-1}e}"
+
+        elif isinstance(value, float):
+            if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+                text = f"{value:.{ndigits}f}"
             else:
                 text = f"{value:.{ndigits-1}e}"
 
@@ -138,6 +144,9 @@ class QDtypedLineEdit(QtW.QLineEdit):
         self._table = table
         self._pos = pos
         self.textChanged.connect(self.onTextChanged)
+
+    def parentTableView(self) -> _QTableViewEnhanced:
+        return self.parent().parent()
 
     def isTextValid(self, r: int, c: int, text: str) -> bool:
         """True if text is valid for this cell."""
@@ -170,33 +179,25 @@ class QDtypedLineEdit(QtW.QLineEdit):
         r, c = self._pos
         if keys.is_moving():
             if pos == 0 and keys == "Left" and c > 0:
-                self._table._qtable_view.setFocus()
-                index = self._table._qtable_view.model().index(r, c - 1)
-                self._table._qtable_view.setCurrentIndex(index)
+                self.parentTableView().setFocus()
+                self._table._qtable_view._selection_model.move_to(r, c - 1)
                 return
             elif (
                 pos == nchar
                 and keys == "Right"
                 and c < self._table.model().columnCount() - 1
+                and self.selectedText() == ""
             ):
-                self._table._qtable_view.setFocus()
-                index = self._table._qtable_view.model().index(r, c + 1)
-                self._table._qtable_view.setCurrentIndex(index)
+                self.parentTableView().setFocus()
+                self._table._qtable_view._selection_model.move_to(r, c + 1)
                 return
             elif keys == "Up" and r > 0:
-                self._table._qtable_view.setFocus()
-                index = self._table._qtable_view.model().index(r - 1, c)
-                self._table._qtable_view.setCurrentIndex(index)
+                self.parentTableView().setFocus()
+                self._table._qtable_view._selection_model.move_to(r - 1, c)
                 return
             elif keys == "Down" and r < self._table.model().rowCount() - 1:
-                self._table._qtable_view.setFocus()
-                index = self._table._qtable_view.model().index(r + 1, c)
-                self._table._qtable_view.setCurrentIndex(index)
+                self.parentTableView().setFocus()
+                self._table._qtable_view._selection_model.move_to(r + 1, c)
                 return
 
         return super().keyPressEvent(event)
-
-    if TYPE_CHECKING:
-
-        def parent(self) -> _QTableViewEnhanced:
-            ...

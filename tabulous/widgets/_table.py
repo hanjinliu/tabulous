@@ -307,6 +307,7 @@ class TableBase(ABC):
             @view.popup.closed.connect
             def _():
                 self.view_mode = ViewMode.normal
+                self._qwidget._qtable_view.setFocus()
 
         elif mode == ViewMode.normal:
             self._qwidget.resetViewMode()
