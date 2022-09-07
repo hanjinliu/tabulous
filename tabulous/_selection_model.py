@@ -179,7 +179,6 @@ class SelectionModel(RangesModel):
 
     moving = Signal(Index, Index)
     moved = Signal(Index, Index)
-    cleared = Signal()
 
     def __init__(self, row_count: Callable[[], int], col_count: Callable[[], int]):
         super().__init__()
@@ -283,6 +282,7 @@ class SelectionModel(RangesModel):
         return None
 
     def move(self, dr: int, dc: int, allow_header: bool = False):
+        """Move by (dr, dc) cells."""
         r, c = self._current_index
         idx_min = -int(allow_header)
 
@@ -297,9 +297,3 @@ class SelectionModel(RangesModel):
             c = max(idx_min, c)
 
         return self.move_to(r, c)
-
-    def clear(self) -> None:
-        """Clear all the selections"""
-        super().clear()
-        self.cleared.emit()
-        return None
