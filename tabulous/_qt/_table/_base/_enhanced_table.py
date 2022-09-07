@@ -58,6 +58,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             lambda: self.model().columnCount(),
         )
         self._selection_model.moved.connect(self._on_moved)
+        self._selection_model.cleared.connect(self._update_all)
         self._highlight_model = RangesModel()
 
         self._last_pos: QtCore.QPoint | None = None
@@ -83,7 +84,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         delegate = TableItemDelegate(parent=self)
         self.setItemDelegate(delegate)
-        self.update()
+        self._update_all()
 
     # fmt: off
     if TYPE_CHECKING:
@@ -93,19 +94,21 @@ class _QTableViewEnhanced(QtW.QTableView):
         def horizontalHeader(self) -> QHorizontalHeaderView: ...
     # fmt: on
 
-    def update(self, *args):
-        super().update(*args)
-        vheader = self.verticalHeader()
-        hheader = self.horizontalHeader()
-        hheader.viewport().update()
-        vheader.viewport().update()
+    def _update_all(self, rect: QtCore.QRect | None = None) -> None:
+        if rect is None:
+            self.viewport().update()
+        else:
+            self.viewport().update(rect)
+        self.horizontalHeader().viewport().update()
+        self.verticalHeader().viewport().update()
         return None
 
-    def _on_moved(self, index: tuple[int, int]) -> None:
+    def _on_moved(self, src: tuple[int, int], dst: tuple[int, int]) -> None:
         """Update current index."""
-        if index >= (0, 0):
-            self.scrollTo(self.model().index(*index))
-        self.update()
+        index_dst = self.model().index(*dst)
+        if dst >= (0, 0):
+            self.scrollTo(index_dst)
+        self._update_all()
         return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
@@ -130,26 +133,26 @@ class _QTableViewEnhanced(QtW.QTableView):
     def clear_selections(self) -> None:
         """Clear current selections."""
         self._selection_model.clear()
-        self.update()
+        self._update_all()
         return None
 
     def set_selections(self, selections: list[tuple[slice, slice]]) -> None:
         """Set current selections."""
         self._selection_model.set_ranges(selections)
         self.selectionChangedSignal.emit()
-        self.update()
+        self._update_all()
         return None
 
     def clear_highlights(self) -> None:
         """Clear current highlights."""
         self._highlight_model.clear()
-        self.update()
+        self._update_all()
         return None
 
     def set_highlights(self, highlights: list[tuple[slice, slice]]) -> None:
         """Set current highlights."""
         self._highlight_model.set_ranges(highlights)
-        self.update()
+        self._update_all()
         return None
 
     def _edit_current(self) -> None:

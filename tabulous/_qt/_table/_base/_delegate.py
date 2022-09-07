@@ -100,18 +100,24 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
     def _format_number(self, text: str) -> str:
         """convert string to int or float if possible"""
         try:
-            value: int | float | None = int(text)
+            value = int(text)
         except ValueError:
             try:
                 value = float(text)
             except ValueError:
-                value = None
+                return text
 
         ndigits = self.ndigits
 
-        if isinstance(value, (int, float)):
+        if isinstance(value, int):
             if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
-                text = str(value) if isinstance(value, int) else f"{value:.{ndigits}f}"
+                text = str(value)
+            else:
+                text = f"{value:.{ndigits-1}e}"
+
+        elif isinstance(value, float):
+            if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+                text = f"{value:.{ndigits}f}"
             else:
                 text = f"{value:.{ndigits-1}e}"
 

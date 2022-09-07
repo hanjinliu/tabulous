@@ -166,7 +166,8 @@ class RangesModel:
 class SelectionModel(RangesModel):
     """A specialized range model with item-selection-like behavior."""
 
-    moved = Signal(Index)
+    moved = Signal(Index, Index)
+    cleared = Signal()
 
     def __init__(self, row_count: Callable[[], int], col_count: Callable[[], int]):
         super().__init__()
@@ -208,6 +209,7 @@ class SelectionModel(RangesModel):
 
     def move_to(self, r: int, c: int):
         """Emulate dragging to cell (r, c)."""
+        src = self._index_current
         self._index_current = Index(r, c)
         if self._is_blocked:
             return None
@@ -243,7 +245,7 @@ class SelectionModel(RangesModel):
             self._selection_start = self._index_current
 
         self.update_last((rsl, csl), row=row, col=col)
-        self.moved.emit(self._index_current)
+        self.moved.emit(src, self._index_current)
         return None
 
     def move(self, dr: int, dc: int, allow_header: bool = False):
@@ -261,3 +263,9 @@ class SelectionModel(RangesModel):
             c = max(idx_min, c)
 
         return self.move_to(r, c)
+
+    def clear(self) -> None:
+        """Clear all the selections"""
+        super().clear()
+        self.cleared.emit()
+        return None
