@@ -22,7 +22,7 @@ class QTableLineEdit(QtW.QLineEdit):
         super().__init__(parent)
         self._table = table
         self._pos = pos
-        self.textChanged.connect(self.onTextChanged)
+        self.textChanged.connect(self._on_text_changed)
 
     def parentTableView(self) -> _QTableViewEnhanced:
         return self.parent().parent()
@@ -31,7 +31,7 @@ class QTableLineEdit(QtW.QLineEdit):
         """True if text is valid for this cell."""
         raise NotImplementedError()
 
-    def onTextChanged(self, text: str) -> None:
+    def _on_text_changed(self, text: str) -> None:
         """Change text color to red if invalid."""
         palette = QtGui.QPalette()
         if self.isTextValid(self._pos[0], self._pos[1], text):
@@ -50,7 +50,7 @@ class QTableLineEdit(QtW.QLineEdit):
         nchar = len(self.text())
         r, c = self._pos
         if keys.is_moving():
-            if pos == 0 and keys == "Left" and c > 0:
+            if pos == 0 and keys == "Left" and c >= 0:
                 self.parentTableView().setFocus()
                 self._table._qtable_view._selection_model.move_to(r, c - 1)
                 return
@@ -63,7 +63,7 @@ class QTableLineEdit(QtW.QLineEdit):
                 self.parentTableView().setFocus()
                 self._table._qtable_view._selection_model.move_to(r, c + 1)
                 return
-            elif keys == "Up" and r > 0:
+            elif keys == "Up" and r >= 0:
                 self.parentTableView().setFocus()
                 self._table._qtable_view._selection_model.move_to(r - 1, c)
                 return

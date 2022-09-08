@@ -364,9 +364,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setFont(font)
         self.verticalHeader().setFont(font)
         self.horizontalHeader().setFont(font)
-        self.viewport().update()
-        self.horizontalHeader().viewport().update()
-        self.verticalHeader().viewport().update()
+        self._update_all()
         return
 
     def wheelEvent(self, e: QtGui.QWheelEvent) -> None:

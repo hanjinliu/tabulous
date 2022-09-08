@@ -10,7 +10,7 @@ import pandas as pd
 from collections_undo import fmt
 
 from ._item_model import AbstractDataFrameModel
-from ._line_edit import QTableLineEdit
+from ._header_line_edit import QHorizontalHeaderLineEdit, QVerticalHeaderLineEdit
 
 from ..._undo import QtUndoManager, fmt_slice
 from ..._svg import QColoredSVGIcon
@@ -20,11 +20,9 @@ from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceabl
 from ....exceptions import SelectionRangeError, TableImmutableError
 
 if TYPE_CHECKING:
-    from qtpy.QtCore import pyqtBoundSignal
     from ._delegate import TableItemDelegate
     from ._side_area import QTableSideArea
     from ._enhanced_table import _QTableViewEnhanced
-    from ._header_view import QDataFrameHeaderView
     from ..._table_stack import QTabbedTableStack
 
 ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
@@ -832,14 +830,7 @@ class QMutableTable(QBaseTable):
 
         qtable = self._qtable_view
         _header = qtable.horizontalHeader()
-        return self._prepare_header_line_edit(
-            _header,
-            (_header.sectionSize(index), _header.height()),
-            (None, _header.sectionViewportPosition(index)),
-            self.columnChangedSignal,
-            index,
-            self.model().df.columns,
-        )
+        return QHorizontalHeaderLineEdit(parent=_header, table=self, pos=(-1, index))
 
     def editVerticalHeader(self, index: int) -> QtW.QLineEdit:
         if not self.isEditable():
@@ -847,86 +838,7 @@ class QMutableTable(QBaseTable):
 
         qtable = self._qtable_view
         _header = qtable.verticalHeader()
-        return self._prepare_header_line_edit(
-            _header,
-            (_header.width(), _header.sectionSize(index)),
-            (_header.sectionViewportPosition(index), None),
-            self.rowChangedSignal,
-            index,
-            self.model().df.index,
-        )
-
-    def _prepare_header_line_edit(
-        self,
-        header: QDataFrameHeaderView,
-        size: tuple[int, int],
-        topleft: tuple[int, int],
-        signal: pyqtBoundSignal,
-        index: int,
-        df_axis: pd.Index,
-    ):
-        """
-        Prepare a line edit for editing the header.
-
-        Parameters
-        ----------
-        header : QDataFrameHeaderView
-            The QHeaderView object to edit.
-        size : tuple of int
-            Size of line edit.
-        topleft : tuple of int
-            Coordinates of the top left corner of the line edit.
-        signal : pyqtBoundSignal
-            Signal to emit when the line edit is finished.
-        index : int
-            Index that is now being edited.
-        df_axis : pd.Index
-            Corresponding axis of the dataframe.
-        """
-        # _line = QtW.QLineEdit(header)
-        _line = _QHeaderLineEdit(header, self)
-        width, height = size
-        top, left = topleft
-        edit_geometry = _line.geometry()
-        edit_geometry.setSize(QtCore.QSize(width, height))
-        if top is not None:
-            edit_geometry.moveTop(top)
-        if left is not None:
-            edit_geometry.moveLeft(left)
-        edit_geometry.adjust(2, 1, -2, -1)
-        _line.setGeometry(edit_geometry)
-        _line.setHidden(False)
-        _line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        if index < df_axis.size:
-            old_value = df_axis[index]
-            text = str(old_value)
-        else:
-            old_value = None
-            text = ""
-
-        _line.setText(text)
-        _line.selectAll()
-        _line.setFocus()
-
-        self._line = _line
-
-        @_line.editingFinished.connect
-        def _set_header_data():
-            if self._line is None:
-                return None
-            _line.editingFinished.disconnect()
-            value = self._line.text()
-            if not value == old_value:
-                signal.emit(HeaderInfo(index, value, old_value))
-            table = header.parentWidget()
-            table.setFocus()
-            table.clearSelection()
-            self._line.setHidden(True)
-            self._line = None
-            return None
-
-        return _line
+        return QVerticalHeaderLineEdit(parent=_header, table=self, pos=(index, -1))
 
     @QBaseTable._mgr.interface
     def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
@@ -1062,9 +974,3 @@ def _rename_column(df: pd.DataFrame, idx: int, new_name: str) -> None:
     colname = df.columns[idx]
     df.rename(columns={colname: new_name}, inplace=True)
     return None
-
-
-class _QHeaderLineEdit(QTableLineEdit):
-    def isTextValid(self, r: int, c: int, text: str) -> bool:
-        """True if text is valid for this cell."""
-        return text not in self._table.model().df.columns
