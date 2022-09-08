@@ -10,6 +10,7 @@ import pandas as pd
 from collections_undo import fmt
 
 from ._item_model import AbstractDataFrameModel
+from ._line_edit import QTableLineEdit
 
 from ..._undo import QtUndoManager, fmt_slice
 from ..._svg import QColoredSVGIcon
@@ -882,7 +883,8 @@ class QMutableTable(QBaseTable):
         df_axis : pd.Index
             Corresponding axis of the dataframe.
         """
-        _line = QtW.QLineEdit(header)
+        # _line = QtW.QLineEdit(header)
+        _line = _QHeaderLineEdit(header, self)
         width, height = size
         top, left = topleft
         edit_geometry = _line.geometry()
@@ -1060,3 +1062,9 @@ def _rename_column(df: pd.DataFrame, idx: int, new_name: str) -> None:
     colname = df.columns[idx]
     df.rename(columns={colname: new_name}, inplace=True)
     return None
+
+
+class _QHeaderLineEdit(QTableLineEdit):
+    def isTextValid(self, r: int, c: int, text: str) -> bool:
+        """True if text is valid for this cell."""
+        return text not in self._table.model().df.columns

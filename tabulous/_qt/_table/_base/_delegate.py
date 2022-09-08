@@ -5,6 +5,7 @@ from qtpy.QtCore import Qt
 from ..._keymap import QtKeys
 
 from ._table_base import QBaseTable, QMutableTable
+from ._line_edit import QTableLineEdit
 
 if TYPE_CHECKING:
     import numpy as np
@@ -41,7 +42,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 qtable_view._font, int(qtable_view._font_size * qtable_view.zoom())
             )
             if row >= df.shape[0] or col >= df.shape[1]:
-                line = QDtypedLineEdit(parent, table, (row, col))
+                line = _CellLineEdit(parent, table, (row, col))
                 line.setFont(font)
                 return line
 
@@ -72,7 +73,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 dt.setDateTime(val.to_pydatetime())
                 return dt
             else:
-                line = QDtypedLineEdit(parent, table, (row, col))
+                line = _CellLineEdit(parent, table, (row, col))
                 line.setFont(font)
                 return line
 
@@ -131,23 +132,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             option.state = option.state & ~QtW.QStyle.StateFlag.State_HasFocus
 
 
-class QDtypedLineEdit(QtW.QLineEdit):
-    """LineEdit widget with dtype checker and custom defocusing."""
-
-    def __init__(
-        self,
-        parent: QtCore.QObject | None = None,
-        table: QMutableTable | None = None,
-        pos: tuple[int, int] = (0, 0),
-    ):
-        super().__init__(parent)
-        self._table = table
-        self._pos = pos
-        self.textChanged.connect(self.onTextChanged)
-
-    def parentTableView(self) -> _QTableViewEnhanced:
-        return self.parent().parent()
-
+class _CellLineEdit(QTableLineEdit):
     def isTextValid(self, r: int, c: int, text: str) -> bool:
         """True if text is valid for this cell."""
         try:
@@ -155,49 +140,3 @@ class QDtypedLineEdit(QtW.QLineEdit):
         except Exception:
             return False
         return True
-
-    def onTextChanged(self, text: str) -> None:
-        """Change text color to red if invalid."""
-        palette = QtGui.QPalette()
-        table = self._table
-        try:
-            table.convertValue(self._pos[0], self._pos[1], text)
-        except Exception:
-            col = Qt.GlobalColor.red
-        else:
-            col = Qt.GlobalColor.black
-
-        palette.setColor(QtGui.QPalette.ColorRole.Text, col)
-        self.setPalette(palette)
-        return None
-
-    def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
-        """Handle key press events."""
-        keys = QtKeys(event)
-        pos = self.cursorPosition()
-        nchar = len(self.text())
-        r, c = self._pos
-        if keys.is_moving():
-            if pos == 0 and keys == "Left" and c > 0:
-                self.parentTableView().setFocus()
-                self._table._qtable_view._selection_model.move_to(r, c - 1)
-                return
-            elif (
-                pos == nchar
-                and keys == "Right"
-                and c < self._table.model().columnCount() - 1
-                and self.selectedText() == ""
-            ):
-                self.parentTableView().setFocus()
-                self._table._qtable_view._selection_model.move_to(r, c + 1)
-                return
-            elif keys == "Up" and r > 0:
-                self.parentTableView().setFocus()
-                self._table._qtable_view._selection_model.move_to(r - 1, c)
-                return
-            elif keys == "Down" and r < self._table.model().rowCount() - 1:
-                self.parentTableView().setFocus()
-                self._table._qtable_view._selection_model.move_to(r + 1, c)
-                return
-
-        return super().keyPressEvent(event)
