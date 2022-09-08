@@ -156,6 +156,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             rect.setRight(99999)
         self._update_all(rect)
 
+        self.selectionChangedSignal.emit()
         return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:

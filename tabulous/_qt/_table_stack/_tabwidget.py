@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import Literal, TYPE_CHECKING, cast
 import weakref
 from qtpy import QtWidgets as QtW, QtGui, QtCore
-from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Qt, Signal
 
 from ._start import QStartupWidget

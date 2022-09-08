@@ -120,6 +120,11 @@ class QtConsole(RichJupyterWidget):
         cursor.insertText(lines[-1])
         return None
 
+    def selectedText(self) -> str:
+        """Return the selected text"""
+        cursor = self._control.textCursor()
+        return cursor.selection().toPlainText()
+
     def execute(
         self,
         source: str | None = None,
