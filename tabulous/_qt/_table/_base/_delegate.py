@@ -2,10 +2,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
-from ..._keymap import QtKeys
 
-from ._table_base import QBaseTable, QMutableTable
-from ._line_edit import QTableLineEdit
+from ._table_base import QBaseTable
+from ._line_edit import QCellLineEdit
 
 if TYPE_CHECKING:
     import numpy as np
@@ -42,7 +41,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 qtable_view._font, int(qtable_view._font_size * qtable_view.zoom())
             )
             if row >= df.shape[0] or col >= df.shape[1]:
-                line = _CellLineEdit(parent, table, (row, col))
+                line = QCellLineEdit(parent, table, (row, col))
                 line.setFont(font)
                 return line
 
@@ -73,7 +72,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 dt.setDateTime(val.to_pydatetime())
                 return dt
             else:
-                line = _CellLineEdit(parent, table, (row, col))
+                line = QCellLineEdit(parent, table, (row, col))
                 line.setFont(font)
                 return line
 
@@ -130,13 +129,3 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         super().initStyleOption(option, index)
         if option.state & QtW.QStyle.StateFlag.State_HasFocus:
             option.state = option.state & ~QtW.QStyle.StateFlag.State_HasFocus
-
-
-class _CellLineEdit(QTableLineEdit):
-    def isTextValid(self, r: int, c: int, text: str) -> bool:
-        """True if text is valid for this cell."""
-        try:
-            self._table.convertValue(r, c, text)
-        except Exception:
-            return False
-        return True

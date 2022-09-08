@@ -10,7 +10,7 @@ import pandas as pd
 from collections_undo import fmt
 
 from ._item_model import AbstractDataFrameModel
-from ._header_line_edit import QHorizontalHeaderLineEdit, QVerticalHeaderLineEdit
+from ._line_edit import QHorizontalHeaderLineEdit, QVerticalHeaderLineEdit
 
 from ..._undo import QtUndoManager, fmt_slice
 from ..._svg import QColoredSVGIcon
