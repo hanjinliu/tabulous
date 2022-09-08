@@ -68,6 +68,8 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
 
 
 class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
+    _child_widgets: weakref.WeakValueDictionary[str, QSubToolBar]
+
     def __init__(self, parent: _QtMainWidgetBase):
         super().__init__(parent)
 
@@ -79,9 +81,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.setSizePolicy(
             QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Minimum
         )
-        self._child_widgets: weakref.WeakValueDictionary[
-            str, QSubToolBar
-        ] = weakref.WeakValueDictionary()
+        self._child_widgets = weakref.WeakValueDictionary()
 
         self.addWidget(self._tab)
         self.setMaximumHeight(120)

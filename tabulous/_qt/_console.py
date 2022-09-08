@@ -6,6 +6,8 @@ from qtpy.QtCore import Signal, Qt
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 
 if TYPE_CHECKING:
+    from ._mainwindow import _QtMainWidgetBase
+    from ._dockwidget import QtDockWidget
     from ..widgets.mainwindow import TableViewerBase
 
     class RichJupyterWidget(RichJupyterWidget, QtW.QWidget):
@@ -22,6 +24,7 @@ class QtConsole(RichJupyterWidget):
         self.setMinimumSize(100, 0)
         self.resize(100, 40)
         self._dock_parent = None
+        self._current_data_identifier = "NONE"
 
     def connect_parent(self, widget: TableViewerBase):
         from IPython import get_ipython
@@ -96,12 +99,21 @@ class QtConsole(RichJupyterWidget):
                 _ns.numpy: np,
                 _ns.pandas: pd,
                 _ns.tabulous: tbl,
+                _ns.data: TableDataObject(widget),
             }
             self.shell.push(ns)
+            self._current_data_identifier = _ns.data
 
     def setFocus(self):
         """Set focus to the text edit."""
-        return self._control.setFocus()
+        self._control.setFocus()
+        cursor = self._control.textCursor()
+        cursor.clearSelection()
+        self._control.setTextCursor(cursor)
+        return None
+
+    def isActive(self) -> bool:
+        return self.isVisible() and self.shell is not None
 
     def buffer(self) -> str:
         """Get current code block"""
@@ -118,6 +130,16 @@ class QtConsole(RichJupyterWidget):
             cursor.insertText(line + "\n")
             self._insert_continuation_prompt(cursor)  # insert "...:"
         cursor.insertText(lines[-1])
+        return None
+
+    def setTempText(self, text: str) -> None:
+        cursor = self._control.textCursor()
+        cursor.removeSelectedText()
+        pos = cursor.position()
+        cursor.insertText(text)
+        cursor.setPosition(pos)
+        cursor.setPosition(pos + len(text), QtGui.QTextCursor.MoveMode.KeepAnchor)
+        self._control.setTextCursor(cursor)
         return None
 
     def selectedText(self) -> str:
@@ -139,13 +161,13 @@ class QtConsole(RichJupyterWidget):
         return None
 
     # NOTE: qtconsole overwrites "parent" method so we have to use another method to manage parent.
-    def dockParent(self):
+    def dockParent(self) -> QtDockWidget:
         """Return the dock widget parent."""
         if self._dock_parent is None:
             return None
         return self._dock_parent()
 
-    def setDockParent(self, widget: QtW.QDockWidget):
+    def setDockParent(self, widget: QtDockWidget):
         """Set the dock widget parent."""
         if not isinstance(widget, QtW.QDockWidget):
             raise TypeError("Parent must be a QDockWidget")
@@ -169,18 +191,24 @@ class QtConsole(RichJupyterWidget):
             if (
                 mod & Qt.KeyboardModifier.ControlModifier
                 and mod & Qt.KeyboardModifier.ShiftModifier
-                and key in (Qt.Key.Key_Up, Qt.Key.Key_Down)
             ):
-                self.setDockFloating(key == Qt.Key.Key_Up)
-                return True
+                if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+                    self.setDockFloating(key == Qt.Key.Key_Up)
+                    return True
+                elif key == Qt.Key.Key_C:
+                    if not parent.isFloating():
+                        return super().eventFilter(obj, event)
+                    parent.parentWidget().toggleConsoleVisibility()
+                elif key == Qt.Key.Key_F:
+                    parent.parentWidget()._keymap.press_key("Ctrl+Shift+F")
+                    return True
             elif (
                 mod & Qt.KeyboardModifier.ControlModifier
-                and mod & Qt.KeyboardModifier.ShiftModifier
-                and key == Qt.Key.Key_C
+                and not mod & Qt.KeyboardModifier.ShiftModifier
             ):
-                if not parent.isFloating():
-                    return super().eventFilter(obj, event)
-                parent.parentWidget().toggleConsoleVisibility()
+                if key == Qt.Key.Key_I:
+                    self.setTempText(f"{self._current_data_identifier}[...]")
+                    return True
 
         return super().eventFilter(obj, event)
 
@@ -209,3 +237,12 @@ class QtConsole(RichJupyterWidget):
         parent.setFocus()
         self.setFocus()
         return None
+
+
+class TableDataObject:
+    def __init__(self, viewer: TableViewerBase) -> None:
+        self._viewer_ref = weakref.ref(viewer)
+
+    def __getitem__(self, key):
+        df = self._viewer_ref().current_table.data
+        return df.iloc[key]

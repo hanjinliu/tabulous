@@ -100,6 +100,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
         self._install_actions()
 
+        self.selectionChangedSignal.connect(self._try_update_console)
+
     def createHandle(self) -> QTableHandle:
         """Create custom handle."""
         return QTableHandle(Qt.Orientation.Horizontal, self)
@@ -542,6 +544,31 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self._qtable_view._highlight_model.delete_selected()
         self._qtable_view._selection_model.set_ctrl(False)
 
+    def _try_update_console(self):
+        viewer = self._qtable_view.parentViewer()
+        console = viewer._console_widget
+        if console is None or not console.isActive():
+            return
+        selected = console.selectedText()
+        _df = console._current_data_identifier
+        if selected.startswith(f"{_df}["):
+            sels = self.selections()
+            if len(sels) != 1:
+                return
+            rsel, csel = sels[0]
+            rsize = rsel.stop - rsel.start
+            csize = csel.stop - csel.start
+            if rsize == 1 and csize == 1:
+                txt = f"{_df}[{rsel.start}, {csel.start}]"
+            elif rsize == 1:
+                txt = f"{_df}[{rsel.start}, {_fmt_slice(csel)}]"
+            elif csize == 1:
+                txt = f"{_df}[{_fmt_slice(rsel)}, {csel.start}]"
+            else:
+                txt = f"{_df}[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+            console.setTempText(txt)
+        return None
+
 
 class QMutableTable(QBaseTable):
     """A mutable table widget."""
@@ -974,3 +1001,7 @@ def _rename_column(df: pd.DataFrame, idx: int, new_name: str) -> None:
     colname = df.columns[idx]
     df.rename(columns={colname: new_name}, inplace=True)
     return None
+
+
+def _fmt_slice(sl: slice) -> str:
+    return f"{sl.start}:{sl.stop}"

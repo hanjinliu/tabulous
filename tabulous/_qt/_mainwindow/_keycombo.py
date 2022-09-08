@@ -62,6 +62,21 @@ def _(self: _QtMainWidgetBase):
     return self.setCellFocus()
 
 
+@QMainWidget._keymap.bind("Ctrl+Shift+F")
+@QMainWindow._keymap.bind("Ctrl+Shift+F")
+def _(self: _QtMainWidgetBase):
+    """Move focus between table and console."""
+    table = self._table_viewer.current_table
+    if table is None:
+        return
+    if table._qwidget._qtable_view.hasFocus():
+        if self._console_widget.isActive():
+            self._console_widget.setFocus()
+    else:
+        self.setCellFocus()
+    return
+
+
 @QMainWidget._keymap.bind("Ctrl+N")
 @QMainWindow._keymap.bind("Ctrl+N")
 def _(self: _QtMainWidgetBase):
