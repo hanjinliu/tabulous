@@ -1,14 +1,17 @@
 from __future__ import annotations
 from functools import reduce
 from operator import ior
-from typing import Any
-from qtpy.QtWidgets import QDockWidget as _QDockWidget, QMainWindow, QWidget
+from typing import Any, TYPE_CHECKING
+from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Qt
 
 from ._titlebar import QTitleBar
 
+if TYPE_CHECKING:
+    from ._mainwindow import QMainWindow
 
-class QtDockWidget(_QDockWidget):
+
+class QtDockWidget(QtW.QDockWidget):
     areas = {
         "left": Qt.DockWidgetArea.LeftDockWidgetArea,
         "right": Qt.DockWidgetArea.RightDockWidgetArea,
@@ -19,7 +22,7 @@ class QtDockWidget(_QDockWidget):
     def __init__(
         self,
         parent: QMainWindow,
-        widget: QWidget,
+        widget: QtW.QWidget,
         *,
         name: str = "",
         area: str = "right",
@@ -56,5 +59,10 @@ class QtDockWidget(_QDockWidget):
         self._widget = obj
 
     @property
-    def widget(self) -> QWidget | Any:
+    def widget(self) -> QtW.QWidget | Any:
         return self._widget
+
+    # fmt: off
+    if TYPE_CHECKING:
+        def parentWidget(self) -> QMainWindow: ...
+    # fmt: on

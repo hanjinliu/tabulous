@@ -19,3 +19,4 @@ class default_namespace:
     viewer = "viewer"
     pandas = "pd"
     numpy = "np"
+    data = "DATA"

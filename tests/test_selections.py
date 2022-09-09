@@ -47,7 +47,11 @@ def test_selection_signal():
     mock.assert_not_called()
     sel = [(slice(1, 2), slice(1, 2))]
     table.selections = sel
-    mock.assert_called()
+    mock.assert_called_once()
+    mock.reset_mock()
+    table._qwidget._qtable_view._selection_model.move_to(0, 0)
+    mock.assert_called_once()
+
 
 def test_selection_signal_recursive():
     viewer = TableViewer(show=False)

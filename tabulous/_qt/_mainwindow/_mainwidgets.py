@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from pathlib import Path
+import weakref
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, QEvent, QTimer
 
@@ -11,6 +12,7 @@ from ...types import TabPosition
 if TYPE_CHECKING:
     from ...widgets import TableViewer
     from .._table_stack import QTabbedTableStack
+    from .._dockwidget import QtDockWidget
 
 ICON_DIR = Path(__file__).parent.parent / "_icons"
 STYLE_DIR = Path(__file__).parent.parent
@@ -96,6 +98,7 @@ _HIDE_TOOLTIPS = frozenset(
 class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     _instances: list[QMainWindow] = []
     _keymap = QtKeyMap()
+    _dock_widgets: weakref.WeakValueDictionary[str, QtDockWidget]
 
     def __init__(
         self,
@@ -109,10 +112,12 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
             style = f.read()
         self.setStyleSheet(style)
 
+        self._console_dock_widget = None
+        self._dock_widgets = weakref.WeakValueDictionary()
+
         from .._toolbar import QTableStackToolBar
 
         self._toolbar = QTableStackToolBar(self)
-        self._console_dock_widget = None
         self.addToolBar(self._toolbar)
         self._toolbar.setMovable(False)  # nested toolbar causes layout problems
         self._tablestack.setMinimumSize(400, 250)

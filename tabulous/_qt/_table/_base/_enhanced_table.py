@@ -156,6 +156,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             rect.setRight(99999)
         self._update_all(rect)
 
+        self.selectionChangedSignal.emit()
         return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
@@ -392,6 +393,9 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def focusInEvent(self, e: QtGui.QFocusEvent) -> None:
         self.focusedSignal.emit()
+        # initialize selection model state
+        self._selection_model.set_ctrl(False)
+        self._selection_model.set_shift(False)
         return super().focusInEvent(e)
 
     def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
