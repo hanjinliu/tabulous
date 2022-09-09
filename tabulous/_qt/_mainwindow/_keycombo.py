@@ -70,12 +70,22 @@ def _(self: _QtMainWidgetBase):
     if table is None:
         return
     if table._qwidget._qtable_view.hasFocus():
-        if self._console_widget.isActive():
-            self._console_widget.setFocus()
+        console = self._console_widget
+        if console is not None and console.isActive():
+            console.setFocus()
     else:
         self.setCellFocus()
     return
 
+
+@QMainWidget._keymap.bind("Ctrl+I")
+@QMainWindow._keymap.bind("Ctrl+I")
+def _(self: _QtMainWidgetBase):
+    """Insert data reference to the console."""
+    console = self._console_widget
+    if console is not None and console.isActive():
+        console.setTempText(f"{console._current_data_identifier}[...]")
+    return None
 
 @QMainWidget._keymap.bind("Ctrl+N")
 @QMainWindow._keymap.bind("Ctrl+N")

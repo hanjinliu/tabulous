@@ -393,6 +393,9 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def focusInEvent(self, e: QtGui.QFocusEvent) -> None:
         self.focusedSignal.emit()
+        # initialize selection model state
+        self._selection_model.set_ctrl(False)
+        self._selection_model.set_shift(False)
         return super().focusInEvent(e)
 
     def resizeEvent(self, e: QtGui.QResizeEvent) -> None:

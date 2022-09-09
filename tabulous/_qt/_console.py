@@ -5,18 +5,20 @@ from typing import TYPE_CHECKING, cast
 from qtpy.QtCore import Signal, Qt
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 
+from ._keymap import QtKeys, QtKeyMap
+
 if TYPE_CHECKING:
-    from ._mainwindow import _QtMainWidgetBase
     from ._dockwidget import QtDockWidget
     from ..widgets.mainwindow import TableViewerBase
 
     class RichJupyterWidget(RichJupyterWidget, QtW.QWidget):
-        ...
+        """To fix typing problem"""
 
 
 # Modified from napari_console https://github.com/napari/napari-console
 class QtConsole(RichJupyterWidget):
     codeExecuted = Signal(str)
+    _keymap = QtKeyMap()
 
     def __init__(self, *args, **kwargs):
         self._old_point = None
@@ -99,7 +101,7 @@ class QtConsole(RichJupyterWidget):
                 _ns.numpy: np,
                 _ns.pandas: pd,
                 _ns.tabulous: tbl,
-                _ns.data: TableDataObject(widget),
+                _ns.data: TableDataReference(widget),
             }
             self.shell.push(ns)
             self._current_data_identifier = _ns.data
@@ -132,7 +134,10 @@ class QtConsole(RichJupyterWidget):
         cursor.insertText(lines[-1])
         return None
 
-    def setTempText(self, text: str) -> None:
+    @_keymap.bind("Ctrl+I")
+    def setTempText(self, text: str | None = None) -> None:
+        if text is None:
+            text = f"{self._current_data_identifier}[...]"
         cursor = self._control.textCursor()
         cursor.removeSelectedText()
         pos = cursor.position()
@@ -184,35 +189,16 @@ class QtConsole(RichJupyterWidget):
                 return super().eventFilter(obj, event)
 
             event = cast(QtGui.QKeyEvent, event)
-            key = event.key()
-            mod = event.modifiers()
-
-            # float/unfloat dock widget
-            if (
-                mod & Qt.KeyboardModifier.ControlModifier
-                and mod & Qt.KeyboardModifier.ShiftModifier
-            ):
-                if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
-                    self.setDockFloating(key == Qt.Key.Key_Up)
-                    return True
-                elif key == Qt.Key.Key_C:
-                    if not parent.isFloating():
-                        return super().eventFilter(obj, event)
-                    parent.parentWidget().toggleConsoleVisibility()
-                elif key == Qt.Key.Key_F:
-                    parent.parentWidget()._keymap.press_key("Ctrl+Shift+F")
-                    return True
-            elif (
-                mod & Qt.KeyboardModifier.ControlModifier
-                and not mod & Qt.KeyboardModifier.ShiftModifier
-            ):
-                if key == Qt.Key.Key_I:
-                    self.setTempText(f"{self._current_data_identifier}[...]")
-                    return True
+            keys = QtKeys(event)
+            if self._keymap.press_key(keys):
+                return True
 
         return super().eventFilter(obj, event)
 
+    @_keymap.bind("Ctrl+Shift+Down", floating=False)
+    @_keymap.bind("Ctrl+Shift+Up", floating=True)
     def setDockFloating(self, floating: bool):
+        """Make the parent dock widget floating."""
         parent = self.dockParent()
         if parent is None:
             return
@@ -238,8 +224,18 @@ class QtConsole(RichJupyterWidget):
         self.setFocus()
         return None
 
+    @_keymap.bind("Ctrl+Shift+C", keys="Ctrl+Shift+C")
+    @_keymap.bind("Ctrl+Shift+F", keys="Ctrl+Shift+F")
+    def _press_parent_keycombo(self, keys: str):
+        parent = self.dockParent()
+        if parent is None:
+            return
+        parent.parentWidget()._keymap.press_key(keys)
 
-class TableDataObject:
+
+class TableDataReference:
+    """Reference to the table data in the console namespace."""
+
     def __init__(self, viewer: TableViewerBase) -> None:
         self._viewer_ref = weakref.ref(viewer)
 
