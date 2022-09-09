@@ -2,7 +2,13 @@ from __future__ import annotations
 from functools import wraps
 from typing import TYPE_CHECKING
 from qtpy import QtWidgets as QtW
-import matplotlib as mpl
+
+try:
+    import matplotlib as mpl
+except ImportError as e:
+    raise ImportError(
+        "Module 'matplotlib' is not installed. Please install it to use plot canvas."
+    )
 import matplotlib.pyplot as plt
 from ._mpl_canvas import InteractiveFigureCanvas
 
