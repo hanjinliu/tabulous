@@ -172,6 +172,10 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _qtable_view(self) -> _QTableViewEnhanced:
         raise NotImplementedError()
 
+    @property
+    def _central_widget(self) -> QtW.QWidget:
+        return self._qtable_view
+
     def createQTableView(self) -> None:
         """Create QTableView."""
         raise NotImplementedError()
@@ -471,13 +475,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             raise ValueError("orientation must be 'vertical' or 'horizontal'.")
 
         widget0 = self.widget(0)
-        if widget0 is not self._qtable_view:
+        if widget0 is not self._central_widget:
             widget0.setParent(None)
             widget0.deleteLater()
-        self._qtable_view.setParent(None)
-        dual = QTableDualView(self._qtable_view, qori)
+        self._central_widget.setParent(None)
+        dual = QTableDualView(self._central_widget, qori)
         self.insertWidget(0, dual)
-        self._qtable_view.setFocus()
+        self._central_widget.setFocus()
         return dual
 
     def setPopupView(self):
@@ -485,11 +489,11 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         from ._table_wrappers import QTablePopupView
 
         widget0 = self.widget(0)
-        if widget0 is not self._qtable_view:
+        if widget0 is not self._central_widget:
             widget0.setParent(None)
             widget0.deleteLater()
-        self._qtable_view.setParent(None)
-        view = QTablePopupView(self._qtable_view)
+        self._central_widget.setParent(None)
+        view = QTablePopupView(self._central_widget)
         self.insertWidget(0, view)
         view.exec()
         return view
@@ -497,9 +501,9 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def resetViewMode(self):
         """Reset the view mode to the normal one."""
         widget0 = self.widget(0)
-        if widget0 is not self._qtable_view:
+        if widget0 is not self._central_widget:
             widget0.setParent(None)
-            self.insertWidget(0, self._qtable_view)
+            self.insertWidget(0, self._central_widget)
             widget0.deleteLater()
         else:
             pass
