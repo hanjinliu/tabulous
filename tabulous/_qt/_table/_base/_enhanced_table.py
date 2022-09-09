@@ -42,14 +42,16 @@ class _QTableViewEnhanced(QtW.QTableView):
         else:
             self._parent_table = None
 
-        from ...._global_variables import table
+        from ...._global_variables import get_table_setting
+
+        st = get_table_setting()
 
         # settings
-        self._font_size = table.font_size
+        self._font_size = st.font_size
         self._zoom = 1.0
-        self._h_default = table.row_size
-        self._w_default = table.column_size
-        self._font = table.font
+        self._h_default = st.row_size
+        self._w_default = st.column_size
+        self._font = st.font
         self.setFont(QtGui.QFont(self._font, self._font_size))
 
         # use custom selection model

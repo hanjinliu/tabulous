@@ -1,7 +1,15 @@
-# This file is a container of global variables used in the tabulous package.
+from __future__ import annotations
+from dataclasses import dataclass
 
 
-class table:
+class GlobalSetting:
+    def update(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+
+@dataclass
+class TableSetting(GlobalSetting):
     """Default table settings."""
 
     max_row_count = 100000
@@ -12,7 +20,13 @@ class table:
     column_size = 100
 
 
-class default_namespace:
+@dataclass
+class WindowSetting(GlobalSetting):
+    ask_on_close = True
+
+
+@dataclass
+class ConsoleSetting(GlobalSetting):
     """Default name space for embedded console"""
 
     tabulous = "tbl"
@@ -20,3 +34,20 @@ class default_namespace:
     pandas = "pd"
     numpy = "np"
     data = "DATA"
+
+
+TABLE_SETTING = TableSetting()
+WINDOW_SETTING = WindowSetting()
+CONSOLE_SETTING = ConsoleSetting()
+
+
+def get_table_setting() -> TableSetting:
+    return TABLE_SETTING
+
+
+def get_window_setting() -> WindowSetting:
+    return WINDOW_SETTING
+
+
+def get_console_setting() -> ConsoleSetting:
+    return CONSOLE_SETTING

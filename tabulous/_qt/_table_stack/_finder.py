@@ -231,9 +231,11 @@ class QSearchBox(QtW.QLineEdit):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        from ..._global_variables import table
+        from ..._global_variables import get_table_setting
 
-        self.setFont(QtGui.QFont(table.font, table.font_size))
+        st = get_table_setting()
+
+        self.setFont(QtGui.QFont(st.font, st.font_size))
 
     def keyPressEvent(self, event: QtGui.QKeyEvent):
         if event.key() == Qt.Key.Key_Return:

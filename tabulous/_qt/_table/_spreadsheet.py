@@ -17,9 +17,9 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        from ..._global_variables import table
+        from ..._global_variables import get_table_setting
 
-        self._table_vars = table
+        self._table_vars = get_table_setting()
 
     @property
     def df(self) -> pd.DataFrame:  # NOTE: this returns a string data frame

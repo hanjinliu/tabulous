@@ -114,7 +114,11 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
         self._console_dock_widget = None
         self._dock_widgets = weakref.WeakValueDictionary()
-        self._ask_on_close = True
+
+        from ..._global_variables import get_window_setting
+
+        st = get_window_setting()
+        self._ask_on_close = st.ask_on_close
 
         from .._toolbar import QTableStackToolBar
 
