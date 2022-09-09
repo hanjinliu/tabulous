@@ -114,6 +114,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
         self._console_dock_widget = None
         self._dock_widgets = weakref.WeakValueDictionary()
+        self._ask_on_close = True
 
         from .._toolbar import QTableStackToolBar
 
@@ -176,6 +177,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         )
 
         super().addDockWidget(QtDockWidget.areas[area], dock)
+        self._dock_widgets[name] = dock
         return dock
 
     @classmethod
@@ -184,9 +186,24 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         window = cls._instances[-1] if cls._instances else None
         return window._table_viewer if window else None
 
+    def close(self) -> bool:
+        self._ask_on_close = False
+        return super().close()
+
     def event(self, e: QEvent):
         type = e.type()
         if type == QEvent.Type.Close:
+            if self._ask_on_close:
+                btn = QtW.QMessageBox.information(
+                    self,
+                    "tabulous",
+                    "Are you sure to quit?",
+                    buttons=QtW.QMessageBox.StandardButton.Yes
+                    | QtW.QMessageBox.StandardButton.No,
+                )
+                if btn == QtW.QMessageBox.StandardButton.No:
+                    e.ignore()
+                    return True
             # when we close the MainWindow, remove it from the instances list
             try:
                 QMainWindow._instances.remove(self)
