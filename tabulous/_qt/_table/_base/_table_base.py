@@ -146,9 +146,17 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         hheader.addSeparator()
         hheader.registerAction("Set background colormap")(self._set_background_colormap)
         hheader.registerAction("Reset background colormap")(self._reset_background_colormap)
+        hheader.addSeparator()
 
         self.registerAction("Copy")(lambda index: self.copyToClipboard(headers=False))
+        self.registerAction("Copy as ...>Tab separated text")(lambda index: self.copyToClipboard(headers=False, sep="\t"))
+        self.registerAction("Copy as ...>Tab separated text with headers")(lambda index: self.copyToClipboard(headers=True, sep="\t"))
+        self.registerAction("Copy as ...>Comma separated text")(lambda index: self.copyToClipboard(headers=False, sep=","))
+        self.registerAction("Copy as ...>Comma separated text with headers")(lambda index: self.copyToClipboard(headers=True, sep=","))
+        self.registerAction("Copy as ...>Literal")(lambda index: self._copy_as_literal())
         self.registerAction("Paste")(lambda index: self.pasteFromClipBoard())
+        self.registerAction("Paste from ...>Comma separated text")(lambda index: self.pasteFromClipBoard(sep=","))
+        self.addSeparator()
         self.registerAction("Add highlight")(lambda index: self.setHighlights(self.highlights() + self.selections()))
         self.registerAction("Delete highlight")(lambda index: self._delete_selected_highlights())
         self.addSeparator()
@@ -283,7 +291,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.update()
         return None
 
-    def copyToClipboard(self, headers: bool = True):
+    def copyToClipboard(self, headers: bool = True, sep: str = "\t"):
         """Copy currently selected cells to clipboard."""
         selections = self.selections()
         if len(selections) == 0:
@@ -305,15 +313,30 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             else:
                 axis = 0
             ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
-            ref.to_clipboard(index=headers, header=headers)
+            ref.to_clipboard(index=headers, header=headers, sep=sep)
         return None
+
+    def _copy_as_literal(self):
+        """Copy the selected cells as evaluable string."""
+        sels = self.selections()
+        if len(sels) == 0:
+            raise SelectionRangeError("No selection found.")
+        table_stack = self.tableStack()
+        i = table_stack.currentIndex()
+        viewer = table_stack.parentWidget()._table_viewer
+        name = viewer.tables[i].name
+        _sl = _selection_to_literal(sels[-1])
+
+        from pandas.io.clipboards import to_clipboard
+
+        return to_clipboard(f"viewer.tables[{name!r}].data.iloc{_sl}", excel=False)
 
     def pasteFromClipBoard(self):
         raise TableImmutableError("Table is immutable.")
 
-    def readClipBoard(self) -> pd.DataFrame:
+    def readClipBoard(self, sep=r"\s+") -> pd.DataFrame:
         """Read clipboard data and return as pandas DataFrame."""
-        return pd.read_clipboard(header=None)
+        return pd.read_clipboard(header=None, sep=sep)
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
         if self._keymap.press_key(e):
@@ -555,18 +578,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             sels = self.selections()
             if len(sels) != 1:
                 return
-            rsel, csel = sels[0]
-            rsize = rsel.stop - rsel.start
-            csize = csel.stop - csel.start
-            if rsize == 1 and csize == 1:
-                txt = f"{_df}[{rsel.start}, {csel.start}]"
-            elif rsize == 1:
-                txt = f"{_df}[{rsel.start}, {_fmt_slice(csel)}]"
-            elif csize == 1:
-                txt = f"{_df}[{_fmt_slice(rsel)}, {csel.start}]"
-            else:
-                txt = f"{_df}[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
-            console.setTempText(txt)
+            console.setTempText(f"{_df}{_selection_to_literal(sels[0])}")
         return None
 
 
@@ -759,7 +771,7 @@ class QMutableTable(QBaseTable):
         if not self._keymap.press_key(keys):
             return super().keyPressEvent(e)
 
-    def pasteFromClipBoard(self):
+    def pasteFromClipBoard(self, sep=r"\s+"):
         """
         Paste data to table.
 
@@ -778,9 +790,9 @@ class QMutableTable(QBaseTable):
         elif not self.isEditable():
             return self.tableStack().notifyEditability()
         elif n_selections > 1:
-            raise ValueError("Cannot paste to multiple selections.")
+            raise SelectionRangeError("Cannot paste to multiple selections.")
 
-        df = self.readClipBoard()
+        df = self.readClipBoard(sep=sep)
 
         # check size and normalize selection slices
         sel = selections[0]
@@ -1005,3 +1017,18 @@ def _rename_column(df: pd.DataFrame, idx: int, new_name: str) -> None:
 
 def _fmt_slice(sl: slice) -> str:
     return f"{sl.start}:{sl.stop}"
+
+
+def _selection_to_literal(sel: tuple[slice, slice]) -> str:
+    rsel, csel = sel
+    rsize = rsel.stop - rsel.start
+    csize = csel.stop - csel.start
+    if rsize == 1 and csize == 1:
+        txt = f"[{rsel.start}, {csel.start}]"
+    elif rsize == 1:
+        txt = f"[{rsel.start}, {_fmt_slice(csel)}]"
+    elif csize == 1:
+        txt = f"[{_fmt_slice(rsel)}, {csel.start}]"
+    else:
+        txt = f"[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+    return txt
