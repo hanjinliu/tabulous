@@ -5,6 +5,7 @@ import pandas as pd
 
 if TYPE_CHECKING:
     from pandas.core.dtypes.dtypes import CategoricalDtype
+    from magicgui.widgets import Widget
 
 
 _ColorType = tuple[int, int, int, int]
@@ -13,8 +14,9 @@ _DEFAULT_MAX = "#FF696B"
 
 
 def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
+    """Open a dialog to define a colormap for a series."""
     from ..._color_edit import ColorEdit
-    from magicgui.widgets import Dialog
+    from magicgui.widgets import Dialog, LineEdit, Container
 
     dtype = ds.dtype
     if dtype == "category":
@@ -30,13 +32,23 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
             )
 
     elif dtype.kind in "uif":  # unsigned int, int, float
-        min_ = ColorEdit(value=_DEFAULT_MIN, label="Min")
-        max_ = ColorEdit(value=_DEFAULT_MAX, label="Max")
+        lmin = LineEdit(value=str(ds.min()))
+        lmax = LineEdit(value=str(ds.max()))
+        cmin = ColorEdit(value=_DEFAULT_MIN)
+        cmax = ColorEdit(value=_DEFAULT_MAX)
+        min_ = Container(
+            widgets=[cmin, lmin], labels=False, layout="horizontal", label="Min"
+        )
+        min_.margins = (0, 0, 0, 0)
+        max_ = Container(
+            widgets=[cmax, lmax], labels=False, layout="horizontal", label="Max"
+        )
+        max_.margins = (0, 0, 0, 0)
         dlg = Dialog(widgets=[min_, max_])
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
             return _define_continuous_colormap(
-                ds.min(), ds.max(), min_.value, max_.value
+                float(lmin.value), float(lmax.value), cmin.value, cmax.value
             )
 
     elif dtype.kind == "b":  # boolean
@@ -125,3 +137,12 @@ def _define_time_colormap(
 
 def _random_color() -> list[int]:
     return list(np.random.randint(256, size=3)) + [255]
+
+
+def _make_color_edit(color: str, label: str, widget: Widget):
+    from ..._color_edit import ColorEdit
+    from magicgui.widgets import Container
+
+    col = ColorEdit(value=color, label=label)
+
+    return Container(widgets=[col, widget], labels=False, layout="horizontal")
