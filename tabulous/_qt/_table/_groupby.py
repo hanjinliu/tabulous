@@ -71,12 +71,7 @@ class _QLabeledComboBox(QtW.QWidget):
         new.currentIndexChanged.connect(self.currentIndexChanged.emit)
         if link:
             new.currentIndexChanged.connect(self.setCurrentIndex)
-
-            @self.currentIndexChanged.connect
-            def _(i):
-                new.blockSignals(True)
-                new.setCurrentIndex(i)
-                new.blockSignals(False)
+            self.currentIndexChanged.connect(new.setCurrentIndex)
 
         return new
 

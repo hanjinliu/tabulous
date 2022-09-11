@@ -176,15 +176,17 @@ class TableList(EventedList[TableBase]):
 
             return _fset
 
+        tablestack = self._parent._qwidget._tablestack
+
         # fmt: off
-        self.register_action("Copy all")(self._parent._qwidget._tablestack.copyData)
-        self.register_action("Rename")(self._parent._qwidget._tablestack.enterEditingMode)
+        self.register_action("Copy all")(tablestack.copyData)
+        self.register_action("Rename")(tablestack.enterEditingMode)
         self.register_action("Delete")(self.__delitem__)
-
-        self.register_action("Find")(self._parent._qwidget._tablestack.openFinderDialog)
-        self.register_action("Filter")(self._parent._qwidget._tablestack.openFilterDialog)
-        self.register_action("Evaluate")(self._parent._qwidget._tablestack.openEvalDialog)
-
+        tablestack.addSeparator()
+        self.register_action("Find")(tablestack.openFinderDialog)
+        self.register_action("Filter")(tablestack.openFilterDialog)
+        self.register_action("Evaluate")(tablestack.openEvalDialog)
+        tablestack.addSeparator()
         self.register_action("View>Horizontal dual view")(view_mode_setter("horizontal"))
         self.register_action("View>Vertical dual view")(view_mode_setter("vertical"))
         self.register_action("View>Popup view")(view_mode_setter("popup"))
