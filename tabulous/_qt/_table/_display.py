@@ -38,9 +38,9 @@ class _QPlayButton(QtW.QToolButton):
 
     def copy(self, link: bool = True) -> _QPlayButton:
         new = self.__class__(self.parent())
+        new.setRunning(self.running())
         if link:
-            self.clicked.connect(new.switchRunning)
-            new.clicked.connect(self.switchRunning)
+            new.clicked.connect(self.click)
         return new
 
 
@@ -59,14 +59,13 @@ class _QTimerSpinBox(QtW.QSpinBox):
         self._qtimer.setInterval(value)
         self._qtimer.setTimerType(Qt.TimerType.PreciseTimer)
         self.valueChanged.connect(self._qtimer.setInterval)
-        self._qtimer.timeout.connect(self.timeout)
+        self._qtimer.timeout.connect(self.timeout.emit)
 
     def copy(self, link: bool = True) -> _QTimerSpinBox:
         new = self.__class__(value=self.value())
         if link:
             self.valueChanged.connect(new.setValue)
             new.valueChanged.connect(self.setValue)
-            self.timeout.connect(new.timeout.emit)
         return new
 
     def start(self):
