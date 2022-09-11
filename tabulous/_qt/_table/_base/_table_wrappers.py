@@ -20,7 +20,7 @@ class QTableDualView(QtW.QSplitter):
         super().__init__(orientation)
         self.setChildrenCollapsible(False)
 
-        second = table.copy()
+        second = table.copy(link=True)
 
         self.addWidget(table)
         self.addWidget(second)
@@ -45,7 +45,7 @@ class QTablePopupView(QtW.QWidget):
         self.layout().addWidget(table)
 
         self._table = table
-        self._second = table.copy()
+        self._second = table.copy(link=True)
 
         popup = QPopupWidget(table, self._second)
         self.popup = popup

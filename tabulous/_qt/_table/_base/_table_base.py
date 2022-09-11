@@ -247,12 +247,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Return the shown dataframe (consider filter)."""
         return self.model().df
 
-    # def rowHeaderShown(self) -> pd.Series:
-    #     ...
-
-    # def columnHeaderShown(self) -> pd.Series:
-    #     ...
-
     def precision(self) -> int:
         """Return table value precision."""
         return self.itemDelegate().ndigits

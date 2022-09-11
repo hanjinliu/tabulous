@@ -164,11 +164,13 @@ class _QTableDisplayWidget(QtW.QWidget):
     def _selection_model(self):
         return self._qtable_view._selection_model
 
-    def _on_moving(self, src, dst):
-        return self._qtable_view._on_moving(src, dst)
+    @property
+    def _on_moving(self):
+        return self._qtable_view._on_moving
 
-    def _on_moved(self, src, dst):
-        return self._qtable_view._on_moved(src, dst)
+    @property
+    def _on_moved(self):
+        return self._qtable_view._on_moved
 
 
 # TODO: don't initialize filter and only accept function filter.

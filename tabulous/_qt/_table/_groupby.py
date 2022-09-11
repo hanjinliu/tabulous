@@ -78,28 +78,31 @@ class _QLabeledComboBox(QtW.QWidget):
 
 class _QGroupByWidget(QtW.QWidget):
     _groupby: QTableGroupBy | None = None
+    _qtable_view: _QTableViewEnhanced | None = None
 
     @classmethod
     def from_groupby(cls, parent: QTableGroupBy) -> _QGroupByWidget:
-        self = cls(parent)
+        self = cls.from_widgets(parent._group_key_cbox, parent._qtable_view)
+        self._groupby = parent
+        return self
+
+    @classmethod
+    def from_widgets(cls, cbox: _QLabeledComboBox, table: _QTableViewEnhanced):
+        self = cls()
         _main_layout = QtW.QVBoxLayout()
         _main_layout.setContentsMargins(0, 0, 0, 0)
-        _main_layout.addWidget(parent._group_key_cbox)
-        _main_layout.addWidget(parent._qtable_view)
+        _main_layout.addWidget(cbox)
+        _main_layout.addWidget(table)
         self.setLayout(_main_layout)
-        self._groupby = parent
+        self._qtable_view = table
         return self
 
     def copy(self, link: bool = True) -> _QGroupByWidget:
         groupby: QTableGroupBy = self._groupby
-        new = self.__class__(groupby)
-        _main_layout = QtW.QVBoxLayout()
-        _main_layout.setContentsMargins(0, 0, 0, 0)
-        _main_layout.addWidget(groupby._group_key_cbox.copy(link=link))
-        w = groupby._qtable_view.copy(link=link)
-        _main_layout.addWidget(w)
-        new.setLayout(_main_layout)
-        w.setVisible(True)
+        new_cbox = groupby._group_key_cbox.copy(link=link)
+        new_table = groupby._qtable_view.copy(link=link)
+        new = self.__class__.from_widgets(new_cbox, new_table)
+        new_table.setVisible(True)
         new._groupby = groupby
         return new
 
@@ -107,11 +110,13 @@ class _QGroupByWidget(QtW.QWidget):
     def _selection_model(self):
         return self._groupby._qtable_view._selection_model
 
-    def _on_moving(self, src, dst):
-        return self._groupby._qtable_view._on_moving(src, dst)
+    @property
+    def _on_moving(self):
+        return self._groupby._qtable_view._on_moving
 
-    def _on_moved(self, src, dst):
-        return self._groupby._qtable_view._on_moved(src, dst)
+    @property
+    def _on_moved(self):
+        return self._groupby._qtable_view._on_moved
 
 
 class QTableGroupBy(QBaseTable):
@@ -129,12 +134,13 @@ class QTableGroupBy(QBaseTable):
         self._qtable_view_ = _QTableViewEnhanced(self)
         self._group_key_cbox = _QLabeledComboBox()
         self._group_map: dict[Hashable, Sequence[int]] = {}
-        self._group_key_cbox.currentIndexChanged.connect(
-            lambda e: self.setFilter(self._filter_slice)
-        )
+        self._group_key_cbox.currentIndexChanged.connect(self._on_cbox_changed)
         wdt = _QGroupByWidget.from_groupby(self)
         self._central_widget_ = wdt
         self.addWidget(wdt)
+
+    def _on_cbox_changed(self):
+        return self.setFilter(self._filter_slice)
 
     def getDataFrame(self) -> DataFrameGroupBy:
         return self._data_raw
