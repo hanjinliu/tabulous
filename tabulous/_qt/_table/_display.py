@@ -85,6 +85,9 @@ class _QTimerSpinBox(QtW.QSpinBox):
 
 class _QTableDisplayWidget(QtW.QWidget):
     _table_display: QTableDisplay | None = None
+    _timer: _QTimerSpinBox | None = None
+    _play_btn: _QPlayButton | None = None
+    _qtable_view: _QTableViewEnhanced | None = None
 
     @classmethod
     def from_table_display(cls, table_display: QTableDisplay) -> _QTableDisplayWidget:
@@ -94,7 +97,10 @@ class _QTableDisplayWidget(QtW.QWidget):
             play_button=table_display._play_btn,
             qtable_view=table_display._qtable_view_,
         )
+
+        table_display.loaded.connect(self._on_loaded)
         self._table_display = table_display
+
         return self
 
     def copy(self, link: bool = True) -> _QTableDisplayWidget:
@@ -104,6 +110,8 @@ class _QTableDisplayWidget(QtW.QWidget):
             qtable_view=self._table_display._qtable_view_.copy(link=link),
         )
         new._table_display = self._table_display
+        if link:
+            self._table_display.loaded.connect(new._on_loaded)
         return new
 
     @classmethod
@@ -115,6 +123,10 @@ class _QTableDisplayWidget(QtW.QWidget):
     ) -> _QTableDisplayWidget:
         """Create a new QTableDisplay from existing widgets."""
         self = cls()
+        self._timer = spinbox
+        self._play_btn = play_button
+        self._qtable_view = qtable_view
+
         _header = QtW.QWidget()
         _header_layout = QtW.QHBoxLayout()
         _header_layout.setContentsMargins(2, 2, 2, 2)
@@ -132,9 +144,28 @@ class _QTableDisplayWidget(QtW.QWidget):
 
         return self
 
+    def _on_loaded(self):
+        if self._play_btn.running():
+            self._timer.start()
+        else:
+            self._timer.stop()
+        return self._qtable_view._update_all()
+
+    @property
+    def _selection_model(self):
+        return self._qtable_view._selection_model
+
+    def _on_moving(self, src, dst):
+        return self._qtable_view._on_moving(src, dst)
+
+    def _on_moved(self, src, dst):
+        return self._qtable_view._on_moved(src, dst)
+
 
 # TODO: don't initialize filter and only accept function filter.
 class QTableDisplay(QBaseTable):
+    loaded = Signal()
+
     def __init__(
         self,
         parent: QtW.QWidget | None = None,
@@ -152,7 +183,7 @@ class QTableDisplay(QBaseTable):
             self._loader = lambda: pd.DataFrame([])
         else:
             self._loader = lambda: pd.DataFrame(loader())
-        self._refreshing = False
+        self._loading = False
         self._timer.timeout.connect(self._on_timeout)
 
         if self._play_btn.running():
@@ -165,8 +196,8 @@ class QTableDisplay(QBaseTable):
 
     def _on_timeout(self):
         """Run refresh if needed."""
-        if self._play_btn.running() and not self._refreshing:
-            self.refresh()
+        if self._play_btn.running() and not self._loading:
+            self._load_data()
 
     def loader(self) -> Callable:
         """Return the loader function."""
@@ -177,7 +208,7 @@ class QTableDisplay(QBaseTable):
         if not callable(loader):
             raise TypeError("loader must be callable")
         self._loader = loader
-        return self.refresh()
+        return self._load_data()
 
     def getDataFrame(self) -> pd.DataFrame:
         return self._data_raw
@@ -186,6 +217,8 @@ class QTableDisplay(QBaseTable):
         self._data_raw = data
         self.model().df = data
         self._qtable_view.viewport().update()
+        self._filtered_index = data.index
+        self._filtered_columns = data.columns
         return
 
     def createModel(self):
@@ -208,18 +241,17 @@ class QTableDisplay(QBaseTable):
         self.addWidget(wdt)
         self._central_widget_ = wdt
 
-    def refresh(self) -> None:
-        self._refreshing = True
+    def _load_data(self) -> None:
+        self._loading = True
         if self.isVisible():
             try:
                 self._data_raw = self._loader()
             except Exception as e:
                 return
             self.model().df = self._data_raw
+            self._filtered_index = self._data_raw.index
+            self._filtered_columns = self._data_raw.columns
 
-        self._refreshing = False
-        if self._play_btn.running():
-            self._timer.start()
-        else:
-            self._timer.stop()
-        return super().refreshTable()
+        self._loading = False
+        self.loaded.emit()
+        return None
