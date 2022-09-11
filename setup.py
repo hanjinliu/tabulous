@@ -31,7 +31,11 @@ setup(
         "appdirs>=1.4.4",
         "qtconsole",
     ],
-    extras_require={"all": ["seaborn>=0.11", "matplotlib>=3.1", "pyqt5>=5.12.3"]},
+    extras_require={
+        "all": ["seaborn>=0.11", "matplotlib>=3.1", "pyqt5>=5.12.3"],
+        "pyqt5": ["pyqt5>=5.12.3"],
+        "pyqt6": ["pyqt6>=6.3.1"],
+    },
     entry_points={
         "console_scripts": ["tabulous=tabulous.__main__:main"],
     },

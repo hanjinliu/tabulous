@@ -17,11 +17,8 @@ from ._component import (
 from . import _doc
 
 from ..types import (
-    # SelectionRanges,
     ItemInfo,
     HeaderInfo,
-    SelectionType,
-    _SingleSelection,
 )
 
 if TYPE_CHECKING:
@@ -472,13 +469,14 @@ class TableDisplay(TableBase):
     @property
     def interval(self) -> int:
         """Interval of table refresh."""
-        return self._qwidget._qtimer.interval()
+        return self._qwidget.interval()
 
     @interval.setter
     def interval(self, value: int) -> None:
+        """Set the interval of table refresh."""
         if not 10 <= value <= 10000:
             raise ValueError("Interval must be between 10 and 10000.")
-        self._qwidget._qtimer.setInterval(value)
+        self._qwidget.setInterval(value)
 
     @property
     def loader(self) -> Callable[[], Any]:
@@ -488,3 +486,11 @@ class TableDisplay(TableBase):
     @loader.setter
     def loader(self, value: Callable[[], Any]) -> None:
         self._qwidget.setLoader(value)
+
+    @property
+    def running(self) -> bool:
+        return self._qwidget.running()
+
+    @running.setter
+    def running(self, value: bool) -> None:
+        return self._qwidget.setRunning(value)

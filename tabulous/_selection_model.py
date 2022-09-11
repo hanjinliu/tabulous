@@ -114,11 +114,11 @@ class RangesModel:
         rng = self._ranges.pop(idx)
         self._ranges.append(rng)
         if idx in self._row_selection_indices:
-            self._row_selection_indices.pop(idx)
-            self._row_selection_indices.add(len(self._ranges))
+            self._row_selection_indices.discard(idx)
+            self._row_selection_indices.add(len(self._ranges) - 1)
         elif idx in self._col_selection_indices:
-            self._col_selection_indices.pop(idx)
-            self._col_selection_indices.add(len(self._ranges))
+            self._col_selection_indices.discard(idx)
+            self._col_selection_indices.add(len(self._ranges) - 1)
         return None
 
     def select(self, indices: Iterable[int]) -> None:

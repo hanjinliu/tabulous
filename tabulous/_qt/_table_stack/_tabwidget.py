@@ -413,7 +413,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         table.setSelections([])
         return None
 
-    def openFinderDialog(self, index: int):
+    def openFinderDialog(self, index: int | None = None):
         """Open a dialog to find data in the table at index."""
         if index is not None:
             self.setCurrentIndex(index)
