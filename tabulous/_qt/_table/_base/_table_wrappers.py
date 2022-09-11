@@ -20,7 +20,7 @@ class QTableDualView(QtW.QSplitter):
         super().__init__(orientation)
         self.setChildrenCollapsible(False)
 
-        second = table.copy()
+        second = table.copy(link=True)
 
         self.addWidget(table)
         self.addWidget(second)
@@ -45,10 +45,9 @@ class QTablePopupView(QtW.QWidget):
         self.layout().addWidget(table)
 
         self._table = table
-        view = table.copy()
-        self._second = view
+        self._second = table.copy(link=True)
 
-        popup = QPopupWidget(table, view)
+        popup = QPopupWidget(table, self._second)
         self.popup = popup
 
     def exec(self):
@@ -58,6 +57,7 @@ class QTablePopupView(QtW.QWidget):
     def deleteLater(self) -> None:
         self._second._selection_model.moving.disconnect(self._second._on_moving)
         self._second._selection_model.moved.disconnect(self._second._on_moved)
+        self.popup.close()
         return super().deleteLater()
 
 

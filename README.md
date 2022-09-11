@@ -17,15 +17,35 @@ A table data viewer for Python.
 pip install tabulous[all]
 ```
 
-###### Install with PyQt5 backend.
+###### Install with PyQt backend.
 
 ```
-pip install tabulous[pyqt5]
+pip install tabulous[pyqt5]  # Use PyQt5
+pip install tabulous[pyqt6]  # Use PyQt6
 ```
 
 ### Documentation
 
 Documentation is available [here](https://hanjinliu.github.io/tabulous/).
+
+### A Wide Variety of Tables are Supported
+
+|**Table**|**SpreadSheet**|
+|:-:|:-:|
+|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_table.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_sheet.gif)|
+|A dtype-tagged table view with fixed size, aimed at viewing and editing `pd.DataFrame`. This table is the most basic one.|A string based table editor. Table is converted into `pd.DataFrame` object with proper dtypes consistent with reading CSV file using `pd.read_csv`.|
+
+|**GroupBy**|**TableDisplay**|
+|:-:|:-:|
+|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_groupby.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_display.gif)|
+|A table group that corresponds to the returned object of the `groupby` method of `pd.DataFrame`.|A table viewer that hotly reloads data using provided loader function. Useful for streaming data from other softwares.|
+
+### Rich Visualization
+
+|**Cell colors**|**Highlighting**|
+|:-:|:-:|
+|![](https://github.com/hanjinliu/tabulous/blob/main/image/colormap.png)|![](https://github.com/hanjinliu/tabulous/blob/main/image/highlight.png)|
+
 
 ### How it works.
 
@@ -53,15 +73,3 @@ def _on_selection_change(selections):
     """selection-changed callback"""
 
 ```
-
-### Supported table types
-
-|**Table**|**SpreadSheet**|
-|:-:|:-:|
-|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_table.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_sheet.gif)|
-|A dtype-tagged table view with fixed size, aimed at viewing and editing `pd.DataFrame`. This table is the most basic one.|A string based table editor. Table is converted into `pd.DataFrame` object with proper dtypes consistent with reading CSV file using `pd.read_csv`.|
-
-|**GroupBy**|**TableDisplay**|
-|:-:|:-:|
-|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_groupby.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_display.gif)|
-|A table group that corresponds to the returned object of the `groupby` method of `pd.DataFrame`.|A table viewer that hotly reloads data using provided loader function. Useful for streaming data from other softwares.|
