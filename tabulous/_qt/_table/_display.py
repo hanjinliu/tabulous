@@ -51,15 +51,16 @@ class _QTimerSpinBox(QtW.QSpinBox):
         super().__init__(parent)
         self.setMinimum(10)
         self.setMaximum(10000)
-        self.setSingleStep(10)
-        self.setValue(value)
+        self.setSuffix(" ms")
 
         self._qtimer = QTimer()
         self._qtimer.setSingleShot(True)
         self._qtimer.setInterval(value)
         self._qtimer.setTimerType(Qt.TimerType.PreciseTimer)
         self.valueChanged.connect(self._qtimer.setInterval)
+        self.valueChanged.connect(self._set_step)
         self._qtimer.timeout.connect(self.timeout.emit)
+        self.setValue(value)
 
     def copy(self, link: bool = True) -> _QTimerSpinBox:
         new = self.__class__(value=self.value())
@@ -79,6 +80,15 @@ class _QTimerSpinBox(QtW.QSpinBox):
             self._qtimer.stop()
         else:
             self._qtimer.start()
+        return None
+
+    def _set_step(self, val: int):
+        nd = len(str(val))
+        if nd == 2:
+            step = 10
+        else:
+            step = 5 * 10 ** (nd - 2)
+        self.setSingleStep(step)
         return None
 
 
@@ -129,7 +139,7 @@ class _QTableDisplayWidget(QtW.QWidget):
         _header = QtW.QWidget()
         _header_layout = QtW.QHBoxLayout()
         _header_layout.setContentsMargins(2, 2, 2, 2)
-        _header_layout.addWidget(QtW.QLabel("Interval (ms):"))
+        _header_layout.addWidget(QtW.QLabel("Interval:"))
 
         _header_layout.addWidget(spinbox)
         _header_layout.addWidget(play_button)
@@ -254,3 +264,18 @@ class QTableDisplay(QBaseTable):
         self._loading = False
         self.loaded.emit()
         return None
+
+    def running(self) -> bool:
+        """True if the loader is running."""
+        return self._play_btn.running()
+
+    def setRunning(self, running: bool) -> None:
+        """Set the loader running state."""
+        self._play_btn.setRunning(running)
+        return None
+
+    def interval(self) -> int:
+        return self._timer._qtimer.interval()
+
+    def setInterval(self, interval: int) -> None:
+        return self._timer._qtimer.setInterval(interval)
