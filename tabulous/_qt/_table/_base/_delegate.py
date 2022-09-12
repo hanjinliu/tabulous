@@ -10,19 +10,11 @@ if TYPE_CHECKING:
     import numpy as np
     from pandas.core.dtypes.dtypes import CategoricalDtype
     from ._enhanced_table import _QTableViewEnhanced
+    from ._item_model import AbstractDataFrameModel
 
 
 class TableItemDelegate(QtW.QStyledItemDelegate):
     """Displays table widget items with properly formatted numbers."""
-
-    def __init__(self, parent: QtCore.QObject | None = None, ndigits: int = 4) -> None:
-        super().__init__(parent)
-        self.ndigits = ndigits
-        self._parent = parent
-
-    def replace(self, parent: QtCore.QObject | None = None) -> TableItemDelegate:
-        """Replace with new parent."""
-        return TableItemDelegate(parent, self.ndigits)
 
     def createEditor(
         self, parent: QtW.QWidget, option, index: QtCore.QModelIndex
@@ -84,7 +76,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
     def setModelData(
         self,
         editor: QtW.QWidget,
-        model: QtCore.QAbstractItemModel,
+        model: AbstractDataFrameModel,
         index: QtCore.QModelIndex,
     ) -> None:
         if isinstance(editor, QtW.QDateTimeEdit):

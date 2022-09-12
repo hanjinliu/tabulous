@@ -247,18 +247,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Return the shown dataframe (consider filter)."""
         return self.model().df
 
-    def precision(self) -> int:
-        """Return table value precision."""
-        return self.itemDelegate().ndigits
-
-    def setPrecision(self, ndigits: int) -> None:
-        """Set table value precision."""
-        ndigits = int(ndigits)
-        if ndigits <= 0:
-            raise ValueError("Cannot set negative precision.")
-        self.itemDelegate().ndigits = ndigits
-        return None
-
     def connectSelectionChangedSignal(self, slot):
         self.selectionChangedSignal.connect(slot)
         return slot
@@ -450,6 +438,22 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def setTextFormatter(self, name: str, fmt: Callable[[Any], str] | str):
         fmt = self.model()._text_formatter.get(name, None)
         return (name, fmt), {}
+
+    @_mgr.interface
+    def setDataValidator(self, name: str, validator: Callable[[Any], bool]):
+        if validator is None:
+            self.model()._validator.pop(name, None)
+        else:
+            if not callable(validator):
+                raise TypeError("Validator must be callable.")
+            self.model()._validator[name] = validator
+        self.refreshTable()
+        return None
+
+    @setDataValidator.server
+    def setDataValidator(self, name: str, validator: Callable[[Any], bool]):
+        validator = self.model()._validator.get(name, None)
+        return (name, validator), {}
 
     def refreshTable(self) -> None:
         """Refresh table view."""

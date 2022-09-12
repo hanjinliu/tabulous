@@ -85,7 +85,7 @@ QTabBar::tab:bottom:selected {
     color: black;
 }
 
-QDtypedLineEdit {
+_QTableLineEdit {
     border: none;
     border-bottom: 2px solid #BADEF4;
 }

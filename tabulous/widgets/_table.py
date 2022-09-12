@@ -35,6 +35,7 @@ if TYPE_CHECKING:
 
     ColorMapping = Callable[[Any], ColorType]
     Formatter = Union[Callable[[Any], str], Literal["default"], str]
+    Validator = Callable[[Any], bool]
 
 
 class TableSignals(SignalGroup):
@@ -153,15 +154,6 @@ class TableBase(ABC):
         return self._qwidget._keymap
 
     @property
-    def precision(self) -> int:
-        """Precision (displayed digits) of table."""
-        return self._qwidget.precision()
-
-    @precision.setter
-    def precision(self, value: int) -> None:
-        return self._qwidget.setPrecision(value)
-
-    @property
     def metadata(self) -> dict[str, Any]:
         return self._metadata
 
@@ -256,6 +248,8 @@ class TableBase(ABC):
         """
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
+            if f == "default":
+                f = None
             self._qwidget.setForegroundColormap(column_name, f)
             return f
 
@@ -279,6 +273,8 @@ class TableBase(ABC):
         """
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
+            if f == "default":
+                f = None
             self._qwidget.setBackgroundColormap(column_name, f)
             return f
 
@@ -290,6 +286,17 @@ class TableBase(ABC):
         /,
         formatter: Formatter | None = None,
     ):
+        """
+        Set background color rule.
+
+        Parameters
+        ----------
+        column_name : Hashable
+            Target column name.
+        formatter : callable, optional
+            formatter function.
+        """
+
         def _wrapper(f: Formatter) -> Formatter:
             if f == "default":
                 f = None
@@ -297,6 +304,31 @@ class TableBase(ABC):
             return f
 
         return _wrapper(formatter) if formatter is not None else _wrapper
+
+    def validator(
+        self,
+        column_name: Hashable,
+        /,
+        validator: Validator | None = None,
+    ):
+        """
+        Set background color rule.
+
+        Parameters
+        ----------
+        column_name : Hashable
+            Target column name.
+        validator : callable, optional
+            Validator function.
+        """
+
+        def _wrapper(f: Validator) -> Validator:
+            if f == "default":
+                f = None
+            self._qwidget.setDataValidator(column_name, f)
+            return f
+
+        return _wrapper(validator) if validator is not None else _wrapper
 
     @property
     def view_mode(self) -> str:

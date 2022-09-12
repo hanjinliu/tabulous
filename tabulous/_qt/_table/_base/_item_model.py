@@ -14,6 +14,8 @@ _READ_ONLY = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 
 
 class AbstractDataFrameModel(QtCore.QAbstractTableModel):
+    """Table model for data frame."""
+
     dataEdited = Signal(int, int, object)
 
     def __init__(self, parent=None):
@@ -24,6 +26,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         self._foreground_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
         self._background_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
         self._text_formatter: dict[Hashable, Callable[[Any], str]] = {}
+        self._validator: dict[Hashable, Callable[[Any], bool]] = {}
 
         self._data_role_map = {
             Qt.ItemDataRole.EditRole: self._data_display,
@@ -167,18 +170,23 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return f"{name} (dtype: {dtype})"
 
     def delete_column(self, name: str):
+        """Delete keys to match new columns."""
         self._foreground_colormap.pop(name, None)
         self._background_colormap.pop(name, None)
         self._text_formatter.pop(name, None)
+        self._validator.pop(name, None)
         return None
 
     def rename_column(self, old_name: str, new_name: str):
+        """Fix keys to match new column names."""
         if background_colormap := self._background_colormap.pop(old_name, None):
             self._background_colormap[new_name] = background_colormap
         if foreground_colormap := self._foreground_colormap.pop(old_name, None):
             self._foreground_colormap[new_name] = foreground_colormap
         if text_formatter := self._text_formatter.pop(old_name, None):
             self._text_formatter[new_name] = text_formatter
+        if validator := self._validator.pop(old_name, None):
+            self._validator[new_name] = validator
         return None
 
     def setData(self, index: QtCore.QModelIndex, value, role) -> bool:
