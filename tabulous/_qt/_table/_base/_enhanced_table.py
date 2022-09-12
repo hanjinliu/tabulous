@@ -25,6 +25,7 @@ H_COLOR_B = QtGui.QColor(255, 0, 0, 86)
 S_COLOR_W = Qt.GlobalColor.darkBlue
 S_COLOR_B = Qt.GlobalColor.cyan
 CUR_COLOR = QtGui.QColor(128, 128, 128, 108)
+HOV_COLOR = QtGui.QColor(75, 75, 242, 80)
 
 # fmt: on
 
@@ -435,11 +436,20 @@ class _QTableViewEnhanced(QtW.QTableView):
         # current index
         idx = self._selection_model.current_index
         if idx >= (0, 0):
-            rect_current = self.visualRect(self.model().index(*idx))
-            rect_current.adjust(1, 1, -1, -1)
+            rect_cursor = self.visualRect(self.model().index(*idx))
+            rect_cursor.adjust(1, 1, -1, -1)
             pen = QtGui.QPen(CUR_COLOR, 3)
             painter.setPen(pen)
-            painter.drawRect(rect_current)
+            painter.drawRect(rect_cursor)
+
+        # mouse hover
+        mouse_idx = self.indexAt(self.viewport().mapFromGlobal(QtGui.QCursor.pos()))
+        if mouse_idx.isValid():
+            rect_cursor = self.visualRect(mouse_idx)
+            rect_cursor.adjust(1, 1, -1, -1)
+            pen = QtGui.QPen(HOV_COLOR, 2)
+            painter.setPen(pen)
+            painter.drawRect(rect_cursor)
 
         return None
 

@@ -31,7 +31,7 @@ QTableView:focus {
 }
 
 QTableView:item:hover {
-    border: 2px solid #E8E8F6;
+    /* empty style sheet enables paint event on hovering. */
 }
 
 QTableView:item:focus {
