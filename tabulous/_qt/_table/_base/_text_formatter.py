@@ -185,7 +185,7 @@ class QComplexFormatterDialog(_QFormatterDialog):
         elif val == ComplexFormat.exponential:
             fmt = lambda x: f"{x.real:.{n}e}{x.imag:+.{n}e}{iunit}"
         elif val == ComplexFormat.polar:
-            fmt = lambda x: f"{abs(x)}exp({np.angle(x):+.{n}f}{iunit})"
+            fmt = lambda x: f"{abs(x):.{n}f}e^({np.angle(x):+.{n}f}{iunit})"
         else:
             raise RuntimeError()
         return fmt

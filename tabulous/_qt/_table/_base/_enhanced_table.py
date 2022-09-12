@@ -15,7 +15,6 @@ if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
     from ..._mainwindow import _QtMainWidgetBase
 
-# fmt: off
 # Flags
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
@@ -26,8 +25,6 @@ S_COLOR_W = Qt.GlobalColor.darkBlue
 S_COLOR_B = Qt.GlobalColor.cyan
 CUR_COLOR = QtGui.QColor(128, 128, 128, 108)
 HOV_COLOR = QtGui.QColor(75, 75, 242, 80)
-
-# fmt: on
 
 
 class _QTableViewEnhanced(QtW.QTableView):
