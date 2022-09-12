@@ -23,6 +23,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         self._editable = False
         self._foreground_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
         self._background_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
+        self._text_formatter: dict[Hashable, Callable[[Any], str]] = {}
 
         self._data_role_map = {
             Qt.ItemDataRole.EditRole: self._data_display,
@@ -58,9 +59,18 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
             val = df.iat[r, c]
+            colname = df.columns[c]
             if _isna(val):
-                return "NA"
-            return str(val)
+                text = "NA"
+            elif mapper := self._text_formatter.get(colname, None):
+                try:
+                    text = mapper(val)
+                except Exception:
+                    text = "<Format Error>"
+            else:
+                fmt = _DEFAULT_FORMATTERS.get(df.dtypes[colname].kind, str)
+                text = fmt(val)
+            return text
         return QtCore.QVariant()
 
     def _data_text_color(self, index: QtCore.QModelIndex):
@@ -221,19 +231,37 @@ def _isna(val):
     return val in _NANS
 
 
-# def _format_float(value, ndigits: int) -> str:
-#     """convert string to int or float if possible"""
-#     if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
-#         text = f"{value:.{ndigits}f}"
-#     else:
-#         text = f"{value:.{ndigits-1}e}"
+def _format_float(value, ndigits: int = 4) -> str:
+    """convert string to int or float if possible"""
+    if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+        text = f"{value:.{ndigits}f}"
+    else:
+        text = f"{value:.{ndigits-1}e}"
 
-#     return text
+    return text
 
-# def _format_int(value, ndigits: int) -> str:
-#     if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
-#         text = str(value)
-#     else:
-#         text = f"{value:.{ndigits-1}e}"
 
-#     return text
+def _format_int(value, ndigits: int = 4) -> str:
+    if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+        text = str(value)
+    else:
+        text = f"{value:.{ndigits-1}e}"
+
+    return text
+
+
+def _format_complex(value: complex, ndigits: int = 3) -> str:
+    if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+        text = f"{value.real:.{ndigits}f}{value.imag:+.{ndigits}f}j"
+    else:
+        text = f"{value.real:.{ndigits-1}e}{value.imag:+.{ndigits-1}e}j"
+
+    return text
+
+
+_DEFAULT_FORMATTERS = {
+    "u": _format_int,
+    "i": _format_int,
+    "f": _format_float,
+    "c": _format_complex,
+}
