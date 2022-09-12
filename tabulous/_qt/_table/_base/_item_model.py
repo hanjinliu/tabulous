@@ -64,7 +64,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 text = "NA"
             elif mapper := self._text_formatter.get(colname, None):
                 try:
-                    text = mapper(val)
+                    text = str(mapper(val))
                 except Exception:
                     text = "<Format Error>"
             else:
@@ -166,6 +166,21 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         dtype = self.df.dtypes.values[section]
         return f"{name} (dtype: {dtype})"
 
+    def delete_column(self, name: str):
+        self._foreground_colormap.pop(name, None)
+        self._background_colormap.pop(name, None)
+        self._text_formatter.pop(name, None)
+        return None
+
+    def rename_column(self, old_name: str, new_name: str):
+        if background_colormap := self._background_colormap.pop(old_name, None):
+            self._background_colormap[new_name] = background_colormap
+        if foreground_colormap := self._foreground_colormap.pop(old_name, None):
+            self._foreground_colormap[new_name] = foreground_colormap
+        if text_formatter := self._text_formatter.pop(old_name, None):
+            self._text_formatter[new_name] = text_formatter
+        return None
+
     def setData(self, index: QtCore.QModelIndex, value, role) -> bool:
         if not index.isValid():
             return False
@@ -259,7 +274,7 @@ def _format_complex(value: complex, ndigits: int = 3) -> str:
     return text
 
 
-_DEFAULT_FORMATTERS = {
+_DEFAULT_FORMATTERS: dict[str, Callable[[Any], str]] = {
     "u": _format_int,
     "i": _format_int,
     "f": _format_float,

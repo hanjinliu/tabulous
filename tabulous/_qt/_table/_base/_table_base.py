@@ -141,11 +141,11 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _install_actions(self):
         # fmt: off
         hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Set forground colormap")(self._set_forground_colormap)
-        hheader.registerAction("Reset forground colormap")(self._reset_forground_colormap)
-        hheader.addSeparator()
-        hheader.registerAction("Set background colormap")(self._set_background_colormap)
-        hheader.registerAction("Reset background colormap")(self._reset_background_colormap)
+        hheader.registerAction("Color>Set forground colormap")(self._set_forground_colormap_with_dialog)
+        hheader.registerAction("Color>Reset forground colormap")(self._reset_forground_colormap)
+        hheader.registerAction("Color>Set background colormap")(self._set_background_colormap_with_dialog)
+        hheader.registerAction("Color>Reset background colormap")(self._reset_background_colormap)
+        hheader.registerAction("Formatter>Set text formatter")(self._set_text_formatter_with_dialog)
         hheader.addSeparator()
 
         self.registerAction("Copy")(lambda index: self.copyToClipboard(headers=False))
@@ -433,6 +433,24 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         cmap = self.model()._background_colormap.get(name, None)
         return (name, cmap), {}
 
+    @_mgr.interface
+    def setTextFormatter(self, name: str, fmt: Callable[[Any], str] | str):
+        if fmt is None:
+            self.model()._text_formatter.pop(name, None)
+        else:
+            if isinstance(fmt, str):
+                fmt = fmt.format
+            elif not callable(fmt):
+                raise TypeError("Text formatter must be a str or a callable object.")
+            self.model()._text_formatter[name] = fmt
+        self.refreshTable()
+        return None
+
+    @setTextFormatter.server
+    def setTextFormatter(self, name: str, fmt: Callable[[Any], str] | str):
+        fmt = self.model()._text_formatter.get(name, None)
+        return (name, fmt), {}
+
     def refreshTable(self) -> None:
         """Refresh table view."""
         return self._qtable_view._update_all()
@@ -537,7 +555,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             stack = None
         return stack
 
-    def _set_forground_colormap(self, index: int):
+    def _set_forground_colormap_with_dialog(self, index: int):
         from ._colormap import exec_colormap_dialog
 
         column_name = self._filtered_columns[index]
@@ -549,7 +567,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         column_name = self._filtered_columns[index]
         return self.setForegroundColormap(column_name, None)
 
-    def _set_background_colormap(self, index: int):
+    def _set_background_colormap_with_dialog(self, index: int):
         from ._colormap import exec_colormap_dialog
 
         column_name = self._filtered_columns[index]
@@ -560,6 +578,19 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _reset_background_colormap(self, index: int):
         column_name = self._filtered_columns[index]
         return self.setBackgroundColormap(column_name, None)
+
+    def _set_text_formatter_with_dialog(self, index: int):
+        from ._text_formatter import exec_formatter_dialog
+
+        column_name = self._filtered_columns[index]
+
+        if fmt := exec_formatter_dialog(self.getDataFrame()[column_name], self):
+            self.setTextFormatter(column_name, fmt)
+        return None
+
+    def _reset_text_formatter_with_dialog(self, index: int) -> None:
+        column_name = self._filtered_columns[index]
+        return self.setTextFormatter(column_name, None)
 
     def _delete_selected_highlights(self):
         self._qtable_view._highlight_model.delete_selected()
@@ -885,10 +916,7 @@ class QMutableTable(QBaseTable):
         model = self.model()
 
         colname = model.df.columns[index]
-        if background_colormap := model._background_colormap.pop(colname, None):
-            model._background_colormap[value] = background_colormap
-        if foreground_colormap := model._foreground_colormap.pop(colname, None):
-            model._foreground_colormap[value] = foreground_colormap
+        model.rename_column(colname, value)
 
         _rename_column(self._data_raw, index, value)
         _rename_column(model.df, index, value)

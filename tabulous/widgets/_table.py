@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Callable, TYPE_CHECKING, Hashable
+from typing import Any, Callable, TYPE_CHECKING, Hashable, Union, Literal
 from psygnal import SignalGroup, Signal
 
 from .filtering import FilterProxy
@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from ..color import ColorType
 
     ColorMapping = Callable[[Any], ColorType]
+    Formatter = Union[Callable[[Any], str], Literal["default"], str]
 
 
 class TableSignals(SignalGroup):
@@ -282,6 +283,20 @@ class TableBase(ABC):
             return f
 
         return _wrapper(colormap) if colormap is not None else _wrapper
+
+    def text_formatter(
+        self,
+        column_name: Hashable,
+        /,
+        formatter: Formatter | None = None,
+    ):
+        def _wrapper(f: Formatter) -> Formatter:
+            if f == "default":
+                f = None
+            self._qwidget.setTextFormatter(column_name, f)
+            return f
+
+        return _wrapper(formatter) if formatter is not None else _wrapper
 
     @property
     def view_mode(self) -> str:

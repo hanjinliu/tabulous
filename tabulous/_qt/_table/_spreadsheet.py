@@ -318,8 +318,7 @@ class QSpreadSheet(QMutableSimpleTable):
         model = self.model()
         for index in range(column, column + count):
             colname = model.df.columns[index]
-            model._background_colormap.pop(colname, None)
-            model._foreground_colormap.pop(colname, None)
+            model.delete_column(colname)
             self._columns_dtype.pop(colname, None)
 
         self._data_raw = pd.concat(
@@ -461,10 +460,10 @@ class QSpreadSheet(QMutableSimpleTable):
         super()._install_actions()
         return None
 
-    def _set_forground_colormap(self, index: int):
+    def _set_background_colormap_with_dialog(self, index: int):
         return self._set_colormap(index, self.model()._foreground_colormap)
 
-    def _set_background_colormap(self, index: int):
+    def _set_background_colormap_with_dialog(self, index: int):
         return self._set_colormap(index, self.model()._background_colormap)
 
     def _set_colormap(self, index, colormap_dict: dict):
