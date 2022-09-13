@@ -146,6 +146,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         hheader.registerAction("Color>Set background colormap")(self._set_background_colormap_with_dialog)
         hheader.registerAction("Color>Reset background colormap")(self._reset_background_colormap)
         hheader.registerAction("Formatter>Set text formatter")(self._set_text_formatter_with_dialog)
+        hheader.registerAction("Formatter>Reset text formatter")(self._reset_text_formatter)
         hheader.addSeparator()
 
         self.registerAction("Copy")(lambda index: self.copyToClipboard(headers=False))
@@ -592,7 +593,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             self.setTextFormatter(column_name, fmt)
         return None
 
-    def _reset_text_formatter_with_dialog(self, index: int) -> None:
+    def _reset_text_formatter(self, index: int) -> None:
         column_name = self._filtered_columns[index]
         return self.setTextFormatter(column_name, None)
 

@@ -2,11 +2,14 @@ from __future__ import annotations
 from typing import Callable
 from enum import Enum, auto
 from qtpy import QtWidgets as QtW
+from qtpy.QtCore import Qt
 import numpy as np
 import pandas as pd
 from magicgui.widgets import RadioButtons
 
 from ....widgets import Table
+
+__all__ = ["exec_formatter_dialog"]
 
 
 class NumberFormat(Enum):
@@ -48,7 +51,7 @@ class _QFormatterDialog(QtW.QDialog):
         self._left_panel.layout().setContentsMargins(0, 0, 0, 0)
 
         _layout.addWidget(self._left_panel)
-        _layout.addWidget(self._preview_table.native)
+        _layout.addWidget(titled("Preview", self._preview_table.native))
         self._init()
         self.setLayout(_layout)
         btnbox = QtW.QDialogButtonBox(
@@ -179,16 +182,15 @@ class QComplexFormatterDialog(_QFormatterDialog):
         iunit = self._iunit.text()
         n = self._ndigits.value()
         if val == ComplexFormat.default:
-            fmt = "default"
+            return "default"
         elif val == ComplexFormat.decimal:
-            fmt = lambda x: f"{x.real:.{n}f}{x.imag:+.{n}f}{iunit}"
+            return lambda x: f"{x.real:.{n}f}{x.imag:+.{n}f}{iunit}"
         elif val == ComplexFormat.exponential:
-            fmt = lambda x: f"{x.real:.{n}e}{x.imag:+.{n}e}{iunit}"
+            return lambda x: f"{x.real:.{n}e}{x.imag:+.{n}e}{iunit}"
         elif val == ComplexFormat.polar:
-            fmt = lambda x: f"{abs(x):.{n}f}e^({np.angle(x):+.{n}f}{iunit})"
+            return lambda x: f"{abs(x):.{n}f}e^({np.angle(x):+.{n}f}{iunit})"
         else:
-            raise RuntimeError()
-        return fmt
+            raise RuntimeError(val)
 
 
 class QBoolFormatterDialog(_QFormatterDialog):
@@ -197,8 +199,8 @@ class QBoolFormatterDialog(_QFormatterDialog):
         self._false = QtW.QLineEdit("False")
         self._true.textChanged.connect(self._on_text_changed)
         self._false.textChanged.connect(self._on_text_changed)
-        self.addWidget(self._true)
-        self.addWidget(self._false)
+        self.addWidget(labeled("True:", self._true, 50))
+        self.addWidget(labeled("False:", self._false, 50))
 
     def _on_text_changed(self, val=None):
         return self._preview_table.text_formatter(self._name, self.toFormatter(val))
@@ -220,21 +222,18 @@ class QDateTimeFormatterDialog(_QFormatterDialog):
         )
         self._fmt = QtW.QLineEdit("%Y-%m-%d")
         self.addWidget(label)
-        self.addWidget(self._fmt)
+        self.addWidget(labeled("Format:", self._fmt))
         self._fmt.textChanged.connect(self._on_text_changed)
 
     def _on_text_changed(self, val=None):
         return self._preview_table.text_formatter(self._name, self.toFormatter(val))
 
-    def toFormatter(self, val: str = None) -> Callable[[bool], str]:
+    def toFormatter(self, val: str = None) -> Callable[[pd.Timestamp], str]:
         """Convert widget paramters to a formatter text."""
         if val is None:
             val = self._fmt.text()
 
-        def _fmt(ts: pd.Timestamp):
-            return ts.strftime(val)
-
-        return _fmt
+        return lambda ts: ts.strftime(val)
 
 
 class QTimeDeltaFormatterDialog(_QFormatterDialog):
@@ -265,7 +264,49 @@ class QTimeDeltaFormatterDialog(_QFormatterDialog):
         elif val == TimedeltaFormat.second:
             return lambda td: f"{td.total_seconds()} s"
         else:
-            raise RuntimeError()
+            raise RuntimeError(val)
+
+
+class _LabeledWidget(QtW.QWidget):
+    def __init__(
+        self,
+        label: str,
+        widget: QtW.QWidget,
+        width: int | None = None,
+        orientation: Qt.Orientation = Qt.Orientation.Horizontal,
+    ):
+        super().__init__()
+        self._label = QtW.QLabel(label)
+        self._widget = widget
+        if orientation == Qt.Orientation.Horizontal:
+            layout = QtW.QHBoxLayout()
+            layout.setAlignment(
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+            )
+        elif orientation == Qt.Orientation.Vertical:
+            layout = QtW.QVBoxLayout()
+            layout.setAlignment(
+                Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter
+            )
+            self._label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        layout.addWidget(self._label)
+        layout.addWidget(self._widget)
+        self.setLayout(layout)
+
+        if width is not None and orientation == Qt.Orientation.Horizontal:
+            self._label.setFixedWidth(width)
+
+
+def labeled(label: str, widget: QtW.QWidget, width: int | None = None) -> QtW.QWidget:
+    """Create a widget with a label."""
+    return _LabeledWidget(label, widget, width)
+
+
+def titled(title: str, widget: QtW.QWidget) -> QtW.QWidget:
+    """Create a widget with a title."""
+    return _LabeledWidget(title, widget, orientation=Qt.Orientation.Vertical)
 
 
 def exec_formatter_dialog(ds: pd.Series, parent=None):

@@ -210,8 +210,7 @@ class QFinderWidget(QtW.QWidget):
     def _text_match(self, qtable: QBaseTable, r: int, c: int, item, text: str) -> bool:
         model = qtable.model()
         index = model.index(r, c)
-        data = qtable.model().data(index, Qt.ItemDataRole.DisplayRole)
-        displayed_text = qtable.itemDelegate()._format_number(data)
+        displayed_text = qtable.model().data(index, Qt.ItemDataRole.DisplayRole)
         return displayed_text == text
 
     def _text_partial_match(
