@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class _QTableLineEdit(QtW.QLineEdit):
     """LineEdit widget with dtype checker and custom defocusing."""
 
-    _VALID = QtGui.QColor(26, 34, 235, 200)
+    _VALID = QtGui.QColor(186, 222, 244, 200)
     _INVALID = QtGui.QColor(255, 0, 0, 200)
 
     def __init__(
@@ -170,7 +170,7 @@ class _QHeaderLineEdit(_QTableLineEdit):
                 raise err
             return None
 
-        self.setText(str(old_value))
+        self.setText(text)
         self.selectAll()
         self.setFocus()
 

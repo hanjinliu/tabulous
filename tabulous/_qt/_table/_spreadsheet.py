@@ -154,9 +154,9 @@ class QSpreadSheet(QMutableSimpleTable):
         """Convert value to the type of the table."""
         return value
 
-    def readClipBoard(self):
+    def readClipBoard(self, sep=r"\s+"):
         """Read clipboard as a string data frame."""
-        return pd.read_clipboard(header=None, dtype="string")  # read as string
+        return pd.read_clipboard(header=None, sep=sep, dtype="string")  # read as string
 
     def setDataFrameValue(self, r: int | slice, c: int | slice, value: Any) -> None:
         nr, nc = self._data_raw.shape
