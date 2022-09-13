@@ -8,6 +8,7 @@ from ._line_edit import QCellLineEdit
 
 if TYPE_CHECKING:
     import numpy as np
+    import pandas as pd
     from pandas.core.dtypes.dtypes import CategoricalDtype
     from ._enhanced_table import _QTableViewEnhanced
     from ._item_model import AbstractDataFrameModel
@@ -58,8 +59,8 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             elif dtype.kind == "M":
                 dt = QtW.QDateTimeEdit(parent)
                 dt.setFont(font)
-                val = df.iat[row, col]
-                dt.setDateTime(val.to_pydatetime())
+                timestamp: pd.Timestamp = df.iat[row, col]
+                dt.setDateTime(timestamp.to_pydatetime())
                 return dt
             else:
                 line = QCellLineEdit(parent, table, (row, col))
@@ -101,3 +102,24 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         super().initStyleOption(option, index)
         if option.state & QtW.QStyle.StateFlag.State_HasFocus:
             option.state = option.state & ~QtW.QStyle.StateFlag.State_HasFocus
+
+
+# TODO: add timedelta-specific editor
+
+# class QTimeRangeEdit(QtW.QAbstractSpinBox):
+#     def __init__(self, val: pd.Timedelta, parent: QtW.QWidget | None = None) -> None:
+#         super().__init__(parent)
+#         self._value = val
+#         self.setLineEdit
+
+#     def text(self):
+#         return str(self._value)
+
+#     def setValue(self, val: pd.Timedelta):
+#         self._value = str(val)
+
+# class QTimerangeLineEdit(QtW.QLineEdit):
+#     def __init__(self, val: pd.Timedelta, parent: QtW.QWidget | None = None) -> None:
+#         super().__init__(parent)
+#         self._value = val
+#         self.setText(str(val))
