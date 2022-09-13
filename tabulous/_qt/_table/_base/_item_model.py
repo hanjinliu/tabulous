@@ -29,8 +29,8 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         self._validator: dict[Hashable, Callable[[Any], None]] = {}
 
         self._data_role_map = {
-            Qt.ItemDataRole.EditRole: self._data_display,
             Qt.ItemDataRole.DisplayRole: self._data_display,
+            Qt.ItemDataRole.EditRole: self._data_edit,
             Qt.ItemDataRole.TextColorRole: self._data_text_color,
             Qt.ItemDataRole.ToolTipRole: self._data_tooltip,
             Qt.ItemDataRole.BackgroundColorRole: self._data_background_color,
@@ -73,6 +73,18 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             else:
                 fmt = _DEFAULT_FORMATTERS.get(df.dtypes[colname].kind, str)
                 text = fmt(val)
+            return text
+        return QtCore.QVariant()
+
+    def _data_edit(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        df = self.df
+        if r < df.shape[0] and c < df.shape[1]:
+            val = df.iat[r, c]
+            if _isna(val):
+                text = "NA"
+            else:
+                text = str(val)
             return text
         return QtCore.QVariant()
 
