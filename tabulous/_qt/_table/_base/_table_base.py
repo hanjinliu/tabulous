@@ -1,7 +1,7 @@
 from __future__ import annotations
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, TYPE_CHECKING, Tuple
+from typing import Any, Callable, TYPE_CHECKING, Tuple, TypeVar
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -1078,13 +1078,17 @@ def _selection_to_literal(sel: tuple[slice, slice]) -> str:
     return txt
 
 
+_V = TypeVar("_V")
+
+
 def _convert_value(
     r: int,
     c: int,
-    x: Any,
-    validator: Callable[[Any], bool],
-    converter: Callable[[int, int, Any], Any],
-) -> Any:
+    x: str,
+    validator: Callable[[_V], bool],
+    converter: Callable[[int, int, str], _V],
+) -> _V:
     """Convert value with validation."""
-    validator(x)  # Raise error if invalid
-    return converter(r, c, x)
+    val = converter(r, c, x)  # convert value first
+    validator(val)  # Raise error if invalid
+    return val
