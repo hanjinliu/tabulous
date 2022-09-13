@@ -146,7 +146,8 @@ class QFinderWidget(QtW.QWidget):
             return
         qtable = self.currentTable()
         r, c = self._current_index
-        value = qtable.convertValue(r, c, self._replace_box.text())
+        convert_value = qtable._get_converter(c)
+        value = convert_value(r, c, self._replace_box.text())
         qtable.setDataFrameValue(r, c, value)
         return self.findNext()
 
@@ -210,8 +211,7 @@ class QFinderWidget(QtW.QWidget):
     def _text_match(self, qtable: QBaseTable, r: int, c: int, item, text: str) -> bool:
         model = qtable.model()
         index = model.index(r, c)
-        data = qtable.model().data(index, Qt.ItemDataRole.DisplayRole)
-        displayed_text = qtable.itemDelegate()._format_number(data)
+        displayed_text = qtable.model().data(index, Qt.ItemDataRole.DisplayRole)
         return displayed_text == text
 
     def _text_partial_match(

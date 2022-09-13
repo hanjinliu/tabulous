@@ -1,6 +1,7 @@
 from __future__ import annotations
+from functools import partial
 from pathlib import Path
-from typing import Any, Callable, TYPE_CHECKING, Tuple
+from typing import Any, Callable, TYPE_CHECKING, Tuple, TypeVar
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -141,11 +142,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _install_actions(self):
         # fmt: off
         hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Set forground colormap")(self._set_forground_colormap)
-        hheader.registerAction("Reset forground colormap")(self._reset_forground_colormap)
-        hheader.addSeparator()
-        hheader.registerAction("Set background colormap")(self._set_background_colormap)
-        hheader.registerAction("Reset background colormap")(self._reset_background_colormap)
+        hheader.registerAction("Color>Set forground colormap")(self._set_forground_colormap_with_dialog)
+        hheader.registerAction("Color>Reset forground colormap")(self._reset_forground_colormap)
+        hheader.registerAction("Color>Set background colormap")(self._set_background_colormap_with_dialog)
+        hheader.registerAction("Color>Reset background colormap")(self._reset_background_colormap)
+        hheader.registerAction("Formatter>Set text formatter")(self._set_text_formatter_with_dialog)
+        hheader.registerAction("Formatter>Reset text formatter")(self._reset_text_formatter)
         hheader.addSeparator()
 
         self.registerAction("Copy")(lambda index: self.copyToClipboard(headers=False))
@@ -243,21 +245,18 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Convert value before updating DataFrame."""
         return value
 
+    def _get_converter(self, c: int) -> Callable[[Any], Any]:
+        if 0 <= c < len(self._filtered_columns):
+            colname = self._filtered_columns[c]
+            if validator := self.model()._validator.get(colname, None):
+                return partial(
+                    _convert_value, validator=validator, converter=self.convertValue
+                )
+        return self.convertValue
+
     def dataShown(self) -> pd.DataFrame:
         """Return the shown dataframe (consider filter)."""
         return self.model().df
-
-    def precision(self) -> int:
-        """Return table value precision."""
-        return self.itemDelegate().ndigits
-
-    def setPrecision(self, ndigits: int) -> None:
-        """Set table value precision."""
-        ndigits = int(ndigits)
-        if ndigits <= 0:
-            raise ValueError("Cannot set negative precision.")
-        self.itemDelegate().ndigits = ndigits
-        return None
 
     def connectSelectionChangedSignal(self, slot):
         self.selectionChangedSignal.connect(slot)
@@ -433,6 +432,40 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         cmap = self.model()._background_colormap.get(name, None)
         return (name, cmap), {}
 
+    @_mgr.interface
+    def setTextFormatter(self, name: str, fmt: Callable[[Any], str] | str):
+        if fmt is None:
+            self.model()._text_formatter.pop(name, None)
+        else:
+            if isinstance(fmt, str):
+                fmt = fmt.format
+            elif not callable(fmt):
+                raise TypeError("Text formatter must be a str or a callable object.")
+            self.model()._text_formatter[name] = fmt
+        self.refreshTable()
+        return None
+
+    @setTextFormatter.server
+    def setTextFormatter(self, name: str, fmt: Callable[[Any], str] | str):
+        fmt = self.model()._text_formatter.get(name, None)
+        return (name, fmt), {}
+
+    @_mgr.interface
+    def setDataValidator(self, name: str, validator: Callable[[Any], bool]):
+        if validator is None:
+            self.model()._validator.pop(name, None)
+        else:
+            if not callable(validator):
+                raise TypeError("Validator must be callable.")
+            self.model()._validator[name] = validator
+        self.refreshTable()
+        return None
+
+    @setDataValidator.server
+    def setDataValidator(self, name: str, validator: Callable[[Any], bool]):
+        validator = self.model()._validator.get(name, None)
+        return (name, validator), {}
+
     def refreshTable(self) -> None:
         """Refresh table view."""
         return self._qtable_view._update_all()
@@ -537,7 +570,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             stack = None
         return stack
 
-    def _set_forground_colormap(self, index: int):
+    def _set_forground_colormap_with_dialog(self, index: int):
         from ._colormap import exec_colormap_dialog
 
         column_name = self._filtered_columns[index]
@@ -549,7 +582,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         column_name = self._filtered_columns[index]
         return self.setForegroundColormap(column_name, None)
 
-    def _set_background_colormap(self, index: int):
+    def _set_background_colormap_with_dialog(self, index: int):
         from ._colormap import exec_colormap_dialog
 
         column_name = self._filtered_columns[index]
@@ -560,6 +593,19 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _reset_background_colormap(self, index: int):
         column_name = self._filtered_columns[index]
         return self.setBackgroundColormap(column_name, None)
+
+    def _set_text_formatter_with_dialog(self, index: int):
+        from ._text_formatter import exec_formatter_dialog
+
+        column_name = self._filtered_columns[index]
+
+        if fmt := exec_formatter_dialog(self.getDataFrame()[column_name], self):
+            self.setTextFormatter(column_name, fmt)
+        return None
+
+    def _reset_text_formatter(self, index: int) -> None:
+        column_name = self._filtered_columns[index]
+        return self.setTextFormatter(column_name, None)
 
     def _delete_selected_highlights(self):
         self._qtable_view._highlight_model.delete_selected()
@@ -635,18 +681,21 @@ class QMutableTable(QBaseTable):
             if _value.size == 1:
                 v = _value.values[0, 0]
                 _value = data.iloc[r, c].copy()
-                for _ir, _r in enumerate(range(r.start, r.stop)):
-                    for _ic, _c in enumerate(range(c.start, c.stop)):
-                        _value.iloc[_ir, _ic] = self.convertValue(_r, _c, v)
+                for _ic, _c in enumerate(range(c.start, c.stop)):
+                    _convert_value = self._get_converter(_c)
+                    for _ir, _r in enumerate(range(r.start, r.stop)):
+                        _value.iloc[_ir, _ic] = _convert_value(_r, _c, v)
             else:
-                for _ir, _r in enumerate(range(r.start, r.stop)):
-                    for _ic, _c in enumerate(range(c.start, c.stop)):
-                        _value.iloc[_ir, _ic] = self.convertValue(
+                for _ic, _c in enumerate(range(c.start, c.stop)):
+                    _convert_value = self._get_converter(_c)
+                    for _ir, _r in enumerate(range(r.start, r.stop)):
+                        _value.iloc[_ir, _ic] = _convert_value(
                             _r, _c, _value.iloc[_ir, _ic]
                         )
             _is_scalar = False
         else:
-            _value = self.convertValue(r, c, value)
+            _convert_value = self._get_converter(c)
+            _value = _convert_value(r, c, value)
             _is_scalar = True
 
         # if table has filter, indices must be adjusted
@@ -885,10 +934,7 @@ class QMutableTable(QBaseTable):
         model = self.model()
 
         colname = model.df.columns[index]
-        if background_colormap := model._background_colormap.pop(colname, None):
-            model._background_colormap[value] = background_colormap
-        if foreground_colormap := model._foreground_colormap.pop(colname, None):
-            model._foreground_colormap[value] = foreground_colormap
+        model.rename_column(colname, value)
 
         _rename_column(self._data_raw, index, value)
         _rename_column(model.df, index, value)
@@ -1030,3 +1076,19 @@ def _selection_to_literal(sel: tuple[slice, slice]) -> str:
     else:
         txt = f"[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
     return txt
+
+
+_V = TypeVar("_V")
+
+
+def _convert_value(
+    r: int,
+    c: int,
+    x: str,
+    validator: Callable[[_V], bool],
+    converter: Callable[[int, int, str], _V],
+) -> _V:
+    """Convert value with validation."""
+    val = converter(r, c, x)  # convert value first
+    validator(val)  # Raise error if invalid
+    return val

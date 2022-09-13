@@ -10,21 +10,11 @@ if TYPE_CHECKING:
     import numpy as np
     from pandas.core.dtypes.dtypes import CategoricalDtype
     from ._enhanced_table import _QTableViewEnhanced
+    from ._item_model import AbstractDataFrameModel
 
 
 class TableItemDelegate(QtW.QStyledItemDelegate):
     """Displays table widget items with properly formatted numbers."""
-
-    def __init__(self, parent: QtCore.QObject | None = None, ndigits: int = 4) -> None:
-        super().__init__(parent)
-        self.ndigits = ndigits
-        self._parent = parent
-
-    def replace(self, parent: QtCore.QObject | None = None) -> TableItemDelegate:
-        return TableItemDelegate(parent, self.ndigits)
-
-    def displayText(self, value, locale):
-        return super().displayText(self._format_number(value), locale)
 
     def createEditor(
         self, parent: QtW.QWidget, option, index: QtCore.QModelIndex
@@ -86,7 +76,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
     def setModelData(
         self,
         editor: QtW.QWidget,
-        model: QtCore.QAbstractItemModel,
+        model: AbstractDataFrameModel,
         index: QtCore.QModelIndex,
     ) -> None:
         if isinstance(editor, QtW.QDateTimeEdit):
@@ -96,32 +86,14 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         else:
             return super().setModelData(editor, model, index)
 
-    # modified from magicgui
-    def _format_number(self, text: str) -> str:
-        """convert string to int or float if possible"""
-        try:
-            value = int(text)
-        except ValueError:
-            try:
-                value = float(text)
-            except ValueError:
-                return text
-
-        ndigits = self.ndigits
-
-        if isinstance(value, int):
-            if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
-                text = str(value)
-            else:
-                text = f"{value:.{ndigits-1}e}"
-
-        elif isinstance(value, float):
-            if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
-                text = f"{value:.{ndigits}f}"
-            else:
-                text = f"{value:.{ndigits-1}e}"
-
-        return text
+    def paint(
+        self,
+        painter: QtGui.QPainter,
+        option: QtW.QStyleOptionViewItem,
+        index: QtCore.QModelIndex,
+    ):
+        option.textElideMode = Qt.TextElideMode.ElideNone
+        return super().paint(painter, option, index)
 
     def initStyleOption(
         self, option: QtW.QStyleOptionViewItem, index: QtCore.QModelIndex
