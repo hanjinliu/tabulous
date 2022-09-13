@@ -17,6 +17,9 @@ if TYPE_CHECKING:
 class _QTableLineEdit(QtW.QLineEdit):
     """LineEdit widget with dtype checker and custom defocusing."""
 
+    _VALID = QtGui.QColor(26, 34, 235, 200)
+    _INVALID = QtGui.QColor(255, 0, 0, 200)
+
     def __init__(
         self,
         parent: QtCore.QObject | None = None,
@@ -26,7 +29,23 @@ class _QTableLineEdit(QtW.QLineEdit):
         super().__init__(parent)
         self._table = table
         self._pos = pos
+        self._is_valid = True
+        self._current_exception = ""
         self.textChanged.connect(self._on_text_changed)
+
+    @property
+    def current_exception(self) -> str:
+        return self._current_exception
+
+    @current_exception.setter
+    def current_exception(self, value: str | Exception | None) -> None:
+        if value is None:
+            value = ""
+        elif isinstance(value, Exception):
+            exc_type = type(value).__name__
+            value = f"{exc_type}: {value}"
+        self._current_exception = str(value)
+        return self.setToolTip(self._current_exception)
 
     def parentTableView(self) -> _QTableViewEnhanced:
         return self.parent().parent()
@@ -38,7 +57,8 @@ class _QTableLineEdit(QtW.QLineEdit):
     def _on_text_changed(self, text: str) -> None:
         """Change text color to red if invalid."""
         palette = QtGui.QPalette()
-        if self.isTextValid():
+        self._is_valid = self.isTextValid()
+        if self._is_valid:
             col = Qt.GlobalColor.black
         else:
             col = Qt.GlobalColor.red
@@ -77,6 +97,20 @@ class _QTableLineEdit(QtW.QLineEdit):
                 return
 
         return super().keyPressEvent(event)
+
+    def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
+        super().paintEvent(a0)
+        rect = self.rect()
+        p0 = rect.bottomLeft()
+        p1 = rect.bottomRight()
+        painter = QtGui.QPainter(self)
+        if self._is_valid:
+            painter.setPen(QtGui.QPen(self._VALID, 3))
+        else:
+            painter.setPen(QtGui.QPen(self._INVALID, 3))
+        painter.drawLine(p0, p1)
+        painter.end()
+        return None
 
 
 class _QHeaderLineEdit(_QTableLineEdit):
@@ -147,12 +181,20 @@ class _QHeaderLineEdit(_QTableLineEdit):
         idx = self._get_index()
         not_in = text not in pd_index
         if idx < pd_index.size:
-            return text == pd_index[idx] or not_in
+            valid = text == pd_index[idx] or not_in
         else:
-            return not_in
+            valid = not_in
+
+        if valid:
+            self.current_exception = None
+        else:
+            self.current_exception = ValueError(f"Duplicated name {text!r}")
+        return valid
 
 
 class QVerticalHeaderLineEdit(_QHeaderLineEdit):
+    """Line edit used for vertical editing header text."""
+
     ALIGNMENT = Qt.AlignmentFlag.AlignLeft
 
     def _get_index(self) -> int:
@@ -174,6 +216,8 @@ class QVerticalHeaderLineEdit(_QHeaderLineEdit):
 
 
 class QHorizontalHeaderLineEdit(_QHeaderLineEdit):
+    """Line edit used for horizontal editing header text."""
+
     ALIGNMENT = Qt.AlignmentFlag.AlignCenter
 
     def _get_index(self) -> int:
@@ -195,11 +239,17 @@ class QHorizontalHeaderLineEdit(_QHeaderLineEdit):
 
 
 class QCellLineEdit(_QTableLineEdit):
+    """Line edit used for editing cell text."""
+
     def isTextValid(self) -> bool:
         """True if text is valid for this cell."""
         r, c = self._pos
         try:
-            self._table.convertValue(r, c, self.text())
-        except Exception:
+            convert_value = self._table._get_converter(c)
+            convert_value(r, c, self.text())
+        except Exception as e:
+            self.current_exception = e
             return False
-        return True
+        else:
+            self.current_exception = None
+            return True
