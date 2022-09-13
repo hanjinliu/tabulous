@@ -165,3 +165,8 @@ def boxenplot(
 
     sns.boxenplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax, picker=True)
     return True
+
+
+@dialog_factory
+def choose_one(choice: str):
+    return choice

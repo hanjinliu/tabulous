@@ -4,7 +4,6 @@ from typing import Callable, Hashable, TYPE_CHECKING, Union
 from functools import partial
 import weakref
 from qtpy import QtWidgets as QtW, QtCore
-from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QAction
 
 from .._svg import QColoredSVGIcon
@@ -18,7 +17,14 @@ if TYPE_CHECKING:
     from ...widgets.mainwindow import TableViewerBase
     from ...widgets import TableBase
 
+# fmt: off
 SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
+SAMPLE_CHOICES = [
+    "anagrams", "anscombe", "attention", "brain_networks", "car_crashes", "diamonds",
+    "dots", "dowjones", "exercise", "flights", "fmri", "geyser", "glue", "healthexp",
+    "iris", "mpg", "penguins", "planets", "seaice", "taxis", "tips", "titanic",
+]
+# fmt: on
 
 ICON_DIR = Path(__file__).parent.parent / "_icons"
 
@@ -156,6 +162,12 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def save_table(self):
         """Save current table."""
         return self.viewer._qwidget.saveFromDialog()
+
+    def open_sample(self):
+        """Open a seaborn sample data."""
+        out = _dlg.choose_one(choice={"choices": SAMPLE_CHOICES, "nullable": False})
+        if out is not None:
+            self.viewer.open_sample(out)
 
     def copy_as_table(self):
         """Make a copy of the current table."""
@@ -435,6 +447,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
         self.registerAction("File", self.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")
         self.registerAction("File", self.save_table, ICON_DIR / "save_table.svg")
+        self.addSeparatorToChild("File")
+        self.registerAction("File", self.open_sample, ICON_DIR / "open_sample.svg")
 
         # Table
         self.registerAction("Table", self.copy_as_table, ICON_DIR / "copy_as_table.svg")
@@ -473,9 +487,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Plot", self.boxenplot, ICON_DIR / "boxenplot.svg")
         self.addSeparatorToChild("Plot")
         self.registerAction("Plot", self.new_figure, ICON_DIR / "new_figure.svg")
-
         # fmt: on
-
+        return None
 
 def _get_data_and_choices(
     table: TableBase,
