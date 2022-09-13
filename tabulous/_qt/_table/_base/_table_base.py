@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import partial
 from pathlib import Path
 from typing import Any, Callable, TYPE_CHECKING, Tuple
 import warnings
@@ -243,6 +244,15 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def convertValue(self, r: int, c: int, value: Any) -> Any:
         """Convert value before updating DataFrame."""
         return value
+
+    def _get_converter(self, c: int) -> Callable[[Any], Any]:
+        if 0 <= c < len(self._filtered_columns):
+            colname = self._filtered_columns[c]
+            if validator := self.model()._validator.get(colname, None):
+                return partial(
+                    _convert_value, validator=validator, converter=self.convertValue
+                )
+        return self.convertValue
 
     def dataShown(self) -> pd.DataFrame:
         """Return the shown dataframe (consider filter)."""
@@ -671,18 +681,21 @@ class QMutableTable(QBaseTable):
             if _value.size == 1:
                 v = _value.values[0, 0]
                 _value = data.iloc[r, c].copy()
-                for _ir, _r in enumerate(range(r.start, r.stop)):
-                    for _ic, _c in enumerate(range(c.start, c.stop)):
-                        _value.iloc[_ir, _ic] = self.convertValue(_r, _c, v)
+                for _ic, _c in enumerate(range(c.start, c.stop)):
+                    _convert_value = self._get_converter(_c)
+                    for _ir, _r in enumerate(range(r.start, r.stop)):
+                        _value.iloc[_ir, _ic] = _convert_value(_r, _c, v)
             else:
-                for _ir, _r in enumerate(range(r.start, r.stop)):
-                    for _ic, _c in enumerate(range(c.start, c.stop)):
-                        _value.iloc[_ir, _ic] = self.convertValue(
+                for _ic, _c in enumerate(range(c.start, c.stop)):
+                    _convert_value = self._get_converter(_c)
+                    for _ir, _r in enumerate(range(r.start, r.stop)):
+                        _value.iloc[_ir, _ic] = _convert_value(
                             _r, _c, _value.iloc[_ir, _ic]
                         )
             _is_scalar = False
         else:
-            _value = self.convertValue(r, c, value)
+            _convert_value = self._get_converter(c)
+            _value = _convert_value(r, c, value)
             _is_scalar = True
 
         # if table has filter, indices must be adjusted
@@ -1063,3 +1076,15 @@ def _selection_to_literal(sel: tuple[slice, slice]) -> str:
     else:
         txt = f"[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
     return txt
+
+
+def _convert_value(
+    r: int,
+    c: int,
+    x: Any,
+    validator: Callable[[Any], bool],
+    converter: Callable[[int, int, Any], Any],
+) -> Any:
+    """Convert value with validation."""
+    validator(x)  # Raise error if invalid
+    return converter(r, c, x)

@@ -7,7 +7,7 @@ def get_tabwidget_tab_name(viewer: TableViewer, i: int) -> str:
     qtablist: QTabbedTableStack = viewer._qwidget._tablestack
     return qtablist.tabText(i)
 
-def get_cell_value(table: QBaseTable, row, col):
+def get_cell_value(table: QBaseTable, row, col) -> str:
     index = table.model().index(row, col)
     return table.model().data(index)
 

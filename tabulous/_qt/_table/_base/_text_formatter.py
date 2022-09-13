@@ -111,7 +111,7 @@ class QIntFormatterDialog(_QNumberFormatterDialog):
 
         n = self._ndigits.value()
         if val == NumberFormat.default:
-            fmt = "default"
+            fmt = None
         elif val == NumberFormat.decimal:
             fmt = "{}"
         elif val == NumberFormat.exponential:
@@ -137,7 +137,7 @@ class QFloatFormatterDialog(_QNumberFormatterDialog):
 
         n = self._ndigits.value()
         if val == NumberFormat.default:
-            fmt = "default"
+            fmt = None
         elif val == NumberFormat.decimal:
             fmt = f"{{:.{n}f}}"
         elif val == NumberFormat.exponential:
@@ -175,14 +175,14 @@ class QComplexFormatterDialog(_QFormatterDialog):
         self._preview_table.text_formatter(self._name, self.toFormatter(val))
         return self._preview_table.refresh()
 
-    def toFormatter(self, val=None) -> str | Callable[[complex], str]:
+    def toFormatter(self, val=None) -> None | Callable[[complex], str]:
         """Convert widget paramters to a formatter text."""
         if val is None:
             val = self._btns.value
         iunit = self._iunit.text()
         n = self._ndigits.value()
         if val == ComplexFormat.default:
-            return "default"
+            return None
         elif val == ComplexFormat.decimal:
             return lambda x: f"{x.real:.{n}f}{x.imag:+.{n}f}{iunit}"
         elif val == ComplexFormat.exponential:

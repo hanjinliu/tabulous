@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Callable, TYPE_CHECKING, Hashable, Union, Literal
+from typing import Any, Callable, Hashable, TYPE_CHECKING, Union
 from psygnal import SignalGroup, Signal
 
 from .filtering import FilterProxy
@@ -34,8 +34,10 @@ if TYPE_CHECKING:
     from ..color import ColorType
 
     ColorMapping = Callable[[Any], ColorType]
-    Formatter = Union[Callable[[Any], str], Literal["default"], str]
-    Validator = Callable[[Any], bool]
+    Formatter = Union[Callable[[Any], str], str, None]
+    Validator = Callable[[Any], None]
+
+_Void = object()
 
 
 class TableSignals(SignalGroup):
@@ -234,7 +236,7 @@ class TableBase(ABC):
         self,
         column_name: Hashable,
         /,
-        colormap: ColorMapping | None = None,
+        colormap: ColorMapping | None = _Void,
     ):
         """
         Set foreground color rule.
@@ -243,23 +245,22 @@ class TableBase(ABC):
         ----------
         column_name : Hashable
             Target column name.
-        colormap : callable, optional
-            colormap function. Must return a color-like object.
+        colormap : callable or None, optional
+            Colormap function. Must return a color-like object. Pass None to reset
+            the colormap.
         """
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
-            if f == "default":
-                f = None
             self._qwidget.setForegroundColormap(column_name, f)
             return f
 
-        return _wrapper(colormap) if colormap is not None else _wrapper
+        return _wrapper(colormap) if colormap is not _Void else _wrapper
 
     def background_colormap(
         self,
         column_name: Hashable,
         /,
-        colormap: ColorMapping | None = None,
+        colormap: ColorMapping | None = _Void,
     ):
         """
         Set background color rule.
@@ -268,23 +269,22 @@ class TableBase(ABC):
         ----------
         column_name : Hashable
             Target column name.
-        colormap : callable, optional
-            colormap function. Must return a color-like object.
+        colormap : callable or None, optional
+            Colormap function. Must return a color-like object. Pass None to reset
+            the colormap.
         """
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
-            if f == "default":
-                f = None
             self._qwidget.setBackgroundColormap(column_name, f)
             return f
 
-        return _wrapper(colormap) if colormap is not None else _wrapper
+        return _wrapper(colormap) if colormap is not _Void else _wrapper
 
     def text_formatter(
         self,
         column_name: Hashable,
         /,
-        formatter: Formatter | None = None,
+        formatter: Formatter | None = _Void,
     ):
         """
         Set background color rule.
@@ -294,22 +294,20 @@ class TableBase(ABC):
         column_name : Hashable
             Target column name.
         formatter : callable, optional
-            formatter function.
+            Formatter function. Pass None to reset the formatter.
         """
 
         def _wrapper(f: Formatter) -> Formatter:
-            if f == "default":
-                f = None
             self._qwidget.setTextFormatter(column_name, f)
             return f
 
-        return _wrapper(formatter) if formatter is not None else _wrapper
+        return _wrapper(formatter) if formatter is not _Void else _wrapper
 
     def validator(
         self,
         column_name: Hashable,
         /,
-        validator: Validator | None = None,
+        validator: Validator | None = _Void,
     ):
         """
         Set background color rule.
@@ -318,17 +316,15 @@ class TableBase(ABC):
         ----------
         column_name : Hashable
             Target column name.
-        validator : callable, optional
-            Validator function.
+        validator : callable or None, optional
+            Validator function. Pass None to reset the validator.
         """
 
         def _wrapper(f: Validator) -> Validator:
-            if f == "default":
-                f = None
             self._qwidget.setDataValidator(column_name, f)
             return f
 
-        return _wrapper(validator) if validator is not None else _wrapper
+        return _wrapper(validator) if validator is not _Void else _wrapper
 
     @property
     def view_mode(self) -> str:

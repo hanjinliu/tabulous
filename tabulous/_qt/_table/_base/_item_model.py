@@ -26,7 +26,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         self._foreground_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
         self._background_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
         self._text_formatter: dict[Hashable, Callable[[Any], str]] = {}
-        self._validator: dict[Hashable, Callable[[Any], bool]] = {}
+        self._validator: dict[Hashable, Callable[[Any], None]] = {}
 
         self._data_role_map = {
             Qt.ItemDataRole.EditRole: self._data_display,
@@ -223,6 +223,8 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             self.beginRemoveColumns(QtCore.QModelIndex(), c0 + dc, c0 - 1)
             self.removeColumns(c0 + dc, -dc, QtCore.QModelIndex())
             self.endRemoveColumns()
+
+        return None
 
 
 class DataFrameModel(AbstractDataFrameModel):
