@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Callable, Hashable, TYPE_CHECKING, Union
+from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
 from psygnal import SignalGroup, Signal
 
 from .filtering import FilterProxy
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
     from ..color import ColorType
 
-    ColorMapping = Callable[[Any], ColorType]
+    ColorMapping = Union[Callable[[Any], ColorType], Mapping[Hashable, ColorType]]
     Formatter = Union[Callable[[Any], str], str, None]
     Validator = Callable[[Any], None]
 
@@ -254,7 +254,12 @@ class TableBase(ABC):
             self._qwidget.setForegroundColormap(column_name, f)
             return f
 
-        return _wrapper(colormap) if colormap is not _Void else _wrapper
+        if isinstance(colormap, Mapping):
+            return _wrapper(lambda x: colormap.get(x, None))
+        elif colormap is _Void:
+            return _wrapper
+        else:
+            return _wrapper(colormap)
 
     def background_colormap(
         self,
@@ -278,7 +283,12 @@ class TableBase(ABC):
             self._qwidget.setBackgroundColormap(column_name, f)
             return f
 
-        return _wrapper(colormap) if colormap is not _Void else _wrapper
+        if isinstance(colormap, Mapping):
+            return _wrapper(lambda x: colormap.get(x, None))
+        elif colormap is _Void:
+            return _wrapper
+        else:
+            return _wrapper(colormap)
 
     def text_formatter(
         self,

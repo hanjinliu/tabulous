@@ -2,6 +2,7 @@ from tabulous import TableViewer
 from tabulous.widgets import TableBase
 from tabulous._qt._table import QBaseTable
 from tabulous._qt._table_stack._tabwidget import QTabbedTableStack
+from qtpy.QtCore import Qt
 
 def get_tabwidget_tab_name(viewer: TableViewer, i: int) -> str:
     qtablist: QTabbedTableStack = viewer._qwidget._tablestack
@@ -10,6 +11,14 @@ def get_tabwidget_tab_name(viewer: TableViewer, i: int) -> str:
 def get_cell_value(table: QBaseTable, row, col) -> str:
     index = table.model().index(row, col)
     return table.model().data(index)
+
+def get_cell_foreground_color(table: QBaseTable, row, col) -> str:
+    index = table.model().index(row, col)
+    return table.model().data(index, Qt.ItemDataRole.ForegroundRole)
+
+def get_cell_background_color(table: QBaseTable, row, col) -> str:
+    index = table.model().index(row, col)
+    return table.model().data(index, Qt.ItemDataRole.BackgroundRole)
 
 def edit_cell(table: QBaseTable, row, col, value):
     table.model().dataEdited.emit(row, col, value)
