@@ -21,8 +21,6 @@ Highlight
    :maxdepth: 1
 
    ./main/quickstart
-   ./main/cheat_sheet
-
 
 Basics
 ------
@@ -34,7 +32,7 @@ Basics
    ./main/selections
    ./main/filter
    ./main/register_action
-   ./main/cell_color
+   ./main/columnwise_settings
    ./main/table_advanced
 
 
@@ -46,6 +44,15 @@ Cooperate with Other Widgets
 
    ./main/dock_widget
    ./main/non_mainwindow
+
+
+Others
+------
+
+.. toctree::
+   :maxdepth: 1
+
+   ./main/cheat_sheet
 
 API Reference
 -------------
