@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous &mdash; tabulous 0.1.2 documentation</title>
+  <title>tabulous &mdash; tabulous 0.2.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="#" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.2
+                0.2.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -42,13 +42,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="main/quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/user_interface.html">User Interface</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="main/user_interface.html">User Interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="main/selections.html">Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/selections.html">Table Selections and Highlights</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/filter.html">Filter Table Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="main/cell_color.html">Set Cell Colors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/columnwise_settings.html">Column-wise Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
@@ -56,6 +55,8 @@
 <li class="toctree-l1"><a class="reference internal" href="main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="main/register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1"><a class="reference internal" href="apidoc/modules.html">tabulous</a></li>
 </ul>
 
@@ -90,33 +91,20 @@
 in the design and API. Accordingly, custom widget creation is easily achievable
 for beginners using <a class="reference external" href="https://github.com/napari/magicgui">magicgui</a>, or any
 Qt widgets for more trained users.</p>
-<section id="highlight">
-<h2>Highlight<a class="headerlink" href="#highlight" title="Permalink to this heading">¶</a></h2>
-<ul class="simple">
-<li><p>Implemented with interactive table viewer and editor.</p></li>
-<li><p>Highly customizable and extensible.</p></li>
-<li><p>Catch data selection and data editing events.</p></li>
-</ul>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="main/quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/user_interface.html">User Interface</a></li>
 </ul>
 </div>
-</section>
-<section id="basics">
-<h2>Basics<a class="headerlink" href="#basics" title="Permalink to this heading">¶</a></h2>
+<section id="tables">
+<h2>Tables<a class="headerlink" href="#tables" title="Permalink to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="main/user_interface.html">User Interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="main/user_interface.html#tables">Tables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="main/user_interface.html#toolbar">Toolbar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="main/user_interface.html#plot-canvas">Plot canvas</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="main/selections.html">Table Selections</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="main/selections.html">Table Selections and Highlights</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="main/selections.html#data-type-of-table-selections">Data Type of Table Selections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="main/selections.html#catch-change-in-table-selections">Catch Change in Table Selections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/selections.html#set-highlights">Set Highlights</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="main/filter.html">Filter Table Data</a><ul>
@@ -124,7 +112,13 @@ Qt widgets for more trained users.</p>
 <li class="toctree-l2"><a class="reference internal" href="main/filter.html#use-query-style-filtering">Use Query-style Filtering</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="main/cell_color.html">Set Cell Colors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/columnwise_settings.html">Column-wise Settings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="main/columnwise_settings.html#colormap">Colormap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/columnwise_settings.html#validator">Validator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/columnwise_settings.html#text-formatter">Text Formatter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/columnwise_settings.html#typing-spreadsheet">Typing Spreadsheet</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="main/table_advanced.html">Working with Tables</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="main/table_advanced.html#use-view-modes">Use View Modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="main/table_advanced.html#side-area">Side Area</a></li>
@@ -152,10 +146,12 @@ Qt widgets for more trained users.</p>
 </ul>
 </div>
 </section>
-<section id="api-reference">
-<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this heading">¶</a></h2>
+<section id="other-contents">
+<h2>Other Contents<a class="headerlink" href="#other-contents" title="Permalink to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="main/register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1"><a class="reference internal" href="apidoc/modules.html">tabulous</a></li>
 </ul>
 </div>

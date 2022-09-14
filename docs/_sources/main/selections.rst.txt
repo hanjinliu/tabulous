@@ -1,6 +1,6 @@
-================
-Table Selections
-================
+===============================
+Table Selections and Highlights
+===============================
 
 .. contents:: Contents
     :local:
@@ -27,8 +27,8 @@ you'll get following selection ranges.
 
     SelectionRanges([0:100, 0:1], [2:3, 2:3])
 
-A :class:`SelectionRanges` object is a ``list`` like object except for being immutable.
-Each selection is a ``tuple[slice, slice]`` object.
+A :class:`SelectionRanges` object is a ``list`` like object. Each selection is a
+``tuple[slice, slice]`` object.
 
 .. code-block:: python
 
@@ -44,7 +44,7 @@ Thus, you can use them directly in ``iloc`` method of :class:`DataFrame`.
 
     table.data.iloc[table.selections[0]]
 
-More simply, you can use :attr:`data` attribute to get values of selected table.
+More simply, you can use :attr:`values` attribute to get values of selected table.
 
 .. code-block:: python
 
@@ -67,6 +67,20 @@ More simply, you can use :attr:`data` attribute to get values of selected table.
 
     [100 rows x 1 columns]
 
+To update selections, you can use ``list``-like methods:
+
+.. code-block:: python
+
+    table.selections.append((slice(0, 10, None), slice(0, 1, None)))
+    table.selections.pop(0)
+
+or directly set a list to :attr:`selections`.
+
+.. code-block:: python
+
+    table.selections = [(slice(0, 10, None), slice(0, 1, None))]
+
+
 Catch Change in Table Selections
 ================================
 
@@ -79,3 +93,17 @@ The :attr:`events` attribute is a :class:`SignalGroup` object of `psygnal <https
     @table.events.selections.connect
     def _on_change(sel):
         print(sel)
+
+Set Highlights
+==============
+
+"Highlight" is another feature of a table. Similar to a selection, a highlight is also
+represented as a tuple of slices. Highlightened cells in a table are always painted.
+
+Differences between a selection and a highlight are:
+
+- Highlights cannot be set as dynamically as selections. You have to convert selections
+  into highlights from right-click context menu or programatically using attribute
+  :attr:`highlights`.
+- Highlights do not vanish with mouse or keyboard operations.
+- Highlights do not emit signals.

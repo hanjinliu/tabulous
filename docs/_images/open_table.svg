@@ -1,0 +1,17 @@
+<svg width="119" height="104"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden">
+    <defs>
+        <clipPath id="clip0">
+            <rect x="581" y="602" width="119" height="104"/>
+        </clipPath>
+    </defs>
+    <g clip-path="url(#clip0)" transform="translate(-581 -602)">
+        <path d="M614 659C614.09 645.211 614.18 631.422 614.271 617.633 614.271 611.208 619.462 606 625.865 606L672.241 606C678.645 606 683.835 611.208 683.835 617.633 683.89 630.976 683.945 644.319 684 657.662" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M591 702 602 658 694 658 683 702Z" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M0 0 0.000104987 67.8645" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd" transform="matrix(1 0 0 -1 590 705.864)"/>
+        <path d="M0 0 24.8813 0.000104987" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd" transform="matrix(-1 0 0 1 610.881 638)"/>
+        <path d="M632 623 666.634 623" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M651 623 651 656.114" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+    </g>
+</svg>

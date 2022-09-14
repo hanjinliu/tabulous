@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; tabulous 0.1.2 documentation</title>
+  <title>Index &mdash; tabulous 0.2.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.2
+                0.2.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -40,13 +40,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="main/quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/user_interface.html">User Interface</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="main/user_interface.html">User Interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="main/selections.html">Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/selections.html">Table Selections and Highlights</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/filter.html">Filter Table Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="main/cell_color.html">Set Cell Colors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/columnwise_settings.html">Column-wise Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
@@ -54,6 +53,8 @@
 <li class="toctree-l1"><a class="reference internal" href="main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="main/register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1"><a class="reference internal" href="apidoc/modules.html">tabulous</a></li>
 </ul>
 
@@ -164,6 +165,8 @@
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.filtering.FilterIndexer.chain">chain() (tabulous.widgets.filtering.FilterIndexer method)</a>
 </li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.close">close() (tabulous.widgets.mainwindow.TableViewerBase method)</a>
+</li>
       <li><a href="apidoc/tabulous.html#tabulous.types.ItemInfo.column">column (tabulous.types.ItemInfo attribute)</a>
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.filtering.ColumnFilter">ColumnFilter (class in tabulous.widgets.filtering)</a>
@@ -172,10 +175,10 @@
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.Console">Console (class in tabulous.widgets.mainwindow)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.console">console (tabulous.widgets.mainwindow.TableViewerBase attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.console">console (tabulous.widgets.mainwindow.TableViewerBase attribute)</a>
+</li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.copy_data">copy_data() (tabulous.widgets.mainwindow.TableViewerBase method)</a>
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.GroupBy.current_group">current_group (tabulous.widgets.GroupBy property)</a>
@@ -205,6 +208,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.data_shown">data_shown (tabulous.widgets.TableBase property)</a>
+</li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.SpreadSheet.dtypes">dtypes (tabulous.widgets.SpreadSheet attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -276,6 +281,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.highlights">highlights (tabulous.widgets.TableBase attribute)</a>
+</li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.Toolbar.history_manager">history_manager (tabulous.widgets.mainwindow.Toolbar property)</a>
 </li>
   </ul></td>
@@ -409,8 +416,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.plt">plt (tabulous.widgets.TableBase attribute)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.precision">precision (tabulous.widgets.TableBase property)</a>
-</li>
   </ul></td>
 </tr></table>
 
@@ -457,6 +462,8 @@
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.types.ItemInfo.row">row (tabulous.types.ItemInfo attribute)</a>
 </li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableDisplay.running">running (tabulous.widgets.TableDisplay property)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -469,9 +476,7 @@
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.exceptions.SelectionRangeError">SelectionRangeError</a>
 </li>
-      <li><a href="apidoc/tabulous.html#tabulous.types.SelectionRanges">SelectionRanges (class in tabulous.types)</a>
-</li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.selections">selections (tabulous.widgets.TableBase property)</a>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.selections">selections (tabulous.widgets.TableBase attribute)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.core.set_current_viewer">set_current_viewer() (in module tabulous.core)</a>
 </li>
@@ -605,6 +610,8 @@
         <li><a href="apidoc/tabulous.widgets.html#module-tabulous.widgets.mainwindow">module</a>
 </li>
       </ul></li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.text_formatter">text_formatter() (tabulous.widgets.TableBase method)</a>
+</li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.Toolbar">Toolbar (class in tabulous.widgets.mainwindow)</a>
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.mainwindow.TableViewerBase.toolbar">toolbar (tabulous.widgets.mainwindow.TableViewerBase attribute)</a>
@@ -623,14 +630,14 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.validator">validator() (tabulous.widgets.TableBase method)</a>
+</li>
       <li><a href="apidoc/tabulous.html#tabulous.types.HeaderInfo.value">value (tabulous.types.HeaderInfo attribute)</a>
 
       <ul>
         <li><a href="apidoc/tabulous.html#tabulous.types.ItemInfo.value">(tabulous.types.ItemInfo attribute)</a>
 </li>
       </ul></li>
-      <li><a href="apidoc/tabulous.html#tabulous.types.SelectionRanges.values">values (tabulous.types.SelectionRanges property)</a>
-</li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.view_mode">view_mode (tabulous.widgets.TableBase property)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.view_spreadsheet">view_spreadsheet() (in module tabulous)</a>

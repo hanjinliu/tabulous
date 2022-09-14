@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets._table &mdash; tabulous 0.1.2 documentation</title>
+  <title>tabulous.widgets._table &mdash; tabulous 0.2.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.2
+                0.2.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -40,13 +40,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/user_interface.html">User Interface</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../main/user_interface.html">User Interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../main/selections.html">Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/selections.html">Table Selections and Highlights</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/filter.html">Filter Table Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../main/cell_color.html">Set Cell Colors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/columnwise_settings.html">Column-wise Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
@@ -54,6 +53,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/modules.html">tabulous</a></li>
 </ul>
 
@@ -85,7 +86,7 @@
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Hashable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">psygnal</span> <span class="kn">import</span> <span class="n">SignalGroup</span><span class="p">,</span> <span class="n">Signal</span>
 
 <span class="kn">from</span> <span class="nn">.filtering</span> <span class="kn">import</span> <span class="n">FilterProxy</span>
@@ -94,15 +95,15 @@
     <span class="n">HorizontalHeaderInterface</span><span class="p">,</span>
     <span class="n">VerticalHeaderInterface</span><span class="p">,</span>
     <span class="n">PlotInterface</span><span class="p">,</span>
+    <span class="n">ColumnDtypeInterface</span><span class="p">,</span>
+    <span class="n">SelectionRanges</span><span class="p">,</span>
+    <span class="n">HighlightRanges</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_doc</span>
 
 <span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">SelectionRanges</span><span class="p">,</span>
     <span class="n">ItemInfo</span><span class="p">,</span>
     <span class="n">HeaderInfo</span><span class="p">,</span>
-    <span class="n">SelectionType</span><span class="p">,</span>
-    <span class="n">_SingleSelection</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -117,7 +118,11 @@
 
     <span class="kn">from</span> <span class="nn">..color</span> <span class="kn">import</span> <span class="n">ColorType</span>
 
-    <span class="n">ColorMapping</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">ColorType</span><span class="p">]</span>
+    <span class="n">ColorMapping</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">ColorType</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">ColorType</span><span class="p">]]</span>
+    <span class="n">Formatter</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">Validator</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+
+<span class="n">_Void</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
 
 
 <span class="k">class</span> <span class="nc">TableSignals</span><span class="p">(</span><span class="n">SignalGroup</span><span class="p">):</span>
@@ -162,6 +167,8 @@
     <span class="n">columns</span> <span class="o">=</span> <span class="n">HorizontalHeaderInterface</span><span class="p">()</span>
     <span class="n">plt</span> <span class="o">=</span> <span class="n">PlotInterface</span><span class="p">()</span>
     <span class="nb">filter</span> <span class="o">=</span> <span class="n">FilterProxy</span><span class="p">()</span>
+    <span class="n">selections</span> <span class="o">=</span> <span class="n">SelectionRanges</span><span class="p">()</span>
+    <span class="n">highlights</span> <span class="o">=</span> <span class="n">HighlightRanges</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -234,15 +241,6 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_keymap</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">precision</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Precision (displayed digits) of table.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">precision</span><span class="p">()</span>
-
-    <span class="nd">@precision</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">precision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setPrecision</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span>
 
@@ -287,17 +285,6 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Table is not mutable.&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">selections</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SelectionRanges</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Get the SelectionRanges object of current table selection.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">SelectionRanges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">selections</span><span class="p">())</span>
-
-    <span class="nd">@selections</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">selections</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">SelectionType</span> <span class="o">|</span> <span class="n">_SingleSelection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setSelections</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">native</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QBaseTable</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The backend widget.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span>
@@ -334,7 +321,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">column_name</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span>
         <span class="o">/</span><span class="p">,</span>
-        <span class="n">colormap</span><span class="p">:</span> <span class="n">ColorMapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">colormap</span><span class="p">:</span> <span class="n">ColorMapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_Void</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set foreground color rule.</span>
@@ -343,23 +330,27 @@
 <span class="sd">        ----------</span>
 <span class="sd">        column_name : Hashable</span>
 <span class="sd">            Target column name.</span>
-<span class="sd">        colormap : callable, optional</span>
-<span class="sd">            colormap function. Must return a color-like object.</span>
+<span class="sd">        colormap : callable or None, optional</span>
+<span class="sd">            Colormap function. Must return a color-like object. Pass None to reset</span>
+<span class="sd">            the colormap.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">_wrapper</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">ColorMapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorMapping</span><span class="p">:</span>
-            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
-            <span class="n">model</span><span class="o">.</span><span class="n">_foreground_colormap</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setForegroundColormap</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">f</span>
 
-        <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span> <span class="k">if</span> <span class="n">colormap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_wrapper</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colormap</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">colormap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">colormap</span> <span class="ow">is</span> <span class="n">_Void</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_wrapper</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TableBase.background_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableBase.background_colormap">[docs]</a>    <span class="k">def</span> <span class="nf">background_colormap</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">column_name</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span>
         <span class="o">/</span><span class="p">,</span>
-        <span class="n">colormap</span><span class="p">:</span> <span class="n">ColorMapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">colormap</span><span class="p">:</span> <span class="n">ColorMapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_Void</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set background color rule.</span>
@@ -368,17 +359,67 @@
 <span class="sd">        ----------</span>
 <span class="sd">        column_name : Hashable</span>
 <span class="sd">            Target column name.</span>
-<span class="sd">        colormap : callable, optional</span>
-<span class="sd">            colormap function. Must return a color-like object.</span>
+<span class="sd">        colormap : callable or None, optional</span>
+<span class="sd">            Colormap function. Must return a color-like object. Pass None to reset</span>
+<span class="sd">            the colormap.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">_wrapper</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">ColorMapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorMapping</span><span class="p">:</span>
-            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
-            <span class="n">model</span><span class="o">.</span><span class="n">_background_colormap</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setBackgroundColormap</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">f</span>
 
-        <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span> <span class="k">if</span> <span class="n">colormap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_wrapper</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colormap</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">colormap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">colormap</span> <span class="ow">is</span> <span class="n">_Void</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_wrapper</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableBase.text_formatter"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableBase.text_formatter">[docs]</a>    <span class="k">def</span> <span class="nf">text_formatter</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">column_name</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span>
+        <span class="o">/</span><span class="p">,</span>
+        <span class="n">formatter</span><span class="p">:</span> <span class="n">Formatter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_Void</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set column specific text formatter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        column_name : Hashable</span>
+<span class="sd">            Target column name.</span>
+<span class="sd">        formatter : callable, optional</span>
+<span class="sd">            Formatter function. Pass None to reset the formatter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_wrapper</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">Formatter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Formatter</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setTextFormatter</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">f</span>
+
+        <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span> <span class="k">if</span> <span class="n">formatter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_Void</span> <span class="k">else</span> <span class="n">_wrapper</span></div>
+
+<div class="viewcode-block" id="TableBase.validator"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableBase.validator">[docs]</a>    <span class="k">def</span> <span class="nf">validator</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">column_name</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span>
+        <span class="o">/</span><span class="p">,</span>
+        <span class="n">validator</span><span class="p">:</span> <span class="n">Validator</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_Void</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set column specific data validator.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        column_name : Hashable</span>
+<span class="sd">            Target column name.</span>
+<span class="sd">        validator : callable or None, optional</span>
+<span class="sd">            Validator function. Pass None to reset the validator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_wrapper</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">Validator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Validator</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setDataValidator</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">f</span>
+
+        <span class="k">return</span> <span class="n">_wrapper</span><span class="p">(</span><span class="n">validator</span><span class="p">)</span> <span class="k">if</span> <span class="n">validator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_Void</span> <span class="k">else</span> <span class="n">_wrapper</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">view_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -401,6 +442,7 @@
             <span class="nd">@view</span><span class="o">.</span><span class="n">popup</span><span class="o">.</span><span class="n">closed</span><span class="o">.</span><span class="n">connect</span>
             <span class="k">def</span> <span class="nf">_</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">view_mode</span> <span class="o">=</span> <span class="n">ViewMode</span><span class="o">.</span><span class="n">normal</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">setFocus</span><span class="p">()</span>
 
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">ViewMode</span><span class="o">.</span><span class="n">normal</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">resetViewMode</span><span class="p">()</span>
@@ -427,7 +469,10 @@
         <span class="k">return</span> <span class="n">wdt</span></div>
 
     <span class="k">def</span> <span class="nf">_emit_selections</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">selections</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span></div>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">selections</span><span class="o">.</span><span class="n">blocked</span><span class="p">():</span>
+            <span class="c1"># Block selection to avoid recursive update.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">selections</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
 
 <span class="k">class</span> <span class="nc">_DataFrameTableLayer</span><span class="p">(</span><span class="n">TableBase</span><span class="p">):</span>
@@ -473,8 +518,9 @@
 <span class="sd">    {name}{editable}{metadata}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;sheet&quot;</span>
     <span class="n">_qwidget</span><span class="p">:</span> <span class="n">QSpreadSheet</span>
+    <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;sheet&quot;</span>
+    <span class="n">dtypes</span> <span class="o">=</span> <span class="n">ColumnDtypeInterface</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_create_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QSpreadSheet</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">.._qt</span> <span class="kn">import</span> <span class="n">QSpreadSheet</span>
@@ -561,13 +607,14 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">interval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Interval of table refresh.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtimer</span><span class="o">.</span><span class="n">interval</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">interval</span><span class="p">()</span>
 
     <span class="nd">@interval</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">interval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set the interval of table refresh.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="mi">10</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="mi">10000</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Interval must be between 10 and 10000.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtimer</span><span class="o">.</span><span class="n">setInterval</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setInterval</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">loader</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">]:</span>
@@ -576,7 +623,15 @@
 
     <span class="nd">@loader</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">loader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setLoader</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setLoader</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">running</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">running</span><span class="p">()</span>
+
+    <span class="nd">@running</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">running</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setRunning</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

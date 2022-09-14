@@ -1,0 +1,17 @@
+<svg width="119" height="105"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden">
+    <defs>
+        <clipPath id="clip0">
+            <rect x="719" y="593" width="119" height="105"/>
+        </clipPath>
+    </defs>
+    <g clip-path="url(#clip0)" transform="translate(-719 -593)">
+        <path d="M752 651C752.09 637.211 752.18 623.422 752.271 609.633 752.271 603.208 757.462 598 763.865 598L810.241 598C816.645 598 821.835 603.208 821.835 609.633 821.89 622.976 821.945 636.319 822 649.662" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M729 693 739.75 650 832 650 821.25 693Z" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M0 0 0.000104987 67.8645" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd" transform="matrix(1 0 0 -1 728 696.864)"/>
+        <path d="M0 0 24.8813 0.000104987" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd" transform="matrix(-1 0 0 1 748.881 630)"/>
+        <path d="M802 624.027C800.688 620.59 799.658 618.165 795.535 615.677 791.412 613.189 782.534 613.864 778.95 615.171 775.366 616.478 773.75 620.78 774.031 623.521 774.312 626.262 776.35 629.72 780.637 631.618 784.924 633.516 792.068 633.558 795.535 635.666 799.002 637.775 801.386 641.794 801.438 644.27 801.49 646.745 800.341 648.009 799.643 649" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M774 644 777.77 651.508" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+    </g>
+</svg>

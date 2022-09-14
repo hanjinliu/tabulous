@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets package &mdash; tabulous 0.1.2 documentation</title>
+  <title>tabulous.widgets package &mdash; tabulous 0.2.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.2
+                0.2.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -42,13 +42,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../main/quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/user_interface.html">User Interface</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../main/user_interface.html">User Interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../main/selections.html">Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/selections.html">Table Selections and Highlights</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/filter.html">Filter Table Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../main/cell_color.html">Set Cell Colors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/columnwise_settings.html">Column-wise Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
@@ -56,6 +55,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../main/register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">tabulous</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="tabulous.html">tabulous package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="tabulous.html#subpackages">Subpackages</a><ul class="current">
@@ -310,13 +311,15 @@ which is equivalent to
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewerBase.add_spreadsheet">
-<span class="sig-name descname"><span class="pre">add_spreadsheet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_TableLike</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabulous.widgets.SpreadSheet" title="tabulous.widgets.SpreadSheet"><span class="pre">SpreadSheet</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerBase.add_spreadsheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewerBase.add_spreadsheet" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_spreadsheet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_TableLike</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtyped</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabulous.widgets.SpreadSheet" title="tabulous.widgets.SpreadSheet"><span class="pre">SpreadSheet</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerBase.add_spreadsheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewerBase.add_spreadsheet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add data as a spreadsheet.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>DataFrame like</em><em>, </em><em>optional</em>) – Table data to add.</p></li>
 <li><p><strong>{name}{editable}{copy}{metadata}{update}</strong> – </p></li>
+<li><p><strong>dtyped</strong> (<em>bool</em><em>, </em><em>default is False</em>) – If True, dtypes of the dataframe columns will be saved in the spreadsheet.
+Typed spreadsheet is safer for data recovery but less flexible for editing.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -330,7 +333,7 @@ which is equivalent to
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewerBase.add_table">
-<span class="sig-name descname"><span class="pre">add_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_TableLike</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="tabulous.html#tabulous.Table" title="tabulous.Table"><span class="pre">Table</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerBase.add_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewerBase.add_table" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_TableLike</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">editable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabulous.widgets.Table" title="tabulous.widgets._table.Table"><span class="pre">Table</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerBase.add_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewerBase.add_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add data as a table.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -347,9 +350,15 @@ which is equivalent to
 <dd class="field-even"><p>The added table object.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="tabulous.html#tabulous.Table" title="tabulous.Table">Table</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#tabulous.widgets.Table" title="tabulous.widgets._table.Table">Table</a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.mainwindow.TableViewerBase.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/mainwindow.html#TableViewerBase.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.mainwindow.TableViewerBase.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the viewer.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -584,6 +593,11 @@ connecting a new callback. This can also be provided at connection time using
 </ul>
 </dd>
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.SpreadSheet.dtypes">
+<span class="sig-name descname"><span class="pre">dtypes</span></span><a class="headerlink" href="#tabulous.widgets.SpreadSheet.dtypes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -616,13 +630,14 @@ connecting a new callback. This can also be provided at connection time using
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tabulous.widgets.TableBase.background_colormap">
-<span class="sig-name descname"><span class="pre">background_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Hashable</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ColorMapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/_table.html#TableBase.background_colormap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableBase.background_colormap" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">background_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column_name:</span> <span class="pre">Hashable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap:</span> <span class="pre">ColorMapping</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;object</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/_table.html#TableBase.background_colormap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableBase.background_colormap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set background color rule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>column_name</strong> (<em>Hashable</em>) – Target column name.</p></li>
-<li><p><strong>colormap</strong> (<em>callable</em><em>, </em><em>optional</em>) – colormap function. Must return a color-like object.</p></li>
+<li><p><strong>colormap</strong> (<em>callable</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Colormap function. Must return a color-like object. Pass None to reset
+the colormap.</p></li>
 </ul>
 </dd>
 </dl>
@@ -637,7 +652,8 @@ connecting a new callback. This can also be provided at connection time using
 <dl class="py attribute">
 <dt class="sig sig-object py" id="tabulous.widgets.TableBase.columns">
 <span class="sig-name descname"><span class="pre">columns</span></span><a class="headerlink" href="#tabulous.widgets.TableBase.columns" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>The interface for the horizontal header of the tablelist.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="tabulous.widgets.TableBase.data">
@@ -670,22 +686,30 @@ which is equivalent to
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tabulous.widgets.TableBase.foreground_colormap">
-<span class="sig-name descname"><span class="pre">foreground_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Hashable</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ColorMapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/_table.html#TableBase.foreground_colormap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableBase.foreground_colormap" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">foreground_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column_name:</span> <span class="pre">Hashable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap:</span> <span class="pre">ColorMapping</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;object</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/_table.html#TableBase.foreground_colormap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableBase.foreground_colormap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set foreground color rule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>column_name</strong> (<em>Hashable</em>) – Target column name.</p></li>
-<li><p><strong>colormap</strong> (<em>callable</em><em>, </em><em>optional</em>) – colormap function. Must return a color-like object.</p></li>
+<li><p><strong>colormap</strong> (<em>callable</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Colormap function. Must return a color-like object. Pass None to reset
+the colormap.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.widgets.TableBase.highlights">
+<span class="sig-name descname"><span class="pre">highlights</span></span><a class="headerlink" href="#tabulous.widgets.TableBase.highlights" title="Permalink to this definition">¶</a></dt>
+<dd><p>A table data specific highlight list.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="tabulous.widgets.TableBase.index">
 <span class="sig-name descname"><span class="pre">index</span></span><a class="headerlink" href="#tabulous.widgets.TableBase.index" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>The interface for the vertical header of the tablelist.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="tabulous.widgets.TableBase.keymap">
@@ -736,22 +760,16 @@ which is equivalent to
 <dd><p>The interface of plotting.</p>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="tabulous.widgets.TableBase.precision">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">precision</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#tabulous.widgets.TableBase.precision" title="Permalink to this definition">¶</a></dt>
-<dd><p>Precision (displayed digits) of table.</p>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="tabulous.widgets.TableBase.refresh">
 <span class="sig-name descname"><span class="pre">refresh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/widgets/_table.html#TableBase.refresh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableBase.refresh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Refresh the table view.</p>
 </dd></dl>
 
-<dl class="py property">
+<dl class="py attribute">
 <dt class="sig sig-object py" id="tabulous.widgets.TableBase.selections">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">selections</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="tabulous.html#tabulous.types.SelectionRanges" title="tabulous.types.SelectionRanges"><span class="pre">SelectionRanges</span></a></em><a class="headerlink" href="#tabulous.widgets.TableBase.selections" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the SelectionRanges object of current table selection.</p>
+<span class="sig-name descname"><span class="pre">selections</span></span><a class="headerlink" href="#tabulous.widgets.TableBase.selections" title="Permalink to this definition">¶</a></dt>
+<dd><p>A table data specific selection range list.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -760,10 +778,38 @@ which is equivalent to
 <dd><p>Shape of table.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.TableBase.text_formatter">
+<span class="sig-name descname"><span class="pre">text_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column_name:</span> <span class="pre">Hashable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatter:</span> <span class="pre">Formatter</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;object</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/_table.html#TableBase.text_formatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableBase.text_formatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set column specific text formatter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>column_name</strong> (<em>Hashable</em>) – Target column name.</p></li>
+<li><p><strong>formatter</strong> (<em>callable</em><em>, </em><em>optional</em>) – Formatter function. Pass None to reset the formatter.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="tabulous.widgets.TableBase.undo_manager">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">undo_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UndoManager</span></em><a class="headerlink" href="#tabulous.widgets.TableBase.undo_manager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the undo manager.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabulous.widgets.TableBase.validator">
+<span class="sig-name descname"><span class="pre">validator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column_name:</span> <span class="pre">Hashable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validator:</span> <span class="pre">Validator</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;object</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/_table.html#TableBase.validator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableBase.validator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set column specific data validator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>column_name</strong> (<em>Hashable</em>) – Target column name.</p></li>
+<li><p><strong>validator</strong> (<em>callable</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Validator function. Pass None to reset the validator.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">
@@ -804,6 +850,11 @@ which is equivalent to
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">loader</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tabulous.widgets.TableDisplay.loader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loader function.</p>
 </dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.TableDisplay.running">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">running</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#tabulous.widgets.TableDisplay.running" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
