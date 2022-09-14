@@ -142,8 +142,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _install_actions(self):
         # fmt: off
         hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Color>Set forground colormap")(self._set_forground_colormap_with_dialog)
-        hheader.registerAction("Color>Reset forground colormap")(self._reset_forground_colormap)
+        hheader.registerAction("Color>Set foreground colormap")(self._set_forground_colormap_with_dialog)
+        hheader.registerAction("Color>Reset foreground colormap")(self._reset_forground_colormap)
         hheader.registerAction("Color>Set background colormap")(self._set_background_colormap_with_dialog)
         hheader.registerAction("Color>Reset background colormap")(self._reset_background_colormap)
         hheader.registerAction("Formatter>Set text formatter")(self._set_text_formatter_with_dialog)
