@@ -9,13 +9,6 @@ in the design and API. Accordingly, custom widget creation is easily achievable
 for beginners using `magicgui <https://github.com/napari/magicgui>`_, or any
 Qt widgets for more trained users.
 
-Highlight
----------
-
-* Implemented with interactive table viewer and editor.
-* Highly customizable and extensible.
-* Catch data selection and data editing events.
-
 
 .. toctree::
    :maxdepth: 1
@@ -34,14 +27,6 @@ Tables
    ./main/columnwise_settings
    ./main/table_advanced
 
-Other API
----------
-
-.. toctree::
-   :maxdepth: 2
-
-   ./main/register_action
-
 
 Cooperate with Other Widgets
 ----------------------------
@@ -53,20 +38,14 @@ Cooperate with Other Widgets
    ./main/non_mainwindow
 
 
-Others
-------
+Other Contents
+--------------
 
 .. toctree::
    :maxdepth: 1
 
+   ./main/register_action
    ./main/cheat_sheet
-
-API Reference
--------------
-
-.. toctree::
-   :maxdepth: 1
-
    ./apidoc/modules
 
 

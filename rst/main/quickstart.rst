@@ -57,6 +57,7 @@ In ``tabulous`` viewer there are additional keybindings.
 
 - ``Ctrl + Shift + ↑``: Set console floating.
 - ``Ctrl + Shift + ↓``: Dock console.
+- ``Ctrl + I``: Insert a data reference object (See :doc:`/main/user_interface`).
 
 Handle Tables
 =============

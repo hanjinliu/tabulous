@@ -138,9 +138,43 @@ Some basic formatters are available in the right-click context menu of the colum
 such as ``Formatter > Set text formatter``. You'll see a preview of the column in
 the dialog.
 
-Spreadsheet Data Types
-======================
+Typing Spreadsheet
+==================
 
+In a spreadsheet, data types are determined for each column based on its content
+because a spreadsheet is a string-based table data in general. This characteristic
+raises a problem of data type. This drawback is especially important when you want
+to use data types such as ``datetime64`` or ``category``.
 
-.. In ``SpreadSheet``, data types are determined for each column based on its content.
-.. However, you may think of .
+To solve this problem, ``SpreadSheet`` implements a typing system on each column.
+You can tag any data types supported by ``pandas`` to each column, and optionally
+set validator functions appropriate for the data types.
+
+.. code-block:: python
+
+    viewer = TableViewer()
+    sheet = viewer.add_spreadsheet({"int": [1, 2, 3], "label": ["a", "b", "c"]})
+
+    # set dtypes
+    sheet.dtypes["int"] = "int64"
+    sheet.dtypes["label"] = "category"
+
+    # since "dtypes" is a dict-like field, you can also use "update"
+    sheet.dtypes.update(int="int64", label="category")
+
+    # set dtypes and default validators
+    sheet.dtypes.set_dtype("int", "int64")
+    sheet.dtypes.set_dtype("label", "category")
+
+.. code-block:: python
+
+    sheet.data.dtypes
+
+.. code-block::
+
+    int    int64
+    label  category
+    dtype: object
+
+You can also set dtypes from GUI. Right-click the column header and select
+``Column dtype``.
