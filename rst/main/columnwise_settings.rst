@@ -137,3 +137,10 @@ Set Formatter in GUI
 Some basic formatters are available in the right-click context menu of the columns,
 such as ``Formatter > Set text formatter``. You'll see a preview of the column in
 the dialog.
+
+Spreadsheet Data Types
+======================
+
+
+.. In ``SpreadSheet``, data types are determined for each column based on its content.
+.. However, you may think of .

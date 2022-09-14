@@ -53,6 +53,10 @@ but you can show it in several ways.
 3. Click the |toggle_console| tool button in the "Analysis" tab of the toolbar.
 4. Click the tool button of (3.) using key combo ``Alt, A, 4``
 
+In ``tabulous`` viewer there are additional keybindings.
+
+- ``Ctrl + Shift + ↑``: Set console floating.
+- ``Ctrl + Shift + ↓``: Dock console.
 
 Handle Tables
 =============

@@ -21,19 +21,26 @@ Highlight
    :maxdepth: 1
 
    ./main/quickstart
+   ./main/user_interface
 
-Basics
+Tables
 ------
 
 .. toctree::
    :maxdepth: 2
 
-   ./main/user_interface
    ./main/selections
    ./main/filter
-   ./main/register_action
    ./main/columnwise_settings
    ./main/table_advanced
+
+Other API
+---------
+
+.. toctree::
+   :maxdepth: 2
+
+   ./main/register_action
 
 
 Cooperate with Other Widgets
