@@ -3,7 +3,7 @@
 
 # tabulous
 
-A table data viewer for Python.
+A table data viewer for Python. [&rarr;📖 Documentation](https://hanjinliu.github.io/tabulous/)
 
 ![](image/viewer_iris.png)
 
@@ -24,10 +24,6 @@ pip install tabulous[pyqt5]  # Use PyQt5
 pip install tabulous[pyqt6]  # Use PyQt6
 ```
 
-### Documentation
-
-Documentation is available [here](https://hanjinliu.github.io/tabulous/).
-
 ### A Wide Variety of Tables are Supported
 
 |**Table**|**SpreadSheet**|
@@ -46,6 +42,12 @@ Documentation is available [here](https://hanjinliu.github.io/tabulous/).
 |:-:|:-:|
 |![](https://github.com/hanjinliu/tabulous/blob/main/image/colormap.png)|![](https://github.com/hanjinliu/tabulous/blob/main/image/highlight.png)|
 
+### Data Validation
+
+|**Data type validation**|**Custom validation**|
+|:-:|:-:|
+|![](https://github.com/hanjinliu/tabulous/blob/main/image/validation.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/validation_custom.gif)|
+|Columns tagged with dtype will validate the input string and raise an error on entering invalid string.|You can also define custom validators for each column, such as confirming non-negative.|
 
 ### How it works.
 

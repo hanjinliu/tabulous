@@ -27,6 +27,7 @@ class QtConsole(RichJupyterWidget):
         self.resize(100, 40)
         self._dock_parent = None
         self._current_data_identifier = "NONE"
+        self.codeExecuted.connect(self.setFocus)
 
     def connect_parent(self, widget: TableViewerBase):
         from IPython import get_ipython
