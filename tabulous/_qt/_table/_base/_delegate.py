@@ -32,11 +32,13 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 qtable_view._font, int(qtable_view._font_size * qtable_view.zoom())
             )
             if row >= df.shape[0] or col >= df.shape[1]:
+                # out-of-bounds
                 line = QCellLineEdit(parent, table, (row, col))
                 line.setFont(font)
                 return line
 
             dtype: np.dtype = df.dtypes.values[col]
+            value = df.iat[row, col]
             if dtype == "category":
                 # use combobox for categorical data
                 dtype: CategoricalDtype
@@ -44,7 +46,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 cbox.setFont(font)
                 choices = list(map(str, dtype.categories))
                 cbox.addItems(choices)
-                cbox.setCurrentIndex(choices.index(df.iat[row, col]))
+                cbox.setCurrentIndex(choices.index(value))
                 cbox.currentIndexChanged.connect(qtable_view.setFocus)
                 return cbox
             elif dtype == "bool":
@@ -53,17 +55,18 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 cbox.setFont(font)
                 choices = ["True", "False"]
                 cbox.addItems(choices)
-                cbox.setCurrentIndex(0 if df.iat[row, col] else 1)
+                cbox.setCurrentIndex(0 if value else 1)
                 cbox.currentIndexChanged.connect(qtable_view.setFocus)
                 return cbox
             elif dtype.kind == "M":
                 dt = QtW.QDateTimeEdit(parent)
                 dt.setFont(font)
-                timestamp: pd.Timestamp = df.iat[row, col]
-                dt.setDateTime(timestamp.to_pydatetime())
+                value: pd.Timestamp
+                dt.setDateTime(value.to_pydatetime())
                 return dt
             else:
                 line = QCellLineEdit(parent, table, (row, col))
+                line.setText(str(value))
                 line.setFont(font)
                 return line
 
