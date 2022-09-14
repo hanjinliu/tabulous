@@ -428,6 +428,12 @@ class QSpreadSheet(QMutableSimpleTable):
         return self.removeColumns(col, 1)
 
     def _set_column_dtype(self, col: int):
+        """
+        Set column specific dtype for data conversion and validation.
+
+        If a column in a spreadsheet is tagged with a dtype, table data will be
+        parsed according to the specified data type.
+        """
         from ._dtype import QDtypeWidget
 
         if out := QDtypeWidget.requestValue(self):
@@ -441,6 +447,7 @@ class QSpreadSheet(QMutableSimpleTable):
         return None
 
     def _set_default_data_validator(self, name: Hashable):
+        """Set default data validator based on the dtype."""
         dtype = self._columns_dtype[name]
         validator = DefaultValidator(dtype)
         return self.setDataValidator(name, validator)
@@ -448,26 +455,26 @@ class QSpreadSheet(QMutableSimpleTable):
     def _install_actions(self):
         # fmt: off
         vheader = self._qtable_view.verticalHeader()
-        vheader.registerAction("Insert row above")(self._insert_row_above)
-        vheader.registerAction("Insert row below")(self._insert_row_below)
-        vheader.registerAction("Remove this row")(self._remove_this_row)
+        vheader.registerAction("Insert/Remove > Insert row above")(self._insert_row_above)
+        vheader.registerAction("Insert/Remove > Insert row below")(self._insert_row_below)
+        vheader.registerAction("Insert/Remove > Remove this row")(self._remove_this_row)
         vheader.addSeparator()
 
         hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Insert column left")(self._insert_column_left)
-        hheader.registerAction("Insert column right")(self._insert_column_right)
-        hheader.registerAction("Remove this column")(self._remove_this_column)
+        hheader.registerAction("Insert/Remove > Insert column left")(self._insert_column_left)
+        hheader.registerAction("Insert/Remove > Insert column right")(self._insert_column_right)
+        hheader.registerAction("Insert/Remove > Remove this column")(self._remove_this_column)
         hheader.addSeparator()
-        hheader.registerAction("Set column dtype")(self._set_column_dtype)
+        hheader.registerAction("Column dtype")(self._set_column_dtype)
         hheader.addSeparator()
 
-        self.registerAction("Insert a row above")(lambda idx: self._insert_row_above(idx[0]))
-        self.registerAction("Insert a row below")(lambda idx: self._insert_row_below(idx[0]))
-        self.registerAction("Remove this row")(lambda idx: self._remove_this_row(idx[0]))
+        self.registerAction("Insert/Remove > Insert a row above")(lambda idx: self._insert_row_above(idx[0]))
+        self.registerAction("Insert/Remove > Insert a row below")(lambda idx: self._insert_row_below(idx[0]))
+        self.registerAction("Insert/Remove > Remove this row")(lambda idx: self._remove_this_row(idx[0]))
         self.addSeparator()
-        self.registerAction("Insert a column on the left")(lambda idx: self.insertColumns(idx[1]))
-        self.registerAction("Insert a column on the right")(lambda idx: self.insertColumns(idx[1]))
-        self.registerAction("Remove this column")(lambda idx: self._remove_this_column(idx[1]))
+        self.registerAction("Insert/Remove > Insert a column on the left")(lambda idx: self.insertColumns(idx[1]))
+        self.registerAction("Insert/Remove > Insert a column on the right")(lambda idx: self.insertColumns(idx[1]))
+        self.registerAction("Insert/Remove > Remove this column")(lambda idx: self._remove_this_column(idx[1]))
         self.addSeparator()
         # fmt: on
 
