@@ -297,7 +297,7 @@ class TableBase(ABC):
         formatter: Formatter | None = _Void,
     ):
         """
-        Set background color rule.
+        Set column specific text formatter.
 
         Parameters
         ----------
@@ -320,7 +320,7 @@ class TableBase(ABC):
         validator: Validator | None = _Void,
     ):
         """
-        Set background color rule.
+        Set column specific data validator.
 
         Parameters
         ----------

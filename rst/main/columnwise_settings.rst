@@ -58,13 +58,17 @@ For categorical data, you can also use dictionaries to set the colors.
 Set Colormaps in GUI
 --------------------
 
-Some basic colormaps are available in the right-click context menu of the columns.
+Some basic colormaps are available in the right-click context menu of the columns,
+such as ``Color > Set foreground colormap``.
 
 Validator
 =========
 
 Simple data type conversion is sometimes not enough. To make editing data safer, you can
 customize the validator for each column.
+
+Set validator Functions
+-----------------------
 
 A validator function doesn't care about the returned value. It should raise an exception
 if the input value is invalid.
@@ -84,6 +88,11 @@ if the input value is invalid.
     A :class:`Table` object converts the input value to the data type of the column.
     The validator function is called *after* the conversion.
 
+.. note::
+
+    Unlike other column setting, validators can NOT be set from GUI. This is because
+    changing data validation rule might break the safety of the table data.
+
 Text Formatter
 ==============
 
@@ -95,6 +104,13 @@ itself. This is useful for displaying data in a more readable format.
     Text formatters are called every time cells are painted. Formatters should not
     take too much time to run.
 
+Set formatter function
+----------------------
+
+As usual in this chapter, you can use functions that convert a value into a string
+as formatter function. The formatted strings are not necessary to satisfy the
+column specific validation including data type conversion.
+
 .. code-block:: python
 
     viewer = TableViewer()
@@ -104,13 +120,20 @@ itself. This is useful for displaying data in a more readable format.
     def _(x: float):
         return f"{x:.2f} cm"
 
+Set formatter string
+--------------------
+
 Instead of passing a function, you can also use a ready-to-be-formatted strings.
 
 .. code-block:: python
 
     table.text_formatter("sepal_length", "{:.2f} cm")
 
+Example above is identical to passing ``"{:.2f} cm".format``.
+
 Set Formatter in GUI
 --------------------
 
-Some basic formatters are available in the right-click context menu of the columns.
+Some basic formatters are available in the right-click context menu of the columns,
+such as ``Formatter > Set text formatter``. You'll see a preview of the column in
+the dialog.
