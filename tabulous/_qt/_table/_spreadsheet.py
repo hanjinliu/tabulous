@@ -223,16 +223,40 @@ class QSpreadSheet(QMutableSimpleTable):
         """Insert rows at the given row number and count."""
         if self._filter_slice is not None:
             raise NotImplementedError("Cannot insert rows during filtering.")
+
+        index_existing = self._data_raw.index
+
+        # determine index labels
+        if not isinstance(index_existing, pd.RangeIndex):
+            index: list[int] = []
+            i = 0
+            while True:
+                if i not in index_existing:
+                    index.append(i)
+                    if len(index) >= count:
+                        break
+                else:
+                    i += 1
+        else:
+            index = None
+
+        new = _df_full(
+            nrows=count,
+            ncols=self._data_raw.shape[1],
+            index=index,
+            columns=self._data_raw.columns,
+        )
+
         self._data_raw = pd.concat(
             [
                 self._data_raw.iloc[:row, :],
-                _df_full(
-                    count, self._data_raw.shape[1], columns=self._data_raw.columns
-                ),
+                new,
                 self._data_raw.iloc[row:, :],
             ],
             axis=0,
         )
+        if isinstance(index_existing, pd.RangeIndex):
+            self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
         self.model().insertRows(row, count, QtCore.QModelIndex())
         self.setFilter(self._filter_slice)
         self._data_cache = None
@@ -253,14 +277,40 @@ class QSpreadSheet(QMutableSimpleTable):
         """Insert columns at the given column number and count."""
         if self._filter_slice is not None:
             raise NotImplementedError("Cannot insert during filtering.")
+
+        columns_existing = self._data_raw.columns
+
+        # determine column labels
+        if not isinstance(columns_existing, pd.RangeIndex):
+            columns: list[int] = []
+            i = 0
+            while True:
+                if i not in columns_existing:
+                    columns.append(i)
+                    if len(columns) >= count:
+                        break
+                else:
+                    i += 1
+        else:
+            columns = None
+
+        new = _df_full(
+            nrows=self._data_raw.shape[0],
+            ncols=count,
+            index=self._data_raw.index,
+            columns=columns,
+        )
+
         self._data_raw = pd.concat(
             [
                 self._data_raw.iloc[:, :column],
-                _df_full(self._data_raw.shape[0], count, index=self._data_raw.index),
+                new,
                 self._data_raw.iloc[:, column:],
             ],
             axis=1,
         )
+        if isinstance(columns_existing, pd.RangeIndex):
+            self._data_raw.columns = pd.RangeIndex(0, self._data_raw.columns.size)
         self.model().insertColumns(column, count, QtCore.QModelIndex())
         self.setFilter(self._filter_slice)
         self._data_cache = None
@@ -410,21 +460,33 @@ class QSpreadSheet(QMutableSimpleTable):
         return (label, self._columns_dtype.get(label, None)), {}
 
     def _insert_row_above(self, row: int):
+        if not self.isEditable():
+            return self.tableStack().notifyEditability()
         return self.insertRows(row, 1)
 
     def _insert_row_below(self, row: int):
+        if not self.isEditable():
+            return self.tableStack().notifyEditability()
         return self.insertRows(row + 1, 1)
 
     def _insert_column_left(self, col: int):
+        if not self.isEditable():
+            return self.tableStack().notifyEditability()
         return self.insertColumns(col, 1)
 
     def _insert_column_right(self, col: int):
+        if not self.isEditable():
+            return self.tableStack().notifyEditability()
         return self.insertColumns(col + 1, 1)
 
     def _remove_this_row(self, row: int):
+        if not self.isEditable():
+            return self.tableStack().notifyEditability()
         return self.removeRows(row, 1)
 
     def _remove_this_column(self, col: int):
+        if not self.isEditable():
+            return self.tableStack().notifyEditability()
         return self.removeColumns(col, 1)
 
     def _set_column_dtype(self, col: int):
