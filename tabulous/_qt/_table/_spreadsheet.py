@@ -7,7 +7,7 @@ from qtpy import QtCore
 from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
-from ._dtype import get_converter, DTypeMap
+from ._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 
 _OUT_OF_BOUND_SIZE = 10  # 10 more rows and columns will be displayed.
 
@@ -113,6 +113,7 @@ class QSpreadSheet(QMutableSimpleTable):
         return out
 
     def dataShape(self) -> tuple[int, int]:
+        """Shape of data."""
         return self._data_raw.shape
 
     @QMutableSimpleTable._mgr.interface
@@ -389,15 +390,19 @@ class QSpreadSheet(QMutableSimpleTable):
         """Set the dtype of the column with the given label."""
         if dtype is None:
             self._columns_dtype.pop(label, None)
-            return None
-        if label not in self._data_raw.columns:
-            raise ValueError(f"Column {label!r} not found.")
-        from pandas.core.dtypes.common import pandas_dtype
 
-        dtype = pandas_dtype(dtype)
-        if self._columns_dtype.get(label, None) is not dtype:
-            self._columns_dtype[label] = dtype
-            self._data_cache = None
+        else:
+            if label not in self._data_raw.columns:
+                raise ValueError(f"Column {label!r} not found.")
+
+            dtype = get_dtype(dtype)
+            if self._columns_dtype.get(label, None) is not dtype:
+                self._columns_dtype[label] = dtype
+                self._data_cache = None
+
+        if validator := self.model()._validator.get(label, None):
+            if isinstance(validator, DefaultValidator):
+                self.model()._validator.pop(label)
         return None
 
     @setColumnDtype.server
@@ -425,11 +430,20 @@ class QSpreadSheet(QMutableSimpleTable):
     def _set_column_dtype(self, col: int):
         from ._dtype import QDtypeWidget
 
-        if val := QDtypeWidget.requestValue(self):
-            if val == "unset":
-                val = None
-            self.setColumnDtype(self._data_raw.columns[col], val)
+        if out := QDtypeWidget.requestValue(self):
+            dtype_str, validation = out
+            if dtype_str == "unset":
+                dtype_str = None
+            colname = self._data_raw.columns[col]
+            self.setColumnDtype(colname, dtype_str)
+            if validation:
+                self._set_default_data_validator(colname)
         return None
+
+    def _set_default_data_validator(self, name: Hashable):
+        dtype = self._columns_dtype[name]
+        validator = DefaultValidator(dtype)
+        return self.setDataValidator(name, validator)
 
     def _install_actions(self):
         # fmt: off

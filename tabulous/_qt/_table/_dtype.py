@@ -68,7 +68,29 @@ def get_converter(kind: str) -> Callable[[Any], Any]:
     return _DTYPE_CONVERTER[kind]
 
 
+class DefaultValidator:
+    def __init__(self, dtype: Any):
+        self._dtype = get_dtype(dtype)
+        self._converter = _DTYPE_CONVERTER.get(self._dtype.kind, lambda x: None)
+
+    def __call__(self, value: Any) -> None:
+        self._converter(value)
+        return None
+
+    def __repr__(self) -> str:
+        return f"DefaultValidator[{self._dtype.name}]"
+
+
+def get_dtype(dtype: Any):
+    """Get pandas dtype."""
+    from pandas.core.dtypes.common import pandas_dtype
+
+    return pandas_dtype(dtype)
+
+
 class QDtypeWidget(QtW.QTreeWidget):
+    """A tree view widget of supported dtypes."""
+
     _DTYPES = [
         "unset",
         "int",
@@ -110,12 +132,17 @@ class QDtypeWidget(QtW.QTreeWidget):
         return self.currentItem().text(0)
 
     @classmethod
-    def requestValue(cls, parent=None) -> str | None:
+    def requestValue(cls, parent=None) -> tuple[str, bool] | None:
+        """Ask the user to select a dtype."""
         self = cls()
         dlg = QtW.QDialog(parent)
         dlg.setLayout(QtW.QVBoxLayout())
         dlg.layout().addWidget(QtW.QLabel("dtype"))
         dlg.layout().addWidget(self)
+        checkbox = QtW.QCheckBox("Data validation")
+        checkbox.setChecked(True)
+        checkbox.setToolTip("Check to set the data validator for the data type.")
+        dlg.layout().addWidget(checkbox)
 
         _Btn = QtW.QDialogButtonBox.StandardButton
         _btn_box = QtW.QDialogButtonBox(
@@ -135,7 +162,7 @@ class QDtypeWidget(QtW.QTreeWidget):
 
         dlg.setWindowTitle("Select a dtype")
         if dlg.exec():
-            out = self.dtypeText()
+            out = self.dtypeText(), checkbox.isChecked()
         else:
             out = None
         return out
@@ -207,3 +234,9 @@ class DTypeMap(MutableMapping[_K, _V]):
                 },
             )
         return kwargs
+
+    def try_convert(self, key: _K, value: Any) -> Any:
+        """Convert value according to the dtype, if registered."""
+        if dtype := self.get(key, None):
+            return convert_value(dtype.kind, value)
+        return value

@@ -451,7 +451,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return (name, fmt), {}
 
     @_mgr.interface
-    def setDataValidator(self, name: str, validator: Callable[[Any], bool]):
+    def setDataValidator(self, name: str, validator: Callable[[Any], None]):
         if validator is None:
             self.model()._validator.pop(name, None)
         else:

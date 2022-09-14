@@ -1,3 +1,4 @@
+import pytest
 from tabulous import TableViewer
 from tabulous._qt import QSpreadSheet
 from typing import cast
@@ -96,3 +97,24 @@ def test_setting_header_out_of_bound():
     assert list(sheet.data.columns) == [0, "col1"]
     qtable.undo()
     assert sheet.data.shape == (0, 0)
+
+@pytest.mark.parametrize("dtype", ["string", "int", "float"])
+def test_column_dtype(dtype: str):
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
+    with pytest.raises(ValueError):
+        sheet.dtypes["b"] = dtype
+    sheet.dtypes["a"] = dtype
+    assert sheet.data.dtypes["a"] == dtype
+
+def test_column_dtype_validation():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
+    sheet.dtypes.set_dtype("a", "int")
+    sheet.cell[0, 0] = 1
+    with pytest.raises(ValueError):
+        sheet.cell[0, 0] = "a"
+
+    # validator should be reset
+    del sheet.dtypes["a"]
+    sheet.cell[0, 0] = "a"

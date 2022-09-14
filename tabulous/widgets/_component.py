@@ -488,7 +488,7 @@ class ColumnDtypeInterface(
         return self.parent._qwidget.setColumnDtype(key, dtype)
 
     def __delitem__(self, key: Hashable) -> None:
-        return self.parent._qwidget.setColumnDtype(None)
+        return self.parent._qwidget.setColumnDtype(key, None)
 
     def __repr__(self) -> str:
         clsname = type(self).__name__
@@ -500,3 +500,9 @@ class ColumnDtypeInterface(
 
     def __iter__(self) -> Iterator[Hashable]:
         return iter(self.parent._qwidget._columns_dtype)
+
+    def set_dtype(self, name: Hashable, dtype: Any, validation: bool = True) -> None:
+        self.parent._qwidget.setColumnDtype(name, dtype)
+        if validation:
+            self.parent._qwidget._set_default_data_validator(name)
+        return None
