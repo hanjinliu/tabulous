@@ -5,7 +5,7 @@
 
 A table data viewer for Python. [&rarr;📖 Documentation](https://hanjinliu.github.io/tabulous/)
 
-![](image/viewer_iris.png)
+![](https://github.com/hanjinliu/tabulous/blob/main/image/viewer_iris.png)
 
 `tabulous` is highly inspired by [napari](https://github.com/napari/napari) in its design and API.
 
@@ -41,6 +41,7 @@ pip install tabulous[pyqt6]  # Use PyQt6
 |**Cell colors**|**Highlighting**|
 |:-:|:-:|
 |![](https://github.com/hanjinliu/tabulous/blob/main/image/colormap.png)|![](https://github.com/hanjinliu/tabulous/blob/main/image/highlight.png)|
+|Colormap defines text or background color based on the value.|Highlight is colored overlays.|
 
 ### Data Validation
 
