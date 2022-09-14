@@ -80,6 +80,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         # "new tab" button
         tb = QtW.QToolButton()
         tb.setText("+")
+        tb.setFont(QtGui.QFont("Arial", 12, weight=15))
         tb.setToolTip("New spreadsheet")
         tb.clicked.connect(lambda: self.parent().newSpreadSheet())
         self.setCornerWidget(tb)
