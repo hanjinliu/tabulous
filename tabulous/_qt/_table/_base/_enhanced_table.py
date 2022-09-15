@@ -49,6 +49,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._w_default = table.column_size
         self._font = table.font
         self.setFont(QtGui.QFont(self._font, self._font_size))
+        self.setWordWrap(False)  # this disables eliding float text
 
         # use custom selection model
         self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.NoSelection)
