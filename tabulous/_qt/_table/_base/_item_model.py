@@ -18,6 +18,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     """Table model for data frame."""
 
     dataEdited = Signal(int, int, object)
+    _FORMAT_ERROR = "<Format Error>"
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -71,7 +72,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 try:
                     text = str(mapper(val))
                 except Exception:
-                    text = "<Format Error>"
+                    text = self._FORMAT_ERROR
             else:
                 fmt = DefaultFormatter(df.dtypes[colname])
                 text = fmt(val)

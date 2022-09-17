@@ -58,7 +58,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
                 try:
                     text = str(mapper(_converter(val)))
                 except Exception:
-                    text = "<Format Error>"
+                    text = self._FORMAT_ERROR
             else:
                 text = str(val)
             return text
@@ -533,7 +533,7 @@ class QSpreadSheet(QMutableSimpleTable):
             if validation:
                 self._set_default_data_validator(colname)
             if formatting:
-                self._set_default_data_formatter(colname)
+                self._set_default_text_formatter(colname)
         return None
 
     def _set_default_data_validator(self, name: Hashable):
@@ -542,7 +542,7 @@ class QSpreadSheet(QMutableSimpleTable):
         validator = DefaultValidator(dtype)
         return self.setDataValidator(name, validator)
 
-    def _set_default_data_formatter(self, name: Hashable):
+    def _set_default_text_formatter(self, name: Hashable):
         """Set default data formatter based on the dtype."""
         dtype = self._columns_dtype[name]
         formatter = DefaultFormatter(dtype)

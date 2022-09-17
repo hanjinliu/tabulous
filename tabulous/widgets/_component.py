@@ -501,8 +501,17 @@ class ColumnDtypeInterface(
     def __iter__(self) -> Iterator[Hashable]:
         return iter(self.parent._qwidget._columns_dtype)
 
-    def set_dtype(self, name: Hashable, dtype: Any, validation: bool = True) -> None:
+    def set_dtype(
+        self,
+        name: Hashable,
+        dtype: Any,
+        *,
+        validation: bool = True,
+        formatting: bool = True,
+    ) -> None:
         self.parent._qwidget.setColumnDtype(name, dtype)
         if validation:
             self.parent._qwidget._set_default_data_validator(name)
+        if formatting:
+            self.parent._qwidget._set_default_text_formatter(name)
         return None

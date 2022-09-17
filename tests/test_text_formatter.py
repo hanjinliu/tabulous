@@ -14,3 +14,15 @@ def test_text_formatter():
     # reset formatter
     table.text_formatter("number", None)
     assert _utils.get_cell_value(table.native, 0, 0) == "1"
+
+def test_spreadsheet_default_formatter():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet({"number": ["1.2", "1.23456789"]})
+    assert _utils.get_cell_value(sheet.native, 0, 0) == "1.2"
+    assert _utils.get_cell_value(sheet.native, 1, 0) == "1.23456789"
+    sheet.dtypes.set_dtype("number", "float", formatting=False)
+    assert _utils.get_cell_value(sheet.native, 0, 0) == "1.2"
+    assert _utils.get_cell_value(sheet.native, 1, 0) == "1.23456789"
+    sheet.dtypes.set_dtype("number", "float", formatting=True)
+    assert _utils.get_cell_value(sheet.native, 0, 0) == "1.2000"
+    assert _utils.get_cell_value(sheet.native, 1, 0) == "1.2346"
