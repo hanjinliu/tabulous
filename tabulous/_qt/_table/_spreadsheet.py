@@ -8,8 +8,10 @@ from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from ._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
+from ._base._text_formatter import DefaultFormatter
 
 _OUT_OF_BOUND_SIZE = 10  # 10 more rows and columns will be displayed.
+_STRING_DTYPE = get_dtype("string")
 
 
 class SpreadSheetModel(AbstractDataFrameModel):
@@ -20,6 +22,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
         from ..._global_variables import table
 
         self._table_vars = table
+        self._columns_dtype = self.parent()._columns_dtype
 
     @property
     def df(self) -> pd.DataFrame:  # NOTE: this returns a string data frame
@@ -41,9 +44,29 @@ class SpreadSheetModel(AbstractDataFrameModel):
             self._table_vars.max_column_count,
         )
 
+    def _data_display(self, index: QtCore.QModelIndex):
+        """Display role."""
+        r, c = index.row(), index.column()
+        df = self.df
+        if r < df.shape[0] and c < df.shape[1]:
+            val = df.iat[r, c]
+            colname = df.columns[c]
+            if mapper := self._text_formatter.get(colname, None):
+                _converter = get_converter(
+                    self._columns_dtype.get(colname, _STRING_DTYPE).kind
+                )
+                try:
+                    text = str(mapper(_converter(val)))
+                except Exception:
+                    text = "<Format Error>"
+            else:
+                text = str(val)
+            return text
+        return QtCore.QVariant()
+
     def _column_tooltip(self, section: int):
         name = self.df.columns[section]
-        if dtype := self.parent()._columns_dtype.get(name, None):
+        if dtype := self._columns_dtype.get(name, None):
             return f"{name} (dtype: {dtype})"
         else:
             dtype = self.df.dtypes.values[section]
@@ -54,7 +77,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
         if r < self.df.shape[0] and c < self.df.shape[1]:
             val = self.df.iat[r, c]
             name = self.df.columns[c]
-            dtype = self.parent()._columns_dtype.get(name, None)
+            dtype = self._columns_dtype.get(name, None)
             if dtype is None:
                 return f"{val!r} (dtype: infer)"
             else:
@@ -80,10 +103,10 @@ class QSpreadSheet(QMutableSimpleTable):
     NaN = ""
 
     def __init__(self, parent=None, data: pd.DataFrame | None = None):
-        super().__init__(parent, data)
-        self._qtable_view.verticalHeader().setMinimumWidth(20)
         self._data_cache = None
         self._columns_dtype = DTypeMap()
+        super().__init__(parent, data)
+        self._qtable_view.verticalHeader().setMinimumWidth(20)
 
     # fmt: off
     if TYPE_CHECKING:
@@ -453,6 +476,9 @@ class QSpreadSheet(QMutableSimpleTable):
         if validator := self.model()._validator.get(label, None):
             if isinstance(validator, DefaultValidator):
                 self.model()._validator.pop(label)
+        if formatter := self.model()._text_formatter.get(label, None):
+            if isinstance(formatter, DefaultFormatter):
+                self.model()._text_formatter.pop(label)
         return None
 
     @setColumnDtype.server
@@ -489,7 +515,7 @@ class QSpreadSheet(QMutableSimpleTable):
             return self.tableStack().notifyEditability()
         return self.removeColumns(col, 1)
 
-    def _set_column_dtype(self, col: int):
+    def _set_column_dtype_with_dialog(self, col: int):
         """
         Set column specific dtype for data conversion and validation.
 
@@ -499,13 +525,15 @@ class QSpreadSheet(QMutableSimpleTable):
         from ._dtype import QDtypeWidget
 
         if out := QDtypeWidget.requestValue(self):
-            dtype_str, validation = out
+            dtype_str, validation, formatting = out
             if dtype_str == "unset":
                 dtype_str = None
             colname = self._data_raw.columns[col]
             self.setColumnDtype(colname, dtype_str)
             if validation:
                 self._set_default_data_validator(colname)
+            if formatting:
+                self._set_default_data_formatter(colname)
         return None
 
     def _set_default_data_validator(self, name: Hashable):
@@ -513,6 +541,12 @@ class QSpreadSheet(QMutableSimpleTable):
         dtype = self._columns_dtype[name]
         validator = DefaultValidator(dtype)
         return self.setDataValidator(name, validator)
+
+    def _set_default_data_formatter(self, name: Hashable):
+        """Set default data formatter based on the dtype."""
+        dtype = self._columns_dtype[name]
+        formatter = DefaultFormatter(dtype)
+        return self.setTextFormatter(name, formatter)
 
     def _install_actions(self):
         # fmt: off
@@ -527,7 +561,7 @@ class QSpreadSheet(QMutableSimpleTable):
         hheader.registerAction("Insert/Remove > Insert column right")(self._insert_column_right)
         hheader.registerAction("Insert/Remove > Remove this column")(self._remove_this_column)
         hheader.addSeparator()
-        hheader.registerAction("Column dtype")(self._set_column_dtype)
+        hheader.registerAction("Column dtype")(self._set_column_dtype_with_dialog)
         hheader.addSeparator()
 
         self.registerAction("Insert/Remove > Insert a row above")(lambda idx: self._insert_row_above(idx[0]))

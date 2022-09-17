@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable
+from typing import Callable, Any
 from enum import Enum, auto
 from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Qt
@@ -7,9 +7,70 @@ import numpy as np
 import pandas as pd
 from magicgui.widgets import RadioButtons
 
+from .._dtype import get_dtype
 from ....widgets import Table
 
 __all__ = ["exec_formatter_dialog"]
+
+
+def _format_float(value, ndigits: int = 4) -> str:
+    """convert string to int or float if possible"""
+    if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+        text = f"{value:.{ndigits}f}"
+    else:
+        text = f"{value:.{ndigits-1}e}"
+
+    return text
+
+
+def _format_int(value, ndigits: int = 4) -> str:
+    if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+        text = str(value)
+    else:
+        text = f"{value:.{ndigits-1}e}"
+
+    return text
+
+
+def _format_complex(value: complex, ndigits: int = 3) -> str:
+    if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+        text = f"{value.real:.{ndigits}f}{value.imag:+.{ndigits}f}j"
+    else:
+        text = f"{value.real:.{ndigits-1}e}{value.imag:+.{ndigits-1}e}j"
+
+    return text
+
+
+_DEFAULT_FORMATTERS: dict[str, Callable[[Any], str]] = {
+    "u": _format_int,
+    "i": _format_int,
+    "f": _format_float,
+    "c": _format_complex,
+}
+
+
+class DefaultFormatter:
+    """
+    The default formatter function.
+
+    This class is a simple wrapper around a callable. Spreadsheet needs to know if
+    a formatter is the default one when dtype is changed.
+    """
+
+    def __init__(self, dtype: Any):
+        self._dtype = get_dtype(dtype)
+        self._formatter = _DEFAULT_FORMATTERS.get(self._dtype.kind, str)
+
+    def __call__(self, value: Any) -> None:
+        return self._formatter(value)
+
+    def __repr__(self) -> str:
+        return f"DefaultFormatter[{self._dtype.name}]"
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, DefaultFormatter):
+            return False
+        return self._dtype == other._dtype
 
 
 class NumberFormat(Enum):

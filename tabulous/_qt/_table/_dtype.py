@@ -69,6 +69,13 @@ def get_converter(kind: str) -> Callable[[Any], Any]:
 
 
 class DefaultValidator:
+    """
+    The default validator function.
+
+    This class is a simple wrapper around a callable. Spreadsheet needs to know if
+    a validator is the default one when dtype is changed.
+    """
+
     def __init__(self, dtype: Any):
         self._dtype = get_dtype(dtype)
         self._converter = _DTYPE_CONVERTER.get(self._dtype.kind, lambda x: None)
@@ -79,6 +86,11 @@ class DefaultValidator:
 
     def __repr__(self) -> str:
         return f"DefaultValidator[{self._dtype.name}]"
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, DefaultValidator):
+            return False
+        return self._dtype == other._dtype
 
 
 def get_dtype(dtype: Any):
@@ -139,10 +151,20 @@ class QDtypeWidget(QtW.QTreeWidget):
         dlg.setLayout(QtW.QVBoxLayout())
         dlg.layout().addWidget(QtW.QLabel("dtype"))
         dlg.layout().addWidget(self)
-        checkbox = QtW.QCheckBox("Data validation")
-        checkbox.setChecked(True)
-        checkbox.setToolTip("Check to set the data validator for the data type.")
-        dlg.layout().addWidget(checkbox)
+
+        validation_checkbox = QtW.QCheckBox("Data validation")
+        validation_checkbox.setChecked(True)
+        validation_checkbox.setToolTip(
+            "Check to set the data validator for the data type."
+        )
+        dlg.layout().addWidget(validation_checkbox)
+
+        fmt_checkbox = QtW.QCheckBox("Data formatting")
+        fmt_checkbox.setChecked(True)
+        fmt_checkbox.setToolTip(
+            "Check to set the default data formatter for the data type."
+        )
+        dlg.layout().addWidget(fmt_checkbox)
 
         _Btn = QtW.QDialogButtonBox.StandardButton
         _btn_box = QtW.QDialogButtonBox(
@@ -162,7 +184,11 @@ class QDtypeWidget(QtW.QTreeWidget):
 
         dlg.setWindowTitle("Select a dtype")
         if dlg.exec():
-            out = self.dtypeText(), checkbox.isChecked()
+            out = (
+                self.dtypeText(),
+                validation_checkbox.isChecked(),
+                fmt_checkbox.isChecked(),
+            )
         else:
             out = None
         return out

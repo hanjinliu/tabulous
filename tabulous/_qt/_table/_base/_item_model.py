@@ -6,6 +6,7 @@ from qtpy.QtCore import Qt, Signal
 import numpy as np
 import pandas as pd
 
+from ._text_formatter import DefaultFormatter
 from ....color import normalize_color, ColorType
 
 # https://ymt-lab.com/post/2020/pyqt5-qtableview-pandas-qabstractitemmodel/
@@ -58,6 +59,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return QtCore.QVariant()
 
     def _data_display(self, index: QtCore.QModelIndex):
+        """Display role."""
         r, c = index.row(), index.column()
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
@@ -71,12 +73,13 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 except Exception:
                     text = "<Format Error>"
             else:
-                fmt = _DEFAULT_FORMATTERS.get(df.dtypes[colname].kind, str)
+                fmt = DefaultFormatter(df.dtypes[colname])
                 text = fmt(val)
             return text
         return QtCore.QVariant()
 
     def _data_edit(self, index: QtCore.QModelIndex):
+        """Edit role."""
         r, c = index.row(), index.column()
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
@@ -266,39 +269,3 @@ _NANS = {np.nan, pd.NA}
 def _isna(val):
     # NOTE: pd.isna is slow.
     return val in _NANS
-
-
-def _format_float(value, ndigits: int = 4) -> str:
-    """convert string to int or float if possible"""
-    if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
-        text = f"{value:.{ndigits}f}"
-    else:
-        text = f"{value:.{ndigits-1}e}"
-
-    return text
-
-
-def _format_int(value, ndigits: int = 4) -> str:
-    if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
-        text = str(value)
-    else:
-        text = f"{value:.{ndigits-1}e}"
-
-    return text
-
-
-def _format_complex(value: complex, ndigits: int = 3) -> str:
-    if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
-        text = f"{value.real:.{ndigits}f}{value.imag:+.{ndigits}f}j"
-    else:
-        text = f"{value.real:.{ndigits-1}e}{value.imag:+.{ndigits-1}e}j"
-
-    return text
-
-
-_DEFAULT_FORMATTERS: dict[str, Callable[[Any], str]] = {
-    "u": _format_int,
-    "i": _format_int,
-    "f": _format_float,
-    "c": _format_complex,
-}
