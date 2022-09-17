@@ -74,11 +74,20 @@ class DefaultFormatter:
 
 
 class NumberFormat(Enum):
-    """Formats used for real numbers."""
+    """Formats used for integers."""
 
     default = auto()
     decimal = auto()
     exponential = auto()
+
+
+class FloatFormat(Enum):
+    """Formats used for floating numbers."""
+
+    default = auto()
+    decimal = auto()
+    exponential = auto()
+    percent = auto()
 
 
 class ComplexFormat(Enum):
@@ -98,6 +107,19 @@ class TimedeltaFormat(Enum):
     hour = auto()
     minute = auto()
     second = auto()
+    hour_min_second = auto()
+    min_second = auto()
+    hour_min = auto()
+
+
+class QDigitsSpinBox(QtW.QSpinBox):
+    def __init__(self, value: int = 4):
+        super().__init__()
+        self.setMinimum(0)
+        self.setMaximum(12)
+        self.setValue(value)
+        self.setSuffix(" digits")
+        self.setToolTip("Number of digits to display.")
 
 
 class _QFormatterDialog(QtW.QDialog):
@@ -137,16 +159,14 @@ class _QFormatterDialog(QtW.QDialog):
 
 
 class _QNumberFormatterDialog(_QFormatterDialog):
+    _ENUM = NumberFormat
+
     def _init(self) -> None:
-        btns = RadioButtons(choices=NumberFormat, value=NumberFormat.default)
+        btns = RadioButtons(choices=self._ENUM, value=self._ENUM.default)
         self._btns = btns
         self.addWidget(btns.native)
 
-        self._ndigits = QtW.QSpinBox()
-        self._ndigits.setMinimum(1)
-        self._ndigits.setMaximum(12)
-        self._ndigits.setValue(4)
-        self._ndigits.setSuffix(" digits")
+        self._ndigits = QDigitsSpinBox()
         self.addWidget(self._ndigits)
 
         btns.changed.connect(self._on_choice_changed)
@@ -160,8 +180,8 @@ class QIntFormatterDialog(_QNumberFormatterDialog):
     def _on_choice_changed(self, val=None):
         if val is None:
             val = self._btns.value
-        val = NumberFormat(val)
-        self._ndigits.setVisible(val == NumberFormat.exponential)
+        val = self._ENUM(val)
+        self._ndigits.setVisible(val == self._ENUM.exponential)
         self._preview_table.text_formatter(self._name, self.toFormatter(val))
         return self._preview_table.refresh()
 
@@ -171,11 +191,11 @@ class QIntFormatterDialog(_QNumberFormatterDialog):
             val = self._btns.value
 
         n = self._ndigits.value()
-        if val == NumberFormat.default:
+        if val == self._ENUM.default:
             fmt = None
-        elif val == NumberFormat.decimal:
+        elif val == self._ENUM.decimal:
             fmt = "{}"
-        elif val == NumberFormat.exponential:
+        elif val == self._ENUM.exponential:
             fmt = f"{{:.{n}g}}"
         else:
             raise RuntimeError()
@@ -183,11 +203,13 @@ class QIntFormatterDialog(_QNumberFormatterDialog):
 
 
 class QFloatFormatterDialog(_QNumberFormatterDialog):
+    _ENUM = FloatFormat
+
     def _on_choice_changed(self, val=None):
         if val is None:
             val = self._btns.value
-        val = NumberFormat(val)
-        self._ndigits.setVisible(val != NumberFormat.default)
+        val = self._ENUM(val)
+        self._ndigits.setVisible(val != self._ENUM.default)
         self._preview_table.text_formatter(self._name, self.toFormatter(val))
         return self._preview_table.refresh()
 
@@ -197,42 +219,34 @@ class QFloatFormatterDialog(_QNumberFormatterDialog):
             val = self._btns.value
 
         n = self._ndigits.value()
-        if val == NumberFormat.default:
+        if val == self._ENUM.default:
             fmt = None
-        elif val == NumberFormat.decimal:
+        elif val == self._ENUM.decimal:
             fmt = f"{{:.{n}f}}"
-        elif val == NumberFormat.exponential:
+        elif val == self._ENUM.exponential:
             fmt = f"{{:.{n}g}}"
+        elif val == self._ENUM.percent:
+            fmt = f"{{:.{n}%}}"
         else:
             raise RuntimeError()
         return fmt
 
 
-class QComplexFormatterDialog(_QFormatterDialog):
+class QComplexFormatterDialog(_QNumberFormatterDialog):
+    _ENUM = ComplexFormat
+
     def _init(self) -> None:
-        btns = RadioButtons(choices=ComplexFormat, value=ComplexFormat.default)
-        self._btns = btns
-        self.addWidget(btns.native)
-
-        self._ndigits = QtW.QSpinBox()
-        self._ndigits.setMinimum(1)
-        self._ndigits.setMaximum(12)
-        self._ndigits.setValue(4)
-        self._ndigits.setSuffix(" digits")
-        self.addWidget(self._ndigits)
-
+        super()._init()
         self._iunit = QtW.QLineEdit("j")
-        self.addWidget(self._iunit)
-
-        btns.changed.connect(self._on_choice_changed)
-        self._ndigits.valueChanged.connect(lambda: self._on_choice_changed())
+        self._iunit.setToolTip("Imaginary unit.")
         self._iunit.textChanged.connect(lambda: self._on_choice_changed())
+        self.addWidget(self._iunit)
 
     def _on_choice_changed(self, val=None):
         if val is None:
             val = self._btns.value
-        val = ComplexFormat(val)
-        self._ndigits.setVisible(val != ComplexFormat.default)
+        val = self._ENUM(val)
+        self._ndigits.setVisible(val != self._ENUM.default)
         self._preview_table.text_formatter(self._name, self.toFormatter(val))
         return self._preview_table.refresh()
 
@@ -242,13 +256,13 @@ class QComplexFormatterDialog(_QFormatterDialog):
             val = self._btns.value
         iunit = self._iunit.text()
         n = self._ndigits.value()
-        if val == ComplexFormat.default:
+        if val == self._ENUM.default:
             return None
-        elif val == ComplexFormat.decimal:
+        elif val == self._ENUM.decimal:
             return lambda x: f"{x.real:.{n}f}{x.imag:+.{n}f}{iunit}"
-        elif val == ComplexFormat.exponential:
+        elif val == self._ENUM.exponential:
             return lambda x: f"{x.real:.{n}e}{x.imag:+.{n}e}{iunit}"
-        elif val == ComplexFormat.polar:
+        elif val == self._ENUM.polar:
             return lambda x: f"{abs(x):.{n}f}e^({np.angle(x):+.{n}f}{iunit})"
         else:
             raise RuntimeError(val)
@@ -303,7 +317,12 @@ class QTimeDeltaFormatterDialog(_QFormatterDialog):
             choices=TimedeltaFormat, value=TimedeltaFormat.default
         )
         self.addWidget(self._btns.native)
+
+        self._ndigits = QDigitsSpinBox(0)
+        self.addWidget(self._ndigits)
+
         self._btns.changed.connect(lambda: self._on_choice_changed())
+        self._ndigits.valueChanged.connect(lambda: self._on_choice_changed())
 
     def _on_choice_changed(self, val=None):
         return self._preview_table.text_formatter(self._name, self.toFormatter(val))
@@ -313,19 +332,54 @@ class QTimeDeltaFormatterDialog(_QFormatterDialog):
         if val is None:
             val = self._btns.value
         val = TimedeltaFormat(val)
+        n = self._ndigits.value()
 
         if val == TimedeltaFormat.default:
             return lambda td: str(td)
         elif val == TimedeltaFormat.day:
             return lambda td: f"{td.days} days"
         elif val == TimedeltaFormat.hour:
-            return lambda td: f"{td.total_seconds() // 3600} h"
+            return lambda td: f"{td.total_seconds() / 3600:.{n}f} h"
         elif val == TimedeltaFormat.minute:
-            return lambda td: f"{td.total_seconds() // 60} min"
+            return lambda td: f"{td.total_seconds() / 60:.{n}f} min"
         elif val == TimedeltaFormat.second:
-            return lambda td: f"{td.total_seconds()} s"
+            return lambda td: f"{td.total_seconds():.{n}f} s"
+        elif val == TimedeltaFormat.hour_min_second:
+            return lambda td: _to_hms(td, n)
+        elif val == TimedeltaFormat.hour_min:
+            return lambda td: _to_hm(td, n)
+        elif val == TimedeltaFormat.min_second:
+            return lambda td: _to_ms(td, n)
         else:
             raise RuntimeError(val)
+
+
+def _to_hms(td: pd.Timedelta, n: int) -> str:
+    """Convert timedelta to hours, minutes, seconds."""
+    total_sec = td.total_seconds()
+    hours, res_min = divmod(total_sec, 3600)
+    minutes, seconds = divmod(res_min, 60)
+    if seconds < 10:
+        return f"{int(hours):0>2}:{int(minutes):0>2}:0{seconds:.{n}f}"
+    return f"{int(hours):0>2}:{int(minutes):0>2}:{seconds:.{n}f}"
+
+
+def _to_hm(td: pd.Timedelta, n: int) -> str:
+    """Convert timedelta to hours, minutes, seconds."""
+    total_min = td.total_seconds() / 60
+    hours, minutes = divmod(total_min, 60)
+    if minutes < 10:
+        return f"{int(hours):0>2}:0{minutes:.{n}f}"
+    return f"{int(hours):0>2}:{minutes:.{n}f}"
+
+
+def _to_ms(td: pd.Timedelta, n: int) -> str:
+    """Convert timedelta to hours, minutes, seconds."""
+    total_sec = td.total_seconds()
+    minutes, seconds = divmod(total_sec, 60)
+    if seconds < 10:
+        return f"{int(minutes):0>2}:0{seconds:.{n}f}"
+    return f"{int(minutes):0>2}:{seconds:.{n}f}"
 
 
 class _LabeledWidget(QtW.QWidget):
