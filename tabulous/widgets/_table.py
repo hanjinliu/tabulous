@@ -124,12 +124,18 @@ class TableBase(ABC):
         """Data normalization before setting a new data."""
 
     @property
+    def table_type(self) -> str:
+        """Return the table type in string."""
+        return type(self).__name__
+
+    @property
     def data(self) -> pd.DataFrame:
         """Table data."""
         return self._qwidget.getDataFrame()
 
     @data.setter
     def data(self, value):
+        """Set table data."""
         self._data = self._normalize_data(value)
         self._qwidget.setDataFrame(self._data)
 
@@ -157,10 +163,12 @@ class TableBase(ABC):
 
     @property
     def metadata(self) -> dict[str, Any]:
+        """Metadata of the table."""
         return self._metadata
 
     @metadata.setter
     def metadata(self, value: dict[str, Any]) -> None:
+        """Set metadata of the table."""
         if not isinstance(value, dict):
             raise TypeError("metadata must be a dict")
         self._metadata = value
@@ -172,6 +180,7 @@ class TableBase(ABC):
 
     @zoom.setter
     def zoom(self, value: float):
+        """Set zoom factor of table."""
         return self._qwidget.setZoom(value)
 
     @property
@@ -181,6 +190,7 @@ class TableBase(ABC):
 
     @name.setter
     def name(self, value: str):
+        """Set table name."""
         self._name = str(value)
         return self.events.renamed.emit(self._name)
 
@@ -194,6 +204,7 @@ class TableBase(ABC):
 
     @editable.setter
     def editable(self, value: bool):
+        """Set editability of table."""
         if self.mutable:
             self._qwidget.setEditable(value)
         elif value:
@@ -343,6 +354,7 @@ class TableBase(ABC):
 
     @view_mode.setter
     def view_mode(self, mode) -> None:
+        """Set view mode of the table."""
         if mode is None:
             mode = ViewMode.normal
         else:
@@ -372,16 +384,29 @@ class TableBase(ABC):
         """Return the undo manager."""
         return self._qwidget._mgr
 
-    def add_side_widget(self, wdt: QtW.QWidget | Widget, name: str = ""):
-        """Add a side widget to the table."""
-        if hasattr(wdt, "native"):
-            name = name or wdt.name
-            wdt = wdt.native
-        else:
-            name = name or wdt.objectName()
+    def add_side_widget(self, widget: QtW.QWidget | Widget, name: str = ""):
+        """
+        Add a side widget to the table.
 
-        self._qwidget.addSideWidget(wdt, name=name)
-        return wdt
+        A side widget is a widget that is docked to the side area of the table.
+        It is visible only when the table is active. Thus, it is a good place
+        to add a widget specific to the table.
+
+        Parameters
+        ----------
+        widget: QWidget or magicgui Widget
+            The widget to add.
+        name : str, optional
+            Name of the size widget. Use the input widget name by default.
+        """
+        if hasattr(widget, "native"):
+            name = name or widget.name
+            widget = widget.native
+        else:
+            name = name or widget.objectName()
+
+        self._qwidget.addSideWidget(widget, name=name)
+        return widget
 
     def _emit_selections(self):
         with self.selections.blocked():

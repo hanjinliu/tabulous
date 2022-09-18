@@ -909,7 +909,7 @@ class QMutableTable(QBaseTable):
             self.setDataFrameValue(rsel, csel, df)
         return None
 
-    def editHorizontalHeader(self, index: int) -> QtW.QLineEdit:
+    def editHorizontalHeader(self, index: int) -> QHorizontalHeaderLineEdit:
         """Edit the horizontal header."""
         if not self.isEditable():
             return self.tableStack().notifyEditability()
@@ -918,7 +918,7 @@ class QMutableTable(QBaseTable):
         _header = qtable.horizontalHeader()
         return QHorizontalHeaderLineEdit(parent=_header, table=self, pos=(-1, index))
 
-    def editVerticalHeader(self, index: int) -> QtW.QLineEdit:
+    def editVerticalHeader(self, index: int) -> QVerticalHeaderLineEdit:
         if not self.isEditable():
             return self.tableStack().notifyEditability()
 
