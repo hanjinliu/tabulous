@@ -2,6 +2,7 @@ from ._table import QTableLayer
 from ._spreadsheet import QSpreadSheet
 from ._groupby import QTableGroupBy
 from ._display import QTableDisplay
+from ._lazy import QTableLazyLoader
 from ._base import QMutableTable, QBaseTable, QTableGroup
 
 __all__ = [
@@ -11,4 +12,5 @@ __all__ = [
     "QMutableTable",
     "QTableGroupBy",
     "QTableDisplay",
+    "QTableLazyLoader",
 ]

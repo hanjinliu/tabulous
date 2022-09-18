@@ -5,7 +5,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Union
 from psygnal import Signal, SignalGroup
 
-from ._table import Table, SpreadSheet, GroupBy, TableDisplay
+from ._table import Table, SpreadSheet, GroupBy, TableDisplay, LazyLoader
 from ._tablelist import TableList
 from ._sample import open_sample
 from ._component import Component
@@ -255,9 +255,9 @@ class TableViewerBase:
         table = GroupBy(data, name=name, metadata=metadata)
         return self.add_layer(table, update=update)
 
-    def add_loader(
+    def add_display(
         self,
-        loader: Callable[[], _TableLike],
+        func: Callable[[], _TableLike],
         *,
         name: str | None = None,
         metadata: dict[str, Any] | None = None,
@@ -268,8 +268,8 @@ class TableViewerBase:
 
         Parameters
         ----------
-        loader : callable
-            The loader function.
+        func : callable
+            A function that returns a DataFrame.
         {name}{metadata}{update}
 
         Returns
@@ -277,7 +277,20 @@ class TableViewerBase:
         TableDisplay
             A table display object.
         """
-        table = TableDisplay(loader, name=name, metadata=metadata)
+        table = TableDisplay(func, name=name, metadata=metadata)
+        return self.add_layer(table, update=update)
+
+    add_loader = add_display
+
+    def add_lazy_loader(
+        self,
+        path: str | Path,
+        *,
+        name: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        update: bool = False,
+    ) -> LazyLoader:
+        table = LazyLoader(path, name=name, metadata=metadata)
         return self.add_layer(table, update=update)
 
     def add_layer(self, input: TableBase, *, update: bool = False):
