@@ -938,6 +938,7 @@ class QMutableTable(QBaseTable):
 
         _rename_column(self._data_raw, index, value)
         _rename_column(model.df, index, value)
+        self._filtered_columns = _rename_index(self._filtered_columns, index, value)
 
         # adjust header size
         size_hint = _header.sectionSizeHint(index)
@@ -962,6 +963,7 @@ class QMutableTable(QBaseTable):
 
         _rename_row(self._data_raw, index, value)  # TODO: incompatible with filter
         _rename_row(self.model().df, index, value)
+        self._filtered_row = _rename_index(self._filtered_row, index, value)
 
         # adjust size
         _width_hint = _header.sizeHint().width()
@@ -1057,6 +1059,12 @@ def _rename_column(df: pd.DataFrame, idx: int, new_name: str) -> None:
     colname = df.columns[idx]
     df.rename(columns={colname: new_name}, inplace=True)
     return None
+
+
+def _rename_index(di: pd.Index, idx: int, new_name: str) -> pd.Index:
+    di_list = list(di)
+    di_list[idx] = new_name
+    return pd.Index(di_list, dtype=di.dtype)
 
 
 def _fmt_slice(sl: slice) -> str:
