@@ -944,6 +944,10 @@ class QMutableTable(QBaseTable):
         size_hint = _header.sectionSizeHint(index)
         if _header.sectionSize(index) < size_hint:
             _header.resizeSection(index, size_hint)
+
+        # set selection
+        self._qtable_view._selection_model.move_to(-1, index)
+
         # update
         self.refreshTable()
         return None
@@ -968,6 +972,9 @@ class QMutableTable(QBaseTable):
         # adjust size
         _width_hint = _header.sizeHint().width()
         _header.resize(QtCore.QSize(_width_hint, _header.height()))
+
+        # set selection
+        self._qtable_view._selection_model.move_to(index, -1)
 
         # update
         self.refreshTable()

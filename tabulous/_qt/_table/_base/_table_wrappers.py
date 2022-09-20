@@ -49,6 +49,7 @@ class QTablePopupView(QtW.QWidget):
 
         popup = QPopupWidget(table, self._second)
         self.popup = popup
+        self.popup.closed.connect(lambda: self._second.setParent(None))
 
     def exec(self):
         self.popup.show()
@@ -66,8 +67,8 @@ class QPopupWidget(QtW.QWidget):
 
     def __init__(
         self,
-        parent: _QTableViewEnhanced = None,
         widget: _QTableViewEnhanced = None,
+        parent: _QTableViewEnhanced = None,
     ):
         super().__init__(parent, Qt.WindowType.Popup)
         self._widget = widget
