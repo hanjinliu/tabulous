@@ -61,7 +61,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
 
     def _data_display(self, index: QtCore.QModelIndex):
         """Display role."""
-        r, c = index.row(), index.column()
+        r, c = self._model_index_to_tuple(index)
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
             val = df.iat[r, c]
@@ -81,7 +81,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
 
     def _data_edit(self, index: QtCore.QModelIndex):
         """Edit role."""
-        r, c = index.row(), index.column()
+        r, c = self._model_index_to_tuple(index)
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
             val = df.iat[r, c]
@@ -95,7 +95,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     def _data_text_color(self, index: QtCore.QModelIndex):
         if not self._foreground_colormap:
             return QtCore.QVariant()
-        r, c = index.row(), index.column()
+        r, c = self._model_index_to_tuple(index)
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
             colname = df.columns[c]
@@ -120,7 +120,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return QtCore.QVariant()
 
     def _data_tooltip(self, index: QtCore.QModelIndex):
-        r, c = index.row(), index.column()
+        r, c = self._model_index_to_tuple(index)
         if r < self.df.shape[0] and c < self.df.shape[1]:
             val = self.df.iat[r, c]
             dtype = self.df.dtypes.values[c]
@@ -133,7 +133,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     def _data_background_color(self, index: QtCore.QModelIndex):
         if not self._background_colormap:
             return QtCore.QVariant()
-        r, c = index.row(), index.column()
+        r, c = self._model_index_to_tuple(index)
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
             colname = df.columns[c]
@@ -151,6 +151,9 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                     raise e
                 return QtGui.QColor(*rgba)
         return QtCore.QVariant()
+
+    def _model_index_to_tuple(self, index: QtCore.QModelIndex) -> tuple[int, int]:
+        return index.row(), index.column()
 
     def flags(self, index):
         if self._editable:
@@ -210,7 +213,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             return False
         if role != Qt.ItemDataRole.EditRole:
             return False
-        r, c = index.row(), index.column()
+        r, c = self._model_index_to_tuple(index)
         self.dataEdited.emit(r, c, value)
         return True
 

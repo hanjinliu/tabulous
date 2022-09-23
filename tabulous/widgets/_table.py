@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from pathlib import Path
 from enum import Enum
 from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
 from psygnal import SignalGroup, Signal
@@ -27,7 +28,13 @@ if TYPE_CHECKING:
     from qtpy import QtWidgets as QtW
     from magicgui.widgets import Widget
 
-    from .._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
+    from .._qt import (
+        QTableLayer,
+        QSpreadSheet,
+        QTableGroupBy,
+        QTableDisplay,
+        QTableLazyLoader,
+    )
     from .._qt._table import QBaseTable
     from .._qt._keymap import QtKeyMap
 
@@ -572,3 +579,18 @@ class TableDisplay(TableBase):
     @running.setter
     def running(self, value: bool) -> None:
         return self._qwidget.setRunning(value)
+
+
+class LazyLoader(TableBase):
+
+    _Default_Name = "lazy-loader"
+    _qwidget: QTableLazyLoader
+    # dtypes = ColumnDtypeInterface()
+
+    def _create_backend(self, data: str | Path) -> QTableLazyLoader:
+        from .._qt import QTableLazyLoader
+
+        return QTableLazyLoader(path=data)
+
+    def _normalize_data(self, path):
+        return Path(path)

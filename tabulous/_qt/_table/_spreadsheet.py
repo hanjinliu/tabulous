@@ -142,7 +142,7 @@ class QSpreadSheet(QMutableSimpleTable):
     @QMutableSimpleTable._mgr.interface
     def setDataFrame(self, data: pd.DataFrame) -> None:
         """Set data frame as a string table."""
-        self._data_raw = data.astype("string")
+        self._data_raw = data.astype(_STRING_DTYPE)
         self.model().setShape(
             data.index.size + _OUT_OF_BOUND_SIZE,
             data.columns.size + _OUT_OF_BOUND_SIZE,
@@ -180,7 +180,9 @@ class QSpreadSheet(QMutableSimpleTable):
 
     def readClipBoard(self, sep=r"\s+"):
         """Read clipboard as a string data frame."""
-        return pd.read_clipboard(header=None, sep=sep, dtype="string")  # read as string
+        return pd.read_clipboard(
+            header=None, sep=sep, dtype=_STRING_DTYPE
+        )  # read as string
 
     def setDataFrameValue(self, r: int | slice, c: int | slice, value: Any) -> None:
         nr, nc = self._data_raw.shape
@@ -201,8 +203,8 @@ class QSpreadSheet(QMutableSimpleTable):
                 if text == value:
                     return
 
-        elif isinstance(value, pd.DataFrame) and any(value.dtypes != "string"):
-            value = value.astype("string")
+        elif isinstance(value, pd.DataFrame) and any(value.dtypes != _STRING_DTYPE):
+            value = value.astype(_STRING_DTYPE)
 
         with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
             if need_expand:
@@ -623,7 +625,7 @@ def _df_full(
         np.full((nrows, ncols), value),
         index=index,
         columns=columns,
-        dtype="string",
+        dtype=_STRING_DTYPE,
     )
 
 
