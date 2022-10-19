@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from ._text_formatter import DefaultFormatter
+from .._dtype import isna
 from ....color import normalize_color, ColorType
 
 # https://ymt-lab.com/post/2020/pyqt5-qtableview-pandas-qabstractitemmodel/
@@ -66,7 +67,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         if r < df.shape[0] and c < df.shape[1]:
             val = df.iat[r, c]
             colname = df.columns[c]
-            if _isna(val):
+            if isna(val):
                 text = "NA"
             elif mapper := self._text_formatter.get(colname, None):
                 try:
@@ -85,7 +86,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
             val = df.iat[r, c]
-            if _isna(val):
+            if isna(val):
                 text = "NA"
             else:
                 text = str(val)
@@ -105,7 +106,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 try:
                     col = mapper(val)
                     if col is None:
-                        if _isna(val):
+                        if isna(val):
                             return QtGui.QColor(Qt.GlobalColor.gray)
                         return QtCore.QVariant()
                     rgba = normalize_color(col)
@@ -115,7 +116,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                     self._foreground_colormap.pop(colname)
                     raise e
                 return QtGui.QColor(*rgba)
-            if _isna(val):
+            if isna(val):
                 return QtGui.QColor(Qt.GlobalColor.gray)
         return QtCore.QVariant()
 
@@ -262,11 +263,3 @@ class DataFrameModel(AbstractDataFrameModel):
 
     def columnCount(self, parent=None):
         return self.df.shape[1]
-
-
-_NANS = {np.nan, pd.NA}
-
-
-def _isna(val):
-    # NOTE: pd.isna is slow.
-    return val in _NANS

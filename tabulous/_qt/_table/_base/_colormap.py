@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Callable, Hashable, Sequence, TYPE_CHECKING, TypeVar
 import numpy as np
 import pandas as pd
+from .._dtype import isna
 
 if TYPE_CHECKING:
     from pandas.core.dtypes.dtypes import CategoricalDtype
@@ -82,7 +83,7 @@ def _define_continuous_colormap(
 ):
     def _colormap(value: float) -> _ColorType:
         nonlocal min_color, max_color
-        if pd.isna(value):
+        if isna(value):
             return None
         elif value < min:
             return min_color
@@ -118,7 +119,7 @@ def _define_time_colormap(
 
     def _colormap(value: _T) -> _ColorType:
         nonlocal min_color, max_color
-        if pd.isna(value):
+        if isna(value):
             return None
         value = value.value
         if value < min_t:

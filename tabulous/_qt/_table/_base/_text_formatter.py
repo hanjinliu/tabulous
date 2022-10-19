@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from magicgui.widgets import RadioButtons
 
-from .._dtype import get_dtype
+from .._dtype import get_dtype, isna
 from ....widgets import Table
 
 __all__ = ["exec_formatter_dialog"]
@@ -15,7 +15,9 @@ __all__ = ["exec_formatter_dialog"]
 
 def _format_float(value, ndigits: int = 4) -> str:
     """convert string to int or float if possible"""
-    if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+    if isna(value):
+        text = "nan"
+    elif 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
         text = f"{value:.{ndigits}f}"
     else:
         text = f"{value:.{ndigits-1}e}"
@@ -33,7 +35,9 @@ def _format_int(value, ndigits: int = 4) -> str:
 
 
 def _format_complex(value: complex, ndigits: int = 3) -> str:
-    if 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
+    if isna(value):
+        text = "nan"
+    elif 0.1 <= abs(value) < 10 ** (ndigits + 1) or value == 0:
         text = f"{value.real:.{ndigits}f}{value.imag:+.{ndigits}f}j"
     else:
         text = f"{value.real:.{ndigits-1}e}{value.imag:+.{ndigits-1}e}j"

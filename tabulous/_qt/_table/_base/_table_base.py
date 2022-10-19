@@ -12,7 +12,7 @@ from collections_undo import fmt
 
 from ._item_model import AbstractDataFrameModel
 from ._line_edit import QHorizontalHeaderLineEdit, QVerticalHeaderLineEdit
-
+from .._dtype import isna
 from ..._undo import QtUndoManager, fmt_slice
 from ..._svg import QColoredSVGIcon
 from ..._keymap import QtKeys, QtKeyMap
@@ -1018,11 +1018,11 @@ def _was_changed(val: Any, old_val: Any) -> bool:
     if isinstance(val, pd.DataFrame):
         out = True
 
-    elif pd.isna(val):
-        if not pd.isna(old_val):
+    elif isna(val):
+        if not isna(old_val):
             out = True
     else:
-        if pd.isna(old_val) or val != old_val:
+        if isna(old_val) or val != old_val:
             out = True
     return out
 

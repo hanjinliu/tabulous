@@ -266,3 +266,11 @@ class DTypeMap(MutableMapping[_K, _V]):
         if dtype := self.get(key, None):
             return convert_value(dtype.kind, value)
         return value
+
+
+_NANS = {np.nan, pd.NA}
+
+
+def isna(val: Any):
+    # NOTE: pd.isna is slow.
+    return val in _NANS
