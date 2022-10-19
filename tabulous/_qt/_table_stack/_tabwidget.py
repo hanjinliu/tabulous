@@ -175,7 +175,9 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         text = mime.text()
         if text:
             # File is dropped.
-            self.itemDropped.emit(text)
+            for path in text.splitlines():
+                if path:
+                    self.itemDropped.emit(path.lstrip("file://"))
 
         source = e.source()
         if source is None:
