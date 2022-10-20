@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+import re
+import ast
 from typing import TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
@@ -253,3 +256,201 @@ class QCellLineEdit(_QTableLineEdit):
         else:
             self.current_exception = None
             return True
+
+
+class QCellLiteralEdit(_QTableLineEdit):
+    def __init__(
+        self,
+        parent: QtCore.QObject | None = None,
+        table: QMutableTable | None = None,
+        pos: tuple[int, int] = (0, 0),
+    ):
+        import weakref
+
+        super().__init__(parent, table, pos)
+        qtable = self.parentTableView()
+        self.connectSignals()
+        qtable._overlay_editor = weakref.ref(self)
+
+    @classmethod
+    def from_rect(
+        self,
+        rect: QtCore.QRect,
+        parent: QtW.QWidget,
+        text: str,
+    ) -> QCellLiteralEdit:
+        qtable: _QTableViewEnhanced = parent.parent()
+        table = qtable.parentTable()
+        line = QCellLiteralEdit(parent, table, qtable._selection_model.current_index)
+        geometry = line.geometry()
+        geometry.setWidth(rect.width())
+        geometry.setHeight(rect.height())
+        geometry.moveCenter(rect.center())
+        line.setGeometry(geometry)
+        line.setText(text)
+        line.setHidden(False)
+        line.setFocus()
+        line.selectAll()
+        return line
+
+    def eval_and_close(self):
+        import numpy as np
+        import pandas as pd
+
+        text = self.text()
+        if text == "":
+            self.close_editor()
+
+        try:
+            df = self.parentTableView().parentTable().getDataFrame()
+            out = eval(text, {"np": np, "pd": pd, "df": df}, {})
+
+            _row, _col = self._pos
+            qtable = self.parentTableView()
+            table = qtable.parentTable()
+            if isinstance(out, pd.DataFrame):
+                if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
+                    out = out.iloc[:, 0]
+                    _row = slice(0, len(out))
+                elif out.size == 1:
+                    out = out.iloc[0, 0]
+                else:
+                    raise NotImplementedError("Cannot assign a DataFrame now.")
+            elif isinstance(out, pd.Series):
+                if out.shape == (1,):  # scalar
+                    out = out[0]
+                else:  # update a column
+                    out = out
+                    _row = slice(0, len(out))
+            elif isinstance(out, np.ndarray):
+                if out.ndim > 2:
+                    raise ValueError("Cannot assign a >3D array.")
+                out = np.squeeze(out)
+                if out.ndim == 0:  # scalar
+                    out = table.convertValue(_row, _col, out.item())
+                if out.ndim == 1:  # 1D array
+                    out = pd.Series(out)
+                    _row = slice(0, len(out))
+                else:
+                    raise NotImplementedError("Cannot assign a DataFrame now.")
+            else:
+                out = table.convertValue(_row, _col, out)
+
+        except Exception as e:
+            self.close_editor()
+            raise e
+
+        model = table.model()
+        if isinstance(_row, slice):
+            for _i, _r in enumerate(range(_row.start, _row.stop)):
+                model.dataEdited.emit(_r, _col, str(out[_r]))
+        else:
+            model.dataEdited.emit(_row, _col, str(out))
+        self.close_editor()
+        return None
+
+    def close_editor(self):
+        qtable = self.parentTableView()
+        self.disconnectSignals()
+        self.hide()
+        qtable._overlay_editor = None
+        self.deleteLater()
+        qtable.setFocus()
+        return None
+
+    def isTextValid(self) -> bool:
+        text = self.text()
+        if text == "":
+            return True
+        try:
+            ast.parse(text)
+        except Exception:
+            return False
+        return True
+
+    def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
+        keys = QtKeys(a0)
+        if keys in ("Return", "Esc"):
+            return self.eval_and_close()
+        elif keys.is_moving():
+            qtable = self.parentTableView()
+            pos = self.cursorPosition()
+            nchar = len(self.text())
+            rng = qtable._selection_model.ranges[-1]
+            not_same_cell = not (
+                self._pos == qtable._selection_model.current_index
+                and rng[0].start == rng[0].stop - 1
+                and rng[1].start == rng[1].stop - 1
+            )
+            if keys == "Left" and (pos == 0 or not_same_cell):
+                qtable._selection_model.move(0, -1)
+                return
+            elif keys == "Right" and (
+                (pos == nchar and self.selectedText() == "") or not_same_cell
+            ):
+                qtable._selection_model.move(0, 1)
+                return
+            elif keys == "Up":
+                qtable._selection_model.move(-1, 0)
+                return
+            elif keys == "Down":
+                qtable._selection_model.move(1, 0)
+                return
+
+        return super().keyPressEvent(a0)
+
+    def connectSignals(self):
+        qtable = self.parentTableView()
+        return qtable._selection_model.moved.connect(self._on_selection_changed)
+
+    def disconnectSignals(self):
+        qtable = self.parentTableView()
+        return qtable._selection_model.moved.disconnect(self._on_selection_changed)
+
+    def _on_selection_changed(self):
+        text = self.text()
+        cursor_pos = self.cursorPosition()
+        qtable = self.parentTableView()
+
+        # prepare text
+        rsl, csl = qtable._selection_model.ranges[-1]
+        columns = qtable.model().df.columns
+        if csl.start == csl.stop - 1:
+            sl0 = repr(columns[csl.start])
+        else:
+            sl0 = f"{columns[csl.start]}:{columns[csl.stop]}"
+        if rsl.start == rsl.stop - 1:
+            sl1 = rsl.start
+        else:
+            sl1 = f"{rsl.start}:{rsl.stop}"
+        to_be_added = f"df[{sl0}][{sl1}]"
+
+        if cursor_pos == 0:
+            self.setText(to_be_added + text)
+        elif text[cursor_pos - 1] != "]":
+            self.setText(text[:cursor_pos] + to_be_added + text[cursor_pos:])
+        else:
+            idx = _find_last_dataframe_expr(text[:cursor_pos])
+            if idx >= 0:
+                self.setText(text[:idx] + to_be_added + text[cursor_pos:])
+            else:
+                self.setText(text[:cursor_pos] + to_be_added + text[cursor_pos:])
+
+        return None
+
+
+_PATTERN = re.compile(r"df\[.+\]\[.+\]")
+
+
+def _find_last_dataframe_expr(s: str) -> int:
+    """
+    Detect last `df[...][...]` expression from given string.
+
+    Returns start index if matched, otherwise -1.
+    """
+    start = s.rfind("df[")
+    if start == -1:
+        return -1
+    if _match := _PATTERN.match(s[start:]):
+        return _match.start() + start
+    return -1

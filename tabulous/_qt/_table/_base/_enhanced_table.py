@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import weakref
 from functools import lru_cache
 from typing import TYPE_CHECKING, Iterator, cast
 from qtpy import QtWidgets as QtW, QtGui, QtCore
@@ -6,12 +8,14 @@ from qtpy.QtCore import Signal, Qt
 
 from ._item_model import AbstractDataFrameModel
 from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
-from ...._selection_model import RangesModel, SelectionModel, Index
 from ._table_base import QBaseTable, QMutableTable
+from ._line_edit import QCellLiteralEdit
 
 from ..._keymap import QtKeys
+from ...._selection_model import RangesModel, SelectionModel, Index
 
 if TYPE_CHECKING:
+    import pandas as pd
     from ._delegate import TableItemDelegate
     from ..._mainwindow import _QtMainWidgetBase
 
@@ -61,6 +65,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._selection_model.moved.connect(self._on_moved)
         self._highlight_model = RangesModel()
 
+        # parameters for mouse tracking
         self._last_pos: QtCore.QPoint | None = None
         self._was_right_dragging: bool = False
         self._last_mouse_button: str | None = None
@@ -85,6 +90,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         delegate = TableItemDelegate(parent=self)
         self.setItemDelegate(delegate)
         self._update_all()
+
+        self._overlay_editor: weakref.ReferenceType[QCellLiteralEdit] | None = None
 
     # fmt: off
     if TYPE_CHECKING:
@@ -255,6 +262,8 @@ class _QTableViewEnhanced(QtW.QTableView):
             e.modifiers() & Qt.KeyboardModifier.ShiftModifier
         )
         self._was_right_dragging = False
+        if self._overlay_editor is not None and (wdt := self._overlay_editor()):
+            wdt.setFocus()
         return super().mouseReleaseEvent(e)
 
     def mouseDoubleClickEvent(self, e: QtGui.QMouseEvent) -> None:
@@ -324,6 +333,9 @@ class _QTableViewEnhanced(QtW.QTableView):
             else:
                 self._edit_current()
             return None
+
+        elif keys == "F3":
+            return self._create_eval_editor(*self._selection_model.current_index)
 
         if keys.has_ctrl():
             sel_mod.set_ctrl(True)
@@ -474,3 +486,12 @@ class _QTableViewEnhanced(QtW.QTableView):
             bottom_right = model.index(rr.stop - 1, cc.stop - 1)
             rect = self.visualRect(top_left) | self.visualRect(bottom_right)
             yield rect
+
+    def _create_eval_editor(self, r, c):
+        rect = self.visualRect(self.model().index(r, c))
+        index = self.model().index(*self._selection_model.current_index)
+        data_text = self.model().data(index, Qt.ItemDataRole.EditRole)
+        if not isinstance(data_text, str):
+            data_text = ""
+        line = QCellLiteralEdit.from_rect(rect, self.viewport(), data_text)
+        return line.show()
