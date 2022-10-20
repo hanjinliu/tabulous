@@ -271,6 +271,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         qtable = self.parentTableView()
         self.connectSignals()
         qtable._overlay_editor = weakref.ref(self)
+        self.setPlaceholderText("Enter to evaluate")
 
     @classmethod
     def from_rect(
@@ -337,7 +338,8 @@ class QCellLiteralEdit(_QTableLineEdit):
                 out = table.convertValue(_row, _col, out)
 
         except Exception as e:
-            self.close_editor()
+            if not isinstance(e, SyntaxError):
+                self.close_editor()
             raise e
 
         model = table.model()
@@ -414,7 +416,14 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         # prepare text
         rsl, csl = qtable._selection_model.ranges[-1]
-        columns = qtable.model().df.columns
+        _df = qtable.model().df
+        columns = _df.columns
+        shape = _df.shape
+
+        if rsl.stop > shape[0] or csl.stop > shape[1]:
+            # out of range
+            return None
+
         if csl.start == csl.stop - 1:
             sl0 = repr(columns[csl.start])
         else:
