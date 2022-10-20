@@ -269,7 +269,7 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         super().__init__(parent, table, pos)
         qtable = self.parentTableView()
-        self.connectSignals()
+        qtable._selection_model.moved.connect(self._on_selection_changed)
         qtable._overlay_editor = weakref.ref(self)
         self.setPlaceholderText("Enter to eval")
 
@@ -305,7 +305,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         import numpy as np
         import pandas as pd
 
-        text = self.text()
+        text = self.text().lstrip("=")
         if text == "":
             self.close_editor()
 
@@ -350,18 +350,21 @@ class QCellLiteralEdit(_QTableLineEdit):
                 self.close_editor()
             raise e
 
-        model = table.model()
-        if isinstance(_row, slice):
-            for _i, _r in enumerate(range(_row.start, _row.stop)):
-                model.dataEdited.emit(_r, _col, str(out[_r]))
-        else:
-            model.dataEdited.emit(_row, _col, str(out))
+        if isinstance(_row, slice):  # set 1D array
+            table.setDataFrameValue(
+                _row, slice(_col, _col + 1), pd.DataFrame(out).astype(str)
+            )
+            qtable._selection_model.move_to(_row.stop - 1, _col)
+        else:  # set scalar
+            table.setDataFrameValue(_row, _col, str(out))
+            qtable._selection_model.move_to(_row, _col)
+
         self.close_editor()
         return None
 
     def close_editor(self):
         qtable = self.parentTableView()
-        self.disconnectSignals()
+        qtable._selection_model.moved.disconnect(self._on_selection_changed)
         self.hide()
         qtable._overlay_editor = None
         self.deleteLater()
@@ -369,7 +372,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         return None
 
     def isTextValid(self) -> bool:
-        text = self.text()
+        text = self.text().lstrip("=")
         if text == "":
             return True
         try:
@@ -380,10 +383,8 @@ class QCellLiteralEdit(_QTableLineEdit):
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
         keys = QtKeys(a0)
-        if keys in ("Return", "Esc"):
-            return self.eval_and_close()
-        elif keys.is_moving():
-            qtable = self.parentTableView()
+        qtable = self.parentTableView()
+        if keys.is_moving():
             pos = self.cursorPosition()
             nchar = len(self.text())
             rng = qtable._selection_model.ranges[-1]
@@ -395,6 +396,7 @@ class QCellLiteralEdit(_QTableLineEdit):
             if not_same_cell:
                 # move in the parent table
                 self._table._keymap.press_key(keys)
+                self.setFocus()
                 return None
 
             if keys == "Left" and pos == 0:
@@ -404,22 +406,28 @@ class QCellLiteralEdit(_QTableLineEdit):
                 qtable._selection_model.move(0, 1)
                 return None
 
-        return super().keyPressEvent(a0)
-
-    def connectSignals(self):
-        qtable = self.parentTableView()
-        return qtable._selection_model.moved.connect(self._on_selection_changed)
-
-    def disconnectSignals(self):
-        qtable = self.parentTableView()
-        return qtable._selection_model.moved.disconnect(self._on_selection_changed)
+        elif keys == "Return":
+            return self.eval_and_close()
+        elif keys == "Esc":
+            qtable._selection_model.move_to(*self._pos)
+            return self.close_editor()
+        if keys.is_typing():
+            with qtable._selection_model.blocked():
+                qtable._selection_model.move_to(*self._pos)
+        self.setFocus()
+        return QtW.QLineEdit.keyPressEvent(self, a0)
 
     def _on_selection_changed(self):
+        """Update text based on the current selection."""
         text = self.text()
         cursor_pos = self.cursorPosition()
         qtable = self.parentTableView()
 
         # prepare text
+        if len(qtable._selection_model.ranges) != 1:
+            # if multiple cells are selected, don't update
+            return None
+
         rsl, csl = qtable._selection_model.ranges[-1]
         _df = qtable.model().df
         columns = _df.columns
