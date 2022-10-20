@@ -2,13 +2,14 @@ from __future__ import annotations
 from typing import Any
 from collections_undo import UndoManager, fmt
 from qtpy import QtWidgets as QtW, QtCore, QtGui
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt
 
 import numpy as np
 import pandas as pd
 
-_MONOSPACE = QtGui.QFont("Monospace")
-_MONOSPACE.setStyleHint(QtGui.QFont.StyleHint.TypeWriter)
+from ._qt_const import MonospaceFontFamily
+
+MonospaceFont = QtGui.QFont(MonospaceFontFamily)
 
 
 class QUndoStackViewer(QtW.QWidget):
@@ -70,7 +71,7 @@ class QUndoStackModel(QtCore.QAbstractListModel):
                 return desc
 
         elif role == Qt.ItemDataRole.FontRole:
-            return _MONOSPACE
+            return MonospaceFont
 
         return QtCore.QVariant()
 

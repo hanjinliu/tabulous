@@ -1,19 +1,9 @@
 from __future__ import annotations
-import sys
 import re
-from typing import Callable, Generator, TYPE_CHECKING
+from typing import Callable, Generator
 
 from qtpy import QtWidgets as QtW
-
-if TYPE_CHECKING:
-    pass
-
-if sys.platform == "win32":
-    _FONT = "Consolas"
-elif sys.platform == "darwin":
-    _FONT = "Menlo"
-else:
-    _FONT = "Monospace"
+from ._qt_const import MonospaceFontFamily
 
 
 class QtTracebackDialog(QtW.QDialog):
@@ -28,7 +18,7 @@ class QtTracebackDialog(QtW.QDialog):
         # prepare text edit
         self._text = QtW.QTextEdit(self)
         self._text.setReadOnly(True)
-        self._text.setFontFamily(_FONT)
+        self._text.setFontFamily(MonospaceFontFamily)
         self._text.setLineWrapMode(QtW.QTextEdit.LineWrapMode.NoWrap)
         layout.addWidget(self._text)
 
@@ -141,7 +131,7 @@ def get_tb_formatter() -> Callable[[Exception, bool, str], str]:
                 html = "".join(ansi2html(ansi_string))
                 html = html.replace("\n", "<br>")
                 html = (
-                    f"<span style='font-family: monaco,{_FONT},monospace;'>"
+                    f"<span style='font-family: monaco,{MonospaceFontFamily},monospace;'>"
                     + html
                     + "</span>"
                 )
@@ -221,7 +211,7 @@ def get_tb_formatter() -> Callable[[Exception, bool, str], str]:
                 # remove hardcoded fonts
                 html = html.replace("\n", "<br>")
                 html = (
-                    f"<span style='font-family: monaco,{_FONT},monospace;'>"
+                    f"<span style='font-family: monaco,{MonospaceFontFamily},monospace;'>"
                     + html
                     + "</span>"
                 )

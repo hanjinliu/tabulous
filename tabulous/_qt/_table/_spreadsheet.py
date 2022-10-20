@@ -3,12 +3,13 @@ from typing import TYPE_CHECKING, Any, Hashable
 from io import StringIO
 import numpy as np
 import pandas as pd
-from qtpy import QtCore
+from qtpy import QtCore, QtGui
 from qtpy.QtCore import Qt
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from ._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 from ._base._text_formatter import DefaultFormatter
+from ...color import normalize_color
 
 _OUT_OF_BOUND_SIZE = 10  # 10 more rows and columns will be displayed.
 _STRING_DTYPE = get_dtype("string")
@@ -63,6 +64,27 @@ class SpreadSheetModel(AbstractDataFrameModel):
                 text = str(val)
             return text
         return QtCore.QVariant()
+
+    def _data_background_color(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        df = self.df
+        if r < df.shape[0] and c < df.shape[1]:
+            colname = df.columns[c]
+            if mapper := self._background_colormap.get(colname, None):
+                val = df.iat[r, c]
+                try:
+                    col = mapper(val)
+                    if col is None:
+                        return QtCore.QVariant()
+                    rgba = normalize_color(col)
+                except Exception as e:
+                    # since this method is called many times, errorous function should be
+                    # deleted from the mapper.
+                    self._background_colormap.pop(colname)
+                    raise e
+                return QtGui.QColor(*rgba)
+        else:
+            return QtGui.QColor(251, 251, 255)  # add shade to the out-of-range cells
 
     def _column_tooltip(self, section: int):
         name = self.df.columns[section]

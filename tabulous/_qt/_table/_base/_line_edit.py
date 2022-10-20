@@ -271,7 +271,14 @@ class QCellLiteralEdit(_QTableLineEdit):
         qtable = self.parentTableView()
         self.connectSignals()
         qtable._overlay_editor = weakref.ref(self)
-        self.setPlaceholderText("Enter to evaluate")
+        self.setPlaceholderText("Enter to eval")
+
+        font = QtGui.QFont("Courier New", self.font().pointSize())
+        font.setBold(True)
+        self.setFont(font)
+
+        self._initial_rect = self.rect()
+        self.textChanged.connect(self._reshape_widget)
 
     @classmethod
     def from_rect(
@@ -309,6 +316,7 @@ class QCellLiteralEdit(_QTableLineEdit):
             _row, _col = self._pos
             qtable = self.parentTableView()
             table = qtable.parentTable()
+
             if isinstance(out, pd.DataFrame):
                 if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
                     out = out.iloc[:, 0]
@@ -384,20 +392,17 @@ class QCellLiteralEdit(_QTableLineEdit):
                 and rng[0].start == rng[0].stop - 1
                 and rng[1].start == rng[1].stop - 1
             )
-            if keys == "Left" and (pos == 0 or not_same_cell):
+            if not_same_cell:
+                # move in the parent table
+                self._table._keymap.press_key(keys)
+                return None
+
+            if keys == "Left" and pos == 0:
                 qtable._selection_model.move(0, -1)
-                return
-            elif keys == "Right" and (
-                (pos == nchar and self.selectedText() == "") or not_same_cell
-            ):
+                return None
+            elif keys == "Right" and pos == nchar and self.selectedText() == "":
                 qtable._selection_model.move(0, 1)
-                return
-            elif keys == "Up":
-                qtable._selection_model.move(-1, 0)
-                return
-            elif keys == "Down":
-                qtable._selection_model.move(1, 0)
-                return
+                return None
 
         return super().keyPressEvent(a0)
 
@@ -418,11 +423,16 @@ class QCellLiteralEdit(_QTableLineEdit):
         rsl, csl = qtable._selection_model.ranges[-1]
         _df = qtable.model().df
         columns = _df.columns
-        shape = _df.shape
+        nr, nc = _df.shape
 
-        if rsl.stop > shape[0] or csl.stop > shape[1]:
-            # out of range
-            return None
+        if rsl.stop > nr:
+            if rsl.start >= nr:
+                return None
+            rsl = slice(rsl.start, nr)
+        if csl.stop > nc:
+            if csl.start >= nc:
+                return None
+            csl = slice(csl.start, nc)
 
         if csl.start == csl.stop - 1:
             sl0 = repr(columns[csl.start])
@@ -446,6 +456,11 @@ class QCellLiteralEdit(_QTableLineEdit):
                 self.setText(text[:cursor_pos] + to_be_added + text[cursor_pos:])
 
         return None
+
+    def _reshape_widget(self, text: str):
+        fm = QtGui.QFontMetrics(self.font())
+        width = min(fm.boundingRect(text).width() + 8, 300)
+        return self.resize(max(width, self._initial_rect.width()), self.height())
 
 
 _PATTERN = re.compile(r"df\[.+\]\[.+\]")
