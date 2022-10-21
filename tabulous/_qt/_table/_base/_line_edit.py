@@ -299,6 +299,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         qtable: _QTableViewEnhanced,
         text: str,
     ) -> QCellLiteralEdit:
+        """Create a new literal editor from a table."""
         parent = qtable.viewport()
         table = qtable.parentTable()
         rect = qtable.visualRect(
@@ -309,7 +310,6 @@ class QCellLiteralEdit(_QTableLineEdit):
         geometry.setWidth(rect.width())
         geometry.setHeight(rect.height())
         geometry.moveCenter(rect.center())
-        geometry.adjust(-1, -1, 1, 1)
         line.setGeometry(geometry)
         line.setText(text)
         line.setFocus()
@@ -331,17 +331,17 @@ class QCellLiteralEdit(_QTableLineEdit):
             self.close_editor()
 
         try:
-            df = self.parentTableView().parentTable().getDataFrame()
+            qtable = self.parentTableView()
+            table = qtable.parentTable()
+            df = table.getDataFrame()
             out = eval(text, {"np": np, "pd": pd, "df": df}, {})
 
             _row, _col = self._pos
-            qtable = self.parentTableView()
-            table = qtable.parentTable()
 
             if isinstance(out, pd.DataFrame):
                 if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
                     out = out.iloc[:, 0]
-                    _row, _col = _new_slice_for_series(out, _row, _col)
+                    _row, _col = _infer_slices(qtable.model().df, out, _row, _col)
                 elif out.size == 1:
                     out = out.iloc[0, 0]
                 else:
@@ -351,7 +351,7 @@ class QCellLiteralEdit(_QTableLineEdit):
                 if out.shape == (1,):  # scalar
                     out = out[0]
                 else:  # update a column
-                    _row, _col = _new_slice_for_series(out, _row, _col)
+                    _row, _col = _infer_slices(qtable.model().df, out, _row, _col)
 
             elif isinstance(out, np.ndarray):
                 if out.ndim > 2:
@@ -360,10 +360,11 @@ class QCellLiteralEdit(_QTableLineEdit):
                 if out.ndim == 0:  # scalar
                     out = table.convertValue(_row, _col, out.item())
                 if out.ndim == 1:  # 1D array
-                    out = pd.Series(out)
-                    _row, _col = _new_slice_for_series(out, _row, _col)
+                    _row = slice(_row, _row + out.shape[0])
+                    _col = slice(_col, _col + 1)
                 else:
-                    raise NotImplementedError("Cannot assign a DataFrame now.")
+                    _row = slice(_row, _row + out.shape[0])
+                    _col = slice(_col, _col + out.shape[1])
 
             else:
                 out = table.convertValue(_row, _col, out)
@@ -385,7 +386,7 @@ class QCellLiteralEdit(_QTableLineEdit):
             qtable._selection_model.move_to(_row, _col)
 
         else:
-            raise RuntimeError("Unreachable")
+            raise RuntimeError(_row, _col)  # Unreachable
 
         self.close_editor()
         return None
@@ -486,13 +487,18 @@ class QCellLiteralEdit(_QTableLineEdit):
                 return None
             csl = slice(csl.start, nc)
 
-        if rsl.start == rsl.stop - 1:
-            sl1 = rsl.start
-        else:
-            sl1 = f"{rsl.start}:{rsl.stop}"
         if csl.start == csl.stop - 1:
+            if rsl.start == rsl.stop - 1:
+                sl1 = rsl.start
+            else:
+                sl1 = f"{rsl.start}:{rsl.stop}"
             to_be_added = f"df[{columns[csl.start]!r}][{sl1}]"
         else:
+            index = _df.index
+            if rsl.start == rsl.stop - 1:
+                sl1 = index[rsl.start]
+            else:
+                sl1 = f"{index[rsl.start]!r}:{index[rsl.stop-1]!r}"
             sl0 = f"{columns[csl.start]!r}:{columns[csl.stop-1]!r}"
             to_be_added = f"df.loc[{sl1}, {sl0}]"
 
@@ -539,8 +545,13 @@ def _find_last_dataframe_expr(s: str) -> int:
     return -1
 
 
-def _new_slice_for_series(out, r: int, c: int) -> tuple[slice, slice]:
-    # .. code-block:: bash
+def _infer_slices(
+    df: pd.DataFrame,
+    out: pd.Series,
+    r: int,
+    c: int,
+) -> tuple[slice, slice]:
+    """Infer how to concatenate ``out`` to ``df``."""
 
     #      x | x | x |
     #      x |(1)| x |(2)
@@ -552,10 +563,51 @@ def _new_slice_for_series(out, r: int, c: int) -> tuple[slice, slice]:
     # 2. Return as a column vector.
     # 3. Return as a row vector.
     # 4. Cannot determine in which orientation results should be aligned. Raise Error.
-    ndata = len(out)
-    if r < ndata:  # cases 1, 2
-        return slice(0, ndata), slice(c, c + 1)
-    elif c < ndata:  # case 3
-        return slice(r, r + 1), slice(0, ndata)
-    else:  # case 4
-        raise ValueError("Could not infer output positions.")
+
+    _nr, _nc = df.shape
+    if _nc <= c:  # case 2, 4
+        _orientation = "c"
+    elif _nr <= r:  # case 3
+        _orientation = "r"
+    else:  # case 1
+        _orientation = "infer"
+
+    if _orientation == "infer":
+        try:
+            df.loc[:, out.index]
+        except KeyError:
+            try:
+                df.loc[out.index, :]
+            except KeyError:
+                raise KeyError("Could not infer output orientation.")
+            else:
+                _orientation = "c"
+        else:
+            _orientation = "r"
+
+    if _orientation == "r":
+        rloc = slice(r, r + 1)
+        istart = df.columns.get_loc(out.index[0])
+        istop = df.columns.get_loc(out.index[-1]) + 1
+        if (df.columns[istart:istop] == out.index).all():
+            cloc = slice(istart, istop)
+        else:
+            raise ValueError("Output Series is not well sorted.")
+    elif _orientation == "c":
+        istart = df.index.get_loc(out.index[0])
+        istop = df.index.get_loc(out.index[-1]) + 1
+        if (df.index[istart:istop] == out.index).all():
+            rloc = slice(istart, istop)
+        else:
+            raise ValueError("Output Series is not well sorted.")
+        cloc = slice(c, c + 1)
+    else:
+        raise RuntimeError(_orientation)  # unreachable
+
+    # check (r, c) is in the range
+    if not (rloc.start <= r < rloc.stop and cloc.start <= c < cloc.stop):
+        raise ValueError(
+            f"The cell on editing {(r, c)} is not in the range of output "
+            f"({rloc.start}:{rloc.stop}, {cloc.start}:{cloc.stop})."
+        )
+    return rloc, cloc
