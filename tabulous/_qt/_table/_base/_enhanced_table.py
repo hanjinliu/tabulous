@@ -334,9 +334,6 @@ class _QTableViewEnhanced(QtW.QTableView):
                 self._edit_current()
             return None
 
-        elif keys == "F3":
-            return self._create_eval_editor(*self._selection_model.current_index)
-
         if keys.has_ctrl():
             sel_mod.set_ctrl(True)
         elif keys.has_key():
@@ -487,11 +484,15 @@ class _QTableViewEnhanced(QtW.QTableView):
             rect = self.visualRect(top_left) | self.visualRect(bottom_right)
             yield rect
 
-    def _create_eval_editor(self, r, c):
+    def _create_eval_editor(
+        self, r: int, c: int, text: str | None = None
+    ) -> QCellLiteralEdit:
         rect = self.visualRect(self.model().index(r, c))
         index = self.model().index(*self._selection_model.current_index)
-        data_text = self.model().data(index, Qt.ItemDataRole.EditRole)
-        if not isinstance(data_text, str):
-            data_text = ""
-        line = QCellLiteralEdit.from_rect(rect, self.viewport(), data_text)
-        return line.show()
+        if text is None:
+            text = self.model().data(index, Qt.ItemDataRole.EditRole)
+        if not isinstance(text, str):
+            text = ""
+        line = QCellLiteralEdit.from_rect(rect, self.viewport(), text)
+        line.show()
+        return line
