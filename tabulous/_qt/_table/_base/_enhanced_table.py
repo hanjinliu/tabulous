@@ -493,6 +493,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             text = self.model().data(index, Qt.ItemDataRole.EditRole)
         if not isinstance(text, str):
             text = ""
+        self._selection_model.move_to(r, c)
         line = QCellLiteralEdit.from_rect(rect, self.viewport(), text)
         line.show()
         return line

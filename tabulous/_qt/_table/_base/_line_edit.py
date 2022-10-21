@@ -552,8 +552,8 @@ def _new_slice_for_series(out, r: int, c: int) -> tuple[slice, slice]:
     # 4. Cannot determine in which orientation results should be aligned. Raise Error.
     ndata = len(out)
     if r < ndata:  # cases 1, 2
-        return slice(0, len(out)), slice(c, c + 1)
+        return slice(0, ndata), slice(c, c + 1)
     elif c < ndata:  # case 3
-        return slice(r, r + 1), slice(0, len(out))
+        return slice(r, r + 1), slice(0, ndata)
     else:  # case 4
         raise ValueError("Could not infer output positions.")
