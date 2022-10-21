@@ -294,14 +294,16 @@ class QCellLiteralEdit(_QTableLineEdit):
         self.textChanged.connect(self._reshape_widget)
 
     @classmethod
-    def from_rect(
+    def from_table(
         self,
-        rect: QtCore.QRect,
-        parent: QtW.QWidget,
+        qtable: _QTableViewEnhanced,
         text: str,
     ) -> QCellLiteralEdit:
-        qtable: _QTableViewEnhanced = parent.parent()
+        parent = qtable.viewport()
         table = qtable.parentTable()
+        rect = qtable.visualRect(
+            qtable.model().index(*qtable._selection_model.current_index)
+        )
         line = QCellLiteralEdit(parent, table, qtable._selection_model.current_index)
         geometry = line.geometry()
         geometry.setWidth(rect.width())

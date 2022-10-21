@@ -487,13 +487,12 @@ class _QTableViewEnhanced(QtW.QTableView):
     def _create_eval_editor(
         self, r: int, c: int, text: str | None = None
     ) -> QCellLiteralEdit:
-        rect = self.visualRect(self.model().index(r, c))
+        self._selection_model.move_to(r, c)
         index = self.model().index(*self._selection_model.current_index)
         if text is None:
             text = self.model().data(index, Qt.ItemDataRole.EditRole)
         if not isinstance(text, str):
             text = ""
-        self._selection_model.move_to(r, c)
-        line = QCellLiteralEdit.from_rect(rect, self.viewport(), text)
+        line = QCellLiteralEdit.from_table(self, text)
         line.show()
         return line
