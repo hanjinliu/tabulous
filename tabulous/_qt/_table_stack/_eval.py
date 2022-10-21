@@ -1,4 +1,5 @@
 from __future__ import annotations
+import ast
 from qtpy import QtWidgets as QtW
 import pandas as pd
 from . import _utils
@@ -43,8 +44,8 @@ class QLiteralEvalWidget(QAbstractEval):
         if text == "":
             return
         table = self._line.currentPyTable()
-        df = table.data.eval(text, inplace=False)
-        if "=" not in text:
+        df = table.data.eval(text, inplace=False, global_dict={"df": table.data})
+        if type(ast.parse(text.replace("@", "")).body[0]) is not ast.Assign:
             self._line._qtable_viewer._table_viewer.add_table(df, name=table.name)
         else:
             table.data = df  # TODO: this is massive. Should use assignColumn().

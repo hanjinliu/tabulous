@@ -90,6 +90,12 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         self.drawCurrent(painter)
         return None
 
+    def mouseReleaseEvent(self, e: QtGui.QMouseEvent) -> None:
+        editor_ref = self.parentWidget()._overlay_editor
+        if editor_ref is not None and (editor := editor_ref()):
+            editor.setFocus()
+        return super().mouseReleaseEvent(e)
+
 
 class QHorizontalHeaderView(QDataFrameHeaderView):
     _Orientation = Qt.Orientation.Horizontal

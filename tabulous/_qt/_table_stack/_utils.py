@@ -36,7 +36,7 @@ def find_parent_table_viewer(qwidget: _QtMainWidgetBase) -> _QtMainWidgetBase:
     raise RuntimeError
 
 
-_OPERATORS = re.compile(r"\+|-|\*|/|\s|\(|\)|%|<|>|=")
+_OPERATORS = re.compile(r"\+|-|\*|/|\s|\(|\)|%|<|>|=|\"|\'")
 
 
 class _EventFilter(QtCore.QObject):
