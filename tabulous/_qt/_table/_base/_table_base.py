@@ -548,12 +548,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         if row is None:
             row = selection_model.current_index.row
         elif row < 0:
-            row += self.dataShape()[0]
+            row += self.model().df.shape[0]
 
         if column is None:
             column = selection_model.current_index.column
         elif column < 0:
-            column += self.dataShape()[1]
+            column += self.model().df.shape[1]
 
         if clear_selection or not (
             selection_model._ctrl_on or selection_model._shift_on
