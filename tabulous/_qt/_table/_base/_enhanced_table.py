@@ -218,6 +218,7 @@ class _QTableViewEnhanced(QtW.QTableView):
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         """Register clicked position"""
         # initialize just in case
+
         _selection_model = self._selection_model
         _selection_model.set_ctrl(e.modifiers() & Qt.KeyboardModifier.ControlModifier)
         self._last_pos = e.pos()

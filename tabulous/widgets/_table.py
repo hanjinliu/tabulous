@@ -408,6 +408,20 @@ class TableBase(ABC):
         self._qwidget.addSideWidget(widget, name=name)
         return widget
 
+    def add_overlay_widget(
+        self,
+        widget: QtW.QWidget | Widget,
+        *,
+        label: str = "",
+        topleft: tuple[int, int] = (0, 0),
+    ):
+
+        if hasattr(widget, "native"):
+            widget = widget.native
+
+        self._qwidget.addOverlayWidget(widget, label=label, topleft=topleft)
+        return widget
+
     def _emit_selections(self):
         with self.selections.blocked():
             # Block selection to avoid recursive update.

@@ -490,6 +490,24 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.setSizes([500, 200])
         return None
 
+    def addOverlayWidget(
+        self,
+        widget: QtW.QWidget,
+        label: str = "",
+        topleft: tuple[int, int] = (0, 0),
+    ):
+        from ..._table_stack._overlay import QOverlayFrame
+
+        viewport = self._qtable_view.viewport()
+        frame = QOverlayFrame(widget, viewport)
+        frame.setLabel(label)
+        frame.show()
+
+        index = self._qtable_view.model().index(*topleft)
+        pos = self._qtable_view.visualRect(index).topLeft()
+        frame.move(pos)
+        return None
+
     def setDualView(self, orientation: str = "horizontal"):
         """Set dual view."""
         from ._table_wrappers import QTableDualView

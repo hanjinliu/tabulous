@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from enum import Enum
-from qtpy import QtWidgets as QtW, QtCore
+from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
 from .._titlebar import QTitleBar
 
@@ -18,16 +18,26 @@ class Anchor(Enum):
     bottom_right = "bottom_right"
 
 
-class QOverlayWidget(QtW.QDialog):
-    """The overlay widget appears at the fixed position."""
+class _QOverlayBase(QtW.QDialog):
 
     _Style = """
-    QOverlayWidget {{
+    _QOverlayBase {{
         border: 1px solid gray;
         border-radius: 3px;
         background-color: {backgroundcolor};
     }}
     """
+
+    def __init__(
+        self,
+        parent: QtW.QWidget | None = None,
+        flags=Qt.WindowType.SubWindow,
+    ) -> None:
+        super().__init__(parent, flags)
+
+
+class QOverlayWidget(_QOverlayBase):
+    """The overlay widget appears at the fixed position."""
 
     def __init__(self, parent: QTabbedTableStack, duration: int = 50):
         """
@@ -41,7 +51,6 @@ class QOverlayWidget(QtW.QDialog):
             Animation duration in msec.
         """
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.SubWindow)
         self._widget = None
 
         titlebar = QTitleBar("", self)
@@ -198,3 +207,75 @@ class QOverlayWidget(QtW.QDialog):
         pos.setX(pos.x() - self.rect().width() - offset[0])
         pos.setY(pos.y() - self.rect().height() - offset[1])
         self.move(pos)
+
+
+class QOverlayFrame(_QOverlayBase):
+
+    _Style = """
+    QOverlayFrame {{
+        border: 1px solid gray;
+        background-color: {backgroundcolor};
+    }}
+    """
+
+    def __init__(self, content: QtW.QWidget, viewport: QtW.QWidget):
+        super().__init__(viewport)
+        self.setLayout(QtW.QVBoxLayout())
+
+        content.setSizePolicy(
+            QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Expanding
+        )
+        self.layout().addWidget(content)
+        self.layout().setSpacing(0)
+        self.setContentsMargins(0, 0, 0, 0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+
+        sizegrip = QtW.QSizeGrip(self)
+        self._label_widget = QtW.QLabel()
+
+        _footer = QtW.QWidget()
+        _footer.setLayout(QtW.QHBoxLayout())
+        _footer.layout().addWidget(
+            self._label_widget, False, Qt.AlignmentFlag.AlignLeft
+        )
+        _footer.layout().addWidget(
+            sizegrip, False, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom
+        )
+        _footer.setContentsMargins(0, 0, 0, 0)
+        _footer.setSizePolicy(
+            QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Minimum
+        )
+        self.layout().addWidget(_footer)
+
+    def label(self) -> str:
+        return self._label_widget.text()
+
+    def setLabel(self, label: str) -> None:
+        return self._label_widget.setText(label)
+
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        self._drag_start = event.pos()
+        return None
+
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent):
+        self._drag_start = None
+        return None
+
+    def mouseMoveEvent(self, event: QtGui.QMouseEvent):
+        if self._drag_start is not None:
+            self.move(self.mapToParent(event.pos() - self._drag_start))
+        return None
+
+    def tableStack(self) -> QTabbedTableStack:
+        qtable = self.parent().parent().parent()
+        return qtable.tableStack()
+
+    def show(self):
+        """Show the overlay widget."""
+        super().show()
+        if self.tableStack().parent()._white_background:
+            bgcolor = "white"
+        else:
+            bgcolor = "black"
+        self.setStyleSheet(self._Style.format(backgroundcolor=bgcolor))
+        return None
