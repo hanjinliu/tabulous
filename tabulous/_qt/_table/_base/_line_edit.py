@@ -333,7 +333,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         try:
             qtable = self.parentTableView()
             table = qtable.parentTable()
-            df = table.getDataFrame()
+            df = table.dataShown(parse=True)
             out = eval(text, {"np": np, "pd": pd, "df": df}, {})
 
             _row, _col = self._pos
@@ -341,7 +341,7 @@ class QCellLiteralEdit(_QTableLineEdit):
             if isinstance(out, pd.DataFrame):
                 if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
                     out = out.iloc[:, 0]
-                    _row, _col = _infer_slices(qtable.model().df, out, _row, _col)
+                    _row, _col = _infer_slices(df, out, _row, _col)
                 elif out.size == 1:
                     out = out.iloc[0, 0]
                 else:
@@ -351,7 +351,7 @@ class QCellLiteralEdit(_QTableLineEdit):
                 if out.shape == (1,):  # scalar
                     out = out[0]
                 else:  # update a column
-                    _row, _col = _infer_slices(qtable.model().df, out, _row, _col)
+                    _row, _col = _infer_slices(df, out, _row, _col)
 
             elif isinstance(out, np.ndarray):
                 if out.ndim > 2:
@@ -375,10 +375,10 @@ class QCellLiteralEdit(_QTableLineEdit):
             raise e
 
         if isinstance(_row, slice) and isinstance(_col, slice):  # set 1D array
-            values = pd.DataFrame(out).astype(str)
+            out = pd.DataFrame(out).astype(str)
             if _row.start == _row.stop - 1:  # row vector
-                values = values.T
-            table.setDataFrameValue(_row, _col, values)
+                out = out.T
+            table.setDataFrameValue(_row, _col, out)
             qtable._selection_model.move_to(_row.stop - 1, _col.stop - 1)
 
         elif isinstance(_row, int) and isinstance(_col, int):  # set scalar

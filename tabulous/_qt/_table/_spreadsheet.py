@@ -161,6 +161,20 @@ class QSpreadSheet(QMutableSimpleTable):
         """Shape of data."""
         return self._data_raw.shape
 
+    def dataShown(self, parse: bool = False) -> pd.DataFrame:
+        """Return the shown dataframe (consider filter)."""
+        if parse:
+            df = self.getDataFrame()
+            if self._filter_slice is not None:
+                if callable(self._filter_slice):
+                    sl = self._filter_slice(df)
+                else:
+                    sl = self._filter_slice
+                return df[sl]
+            return df
+        else:
+            return self.model().df
+
     @QMutableSimpleTable._mgr.interface
     def setDataFrame(self, data: pd.DataFrame) -> None:
         """Set data frame as a string table."""

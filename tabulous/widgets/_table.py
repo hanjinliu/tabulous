@@ -142,7 +142,7 @@ class TableBase(ABC):
     @property
     def data_shown(self) -> pd.DataFrame:
         """Return the data shown in the table (filter considered)."""
-        return self._qwidget.dataShown()
+        return self._qwidget.dataShown(parse=True)
 
     @property
     def mutable(self) -> bool:
