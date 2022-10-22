@@ -87,7 +87,7 @@ def test_components(viewer_cls: type[TableViewerWidget]):
 
 @pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
 def test_bind_keycombo(viewer_cls: type[TableViewerWidget]):
-    viewer = viewer_cls()
+    viewer = viewer_cls(show=False)
 
     mock = MagicMock()
 

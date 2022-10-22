@@ -9,7 +9,7 @@ import pandas as pd
 
 from ..._qt_const import MonospaceFontFamily
 from ..._keymap import QtKeys
-from ....types import HeaderInfo
+from ....types import HeaderInfo, ItemInfo
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
@@ -323,12 +323,17 @@ class QCellLiteralEdit(_QTableLineEdit):
         This function strictly check out put shape to determine how to assign array results
         to the table.
         """
+        text = self.text().lstrip("=").strip()
+        self.eval_text(text)
+        self.close_editor()
+        return None
+
+    def eval_text(self, text: str) -> None:
         import numpy as np
         import pandas as pd
 
-        text = self.text().lstrip("=").strip()
         if text == "":
-            self.close_editor()
+            return
 
         try:
             qtable = self.parentTableView()
@@ -387,8 +392,6 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         else:
             raise RuntimeError(_row, _col)  # Unreachable
-
-        self.close_editor()
         return None
 
     def close_editor(self):
