@@ -1,6 +1,8 @@
 from tabulous import Table, TableViewer
 import pandas as pd
 import numpy as np
+from magicgui import magicgui
+from qtpy import QtWidgets as QtW
 import pytest
 
 from ._utils import get_cell_value, edit_cell, selection_equal
@@ -158,3 +160,27 @@ def test_cell_interface_in_spreadsheet():
     table.cell[0:8, 0] = np.arange(8)
     assert table.data.shape == (8, 6)
     assert np.all(table.data.iloc[0:8, 0].values == np.arange(8))
+
+def test_side_area():
+    viewer = TableViewer(show=False)
+    table = viewer.add_spreadsheet(np.zeros((6, 6)))
+    @magicgui
+    def f(x: int):
+        pass
+
+    table.add_side_widget(f)
+
+    line = QtW.QLineEdit()
+    table.add_side_widget(line)
+
+def test_overlay_widget():
+    viewer = TableViewer(show=False)
+    table = viewer.add_spreadsheet(np.zeros((6, 6)))
+    @magicgui
+    def f(x: int):
+        pass
+
+    table.add_overlay_widget(f)
+
+    line = QtW.QLineEdit()
+    table.add_overlay_widget(line)
