@@ -496,7 +496,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         label: str = "",
         topleft: tuple[int, int] = (0, 0),
     ):
-        from ..._table_stack._overlay import QOverlayFrame
+        from ._overlay import QOverlayFrame
 
         viewport = self._qtable_view.viewport()
         frame = QOverlayFrame(widget, viewport)
