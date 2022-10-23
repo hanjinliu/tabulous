@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Hashable
+from functools import cached_property
 from io import StringIO
 import numpy as np
 import pandas as pd
@@ -24,6 +25,13 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
         self._table_vars = table
         self._columns_dtype = self.parent()._columns_dtype
+
+    @cached_property
+    def _out_of_bound_color(self) -> QtGui.QColor:
+        if self.parent()._qtable_view.parentViewer()._white_background:
+            return QtGui.QColor(248, 248, 255)
+        else:
+            return QtGui.QColor(7, 7, 0)
 
     @property
     def df(self) -> pd.DataFrame:  # NOTE: this returns a string data frame
@@ -84,7 +92,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
                     raise e
                 return QtGui.QColor(*rgba)
         else:
-            return QtGui.QColor(251, 251, 255)  # add shade to the out-of-range cells
+            return self._out_of_bound_color  # add shade to the out-of-range cells
 
     def _column_tooltip(self, section: int):
         name = self.df.columns[section]

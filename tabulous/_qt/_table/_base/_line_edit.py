@@ -9,13 +9,15 @@ import pandas as pd
 
 from ..._qt_const import MonospaceFontFamily
 from ..._keymap import QtKeys
-from ....types import HeaderInfo, ItemInfo
+from ....types import HeaderInfo
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
     from ._table_base import QMutableTable
     from ._enhanced_table import _QTableViewEnhanced
     from ._header_view import QDataFrameHeaderView
+
+_EVAL_PREFIX = "="
 
 
 class _QTableLineEdit(QtW.QLineEdit):
@@ -264,7 +266,7 @@ class QCellLineEdit(_QTableLineEdit):
             return True
 
     def _pre_validation(self, text: str):
-        if text.startswith("="):
+        if text.startswith(_EVAL_PREFIX):
             pos = self.cursorPosition()
             self.setText("")
             line = self.parentTableView()._create_eval_editor(*self._pos, text)
@@ -272,6 +274,8 @@ class QCellLineEdit(_QTableLineEdit):
 
 
 class QCellLiteralEdit(_QTableLineEdit):
+    """Line edit used for evaluating cell text."""
+
     def __init__(
         self,
         parent: QtCore.QObject | None = None,
@@ -323,7 +327,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         This function strictly check out put shape to determine how to assign array results
         to the table.
         """
-        text = self.text().lstrip("=").strip()
+        text = self.text().lstrip(_EVAL_PREFIX).strip()
         self.eval_text(text)
         self.close_editor()
         return None
@@ -338,8 +342,11 @@ class QCellLiteralEdit(_QTableLineEdit):
         try:
             qtable = self.parentTableView()
             table = qtable.parentTable()
+            qviewer = qtable.parentViewer()
             df = table.dataShown(parse=True)
-            out = eval(text, {"np": np, "pd": pd, "df": df}, {})
+            ns = qviewer._namespace.value()
+            ns.update({"df": df})
+            out = eval(text, ns, {})
 
             _row, _col = self._pos
 
@@ -406,7 +413,7 @@ class QCellLiteralEdit(_QTableLineEdit):
 
     def _is_text_valid(self) -> bool:
         """Try to parse the text and return True if it is valid."""
-        text = self.text().lstrip("=").strip()
+        text = self.text().lstrip(_EVAL_PREFIX).strip()
         if text == "":
             return True
         try:
@@ -416,7 +423,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         return True
 
     def _pre_validation(self, text: str):
-        if not text.startswith("="):
+        if not text.startswith(_EVAL_PREFIX):
             self.close_editor()
             qtable = self.parentTableView()
             index = qtable.model().index(*self._pos)

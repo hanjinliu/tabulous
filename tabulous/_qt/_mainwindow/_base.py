@@ -4,6 +4,8 @@ import qtpy
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import QEvent, Signal
 
+from ._namespace import Namespace
+
 from .._table_stack import QTabbedTableStack
 from .._keymap import QtKeyMap
 from .._history import QtFileHistoryManager
@@ -30,6 +32,7 @@ class _QtMainWidgetBase(QtW.QWidget):
     _tablestack: QTabbedTableStack
     _toolbar: QTableStackToolBar
     _keymap: QtKeyMap
+    _namespace: Namespace
 
     _hist_mgr = QtFileHistoryManager()
 
@@ -52,6 +55,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._event_filter.styleChanged.connect(self.updateWidgetStyle)
         self._console_widget: QtConsole | None = None
         self._keymap_widget = None
+        self._namespace = Namespace()
 
     def updateWidgetStyle(self):
         bg = self.palette().color(self.backgroundRole())
