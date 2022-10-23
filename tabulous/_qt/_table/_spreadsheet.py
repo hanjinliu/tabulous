@@ -554,10 +554,28 @@ class QSpreadSheet(QMutableSimpleTable):
             return self.tableStack().notifyEditability()
         return self.removeRows(row, 1)
 
+    def _remove_selected_rows(self, row: int):
+        if not self.isEditable():
+            return self.tableStack().notifyEditability()
+        _, rng = self._qtable_view._selection_model.range_under_index(row, 0)
+        if rng is not None:
+            row_range = rng[0]
+            self.removeRows(row_range.start, row_range.stop - row_range.start)
+        return None
+
     def _remove_this_column(self, col: int):
         if not self.isEditable():
             return self.tableStack().notifyEditability()
         return self.removeColumns(col, 1)
+
+    def _remove_selected_columns(self, col: int):
+        if not self.isEditable():
+            return self.tableStack().notifyEditability()
+        _, rng = self._qtable_view._selection_model.range_under_index(0, col)
+        if rng is not None:
+            col_range = rng[1]
+            self.removeColumns(col_range.start, col_range.stop - col_range.start)
+        return None
 
     def _set_column_dtype_with_dialog(self, col: int):
         """
@@ -598,12 +616,14 @@ class QSpreadSheet(QMutableSimpleTable):
         vheader.registerAction("Insert/Remove > Insert row above")(self._insert_row_above)
         vheader.registerAction("Insert/Remove > Insert row below")(self._insert_row_below)
         vheader.registerAction("Insert/Remove > Remove this row")(self._remove_this_row)
+        vheader.registerAction("Insert/Remove > Remove selected rows")(self._remove_selected_rows)
         vheader.addSeparator()
 
         hheader = self._qtable_view.horizontalHeader()
         hheader.registerAction("Insert/Remove > Insert column left")(self._insert_column_left)
         hheader.registerAction("Insert/Remove > Insert column right")(self._insert_column_right)
         hheader.registerAction("Insert/Remove > Remove this column")(self._remove_this_column)
+        hheader.registerAction("Insert/Remove > Remove selected columns")(self._remove_selected_columns)
         hheader.addSeparator()
         hheader.registerAction("Column dtype")(self._set_column_dtype_with_dialog)
         hheader.addSeparator()
