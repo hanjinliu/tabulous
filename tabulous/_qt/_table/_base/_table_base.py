@@ -517,6 +517,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         pos.setX(pos.x() + rect.width() * left_res)
         pos.setY(pos.y() + rect.height() * top_res)
         frame.move(pos)
+
+        size = self._qtable_view.size()
+        frame.resize(
+            max(frame.width(), int(size.width() * 0.8)),
+            max(frame.height(), int(size.height() * 0.8)),
+        )
         return None
 
     def setDualView(self, orientation: str = "horizontal"):
