@@ -503,8 +503,19 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         frame.setLabel(label)
         frame.show()
 
-        index = self._qtable_view.model().index(*topleft)
-        pos = self._qtable_view.visualRect(index).topLeft()
+        # if topleft is given as float, interpret as ratio in a cell
+        top, left = topleft
+        top_int, top_res = divmod(top, 1)
+        left_int, left_res = divmod(left, 1)
+
+        index = self._qtable_view.model().index(
+            int(round(top_int)), int(round(left_int))
+        )
+
+        rect = self._qtable_view.visualRect(index)
+        pos = rect.topLeft()
+        pos.setX(pos.x() + rect.width() * left_res)
+        pos.setY(pos.y() + rect.height() * top_res)
         frame.move(pos)
         return None
 

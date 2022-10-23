@@ -384,7 +384,7 @@ class TableBase(ABC):
         """Return the undo manager."""
         return self._qwidget._mgr
 
-    def add_side_widget(self, widget: QtW.QWidget | Widget, name: str = ""):
+    def add_side_widget(self, widget: QtW.QWidget | Widget, *, name: str = ""):
         """
         Add a side widget to the table.
 
@@ -413,9 +413,23 @@ class TableBase(ABC):
         widget: QtW.QWidget | Widget,
         *,
         label: str = "",
-        topleft: tuple[int, int] = (0, 0),
+        topleft: tuple[float, float] = (0, 0),
     ):
+        """
+        Add a widget overlaid over the table.
 
+        An overlay widget is shown on top of the table, just like the chart in Excel.
+
+
+        Parameters
+        ----------
+        widget: QWidget or magicgui Widget
+            The widget to add.
+        label : str, optional
+            Label that is shown in the bottom of the widget.
+        topleft: tuple of float, optional
+            Top-left position of the widget described as the row and column indices.
+        """
         if hasattr(widget, "native"):
             widget = widget.native
 
@@ -461,6 +475,7 @@ class Table(_DataFrameTableLayer):
         return QTableLayer(data=data)
 
 
+@_doc.update_doc
 class SpreadSheet(_DataFrameTableLayer):
     """
     A table that behaves like a spreadsheet.
@@ -482,6 +497,7 @@ class SpreadSheet(_DataFrameTableLayer):
         return QSpreadSheet(data=data)
 
 
+@_doc.update_doc
 class GroupBy(TableBase):
     """
     A group of tables.
@@ -534,6 +550,7 @@ class GroupBy(TableBase):
         return self._qwidget.setCurrentGroup(val)
 
 
+@_doc.update_doc
 class TableDisplay(TableBase):
     """
     A table that is hotly reloaded by the given function.
