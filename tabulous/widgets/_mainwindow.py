@@ -85,6 +85,10 @@ class Console(Component["TableViewerBase"]):
         """Execute current buffer."""
         return self.parent._qwidget._console_widget.execute()
 
+    def update(self, ns: dict[str, Any]):
+        """Update IPython namespace."""
+        return self.parent._qwidget._console_widget.update_console(ns)
+
 
 class TableViewerBase:
     """The base class of a table viewer widget."""

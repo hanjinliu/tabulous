@@ -196,6 +196,10 @@ class QtConsole(RichJupyterWidget):
 
         return super().eventFilter(obj, event)
 
+    def update_console(self, ns: dict) -> None:
+        self.shell.push(dict(ns))
+        return None
+
     @_keymap.bind("Ctrl+Shift+Down", floating=False)
     @_keymap.bind("Ctrl+Shift+Up", floating=True)
     def setDockFloating(self, floating: bool):

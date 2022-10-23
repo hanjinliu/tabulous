@@ -179,10 +179,8 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def selectAll(self) -> None:
         """Override selectAll slot to update custom selections."""
-        model = self.model()
-        self.set_selections(
-            [(slice(0, model.rowCount()), slice(0, model.columnCount()))]
-        )
+        nr, nc = self.model().df.shape
+        self.set_selections([(slice(0, nr), slice(0, nc))])
         return None
 
     def clear_selections(self) -> None:
