@@ -282,12 +282,10 @@ class QCellLiteralEdit(_QTableLineEdit):
         table: QMutableTable | None = None,
         pos: tuple[int, int] = (0, 0),
     ):
-        import weakref
-
         super().__init__(parent, table, pos)
         qtable = self.parentTableView()
         qtable._selection_model.moved.connect(self._on_selection_changed)
-        qtable._overlay_editor = weakref.ref(self)
+        qtable._focused_widget = self
         self.setPlaceholderText("Enter to eval")
 
         font = QtGui.QFont(MonospaceFontFamily, self.font().pointSize())
@@ -406,7 +404,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         qtable = self.parentTableView()
         qtable._selection_model.moved.disconnect(self._on_selection_changed)
         self.hide()
-        qtable._overlay_editor = None
+        del qtable._focused_widget
         self.deleteLater()
         qtable.setFocus()
         return None

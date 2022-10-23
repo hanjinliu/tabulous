@@ -6,6 +6,7 @@ from qtpy.QtCore import Qt
 
 if TYPE_CHECKING:
     from ..._table_stack import QTabbedTableStack
+    from .._base import QBaseTable
 
 
 class QOverlayFrame(QtW.QDialog):
@@ -90,9 +91,12 @@ class QOverlayFrame(QtW.QDialog):
             self.move(self.mapToParent(event.pos() - self._drag_start))
         return None
 
+    def parentTable(self) -> QBaseTable:
+        return self.parent().parent().parent()
+
     def tableStack(self) -> QTabbedTableStack:
         """The parent table stack."""
-        return self.parent().parent().parent().tableStack()
+        return self.parentTable().tableStack()
 
     def show(self):
         """Show the overlay widget."""

@@ -6,9 +6,9 @@ def test_set_ndarray():
     sheet = viewer.add_spreadsheet()
     qtable = sheet.native._qtable_view
     editor = qtable._create_eval_editor(0, 0, "=np.arange(10)")
-    assert qtable._overlay_editor is not None
+    assert qtable._focused_widget_ref is not None
     editor.eval_and_close()
-    assert qtable._overlay_editor is None
+    assert qtable._focused_widget_ref is None
     for i in range(10):
         assert sheet.data.iloc[i, 0] == i
 

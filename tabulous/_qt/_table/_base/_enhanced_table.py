@@ -91,7 +91,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setItemDelegate(delegate)
         self._update_all()
 
-        self._overlay_editor: weakref.ReferenceType[QCellLiteralEdit] | None = None
+        self._focused_widget = None
 
     # fmt: off
     if TYPE_CHECKING:
@@ -100,6 +100,23 @@ class _QTableViewEnhanced(QtW.QTableView):
         def verticalHeader(self) -> QVerticalHeaderView: ...
         def horizontalHeader(self) -> QHorizontalHeaderView: ...
     # fmt: on
+
+    @property
+    def _focused_widget(self) -> QtW.QWidget | None:
+        if self._focused_widget_ref is None:
+            return None
+        return self._focused_widget_ref()
+
+    @_focused_widget.setter
+    def _focused_widget(self, widget: QtW.QWidget | None) -> None:
+        if widget is None:
+            self._focused_widget_ref = None
+        else:
+            self._focused_widget_ref = weakref.ref(widget)
+
+    @_focused_widget.deleter
+    def _focused_widget(self) -> None:
+        self._focused_widget_ref = None
 
     def _update_all(self, rect: QtCore.QRect | None = None) -> None:
         """repaint the table and the headers."""
@@ -261,7 +278,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             e.modifiers() & Qt.KeyboardModifier.ShiftModifier
         )
         self._was_right_dragging = False
-        if self._overlay_editor is not None and (wdt := self._overlay_editor()):
+        if wdt := self._focused_widget:
             wdt.setFocus()
         return super().mouseReleaseEvent(e)
 

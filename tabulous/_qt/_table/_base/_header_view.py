@@ -91,8 +91,7 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         return None
 
     def mouseReleaseEvent(self, e: QtGui.QMouseEvent) -> None:
-        editor_ref = self.parentWidget()._overlay_editor
-        if editor_ref is not None and (editor := editor_ref()):
+        if editor := self.parentWidget()._focused_widget:
             editor.setFocus()
         return super().mouseReleaseEvent(e)
 
