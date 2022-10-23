@@ -13,11 +13,13 @@ from ....types import HeaderInfo
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
+    import pandas as pd
     from ._table_base import QMutableTable
     from ._enhanced_table import _QTableViewEnhanced
     from ._header_view import QDataFrameHeaderView
 
 _EVAL_PREFIX = "="
+_GRAPH_PREFIX = "&="
 
 
 class _QTableLineEdit(QtW.QLineEdit):
@@ -266,7 +268,7 @@ class QCellLineEdit(_QTableLineEdit):
             return True
 
     def _pre_validation(self, text: str):
-        if text.startswith(_EVAL_PREFIX):
+        if text.startswith(_EVAL_PREFIX) or text.startswith(_GRAPH_PREFIX):
             pos = self.cursorPosition()
             self.setText("")
             line = self.parentTableView()._create_eval_editor(*self._pos, text)
@@ -325,8 +327,26 @@ class QCellLiteralEdit(_QTableLineEdit):
         This function strictly check out put shape to determine how to assign array results
         to the table.
         """
-        text = self.text().lstrip(_EVAL_PREFIX).strip()
-        self.eval_text(text)
+        raw_text = self.text()
+        if raw_text.startswith(_EVAL_PREFIX):
+            text = raw_text.lstrip(_EVAL_PREFIX).strip()
+            self.eval_text(text)
+        elif raw_text.startswith(_GRAPH_PREFIX):
+            from ...._graph import Graph
+
+            text = raw_text.lstrip(_GRAPH_PREFIX).strip()
+            selections = self.extract_selections(text)
+            func = lambda: self.eval_text(text)
+            viewer = self._table.parentViewer()._table_viewer
+            for table in viewer.tables:
+                if table.native is self._table:
+                    graph = Graph(table, func, selections)
+                    break
+            else:
+                raise ValueError("Cannot find table in viewer")
+            graph.connect()
+        else:
+            raise RuntimeError(f"Invalid text {raw_text!r}")
         self.close_editor()
         return None
 
@@ -343,7 +363,7 @@ class QCellLiteralEdit(_QTableLineEdit):
             qviewer = qtable.parentViewer()
             df = table.dataShown(parse=True)
             ns = qviewer._namespace.value()
-            ns.update({"df": df})
+            ns.update(df=df)
             out = eval(text, ns, {})
 
             _row, _col = self._pos
@@ -409,9 +429,36 @@ class QCellLiteralEdit(_QTableLineEdit):
         qtable.setFocus()
         return None
 
+    def extract_selections(self, text: str) -> list[tuple[slice, slice]]:
+        qtable_view = self.parentTableView()
+        df = qtable_view.model().df
+
+        selections: list[tuple[slice, slice]] = []
+        for expr in _find_all_dataframe_expr(text):
+            if expr.startswith("df["):
+                # df['val'][...]
+                colname, rsl_str = expr[3:-1].split("][")
+                c_start = df.columns.get_loc(eval(colname))
+                rsl = _parse_slice(rsl_str)
+                csl = slice(c_start, c_start + 1)
+            else:
+                # df.loc[...]
+                rsl_str, csl_str = expr[7:-1].split(", ")
+                rsl = _parse_slice_loc(rsl_str, df.index)
+                csl = _parse_slice_loc(csl_str, df.columns)
+            selections.append((rsl, csl))
+        return selections
+
     def _is_text_valid(self) -> bool:
         """Try to parse the text and return True if it is valid."""
-        text = self.text().lstrip(_EVAL_PREFIX).strip()
+        raw_text = self.text()
+        if raw_text.startswith(_EVAL_PREFIX):
+            text = raw_text.lstrip(_EVAL_PREFIX).strip()
+        elif raw_text.startswith(_GRAPH_PREFIX):
+            text = raw_text.lstrip(_GRAPH_PREFIX).strip()
+        else:
+            return False
+
         if text == "":
             return True
         try:
@@ -421,7 +468,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         return True
 
     def _pre_validation(self, text: str):
-        if not text.startswith(_EVAL_PREFIX):
+        if not (text.startswith(_EVAL_PREFIX) and text.startswith(_GRAPH_PREFIX)):
             self.close_editor()
             qtable = self.parentTableView()
             index = qtable.model().index(*self._pos)
@@ -442,9 +489,9 @@ class QCellLiteralEdit(_QTableLineEdit):
             nchar = len(self.text())
             rng = qtable._selection_model.ranges[-1]
             not_same_cell = not (
-                self._pos == qtable._selection_model.current_index
-                and rng[0].start == rng[0].stop - 1
+                rng[0].start == rng[0].stop - 1
                 and rng[1].start == rng[1].stop - 1
+                and self._pos == (rng[0].start, rng[1].start)
             )
             if not_same_cell:
                 # move in the parent table
@@ -529,8 +576,9 @@ class QCellLiteralEdit(_QTableLineEdit):
         return self.resize(max(width, self._initial_rect.width()), self.height())
 
 
-_PATTERN_DF = re.compile(r"df\[.+\]\[.+\]")
-_PATTERN_LOC = re.compile(r"df\.loc\[.+\]")
+_PATTERN_DF = re.compile(r"df\[.+?\]\[.+?\]")
+_PATTERN_LOC = re.compile(r"df\.loc\[.+?\]")
+_PATTERN_EITHER = re.compile(r"df\[.+?\]\[.+?\]|df\.loc\[.+?\]")
 
 
 def _find_last_dataframe_expr(s: str) -> int:
@@ -551,6 +599,32 @@ def _find_last_dataframe_expr(s: str) -> int:
     if _match := ptn.match(s[start:]):
         return _match.start() + start
     return -1
+
+
+def _find_all_dataframe_expr(s: str) -> list[str]:
+    return _PATTERN_EITHER.findall(s)
+
+
+def _parse_slice(s: str) -> slice:
+    if ":" in s:
+        start_str, stop_str = s.split(":")
+        start = eval(start_str)
+        stop = eval(stop_str)
+    else:
+        start = eval(s)
+        stop = start + 1
+    return slice(start, stop)
+
+
+def _parse_slice_loc(s: str, index: pd.Index) -> slice:
+    if ":" in s:
+        start_str, stop_str = s.split(":")
+        start = index.get_loc(eval(start_str))
+        stop = index.get_loc(eval(stop_str)) + 1
+    else:
+        start = index.get_loc(eval(s))
+        stop = start + 1
+    return slice(start, stop)
 
 
 def _infer_slices(

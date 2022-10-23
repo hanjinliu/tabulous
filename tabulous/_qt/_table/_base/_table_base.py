@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from ._side_area import QTableSideArea
     from ._enhanced_table import _QTableViewEnhanced
     from ..._table_stack import QTabbedTableStack
+    from ..._mainwindow import _QtMainWidgetBase
 
 ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
 
@@ -605,7 +606,14 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             stack = self.parentWidget().parentWidget()
         except AttributeError:
             stack = None
-        return stack
+        if isinstance(stack, QtW.QTabWidget):
+            # if a table is used in other widgets, it does not have a table stack
+            # as a parent.
+            return stack
+        return None
+
+    def parentViewer(self) -> _QtMainWidgetBase:
+        return self._qtable_view.parentViewer()
 
     def _switch_head_and_index(self, axis: int = 1):
         self.setFilter(None)  # reset filter to avoid unexpected errors
