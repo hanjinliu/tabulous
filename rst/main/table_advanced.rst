@@ -132,6 +132,22 @@ Undo Stack
 Undo/redo is implemented for each table. You can see the registered operations in a list
 view in the side area. You can open it by pressing ``Ctrl+H``.
 
+
+Overlay Widget
+==============
+
+Instead of the side area, you can also add widgets as an overlay over the table. An
+overlay widget is similar to the overlay charts in Excel.
+
+.. code-block:: python
+
+    table = viewer.tables[0]
+    table.add_overlay_widget(widget)
+    # if you want to give a label to the widget
+    table.add_overlay_widget(widget, label="my widget")
+    # you can give the top-left coordinate of the widget
+    table.add_overlay_widget(widget, topleft=(5, 5))
+
 Update Cell Values
 ==================
 

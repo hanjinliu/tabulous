@@ -32,8 +32,130 @@ During editing, the text will always be validated. Invalid text will be shown in
 table cells, you can set any validation rules (see :doc:`/main/columnwise_settings`). For
 the table headers, duplicated names are not allowed and considered to be invalid.
 
-Obtain the values
------------------
+Excel-style data evaluation
+---------------------------
+
+Simple analysis should be done inside the table cells, especially when you are using
+SpreadSheet. In Excel and Google Spreadsheet, you can do it by typing, say, ``=SUM(A1:A4)``,
+to calculate the sum of the values in the range ``A1:A4``.
+
+In :mod:`tabulous`, string starts with ``=`` will be evaluated as a Python literal. Current table
+data is available as a variable ``df``. By default, modules :mod:`numpy` and :mod:`pandas` are
+also available as ``np`` and ``pd``. If the input string starts with ``=``, the editor is
+automatically switched to the literal evaluation mode and cell selection will insert table data
+reference to the editor. For instance, if you select column ``'A'`` and rows from 1 to 8, then
+``df['A'][1:9]`` will be inserted.
+
+One of the differences between :mod:`tabulous` and Excel is that :mod:`tabulous` does not use
+reference, so that changing the value of any of the source cells will **NOT** affect the value
+of the destinations.
+
+.. note::
+
+  If you want to edit a cell to a string starts with "=", such as `"=a"`, then you can type
+  ``="=a"``.
+
+Scalar value
+^^^^^^^^^^^^
+
+If the evaluation result is a scalar value,
+
++---+------+--------------------------+
+|   | col-0|                     col-1|
++---+------+--------------------------+
+| 0 |   10 | =np.sum(df['col-0'][0:3])|
++---+------+--------------------------+
+| 1 |   20 |                          |
++---+------+--------------------------+
+| 2 |   30 |                          |
++---+------+--------------------------+
+
+it will simply update the current cell.
+
++---+------+------+
+|   | col-0| col-1|
++---+------+------+
+| 0 |   10 |   60 |
++---+------+------+
+| 1 |   20 |      |
++---+------+------+
+| 2 |   30 |      |
++---+------+------+
+
+Column vector
+^^^^^^^^^^^^^
+
+If the evaluation result is an array such as ``pd.Series``,
+
++---+------+-----------------------------+
+|   | col-0|                        col-1|
++---+------+-----------------------------+
+| 0 |   10 | =np.cumsum(df['col-0'][0:3])|
++---+------+-----------------------------+
+| 1 |   20 |                             |
++---+------+-----------------------------+
+| 2 |   30 |                             |
++---+------+-----------------------------+
+
+it will update the relevant cells.
+
++---+------+------+
+|   | col-0| col-1|
++---+------+------+
+| 0 |   10 |   10 |
++---+------+------+
+| 1 |   20 |   30 |
++---+------+------+
+| 2 |   30 |   60 |
++---+------+------+
+
+You don't have to edit the top cell. As long as the editing cell will be one of the
+destinations, result will be the same.
+
++---+------+-----------------------------+
+|   | col-0|                        col-1|
++---+------+-----------------------------+
+| 0 |   10 |                             |
++---+------+-----------------------------+
+| 1 |   20 | =np.cumsum(df['col-0'][0:3])|
++---+------+-----------------------------+
+| 2 |   30 |                             |
++---+------+-----------------------------+
+
+
+Row vector
+^^^^^^^^^^
+
+An row will be updated if the result should be interpreted as a row vector.
+
++---+------+----------------------------------------+
+|   | col-0| col-1                                  |
++---+------+----------------------------------------+
+| 0 |   10 |    20                                  |
++---+------+----------------------------------------+
+| 1 |   20 |    40                                  |
++---+------+----------------------------------------+
+| 2 |   30 |    60                                  |
++---+------+----------------------------------------+
+| 3 |      | =np.mean(df.loc[0:3, 'col-0':'col-1']) |
++---+------+----------------------------------------+
+
+will return ``pd.Series([20, 40])``, which will update the table to
+
++---+------+------+
+|   | col-0| col-1|
++---+------+------+
+| 0 |   10 |   20 |
++---+------+------+
+| 1 |   20 |   40 |
++---+------+------+
+| 2 |   30 |   60 |
++---+------+------+
+| 3 |   20 |   40 |
++---+------+------+
+
+Send the values to the console
+------------------------------
 
 ``Ctrl + I`` in the console will insert a data reference object ``DATA[...]`` at the cursor
 position. The data reference object is updated in real-time when the table selection is
@@ -78,6 +200,8 @@ Table menu
   :width: 20em
 .. |groupby| image:: ../../tabulous/_qt/_icons/groupby.svg
   :width: 20em
+.. |switch_header| image:: ../../tabulous/_qt/_icons/switch_header.svg
+  :width: 20em
 .. |concat| image:: ../../tabulous/_qt/_icons/concat.svg
   :width: 20em
 .. |pivot| image:: ../../tabulous/_qt/_icons/pivot.svg
@@ -92,6 +216,7 @@ Table menu
 - |copy_as_table| ... Make a copy of the active table as a :class:`Table`.
 - |copy_as_spreadsheet| ... Make a copy of the active table as a :class:`SpreadSheet`.
 - |groupby| ... Call :meth:`pd.groupby` on the active table.
+- |switch_header| ... Switch the column header and the first row.
 - |concat| ... Call :meth:`pd.concat` on the active table.
 - |pivot| ... Call :meth:`pd.pivot` on the active table.
 - |melt| ... Call :meth:`pd.melt` on the active table.
