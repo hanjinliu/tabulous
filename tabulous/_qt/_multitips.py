@@ -14,7 +14,12 @@ class QHasToolTip(QtW.QWidget):
 
     def toolTipText(self, index: int) -> str:
         """Return the text of the tooltip for the given index."""
-        return str(index)
+        if 0 <= index < 9:
+            return str(index + 1)
+        elif index == 9:
+            return "0"
+        else:
+            raise ValueError("Index must be between 0 and 9.")
 
     def toolTipCount(self) -> int:
         """Return the number of tooltips."""

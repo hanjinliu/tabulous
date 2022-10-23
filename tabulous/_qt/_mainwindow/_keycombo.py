@@ -151,7 +151,7 @@ def _(self: QMainWindow, key: str):
     except ValueError:
         return None
 
-    self._toolbar.currentToolBar().clickButton(index, ignore_index_error=True)
+    self._toolbar.currentToolBar().clickButton((index - 1) % 10, ignore_index_error=True)
 
 
 @QMainWindow._keymap.bind("Ctrl+Tab")

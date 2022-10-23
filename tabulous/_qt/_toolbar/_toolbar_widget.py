@@ -54,7 +54,7 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
         return None
 
     def toolTipPosition(self, index: int) -> QtCore.QPoint:
-        btn, icon = self._button_and_icon[index]
+        btn, _ = self._button_and_icon[index]
         pos = btn.pos()
         pos.setY(pos.y() + btn.height() // 2)
         return pos
@@ -68,8 +68,8 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
             if ignore_index_error:
                 return None
             else:
-                raise IndexError(f"Index {index} out of range")
-        btn, icon = self._button_and_icon[index]
+                raise IndexError("Index out of range")
+        btn, _ = self._button_and_icon[index]
         return btn.click()
 
 
