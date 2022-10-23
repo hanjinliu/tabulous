@@ -195,6 +195,12 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             if out is not None:
                 self.viewer.add_groupby(out, name=f"{table.name}-groupby")
 
+    def switch_header(self):
+        """Switch header and the first row."""
+        table = self.viewer.current_table
+        if table is not None:
+            table._qwidget._switch_head_and_index(axis=1)
+
     def concat(self):
         """Concatenate tables."""
         out = _dlg.concat(
@@ -455,6 +461,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Table", self.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.groupby, ICON_DIR / "groupby.svg")
+        self.registerAction("Table", self.switch_header, ICON_DIR / "switch_header.svg")
         self.registerAction("Table", self.concat, ICON_DIR / "concat.svg")
         self.registerAction("Table", self.pivot, ICON_DIR / "pivot.svg")
         self.registerAction("Table", self.melt, ICON_DIR / "melt.svg")

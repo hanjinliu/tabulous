@@ -301,7 +301,7 @@ class TableBase(ABC):
         else:
             return _wrapper(colormap)
 
-    def text_formatter(
+    def formatter(
         self,
         column_name: Hashable,
         /,
@@ -323,6 +323,8 @@ class TableBase(ABC):
             return f
 
         return _wrapper(formatter) if formatter is not _Void else _wrapper
+
+    text_formatter = formatter  # alias
 
     def validator(
         self,

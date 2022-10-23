@@ -40,6 +40,8 @@ QSplitter::handle:horizontal {
 
 
 class QTableHandle(QtW.QSplitterHandle):
+    """The handle widget used to resize the side area."""
+
     def __init__(self, o: Qt.Orientation, parent: QtW.QSplitter) -> None:
         super().__init__(o, parent)
         self._sizes = parent.sizes()
@@ -604,6 +606,43 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         except AttributeError:
             stack = None
         return stack
+
+    def _switch_head_and_index(self, axis: int = 1):
+        self.setFilter(None)  # reset filter to avoid unexpected errors
+        df = self.model().df
+        if axis == 0:
+            was_range = isinstance(df.columns, pd.RangeIndex)
+            if isinstance(df.index, pd.RangeIndex):  # df[0] to index
+                df_new = df.set_index(df.columns[0])
+            else:  # index to df[0]
+                df_new = df.reset_index()
+            if was_range:
+                df_new.set_axis(
+                    pd.RangeIndex(len(df_new.columns)), axis=1, inplace=True
+                )
+
+        elif axis == 1:
+            was_range = isinstance(df.index, pd.RangeIndex)
+            if isinstance(df.columns, pd.RangeIndex):  # df[0] to column
+                top_row = df.iloc[0, :].astype(str)
+                df_new = df.iloc[1:, :]
+                df_new.set_axis(top_row, axis=1, inplace=True)
+            else:  # column to df[0]
+                columns = range(len(df.columns))
+                head = pd.DataFrame(
+                    [
+                        pd.Series([x], dtype=dtype)
+                        for x, dtype in zip(df.columns, df.dtypes)
+                    ],
+                    columns=columns,
+                )
+                df.set_axis(columns, axis=1, inplace=True)
+                df_new = pd.concat([head, df], axis=0)
+            if was_range:
+                df_new.set_axis(pd.RangeIndex(len(df_new)), axis=0, inplace=True)
+        else:
+            raise ValueError("axis must be 0 or 1.")
+        return self.setDataFrame(df_new)
 
     def _set_forground_colormap_with_dialog(self, index: int):
         from ._colormap import exec_colormap_dialog
