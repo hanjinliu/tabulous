@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from .widgets import TableViewer
 
 if TYPE_CHECKING:
-    from .widgets.mainwindow import TableViewerBase
+    from .widgets._mainwindow import TableViewerBase
 
 CURRENT_VIEWER: TableViewerBase | None = None
 
@@ -20,7 +20,7 @@ def current_viewer() -> TableViewerBase:
 def set_current_viewer(viewer: TableViewerBase) -> TableViewerBase:
     """Set a table viewer as the current one."""
     global CURRENT_VIEWER
-    from .widgets.mainwindow import TableViewerBase
+    from .widgets._mainwindow import TableViewerBase
 
     if not isinstance(viewer, TableViewerBase):
         raise TypeError(f"Cannot set {type(viewer)} as the current viewer.")

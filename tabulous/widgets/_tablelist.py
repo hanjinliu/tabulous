@@ -7,7 +7,7 @@ from psygnal.containers import EventedList
 from ._table import TableBase
 
 if TYPE_CHECKING:
-    from .mainwindow import TableViewer
+    from ._mainwindow import TableViewer
 
 # Modified from psygnal/containers/_evented_list.py. See https://github.com/tlambert03/psygnal.
 class NamedListEvents(SignalGroup):

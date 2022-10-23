@@ -9,7 +9,7 @@ from ._keymap import QtKeys, QtKeyMap
 
 if TYPE_CHECKING:
     from ._dockwidget import QtDockWidget
-    from ..widgets.mainwindow import TableViewerBase
+    from ..widgets._mainwindow import TableViewerBase
 
     class RichJupyterWidget(RichJupyterWidget, QtW.QWidget):
         """To fix typing problem"""

@@ -1,1 +1,1 @@
-from ._toolbar import QTableStackToolBar
+from ._toolbar_widget import QTableStackToolBar

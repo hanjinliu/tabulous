@@ -14,7 +14,7 @@ from . import _dialogs as _dlg
 if TYPE_CHECKING:
     import pandas as pd
     from .._mainwindow import _QtMainWidgetBase
-    from ...widgets.mainwindow import TableViewerBase
+    from ...widgets._mainwindow import TableViewerBase
     from ...widgets import TableBase
 
 # fmt: off
