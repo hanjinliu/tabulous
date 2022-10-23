@@ -152,6 +152,14 @@ class TableViewerBase:
         """Return the native widget."""
         return self._qwidget
 
+    @property
+    def data(self) -> pd.DataFrame | None:
+        """Data of the current table."""
+        table = self.current_table
+        if table is None:
+            return None
+        return table.data
+
     def show(self, *, run: bool = True) -> None:
         """Show the widget."""
         self._qwidget.show()
