@@ -407,7 +407,13 @@ class QCellLiteralEdit(_QTableLineEdit):
             except Exception as e:
                 if not isinstance(e, (SyntaxError, AttributeError)):
                     # These might be caused by mistouching. Don't close the editor.
-                    self.close_editor()
+                    try:
+                        self.close_editor()
+                    except RuntimeError:
+                        pass
+                    with qtable._selection_model.blocked(), qtable._ref_graphs.blocked():
+                        table.setDataFrameValue(*self._pos, repr(e))
+                    return None
                 raise e
 
             if isinstance(_row, slice) and isinstance(_col, slice):  # set 1D array
