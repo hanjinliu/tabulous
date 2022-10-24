@@ -765,12 +765,24 @@ class QMutableTable(QBaseTable):
         return self._data_raw
 
     def setDataFrameValue(self, r: _Sliceable, c: _Sliceable, value: Any) -> None:
+        """Set `value` at array[r:c]."""
         if not self.isEditable():
             raise TableImmutableError("Table is immutable.")
         data = self._data_raw
 
         # convert values
         if isinstance(r, slice) and isinstance(c, slice):
+            # delete references
+            if len(self._qtable_view._ref_graphs) < 128:
+                for key in list(self._qtable_view._ref_graphs.keys()):
+                    if r.start <= key[0] < r.stop and c.start <= key[1] < c.stop:
+                        self._delete_ref_expr(*key)
+
+            else:
+                for _c in range(c.start, c.stop):
+                    for _r in range(r.start, r.stop):
+                        self._delete_ref_expr(_r, _c)
+
             _value: pd.DataFrame = value
             if _value.size == 1:
                 v = _value.values[0, 0]
