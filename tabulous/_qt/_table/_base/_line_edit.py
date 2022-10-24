@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import ast
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Callable, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
 import pandas as pd
@@ -336,11 +336,11 @@ class QCellLiteralEdit(_QTableLineEdit):
 
             text = raw_text.lstrip(_GRAPH_PREFIX).strip()
             selections = self.extract_selections(text)
-            func = lambda: self.eval_text(text)
+            evaluator = self._get_evaluator(text)
             viewer = self._table.parentViewer()._table_viewer
             for table in viewer.tables:
                 if table.native is self._table:
-                    graph = Graph(table, func, selections)
+                    graph = Graph(table, evaluator, selections)
                     break
             else:
                 raise ValueError("Cannot find table in viewer")
@@ -350,74 +350,84 @@ class QCellLiteralEdit(_QTableLineEdit):
         self.close_editor()
         return None
 
-    def eval_text(self, text: str) -> None:
+    def _get_evaluator(
+        self, text: str, update_index: bool = True
+    ) -> Callable[[], None]:
         import numpy as np
         import pandas as pd
 
-        if text == "":
-            return
+        qtable = self.parentTableView()
+        table = qtable.parentTable()
+        qviewer = qtable.parentViewer()
 
-        try:
-            qtable = self.parentTableView()
-            table = qtable.parentTable()
-            qviewer = qtable.parentViewer()
-            df = table.dataShown(parse=True)
-            ns = qviewer._namespace.value()
-            ns.update(df=df)
-            out = eval(text, ns, {})
+        def evaluator():
+            try:
+                df = table.dataShown(parse=True)
+                ns = qviewer._namespace.value()
+                ns.update(df=df)
+                out = eval(text, ns, {})
 
-            _row, _col = self._pos
+                _row, _col = self._pos
 
-            if isinstance(out, pd.DataFrame):
-                if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
-                    out = out.iloc[:, 0]
-                    _row, _col = _infer_slices(df, out, _row, _col)
-                elif out.size == 1:
-                    out = out.iloc[0, 0]
+                if isinstance(out, pd.DataFrame):
+                    if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
+                        out = out.iloc[:, 0]
+                        _row, _col = _infer_slices(df, out, _row, _col)
+                    elif out.size == 1:
+                        out = out.iloc[0, 0]
+                    else:
+                        raise NotImplementedError("Cannot assign a DataFrame now.")
+
+                elif isinstance(out, pd.Series):
+                    if out.shape == (1,):  # scalar
+                        out = out[0]
+                    else:  # update a column
+                        _row, _col = _infer_slices(df, out, _row, _col)
+
+                elif isinstance(out, np.ndarray):
+                    if out.ndim > 2:
+                        raise ValueError("Cannot assign a >3D array.")
+                    out = np.squeeze(out)
+                    if out.ndim == 0:  # scalar
+                        out = table.convertValue(_row, _col, out.item())
+                    elif out.ndim == 1:  # 1D array
+                        _row = slice(_row, _row + out.shape[0])
+                        _col = slice(_col, _col + 1)
+                    else:
+                        _row = slice(_row, _row + out.shape[0])
+                        _col = slice(_col, _col + out.shape[1])
+
                 else:
-                    raise NotImplementedError("Cannot assign a DataFrame now.")
+                    out = table.convertValue(_row, _col, out)
 
-            elif isinstance(out, pd.Series):
-                if out.shape == (1,):  # scalar
-                    out = out[0]
-                else:  # update a column
-                    _row, _col = _infer_slices(df, out, _row, _col)
+            except Exception as e:
+                if not isinstance(e, SyntaxError):
+                    self.close_editor()
+                raise e
 
-            elif isinstance(out, np.ndarray):
-                if out.ndim > 2:
-                    raise ValueError("Cannot assign a >3D array.")
-                out = np.squeeze(out)
-                if out.ndim == 0:  # scalar
-                    out = table.convertValue(_row, _col, out.item())
-                if out.ndim == 1:  # 1D array
-                    _row = slice(_row, _row + out.shape[0])
-                    _col = slice(_col, _col + 1)
-                else:
-                    _row = slice(_row, _row + out.shape[0])
-                    _col = slice(_col, _col + out.shape[1])
+            if isinstance(_row, slice) and isinstance(_col, slice):  # set 1D array
+                out = pd.DataFrame(out).astype(str)
+                if _row.start == _row.stop - 1:  # row vector
+                    out = out.T
+                table.setDataFrameValue(_row, _col, out)
+                if update_index:
+                    qtable._selection_model.move_to(_row.stop - 1, _col.stop - 1)
+
+            elif isinstance(_row, int) and isinstance(_col, int):  # set scalar
+                table.setDataFrameValue(_row, _col, str(out))
+                if update_index:
+                    qtable._selection_model.move_to(_row, _col)
 
             else:
-                out = table.convertValue(_row, _col, out)
+                raise RuntimeError(_row, _col)  # Unreachable
+            return None
 
-        except Exception as e:
-            if not isinstance(e, SyntaxError):
-                self.close_editor()
-            raise e
+        return evaluator
 
-        if isinstance(_row, slice) and isinstance(_col, slice):  # set 1D array
-            out = pd.DataFrame(out).astype(str)
-            if _row.start == _row.stop - 1:  # row vector
-                out = out.T
-            table.setDataFrameValue(_row, _col, out)
-            qtable._selection_model.move_to(_row.stop - 1, _col.stop - 1)
-
-        elif isinstance(_row, int) and isinstance(_col, int):  # set scalar
-            table.setDataFrameValue(_row, _col, str(out))
-            qtable._selection_model.move_to(_row, _col)
-
-        else:
-            raise RuntimeError(_row, _col)  # Unreachable
-        return None
+    def eval_text(self, text: str) -> None:
+        if text == "":
+            return
+        return self._get_evaluator(text)()
 
     def close_editor(self):
         """Close this editor and deal with all the descruction."""
@@ -468,7 +478,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         return True
 
     def _pre_validation(self, text: str):
-        if not (text.startswith(_EVAL_PREFIX) and text.startswith(_GRAPH_PREFIX)):
+        if not (text.startswith(_EVAL_PREFIX) or text.startswith(_GRAPH_PREFIX)):
             self.close_editor()
             qtable = self.parentTableView()
             index = qtable.model().index(*self._pos)
