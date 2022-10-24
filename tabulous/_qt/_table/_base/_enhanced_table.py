@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     import pandas as pd
     from ._delegate import TableItemDelegate
     from ..._mainwindow import _QtMainWidgetBase
+    from ...._graph import Graph
 
 # Flags
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
@@ -70,6 +71,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._was_right_dragging: bool = False
         self._last_mouse_button: str | None = None
 
+        # header settings
         vheader = QVerticalHeaderView()
         hheader = QHorizontalHeaderView()
         self.setVerticalHeader(vheader)
@@ -91,7 +93,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setItemDelegate(delegate)
         self._update_all()
 
+        # attributes relevant to in-cell calculation
         self._focused_widget = None
+        self._graphs: dict[Index, Graph] = {}
 
     # fmt: off
     if TYPE_CHECKING:

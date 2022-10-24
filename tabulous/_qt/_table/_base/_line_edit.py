@@ -10,6 +10,7 @@ import pandas as pd
 from ..._qt_const import MonospaceFontFamily
 from ..._keymap import QtKeys
 from ....types import HeaderInfo
+from ...._selection_model import Index
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
@@ -345,6 +346,7 @@ class QCellLiteralEdit(_QTableLineEdit):
             else:
                 raise ValueError("Cannot find table in viewer")
             graph.connect()
+            self._table._qtable_view._graphs[Index(*self._pos)] = graph
         else:
             raise RuntimeError(f"Invalid text {raw_text!r}")
         self.close_editor()

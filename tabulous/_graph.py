@@ -8,8 +8,6 @@ from .widgets import TableBase
 class Graph:
     """Calculation graph object that works in a table."""
 
-    _instances = set()
-
     def __init__(
         self,
         table: TableBase,
@@ -19,7 +17,6 @@ class Graph:
         self._sources = sources
         self._func = func
         self._table_ref = weakref.ref(table)
-        self.__class__._instances.add(self)
         self._callback_blocked = False
 
     def __hash__(self) -> int:
@@ -57,5 +54,4 @@ class Graph:
 
     def disconnect(self):
         self.table.events.data.disconnect(self.update)
-        self.__class__._instances.remove(self)
         return None
