@@ -788,6 +788,7 @@ class QMutableTable(QBaseTable):
                         )
             _is_scalar = False
         else:
+            self._delete_ref_expr(r, c)
             _convert_value = self._get_converter(c)
             _value = _convert_value(r, c, value)
             _is_scalar = True

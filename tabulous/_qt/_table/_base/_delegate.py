@@ -65,8 +65,10 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 dt.setDateTime(value.to_pydatetime())
                 return dt
             else:
-                if table._get_ref_expr(row, col):
-                    line = QCellLiteralEdit(parent, table, (row, col))
+                if ref_expr := table._get_ref_expr(row, col):
+                    text = QCellLineEdit._REF_PREFIX + ref_expr
+                    table._qtable_view._create_eval_editor(row, col, text)
+                    return None
                 else:
                     line = QCellLineEdit(parent, table, (row, col))
                     line.setFont(font)
@@ -77,11 +79,6 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         if isinstance(editor, QtW.QComboBox):
             editor = cast(QtW.QComboBox, editor)
             editor.showPopup()
-        elif isinstance(editor, QCellLineEdit):
-            editor = cast(QCellLineEdit, editor)
-            r, c = index.row(), index.column()
-            if not editor.text().startswith(QCellLineEdit._REF_PREFIX):
-                self.parentTable()._delete_ref_expr(r, c)
         return None
 
     def setModelData(
