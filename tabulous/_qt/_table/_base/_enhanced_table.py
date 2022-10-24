@@ -15,10 +15,8 @@ from ..._keymap import QtKeys
 from ...._selection_model import RangesModel, SelectionModel, Index
 
 if TYPE_CHECKING:
-    import pandas as pd
     from ._delegate import TableItemDelegate
     from ..._mainwindow import _QtMainWidgetBase
-    from ...._graph import Graph
 
 # Flags
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
@@ -95,7 +93,9 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # attributes relevant to in-cell calculation
         self._focused_widget = None
-        self._ref_graphs: dict[Index, Graph] = {}
+        from ...._graph import GraphManager
+
+        self._ref_graphs: GraphManager[Index] = GraphManager()
 
     # fmt: off
     if TYPE_CHECKING:
@@ -505,8 +505,10 @@ class _QTableViewEnhanced(QtW.QTableView):
             yield rect
 
     def _create_eval_editor(
-        self, r: int, c: int, text: str | None = None
+        self, text: str | None = None, moveto: tuple[int, int] | None = None
     ) -> QCellLiteralEdit:
+        if moveto is not None:
+            self._selection_model.move_to(*moveto)
         index = self.model().index(*self._selection_model.current_index)
         if text is None:
             text = self.model().data(index, Qt.ItemDataRole.EditRole)

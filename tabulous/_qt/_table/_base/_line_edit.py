@@ -55,6 +55,10 @@ class _QTableLineEdit(QtW.QLineEdit):
         self._current_exception = str(value)
         return self.setToolTip(self._current_exception)
 
+    @classmethod
+    def _is_eval_like(cls, text: str) -> bool:
+        return text.startswith(cls._EVAL_PREFIX) or text.startswith(cls._REF_PREFIX)
+
     def parentTableView(self) -> _QTableViewEnhanced:
         return self.parent().parent()
 
@@ -67,8 +71,7 @@ class _QTableLineEdit(QtW.QLineEdit):
 
     def _on_text_changed(self, text: str) -> None:
         """Change text color to red if invalid."""
-        if self.isVisible():
-            self._pre_validation(text)
+        self._pre_validation(text)
         palette = QtGui.QPalette()
         self._is_valid = self._is_text_valid()
         if self._is_valid:
@@ -268,10 +271,10 @@ class QCellLineEdit(_QTableLineEdit):
             return True
 
     def _pre_validation(self, text: str):
-        if text.startswith(self._EVAL_PREFIX) or text.startswith(self._REF_PREFIX):
+        if self._is_eval_like(text):
             pos = self.cursorPosition()
             self.setText("")
-            line = self.parentTableView()._create_eval_editor(*self._pos, text)
+            line = self.parentTableView()._create_eval_editor(text)
             line.setCursorPosition(pos)
 
 
@@ -411,13 +414,13 @@ class QCellLiteralEdit(_QTableLineEdit):
                 out = pd.DataFrame(out).astype(str)
                 if _row.start == _row.stop - 1:  # row vector
                     out = out.T
-                with qtable._selection_model.blocked():
+                with qtable._selection_model.blocked(), qtable._ref_graphs.blocked():
                     table.setDataFrameValue(_row, _col, out)
                 if update_index:
                     qtable._selection_model.move_to(_row.stop - 1, _col.stop - 1)
 
             elif isinstance(_row, int) and isinstance(_col, int):  # set scalar
-                with qtable._selection_model.blocked():
+                with qtable._selection_model.blocked(), qtable._ref_graphs.blocked():
                     table.setDataFrameValue(_row, _col, str(out))
                 if update_index:
                     qtable._selection_model.move_to(_row, _col)
@@ -482,16 +485,15 @@ class QCellLiteralEdit(_QTableLineEdit):
         return True
 
     def _pre_validation(self, text: str):
-        if not (
-            text.startswith(self._EVAL_PREFIX) or text.startswith(self._REF_PREFIX)
-        ):
-            self.close_editor()
+        if not self._is_eval_like(text):
             qtable = self.parentTableView()
+            self.close_editor()
             index = qtable.model().index(*self._pos)
             qtable.edit(index)
             line = QtW.QApplication.focusWidget()
             if not isinstance(line, QtW.QLineEdit):
                 return None
+
             line = cast(QtW.QLineEdit, line)
             line.setText(text)
             line.setCursorPosition(self.cursorPosition())

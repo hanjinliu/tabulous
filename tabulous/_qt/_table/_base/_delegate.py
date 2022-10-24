@@ -65,12 +65,10 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 dt.setDateTime(value.to_pydatetime())
                 return dt
             else:
-                if ref_expr := table._get_ref_expr(row, col):
-                    text = QCellLineEdit._REF_PREFIX + ref_expr
-                    table._qtable_view._create_eval_editor(row, col, text)
-                    return None
+                line = QCellLineEdit(parent, table, (row, col))
+                if table._get_ref_expr(row, col):
+                    pass  # QCellLiteralEdit has its own font.
                 else:
-                    line = QCellLineEdit(parent, table, (row, col))
                     line.setFont(font)
                 return line
 
