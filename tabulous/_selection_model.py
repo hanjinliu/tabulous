@@ -1,5 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable, Iterable, Iterator, NamedTuple
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Iterable,
+    Iterator,
+    NamedTuple,
+    Any,
+    MutableSequence,
+)
 from contextlib import contextmanager
 from psygnal import Signal
 
@@ -297,3 +305,82 @@ class SelectionModel(RangesModel):
             c = max(idx_min, c)
 
         return self.move_to(r, c)
+
+
+class AnnotatedRange(tuple):
+    def __new__(cls, iterable: tuple[slice, slice], /, annotations={}):
+        self = tuple.__new__(cls, iterable)
+        self.annotation = annotations
+        return self
+
+    def __repr__(self) -> str:
+        clsname = type(self).__name__
+        return f"{clsname}{tuple(self)!r}"
+
+    @property
+    def annotation(self) -> dict[str, Any]:
+        return self._annotation
+
+    @annotation.setter
+    def annotation(self, val):
+        self._annotation = dict(val)
+
+    @annotation.deleter
+    def annotation(self):
+        self._annotation.clear()
+
+    @property
+    def r(self):
+        return self[0]
+
+    @property
+    def c(self):
+        return self[1]
+
+
+class AnnotatedRangeList(MutableSequence[AnnotatedRange]):
+    def __init__(self, iterable: Iterable[AnnotatedRange] = (), /):
+        self._list = list(iterable)
+
+    def __getitem__(self, key):
+        return self._list[key]
+
+    def __setitem__(self, key, val: Range | AnnotatedRange) -> None:
+        if not isinstance(val, AnnotatedRange):
+            val = AnnotatedRange(val)
+        self._list[key] = val
+        return None
+
+    def __delitem__(self, key):
+        del self._list[key]
+        return None
+
+    def __iter__(self):
+        return iter(self._list)
+
+    def __len__(self) -> int:
+        return len(self._list)
+
+    def insert(self, key: int, val):
+        if not isinstance(val, AnnotatedRange):
+            val = AnnotatedRange(val)
+        return self._list.insert(key, val)
+
+    def __add__(self, other: MutableSequence) -> AnnotatedRangeList:
+        _list = []
+        for val in other:
+            if not isinstance(val, AnnotatedRange):
+                val = AnnotatedRange(val)
+            _list.append(val)
+        out = self.__class__(self._list + _list)
+        return out
+
+    def __repr__(self) -> str:
+        clsname = type(self).__name__
+        return f"{clsname}({self._list!r})"
+
+
+class AnnotatedRangesModel(RangesModel):
+    def __init__(self):
+        super().__init__()
+        self._ranges = AnnotatedRangeList()
