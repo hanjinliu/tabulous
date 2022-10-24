@@ -19,15 +19,14 @@ if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
     from ._header_view import QDataFrameHeaderView
 
-_EVAL_PREFIX = "="
-_GRAPH_PREFIX = "&="
-
 
 class _QTableLineEdit(QtW.QLineEdit):
     """LineEdit widget with dtype checker and custom defocusing."""
 
     _VALID = QtGui.QColor(186, 222, 244, 200)
     _INVALID = QtGui.QColor(255, 0, 0, 200)
+    _EVAL_PREFIX = "="
+    _REF_PREFIX = "&="
 
     def __init__(
         self,
@@ -269,7 +268,7 @@ class QCellLineEdit(_QTableLineEdit):
             return True
 
     def _pre_validation(self, text: str):
-        if text.startswith(_EVAL_PREFIX) or text.startswith(_GRAPH_PREFIX):
+        if text.startswith(self._EVAL_PREFIX) or text.startswith(self._REF_PREFIX):
             pos = self.cursorPosition()
             self.setText("")
             line = self.parentTableView()._create_eval_editor(*self._pos, text)
@@ -329,13 +328,13 @@ class QCellLiteralEdit(_QTableLineEdit):
         to the table.
         """
         raw_text = self.text()
-        if raw_text.startswith(_EVAL_PREFIX):
-            text = raw_text.lstrip(_EVAL_PREFIX).strip()
+        if raw_text.startswith(self._EVAL_PREFIX):
+            text = raw_text.lstrip(self._EVAL_PREFIX).strip()
             self.eval_text(text)
-        elif raw_text.startswith(_GRAPH_PREFIX):
+        elif raw_text.startswith(self._REF_PREFIX):
             from ...._graph import Graph
 
-            text = raw_text.lstrip(_GRAPH_PREFIX).strip()
+            text = raw_text.lstrip(self._REF_PREFIX).strip()
             selections = self.extract_selections(text)
             evaluator = self._get_evaluator(text)
             viewer = self._table.parentViewer()._table_viewer
@@ -346,15 +345,13 @@ class QCellLiteralEdit(_QTableLineEdit):
             else:
                 raise ValueError("Cannot find table in viewer")
             graph.connect()
-            self._table._qtable_view._graphs[Index(*self._pos)] = graph
+            self._table._qtable_view._ref_graphs[Index(*self._pos)] = graph
         else:
             raise RuntimeError(f"Invalid text {raw_text!r}")
         self.close_editor()
         return None
 
-    def _get_evaluator(
-        self, text: str, update_index: bool = True
-    ) -> Callable[[], None]:
+    def _get_evaluator(self, text: str, update_index: bool = True) -> LiteralCallable:
         import numpy as np
         import pandas as pd
 
@@ -424,7 +421,7 @@ class QCellLiteralEdit(_QTableLineEdit):
                 raise RuntimeError(_row, _col)  # Unreachable
             return None
 
-        return evaluator
+        return LiteralCallable(text, evaluator)
 
     def eval_text(self, text: str) -> None:
         if text == "":
@@ -464,10 +461,10 @@ class QCellLiteralEdit(_QTableLineEdit):
     def _is_text_valid(self) -> bool:
         """Try to parse the text and return True if it is valid."""
         raw_text = self.text()
-        if raw_text.startswith(_EVAL_PREFIX):
-            text = raw_text.lstrip(_EVAL_PREFIX).strip()
-        elif raw_text.startswith(_GRAPH_PREFIX):
-            text = raw_text.lstrip(_GRAPH_PREFIX).strip()
+        if raw_text.startswith(self._EVAL_PREFIX):
+            text = raw_text.lstrip(self._EVAL_PREFIX).strip()
+        elif raw_text.startswith(self._REF_PREFIX):
+            text = raw_text.lstrip(self._REF_PREFIX).strip()
         else:
             return False
 
@@ -480,7 +477,9 @@ class QCellLiteralEdit(_QTableLineEdit):
         return True
 
     def _pre_validation(self, text: str):
-        if not (text.startswith(_EVAL_PREFIX) or text.startswith(_GRAPH_PREFIX)):
+        if not (
+            text.startswith(self._EVAL_PREFIX) or text.startswith(self._REF_PREFIX)
+        ):
             self.close_editor()
             qtable = self.parentTableView()
             index = qtable.model().index(*self._pos)
@@ -586,6 +585,19 @@ class QCellLiteralEdit(_QTableLineEdit):
         fm = QtGui.QFontMetrics(self.font())
         width = min(fm.boundingRect(text).width() + 8, 300)
         return self.resize(max(width, self._initial_rect.width()), self.height())
+
+
+class LiteralCallable:
+    def __init__(self, expr: str, func: Callable):
+        self._expr = expr
+        self._func = func
+
+    def __call__(self, *args, **kwargs):
+        return self._func(*args, *kwargs)
+
+    @property
+    def expr(self) -> str:
+        return self._expr
 
 
 _PATTERN_DF = re.compile(r"df\[.+?\]\[.+?\]")

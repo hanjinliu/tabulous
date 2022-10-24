@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable, Hashable
+from typing import TYPE_CHECKING, Any, Callable, Hashable
 import warnings
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
@@ -7,8 +7,12 @@ import numpy as np
 import pandas as pd
 
 from ._text_formatter import DefaultFormatter
+from ._line_edit import QCellLineEdit, LiteralCallable
 from .._dtype import isna
 from ....color import normalize_color, ColorType
+
+if TYPE_CHECKING:
+    from ._table_base import QBaseTable
 
 # https://ymt-lab.com/post/2020/pyqt5-qtableview-pandas-qabstractitemmodel/
 
@@ -85,6 +89,9 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         r, c = index.row(), index.column()
         df = self.df
         if r < df.shape[0] and c < df.shape[1]:
+            if ref_expr := self.parent()._get_ref_expr(r, c):
+                return QCellLineEdit._REF_PREFIX + ref_expr
+
             val = df.iat[r, c]
             if isna(val):
                 text = "NA"
@@ -125,10 +132,14 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         if r < self.df.shape[0] and c < self.df.shape[1]:
             val = self.df.iat[r, c]
             dtype = self.df.dtypes.values[c]
-            if dtype != object:
-                return f"{val!r} (dtype: {dtype})"
+            if ref_expr := self.parent()._get_ref_expr(r, c):
+                ref = f"\nExpr: {ref_expr}"
             else:
-                return f"{val!r} (dtype: {dtype}; type: {type(val).__name__})"
+                ref = ""
+            if dtype != object:
+                return f"{val!r} (dtype: {dtype}){ref}"
+            else:
+                return f"{val!r} (dtype: {dtype}; type: {type(val).__name__}){ref}"
         return QtCore.QVariant()
 
     def _data_background_color(self, index: QtCore.QModelIndex):
@@ -242,6 +253,11 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             self.endRemoveColumns()
 
         return None
+
+    if TYPE_CHECKING:
+
+        def parent(self) -> QBaseTable:
+            ...
 
 
 class DataFrameModel(AbstractDataFrameModel):

@@ -4,7 +4,7 @@ from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
 
 from ._table_base import QBaseTable
-from ._line_edit import QCellLineEdit
+from ._line_edit import QCellLineEdit, QCellLiteralEdit
 
 if TYPE_CHECKING:
     import numpy as np
@@ -65,9 +65,11 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 dt.setDateTime(value.to_pydatetime())
                 return dt
             else:
-                line = QCellLineEdit(parent, table, (row, col))
-                line.setText(str(value))
-                line.setFont(font)
+                if table._get_ref_expr(row, col):
+                    line = QCellLiteralEdit(parent, table, (row, col))
+                else:
+                    line = QCellLineEdit(parent, table, (row, col))
+                    line.setFont(font)
                 return line
 
     def setEditorData(self, editor: QtW.QWidget, index: QtCore.QModelIndex) -> None:
@@ -75,6 +77,11 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         if isinstance(editor, QtW.QComboBox):
             editor = cast(QtW.QComboBox, editor)
             editor.showPopup()
+        elif isinstance(editor, QCellLineEdit):
+            editor = cast(QCellLineEdit, editor)
+            r, c = index.row(), index.column()
+            if not editor.text().startswith(QCellLineEdit._REF_PREFIX):
+                self.parentTable()._delete_ref_expr(r, c)
         return None
 
     def setModelData(
@@ -105,6 +112,9 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         super().initStyleOption(option, index)
         if option.state & QtW.QStyle.StateFlag.State_HasFocus:
             option.state = option.state & ~QtW.QStyle.StateFlag.State_HasFocus
+
+    def parentTable(self) -> QBaseTable:
+        return self.parent().parent()
 
 
 # TODO: add timedelta-specific editor

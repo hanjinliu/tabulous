@@ -613,6 +613,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return None
 
     def parentViewer(self) -> _QtMainWidgetBase:
+        """Return the parent table viewer."""
         return self._qtable_view.parentViewer()
 
     def _switch_head_and_index(self, axis: int = 1):
@@ -651,6 +652,17 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         else:
             raise ValueError("axis must be 0 or 1.")
         return self.setDataFrame(df_new)
+
+    def _get_ref_expr(self, r: int, c: int) -> str | None:
+        """Try to get a reference expression for a cell."""
+        graph = self._qtable_view._ref_graphs.get((r, c), None)
+        if graph is not None:
+            return getattr(graph._func, "expr", None)
+        return None
+
+    def _delete_ref_expr(self, r: int, c: int) -> None:
+        self._qtable_view._ref_graphs.pop((r, c), None)
+        return None
 
     def _set_forground_colormap_with_dialog(self, index: int):
         from ._colormap import exec_colormap_dialog

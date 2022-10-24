@@ -95,7 +95,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # attributes relevant to in-cell calculation
         self._focused_widget = None
-        self._graphs: dict[Index, Graph] = {}
+        self._ref_graphs: dict[Index, Graph] = {}
 
     # fmt: off
     if TYPE_CHECKING:
