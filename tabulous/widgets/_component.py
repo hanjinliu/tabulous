@@ -194,6 +194,18 @@ class CellInterface(Component["TableBase"]):
         if not table.editable:
             raise TableImmutableError("Table is not editable.")
         import pandas as pd
+        from .._qt._table._base._line_edit import QCellLineEdit
+
+        row, col = self._normalize_key(key)
+
+        if isinstance(value, str) and QCellLineEdit._is_eval_like(value):
+            if row.stop - row.start == 1 and col.stop - col.start == 1:
+                moveto = (row.start, col.start)
+                editor = table._qwidget._qtable_view._create_eval_editor(value, moveto)
+                editor.eval_and_close()
+                return None
+            else:
+                raise ValueError("Cannot evaluate a multi-cell selection.")
 
         if isinstance(value, str) or not hasattr(value, "__iter__"):
             _value = [[value]]
@@ -203,7 +215,6 @@ class CellInterface(Component["TableBase"]):
             df = pd.DataFrame(_value)
         except ValueError:
             raise ValueError(f"Could not convert value {_value!r} to DataFrame.")
-        row, col = self._normalize_key(key)
 
         if 1 in df.shape and (col.stop - col.start, row.stop - row.start) == df.shape:
             # it is natural to set an 1-D array without thinking of the direction.
