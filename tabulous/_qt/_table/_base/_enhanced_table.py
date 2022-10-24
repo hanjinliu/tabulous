@@ -507,7 +507,6 @@ class _QTableViewEnhanced(QtW.QTableView):
     def _create_eval_editor(
         self, r: int, c: int, text: str | None = None
     ) -> QCellLiteralEdit:
-        self._selection_model.move_to(r, c)
         index = self.model().index(*self._selection_model.current_index)
         if text is None:
             text = self.model().data(index, Qt.ItemDataRole.EditRole)

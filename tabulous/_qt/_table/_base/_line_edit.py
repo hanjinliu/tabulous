@@ -336,7 +336,9 @@ class QCellLiteralEdit(_QTableLineEdit):
 
             text = raw_text.lstrip(self._REF_PREFIX).strip()
             selections = self.extract_selections(text)
-            evaluator = self._get_evaluator(text)
+            evaluator = self._get_evaluator(text, update_index=False)
+            # search the parent QBaseTable
+            # FIXME: this is a hack, we should find a better way to do this
             viewer = self._table.parentViewer()._table_viewer
             for table in viewer.tables:
                 if table.native is self._table:
@@ -400,7 +402,8 @@ class QCellLiteralEdit(_QTableLineEdit):
                     out = table.convertValue(_row, _col, out)
 
             except Exception as e:
-                if not isinstance(e, SyntaxError):
+                if not isinstance(e, (SyntaxError, AttributeError)):
+                    # These might be caused by mistouching. Don't close the editor.
                     self.close_editor()
                 raise e
 
@@ -408,12 +411,14 @@ class QCellLiteralEdit(_QTableLineEdit):
                 out = pd.DataFrame(out).astype(str)
                 if _row.start == _row.stop - 1:  # row vector
                     out = out.T
-                table.setDataFrameValue(_row, _col, out)
+                with qtable._selection_model.blocked():
+                    table.setDataFrameValue(_row, _col, out)
                 if update_index:
                     qtable._selection_model.move_to(_row.stop - 1, _col.stop - 1)
 
             elif isinstance(_row, int) and isinstance(_col, int):  # set scalar
-                table.setDataFrameValue(_row, _col, str(out))
+                with qtable._selection_model.blocked():
+                    table.setDataFrameValue(_row, _col, str(out))
                 if update_index:
                     qtable._selection_model.move_to(_row, _col)
 

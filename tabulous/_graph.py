@@ -49,7 +49,13 @@ class Graph:
 
     def connect(self):
         self.table.events.data.connect(self.update)
-        self.update()
+        # First exception should be considered as a wrong expression.
+        # Disconnect the callback.
+        try:
+            self.update()
+        except Exception:
+            self.disconnect()
+            raise
         return None
 
     def disconnect(self):
