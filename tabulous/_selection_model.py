@@ -319,14 +319,17 @@ class AnnotatedRange(tuple):
 
     @property
     def annotation(self) -> dict[str, Any]:
+        """Annotation of the range."""
         return self._annotation
 
     @annotation.setter
     def annotation(self, val):
+        """Set annotation to the range."""
         self._annotation = dict(val)
 
     @annotation.deleter
     def annotation(self):
+        """Delete annotation of the range."""
         self._annotation.clear()
 
     @property
