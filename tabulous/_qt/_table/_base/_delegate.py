@@ -67,7 +67,8 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             else:
                 line = QCellLineEdit(parent, table, (row, col))
                 if table._get_ref_expr(row, col):
-                    pass  # QCellLiteralEdit has its own font.
+                    # QCellLiteralEdit has its own font.
+                    line.setFocus()
                 else:
                     line.setFont(font)
                 return line

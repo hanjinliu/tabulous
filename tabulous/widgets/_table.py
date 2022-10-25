@@ -16,10 +16,7 @@ from ._component import (
 )
 from . import _doc
 
-from ..types import (
-    ItemInfo,
-    HeaderInfo,
-)
+from ..types import ItemInfo, HeaderInfo, EvalInfo
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -46,8 +43,8 @@ class TableSignals(SignalGroup):
     data = Signal(ItemInfo)
     index = Signal(HeaderInfo)
     columns = Signal(HeaderInfo)
+    evaluated = Signal(EvalInfo)
     selections = Signal(SelectionRanges)
-    zoom = Signal(float)
     renamed = Signal(str)
 
 
@@ -110,7 +107,10 @@ class TableBase(ABC):
                 self.events.data.emit,
                 self.events.index.emit,
                 self.events.columns.emit,
+                self.events.evaluated.emit,
             )
+
+            self.events.evaluated.connect(self._emit_evaluated)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}<{self.name!r}>"
@@ -442,6 +442,42 @@ class TableBase(ABC):
         with self.selections.blocked():
             # Block selection to avoid recursive update.
             self.events.selections.emit(self.selections)
+        return None
+
+    def _emit_evaluated(self, info: EvalInfo):
+        from .._eval import Graph, LiteralCallable
+
+        if info.expr == "":
+            return None
+
+        pos = (info.row, info.column)
+        f = LiteralCallable._from_table(self, info.expr, pos)
+        qtable = self.native
+        qtable_view = qtable._qtable_view
+
+        if not info.is_ref:
+            result = f()
+            if e := result.get_err():
+                if not isinstance(e, (SyntaxError, AttributeError)):
+                    # Update cell text with the exception object.
+                    try:
+                        del qtable_view._focused_widget
+                    except RuntimeError:
+                        pass
+                    with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked():
+                        qtable.setDataFrameValue(info.row, info.column, repr(e))
+                    return None
+                # SyntaxError/AttributeError might be caused by mistouching. Don't close
+                # the editor.
+                raise e
+            else:
+                self.move_iloc(info.row, info.column)
+        else:
+            selections = None  # TODO: dummy
+            graph = Graph(self, f, selections).connect()
+            self.native._qtable_view._ref_graphs[pos] = graph
+
+        del qtable_view._focused_widget
         return None
 
 

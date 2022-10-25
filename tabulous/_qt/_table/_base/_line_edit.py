@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import re
 import ast
-from typing import TYPE_CHECKING, Callable, cast
+from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
 import pandas as pd
 
 from ..._qt_const import MonospaceFontFamily
 from ..._keymap import QtKeys
-from ....types import HeaderInfo
-from ...._selection_model import Index
+from ....types import HeaderInfo, EvalInfo
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
@@ -323,154 +322,181 @@ class QCellLiteralEdit(_QTableLineEdit):
         line.selectAll()
         return line
 
-    def eval_and_close(self):
-        """
-        Evaluate the text, update the table and close editor.
-
-        This function strictly check out put shape to determine how to assign array results
-        to the table.
-        """
-        raw_text = self.text()
-        if raw_text.startswith(self._EVAL_PREFIX):
-            text = raw_text.lstrip(self._EVAL_PREFIX).strip()
-            self.eval_text(text)
-        elif raw_text.startswith(self._REF_PREFIX):
-            from ...._graph import Graph
-
-            text = raw_text.lstrip(self._REF_PREFIX).strip()
-            selections = self.extract_selections(text)
-            evaluator = self._get_evaluator(text, update_index=False)
-            # search the parent QBaseTable
-            # FIXME: this is a hack, we should find a better way to do this
-            viewer = self._table.parentViewer()._table_viewer
-            for table in viewer.tables:
-                if table.native is self._table:
-                    graph = Graph(table, evaluator, selections)
-                    break
-            else:
-                raise ValueError("Cannot find table in viewer")
-            graph.connect()
-            self._table._qtable_view._ref_graphs[Index(*self._pos)] = graph
+    @classmethod
+    def _parse_ref(cls, raw_text: str) -> tuple[str, bool]:
+        if raw_text.startswith(cls._REF_PREFIX):
+            text = raw_text.lstrip(cls._REF_PREFIX).strip()
+            is_ref = True
+        elif raw_text.startswith(cls._EVAL_PREFIX):
+            text = raw_text.lstrip(cls._EVAL_PREFIX).strip()
+            is_ref = False
         else:
-            raise RuntimeError(f"Invalid text {raw_text!r}")
-        self.close_editor()
-        return None
+            raise RuntimeError("Unreachable")
+        return text, is_ref
 
-    def _get_evaluator(self, text: str, update_index: bool = True) -> LiteralCallable:
-        import numpy as np
-        import pandas as pd
+    # def eval_and_close(self):
+    #     """
+    #     Evaluate the text, update the table and close editor.
 
-        qtable = self.parentTableView()
-        table = qtable.parentTable()
-        qviewer = qtable.parentViewer()
+    #     This function strictly check out put shape to determine how to assign array results
+    #     to the table.
+    #     """
+    #     raw_text = self.text()
+    #     if raw_text.startswith(self._EVAL_PREFIX):
+    #         text = raw_text.lstrip(self._EVAL_PREFIX).strip()
+    #         self.eval_text(text)
+    #     elif raw_text.startswith(self._REF_PREFIX):
+    #         from ...._eval import Graph
 
-        def evaluator():
-            try:
-                df = table.dataShown(parse=True)
-                ns = qviewer._namespace.value()
-                ns.update(df=df)
-                out = eval(text, ns, {})
+    #         text = raw_text.lstrip(self._REF_PREFIX).strip()
+    #         selections = self.extract_selections(text)
+    #         evaluator = self._get_evaluator(text, update_index=False)
+    #         # search the parent QBaseTable
+    #         # FIXME: this is a hack, we should find a better way to do this
+    #         viewer = self._table.parentViewer()._table_viewer
+    #         for table in viewer.tables:
+    #             if table.native is self._table:
+    #                 graph = Graph(table, evaluator, selections)
+    #                 break
+    #         else:
+    #             raise ValueError("Cannot find table in viewer")
+    #         graph.connect()
+    #         self._table._qtable_view._ref_graphs[Index(*self._pos)] = graph
+    #     else:
+    #         raise RuntimeError(f"Invalid text {raw_text!r}")
+    #     self.close()
+    #     return None
 
-                _row, _col = self._pos
+    # def _get_evaluator(self, text: str, update_index: bool = True) -> LiteralCallable:
+    #     import numpy as np
+    #     import pandas as pd
 
-                if isinstance(out, pd.DataFrame):
-                    if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
-                        out = out.iloc[:, 0]
-                        _row, _col = _infer_slices(df, out, _row, _col)
-                    elif out.size == 1:
-                        out = out.iloc[0, 0]
-                    else:
-                        raise NotImplementedError("Cannot assign a DataFrame now.")
+    #     qtable = self.parentTableView()
+    #     table = qtable.parentTable()
+    #     qviewer = qtable.parentViewer()
 
-                elif isinstance(out, pd.Series):
-                    if out.shape == (1,):  # scalar
-                        out = out[0]
-                    else:  # update a column
-                        _row, _col = _infer_slices(df, out, _row, _col)
+    #     LiteralCallable.from_table()
+    #     def evaluator():
+    #         try:
+    #             df = table.dataShown(parse=True)
+    #             ns = qviewer._namespace.value()
+    #             ns.update(df=df)
+    #             out = eval(text, ns, {})
 
-                elif isinstance(out, np.ndarray):
-                    if out.ndim > 2:
-                        raise ValueError("Cannot assign a >3D array.")
-                    out = np.squeeze(out)
-                    if out.ndim == 0:  # scalar
-                        out = table.convertValue(_row, _col, out.item())
-                    elif out.ndim == 1:  # 1D array
-                        _row = slice(_row, _row + out.shape[0])
-                        _col = slice(_col, _col + 1)
-                    else:
-                        _row = slice(_row, _row + out.shape[0])
-                        _col = slice(_col, _col + out.shape[1])
+    #             _row, _col = self._pos
 
-                else:
-                    out = table.convertValue(_row, _col, out)
+    #             if isinstance(out, pd.DataFrame):
+    #                 if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
+    #                     out = out.iloc[:, 0]
+    #                     _row, _col = _infer_slices(df, out, _row, _col)
+    #                 elif out.size == 1:
+    #                     out = out.iloc[0, 0]
+    #                 else:
+    #                     raise NotImplementedError("Cannot assign a DataFrame now.")
 
-            except Exception as e:
-                if not isinstance(e, (SyntaxError, AttributeError)):
-                    # These might be caused by mistouching. Don't close the editor.
-                    try:
-                        self.close_editor()
-                    except RuntimeError:
-                        pass
-                    with qtable._selection_model.blocked(), qtable._ref_graphs.blocked():
-                        table.setDataFrameValue(*self._pos, repr(e))
-                    return None
-                raise e
+    #             elif isinstance(out, pd.Series):
+    #                 if out.shape == (1,):  # scalar
+    #                     out = out[0]
+    #                 else:  # update a column
+    #                     _row, _col = _infer_slices(df, out, _row, _col)
 
-            if isinstance(_row, slice) and isinstance(_col, slice):  # set 1D array
-                out = pd.DataFrame(out).astype(str)
-                if _row.start == _row.stop - 1:  # row vector
-                    out = out.T
-                with qtable._selection_model.blocked(), qtable._ref_graphs.blocked():
-                    table.setDataFrameValue(_row, _col, out)
-                if update_index:
-                    qtable._selection_model.move_to(_row.stop - 1, _col.stop - 1)
+    #             elif isinstance(out, np.ndarray):
+    #                 if out.ndim > 2:
+    #                     raise ValueError("Cannot assign a >3D array.")
+    #                 out = np.squeeze(out)
+    #                 if out.ndim == 0:  # scalar
+    #                     out = table.convertValue(_row, _col, out.item())
+    #                 elif out.ndim == 1:  # 1D array
+    #                     _row = slice(_row, _row + out.shape[0])
+    #                     _col = slice(_col, _col + 1)
+    #                 else:
+    #                     _row = slice(_row, _row + out.shape[0])
+    #                     _col = slice(_col, _col + out.shape[1])
 
-            elif isinstance(_row, int) and isinstance(_col, int):  # set scalar
-                with qtable._selection_model.blocked(), qtable._ref_graphs.blocked():
-                    table.setDataFrameValue(_row, _col, str(out))
-                if update_index:
-                    qtable._selection_model.move_to(_row, _col)
+    #             else:
+    #                 out = table.convertValue(_row, _col, out)
 
-            else:
-                raise RuntimeError(_row, _col)  # Unreachable
-            return None
+    #         except Exception as e:
+    #             if not isinstance(e, (SyntaxError, AttributeError)):
+    #                 # Update cell text with the exception object.
+    #                 try:
+    #                     self.close()
+    #                 except RuntimeError:
+    #                     pass
+    #                 with qtable._selection_model.blocked(), qtable._ref_graphs.blocked():
+    #                     table.setDataFrameValue(*self._pos, repr(e))
+    #                 return None
+    #             # SyntaxError/AttributeError might be caused by mistouching. Don't close
+    #             # the editor.
+    #             raise e
 
-        return LiteralCallable(text, evaluator)
+    #         if isinstance(_row, slice) and isinstance(_col, slice):  # set 1D array
+    #             out = pd.DataFrame(out).astype(str)
+    #             if _row.start == _row.stop - 1:  # row vector
+    #                 out = out.T
+    #             with qtable._selection_model.blocked(), qtable._ref_graphs.blocked():
+    #                 table.setDataFrameValue(_row, _col, out)
+    #             if update_index:
+    #                 qtable._selection_model.move_to(_row.stop - 1, _col.stop - 1)
 
-    def eval_text(self, text: str) -> None:
-        if text == "":
-            return
-        return self._get_evaluator(text)()
+    #         elif isinstance(_row, int) and isinstance(_col, int):  # set scalar
+    #             with qtable._selection_model.blocked(), qtable._ref_graphs.blocked():
+    #                 table.setDataFrameValue(_row, _col, str(out))
+    #             if update_index:
+    #                 qtable._selection_model.move_to(_row, _col)
 
-    def close_editor(self):
+    #         else:
+    #             raise RuntimeError(_row, _col)  # Unreachable
+    #         return None
+
+    #     return LiteralCallable(text, evaluator)
+
+    # def eval_text(self, text: str) -> None:
+    #     if text == "":
+    #         return
+    #     return self._get_evaluator(text)()
+
+    def close(self):
         """Close this editor and deal with all the descruction."""
         qtable = self.parentTableView()
         qtable._selection_model.moved.disconnect(self._on_selection_changed)
-        self.hide()
+        super().close()
         del qtable._focused_widget
         self.deleteLater()
         qtable.setFocus()
         return None
 
-    def extract_selections(self, text: str) -> list[tuple[slice, slice]]:
-        qtable_view = self.parentTableView()
-        df = qtable_view.model().df
+    # def extract_selections(self, text: str) -> list[tuple[slice, slice]]:
+    #     qtable_view = self.parentTableView()
+    #     df = qtable_view.model().df
 
-        selections: list[tuple[slice, slice]] = []
-        for expr in _find_all_dataframe_expr(text):
-            if expr.startswith("df["):
-                # df['val'][...]
-                colname, rsl_str = expr[3:-1].split("][")
-                c_start = df.columns.get_loc(eval(colname))
-                rsl = _parse_slice(rsl_str)
-                csl = slice(c_start, c_start + 1)
-            else:
-                # df.loc[...]
-                rsl_str, csl_str = expr[7:-1].split(", ")
-                rsl = _parse_slice_loc(rsl_str, df.index)
-                csl = _parse_slice_loc(csl_str, df.columns)
-            selections.append((rsl, csl))
-        return selections
+    #     selections: list[tuple[slice, slice]] = []
+    #     for expr in _find_all_dataframe_expr(text):
+    #         if expr.startswith("df["):
+    #             # df['val'][...]
+    #             colname, rsl_str = expr[3:-1].split("][")
+    #             c_start = df.columns.get_loc(eval(colname))
+    #             rsl = _parse_slice(rsl_str)
+    #             csl = slice(c_start, c_start + 1)
+    #         else:
+    #             # df.loc[...]
+    #             rsl_str, csl_str = expr[7:-1].split(", ")
+    #             rsl = _parse_slice_loc(rsl_str, df.index)
+    #             csl = _parse_slice_loc(csl_str, df.columns)
+    #         selections.append((rsl, csl))
+    #     return selections
+
+    def eval_and_close(self):
+        text, is_ref = self._parse_ref(self.text())
+        row, col = self._pos
+        info = EvalInfo(
+            row=row,
+            column=col,
+            expr=text,
+            is_ref=is_ref,
+        )
+        self._table.evaluatedSignal.emit(info)
+        return None
 
     def _is_text_valid(self) -> bool:
         """Try to parse the text and return True if it is valid."""
@@ -493,7 +519,7 @@ class QCellLiteralEdit(_QTableLineEdit):
     def _pre_validation(self, text: str):
         if not self._is_eval_like(text):
             qtable = self.parentTableView()
-            self.close_editor()
+            self.close()
             index = qtable.model().index(*self._pos)
             qtable.edit(index)
             line = QtW.QApplication.focusWidget()
@@ -534,7 +560,8 @@ class QCellLiteralEdit(_QTableLineEdit):
             return self.eval_and_close()
         elif keys == "Esc":
             qtable._selection_model.move_to(*self._pos)
-            return self.close_editor()
+            self.close()
+            return None
         if keys.is_typing() or keys in ("Backspace", "Delete"):
             with qtable._selection_model.blocked():
                 qtable._selection_model.move_to(*self._pos)
@@ -598,19 +625,6 @@ class QCellLiteralEdit(_QTableLineEdit):
         fm = QtGui.QFontMetrics(self.font())
         width = min(fm.boundingRect(text).width() + 8, 300)
         return self.resize(max(width, self._initial_rect.width()), self.height())
-
-
-class LiteralCallable:
-    def __init__(self, expr: str, func: Callable):
-        self._expr = expr
-        self._func = func
-
-    def __call__(self, *args, **kwargs):
-        return self._func(*args, *kwargs)
-
-    @property
-    def expr(self) -> str:
-        return self._expr
 
 
 _PATTERN_DF = re.compile(r"df\[.+?\]\[.+?\]")

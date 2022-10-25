@@ -17,7 +17,7 @@ from ..._undo import QtUndoManager, fmt_slice
 from ..._svg import QColoredSVGIcon
 from ..._keymap import QtKeys, QtKeyMap
 from ..._action_registry import QActionRegistry
-from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
+from ....types import FilterType, ItemInfo, HeaderInfo, EvalInfo
 from ....exceptions import SelectionRangeError, TableImmutableError
 
 if TYPE_CHECKING:
@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
     from ..._table_stack import QTabbedTableStack
     from ..._mainwindow import _QtMainWidgetBase
+    from ....types import SelectionType, _Sliceable
 
 ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
 
@@ -726,7 +727,9 @@ class QMutableTable(QBaseTable):
     itemChangedSignal = Signal(ItemInfo)
     rowChangedSignal = Signal(HeaderInfo)
     columnChangedSignal = Signal(HeaderInfo)
+    evaluatedSignal = Signal(EvalInfo)
     selectionChangedSignal = Signal()
+
     _data_raw: pd.DataFrame
     NaN = np.nan
 
@@ -918,10 +921,12 @@ class QMutableTable(QBaseTable):
         slot_val: Callable[[ItemInfo], None],
         slot_row: Callable[[HeaderInfo], None],
         slot_col: Callable[[HeaderInfo], None],
+        slot_eval: Callable[[EvalInfo], None],
     ) -> None:
         self.itemChangedSignal.connect(slot_val)
         self.rowChangedSignal.connect(slot_row)
         self.columnChangedSignal.connect(slot_col)
+        self.evaluatedSignal.connect(slot_eval)
         return None
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):

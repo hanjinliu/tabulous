@@ -92,8 +92,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._update_all()
 
         # attributes relevant to in-cell calculation
+        self._focused_widget_ref = None
         self._focused_widget = None
-        from ...._graph import GraphManager
+        from ...._eval import GraphManager
 
         self._ref_graphs: GraphManager[Index] = GraphManager()
 
@@ -107,20 +108,26 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     @property
     def _focused_widget(self) -> QtW.QWidget | None:
+        """QWidget that force focusing after focus is moved to the table."""
         if self._focused_widget_ref is None:
             return None
         return self._focused_widget_ref()
 
     @_focused_widget.setter
     def _focused_widget(self, widget: QtW.QWidget | None) -> None:
+        current = self._focused_widget
+
         if widget is None:
             self._focused_widget_ref = None
         else:
             self._focused_widget_ref = weakref.ref(widget)
 
+        if current is not None:
+            current.close()
+
     @_focused_widget.deleter
     def _focused_widget(self) -> None:
-        self._focused_widget_ref = None
+        self._focused_widget = None
 
     def _update_all(self, rect: QtCore.QRect | None = None) -> None:
         """repaint the table and the headers."""

@@ -21,7 +21,7 @@ from typing import (
 
 import numpy as np
 from ..exceptions import TableImmutableError
-from ..types import _SingleSelection, SelectionType
+from ..types import _SingleSelection, SelectionType, EvalInfo
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -194,15 +194,20 @@ class CellInterface(Component["TableBase"]):
         if not table.editable:
             raise TableImmutableError("Table is not editable.")
         import pandas as pd
-        from .._qt._table._base._line_edit import QCellLineEdit
+        from .._qt._table._base._line_edit import QCellLiteralEdit
 
         row, col = self._normalize_key(key)
 
-        if isinstance(value, str) and QCellLineEdit._is_eval_like(value):
+        if isinstance(value, str) and QCellLiteralEdit._is_eval_like(value):
             if row.stop - row.start == 1 and col.stop - col.start == 1:
-                moveto = (row.start, col.start)
-                editor = table._qwidget._qtable_view._create_eval_editor(value, moveto)
-                editor.eval_and_close()
+                expr, is_ref = QCellLiteralEdit._parse_ref(value)
+                info = EvalInfo(
+                    row=row.start,
+                    column=col.start,
+                    expr=expr,
+                    is_ref=is_ref,
+                )
+                table.events.evaluated.emit(info)
                 return None
             else:
                 raise ValueError("Cannot evaluate a multi-cell selection.")

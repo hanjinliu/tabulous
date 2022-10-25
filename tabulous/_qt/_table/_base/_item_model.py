@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from ._text_formatter import DefaultFormatter
-from ._line_edit import QCellLineEdit, LiteralCallable
+from ._line_edit import QCellLineEdit
 from .._dtype import isna
 from ....color import normalize_color, ColorType
 
