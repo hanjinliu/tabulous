@@ -825,14 +825,15 @@ class QMutableTable(QBaseTable):
             _old_value: pd.DataFrame
             _old_value = _old_value.copy()  # this is needed for undo
 
-        # emit item changed signal if value changed
-        if _was_changed(_value, _old_value) and self.isEditable():
-            self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
-
         if self._filter_slice is not None:
             # If table is filtered, the dataframe to be displayed is a different object
             # so we have to update it as well.
             self.model().updateValue(r, c, _value)
+
+        # emit item changed signal if value changed
+        if _was_changed(_value, _old_value) and self.isEditable():
+            self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
+
         return None
 
     @QBaseTable._mgr.undoable

@@ -476,7 +476,7 @@ class TableBase(ABC):
         else:
             selections = self._extract_selections(info.expr)
             graph = Graph(self, f, selections).connect()
-            self.native._qtable_view._ref_graphs[pos] = graph
+            self.native._qtable_view._ref_graphs[pos] = graph  # use undo
 
         del qtable_view._focused_widget
         return None

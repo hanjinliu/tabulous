@@ -226,6 +226,7 @@ class CellInterface(Component["TableBase"]):
             df = df.T
 
         table._qwidget.setDataFrameValue(row, col, df)
+        return None
 
     def __delitem__(self, key: tuple[int | slice, int | slice]) -> None:
         """Deleting cell, equivalent to pushing Delete key."""

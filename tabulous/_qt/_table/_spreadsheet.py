@@ -255,7 +255,8 @@ class QSpreadSheet(QMutableSimpleTable):
         with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
-                self._data_cache = None
+            # NOTE: cache must be cleared to ensure event emission with updated data
+            self._data_cache = None
             super().setDataFrameValue(r, c, value)
             self._data_cache = None
             self.setFilter(self._filter_slice)
