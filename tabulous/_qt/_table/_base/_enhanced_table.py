@@ -15,7 +15,6 @@ from ..._keymap import QtKeys
 from ...._selection_model import SelectionModel, AnnotatedRangesModel, Index
 
 if TYPE_CHECKING:
-    import pandas as pd
     from ._delegate import TableItemDelegate
     from ..._mainwindow import _QtMainWidgetBase
     from ...._selection_model import RangesModel
@@ -71,6 +70,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._was_right_dragging: bool = False
         self._last_mouse_button: str | None = None
 
+        # header settings
         vheader = QVerticalHeaderView()
         hheader = QHorizontalHeaderView()
         self.setVerticalHeader(vheader)
@@ -92,7 +92,12 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setItemDelegate(delegate)
         self._update_all()
 
+        # attributes relevant to in-cell calculation
+        self._focused_widget_ref = None
         self._focused_widget = None
+        from ...._eval import GraphManager
+
+        self._ref_graphs: GraphManager[Index] = GraphManager()
 
     # fmt: off
     if TYPE_CHECKING:
@@ -104,20 +109,26 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     @property
     def _focused_widget(self) -> QtW.QWidget | None:
+        """QWidget that force focusing after focus is moved to the table."""
         if self._focused_widget_ref is None:
             return None
         return self._focused_widget_ref()
 
     @_focused_widget.setter
     def _focused_widget(self, widget: QtW.QWidget | None) -> None:
+        current = self._focused_widget
+
         if widget is None:
             self._focused_widget_ref = None
         else:
             self._focused_widget_ref = weakref.ref(widget)
 
+        if current is not None:
+            current.close()
+
     @_focused_widget.deleter
     def _focused_widget(self) -> None:
-        self._focused_widget_ref = None
+        self._focused_widget = None
 
     def _update_all(self, rect: QtCore.QRect | None = None) -> None:
         """repaint the table and the headers."""
@@ -502,9 +513,10 @@ class _QTableViewEnhanced(QtW.QTableView):
             yield rect
 
     def _create_eval_editor(
-        self, r: int, c: int, text: str | None = None
+        self, text: str | None = None, moveto: tuple[int, int] | None = None
     ) -> QCellLiteralEdit:
-        self._selection_model.move_to(r, c)
+        if moveto is not None:
+            self._selection_model.move_to(*moveto)
         index = self.model().index(*self._selection_model.current_index)
         if text is None:
             text = self.model().data(index, Qt.ItemDataRole.EditRole)

@@ -133,6 +133,28 @@ class HeaderInfo(NamedTuple):
     old_value: Any
 
 
+class EvalInfo(NamedTuple):
+    """
+    A named tuple for evaluation.
+
+    Value takes (row, column, expr, old_value, is_ref) where
+
+    row : int
+        Row index where item edited.
+    column : int
+        Column index where item edited.
+    expr : str
+        Expression to be evaluated.
+    is_ref: bool
+        Whether the expression take references in the table.
+    """
+
+    row: int
+    column: int
+    expr: str
+    is_ref: bool
+
+
 _Sliceable = Union[SupportsIndex, slice]
 _SingleSelection = Tuple[_Sliceable, _Sliceable]
 SelectionType = List[_SingleSelection]

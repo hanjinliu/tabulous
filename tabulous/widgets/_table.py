@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+import re
 from enum import Enum
 from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
 from psygnal import SignalGroup, Signal
@@ -11,15 +12,13 @@ from ._component import (
     VerticalHeaderInterface,
     PlotInterface,
     ColumnDtypeInterface,
+    CellReferenceInterface,
     SelectionRanges,
     HighlightRanges,
 )
 from . import _doc
 
-from ..types import (
-    ItemInfo,
-    HeaderInfo,
-)
+from ..types import ItemInfo, HeaderInfo, EvalInfo
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -46,8 +45,8 @@ class TableSignals(SignalGroup):
     data = Signal(ItemInfo)
     index = Signal(HeaderInfo)
     columns = Signal(HeaderInfo)
+    evaluated = Signal(EvalInfo)
     selections = Signal(SelectionRanges)
-    zoom = Signal(float)
     renamed = Signal(str)
 
 
@@ -81,6 +80,7 @@ class TableBase(ABC):
     index = VerticalHeaderInterface()
     columns = HorizontalHeaderInterface()
     plt = PlotInterface()
+    cellref = CellReferenceInterface()
     filter = FilterProxy()
     selections = SelectionRanges()
     highlights = HighlightRanges()
@@ -110,7 +110,10 @@ class TableBase(ABC):
                 self.events.data.emit,
                 self.events.index.emit,
                 self.events.columns.emit,
+                self.events.evaluated.emit,
             )
+
+            self.events.evaluated.connect(self._emit_evaluated)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}<{self.name!r}>"
@@ -443,6 +446,96 @@ class TableBase(ABC):
             # Block selection to avoid recursive update.
             self.events.selections.emit(self.selections)
         return None
+
+    def _emit_evaluated(self, info: EvalInfo):
+        from .._eval import Graph, LiteralCallable
+
+        if info.expr == "":
+            return None
+
+        pos = (info.row, info.column)
+        f = LiteralCallable.from_table(self, info.expr, pos)
+        qtable = self.native
+        qtable_view = qtable._qtable_view
+
+        if not info.is_ref:
+            result = f()
+            if e := result.get_err():
+                if not isinstance(e, (SyntaxError, AttributeError)):
+                    # Update cell text with the exception object.
+                    try:
+                        del qtable_view._focused_widget
+                    except RuntimeError:
+                        pass
+                    with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked():
+                        qtable.setDataFrameValue(info.row, info.column, repr(e))
+                    return None
+                # SyntaxError/AttributeError might be caused by mistouching. Don't close
+                # the editor.
+                raise e
+            else:
+                self.move_iloc(info.row, info.column)
+        else:
+            selections = self._extract_selections(info.expr)
+            graph = Graph(self, f, selections).connect()
+            self.native._qtable_view._ref_graphs[pos] = graph  # use undo
+
+        del qtable_view._focused_widget
+        return None
+
+    def _extract_selections(self, text: str) -> list[tuple[slice, slice]]:
+        qtable_view = self.native._qtable_view
+        df = qtable_view.model().df
+
+        selections: list[tuple[slice, slice]] = []
+        for expr in _find_all_dataframe_expr(text):
+            if expr.startswith("df["):
+                # df['val'][...]
+                colname, rsl_str = expr[3:-1].split("][")
+                c_start = df.columns.get_loc(eval(colname))
+                rsl = _parse_slice(rsl_str)
+                csl = slice(c_start, c_start + 1)
+            else:
+                # df.loc[...]
+                rsl_str, csl_str = expr[7:-1].split(", ")
+                rsl = _parse_slice_loc(rsl_str, df.index)
+                csl = _parse_slice_loc(csl_str, df.columns)
+            selections.append((rsl, csl))
+        return selections
+
+
+_PATTERN = re.compile(r"df\[.+?\]\[.+?\]|df\.loc\[.+?\]")
+
+
+def _find_all_dataframe_expr(s: str) -> list[str]:
+    return _PATTERN.findall(s)
+
+
+def _parse_slice(s: str) -> slice:
+    if ":" in s:
+        start_str, stop_str = s.split(":")
+        start = eval(start_str)
+        stop = eval(stop_str)
+    else:
+        start = eval(s)
+        stop = start + 1
+    return slice(start, stop)
+
+
+def _parse_slice_loc(s: str, index: pd.Index) -> slice:
+    if ":" in s:
+        start_str, stop_str = s.split(":")
+        start = index.get_loc(eval(start_str))
+        stop = index.get_loc(eval(stop_str)) + 1
+    else:
+        start = index.get_loc(eval(s))
+        stop = start + 1
+    return slice(start, stop)
+
+
+# #############################################################################
+# Concrete table widgets
+# #############################################################################
 
 
 class _DataFrameTableLayer(TableBase):

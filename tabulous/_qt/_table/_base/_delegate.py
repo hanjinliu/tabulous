@@ -4,7 +4,7 @@ from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
 
 from ._table_base import QBaseTable
-from ._line_edit import QCellLineEdit
+from ._line_edit import QCellLineEdit, QCellLiteralEdit
 
 if TYPE_CHECKING:
     import numpy as np
@@ -66,8 +66,11 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 return dt
             else:
                 line = QCellLineEdit(parent, table, (row, col))
-                line.setText(str(value))
-                line.setFont(font)
+                if table._get_ref_expr(row, col):
+                    # QCellLiteralEdit has its own font.
+                    line.setFocus()
+                else:
+                    line.setFont(font)
                 return line
 
     def setEditorData(self, editor: QtW.QWidget, index: QtCore.QModelIndex) -> None:
@@ -105,6 +108,9 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         super().initStyleOption(option, index)
         if option.state & QtW.QStyle.StateFlag.State_HasFocus:
             option.state = option.state & ~QtW.QStyle.StateFlag.State_HasFocus
+
+    def parentTable(self) -> QBaseTable:
+        return self.parent().parent()
 
 
 # TODO: add timedelta-specific editor

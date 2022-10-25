@@ -197,6 +197,7 @@ class QtConsole(RichJupyterWidget):
         return super().eventFilter(obj, event)
 
     def update_console(self, ns: dict) -> None:
+        """Update the console namespace."""
         self.shell.push(dict(ns))
         return None
 
@@ -236,6 +237,10 @@ class QtConsole(RichJupyterWidget):
         if parent is None:
             return
         parent.parentWidget()._keymap.press_key(keys)
+
+    @_keymap.bind("Ctrl+.")
+    def _ignore(self):
+        """Ignore restarting the kernel."""
 
 
 class TableDataReference:

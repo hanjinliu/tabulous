@@ -1,4 +1,6 @@
-from tabulous import Table, TableViewer
+from unittest.mock import MagicMock
+from tabulous import TableViewer
+from tabulous.widgets import Table
 import pandas as pd
 import numpy as np
 from magicgui import magicgui
@@ -40,6 +42,17 @@ def test_copy():
     table = viewer.add_table(df, copy=False, editable=True)
     table.cell[0, 0] = "11"
     assert df.iloc[0, 0] == 11
+
+def test_cell_interface():
+    viewer = TableViewer(show=False)
+    df = pd.DataFrame({"a": [1, 2, 3], "b": [0, 0, 0]})
+    table = viewer.add_table(df, copy=True, editable=True)
+
+    mock = MagicMock()
+    table.events.data.connect(mock)
+    mock.assert_not_called()
+    table.cell[0, 0] = "11"
+    mock.assert_called_once()
 
 @pytest.mark.parametrize("df", [df0, df1])
 def test_updating_data(df: pd.DataFrame):
