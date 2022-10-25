@@ -277,6 +277,19 @@ class QCellLineEdit(_QTableLineEdit):
             line.setCursorPosition(pos)
 
 
+class _EventFilter(QtCore.QObject):
+    """An event filter for text completion by tab."""
+
+    def eventFilter(self, o: QtCore.QObject, e: QtCore.QEvent):
+        if e.type() == QtCore.QEvent.Type.KeyPress:
+            e = cast(QtGui.QKeyEvent, e)
+            if e.key() == Qt.Key.Key_Tab:
+                l = cast(QCellLiteralEdit, self.parent())
+                l.setSelection(len(l.text()), len(l.text()))
+                return True
+        return False
+
+
 class QCellLiteralEdit(_QTableLineEdit):
     """Line edit used for evaluating cell text."""
 
@@ -298,7 +311,12 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         self._initial_rect = self.rect()
         self._self_focused = True
+        self._completion_module = None
         self.textChanged.connect(self._reshape_widget)
+        self.textChanged.connect(self._manage_completion)
+
+        self._event_filter = _EventFilter(self)
+        self.installEventFilter(self._event_filter)
 
     @classmethod
     def from_table(
@@ -428,6 +446,8 @@ class QCellLiteralEdit(_QTableLineEdit):
             return None
 
         if keys.is_typing() or keys in ("Backspace", "Delete"):
+            if keys in ("Backspace", "Delete"):
+                self._completion_module = None
             with qtable._selection_model.blocked():
                 qtable._selection_model.move_to(*self._pos)
             self._self_focused = True
@@ -492,6 +512,37 @@ class QCellLiteralEdit(_QTableLineEdit):
         width = min(fm.boundingRect(text).width() + 8, 300)
         return self.resize(max(width, self._initial_rect.width()), self.height())
 
+    def _manage_completion(self, text: str):
+        if text.endswith("."):
+            mod_str = _find_last_module_name(text[:-1])
+            mod = self._table.parentViewer()._namespace.value().get(mod_str, None)
+            if mod is None:
+                self._completion_module = None
+                return None
+            self._completion_module = mod
+            return None
+
+        elif self._completion_module is None:
+            return None
+
+        idx = text.rfind(".")
+        if idx < 0:
+            return None
+        seed = text[idx + 1 :]
+        for attr in self._completion_module.__dir__():
+            if attr.startswith(seed):
+                current_text = self.text()
+                current_pos = self.cursorPosition()
+                new_text = current_text[: -len(seed)] + attr
+                self.blockSignals(True)
+                try:
+                    self.setText(new_text)
+                    self.setCursorPosition(current_pos)
+                    self.setSelection(current_pos, len(new_text))
+                finally:
+                    self.blockSignals(False)
+                break
+
 
 _PATTERN_DF = re.compile(r"df\[.+?\]\[.+?\]")
 _PATTERN_LOC = re.compile(r"df\.loc\[.+?\]")
@@ -515,3 +566,10 @@ def _find_last_dataframe_expr(s: str) -> int:
     if _match := ptn.match(s[start:]):
         return _match.start() + start
     return -1
+
+
+_PATTERN_IDENTIFIERS = re.compile(r"[\w\d_]+")
+
+
+def _find_last_module_name(s: str):
+    return _PATTERN_IDENTIFIERS.findall(s)[-1]
