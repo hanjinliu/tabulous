@@ -359,6 +359,8 @@ class _QTableViewEnhanced(QtW.QTableView):
                 parent.editVerticalHeader(sel_mod.current_index.row)
             else:
                 self._edit_current()
+            if wdt := self._focused_widget:
+                wdt.setFocus()
             return None
 
         if keys.has_ctrl():
@@ -523,4 +525,5 @@ class _QTableViewEnhanced(QtW.QTableView):
             text = ""
         line = QCellLiteralEdit.from_table(self, text)
         line.show()
+        line.setFocus()
         return line

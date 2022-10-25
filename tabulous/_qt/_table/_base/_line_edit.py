@@ -297,6 +297,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         self.setFont(font)
 
         self._initial_rect = self.rect()
+        self._self_focused = True
         self.textChanged.connect(self._reshape_widget)
 
     @classmethod
@@ -395,24 +396,29 @@ class QCellLiteralEdit(_QTableLineEdit):
         if keys.is_moving():
             pos = self.cursorPosition()
             nchar = len(self.text())
-            rng = qtable._selection_model.ranges[-1]
-            not_same_cell = not (
-                rng[0].start == rng[0].stop - 1
-                and rng[1].start == rng[1].stop - 1
-                and self._pos == (rng[0].start, rng[1].start)
-            )
-            if not_same_cell:
+            if not self._self_focused:
                 # move in the parent table
                 self._table._keymap.press_key(keys)
                 self.setFocus()
                 return None
 
-            if keys == "Left" and pos == 0:
-                qtable._selection_model.move(0, -1)
-                return None
-            elif keys == "Right" and pos == nchar and self.selectedText() == "":
-                qtable._selection_model.move(0, 1)
-                return None
+            if keys == "Left":
+                if pos == 0:
+                    qtable._selection_model.move(0, -1)
+                    self._self_focused = False
+                    return None
+                else:
+                    self._self_focused = True
+            elif keys == "Right":
+                if pos == nchar and self.selectedText() == "":
+                    qtable._selection_model.move(0, 1)
+                    self._self_focused = False
+                    return None
+                else:
+                    self._self_focused = True
+
+            else:
+                self._self_focused = False
 
         elif keys == "Return":
             return self.eval_and_close()
@@ -420,9 +426,11 @@ class QCellLiteralEdit(_QTableLineEdit):
             qtable._selection_model.move_to(*self._pos)
             self.close()
             return None
+
         if keys.is_typing() or keys in ("Backspace", "Delete"):
             with qtable._selection_model.blocked():
                 qtable._selection_model.move_to(*self._pos)
+            self._self_focused = True
         self.setFocus()
         return QtW.QLineEdit.keyPressEvent(self, a0)
 

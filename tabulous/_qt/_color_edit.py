@@ -128,8 +128,8 @@ class QColorEdit(QtW.QWidget):
 class _ColorEdit(QBaseValueWidget):
     _qwidget: QColorEdit
 
-    def __init__(self):
-        super().__init__(QColorEdit, "color", "setColor", "colorChanged")
+    def __init__(self, **kwargs):
+        super().__init__(QColorEdit, "color", "setColor", "colorChanged", **kwargs)
 
 
 class ColorEdit(ValueWidget):
