@@ -9,15 +9,14 @@ import pandas as pd
 
 from ..._qt_const import MonospaceFontFamily
 from ..._keymap import QtKeys
-from ....types import HeaderInfo
+from ....types import HeaderInfo, EvalInfo
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
+    import pandas as pd
     from ._table_base import QMutableTable
     from ._enhanced_table import _QTableViewEnhanced
     from ._header_view import QDataFrameHeaderView
-
-_EVAL_PREFIX = "="
 
 
 class _QTableLineEdit(QtW.QLineEdit):
@@ -25,6 +24,8 @@ class _QTableLineEdit(QtW.QLineEdit):
 
     _VALID = QtGui.QColor(186, 222, 244, 200)
     _INVALID = QtGui.QColor(255, 0, 0, 200)
+    _EVAL_PREFIX = "="
+    _REF_PREFIX = "&="
 
     def __init__(
         self,
@@ -53,6 +54,10 @@ class _QTableLineEdit(QtW.QLineEdit):
         self._current_exception = str(value)
         return self.setToolTip(self._current_exception)
 
+    @classmethod
+    def _is_eval_like(cls, text: str) -> bool:
+        return text.startswith(cls._EVAL_PREFIX) or text.startswith(cls._REF_PREFIX)
+
     def parentTableView(self) -> _QTableViewEnhanced:
         return self.parent().parent()
 
@@ -65,8 +70,7 @@ class _QTableLineEdit(QtW.QLineEdit):
 
     def _on_text_changed(self, text: str) -> None:
         """Change text color to red if invalid."""
-        if self.isVisible():
-            self._pre_validation(text)
+        self._pre_validation(text)
         palette = QtGui.QPalette()
         self._is_valid = self._is_text_valid()
         if self._is_valid:
@@ -266,10 +270,10 @@ class QCellLineEdit(_QTableLineEdit):
             return True
 
     def _pre_validation(self, text: str):
-        if text.startswith(_EVAL_PREFIX):
+        if self._is_eval_like(text):
             pos = self.cursorPosition()
             self.setText("")
-            line = self.parentTableView()._create_eval_editor(*self._pos, text)
+            line = self.parentTableView()._create_eval_editor(text)
             line.setCursorPosition(pos)
 
 
@@ -318,100 +322,50 @@ class QCellLiteralEdit(_QTableLineEdit):
         line.selectAll()
         return line
 
-    def eval_and_close(self):
-        """
-        Evaluate the text, update the table and close editor.
-
-        This function strictly check out put shape to determine how to assign array results
-        to the table.
-        """
-        text = self.text().lstrip(_EVAL_PREFIX).strip()
-        self.eval_text(text)
-        self.close_editor()
-        return None
-
-    def eval_text(self, text: str) -> None:
-        import numpy as np
-        import pandas as pd
-
-        if text == "":
-            return
-
-        try:
-            qtable = self.parentTableView()
-            table = qtable.parentTable()
-            qviewer = qtable.parentViewer()
-            df = table.dataShown(parse=True)
-            ns = qviewer._namespace.value()
-            ns.update({"df": df})
-            out = eval(text, ns, {})
-
-            _row, _col = self._pos
-
-            if isinstance(out, pd.DataFrame):
-                if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
-                    out = out.iloc[:, 0]
-                    _row, _col = _infer_slices(df, out, _row, _col)
-                elif out.size == 1:
-                    out = out.iloc[0, 0]
-                else:
-                    raise NotImplementedError("Cannot assign a DataFrame now.")
-
-            elif isinstance(out, pd.Series):
-                if out.shape == (1,):  # scalar
-                    out = out[0]
-                else:  # update a column
-                    _row, _col = _infer_slices(df, out, _row, _col)
-
-            elif isinstance(out, np.ndarray):
-                if out.ndim > 2:
-                    raise ValueError("Cannot assign a >3D array.")
-                out = np.squeeze(out)
-                if out.ndim == 0:  # scalar
-                    out = table.convertValue(_row, _col, out.item())
-                if out.ndim == 1:  # 1D array
-                    _row = slice(_row, _row + out.shape[0])
-                    _col = slice(_col, _col + 1)
-                else:
-                    _row = slice(_row, _row + out.shape[0])
-                    _col = slice(_col, _col + out.shape[1])
-
-            else:
-                out = table.convertValue(_row, _col, out)
-
-        except Exception as e:
-            if not isinstance(e, SyntaxError):
-                self.close_editor()
-            raise e
-
-        if isinstance(_row, slice) and isinstance(_col, slice):  # set 1D array
-            out = pd.DataFrame(out).astype(str)
-            if _row.start == _row.stop - 1:  # row vector
-                out = out.T
-            table.setDataFrameValue(_row, _col, out)
-            qtable._selection_model.move_to(_row.stop - 1, _col.stop - 1)
-
-        elif isinstance(_row, int) and isinstance(_col, int):  # set scalar
-            table.setDataFrameValue(_row, _col, str(out))
-            qtable._selection_model.move_to(_row, _col)
-
+    @classmethod
+    def _parse_ref(cls, raw_text: str) -> tuple[str, bool]:
+        if raw_text.startswith(cls._REF_PREFIX):
+            text = raw_text.lstrip(cls._REF_PREFIX).strip()
+            is_ref = True
+        elif raw_text.startswith(cls._EVAL_PREFIX):
+            text = raw_text.lstrip(cls._EVAL_PREFIX).strip()
+            is_ref = False
         else:
-            raise RuntimeError(_row, _col)  # Unreachable
-        return None
+            raise RuntimeError("Unreachable")
+        return text, is_ref
 
-    def close_editor(self):
+    def close(self):
         """Close this editor and deal with all the descruction."""
         qtable = self.parentTableView()
         qtable._selection_model.moved.disconnect(self._on_selection_changed)
-        self.hide()
+        super().close()
         del qtable._focused_widget
         self.deleteLater()
         qtable.setFocus()
         return None
 
+    def eval_and_close(self):
+        text, is_ref = self._parse_ref(self.text())
+        row, col = self._pos
+        info = EvalInfo(
+            row=row,
+            column=col,
+            expr=text,
+            is_ref=is_ref,
+        )
+        self._table.evaluatedSignal.emit(info)
+        return None
+
     def _is_text_valid(self) -> bool:
         """Try to parse the text and return True if it is valid."""
-        text = self.text().lstrip(_EVAL_PREFIX).strip()
+        raw_text = self.text()
+        if raw_text.startswith(self._EVAL_PREFIX):
+            text = raw_text.lstrip(self._EVAL_PREFIX).strip()
+        elif raw_text.startswith(self._REF_PREFIX):
+            text = raw_text.lstrip(self._REF_PREFIX).strip()
+        else:
+            return False
+
         if text == "":
             return True
         try:
@@ -421,14 +375,15 @@ class QCellLiteralEdit(_QTableLineEdit):
         return True
 
     def _pre_validation(self, text: str):
-        if not text.startswith(_EVAL_PREFIX):
-            self.close_editor()
+        if not self._is_eval_like(text):
             qtable = self.parentTableView()
+            self.close()
             index = qtable.model().index(*self._pos)
             qtable.edit(index)
             line = QtW.QApplication.focusWidget()
             if not isinstance(line, QtW.QLineEdit):
                 return None
+
             line = cast(QtW.QLineEdit, line)
             line.setText(text)
             line.setCursorPosition(self.cursorPosition())
@@ -442,9 +397,9 @@ class QCellLiteralEdit(_QTableLineEdit):
             nchar = len(self.text())
             rng = qtable._selection_model.ranges[-1]
             not_same_cell = not (
-                self._pos == qtable._selection_model.current_index
-                and rng[0].start == rng[0].stop - 1
+                rng[0].start == rng[0].stop - 1
                 and rng[1].start == rng[1].stop - 1
+                and self._pos == (rng[0].start, rng[1].start)
             )
             if not_same_cell:
                 # move in the parent table
@@ -463,7 +418,8 @@ class QCellLiteralEdit(_QTableLineEdit):
             return self.eval_and_close()
         elif keys == "Esc":
             qtable._selection_model.move_to(*self._pos)
-            return self.close_editor()
+            self.close()
+            return None
         if keys.is_typing() or keys in ("Backspace", "Delete"):
             with qtable._selection_model.blocked():
                 qtable._selection_model.move_to(*self._pos)
@@ -529,8 +485,8 @@ class QCellLiteralEdit(_QTableLineEdit):
         return self.resize(max(width, self._initial_rect.width()), self.height())
 
 
-_PATTERN_DF = re.compile(r"df\[.+\]\[.+\]")
-_PATTERN_LOC = re.compile(r"df\.loc\[.+\]")
+_PATTERN_DF = re.compile(r"df\[.+?\]\[.+?\]")
+_PATTERN_LOC = re.compile(r"df\.loc\[.+?\]")
 
 
 def _find_last_dataframe_expr(s: str) -> int:
@@ -551,71 +507,3 @@ def _find_last_dataframe_expr(s: str) -> int:
     if _match := ptn.match(s[start:]):
         return _match.start() + start
     return -1
-
-
-def _infer_slices(
-    df: pd.DataFrame,
-    out: pd.Series,
-    r: int,
-    c: int,
-) -> tuple[slice, slice]:
-    """Infer how to concatenate ``out`` to ``df``."""
-
-    #      x | x | x |
-    #      x |(1)| x |(2)
-    #      x | x | x |
-    #     ---+---+---+---
-    #        |(3)|   |(4)
-
-    # 1. Return as a column vector for now.
-    # 2. Return as a column vector.
-    # 3. Return as a row vector.
-    # 4. Cannot determine in which orientation results should be aligned. Raise Error.
-
-    _nr, _nc = df.shape
-    if _nc <= c:  # case 2, 4
-        _orientation = "c"
-    elif _nr <= r:  # case 3
-        _orientation = "r"
-    else:  # case 1
-        _orientation = "infer"
-
-    if _orientation == "infer":
-        try:
-            df.loc[:, out.index]
-        except KeyError:
-            try:
-                df.loc[out.index, :]
-            except KeyError:
-                raise KeyError("Could not infer output orientation.")
-            else:
-                _orientation = "c"
-        else:
-            _orientation = "r"
-
-    if _orientation == "r":
-        rloc = slice(r, r + 1)
-        istart = df.columns.get_loc(out.index[0])
-        istop = df.columns.get_loc(out.index[-1]) + 1
-        if (df.columns[istart:istop] == out.index).all():
-            cloc = slice(istart, istop)
-        else:
-            raise ValueError("Output Series is not well sorted.")
-    elif _orientation == "c":
-        istart = df.index.get_loc(out.index[0])
-        istop = df.index.get_loc(out.index[-1]) + 1
-        if (df.index[istart:istop] == out.index).all():
-            rloc = slice(istart, istop)
-        else:
-            raise ValueError("Output Series is not well sorted.")
-        cloc = slice(c, c + 1)
-    else:
-        raise RuntimeError(_orientation)  # unreachable
-
-    # check (r, c) is in the range
-    if not (rloc.start <= r < rloc.stop and cloc.start <= c < cloc.stop):
-        raise ValueError(
-            f"The cell on editing {(r, c)} is not in the range of output "
-            f"({rloc.start}:{rloc.stop}, {cloc.start}:{cloc.stop})."
-        )
-    return rloc, cloc

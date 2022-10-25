@@ -17,7 +17,7 @@ from ..._undo import QtUndoManager, fmt_slice
 from ..._svg import QColoredSVGIcon
 from ..._keymap import QtKeys, QtKeyMap
 from ..._action_registry import QActionRegistry
-from ....types import FilterType, ItemInfo, HeaderInfo, SelectionType, _Sliceable
+from ....types import FilterType, ItemInfo, HeaderInfo, EvalInfo
 from ....exceptions import SelectionRangeError, TableImmutableError
 
 if TYPE_CHECKING:
@@ -25,6 +25,8 @@ if TYPE_CHECKING:
     from ._side_area import QTableSideArea
     from ._enhanced_table import _QTableViewEnhanced
     from ..._table_stack import QTabbedTableStack
+    from ..._mainwindow import _QtMainWidgetBase
+    from ....types import SelectionType, _Sliceable
 
 ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
 
@@ -605,7 +607,15 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             stack = self.parentWidget().parentWidget()
         except AttributeError:
             stack = None
-        return stack
+        if isinstance(stack, QtW.QTabWidget):
+            # if a table is used in other widgets, it does not have a table stack
+            # as a parent.
+            return stack
+        return None
+
+    def parentViewer(self) -> _QtMainWidgetBase:
+        """Return the parent table viewer."""
+        return self._qtable_view.parentViewer()
 
     def _switch_head_and_index(self, axis: int = 1):
         self.setFilter(None)  # reset filter to avoid unexpected errors
@@ -643,6 +653,17 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         else:
             raise ValueError("axis must be 0 or 1.")
         return self.setDataFrame(df_new)
+
+    def _get_ref_expr(self, r: int, c: int) -> str | None:
+        """Try to get a reference expression for a cell."""
+        graph = self._qtable_view._ref_graphs.get((r, c), None)
+        if graph is not None:
+            return getattr(graph._func, "expr", None)
+        return None
+
+    def _delete_ref_expr(self, r: int, c: int) -> None:
+        self._qtable_view._ref_graphs.pop((r, c), None)
+        return None
 
     def _set_forground_colormap_with_dialog(self, index: int):
         from ._colormap import exec_colormap_dialog
@@ -706,7 +727,9 @@ class QMutableTable(QBaseTable):
     itemChangedSignal = Signal(ItemInfo)
     rowChangedSignal = Signal(HeaderInfo)
     columnChangedSignal = Signal(HeaderInfo)
+    evaluatedSignal = Signal(EvalInfo)
     selectionChangedSignal = Signal()
+
     _data_raw: pd.DataFrame
     NaN = np.nan
 
@@ -745,12 +768,24 @@ class QMutableTable(QBaseTable):
         return self._data_raw
 
     def setDataFrameValue(self, r: _Sliceable, c: _Sliceable, value: Any) -> None:
+        """Set `value` at array[r:c]."""
         if not self.isEditable():
             raise TableImmutableError("Table is immutable.")
         data = self._data_raw
 
         # convert values
         if isinstance(r, slice) and isinstance(c, slice):
+            # delete references
+            if len(self._qtable_view._ref_graphs) < 128:
+                for key in list(self._qtable_view._ref_graphs.keys()):
+                    if r.start <= key[0] < r.stop and c.start <= key[1] < c.stop:
+                        self._delete_ref_expr(*key)
+
+            else:
+                for _c in range(c.start, c.stop):
+                    for _r in range(r.start, r.stop):
+                        self._delete_ref_expr(_r, _c)
+
             _value: pd.DataFrame = value
             if _value.size == 1:
                 v = _value.values[0, 0]
@@ -768,6 +803,7 @@ class QMutableTable(QBaseTable):
                         )
             _is_scalar = False
         else:
+            self._delete_ref_expr(r, c)
             _convert_value = self._get_converter(c)
             _value = _convert_value(r, c, value)
             _is_scalar = True
@@ -789,14 +825,15 @@ class QMutableTable(QBaseTable):
             _old_value: pd.DataFrame
             _old_value = _old_value.copy()  # this is needed for undo
 
-        # emit item changed signal if value changed
-        if _was_changed(_value, _old_value) and self.isEditable():
-            self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
-
         if self._filter_slice is not None:
             # If table is filtered, the dataframe to be displayed is a different object
             # so we have to update it as well.
             self.model().updateValue(r, c, _value)
+
+        # emit item changed signal if value changed
+        if _was_changed(_value, _old_value) and self.isEditable():
+            self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
+
         return None
 
     @QBaseTable._mgr.undoable
@@ -885,10 +922,12 @@ class QMutableTable(QBaseTable):
         slot_val: Callable[[ItemInfo], None],
         slot_row: Callable[[HeaderInfo], None],
         slot_col: Callable[[HeaderInfo], None],
+        slot_eval: Callable[[EvalInfo], None],
     ) -> None:
         self.itemChangedSignal.connect(slot_val)
         self.rowChangedSignal.connect(slot_row)
         self.columnChangedSignal.connect(slot_col)
+        self.evaluatedSignal.connect(slot_eval)
         return None
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):

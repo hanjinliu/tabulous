@@ -7,6 +7,7 @@ from typing import (
     Hashable,
     Literal,
     TYPE_CHECKING,
+    Mapping,
     MutableSequence,
     Sequence,
     TypeVar,
@@ -21,7 +22,8 @@ from typing import (
 
 import numpy as np
 from ..exceptions import TableImmutableError
-from ..types import _SingleSelection, SelectionType
+from ..types import _SingleSelection, SelectionType, EvalInfo
+from .._eval import Graph
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -194,6 +196,23 @@ class CellInterface(Component["TableBase"]):
         if not table.editable:
             raise TableImmutableError("Table is not editable.")
         import pandas as pd
+        from .._qt._table._base._line_edit import QCellLiteralEdit
+
+        row, col = self._normalize_key(key)
+
+        if isinstance(value, str) and QCellLiteralEdit._is_eval_like(value):
+            if row.stop - row.start == 1 and col.stop - col.start == 1:
+                expr, is_ref = QCellLiteralEdit._parse_ref(value)
+                info = EvalInfo(
+                    row=row.start,
+                    column=col.start,
+                    expr=expr,
+                    is_ref=is_ref,
+                )
+                table.events.evaluated.emit(info)
+                return None
+            else:
+                raise ValueError("Cannot evaluate a multi-cell selection.")
 
         if isinstance(value, str) or not hasattr(value, "__iter__"):
             _value = [[value]]
@@ -203,13 +222,13 @@ class CellInterface(Component["TableBase"]):
             df = pd.DataFrame(_value)
         except ValueError:
             raise ValueError(f"Could not convert value {_value!r} to DataFrame.")
-        row, col = self._normalize_key(key)
 
         if 1 in df.shape and (col.stop - col.start, row.stop - row.start) == df.shape:
             # it is natural to set an 1-D array without thinking of the direction.
             df = df.T
 
         table._qwidget.setDataFrameValue(row, col, df)
+        return None
 
     def __delitem__(self, key: tuple[int | slice, int | slice]) -> None:
         """Deleting cell, equivalent to pushing Delete key."""
@@ -515,3 +534,19 @@ class ColumnDtypeInterface(
         if formatting:
             self.parent._qwidget._set_default_text_formatter(name)
         return None
+
+
+class CellReferenceInterface(Component["TableBase"], Mapping["tuple[int, int]", Graph]):
+    """Interface to the cell references of a table."""
+
+    def _ref_graphs(self):
+        return self.parent._qwidget._qtable_view._ref_graphs
+
+    def __getitem__(self, key: tuple[int, int]):
+        return self._ref_graphs()[key]
+
+    def __iter__(self) -> Iterator[Graph]:
+        return iter(self._ref_graphs())
+
+    def __len__(self) -> int:
+        return len(self._ref_graphs())
