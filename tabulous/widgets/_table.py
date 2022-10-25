@@ -12,6 +12,7 @@ from ._component import (
     VerticalHeaderInterface,
     PlotInterface,
     ColumnDtypeInterface,
+    CellReferenceInterface,
     SelectionRanges,
     HighlightRanges,
 )
@@ -79,6 +80,7 @@ class TableBase(ABC):
     index = VerticalHeaderInterface()
     columns = HorizontalHeaderInterface()
     plt = PlotInterface()
+    cellref = CellReferenceInterface()
     filter = FilterProxy()
     selections = SelectionRanges()
     highlights = HighlightRanges()

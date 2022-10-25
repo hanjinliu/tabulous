@@ -7,6 +7,7 @@ from typing import (
     Hashable,
     Literal,
     TYPE_CHECKING,
+    Mapping,
     MutableSequence,
     Sequence,
     TypeVar,
@@ -22,6 +23,7 @@ from typing import (
 import numpy as np
 from ..exceptions import TableImmutableError
 from ..types import _SingleSelection, SelectionType, EvalInfo
+from .._eval import Graph
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -532,3 +534,19 @@ class ColumnDtypeInterface(
         if formatting:
             self.parent._qwidget._set_default_text_formatter(name)
         return None
+
+
+class CellReferenceInterface(Component["TableBase"], Mapping["tuple[int, int]", Graph]):
+    """Interface to the cell references of a table."""
+
+    def _ref_graphs(self):
+        return self.parent._qwidget._qtable_view._ref_graphs
+
+    def __getitem__(self, key: tuple[int, int]):
+        return self._ref_graphs()[key]
+
+    def __iter__(self) -> Iterator[Graph]:
+        return iter(self._ref_graphs())
+
+    def __len__(self) -> int:
+        return len(self._ref_graphs())

@@ -25,8 +25,10 @@ class Graph:
         table: TableBase,
         func: Callable[[], Any],
         sources: list[tuple[slice, slice]],
+        destination: tuple[slice, slice] | None = None,
     ):
         self._sources = sources
+        self._destination = destination
         self._func = func
         self._table_ref = weakref.ref(table)
         self._callback_blocked = False
@@ -55,19 +57,23 @@ class Graph:
 
         if not self._callback_blocked:
             with self.blocked():
-                self._func()
-
-        return None
+                out = self._func()
+        else:
+            out = None
+        return out
 
     def connect(self):
         self.table.events.data.connect(self.update)
         # First exception should be considered as a wrong expression.
         # Disconnect the callback.
         try:
-            self.update()
+            out = self.update()
         except Exception:
             self.disconnect()
             raise
+        else:
+            if isinstance(out, EvalResult):
+                self._destination = out.range
         return self
 
     def disconnect(self):
@@ -116,6 +122,8 @@ _T = TypeVar("_T")
 
 
 class LiteralCallable(Generic[_T]):
+    """A callable object for eval."""
+
     def __init__(self, expr: str, func: Callable[[], _T]):
         self._expr = expr
         self._func = func
@@ -152,7 +160,7 @@ class LiteralCallable(Generic[_T]):
             try:
                 out = eval(expr, ns, {})
             except Exception as e:
-                return EvalResult(e)
+                return EvalResult(e, pos)
 
             _row, _col = pos
 
@@ -200,7 +208,7 @@ class LiteralCallable(Generic[_T]):
 
             else:
                 raise RuntimeError(_row, _col)  # Unreachable
-            return EvalResult(out)
+            return EvalResult(out, (_row, _col))
 
         return LiteralCallable(expr, evaluator)
 
@@ -208,12 +216,24 @@ class LiteralCallable(Generic[_T]):
 class EvalResult:
     """A Rust-like Result type for evaluation."""
 
-    def __init__(self, obj: Any):
+    def __init__(self, obj: Any, range: tuple[int | slice, int | slice]):
         self._obj = obj
+        _r, _c = range
+        if isinstance(_r, int):
+            _r = slice(_r, _r + 1)
+        if isinstance(_c, int):
+            _c = slice(_c, _c + 1)
+        self._range = (_r, _c)
 
     @property
     def value(self) -> Any:
+        """Result value."""
         return self._obj
+
+    @property
+    def range(self) -> tuple[slice, slice]:
+        """Output range."""
+        return self._range
 
     def unwrap(self) -> Any:
         obj = self._obj
