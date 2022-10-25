@@ -629,7 +629,6 @@ class QCellLiteralEdit(_QTableLineEdit):
 
 _PATTERN_DF = re.compile(r"df\[.+?\]\[.+?\]")
 _PATTERN_LOC = re.compile(r"df\.loc\[.+?\]")
-_PATTERN_EITHER = re.compile(r"df\[.+?\]\[.+?\]|df\.loc\[.+?\]")
 
 
 def _find_last_dataframe_expr(s: str) -> int:
@@ -650,97 +649,3 @@ def _find_last_dataframe_expr(s: str) -> int:
     if _match := ptn.match(s[start:]):
         return _match.start() + start
     return -1
-
-
-def _find_all_dataframe_expr(s: str) -> list[str]:
-    return _PATTERN_EITHER.findall(s)
-
-
-def _parse_slice(s: str) -> slice:
-    if ":" in s:
-        start_str, stop_str = s.split(":")
-        start = eval(start_str)
-        stop = eval(stop_str)
-    else:
-        start = eval(s)
-        stop = start + 1
-    return slice(start, stop)
-
-
-def _parse_slice_loc(s: str, index: pd.Index) -> slice:
-    if ":" in s:
-        start_str, stop_str = s.split(":")
-        start = index.get_loc(eval(start_str))
-        stop = index.get_loc(eval(stop_str)) + 1
-    else:
-        start = index.get_loc(eval(s))
-        stop = start + 1
-    return slice(start, stop)
-
-
-def _infer_slices(
-    df: pd.DataFrame,
-    out: pd.Series,
-    r: int,
-    c: int,
-) -> tuple[slice, slice]:
-    """Infer how to concatenate ``out`` to ``df``."""
-
-    #      x | x | x |
-    #      x |(1)| x |(2)
-    #      x | x | x |
-    #     ---+---+---+---
-    #        |(3)|   |(4)
-
-    # 1. Return as a column vector for now.
-    # 2. Return as a column vector.
-    # 3. Return as a row vector.
-    # 4. Cannot determine in which orientation results should be aligned. Raise Error.
-
-    _nr, _nc = df.shape
-    if _nc <= c:  # case 2, 4
-        _orientation = "c"
-    elif _nr <= r:  # case 3
-        _orientation = "r"
-    else:  # case 1
-        _orientation = "infer"
-
-    if _orientation == "infer":
-        try:
-            df.loc[:, out.index]
-        except KeyError:
-            try:
-                df.loc[out.index, :]
-            except KeyError:
-                raise KeyError("Could not infer output orientation.")
-            else:
-                _orientation = "c"
-        else:
-            _orientation = "r"
-
-    if _orientation == "r":
-        rloc = slice(r, r + 1)
-        istart = df.columns.get_loc(out.index[0])
-        istop = df.columns.get_loc(out.index[-1]) + 1
-        if (df.columns[istart:istop] == out.index).all():
-            cloc = slice(istart, istop)
-        else:
-            raise ValueError("Output Series is not well sorted.")
-    elif _orientation == "c":
-        istart = df.index.get_loc(out.index[0])
-        istop = df.index.get_loc(out.index[-1]) + 1
-        if (df.index[istart:istop] == out.index).all():
-            rloc = slice(istart, istop)
-        else:
-            raise ValueError("Output Series is not well sorted.")
-        cloc = slice(c, c + 1)
-    else:
-        raise RuntimeError(_orientation)  # unreachable
-
-    # check (r, c) is in the range
-    if not (rloc.start <= r < rloc.stop and cloc.start <= c < cloc.stop):
-        raise ValueError(
-            f"The cell on editing {(r, c)} is not in the range of output "
-            f"({rloc.start}:{rloc.stop}, {cloc.start}:{cloc.stop})."
-        )
-    return rloc, cloc

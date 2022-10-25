@@ -13,9 +13,7 @@ import weakref
 from contextlib import contextmanager
 
 if TYPE_CHECKING:
-    from qtpy.QtCore import pyqtBoundSignal
     import pandas as pd
-    from typing_extensions import Self
     from .widgets import TableBase
 
 
@@ -125,12 +123,16 @@ class LiteralCallable(Generic[_T]):
     def __call__(self) -> _T:
         return self._func()
 
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}<{self._expr}>"
+
     @property
     def expr(self) -> str:
+        """The expression of the function."""
         return self._expr
 
     @classmethod
-    def _from_table(
+    def from_table(
         cls: type[LiteralCallable],
         table: TableBase,
         expr: str,
@@ -204,6 +206,8 @@ class LiteralCallable(Generic[_T]):
 
 
 class EvalResult:
+    """A Rust-like Result type for evaluation."""
+
     def __init__(self, obj: Any):
         self._obj = obj
 
