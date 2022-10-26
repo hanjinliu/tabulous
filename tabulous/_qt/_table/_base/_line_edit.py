@@ -270,6 +270,7 @@ class QCellLineEdit(_QTableLineEdit):
             return True
 
     def _pre_validation(self, text: str):
+        """Switch to QCellLiteralEdit if the text starts with certain characters."""
         if self._is_eval_like(text):
             pos = self.cursorPosition()
             self.setText("")
@@ -394,6 +395,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         return True
 
     def _pre_validation(self, text: str):
+        """Switch to QCellLineEdit if the text doesn't start with certain characters."""
         if not self._is_eval_like(text):
             qtable = self.parentTableView()
             self.close()
@@ -508,6 +510,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         return None
 
     def _reshape_widget(self, text: str):
+        """Resize to let all the characters visible."""
         fm = QtGui.QFontMetrics(self.font())
         width = min(fm.boundingRect(text).width() + 8, 300)
         return self.resize(max(width, self._initial_rect.width()), self.height())
@@ -529,7 +532,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         if idx < 0:
             return None
         seed = text[idx + 1 :]
-        for attr in self._completion_module.__dir__():
+        for attr in self._completion_module.__dict__.keys():
             if attr.startswith(seed):
                 current_text = self.text()
                 current_pos = self.cursorPosition()
