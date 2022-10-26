@@ -21,9 +21,9 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        from ..._global_variables import table
+        from ..._utils import get_config
 
-        self._table_vars = table
+        self._table_config = get_config().table
         self._columns_dtype = self.parent()._columns_dtype
 
     @cached_property
@@ -44,13 +44,13 @@ class SpreadSheetModel(AbstractDataFrameModel):
     def rowCount(self, parent=None):
         return min(
             self._df.shape[0] + _OUT_OF_BOUND_SIZE,
-            self._table_vars.max_row_count,
+            self._table_config.max_row_count,
         )
 
     def columnCount(self, parent=None):
         return min(
             self._df.shape[1] + _OUT_OF_BOUND_SIZE,
-            self._table_vars.max_column_count,
+            self._table_config.max_column_count,
         )
 
     def _data_display(self, index: QtCore.QModelIndex):

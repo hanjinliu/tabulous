@@ -43,7 +43,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         else:
             self._parent_table = None
 
-        from ...._global_variables import table
+        from ...._utils import get_config
+
+        table = get_config().table  # get config
 
         # settings
         self._font_size = table.font_size
