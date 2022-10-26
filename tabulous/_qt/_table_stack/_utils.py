@@ -60,9 +60,10 @@ class QCompletableLineEdit(QtW.QLineEdit):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        from ..._global_variables import table
+        from ..._utils import get_config
 
-        font = QtGui.QFont(table.font, table.font_size)
+        table_config = get_config().table
+        font = QtGui.QFont(table_config.font, table_config.font_size)
         self.setFont(font)
         self._qtable_viewer = find_parent_table_viewer(self)
         self.textChanged.connect(self.setCompletion)

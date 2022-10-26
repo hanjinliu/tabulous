@@ -10,6 +10,7 @@ import pandas as pd
 from ..._qt_const import MonospaceFontFamily
 from ..._keymap import QtKeys
 from ....types import HeaderInfo, EvalInfo
+from ...._utils import get_config
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
@@ -18,14 +19,16 @@ if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
     from ._header_view import QDataFrameHeaderView
 
+_CONFIG = get_config()
+
 
 class _QTableLineEdit(QtW.QLineEdit):
     """LineEdit widget with dtype checker and custom defocusing."""
 
     _VALID = QtGui.QColor(186, 222, 244, 200)
     _INVALID = QtGui.QColor(255, 0, 0, 200)
-    _EVAL_PREFIX = "="
-    _REF_PREFIX = "&="
+    _EVAL_PREFIX = _CONFIG.cell.eval_prefix
+    _REF_PREFIX = _CONFIG.cell.ref_prefix
 
     def __init__(
         self,

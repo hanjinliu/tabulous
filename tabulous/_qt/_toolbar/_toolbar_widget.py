@@ -26,6 +26,7 @@ SAMPLE_CHOICES = [
 ]
 # fmt: on
 
+
 ICON_DIR = Path(__file__).parent.parent / "_icons"
 
 
@@ -51,7 +52,7 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
         action.setToolTip(doc)
         btn = self.widgetForAction(action)
         self._button_and_icon.append((btn, qicon))
-        return None
+        return
 
     def toolTipPosition(self, index: int) -> QtCore.QPoint:
         btn, _ = self._button_and_icon[index]
@@ -66,7 +67,7 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
         """Emulate a click on the button at the given index."""
         if index < 0 or index >= len(self._button_and_icon):
             if ignore_index_error:
-                return None
+                return
             else:
                 raise IndexError("Index out of range")
         btn, _ = self._button_and_icon[index]
@@ -140,7 +141,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         toolbar = self._child_widgets[tabname]
         qicon = QColoredSVGIcon.fromfile(icon)
         toolbar.appendAction(f, qicon)
-        return None
+        return
 
     def addSeparatorToChild(self, tabname: str) -> QAction:
         toolbar = self._child_widgets[tabname]
@@ -300,7 +301,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         """Change view mode."""
         table = self.viewer.current_table
         if table is None:
-            return None
+            return
         table.view_mode = view_mode
 
     def plot(self):
@@ -315,7 +316,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         """Errorbar plot."""
         table = self.viewer.current_table
         if table is None:
-            return None
+            return
 
         data, choices = _get_data_and_choices(table)
 
@@ -345,7 +346,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         """Histogram."""
         table = self.viewer.current_table
         if table is None:
-            return None
+            return
 
         data, choices = _get_data_and_choices(table)
 
@@ -385,21 +386,23 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def _plot_xy(self, dialog):
         table = self.viewer.current_table
         if table is None:
-            return None
+            return
 
         data, choices = _get_data_and_choices(table)
 
-        # fmt: off
-        # set proper options
         if len(choices) == 0:
             raise ValueError("Table must have at least one column.")
         elif len(choices) == 1:
-            x = {"choices": [], "widget_type": "ComboBox", "value": None, "nullable": True}
+            x = {
+                "choices": [],
+                "widget_type": "ComboBox",
+                "value": None,
+                "nullable": True,
+            }
             y = {"choices": choices, "widget_type": "Select", "value": choices[0]}
         else:
             x = {"choices": choices, "nullable": True, "value": choices[0]}
             y = {"choices": choices, "widget_type": "Select", "value": choices[1]}
-        # fmt on
 
         if dialog(
             ax={"bind": table.plt.gca()},
@@ -414,7 +417,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def _plot_sns(self, dialog):
         table = self.viewer.current_table
         if table is None:
-            return None
+            return
 
         colnames = list(table.data.columns)
 
@@ -448,17 +451,18 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def initToolbar(self):
         """Add tool buttons"""
 
-        # fmt: off
-        # File
         self.registerAction("File", self.open_table, ICON_DIR / "open_table.svg")
-        self.registerAction("File", self.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")
+        self.registerAction(
+            "File", self.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg"
+        )
         self.registerAction("File", self.save_table, ICON_DIR / "save_table.svg")
         self.addSeparatorToChild("File")
         self.registerAction("File", self.open_sample, ICON_DIR / "open_sample.svg")
 
-        # Table
         self.registerAction("Table", self.copy_as_table, ICON_DIR / "copy_as_table.svg")
-        self.registerAction("Table", self.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")
+        self.registerAction(
+            "Table", self.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg"
+        )
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.groupby, ICON_DIR / "groupby.svg")
         self.registerAction("Table", self.switch_header, ICON_DIR / "switch_header.svg")
@@ -469,20 +473,35 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Table", self.find_item, ICON_DIR / "find_item.svg")
         self.registerAction("Table", self.sort_table, ICON_DIR / "sort_table.svg")
 
-        # Analyze
-        self.registerAction("Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg")
+        self.registerAction(
+            "Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg"
+        )
         self.registerAction("Analyze", self.eval, ICON_DIR / "eval.svg")
         self.registerAction("Analyze", self.filter, ICON_DIR / "filter.svg")
         self.addSeparatorToChild("Analyze")
-        self.registerAction("Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg")
+        self.registerAction(
+            "Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg"
+        )
 
-        # View
-        self.registerAction("View", partial(self.change_view_mode, "popup"), ICON_DIR / "view_popup.svg")
-        self.registerAction("View", partial(self.change_view_mode, "horizontal"), ICON_DIR / "view_dual_h.svg")
-        self.registerAction("View", partial(self.change_view_mode, "vertical"), ICON_DIR / "view_dual_v.svg")
-        self.registerAction("View", partial(self.change_view_mode, "normal"), ICON_DIR / "view_reset.svg")
+        self.registerAction(
+            "View", partial(self.change_view_mode, "popup"), ICON_DIR / "view_popup.svg"
+        )
+        self.registerAction(
+            "View",
+            partial(self.change_view_mode, "horizontal"),
+            ICON_DIR / "view_dual_h.svg",
+        )
+        self.registerAction(
+            "View",
+            partial(self.change_view_mode, "vertical"),
+            ICON_DIR / "view_dual_v.svg",
+        )
+        self.registerAction(
+            "View",
+            partial(self.change_view_mode, "normal"),
+            ICON_DIR / "view_reset.svg",
+        )
 
-        # Plot
         self.registerAction("Plot", self.plot, ICON_DIR / "plot.svg")
         self.registerAction("Plot", self.scatter, ICON_DIR / "scatter.svg")
         self.registerAction("Plot", self.errorbar, ICON_DIR / "errorbar.svg")
@@ -494,15 +513,15 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Plot", self.boxenplot, ICON_DIR / "boxenplot.svg")
         self.addSeparatorToChild("Plot")
         self.registerAction("Plot", self.new_figure, ICON_DIR / "new_figure.svg")
-        # fmt: on
-        return None
+
+        return
+
 
 def _get_data_and_choices(
     table: TableBase,
 ) -> tuple[dict[Hashable, pd.Series], list[Hashable]]:
     data = dict(table.selections.values.itercolumns())
     choices = list(data.keys())
-
     if len(choices) == 0 or len(next(iter(data.values()))) == 1:
         # no selections or only one cell is selected
         data = dict(table.data.items())

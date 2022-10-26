@@ -7,6 +7,7 @@ def main():
     parser.add_argument(
         "-v", "--version", action="version", version=f"tabulous version {__version__}"
     )
+    parser.add_argument("--config-path", action="store_true")
 
     args, unknown = parser.parse_known_args()
 
@@ -20,7 +21,13 @@ def main():
     else:
         raise RuntimeError
 
-    viewer.show()
+    if args.config_path:
+        from ._utils import CONFIG_PATH
+
+        print(CONFIG_PATH)
+        return
+
+    return viewer.show()
 
 
 if __name__ == "__main__":

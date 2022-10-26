@@ -92,10 +92,12 @@ class QtConsole(RichJupyterWidget):
             raise ValueError("ipython shell not recognized; " f"got {type(shell)}")
 
         if self.shell is not None:
-            from .._global_variables import default_namespace as _ns
             import tabulous as tbl
             import numpy as np
             import pandas as pd
+            from .._utils import get_config
+
+            _ns = get_config().console_namespace
 
             ns = {
                 _ns.viewer: widget,
