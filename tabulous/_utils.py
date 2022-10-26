@@ -1,12 +1,12 @@
 from __future__ import annotations
+
 from dataclasses import asdict, dataclass
 from functools import wraps
 from pathlib import Path
-from appdirs import user_state_dir
-from sklearn import get_config
+from appdirs import user_state_dir, user_config_dir
 
 TXT_PATH = Path(user_state_dir("tabulous", "tabulous", "history.txt"))
-CONFIG_PATH = Path(user_state_dir("tabulous", "tabulous", "config.toml"))
+CONFIG_PATH = Path(user_config_dir("tabulous", "tabulous", "config.toml"))
 
 
 def warn_on_exc(default=None):
@@ -75,12 +75,12 @@ class ConsoleNamespace:
 class Table:
     """Table settings."""
 
-    max_row_count = 100000
-    max_column_count = 100000
-    font = "Arial"
-    font_size = 10
-    row_size = 28
-    column_size = 100
+    max_row_count: int = 100000
+    max_column_count: int = 100000
+    font: str = "Arial"
+    font_size: int = 10
+    row_size: int = 28
+    column_size: int = 100
 
 
 @dataclass
@@ -147,7 +147,7 @@ class TabulousConfig:
         )
 
 
-CONFIG = None
+CONFIG: TabulousConfig | None = None
 
 
 def get_config():

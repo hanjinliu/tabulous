@@ -213,3 +213,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     def setToolBarVisible(self, visible: bool):
         """Set visibility of toolbar"""
         return self._toolbar.setVisible(visible)
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self._table_viewer._config.as_toml()
+        return super().closeEvent(a0)
