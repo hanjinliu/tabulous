@@ -115,6 +115,10 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self._console_dock_widget = None
         self._dock_widgets = weakref.WeakValueDictionary()
 
+        from ..._utils import get_config
+
+        self._ask_on_close = get_config().window.ask_on_close
+
         from .._toolbar import QTableStackToolBar
 
         self._toolbar = QTableStackToolBar(self)
@@ -184,15 +188,32 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         window = cls._instances[-1] if cls._instances else None
         return window._table_viewer if window else None
 
+    def close(self) -> bool:
+        self._ask_on_close = False
+        return super().close()
+
     def event(self, e: QEvent):
         type = e.type()
         if type == QEvent.Type.Close:
+            if self._ask_on_close and not self._tablestack.isEmpty():
+                btn = QtW.QMessageBox.information(
+                    self,
+                    "tabulous",
+                    "Are you sure to quit?",
+                    buttons=QtW.QMessageBox.StandardButton.Yes
+                    | QtW.QMessageBox.StandardButton.No,
+                )
+                if btn == QtW.QMessageBox.StandardButton.No:
+                    e.ignore()
+                    return True
             # when we close the MainWindow, remove it from the instances list
             try:
                 QMainWindow._instances.remove(self)
             except ValueError:
                 pass
-        if type in _REORDER_INSTANCES:
+            self._table_viewer._config.as_toml()  # save config
+
+        elif type in _REORDER_INSTANCES:
             # upon activation or raise_, put window at the end of _instances
             try:
                 inst = QMainWindow._instances
@@ -200,7 +221,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
             except ValueError:
                 pass
 
-        if type in _HIDE_TOOLTIPS:
+        elif type in _HIDE_TOOLTIPS:
             self._toolbar.hideTabTooltips()
             self._toolbar.currentToolBar().hideTabTooltips()
 
@@ -213,7 +234,3 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     def setToolBarVisible(self, visible: bool):
         """Set visibility of toolbar"""
         return self._toolbar.setVisible(visible)
-
-    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        self._table_viewer._config.as_toml()
-        return super().closeEvent(a0)
