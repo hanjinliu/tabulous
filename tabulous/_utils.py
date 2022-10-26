@@ -121,10 +121,12 @@ class TabulousConfig:
         console_namespace = tm.get("console_namespace", {})
         table = tm.get("table", {})
         cell = tm.get("cell", {})
+        window = tm.get("window", {})
         return cls(
             ConsoleNamespace(**console_namespace),
             Table(**table),
             Cell(**cell),
+            Window(**window),
         )
 
     def as_toml(self):
@@ -143,7 +145,7 @@ class TabulousConfig:
         from types import MappingProxyType
 
         return MappingProxyType(
-            {k: MappingProxyType(asdict(v)) for k, v in asdict(self).items()}
+            {k: MappingProxyType(v) for k, v in asdict(self).items()}
         )
 
 

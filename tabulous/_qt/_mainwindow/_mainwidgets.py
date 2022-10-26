@@ -196,13 +196,18 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         type = e.type()
         if type == QEvent.Type.Close:
             if self._ask_on_close and not self._tablestack.isEmpty():
-                btn = QtW.QMessageBox.information(
-                    self,
-                    "tabulous",
-                    "Are you sure to quit?",
-                    buttons=QtW.QMessageBox.StandardButton.Yes
-                    | QtW.QMessageBox.StandardButton.No,
-                )
+                msgbox = QtW.QMessageBox(self)
+                msgbox.setWindowTitle("tabulous")
+                msgbox.setIcon(QtW.QMessageBox.Icon.Question)
+                msgbox.setText("Are you sure to close this window?")
+                msgbox.addButton(QtW.QMessageBox.StandardButton.Yes)
+                msgbox.addButton(QtW.QMessageBox.StandardButton.No)
+
+                cbox = QtW.QCheckBox("Don't ask again")
+                msgbox.setCheckBox(cbox)
+                btn = msgbox.exec()
+                if cbox.isChecked():
+                    self._table_viewer._config.window.ask_on_close = False
                 if btn == QtW.QMessageBox.StandardButton.No:
                     e.ignore()
                     return True
