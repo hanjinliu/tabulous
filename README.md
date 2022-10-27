@@ -36,6 +36,15 @@ pip install tabulous[pyqt6]  # Use PyQt6
 |![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_groupby.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_display.gif)|
 |A table group that corresponds to the returned object of the `groupby` method of `pd.DataFrame`.|A table viewer that hotly reloads data using provided loader function. Useful for streaming data from other softwares.|
 
+### In-cell Evaluation
+
+|**Simple Evaluation**|**Referenced Evaluation**|
+|:-:|:-:|
+|![](https://github.com/hanjinliu/tabulous/blob/main/image/eval.png)|![](https://github.com/hanjinliu/tabulous/blob/main/image/ref_eval.png)|
+|Text starts with "=" is evaluated in-place.|Text starts with "&=" is evaluated with cell references and is updated every time table data is updated.|
+
+
+
 ### Rich Visualization
 
 |**Cell colors**|**Highlighting**|
