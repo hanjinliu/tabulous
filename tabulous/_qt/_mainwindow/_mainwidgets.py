@@ -8,6 +8,7 @@ from qtpy.QtCore import Qt, QEvent, QTimer
 from ._base import _QtMainWidgetBase
 from .._keymap import QtKeyMap
 from ...types import TabPosition
+from ..._utils import get_config
 
 if TYPE_CHECKING:
     from ...widgets import TableViewer
@@ -207,7 +208,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 msgbox.setCheckBox(cbox)
                 btn = msgbox.exec()
                 if cbox.isChecked():
-                    self._table_viewer._config.window.ask_on_close = False
+                    get_config().window.ask_on_close = False
                 if btn == QtW.QMessageBox.StandardButton.No:
                     e.ignore()
                     return True
@@ -216,7 +217,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 QMainWindow._instances.remove(self)
             except ValueError:
                 pass
-            self._table_viewer._config.as_toml()  # save config
+            get_config().as_toml()  # save config
 
         elif type in _REORDER_INSTANCES:
             # upon activation or raise_, put window at the end of _instances

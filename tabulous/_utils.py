@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import MappingProxyType
 from dataclasses import asdict, dataclass
 from functools import wraps
 from pathlib import Path
@@ -141,9 +142,8 @@ class TabulousConfig:
 
         return None
 
-    def as_immutable(self):
-        from types import MappingProxyType
-
+    def as_immutable(self) -> MappingProxyType:
+        """Return the immutable version of the config."""
         return MappingProxyType(
             {k: MappingProxyType(v) for k, v in asdict(self).items()}
         )
@@ -152,8 +152,9 @@ class TabulousConfig:
 CONFIG: TabulousConfig | None = None
 
 
-def get_config():
+def get_config(reload: bool = False) -> TabulousConfig:
+    """Get the global config."""
     global CONFIG
-    if CONFIG is None:
+    if CONFIG is None or reload:
         CONFIG = TabulousConfig.from_toml()
     return CONFIG
