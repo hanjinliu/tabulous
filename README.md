@@ -40,10 +40,8 @@ pip install tabulous[pyqt6]  # Use PyQt6
 
 |**Simple Evaluation**|**Referenced Evaluation**|
 |:-:|:-:|
-|![](https://github.com/hanjinliu/tabulous/blob/main/image/eval.png)|![](https://github.com/hanjinliu/tabulous/blob/main/image/ref_eval.png)|
+|![](https://github.com/hanjinliu/tabulous/blob/main/image/eval.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/ref_eval.gif)|
 |Text starts with "=" is evaluated in-place.|Text starts with "&=" is evaluated with cell references and is updated every time table data is updated.|
-
-
 
 ### Rich Visualization
 
