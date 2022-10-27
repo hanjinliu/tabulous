@@ -17,6 +17,7 @@ class MatchMode:
     text = "'12'"
     text_partial = "'1'2"
     regex = ".*"
+    expr = ">_"
 
 
 class QComboButtons(QtW.QWidget):
@@ -26,12 +27,9 @@ class QComboButtons(QtW.QWidget):
 
     def __init__(self) -> None:
         super().__init__()
-        choices = [
-            MatchMode.value,
-            MatchMode.text,
-            MatchMode.text_partial,
-            MatchMode.regex,
-        ]
+        choices = list(
+            v for k, v in MatchMode.__dict__.items() if not k.startswith("_")
+        )
         _layout = QtW.QHBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.setSpacing(2)
@@ -41,6 +39,7 @@ class QComboButtons(QtW.QWidget):
         buttons[1].setToolTip("Match by text")
         buttons[2].setToolTip("Partial match by text")
         buttons[3].setToolTip("Match by regular expression")
+        buttons[4].setToolTip("Match by any expression")
 
         for i, btn in enumerate(buttons):
             _layout.addWidget(btn)
@@ -80,7 +79,7 @@ class QFinderWidget(QtW.QWidget):
         self._search_box.textChanged.connect(self.initSearchBox)
         _search_box_widget = QWithButtons(self._search_box, texts=["↑", "↓"])
         _search_box_widget.clicked.connect(
-            lambda i: self.findNext() if i == 0 else self.findPrevious()
+            lambda i: self.findPrevious() if i == 0 else self.findNext()
         )
         _search_box_widget.button(0).setToolTip("Find next")
         _search_box_widget.button(1).setToolTip("Find previous")
@@ -148,9 +147,8 @@ class QFinderWidget(QtW.QWidget):
 
         try:
             r, c = self._current_iterator.next_until(pf)
-        except StopIteration:
-            self.initSearchBox()
-            return
+        except ItemNotFound:
+            raise ItemNotFound(f"{text!r} not found.")
         qtable = self.currentTable()
         qtable.moveToItem(r + 2, c + 2)
         qtable.moveToItem(r, c)
@@ -168,9 +166,8 @@ class QFinderWidget(QtW.QWidget):
 
         try:
             r, c = self._current_iterator.prev_until(pf)
-        except StopIteration:
-            self.initSearchBox()
-            return
+        except ItemNotFound:
+            raise ItemNotFound(f"{text!r} not found.")
         qtable = self.currentTable()
         qtable.moveToItem(r + 2, c + 2)
         qtable.moveToItem(r, c)
@@ -190,6 +187,7 @@ class QFinderWidget(QtW.QWidget):
         return self.findNext()
 
     def replaceAll(self) -> None:
+        """Replace all matching cells with the text in the box"""
         text = self._search_box.text()
         text_after = self._replace_box.text()
         if not text:
@@ -199,15 +197,17 @@ class QFinderWidget(QtW.QWidget):
         pf = partial(self._match_method, qtable, text)
         self._current_iterator.shape = qtable.dataShape()
 
-        while True:
-            try:
-                r, c = self._current_iterator.next_until(pf)
-            except StopIteration:
-                self.initSearchBox()
-                return
-            convert_value = qtable._get_converter(c)
-            value = convert_value(r, c, text_after)
-            qtable.setDataFrameValue(r, c, value)
+        with qtable._mgr.merging(lambda cmd: f"Replace {text!r} to {text_after!r}"):
+            while True:
+                try:
+                    r, c = self._current_iterator.next_until(pf)
+                except ItemNotFound:
+                    self.initSearchBox()
+                    break
+                convert_value = qtable._get_converter(c)
+                value = convert_value(r, c, text_after)
+                qtable.setDataFrameValue(r, c, value)
+
         return None
 
     def setMatchMode(self, mode: str):
@@ -220,6 +220,8 @@ class QFinderWidget(QtW.QWidget):
             self._match_method = self._text_partial_match
         elif mode == MatchMode.regex:
             self._match_method = self._text_regex_match
+        elif mode == MatchMode.expr:
+            self._match_method = self._expr_match
         else:
             raise ValueError(f"Unknown match mode: {mode}")
 
@@ -257,6 +259,12 @@ class QFinderWidget(QtW.QWidget):
     def _text_regex_match(self, qtable: QBaseTable, text: str, r: int, c: int) -> bool:
         return re.match(text, str(qtable.dataShown().iloc[r, c])) is not None
 
+    def _expr_match(self, qtable: QBaseTable, text: str, r: int, c: int) -> bool:
+        import numpy, pandas
+
+        f = eval(f"(lambda x: {text})", {"np": numpy, "pd": pandas}, {})
+        return f(qtable.dataShown().iloc[r, c])
+
 
 class QSearchBox(QtW.QLineEdit):
     enterClicked = Signal()
@@ -290,22 +298,30 @@ class QWithButtons(QtW.QWidget):
         _layout.addWidget(widget)
         self._buttons = []
         for i, text in enumerate(texts):
-            btn = QtW.QPushButton(text)
-            btn.clicked.connect(lambda k=i: self.clicked.emit(k))
+            btn = self._make_button(i, text)
             _layout.addWidget(btn)
             self._buttons.append(btn)
 
         self.setLayout(_layout)
+
+    def _make_button(self, i: int, text: str):
+        btn = QtW.QPushButton(text)
+        btn.clicked.connect(lambda: self.clicked.emit(i))
+        return btn
 
     def button(self, idx: int) -> QtW.QPushButton:
         """Get the button at the given index."""
         return self._buttons[idx]
 
 
+class ItemNotFound(Exception):
+    """Raised when the item is not found."""
+
+
 class TwoWayIterator(ABC):
     def __init__(self, shape: tuple[int, int]):
         self.shape = shape
-        self.init_index()
+        self.go_to_first()
 
     def set_index(self, r: int, c: int) -> None:
         self._r = r
@@ -313,8 +329,12 @@ class TwoWayIterator(ABC):
         return None
 
     @abstractmethod
-    def init_index(self) -> None:
-        """Initialize the index."""
+    def go_to_first(self) -> None:
+        """Go to the first index."""
+
+    @abstractmethod
+    def go_to_last(self) -> None:
+        """Go to the last index."""
 
     @abstractmethod
     def next(self):
@@ -326,23 +346,33 @@ class TwoWayIterator(ABC):
 
     def next_until(self, predicate: Callable[[int, int], bool]) -> tuple[int, int]:
         """Next item until the predicate is True."""
+        start = item = self.next()
         while True:
-            item = self.next()
             if predicate(*item):
                 return item
+            item = self.next()
+            if item == start:
+                raise ItemNotFound
 
     def prev_until(self, predicate: Callable[[int, int], bool]) -> tuple[int, int]:
         """Next item until the predicate is True."""
+        start = item = self.prev()
         while True:
-            item = self.prev()
             if predicate(*item):
                 return item
+            item = self.prev()
+            if item == start:
+                raise ItemNotFound
 
 
 class RowwiseIterator(TwoWayIterator):
-    def init_index(self) -> None:
+    def go_to_first(self) -> None:
         self._r = 0
         self._c = -1
+
+    def go_to_last(self) -> None:
+        self._r = self.shape[0] - 1
+        self._c = self.shape[1]
 
     def next(self) -> tuple[int, int]:
         self._c += 1
@@ -351,7 +381,8 @@ class RowwiseIterator(TwoWayIterator):
             self._c = 0
             self._r += 1
             if self._r >= nr:
-                raise StopIteration
+                self.go_to_first()
+                self._c += 1
         return self._r, self._c
 
     def prev(self) -> tuple[int, int]:
@@ -361,14 +392,19 @@ class RowwiseIterator(TwoWayIterator):
             self._c = nc - 1
             self._r -= 1
             if self._r < 0:
-                raise StopIteration
+                self.go_to_last()
+                self._c -= 1
         return self._r, self._c
 
 
 class ColumnwiseIterator(TwoWayIterator):
-    def init_index(self) -> None:
+    def go_to_first(self) -> None:
         self._r = -1
         self._c = 0
+
+    def go_to_last(self) -> None:
+        self._r = self.shape[0]
+        self._c = self.shape[1] - 1
 
     def next(self) -> tuple[int, int]:
         self._r += 1
@@ -377,7 +413,8 @@ class ColumnwiseIterator(TwoWayIterator):
             self._r = 0
             self._c += 1
             if self._c >= nc:
-                raise StopIteration
+                self.go_to_first()
+                self._r += 1
         return self._r, self._c
 
     def prev(self) -> tuple[int, int]:
@@ -387,5 +424,6 @@ class ColumnwiseIterator(TwoWayIterator):
             self._r = nr - 1
             self._c -= 1
             if self._c < 0:
-                raise StopIteration
+                self.go_to_last()
+                self._r -= 1
         return self._r, self._c
