@@ -3,7 +3,9 @@
 
 # tabulous
 
-A table data viewer for Python. [&rarr;📖 Documentation](https://hanjinliu.github.io/tabulous/)
+A table data viewer for Python.
+
+[&rarr;📖 Documentation](https://hanjinliu.github.io/tabulous/)
 
 ![](https://github.com/hanjinliu/tabulous/blob/main/image/viewer_iris.png)
 

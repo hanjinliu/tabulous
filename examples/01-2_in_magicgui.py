@@ -8,9 +8,10 @@ if __name__ == "__main__":
     viewer1 = MagicTableViewer(tab_position="left")
     viewer1.add_table(
         pd.DataFrame(
-            {"a": [1, 2, 3, 0],
-            "categorical": pd.Series(["A", "B", "B", "A"], dtype="category"),
-            "boolean": [True, False, True, False],
+            {
+                "a": [1, 2, 3, 0],
+                "categorical": pd.Series(["A", "B", "B", "A"], dtype="category"),
+                "boolean": [True, False, True, False],
             }
         ),
         editable=True,

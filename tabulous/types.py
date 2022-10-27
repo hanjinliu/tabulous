@@ -10,6 +10,7 @@ from typing import (
     TYPE_CHECKING,
     NamedTuple,
     SupportsIndex,
+    MutableSequence,
 )
 from enum import Enum
 
@@ -18,11 +19,12 @@ from numpy.typing import ArrayLike
 
 if TYPE_CHECKING:
     import pandas as pd
-    from .widgets import TableBase
 
     _TableLike = Union[pd.DataFrame, dict, Iterable, ArrayLike]
+    from .widgets._component import SelectionRanges
 else:
     _TableLike = Any
+    SelectionRanges = MutableSequence[Tuple[slice, slice]]
 
 
 __all__ = [
