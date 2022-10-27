@@ -13,11 +13,20 @@ if TYPE_CHECKING:
 
 
 class MatchMode:
+    """Match mode for search"""
+
     value = "12"
     text = "'12'"
     text_partial = "'1'2"
     regex = ".*"
-    expr = ">_"
+    expr = ">>>"
+
+
+class SearchOrientation:
+    """Orientation of searching"""
+
+    row = "⇉"
+    column = "⇊"
 
 
 class QComboButtons(QtW.QWidget):
@@ -95,8 +104,9 @@ class QFinderWidget(QtW.QWidget):
             lambda i: self.replaceCurrent() if i == 0 else self.replaceAll()
         )
 
-        self._search_box.setFixedWidth(160)
-        self._replace_box.setFixedWidth(160)
+        policy = (QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Fixed)
+        self._search_box.setSizePolicy(*policy)
+        self._replace_box.setSizePolicy(*policy)
 
         _footer = QtW.QWidget()
         _layout.addWidget(_footer)
@@ -107,9 +117,9 @@ class QFinderWidget(QtW.QWidget):
         self.cbox_match.currentTextChanged.connect(self.setMatchMode)
 
         self.cbox_ori = QtW.QComboBox()
-        self.cbox_ori.addItems(["row", "column"])
+        self.cbox_ori.addItems([SearchOrientation.row, SearchOrientation.column])
         self.cbox_ori.setCurrentIndex(1)
-        self.cbox_ori.currentTextChanged.connect(self.setFindOrientation)
+        self.cbox_ori.currentTextChanged.connect(self.initSearchBox)
 
         _footer.layout().addWidget(self.cbox_ori)
         _footer.layout().addWidget(self.cbox_match)
@@ -118,7 +128,6 @@ class QFinderWidget(QtW.QWidget):
         self._qtable_viewer = _utils.find_parent_table_viewer(self)
         self._current_iterator: TwoWayIterator | None = None
 
-        self.setFindOrientation("column")
         self.setMatchMode(MatchMode.value)
         self._current_index = None
 
@@ -132,12 +141,15 @@ class QFinderWidget(QtW.QWidget):
         return self._replace_box.parentWidget().setVisible(visible)
 
     def initSearchBox(self):
-        if self._find_method == "row":
+        if self.cbox_ori.currentText() == SearchOrientation.row:
             self._current_iterator = RowwiseIterator(self.currentTable().dataShape())
         else:
             self._current_iterator = ColumnwiseIterator(self.currentTable().dataShape())
+        if self._current_index is not None:
+            self._current_iterator.set_index(*self._current_index)
 
     def findNext(self) -> None:
+        """Find next item that match in the current mode."""
         text = self._search_box.text()
         if not text:
             return
@@ -157,6 +169,7 @@ class QFinderWidget(QtW.QWidget):
         return
 
     def findPrevious(self) -> None:
+        """Find previous item that match in the current mode."""
         text = self._search_box.text()
         if not text:
             return
@@ -225,14 +238,6 @@ class QFinderWidget(QtW.QWidget):
         else:
             raise ValueError(f"Unknown match mode: {mode}")
 
-    def setFindOrientation(self, ori: str):
-        if ori == "row":
-            self._find_method = "row"
-        elif ori == "column":
-            self._find_method = "column"
-        else:
-            raise ValueError(f"Unknown orientation: {ori}")
-
     def currentTable(self) -> QBaseTable:
         tablestack = self._qtable_viewer._tablestack
         idx = tablestack.currentIndex()
@@ -263,7 +268,10 @@ class QFinderWidget(QtW.QWidget):
         import numpy, pandas
 
         f = eval(f"(lambda x: {text})", {"np": numpy, "pd": pandas}, {})
-        return f(qtable.dataShown().iloc[r, c])
+        try:
+            return f(qtable.dataShown().iloc[r, c])
+        except Exception:
+            return False
 
 
 class QSearchBox(QtW.QLineEdit):
@@ -307,6 +315,7 @@ class QWithButtons(QtW.QWidget):
     def _make_button(self, i: int, text: str):
         btn = QtW.QPushButton(text)
         btn.clicked.connect(lambda: self.clicked.emit(i))
+        btn.setFixedWidth(36)
         return btn
 
     def button(self, idx: int) -> QtW.QPushButton:
