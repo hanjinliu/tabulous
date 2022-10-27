@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Iterator, TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING
+from functools import partial
+from abc import ABC, abstractmethod
 import re
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Signal, Qt
@@ -76,15 +78,26 @@ class QFinderWidget(QtW.QWidget):
         self._search_box = QSearchBox()
         self._search_box.enterClicked.connect(self.findNext)
         self._search_box.textChanged.connect(self.initSearchBox)
-        _search_box_widget = QWithButton(self._search_box, text="Find")
-        _search_box_widget.clicked.connect(self.findNext)
+        _search_box_widget = QWithButtons(self._search_box, texts=["↑", "↓"])
+        _search_box_widget.clicked.connect(
+            lambda i: self.findNext() if i == 0 else self.findPrevious()
+        )
+        _search_box_widget.button(0).setToolTip("Find next")
+        _search_box_widget.button(1).setToolTip("Find previous")
         _layout.addWidget(_search_box_widget)
 
         self._replace_box = QSearchBox()
         self._replace_box.enterClicked.connect(self.replaceCurrent)
-        _replace_box_widget = QWithButton(self._replace_box, text="Replace")
+        _replace_box_widget = QWithButtons(self._replace_box, texts=["↵", "↵↵"])
+        _replace_box_widget.button(0).setToolTip("Replace current item")
+        _replace_box_widget.button(1).setToolTip("Replace all items")
         _layout.addWidget(_replace_box_widget)
-        _replace_box_widget.clicked.connect(self.replaceCurrent)
+        _replace_box_widget.clicked.connect(
+            lambda i: self.replaceCurrent() if i == 0 else self.replaceAll()
+        )
+
+        self._search_box.setFixedWidth(160)
+        self._replace_box.setFixedWidth(160)
 
         _footer = QtW.QWidget()
         _layout.addWidget(_footer)
@@ -104,7 +117,8 @@ class QFinderWidget(QtW.QWidget):
 
         self.setLayout(_layout)
         self._qtable_viewer = _utils.find_parent_table_viewer(self)
-        self._current_iterator: Iterator[tuple[int, int]] | None = None
+        self._current_iterator: TwoWayIterator | None = None
+
         self.setFindOrientation("column")
         self.setMatchMode(MatchMode.value)
         self._current_index = None
@@ -118,20 +132,44 @@ class QFinderWidget(QtW.QWidget):
     def setReplaceBoxVisible(self, visible: bool):
         return self._replace_box.parentWidget().setVisible(visible)
 
-    def initSearchBox(self, text: str):
+    def initSearchBox(self):
         if self._find_method == "row":
-            self._current_iterator = self._iter_find_rowwise(text)
+            self._current_iterator = RowwiseIterator(self.currentTable().dataShape())
         else:
-            self._current_iterator = self._iter_find_columnwise(text)
+            self._current_iterator = ColumnwiseIterator(self.currentTable().dataShape())
 
     def findNext(self) -> None:
         text = self._search_box.text()
         if not text:
             return
+        qtable = self.currentTable()
+        pf = partial(self._match_method, qtable, text)
+        self._current_iterator.shape = qtable.dataShape()
+
         try:
-            r, c = next(self._current_iterator)
+            r, c = self._current_iterator.next_until(pf)
         except StopIteration:
-            self.initSearchBox(text)
+            self.initSearchBox()
+            return
+        qtable = self.currentTable()
+        qtable.moveToItem(r + 2, c + 2)
+        qtable.moveToItem(r, c)
+        qtable.setSelections([(r, c)])
+        self._current_index = (r, c)
+        return
+
+    def findPrevious(self) -> None:
+        text = self._search_box.text()
+        if not text:
+            return
+        qtable = self.currentTable()
+        pf = partial(self._match_method, qtable, text)
+        self._current_iterator.shape = qtable.dataShape()
+
+        try:
+            r, c = self._current_iterator.prev_until(pf)
+        except StopIteration:
+            self.initSearchBox()
             return
         qtable = self.currentTable()
         qtable.moveToItem(r + 2, c + 2)
@@ -151,7 +189,29 @@ class QFinderWidget(QtW.QWidget):
         qtable.setDataFrameValue(r, c, value)
         return self.findNext()
 
+    def replaceAll(self) -> None:
+        text = self._search_box.text()
+        text_after = self._replace_box.text()
+        if not text:
+            return
+        self.initSearchBox()
+        qtable = self.currentTable()
+        pf = partial(self._match_method, qtable, text)
+        self._current_iterator.shape = qtable.dataShape()
+
+        while True:
+            try:
+                r, c = self._current_iterator.next_until(pf)
+            except StopIteration:
+                self.initSearchBox()
+                return
+            convert_value = qtable._get_converter(c)
+            value = convert_value(r, c, text_after)
+            qtable.setDataFrameValue(r, c, value)
+        return None
+
     def setMatchMode(self, mode: str):
+        """Set the match mode and update match function."""
         if mode == MatchMode.value:
             self._match_method = self._value_match
         elif mode == MatchMode.text:
@@ -176,53 +236,26 @@ class QFinderWidget(QtW.QWidget):
         idx = tablestack.currentIndex()
         return tablestack.tableAtIndex(idx)
 
-    def _iter_find_rowwise(self, text: str):
-        qtable = self.currentTable()
-        df = qtable.dataShown()
-        for r, (_, row) in enumerate(df.iterrows()):
-            for c, item in enumerate(row):
-                if self._match_method(qtable, r, c, item, text):
-                    yield r, c
-                    if qtable is not self.currentTable():
-                        return
-
-    def _iter_find_columnwise(self, text: str):
-        qtable = self.currentTable()
-        df = qtable.dataShown()
-        for c, (_, col) in enumerate(df.iteritems()):
-            try:
-                qtable.convertValue(0, c, text)
-            except Exception:
-                continue
-            for r, item in enumerate(col):
-                if self._match_method(qtable, r, c, item, text):
-                    yield r, c
-                    if qtable is not self.currentTable():
-                        # if user changed the table.
-                        return
-
-    def _value_match(self, qtable: QBaseTable, r: int, c: int, item, text: str) -> bool:
+    def _value_match(self, qtable: QBaseTable, text: str, r: int, c: int) -> bool:
         try:
             val = qtable.convertValue(r, c, text)
         except Exception:
             return False
-        return item == val
+        return qtable.dataShown().iloc[r, c] == val
 
-    def _text_match(self, qtable: QBaseTable, r: int, c: int, item, text: str) -> bool:
+    def _text_match(self, qtable: QBaseTable, text: str, r: int, c: int) -> bool:
         model = qtable.model()
         index = model.index(r, c)
         displayed_text = qtable.model().data(index, Qt.ItemDataRole.DisplayRole)
         return displayed_text == text
 
     def _text_partial_match(
-        self, qtable: QBaseTable, r: int, c: int, item, text: str
+        self, qtable: QBaseTable, text: str, r: int, c: int
     ) -> bool:
-        return text in str(item)
+        return text in str(qtable.dataShown().iloc[r, c])
 
-    def _text_regex_match(
-        self, qtable: QBaseTable, r: int, c: int, item, text: str
-    ) -> bool:
-        return re.match(text, str(item)) is not None
+    def _text_regex_match(self, qtable: QBaseTable, text: str, r: int, c: int) -> bool:
+        return re.match(text, str(qtable.dataShown().iloc[r, c])) is not None
 
 
 class QSearchBox(QtW.QLineEdit):
@@ -245,18 +278,114 @@ class QSearchBox(QtW.QLineEdit):
             super().keyPressEvent(event)
 
 
-class QWithButton(QtW.QWidget):
-    clicked = Signal()
+class QWithButtons(QtW.QWidget):
+    """A container widget that contains a line edit and a button."""
 
-    def __init__(self, widget: QtW.QLineEdit, text: str = "...") -> None:
+    clicked = Signal(int)
+
+    def __init__(self, widget: QtW.QLineEdit, texts: list[str]) -> None:
         super().__init__()
         _layout = QtW.QHBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.addWidget(widget)
-        self._btn = QtW.QPushButton(text)
-        _layout.addWidget(self._btn)
-        self.setLayout(_layout)
-        self._btn.clicked.connect(lambda: self.clicked.emit())
+        self._buttons = []
+        for i, text in enumerate(texts):
+            btn = QtW.QPushButton(text)
+            btn.clicked.connect(lambda k=i: self.clicked.emit(k))
+            _layout.addWidget(btn)
+            self._buttons.append(btn)
 
-    def button(self) -> QtW.QPushButton:
-        return self._btn
+        self.setLayout(_layout)
+
+    def button(self, idx: int) -> QtW.QPushButton:
+        """Get the button at the given index."""
+        return self._buttons[idx]
+
+
+class TwoWayIterator(ABC):
+    def __init__(self, shape: tuple[int, int]):
+        self.shape = shape
+        self.init_index()
+
+    def set_index(self, r: int, c: int) -> None:
+        self._r = r
+        self._c = c
+        return None
+
+    @abstractmethod
+    def init_index(self) -> None:
+        """Initialize the index."""
+
+    @abstractmethod
+    def next(self):
+        """Next item."""
+
+    @abstractmethod
+    def prev(self):
+        """Previous item."""
+
+    def next_until(self, predicate: Callable[[int, int], bool]) -> tuple[int, int]:
+        """Next item until the predicate is True."""
+        while True:
+            item = self.next()
+            if predicate(*item):
+                return item
+
+    def prev_until(self, predicate: Callable[[int, int], bool]) -> tuple[int, int]:
+        """Next item until the predicate is True."""
+        while True:
+            item = self.prev()
+            if predicate(*item):
+                return item
+
+
+class RowwiseIterator(TwoWayIterator):
+    def init_index(self) -> None:
+        self._r = 0
+        self._c = -1
+
+    def next(self) -> tuple[int, int]:
+        self._c += 1
+        nr, nc = self.shape
+        if self._c >= nc:
+            self._c = 0
+            self._r += 1
+            if self._r >= nr:
+                raise StopIteration
+        return self._r, self._c
+
+    def prev(self) -> tuple[int, int]:
+        self._c -= 1
+        if self._c < 0:
+            nr, nc = self.shape
+            self._c = nc - 1
+            self._r -= 1
+            if self._r < 0:
+                raise StopIteration
+        return self._r, self._c
+
+
+class ColumnwiseIterator(TwoWayIterator):
+    def init_index(self) -> None:
+        self._r = -1
+        self._c = 0
+
+    def next(self) -> tuple[int, int]:
+        self._r += 1
+        nr, nc = self.shape
+        if self._r >= nr:
+            self._r = 0
+            self._c += 1
+            if self._c >= nc:
+                raise StopIteration
+        return self._r, self._c
+
+    def prev(self) -> tuple[int, int]:
+        self._r -= 1
+        if self._r < 0:
+            nr, nc = self.shape
+            self._r = nr - 1
+            self._c -= 1
+            if self._c < 0:
+                raise StopIteration
+        return self._r, self._c

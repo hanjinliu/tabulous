@@ -104,7 +104,6 @@ class TableViewerBase:
         self, *, tab_position: TabPosition | str = TabPosition.top, show: bool = True
     ):
         from .._qt import get_app
-        from .._utils import get_config
 
         app = get_app()
         self._qwidget = self._qwidget_class(tab_position=tab_position)
@@ -113,7 +112,6 @@ class TableViewerBase:
         self._link_events()
 
         self.events = TableViewerSignal()
-        self._config = get_config()
 
         if show:
             self.show(run=False)
@@ -170,7 +168,9 @@ class TableViewerBase:
     @property
     def config(self) -> MappingProxyType:
         """Return the config info."""
-        return self._config.as_immutable()
+        from .._utils import get_config
+
+        return get_config().as_immutable()
 
     def show(self, *, run: bool = True) -> None:
         """Show the widget."""
