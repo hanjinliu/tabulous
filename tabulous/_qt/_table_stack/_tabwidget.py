@@ -424,13 +424,14 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         ol.show()
         from ._finder import QFinderWidget
 
-        if not isinstance(ol.widget(), QFinderWidget):
+        _finder = ol.widget()
+        if not isinstance(_finder, QFinderWidget):
             _finder = QFinderWidget(ol)
             _finder.searchBox().escClicked.connect(ol.hide)
             ol.addWidget(_finder)
             ol.setTitle("Find/Replace")
             _finder.searchBox().setFocus()
-        return None
+        return _finder
 
     def openFilterDialog(self, index: int | None = None):
         if index is not None:

@@ -23,12 +23,17 @@ def get_cell_background_color(table: QBaseTable, row, col) -> str:
 def edit_cell(table: QBaseTable, row, col, value):
     table.model().dataEdited.emit(row, col, value)
 
-def slice_equal(s1: "tuple[slice, slice]", s2: "tuple[slice, slice]"):
+def slice_equal(s1: "tuple[slice, slice]", s2: "tuple[int | slice, int | slice]"):
+    x0, x1 = s2
+    if isinstance(x0, int):
+        x0 = slice(x0, x0 + 1)
+    if isinstance(x1, int):
+        x1 = slice(x1, x1 + 1)
     return (
-        s1[0].start == s2[0].start and
-        s1[1].start == s2[1].start and
-        s1[0].stop == s2[0].stop and
-        s1[1].stop == s2[1].stop
+        s1[0].start == x0.start and
+        s1[1].start == x1.start and
+        s1[0].stop == x0.stop and
+        s1[1].stop == x1.stop
     )
 
 def selection_equal(sel1: "list[tuple[slice, slice]]", sel2: "list[tuple[slice, slice]]"):
