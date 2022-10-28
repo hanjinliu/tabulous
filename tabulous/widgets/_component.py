@@ -501,12 +501,15 @@ class ColumnDtypeInterface(
     """Interface to the column dtype of spreadsheet."""
 
     def __getitem__(self, key: Hashable) -> _DtypeLike | None:
+        """Get the dtype of the given column name."""
         return self.parent._qwidget._columns_dtype.get(key, None)
 
     def __setitem__(self, key: Hashable, dtype: Any) -> None:
+        """Set a dtype to the given column name."""
         return self.parent._qwidget.setColumnDtype(key, dtype)
 
     def __delitem__(self, key: Hashable) -> None:
+        """Reset the dtype to the given column name."""
         return self.parent._qwidget.setColumnDtype(key, None)
 
     def __repr__(self) -> str:
@@ -528,6 +531,7 @@ class ColumnDtypeInterface(
         validation: bool = True,
         formatting: bool = True,
     ) -> None:
+        """Set dtype and optionally default validator and formatter."""
         self.parent._qwidget.setColumnDtype(name, dtype)
         if validation:
             self.parent._qwidget._set_default_data_validator(name)
