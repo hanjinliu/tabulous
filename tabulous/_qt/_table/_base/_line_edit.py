@@ -489,7 +489,10 @@ class QCellLiteralEdit(_QTableLineEdit):
                 sl1 = rsl.start
             else:
                 sl1 = f"{rsl.start}:{rsl.stop}"
-            to_be_added = f"df[{columns[csl.start]!r}][{sl1}]"
+            if csl.start in qtable._selection_model._col_selection_indices:
+                to_be_added = f"df[{columns[csl.start]!r}][:]"
+            else:
+                to_be_added = f"df[{columns[csl.start]!r}][{sl1}]"
         else:
             index = _df.index
             if rsl.start == rsl.stop - 1:
@@ -497,7 +500,10 @@ class QCellLiteralEdit(_QTableLineEdit):
             else:
                 sl1 = f"{index[rsl.start]!r}:{index[rsl.stop-1]!r}"
             sl0 = f"{columns[csl.start]!r}:{columns[csl.stop-1]!r}"
-            to_be_added = f"df.loc[{sl1}, {sl0}]"
+            if csl.start in qtable._selection_model._col_selection_indices:
+                to_be_added = f"df.loc[:, {sl0}]"
+            else:
+                to_be_added = f"df.loc[{sl1}, {sl0}]"
 
         if cursor_pos == 0:
             self.setText(to_be_added + text)

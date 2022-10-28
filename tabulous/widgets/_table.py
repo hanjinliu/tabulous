@@ -511,13 +511,18 @@ def _find_all_dataframe_expr(s: str) -> list[str]:
     return _PATTERN.findall(s)
 
 
+def _eval(expr: str, default=None):
+    """evaluate expression."""
+    return eval(expr, {}, {}) if expr else default
+
+
 def _parse_slice(s: str) -> slice:
     if ":" in s:
         start_str, stop_str = s.split(":")
-        start = eval(start_str)
-        stop = eval(stop_str)
+        start = _eval(start_str)
+        stop = _eval(stop_str)
     else:
-        start = eval(s)
+        start = _eval(s)
         stop = start + 1
     return slice(start, stop)
 
@@ -525,10 +530,14 @@ def _parse_slice(s: str) -> slice:
 def _parse_slice_loc(s: str, index: pd.Index) -> slice:
     if ":" in s:
         start_str, stop_str = s.split(":")
-        start = index.get_loc(eval(start_str))
-        stop = index.get_loc(eval(stop_str)) + 1
+        start_label = _eval(start_str)
+        if start_label is not None:
+            start = index.get_loc(start_label)
+            stop = index.get_loc(_eval(stop_str)) + 1
+        else:
+            start = stop = None
     else:
-        start = index.get_loc(eval(s))
+        start = index.get_loc(_eval(s))
         stop = start + 1
     return slice(start, stop)
 
