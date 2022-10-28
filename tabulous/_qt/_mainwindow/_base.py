@@ -10,6 +10,7 @@ from .._table_stack import QTabbedTableStack
 from .._keymap import QtKeyMap
 from .._history import QtFileHistoryManager
 from ...types import TabPosition
+from ..._utils import load_cell_namespace
 
 if TYPE_CHECKING:
     from .._toolbar import QTableStackToolBar
@@ -56,6 +57,12 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._console_widget: QtConsole | None = None
         self._keymap_widget = None
         self._namespace = Namespace()
+
+        # update with user namespace
+        _user_ns = dict(load_cell_namespace())
+        for k in self._namespace._static:
+            _user_ns.pop(k, None)
+        self._namespace.update(_user_ns)
 
     def updateWidgetStyle(self):
         bg = self.palette().color(self.backgroundRole())
