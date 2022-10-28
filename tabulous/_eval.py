@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import (
     TYPE_CHECKING,
     Callable,
-    Any,
     Generic,
     Hashable,
     MutableMapping,
@@ -11,6 +10,8 @@ from typing import (
 )
 import weakref
 from contextlib import contextmanager
+
+import numpy as np
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -23,7 +24,7 @@ class Graph:
     def __init__(
         self,
         table: TableBase,
-        func: Callable[[], Any],
+        func: LiteralCallable,
         sources: list[tuple[slice, slice]],
         destination: tuple[slice, slice] | None = None,
     ):
@@ -58,6 +59,19 @@ class Graph:
         if not self._callback_blocked:
             with self.blocked():
                 out = self._func()
+                if (e := out.get_err()) and (sl := self._destination):
+                    # TODO: Only spreadsheet support this.
+                    import pandas as pd
+
+                    rsl, csl = sl
+                    val = np.full(
+                        (rsl.stop - rsl.start, csl.stop - csl.start),
+                        repr(e),
+                        dtype=object,
+                    )
+                    qtable_view = self.table._qwidget._qtable_view
+                    with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked():
+                        table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
         else:
             out = None
         return out
@@ -128,7 +142,7 @@ class LiteralCallable(Generic[_T]):
         self._expr = expr
         self._func = func
 
-    def __call__(self) -> _T:
+    def __call__(self) -> EvalResult[_T]:
         return self._func()
 
     def __repr__(self) -> str:
@@ -213,10 +227,10 @@ class LiteralCallable(Generic[_T]):
         return LiteralCallable(expr, evaluator)
 
 
-class EvalResult:
+class EvalResult(Generic[_T]):
     """A Rust-like Result type for evaluation."""
 
-    def __init__(self, obj: Any, range: tuple[int | slice, int | slice]):
+    def __init__(self, obj: _T | Exception, range: tuple[int | slice, int | slice]):
         self._obj = obj
         _r, _c = range
         if isinstance(_r, int):
@@ -225,17 +239,20 @@ class EvalResult:
             _c = slice(_c, _c + 1)
         self._range = (_r, _c)
 
-    @property
-    def value(self) -> Any:
-        """Result value."""
-        return self._obj
+    def __repr__(self) -> str:
+        cname = type(self).__name__
+        if isinstance(self._obj, Exception):
+            desc = "Err"
+        else:
+            desc = "Ok"
+        return f"{cname}<{desc}({self._obj!r})>"
 
     @property
     def range(self) -> tuple[slice, slice]:
         """Output range."""
         return self._range
 
-    def unwrap(self) -> Any:
+    def unwrap(self) -> _T:
         obj = self._obj
         if isinstance(obj, Exception):
             raise obj
@@ -245,6 +262,10 @@ class EvalResult:
         if isinstance(self._obj, Exception):
             return self._obj
         return None
+
+    def is_err(self) -> bool:
+        """True is an exception is wrapped."""
+        return isinstance(self._obj, Exception)
 
 
 def _infer_slices(

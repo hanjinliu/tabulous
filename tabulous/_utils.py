@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from types import MappingProxyType
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from functools import wraps
 from pathlib import Path
 from appdirs import user_state_dir, user_config_dir
@@ -103,10 +103,10 @@ class Window:
 class TabulousConfig:
     """The config model."""
 
-    console_namespace: ConsoleNamespace = ConsoleNamespace()
-    table: Table = Table()
-    cell: Cell = Cell()
-    window: Window = Window()
+    console_namespace: ConsoleNamespace = field(default_factory=ConsoleNamespace)
+    table: Table = field(default_factory=Table)
+    cell: Cell = field(default_factory=Cell)
+    window: Window = field(default_factory=Window)
 
     @classmethod
     def from_toml(cls, path: Path = CONFIG_PATH) -> TabulousConfig:
