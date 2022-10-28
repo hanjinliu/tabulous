@@ -169,7 +169,7 @@ class LiteralCallable(Generic[_T]):
 
         def evaluator():
             df = qtable.dataShown(parse=True)
-            ns = qviewer._namespace.value()
+            ns = dict(qviewer._namespace)
             ns.update(df=df)
             try:
                 out = eval(expr, ns, {})

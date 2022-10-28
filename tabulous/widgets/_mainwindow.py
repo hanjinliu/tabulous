@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from .._qt import QMainWindow, QMainWidget
     from .._qt._dockwidget import QtDockWidget
     from .._qt._mainwindow import _QtMainWidgetBase
+    from .._qt._mainwindow._namespace import Namespace
     from .._qt._keymap import QtKeyMap
     from qtpy.QtWidgets import QWidget
     from magicgui.widgets import Widget
@@ -171,6 +172,11 @@ class TableViewerBase:
         from .._utils import get_config
 
         return get_config().as_immutable()
+
+    @property
+    def cell_namespace(self) -> Namespace:
+        """Return the namespace of the cell editor."""
+        return self._qwidget._namespace
 
     def show(self, *, run: bool = True) -> None:
         """Show the widget."""

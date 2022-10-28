@@ -527,7 +527,7 @@ class QCellLiteralEdit(_QTableLineEdit):
     def _manage_completion(self, text: str):
         if text.endswith("."):
             mod_str = _find_last_module_name(text[:-1])
-            mod = self._table.parentViewer()._namespace.value().get(mod_str, None)
+            mod = self._table.parentViewer()._namespace.get(mod_str, None)
             if mod is None:
                 self._completion_module = None
                 return None
