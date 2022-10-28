@@ -1,6 +1,9 @@
 from __future__ import annotations
+from types import FunctionType
 
-from typing import MutableMapping, Any
+from typing import MutableMapping, Any, TypeVar
+
+_T = TypeVar("_T", FunctionType, type)
 
 
 class Namespace(MutableMapping[str, Any]):
@@ -41,3 +44,9 @@ class Namespace(MutableMapping[str, Any]):
         if collision := set(ns.keys()) & self._static:
             raise ValueError(f"Cannot update {collision!r}")
         return self._ns.update(ns)
+
+    def add(self, obj: _T) -> _T:
+        """A decorator to add an object to the namespace."""
+        name = obj.__name__
+        self[name] = obj
+        return obj

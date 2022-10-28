@@ -154,6 +154,53 @@ will return ``pd.Series([20, 40])``, which will update the table to
 | 3 |   20 |   40 |
 +---+------+------+
 
+User-defined namespace
+^^^^^^^^^^^^^^^^^^^^^^
+
+As stated above, the default namespace of cell evaluation is ``df``, ``np`` and ``pd``. If you
+want to add more variables or functions, there are two ways to do it.
+
+1. Update the ``Namespace`` object of a viewer.
+
+   .. code-block:: python
+
+      viewer = TableViewer()
+      viewer.namespace  # the Namespace object is a dict-like object
+
+      def func(df):  # the function you want to add
+          return df.mean()
+
+      viewer.namespace["func"] = func  # add the function to the namespace
+
+      # the easiest way to add a function or a class
+      @viewer.namespace.add
+      def func(df):
+          return df.mean()
+
+2. Modify the startup file.
+
+   The startup file is a Python script that will be executed whenever a viewer is created. The
+   default startup file is ``{$profile}/cell_namespace.py``, where ``{$profile}`` is the
+   user directory for :mod:`tabulous` (you can check it by ``$ tabulous --profile``). All the
+   variables that are not start with ``_`` will be added to the namespace. You can also
+   restrict the variables to be added by setting ``__all__``.
+
+   .. code-block:: python
+
+      # {$profile}/cell_namespace.py
+
+      from scipy import stats
+
+      __all__ = ["func", "stats"]
+
+      def func(df):
+          return df.mean()
+
+   .. note::
+
+      You can't use none of ``np``, ``pd`` or ``df`` as a variable name.
+
+
 Send the values to the console
 ------------------------------
 
