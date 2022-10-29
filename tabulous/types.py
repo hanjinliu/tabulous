@@ -138,6 +138,11 @@ class ItemInfo(NamedTuple):
     value: Any
     old_value: Any
 
+    @property
+    def col(self) -> int | slice:
+        """Alias of `column`."""
+        return self.column
+
 
 class HeaderInfo(NamedTuple):
     """
