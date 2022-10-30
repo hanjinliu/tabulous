@@ -397,7 +397,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = None
 
         # update graph indices
-        self._qtable_view._ref_graphs.insert_columns(columns, count)
+        self._qtable_view._ref_graphs.insert_columns(col, count)
 
         info = ItemInfo(
             slice(None),
