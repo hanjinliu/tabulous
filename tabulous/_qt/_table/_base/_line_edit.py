@@ -40,6 +40,7 @@ class _QTableLineEdit(QtW.QLineEdit):
         self._table = table
         self._pos = pos
         self._is_valid = True
+        self._is_widget_changing = False
         self._current_exception = ""
         self.textChanged.connect(self._on_text_changed)
 
@@ -277,7 +278,9 @@ class QCellLineEdit(_QTableLineEdit):
         if self._is_eval_like(text):
             pos = self.cursorPosition()
             self.setText("")
-            self.deleteLater()
+            self._is_widget_changing = (
+                True  # to make sure the value will not affect the table
+            )
             line = self.parentTableView()._create_eval_editor(text, self._pos)
             line.setCursorPosition(pos)
 

@@ -479,6 +479,11 @@ class TableBase(ABC):
         else:
             # evaluated by "&=..."
             selections = self._extract_selections(info.expr)
+            if len(selections) == 0:
+                # if no reference exists, evaluate the expression as "=..." form.
+                return self._emit_evaluated(
+                    EvalInfo(info.row, info.column, info.expr, False)
+                )
             graph = Graph(self, f, selections)
             qtable.setCalculationGraph(pos, graph)
 

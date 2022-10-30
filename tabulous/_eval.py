@@ -163,8 +163,6 @@ class GraphManager(MutableMapping[Index, Graph]):
 
     def insert_rows(self, row: int, count: int):
         """Insert rows and update indices."""
-        if self._update_blocked:
-            return
         with self.blocked():
             new_dict = {}
             for idx in list(self._graphs.keys()):
@@ -177,8 +175,6 @@ class GraphManager(MutableMapping[Index, Graph]):
 
     def insert_columns(self, col: int, count: int):
         """Insert columns and update indices."""
-        if self._update_blocked:
-            return
         with self.blocked():
             new_dict = {}
             for idx in list(self._graphs.keys()):
@@ -191,8 +187,6 @@ class GraphManager(MutableMapping[Index, Graph]):
 
     def remove_rows(self, row: int, count: int):
         """Remove items that are in the given row range."""
-        if self._update_blocked:
-            return
         start = row
         stop = row + count
         with self.blocked():
@@ -204,8 +198,6 @@ class GraphManager(MutableMapping[Index, Graph]):
 
     def remove_columns(self, col: int, count: int):
         """Remove items that are in the given column range."""
-        if self._update_blocked:
-            return
         start = col
         stop = col + count
         with self.blocked():
