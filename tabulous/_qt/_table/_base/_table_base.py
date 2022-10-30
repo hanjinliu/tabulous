@@ -474,13 +474,14 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return (name, validator), {}
 
     def setCalculationGraph(self, pos: tuple[int, int], graph: Graph):
+        """Set calculation graph at the given position."""
         if graph is None:
             self._qtable_view._ref_graphs.pop(pos)
         else:
-            with self._mgr.merging():
-                graph.connect()
-                graph.initialize()
+            with self._mgr.merging(formatter=lambda cmds: f"{graph}"):
                 self._set_graph(pos, graph)
+                graph.initialize()
+        return None
 
     @_mgr.interface
     def _set_graph(self, pos: tuple[int, int], graph: Graph):
@@ -489,13 +490,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
                 g.disconnect()
         else:
             self._qtable_view._ref_graphs[pos] = graph
+            graph.connect()
 
     @_set_graph.server
     def _set_graph(self, pos: tuple[int, int], graph: Graph):
-        return (
-            pos,
-            self._qtable_view._ref_graphs.get(pos, None),
-        ), {}
+        graph = self._qtable_view._ref_graphs.get(pos, None)
+        return (pos, graph), {}
 
     def refreshTable(self) -> None:
         """Refresh table view."""

@@ -10,6 +10,7 @@ from typing import (
 )
 import weakref
 from contextlib import contextmanager
+import logging
 
 import numpy as np
 from ._selection_model import Index
@@ -17,6 +18,8 @@ from ._selection_model import Index
 if TYPE_CHECKING:
     import pandas as pd
     from .widgets import TableBase
+
+logger = logging.getLogger("tabulous")
 
 
 class Graph:
@@ -39,6 +42,11 @@ class Graph:
         return id(self)
 
     def __repr__(self) -> str:
+        return f"Graph<{self.expr}>"
+
+    @property
+    def expr(self) -> str:
+        """Get the graph expression in 'df.iloc[...] = ...' format."""
         if self._destination is None:
             expr = f"out = {self._func.expr}"
         else:
@@ -46,7 +54,7 @@ class Graph:
             _r = _format_slice(rsl)
             _c = _format_slice(csl)
             expr = f"df.iloc[{_r}, {_c}] = {self._func.expr}"
-        return f"Graph<{expr}>"
+        return expr
 
     @property
     def table(self) -> TableBase | None:
@@ -73,6 +81,7 @@ class Graph:
         if not self._callback_blocked:
             with self.blocked():
                 out = self._func()
+                logger.debug(f"Running: {self.expr=}, {out=}")
                 if (e := out.get_err()) and (sl := self._destination):
                     # TODO: Only spreadsheet support this.
                     import pandas as pd
@@ -94,6 +103,7 @@ class Graph:
         return out
 
     def initialize(self):
+        """Initialize the graph object."""
         # First exception should be considered as a wrong expression.
         # Disconnect the callback.
         try:
@@ -108,17 +118,13 @@ class Graph:
 
     def connect(self):
         self.table.events.data.connect(self.update)
+        logger.debug(f"Graph connected: {self.expr}")
         return self
 
     def disconnect(self):
         self.table.events.data.disconnect(self.update)
+        logger.debug(f"Graph disconnected: {self.expr}")
         return self
-
-    def clean_destination(self):
-        """Delete all the values in the destination."""
-        dst = self._destination
-        del self.table.cell[dst]
-        return None
 
 
 _K = TypeVar("_K", bound=Hashable)
