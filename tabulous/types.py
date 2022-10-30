@@ -184,6 +184,11 @@ class EvalInfo(NamedTuple):
     expr: str
     is_ref: bool
 
+    @property
+    def col(self) -> int:
+        """Alias of `column`."""
+        return self.column
+
 
 _Sliceable = Union[SupportsIndex, slice]
 _SingleSelection = Tuple[_Sliceable, _Sliceable]

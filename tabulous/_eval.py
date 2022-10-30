@@ -94,7 +94,7 @@ class Graph:
                     qtable_view = self.table._qwidget._qtable_view
                     with (
                         qtable_view._selection_model.blocked(),
-                        qtable_view._ref_graphs.blocked(),
+                        qtable_view._ref_graphs.blocked(rsl, csl),
                     ):
                         table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
         else:
@@ -126,24 +126,51 @@ class Graph:
         return self
 
 
+class RectRange:
+    def __init__(self, rsl: slice = slice(0, 0), csl: slice = slice(0, 0)):
+        self._rsl = rsl
+        self._csl = csl
+
+    def __contains__(self, other: Index):
+        r, c = other
+        rsl = self._rsl
+        csl = self._csl
+        return rsl.start <= r < rsl.stop and csl.start <= c < csl.stop
+
+
+class AnyRange(RectRange):
+    def __contains__(self, item) -> bool:
+        return True
+
+
+class NoRange:
+    def __contains__(self, item) -> bool:
+        return False
+
+
+_ANY_RANGE = AnyRange()
+_NO_RANGE = NoRange()
+
+
 class GraphManager(MutableMapping[Index, Graph]):
     """Calculation graph manager."""
 
     def __init__(self):
         self._graphs: dict[Index, Graph] = {}
         self._update_blocked = False
+        self._blocked_ranges: RectRange = _NO_RANGE
 
     def __getitem__(self, key: Index) -> Graph:
         return self._graphs[key]
 
     def __setitem__(self, key: Index, value: Graph) -> None:
-        if not self._update_blocked:
+        if key not in self._blocked_ranges:
             self._graphs[Index(*key)] = value
             value.connect()
             logger.debug(f"Graph added at {key}: {value.expr}")
 
     def __delitem__(self, key: Index) -> None:
-        if not self._update_blocked:
+        if key not in self._blocked_ranges:
             graph = self._graphs.pop(key)
             graph.disconnect()
             logger.debug(f"Graph at {key} disconnected: {graph.expr}")
@@ -155,46 +182,52 @@ class GraphManager(MutableMapping[Index, Graph]):
         return iter(self._graphs)
 
     @contextmanager
-    def blocked(self):
-        was_blocked = self._update_blocked
-        self._update_blocked = True
+    def blocked(self, *ranges):
+        old_range = self._blocked_ranges
+        if len(ranges) == 0:
+            ranges = _ANY_RANGE
+        elif len(ranges) == 2:
+            rsl, csl = ranges
+            if isinstance(rsl, int):
+                rsl = slice(rsl, rsl + 1)
+            if isinstance(csl, int):
+                csl = slice(csl, csl + 1)
+            ranges = RectRange(rsl, csl)
+        self._blocked_ranges = ranges
         try:
             yield
         finally:
-            self._update_blocked = was_blocked
+            self._blocked_ranges = old_range
 
     def insert_rows(self, row: int, count: int):
         """Insert rows and update indices."""
-        with self.blocked():
-            new_dict = {}
-            for idx in list(self._graphs.keys()):
-                if idx.row >= row:
-                    new_idx = Index(idx.row + count, idx.column)
-                    new_dict[new_idx] = self._graphs.pop(idx)
+        new_dict = {}
+        for idx in list(self._graphs.keys()):
+            if idx.row >= row:
+                new_idx = Index(idx.row + count, idx.column)
+                new_dict[new_idx] = self._graphs.pop(idx)
 
-            self._graphs.update(new_dict)
+        self._graphs.update(new_dict)
         return None
 
     def insert_columns(self, col: int, count: int):
         """Insert columns and update indices."""
-        with self.blocked():
-            new_dict = {}
-            for idx in list(self._graphs.keys()):
-                if idx.column >= col:
-                    new_idx = Index(idx.row, idx.column + count)
-                    new_dict[new_idx] = self._graphs.pop(idx)
+        new_dict = {}
+        for idx in list(self._graphs.keys()):
+            if idx.column >= col:
+                new_idx = Index(idx.row, idx.column + count)
+                new_dict[new_idx] = self._graphs.pop(idx)
 
-            self._graphs.update(new_dict)
+        self._graphs.update(new_dict)
         return None
 
     def remove_rows(self, row: int, count: int):
         """Remove items that are in the given row range."""
         start = row
         stop = row + count
-        with self.blocked():
-            for idx in list(self._graphs.keys()):
-                if start <= idx.row < stop:
-                    self._graphs.pop(idx)
+        for idx in list(self._graphs.keys()):
+            if start <= idx.row < stop:
+                self._graphs.pop(idx)
 
         return None
 
@@ -202,10 +235,9 @@ class GraphManager(MutableMapping[Index, Graph]):
         """Remove items that are in the given column range."""
         start = col
         stop = col + count
-        with self.blocked():
-            for idx in list(self._graphs.keys()):
-                if start <= idx.column < stop:
-                    self._graphs.pop(idx)
+        for idx in list(self._graphs.keys()):
+            if start <= idx.column < stop:
+                self._graphs.pop(idx)
 
         return None
 
@@ -291,15 +323,18 @@ class LiteralCallable(Generic[_T]):
                 _out = pd.DataFrame(out).astype(str)
                 if _row.start == _row.stop - 1:  # row vector
                     _out = _out.T
-                with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked():
-                    qtable.setDataFrameValue(_row, _col, _out)
 
             elif isinstance(_row, int) and isinstance(_col, int):  # set scalar
-                with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked():
-                    qtable.setDataFrameValue(_row, _col, str(_out))
+                _out = str(_out)
 
             else:
                 raise RuntimeError(_row, _col)  # Unreachable
+
+            with (
+                qtable_view._selection_model.blocked(),
+                qtable_view._ref_graphs.blocked(_row, _col),
+            ):
+                qtable.setDataFrameValue(_row, _col, _out)
             return EvalResult(out, (_row, _col))
 
         return LiteralCallable(expr, evaluator)

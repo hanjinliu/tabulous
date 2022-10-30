@@ -468,7 +468,10 @@ class TableBase(ABC):
                         del qtable_view._focused_widget
                     except RuntimeError:
                         pass
-                    with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked():
+                    with (
+                        qtable_view._selection_model.blocked(),
+                        qtable_view._ref_graphs.blocked(info.row, info.column),
+                    ):
                         qtable.setDataFrameValue(info.row, info.column, repr(e))
                     return None
                 # SyntaxError/AttributeError might be caused by mistouching. Don't close
