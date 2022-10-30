@@ -478,9 +478,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         if graph is None:
             self._qtable_view._ref_graphs.pop(pos)
         else:
-            with self._mgr.merging(formatter=lambda cmds: f"{graph}"):
-                self._set_graph(pos, graph)
-                graph.initialize()
+            self._set_graph(pos, graph)
         return None
 
     @_mgr.interface
@@ -494,6 +492,10 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _set_graph(self, pos: tuple[int, int], graph: Graph):
         graph = self._qtable_view._ref_graphs.get(pos, None)
         return (pos, graph), {}
+
+    @_set_graph.set_formatter
+    def _set_graph_fmt(self, pos, graph):
+        return repr(graph)
 
     def refreshTable(self) -> None:
         """Refresh table view."""

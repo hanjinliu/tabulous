@@ -60,6 +60,11 @@ class Graph:
         """The parent table widget."""
         return self._table_ref()
 
+    def set_pos(self, pos: tuple[int, int]):
+        """Set the position of the graph origin."""
+        self._func.set_pos(pos)
+        return self
+
     @contextmanager
     def blocked(self):
         """Block the callback temporarily."""
@@ -166,15 +171,16 @@ class GraphManager(MutableMapping[Index, Graph]):
     def __getitem__(self, key: Index) -> Graph:
         return self._graphs[key]
 
-    def __setitem__(self, key: Index, value: Graph) -> None:
+    def __setitem__(self, key: Index, graph: Graph) -> None:
         if key not in self._blocked_ranges:
-            self.setitem_force(key, value)
+            self.setitem_force(key, graph)
 
-    def setitem_force(self, key: Index, value: Graph) -> None:
+    def setitem_force(self, key: Index, graph: Graph) -> None:
         index = Index(*key)
         self.pop_force(index, None)
-        self._graphs[index] = value
-        value.connect()
+        self._graphs[index] = graph
+        graph.connect()
+        graph.initialize()
         logger.debug(f"Graph added at {key}")
         return None
 
@@ -232,7 +238,9 @@ class GraphManager(MutableMapping[Index, Graph]):
         for idx in list(self._graphs.keys()):
             if idx.row >= row:
                 new_idx = Index(idx.row + count, idx.column)
-                new_dict[new_idx] = self._graphs.pop(idx)
+                graph = self._graphs.pop(idx)
+                new_dict[new_idx] = graph
+                graph.set_pos(new_idx)
 
         self._graphs.update(new_dict)
         return None
@@ -243,7 +251,9 @@ class GraphManager(MutableMapping[Index, Graph]):
         for idx in list(self._graphs.keys()):
             if idx.column >= col:
                 new_idx = Index(idx.row, idx.column + count)
-                new_dict[new_idx] = self._graphs.pop(idx)
+                graph = self._graphs.pop(idx)
+                new_dict[new_idx] = graph
+                graph.set_pos(new_idx)
 
         self._graphs.update(new_dict)
         return None
