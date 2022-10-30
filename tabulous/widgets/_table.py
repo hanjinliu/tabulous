@@ -517,7 +517,7 @@ class TableBase(ABC):
         return selections
 
 
-_PATTERN = re.compile(r"df\[.+?\](\[.+?\])?|df\.loc\[.+?\]|df\.iloc\[.+?\]")
+_PATTERN = re.compile(r"df\[.+?\]\[.+?\]|df\.loc\[.+?\]|df\.iloc\[.+?\]")
 
 
 def _find_all_dataframe_expr(s: str) -> list[str]:
