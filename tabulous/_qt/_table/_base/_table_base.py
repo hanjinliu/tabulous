@@ -805,7 +805,7 @@ class QMutableTable(QBaseTable):
             # convert values
             if isinstance(r, slice) and isinstance(c, slice):
                 # delete references
-                if not self._qtable_view._ref_graphs.is_blocked():
+                if not self._qtable_view._ref_graphs.is_all_blocked():
                     # this with-block is not needed but make it more efficient
                     if len(self._qtable_view._ref_graphs) < 128:
                         for key in list(self._qtable_view._ref_graphs.keys()):
@@ -884,6 +884,7 @@ class QMutableTable(QBaseTable):
         self.itemChangedSignal.emit(ItemInfo(r, c, old_value, value))
         return None
 
+    @_set_value.set_formatter
     def _set_value_fmt(self, r, c, value):
         _r = fmt_slice(r)
         _c = fmt_slice(c)

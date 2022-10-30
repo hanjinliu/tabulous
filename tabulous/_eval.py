@@ -209,8 +209,8 @@ class GraphManager(MutableMapping[Index, Graph]):
     def __iter__(self):
         return iter(self._graphs)
 
-    def is_blocked(self) -> bool:
-        return self._blocked_ranges is _NO_RANGE
+    def is_all_blocked(self) -> bool:
+        return self._blocked_ranges is _ANY_RANGE
 
     @contextmanager
     def blocked(self, *ranges):
