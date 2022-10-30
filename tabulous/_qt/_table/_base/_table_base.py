@@ -803,15 +803,20 @@ class QMutableTable(QBaseTable):
             # convert values
             if isinstance(r, slice) and isinstance(c, slice):
                 # delete references
-                if len(self._qtable_view._ref_graphs) < 128:
-                    for key in list(self._qtable_view._ref_graphs.keys()):
-                        if r.start <= key[0] < r.stop and c.start <= key[1] < c.stop:
-                            self._set_graph(key, None)
+                if not self._qtable_view._ref_graphs.is_blocked():
+                    # this with-block is not needed but make it more efficient
+                    if len(self._qtable_view._ref_graphs) < 128:
+                        for key in list(self._qtable_view._ref_graphs.keys()):
+                            if (
+                                r.start <= key[0] < r.stop
+                                and c.start <= key[1] < c.stop
+                            ):
+                                self._set_graph(key, None)
 
-                else:
-                    for _c in range(c.start, c.stop):
-                        for _r in range(r.start, r.stop):
-                            self._set_graph((_r, _c), None)
+                    else:
+                        for _c in range(c.start, c.stop):
+                            for _r in range(r.start, r.stop):
+                                self._set_graph((_r, _c), None)
 
                 _value: pd.DataFrame = value
                 if _value.size == 1:

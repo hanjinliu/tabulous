@@ -80,9 +80,8 @@ class Graph:
         if not self._callback_blocked:
             with self.blocked():
                 out = self._func()
-                logger.debug(f"Running: {self.expr=}, {out=}")
+                logger.debug(f"Running: {self.expr}, {out._obj}")
                 if (e := out.get_err()) and (sl := self._destination):
-                    # TODO: Only spreadsheet support this.
                     import pandas as pd
 
                     rsl, csl = sl
@@ -94,7 +93,7 @@ class Graph:
                     qtable_view = self.table._qwidget._qtable_view
                     with (
                         qtable_view._selection_model.blocked(),
-                        qtable_view._ref_graphs.blocked(rsl, csl),
+                        qtable_view._ref_graphs.blocked(),
                     ):
                         table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
         else:
@@ -127,7 +126,11 @@ class Graph:
 
 
 class RectRange:
-    def __init__(self, rsl: slice = slice(0, 0), csl: slice = slice(0, 0)):
+    def __init__(
+        self,
+        rsl: slice = slice(0, 0),
+        csl: slice = slice(0, 0),
+    ):
         self._rsl = rsl
         self._csl = csl
 
@@ -165,21 +168,43 @@ class GraphManager(MutableMapping[Index, Graph]):
 
     def __setitem__(self, key: Index, value: Graph) -> None:
         if key not in self._blocked_ranges:
-            self._graphs[Index(*key)] = value
-            value.connect()
-            logger.debug(f"Graph added at {key}: {value.expr}")
+            self.setitem_force(key, value)
+
+    def setitem_force(self, key: Index, value: Graph) -> None:
+        index = Index(*key)
+        self.pop_force(index, None)
+        self._graphs[index] = value
+        value.connect()
+        logger.debug(f"Graph added at {key}")
+        return None
 
     def __delitem__(self, key: Index) -> None:
         if key not in self._blocked_ranges:
-            graph = self._graphs.pop(key)
+            self.pop_force(key)
+
+    __void = object()
+
+    def pop_force(self, key: Index, default=__void) -> Graph:
+        try:
+            graph = self[key]
+        except KeyError:
+            if default is self.__void:
+                raise
+            return default
+        else:
             graph.disconnect()
-            logger.debug(f"Graph at {key} disconnected: {graph.expr}")
+            del self._graphs[key]
+            logger.debug(f"Graph popped at {key}")
+            return graph
 
     def __len__(self) -> int:
         return len(self._graphs)
 
     def __iter__(self):
         return iter(self._graphs)
+
+    def is_blocked(self) -> bool:
+        return self._blocked_ranges is _NO_RANGE
 
     @contextmanager
     def blocked(self, *ranges):
@@ -193,6 +218,8 @@ class GraphManager(MutableMapping[Index, Graph]):
             if isinstance(csl, int):
                 csl = slice(csl, csl + 1)
             ranges = RectRange(rsl, csl)
+        else:
+            raise ValueError
         self._blocked_ranges = ranges
         try:
             yield
@@ -248,12 +275,13 @@ _T = TypeVar("_T")
 class LiteralCallable(Generic[_T]):
     """A callable object for eval."""
 
-    def __init__(self, expr: str, func: Callable[[], _T]):
+    def __init__(self, expr: str, func: Callable[[LiteralCallable], _T], pos: Index):
         self._expr = expr
         self._func = func
+        self._pos = pos
 
     def __call__(self) -> EvalResult[_T]:
-        return self._func()
+        return self._func(self)
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}<{self._expr}>"
@@ -262,6 +290,14 @@ class LiteralCallable(Generic[_T]):
     def expr(self) -> str:
         """The expression of the function."""
         return self._expr
+
+    @property
+    def pos(self) -> Index:
+        return self._pos
+
+    def set_pos(self, pos: tuple[int, int]):
+        self._pos = Index(*pos)
+        return self
 
     @classmethod
     def from_table(
@@ -277,16 +313,16 @@ class LiteralCallable(Generic[_T]):
         qtable_view = qtable._qtable_view
         qviewer = qtable_view.parentViewer()
 
-        def evaluator():
+        def evaluator(_self: LiteralCallable):
             df = qtable.dataShown(parse=True)
             ns = dict(qviewer._namespace)
             ns.update(df=df)
             try:
                 out = eval(expr, ns, {})
             except Exception as e:
-                return EvalResult(e, pos)
+                return EvalResult(e, _self.pos)
 
-            _row, _col = pos
+            _row, _col = _self.pos
 
             if isinstance(out, pd.DataFrame):
                 if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
@@ -332,12 +368,12 @@ class LiteralCallable(Generic[_T]):
 
             with (
                 qtable_view._selection_model.blocked(),
-                qtable_view._ref_graphs.blocked(_row, _col),
+                qtable_view._ref_graphs.blocked(*_self.pos),
             ):
                 qtable.setDataFrameValue(_row, _col, _out)
             return EvalResult(out, (_row, _col))
 
-        return LiteralCallable(expr, evaluator)
+        return LiteralCallable(expr, evaluator, pos)
 
 
 class EvalResult(Generic[_T]):
