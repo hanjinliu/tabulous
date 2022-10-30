@@ -294,9 +294,18 @@ class LiteralCallable(Generic[_T]):
         self._expr = expr
         self._func = func
         self._pos = pos
+        self._unblocked = False
 
-    def __call__(self) -> EvalResult[_T]:
-        return self._func(self)
+    def __call__(self, unblock: bool = False) -> EvalResult[_T]:
+        if unblock:
+            self._unblocked = True
+            try:
+                out = self._func(self)
+            finally:
+                self._unblocked = False
+            return out
+        else:
+            return self._func(self)
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}<{self._expr}>"
@@ -381,11 +390,16 @@ class LiteralCallable(Generic[_T]):
             else:
                 raise RuntimeError(_row, _col)  # Unreachable
 
-            with (
-                qtable_view._selection_model.blocked(),
-                qtable_view._ref_graphs.blocked(*_self.pos),
-            ):
-                qtable.setDataFrameValue(_row, _col, _out)
+            if not _self._unblocked:
+                with (
+                    qtable_view._selection_model.blocked(),
+                    qtable_view._ref_graphs.blocked(*_self.pos),
+                ):
+                    qtable.setDataFrameValue(_row, _col, _out)
+            else:
+                with qtable_view._selection_model.blocked():
+                    qtable.setDataFrameValue(_row, _col, _out)
+
             return EvalResult(out, (_row, _col))
 
         return LiteralCallable(expr, evaluator, pos)

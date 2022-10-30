@@ -460,7 +460,7 @@ class TableBase(ABC):
 
         if not info.is_ref:
             # evaluated by "=..."
-            result = literal_callable()
+            result = literal_callable(unblock=True)  # cells updated here if succeeded
             if e := result.get_err():
                 if not isinstance(e, (SyntaxError, AttributeError)):
                     # Update cell text with the exception object.
@@ -470,23 +470,21 @@ class TableBase(ABC):
                         pass
                     with (
                         qtable_view._selection_model.blocked(),
-                        qtable_view._ref_graphs.blocked(info.row, info.column),
+                        qtable_view._ref_graphs.blocked(*pos),
                     ):
-                        qtable.setDataFrameValue(info.row, info.column, repr(e))
+                        qtable.setDataFrameValue(*pos, repr(e))
                     return None
                 # SyntaxError/AttributeError might be caused by mistouching. Don't close
                 # the editor.
                 raise e
             else:
-                self.move_iloc(info.row, info.column)
+                self.move_iloc(*pos)
         else:
             # evaluated by "&=..."
             selections = self._extract_selections(info.expr)
             if len(selections) == 0:
                 # if no reference exists, evaluate the expression as "=..." form.
-                return self._emit_evaluated(
-                    EvalInfo(info.row, info.column, info.expr, False)
-                )
+                return self._emit_evaluated(EvalInfo(*pos, info.expr, False))
             graph = Graph(self, literal_callable, selections)
             qtable.setCalculationGraph(pos, graph)
 
