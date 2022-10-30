@@ -140,11 +140,13 @@ class GraphManager(MutableMapping[Index, Graph]):
         if not self._update_blocked:
             self._graphs[Index(*key)] = value
             value.connect()
+            logger.debug(f"Graph added at {key}: {value.expr}")
 
     def __delitem__(self, key: Index) -> None:
         if not self._update_blocked:
             graph = self._graphs.pop(key)
             graph.disconnect()
+            logger.debug(f"Graph at {key} disconnected: {graph.expr}")
 
     def __len__(self) -> int:
         return len(self._graphs)

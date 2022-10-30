@@ -374,12 +374,7 @@ class QCellLiteralEdit(_QTableLineEdit):
     def eval_and_close(self):
         text, is_ref = self._parse_ref(self.text())
         row, col = self._pos
-        info = EvalInfo(
-            row=row,
-            column=col,
-            expr=text,
-            is_ref=is_ref,
-        )
+        info = EvalInfo(row=row, column=col, expr=text, is_ref=is_ref)
         self._table.evaluatedSignal.emit(info)
         return None
 

@@ -502,16 +502,22 @@ class TableBase(ABC):
                 c_start = df.columns.get_loc(eval(colname))
                 rsl = _parse_slice(rsl_str)
                 csl = slice(c_start, c_start + 1)
-            else:
+            elif expr.startswith("df.loc["):
                 # df.loc[...]
                 rsl_str, csl_str = expr[7:-1].split(", ")
                 rsl = _parse_slice_loc(rsl_str, df.index)
                 csl = _parse_slice_loc(csl_str, df.columns)
+            elif expr.startswith("df.iloc["):
+                rsl_str, csl_str = expr[8:-1].split(", ")
+                rsl = _parse_slice(rsl_str)
+                csl = _parse_slice(csl_str)
+            else:
+                raise ValueError(f"Unreachable expression: {expr!r}")
             selections.append((rsl, csl))
         return selections
 
 
-_PATTERN = re.compile(r"df\[.+?\]\[.+?\]|df\.loc\[.+?\]")
+_PATTERN = re.compile(r"df\[.+?\](\[.+?\])?|df\.loc\[.+?\]|df\.iloc\[.+?\]")
 
 
 def _find_all_dataframe_expr(s: str) -> list[str]:
