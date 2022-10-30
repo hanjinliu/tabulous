@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from ..._table_stack import QTabbedTableStack
     from ..._mainwindow import _QtMainWidgetBase
     from ....types import SelectionType, _Sliceable
+    from ...._eval import Graph
 
 ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
 
@@ -438,6 +439,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     @_mgr.interface
     def setTextFormatter(self, name: str, fmt: Callable[[Any], str] | str):
+        """Set a text formatter function to the column named `name`."""
         if fmt is None:
             self.model()._text_formatter.pop(name, None)
         else:
@@ -456,6 +458,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     @_mgr.interface
     def setDataValidator(self, name: str, validator: Callable[[Any], None]):
+        """Set a validator function to the column named `name`."""
         if validator is None:
             self.model()._validator.pop(name, None)
         else:
@@ -469,6 +472,30 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def setDataValidator(self, name: str, validator: Callable[[Any], bool]):
         validator = self.model()._validator.get(name, None)
         return (name, validator), {}
+
+    def setCalculationGraph(self, pos: tuple[int, int], graph: Graph):
+        if graph is None:
+            self._qtable_view._ref_graphs.pop(pos)
+        else:
+            with self._mgr.merging():
+                graph.connect()
+                graph.initialize()
+                self._set_graph(pos, graph)
+
+    @_mgr.interface
+    def _set_graph(self, pos: tuple[int, int], graph: Graph):
+        if graph is None:
+            if g := self._qtable_view._ref_graphs.pop(pos):
+                g.disconnect()
+        else:
+            self._qtable_view._ref_graphs[pos] = graph
+
+    @_set_graph.server
+    def _set_graph(self, pos: tuple[int, int], graph: Graph):
+        return (
+            pos,
+            self._qtable_view._ref_graphs.get(pos, None),
+        ), {}
 
     def refreshTable(self) -> None:
         """Refresh table view."""
@@ -500,6 +527,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         label: str = "",
         topleft: tuple[int, int] = (0, 0),
     ):
+        """Add a widget as an overlay of the table."""
         from ._overlay import QOverlayFrame
 
         viewport = self._qtable_view.viewport()

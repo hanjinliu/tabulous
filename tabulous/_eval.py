@@ -12,6 +12,7 @@ import weakref
 from contextlib import contextmanager
 
 import numpy as np
+from ._selection_model import Index
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -37,12 +38,24 @@ class Graph:
     def __hash__(self) -> int:
         return id(self)
 
+    def __repr__(self) -> str:
+        if self._destination is None:
+            expr = f"out = {self._func.expr}"
+        else:
+            rsl, csl = self._destination
+            _r = _format_slice(rsl)
+            _c = _format_slice(csl)
+            expr = f"df.iloc[{_r}, {_c}] = {self._func.expr}"
+        return f"Graph<{expr}>"
+
     @property
-    def table(self) -> TableBase:
+    def table(self) -> TableBase | None:
+        """The parent table widget."""
         return self._table_ref()
 
     @contextmanager
     def blocked(self):
+        """Block the callback temporarily."""
         was_blocked = self._callback_blocked
         self._callback_blocked = True
         try:
@@ -54,6 +67,7 @@ class Graph:
         """Update the graph."""
         table = self.table
         if table is None:
+            # garbage collected
             return self.disconnect()
 
         if not self._callback_blocked:
@@ -70,14 +84,16 @@ class Graph:
                         dtype=object,
                     )
                     qtable_view = self.table._qwidget._qtable_view
-                    with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked():
+                    with (
+                        qtable_view._selection_model.blocked(),
+                        qtable_view._ref_graphs.blocked(),
+                    ):
                         table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
         else:
             out = None
         return out
 
-    def connect(self):
-        self.table.events.data.connect(self.update)
+    def initialize(self):
         # First exception should be considered as a wrong expression.
         # Disconnect the callback.
         try:
@@ -90,9 +106,19 @@ class Graph:
                 self._destination = out.range
         return self
 
+    def connect(self):
+        self.table.events.data.connect(self.update)
+        return self
+
     def disconnect(self):
         self.table.events.data.disconnect(self.update)
         return self
+
+    def clean_destination(self):
+        """Delete all the values in the destination."""
+        dst = self._destination
+        del self.table.cell[dst]
+        return None
 
 
 _K = TypeVar("_K", bound=Hashable)
@@ -110,7 +136,7 @@ class GraphManager(MutableMapping[_K, Graph]):
 
     def __setitem__(self, key: _K, value) -> None:
         if not self._update_blocked:
-            self._graphs[key] = value
+            self._graphs[Index(*key)] = value
 
     def __delitem__(self, key: _K) -> None:
         if not self._update_blocked:
@@ -334,3 +360,9 @@ def _infer_slices(
             f"({rloc.start}:{rloc.stop}, {cloc.start}:{cloc.stop})."
         )
     return rloc, cloc
+
+
+def _format_slice(sl: slice) -> str:
+    if sl == slice(None):
+        return ":"
+    return f"{sl.start}:{sl.stop}"

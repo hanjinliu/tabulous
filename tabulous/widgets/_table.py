@@ -459,6 +459,7 @@ class TableBase(ABC):
         qtable_view = qtable._qtable_view
 
         if not info.is_ref:
+            # evaluated by "=..."
             result = f()
             if e := result.get_err():
                 if not isinstance(e, (SyntaxError, AttributeError)):
@@ -476,9 +477,10 @@ class TableBase(ABC):
             else:
                 self.move_iloc(info.row, info.column)
         else:
+            # evaluated by "&=..."
             selections = self._extract_selections(info.expr)
-            graph = Graph(self, f, selections).connect()
-            self.native._qtable_view._ref_graphs[pos] = graph  # use undo
+            graph = Graph(self, f, selections)
+            qtable.setCalculationGraph(pos, graph)
 
         del qtable_view._focused_widget
         return None
