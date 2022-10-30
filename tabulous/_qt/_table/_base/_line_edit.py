@@ -277,6 +277,7 @@ class QCellLineEdit(_QTableLineEdit):
         if self._is_eval_like(text):
             pos = self.cursorPosition()
             self.setText("")
+            self.deleteLater()
             line = self.parentTableView()._create_eval_editor(text, self._pos)
             line.setCursorPosition(pos)
 

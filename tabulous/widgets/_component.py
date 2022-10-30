@@ -556,6 +556,9 @@ class CellReferenceInterface(Component["TableBase"], Mapping["tuple[int, int]", 
         return len(self._ref_graphs())
 
     def __repr__(self) -> str:
-        s = ",\n\t".join(f"{k}: {graph!r}" for k, graph in self._ref_graphs().items())
+        graphs = self._ref_graphs()
         cname = type(self).__name__
+        if len(graphs) == 0:
+            return f"{cname}()"
+        s = ",\n\t".join(f"{k}: {graph!r}" for k, graph in graphs.items())
         return f"{cname}(\n\t{s}\n)"

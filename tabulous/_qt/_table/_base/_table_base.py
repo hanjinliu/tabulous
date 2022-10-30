@@ -486,11 +486,9 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     @_mgr.interface
     def _set_graph(self, pos: tuple[int, int], graph: Graph):
         if graph is None:
-            if g := self._qtable_view._ref_graphs.pop(pos):
-                g.disconnect()
+            self._qtable_view._ref_graphs.pop(pos, None)
         else:
             self._qtable_view._ref_graphs[pos] = graph
-            graph.connect()
 
     @_set_graph.server
     def _set_graph(self, pos: tuple[int, int], graph: Graph):
@@ -796,71 +794,72 @@ class QMutableTable(QBaseTable):
         return self._data_raw
 
     def setDataFrameValue(self, r: _Sliceable, c: _Sliceable, value: Any) -> None:
-        """Set `value` at array[r:c]."""
+        """Set `value` at array[r, c]."""
         if not self.isEditable():
             raise TableImmutableError("Table is immutable.")
         data = self._data_raw
 
-        # convert values
-        if isinstance(r, slice) and isinstance(c, slice):
-            # delete references
-            if len(self._qtable_view._ref_graphs) < 128:
-                for key in list(self._qtable_view._ref_graphs.keys()):
-                    if r.start <= key[0] < r.stop and c.start <= key[1] < c.stop:
-                        self._delete_ref_expr(*key)
+        with self._mgr.merging(lambda cmds: self._set_value_fmt(r, c, value)):
+            # convert values
+            if isinstance(r, slice) and isinstance(c, slice):
+                # delete references
+                if len(self._qtable_view._ref_graphs) < 128:
+                    for key in list(self._qtable_view._ref_graphs.keys()):
+                        if r.start <= key[0] < r.stop and c.start <= key[1] < c.stop:
+                            self._set_graph(key, None)
 
+                else:
+                    for _c in range(c.start, c.stop):
+                        for _r in range(r.start, r.stop):
+                            self._set_graph((_r, _c), None)
+
+                _value: pd.DataFrame = value
+                if _value.size == 1:
+                    v = _value.values[0, 0]
+                    _value = data.iloc[r, c].copy()
+                    for _ic, _c in enumerate(range(c.start, c.stop)):
+                        _convert_value = self._get_converter(_c)
+                        for _ir, _r in enumerate(range(r.start, r.stop)):
+                            _value.iloc[_ir, _ic] = _convert_value(_r, _c, v)
+                else:
+                    for _ic, _c in enumerate(range(c.start, c.stop)):
+                        _convert_value = self._get_converter(_c)
+                        for _ir, _r in enumerate(range(r.start, r.stop)):
+                            _value.iloc[_ir, _ic] = _convert_value(
+                                _r, _c, _value.iloc[_ir, _ic]
+                            )
+                _is_scalar = False
             else:
-                for _c in range(c.start, c.stop):
-                    for _r in range(r.start, r.stop):
-                        self._delete_ref_expr(_r, _c)
+                self._set_graph((r, c), None)
+                _convert_value = self._get_converter(c)
+                _value = _convert_value(r, c, value)
+                _is_scalar = True
 
-            _value: pd.DataFrame = value
-            if _value.size == 1:
-                v = _value.values[0, 0]
-                _value = data.iloc[r, c].copy()
-                for _ic, _c in enumerate(range(c.start, c.stop)):
-                    _convert_value = self._get_converter(_c)
-                    for _ir, _r in enumerate(range(r.start, r.stop)):
-                        _value.iloc[_ir, _ic] = _convert_value(_r, _c, v)
+            # if table has filter, indices must be adjusted
+            if self._filter_slice is None:
+                r0 = r
             else:
-                for _ic, _c in enumerate(range(c.start, c.stop)):
-                    _convert_value = self._get_converter(_c)
-                    for _ir, _r in enumerate(range(r.start, r.stop)):
-                        _value.iloc[_ir, _ic] = _convert_value(
-                            _r, _c, _value.iloc[_ir, _ic]
-                        )
-            _is_scalar = False
-        else:
-            self._delete_ref_expr(r, c)
-            _convert_value = self._get_converter(c)
-            _value = _convert_value(r, c, value)
-            _is_scalar = True
+                if callable(self._filter_slice):
+                    sl = self._filter_slice(data)
+                else:
+                    sl = self._filter_slice
 
-        # if table has filter, indices must be adjusted
-        if self._filter_slice is None:
-            r0 = r
-        else:
-            if callable(self._filter_slice):
-                sl = self._filter_slice(data)
-            else:
-                sl = self._filter_slice
+                spec = np.where(sl)[0].tolist()
+                r0 = spec[r]
 
-            spec = np.where(sl)[0].tolist()
-            r0 = spec[r]
+            _old_value = data.iloc[r0, c]
+            if not _is_scalar:
+                _old_value: pd.DataFrame
+                _old_value = _old_value.copy()  # this is needed for undo
 
-        _old_value = data.iloc[r0, c]
-        if not _is_scalar:
-            _old_value: pd.DataFrame
-            _old_value = _old_value.copy()  # this is needed for undo
+            if self._filter_slice is not None:
+                # If table is filtered, the dataframe to be displayed is a different object
+                # so we have to update it as well.
+                self.model().updateValue(r, c, _value)
 
-        if self._filter_slice is not None:
-            # If table is filtered, the dataframe to be displayed is a different object
-            # so we have to update it as well.
-            self.model().updateValue(r, c, _value)
-
-        # emit item changed signal if value changed
-        if _was_changed(_value, _old_value) and self.isEditable():
-            self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
+            # emit item changed signal if value changed
+            if _was_changed(_value, _old_value) and self.isEditable():
+                self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
 
         return None
 
@@ -878,8 +877,7 @@ class QMutableTable(QBaseTable):
         self.itemChangedSignal.emit(ItemInfo(r, c, old_value, value))
         return None
 
-    @_set_value.set_formatter
-    def _set_value_fmt(self, r, c, r_ori, c_ori, value, old_value):
+    def _set_value_fmt(self, r, c, value):
         _r = fmt_slice(r)
         _c = fmt_slice(c)
         if isinstance(value, pd.DataFrame):
@@ -890,10 +888,6 @@ class QMutableTable(QBaseTable):
         else:
             _val = fmt.map_object(value)
         return f"df.iloc[{_r}, {_c}] = {_val}"
-
-    @_set_value.set_formatter_inv
-    def _set_value_fmt_inv(self, r, c, r_ori, c_ori, value, old_value):
-        return self._set_value_fmt(r, c, r_ori, c_ori, old_value, value)
 
     def assignColumn(self, ds: pd.Series):
         if ds.name in self._data_raw.columns:

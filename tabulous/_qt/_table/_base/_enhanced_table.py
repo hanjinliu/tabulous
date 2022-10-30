@@ -98,7 +98,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._focused_widget = None
         from ...._eval import GraphManager
 
-        self._ref_graphs: GraphManager[Index] = GraphManager()
+        self._ref_graphs = GraphManager()
 
     # fmt: off
     if TYPE_CHECKING:

@@ -333,6 +333,9 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setFilter(self._filter_slice)
         self._data_cache = None
 
+        # update graph indices
+        self._qtable_view._ref_graphs.insert_rows(row, count)
+
         info = ItemInfo(
             slice(row, row + count),
             slice(None),
@@ -393,6 +396,9 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setFilter(self._filter_slice)
         self._data_cache = None
 
+        # update graph indices
+        self._qtable_view._ref_graphs.insert_columns(columns, count)
+
         info = ItemInfo(
             slice(None),
             slice(col, col + count),
@@ -427,6 +433,8 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setFilter(self._filter_slice)
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         self._data_cache = None
+
+        self._qtable_view._ref_graphs.remove_rows(row, count)
         info = ItemInfo(
             slice(row, row + count), slice(None), ItemInfo.DELETED, old_values
         )
@@ -469,6 +477,8 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setFilter(self._filter_slice)
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         self._data_cache = None
+
+        self._qtable_view._ref_graphs.remove_columns(col, count)
         info = ItemInfo(
             slice(None), slice(col, col + count), ItemInfo.DELETED, old_values
         )

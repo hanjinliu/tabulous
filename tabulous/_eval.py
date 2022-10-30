@@ -4,7 +4,6 @@ from typing import (
     TYPE_CHECKING,
     Callable,
     Generic,
-    Hashable,
     MutableMapping,
     TypeVar,
 )
@@ -127,26 +126,25 @@ class Graph:
         return self
 
 
-_K = TypeVar("_K", bound=Hashable)
-
-
-class GraphManager(MutableMapping[_K, Graph]):
+class GraphManager(MutableMapping[Index, Graph]):
     """Calculation graph manager."""
 
     def __init__(self):
-        self._graphs: dict[_K, Graph] = {}
+        self._graphs: dict[Index, Graph] = {}
         self._update_blocked = False
 
-    def __getitem__(self, key: _K) -> Graph:
+    def __getitem__(self, key: Index) -> Graph:
         return self._graphs[key]
 
-    def __setitem__(self, key: _K, value) -> None:
+    def __setitem__(self, key: Index, value: Graph) -> None:
         if not self._update_blocked:
             self._graphs[Index(*key)] = value
+            value.connect()
 
-    def __delitem__(self, key: _K) -> None:
+    def __delitem__(self, key: Index) -> None:
         if not self._update_blocked:
-            del self._graphs[key]
+            graph = self._graphs.pop(key)
+            graph.disconnect()
 
     def __len__(self) -> int:
         return len(self._graphs)
@@ -162,6 +160,60 @@ class GraphManager(MutableMapping[_K, Graph]):
             yield
         finally:
             self._update_blocked = was_blocked
+
+    def insert_rows(self, row: int, count: int):
+        """Insert rows and update indices."""
+        if self._update_blocked:
+            return
+        with self.blocked():
+            new_dict = {}
+            for idx in list(self._graphs.keys()):
+                if idx.row >= row:
+                    new_idx = Index(idx.row + count, idx.column)
+                    new_dict[new_idx] = self._graphs.pop(idx)
+
+            self._graphs.update(new_dict)
+        return None
+
+    def insert_columns(self, col: int, count: int):
+        """Insert columns and update indices."""
+        if self._update_blocked:
+            return
+        with self.blocked():
+            new_dict = {}
+            for idx in list(self._graphs.keys()):
+                if idx.column >= col:
+                    new_idx = Index(idx.row, idx.column + count)
+                    new_dict[new_idx] = self._graphs.pop(idx)
+
+            self._graphs.update(new_dict)
+        return None
+
+    def remove_rows(self, row: int, count: int):
+        """Remove items that are in the given row range."""
+        if self._update_blocked:
+            return
+        start = row
+        stop = row + count
+        with self.blocked():
+            for idx in list(self._graphs.keys()):
+                if start <= idx.row < stop:
+                    self._graphs.pop(idx)
+
+        return None
+
+    def remove_columns(self, col: int, count: int):
+        """Remove items that are in the given column range."""
+        if self._update_blocked:
+            return
+        start = col
+        stop = col + count
+        with self.blocked():
+            for idx in list(self._graphs.keys()):
+                if start <= idx.column < stop:
+                    self._graphs.pop(idx)
+
+        return None
 
 
 _T = TypeVar("_T")
