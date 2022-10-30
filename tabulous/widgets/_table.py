@@ -454,13 +454,13 @@ class TableBase(ABC):
             return None
 
         pos = (info.row, info.column)
-        f = LiteralCallable.from_table(self, info.expr, pos)
+        literal_callable = LiteralCallable.from_table(self, info.expr, pos)
         qtable = self.native
         qtable_view = qtable._qtable_view
 
         if not info.is_ref:
             # evaluated by "=..."
-            result = f()
+            result = literal_callable()
             if e := result.get_err():
                 if not isinstance(e, (SyntaxError, AttributeError)):
                     # Update cell text with the exception object.
@@ -487,7 +487,7 @@ class TableBase(ABC):
                 return self._emit_evaluated(
                     EvalInfo(info.row, info.column, info.expr, False)
                 )
-            graph = Graph(self, f, selections)
+            graph = Graph(self, literal_callable, selections)
             qtable.setCalculationGraph(pos, graph)
 
         del qtable_view._focused_widget

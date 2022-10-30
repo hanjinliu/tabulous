@@ -60,6 +60,10 @@ class Graph:
         """The parent table widget."""
         return self._table_ref()
 
+    @property
+    def destination(self) -> tuple[slice, slice] | None:
+        return self._destination
+
     def set_pos(self, pos: tuple[int, int]):
         """Set the position of the graph origin."""
         self._func.set_pos(pos)
@@ -214,6 +218,7 @@ class GraphManager(MutableMapping[Index, Graph]):
 
     @contextmanager
     def blocked(self, *ranges):
+        """Block graph updates in the given ranges temporarily."""
         old_range = self._blocked_ranges
         if len(ranges) == 0:
             ranges = _ANY_RANGE

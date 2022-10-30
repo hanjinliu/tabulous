@@ -278,9 +278,8 @@ class QCellLineEdit(_QTableLineEdit):
         if self._is_eval_like(text):
             pos = self.cursorPosition()
             self.setText("")
-            self._is_widget_changing = (
-                True  # to make sure the value will not affect the table
-            )
+            # to make sure the value will not affect the table
+            self._is_widget_changing = True
             line = self.parentTableView()._create_eval_editor(text, self._pos)
             line.setCursorPosition(pos)
 
@@ -400,8 +399,8 @@ class QCellLiteralEdit(_QTableLineEdit):
         """Switch to QCellLineEdit if the text doesn't start with certain characters."""
         if not self._is_eval_like(text):
             qtable = self.parentTableView()
-            self.close()
             index = qtable.model().index(*self._pos)
+            self._is_widget_changing = True
             qtable.edit(index)
             line = QtW.QApplication.focusWidget()
             if not isinstance(line, QtW.QLineEdit):
