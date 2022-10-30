@@ -767,6 +767,7 @@ class QMutableTable(QBaseTable):
         self, parent: QtW.QWidget | None = None, data: pd.DataFrame | None = None
     ):
         super().__init__(parent, data)
+        self._data_cache = None  # only used in SpreadSheet for now
         self.model().dataEdited.connect(self.setDataFrameValue)
 
         # header editing signals
@@ -875,6 +876,7 @@ class QMutableTable(QBaseTable):
     @QBaseTable._mgr.undoable
     def _set_value(self, r, c, r_ori, c_ori, value, old_value):
         self.updateValue(r, c, value)
+        self._data_cache = None
         self.setSelections([(r_ori, c_ori)])
         self.itemChangedSignal.emit(ItemInfo(r, c, value, old_value))
         return None
@@ -882,6 +884,7 @@ class QMutableTable(QBaseTable):
     @_set_value.undo_def
     def _set_value(self, r, c, r_ori, c_ori, value, old_value):
         self.updateValue(r, c, old_value)
+        self._data_cache = None
         self.setSelections([(r_ori, c_ori)])
         self.itemChangedSignal.emit(ItemInfo(r, c, old_value, value))
         return None

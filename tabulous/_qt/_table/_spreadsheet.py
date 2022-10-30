@@ -139,7 +139,6 @@ class QSpreadSheet(QMutableSimpleTable):
     NaN = ""
 
     def __init__(self, parent=None, data: pd.DataFrame | None = None):
-        self._data_cache = None
         self._columns_dtype = DTypeMap()
         super().__init__(parent, data)
         self._qtable_view.verticalHeader().setMinimumWidth(20)
@@ -258,9 +257,9 @@ class QSpreadSheet(QMutableSimpleTable):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
             # NOTE: cache must be cleared to ensure event emission with updated data
-            self._data_cache = None
+            # self._data_cache = None
             super().setDataFrameValue(r, c, value)
-            self._data_cache = None
+            # self._data_cache = None
             self.setFilter(self._filter_slice)
 
         self._qtable_view.verticalHeader().resize(

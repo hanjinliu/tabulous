@@ -1,5 +1,6 @@
 from tabulous import TableViewer
 import pandas as pd
+from numpy.testing import assert_allclose
 
 def test_scalar():
     viewer = TableViewer(show=False)
@@ -49,3 +50,33 @@ def test_eval_with_no_ref():
     sheet = viewer.add_spreadsheet()
     sheet.cell[0, 0] = "&=np.arange(5)"
     assert len(sheet.cellref) == 0
+
+def test_eval_undo():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
+    sheet.cell[0, 1] = "&=np.mean(df['a'][0:3])"
+    assert sheet.data.iloc[0, 1] == 2.0
+
+    sheet.cell[0, 0] = "10"
+    assert sheet.data.iloc[0, 1] == 5.0
+    sheet.undo_manager.undo()
+    assert sheet.data.iloc[0, 0] == 1
+    assert sheet.data.iloc[0, 1] == 2.0
+    sheet.undo_manager.redo()
+    assert sheet.data.iloc[0, 0] == 10
+    assert sheet.data.iloc[0, 1] == 5.0
+
+def test_eval_undo_with_many_cells():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
+    sheet.cell[0, 1] = "&=np.cumsum(df['a'][0:3])"
+    assert_allclose(sheet.data.iloc[:, 1].values, [1, 3, 6])
+
+    sheet.cell[0, 0] = "10"
+    assert_allclose(sheet.data.iloc[:, 1].values, [10, 12, 15])
+    sheet.undo_manager.undo()
+    assert sheet.data.iloc[0, 0] == 1
+    assert_allclose(sheet.data.iloc[:, 1].values, [1, 3, 6])
+    sheet.undo_manager.redo()
+    assert sheet.data.iloc[0, 0] == 10
+    assert_allclose(sheet.data.iloc[:, 1].values, [10, 12, 15])

@@ -399,7 +399,6 @@ class LiteralCallable(Generic[_T]):
             else:
                 with qtable_view._selection_model.blocked():
                     qtable.setDataFrameValue(_row, _col, _out)
-
             return EvalResult(out, (_row, _col))
 
         return LiteralCallable(expr, evaluator, pos)
