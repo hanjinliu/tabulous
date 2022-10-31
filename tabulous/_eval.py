@@ -79,10 +79,13 @@ class Graph:
         finally:
             self._callback_blocked = was_blocked
 
-    def update(
-        self,
-    ):
-        """Update the graph."""
+    def update(self) -> EvalResult:
+        """
+        Run the graph and update the destination.
+
+        This function will NOT raise an Exception. Instead, it will return an
+        EvalResult object and the error is wrapped inside it.
+        """
         table = self.table
         if table is None:
             # garbage collected
@@ -91,7 +94,7 @@ class Graph:
         if not self._callback_blocked:
             with self.blocked():
                 out = self._func()
-                logger.debug(f"Running: {self.expr}")
+                logger.debug(f"Running: {self.expr}, result: {out._short_repr()}")
                 if (e := out.get_err()) and (sl := self._destination):
                     import pandas as pd
 
@@ -108,29 +111,29 @@ class Graph:
                     ):
                         table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
         else:
-            out = None
+            out = EvalResult(None, self._func._pos)
         return out
 
     def initialize(self):
         """Initialize the graph object."""
         # First exception should be considered as a wrong expression.
         # Disconnect the callback.
-        try:
-            out = self.update()
-        except Exception:
+        out = self.update()
+        if e := out.get_err():
             self.disconnect()
-            raise
-        else:
-            if isinstance(out, EvalResult):
-                self._destination = out.range
+            raise e
+        elif isinstance(out, EvalResult):
+            self._destination = out.range
         return self
 
     def connect(self):
+        """Connect the graph to the table data-changed event."""
         self.table.events.data.connect(self.update)
         logger.debug(f"Graph connected: {self.expr}")
         return self
 
     def disconnect(self):
+        """Disconnect the graph from the table data-changed event."""
         self.table.events.data.disconnect(self.update)
         logger.debug(f"Graph disconnected: {self.expr}")
         return self
@@ -188,9 +191,9 @@ class GraphManager(MutableMapping[Index, Graph]):
     def setitem_force(self, key: Index, graph: Graph) -> None:
         index = Index(*key)
         self.pop_force(index, None)
-        self._graphs[index] = graph
         graph.connect()
         graph.initialize()
+        self._graphs[index] = graph
         logger.debug(f"Graph added at {key}")
         return None
 
@@ -426,6 +429,7 @@ class EvalResult(Generic[_T]):
     """A Rust-like Result type for evaluation."""
 
     def __init__(self, obj: _T | Exception, range: tuple[int | slice, int | slice]):
+        # TODO: range should be (int, int).
         self._obj = obj
         _r, _c = range
         if isinstance(_r, int):
@@ -441,6 +445,19 @@ class EvalResult(Generic[_T]):
         else:
             desc = "Ok"
         return f"{cname}<{desc}({self._obj!r})>"
+
+    def _short_repr(self) -> str:
+        cname = type(self).__name__
+        if isinstance(self._obj, Exception):
+            desc = "Err"
+        else:
+            desc = "Ok"
+        _obj = repr(self._obj)
+        if "\n" in _obj:
+            _obj = _obj.split("\n")[0] + "..."
+        if len(_obj.rstrip("...")) > 20:
+            _obj = _obj[:20] + "..."
+        return f"{cname}<{desc}({_obj})>"
 
     @property
     def range(self) -> tuple[slice, slice]:
