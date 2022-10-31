@@ -1,8 +1,10 @@
 import pytest
 from tabulous import TableViewer
 from tabulous._qt import QSpreadSheet
+from tabulous.types import ItemInfo
 from typing import cast
 import numpy as np
+from unittest.mock import MagicMock
 
 def assert_data_equal(a, b):
     a = np.array(a).tolist()
@@ -118,3 +120,35 @@ def test_column_dtype_validation():
     # validator should be reset
     del sheet.dtypes["a"]
     sheet.cell[0, 0] = "a"
+
+def test_table_signal():
+    viewer = TableViewer(show=False)
+    table = viewer.add_spreadsheet(np.zeros((6, 6)))
+    mock = MagicMock()
+    table.events.data.connect(mock)
+    mock.assert_not_called()
+    table.cell[0, 0] = "1"
+    mock.call_args.args[0].row == slice(0, 1)
+    mock.call_args.args[0].column == slice(0, 1)
+
+    table.cell[1, :] = "1"
+    mock.call_args.args[0].row == 1
+    mock.call_args.args[0].column == slice(None)
+
+    table._qwidget.removeRows(2, 1)
+    mock.call_args.args[0].row == slice(2, 3)
+    mock.call_args.args[0].column == slice(None)
+    mock.call_args.args[0].value == ItemInfo.DELETED
+    table.undo_manager.undo()
+    mock.call_args.args[0].row == slice(2, 3)
+    mock.call_args.args[0].column == slice(None)
+    mock.call_args.args[0].old_value == ItemInfo.INSERTED
+
+    table._qwidget.removeColumns(2, 1)
+    mock.call_args.args[0].row == slice(None)
+    mock.call_args.args[0].column == slice(2, 3)
+    mock.call_args.args[0].value == ItemInfo.DELETED
+    table.undo_manager.undo()
+    mock.call_args.args[0].row == slice(None)
+    mock.call_args.args[0].column == slice(2, 3)
+    mock.call_args.args[0].old_value == ItemInfo.INSERTED

@@ -11,9 +11,11 @@ from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from ._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 from ._base._text_formatter import DefaultFormatter
 from ...color import normalize_color
+from ...types import ItemInfo
 
 _OUT_OF_BOUND_SIZE = 10  # 10 more rows and columns will be displayed.
 _STRING_DTYPE = get_dtype("string")
+_EMPTY = object()
 
 
 class SpreadSheetModel(AbstractDataFrameModel):
@@ -137,7 +139,6 @@ class QSpreadSheet(QMutableSimpleTable):
     NaN = ""
 
     def __init__(self, parent=None, data: pd.DataFrame | None = None):
-        self._data_cache = None
         self._columns_dtype = DTypeMap()
         super().__init__(parent, data)
         self._qtable_view.verticalHeader().setMinimumWidth(20)
@@ -256,9 +257,9 @@ class QSpreadSheet(QMutableSimpleTable):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
             # NOTE: cache must be cleared to ensure event emission with updated data
-            self._data_cache = None
+            # self._data_cache = None
             super().setDataFrameValue(r, c, value)
-            self._data_cache = None
+            # self._data_cache = None
             self.setFilter(self._filter_slice)
 
         self._qtable_view.verticalHeader().resize(
@@ -291,15 +292,15 @@ class QSpreadSheet(QMutableSimpleTable):
         return None
 
     @QMutableSimpleTable._mgr.undoable
-    def insertRows(self, row: int, count: int):
+    def insertRows(self, row: int, count: int, value: Any = _EMPTY):
         """Insert rows at the given row number and count."""
         if self._filter_slice is not None:
             raise NotImplementedError("Cannot insert rows during filtering.")
 
         index_existing = self._data_raw.index
 
-        # determine index labels
-        if not isinstance(index_existing, pd.RangeIndex):
+        if value is _EMPTY:
+            # determine index labels
             index: list[int] = []
             i = 0
             while True:
@@ -309,20 +310,18 @@ class QSpreadSheet(QMutableSimpleTable):
                         break
                 else:
                     i += 1
-        else:
-            index = None
 
-        new = _df_full(
-            nrows=count,
-            ncols=self._data_raw.shape[1],
-            index=index,
-            columns=self._data_raw.columns,
-        )
+            value = _df_full(
+                nrows=count,
+                ncols=self._data_raw.shape[1],
+                index=index,
+                columns=self._data_raw.columns,
+            )
 
         self._data_raw = pd.concat(
             [
                 self._data_raw.iloc[:row, :],
-                new,
+                value,
                 self._data_raw.iloc[row:, :],
             ],
             axis=0,
@@ -332,28 +331,39 @@ class QSpreadSheet(QMutableSimpleTable):
         self.model().insertRows(row, count, QtCore.QModelIndex())
         self.setFilter(self._filter_slice)
         self._data_cache = None
+
+        # update graph indices
+        self._qtable_view._ref_graphs.insert_rows(row, count)
+
+        info = ItemInfo(
+            slice(row, row + count),
+            slice(None),
+            value,
+            ItemInfo.INSERTED,
+        )
+        self.itemChangedSignal.emit(info)
         return None
 
     @insertRows.undo_def
-    def insertRows(self, row: int, count: int):
+    def insertRows(self, row: int, count: int, value: Any = _EMPTY):
         """Insert rows at the given row number and count."""
         return self.removeRows(row, count)
 
     @insertRows.set_formatter
-    def _insertRows_fmt(self, row: int, count: int):
+    def _insertRows_fmt(self, row: int, count: int, value: Any = _EMPTY):
         s = "s" if count > 1 else ""
         return f"insert {count} row{s} at row={row}"
 
     @QMutableSimpleTable._mgr.undoable
-    def insertColumns(self, column: int, count: int):
+    def insertColumns(self, col: int, count: int, value: Any = _EMPTY):
         """Insert columns at the given column number and count."""
         if self._filter_slice is not None:
             raise NotImplementedError("Cannot insert during filtering.")
 
         columns_existing = self._data_raw.columns
 
-        # determine column labels
-        if not isinstance(columns_existing, pd.RangeIndex):
+        if value is _EMPTY:
+            # determine column labels
             columns: list[int] = []
             i = 0
             while True:
@@ -363,40 +373,49 @@ class QSpreadSheet(QMutableSimpleTable):
                         break
                 else:
                     i += 1
-        else:
-            columns = None
 
-        new = _df_full(
-            nrows=self._data_raw.shape[0],
-            ncols=count,
-            index=self._data_raw.index,
-            columns=columns,
-        )
+            value = _df_full(
+                nrows=self._data_raw.shape[0],
+                ncols=count,
+                index=self._data_raw.index,
+                columns=columns,
+            )
 
         self._data_raw = pd.concat(
             [
-                self._data_raw.iloc[:, :column],
-                new,
-                self._data_raw.iloc[:, column:],
+                self._data_raw.iloc[:, :col],
+                value,
+                self._data_raw.iloc[:, col:],
             ],
             axis=1,
         )
         if isinstance(columns_existing, pd.RangeIndex):
             self._data_raw.columns = pd.RangeIndex(0, self._data_raw.columns.size)
-        self.model().insertColumns(column, count, QtCore.QModelIndex())
+        self.model().insertColumns(col, count, QtCore.QModelIndex())
         self.setFilter(self._filter_slice)
         self._data_cache = None
+
+        # update graph indices
+        self._qtable_view._ref_graphs.insert_columns(col, count)
+
+        info = ItemInfo(
+            slice(None),
+            slice(col, col + count),
+            value,
+            ItemInfo.INSERTED,
+        )
+        self.itemChangedSignal.emit(info)
         return None
 
     @insertColumns.undo_def
-    def insertColumns(self, column: int, count: int):
+    def insertColumns(self, col: int, count: int, value: Any = _EMPTY):
         """Insert columns at the given column number and count."""
-        return self.removeColumns(column, count)
+        return self.removeColumns(col, count)
 
     @insertColumns.set_formatter
-    def _insertColumns_fmt(self, column: int, count: int):
+    def _insertColumns_fmt(self, col: int, count: int, value: Any = _EMPTY):
         s = "s" if count > 1 else ""
-        return f"insert {count} column{s} at column={column}"
+        return f"insert {count} column{s} at column={col}"
 
     def removeRows(self, row: int, count: int):
         """Remove rows at the given row number and count."""
@@ -413,23 +432,28 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setFilter(self._filter_slice)
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         self._data_cache = None
+
+        self._qtable_view._ref_graphs.remove_rows(row, count)
+        info = ItemInfo(
+            slice(row, row + count), slice(None), ItemInfo.DELETED, old_values
+        )
+        self.itemChangedSignal.emit(info)
         return None
 
     @_remove_rows.undo_def
     def _remove_rows(self, row: int, count: int, old_values: pd.DataFrame):
-        self.insertRows(row, count)
-        self.setDataFrameValue(
-            r=slice(row, row + count),
-            c=slice(0, old_values.columns.size),
-            value=old_values,
-        )
+        self.insertRows(row, count, old_values)
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         return None
 
     @_remove_rows.set_formatter
     def _remove_rows_fmt(self, row, count, old_values):
         s = "s" if count > 1 else ""
-        return f"Remove {count} row{s} at row={row}"
+        if count == 1:
+            sl = row
+        else:
+            sl = f"{row}:{row + count}"
+        return f"Remove row{s} at position {sl}"
 
     def removeColumns(self, column: int, count: int):
         """Remove columns at the given column number and count."""
@@ -437,42 +461,43 @@ class QSpreadSheet(QMutableSimpleTable):
         return self._remove_columns(column, count, df)
 
     @QMutableSimpleTable._mgr.undoable
-    def _remove_columns(self, column: int, count: int, old_values: pd.DataFrame):
+    def _remove_columns(self, col: int, count: int, old_values: pd.DataFrame):
         model = self.model()
-        for index in range(column, column + count):
+        for index in range(col, col + count):
             colname = model.df.columns[index]
             model.delete_column(colname)
             self._columns_dtype.pop(colname, None)
 
         self._data_raw = pd.concat(
-            [self._data_raw.iloc[:, :column], self._data_raw.iloc[:, column + count :]],
+            [self._data_raw.iloc[:, :col], self._data_raw.iloc[:, col + count :]],
             axis=1,
         )
-        self.model().removeColumns(column, count, QtCore.QModelIndex())
+        self.model().removeColumns(col, count, QtCore.QModelIndex())
         self.setFilter(self._filter_slice)
-        self.setSelections(
-            [(slice(0, self._data_raw.shape[0]), slice(column, column + 1))]
-        )
+        self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         self._data_cache = None
+
+        self._qtable_view._ref_graphs.remove_columns(col, count)
+        info = ItemInfo(
+            slice(None), slice(col, col + count), ItemInfo.DELETED, old_values
+        )
+        self.itemChangedSignal.emit(info)
         return None
 
     @_remove_columns.undo_def
-    def _remove_columns(self, column: int, count: int, old_values: pd.DataFrame):
-        self.insertColumns(column, count)
-        self.setDataFrameValue(
-            r=slice(0, old_values.index.size),
-            c=slice(column, column + count),
-            value=old_values,
-        )
-        self.setSelections(
-            [(slice(0, self._data_raw.shape[0]), slice(column, column + 1))]
-        )
+    def _remove_columns(self, col: int, count: int, old_values: pd.DataFrame):
+        self.insertColumns(col, count, old_values)
+        self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         return None
 
     @_remove_columns.set_formatter
-    def _remove_columns_fmt(self, column, count, old_values):
+    def _remove_columns_fmt(self, col, count, old_values):
         s = "s" if count > 1 else ""
-        return f"Remove {count} column{s} at columns={column}"
+        if count == 1:
+            sl = col
+        else:
+            sl = f"{col}:{col + count}"
+        return f"Remove column{s} at position {sl}"
 
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         """Set value of the table vertical header and DataFrame at the index."""
@@ -637,8 +662,8 @@ class QSpreadSheet(QMutableSimpleTable):
         self.registerAction("Insert/Remove > Insert a row below")(lambda idx: self._insert_row_below(idx[0]))
         self.registerAction("Insert/Remove > Remove this row")(lambda idx: self._remove_this_row(idx[0]))
         self.addSeparator()
-        self.registerAction("Insert/Remove > Insert a column on the left")(lambda idx: self.insertColumns(idx[1]))
-        self.registerAction("Insert/Remove > Insert a column on the right")(lambda idx: self.insertColumns(idx[1]))
+        self.registerAction("Insert/Remove > Insert a column on the left")(lambda idx: self._insert_column_left(idx[1]))
+        self.registerAction("Insert/Remove > Insert a column on the right")(lambda idx: self._insert_column_right(idx[1]))
         self.registerAction("Insert/Remove > Remove this column")(lambda idx: self._remove_this_column(idx[1]))
         self.addSeparator()
         # fmt: on

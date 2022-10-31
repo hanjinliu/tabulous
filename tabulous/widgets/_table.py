@@ -1,6 +1,5 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-import re
 from enum import Enum
 from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
 from psygnal import SignalGroup, Signal
@@ -449,17 +448,19 @@ class TableBase(ABC):
 
     def _emit_evaluated(self, info: EvalInfo):
         from .._eval import Graph, LiteralCallable
+        from .._selection_op import iter_extract
 
         if info.expr == "":
             return None
 
         pos = (info.row, info.column)
-        f = LiteralCallable.from_table(self, info.expr, pos)
+        literal_callable = LiteralCallable.from_table(self, info.expr, pos)
         qtable = self.native
         qtable_view = qtable._qtable_view
 
         if not info.is_ref:
-            result = f()
+            # evaluated by "=..."
+            result = literal_callable(unblock=True)  # cells updated here if succeeded
             if e := result.get_err():
                 if not isinstance(e, (SyntaxError, AttributeError)):
                     # Update cell text with the exception object.
@@ -467,70 +468,28 @@ class TableBase(ABC):
                         del qtable_view._focused_widget
                     except RuntimeError:
                         pass
-                    with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked():
-                        qtable.setDataFrameValue(info.row, info.column, repr(e))
+                    with (
+                        qtable_view._selection_model.blocked(),
+                        qtable_view._ref_graphs.blocked(*pos),
+                    ):
+                        qtable.setDataFrameValue(*pos, repr(e))
                     return None
                 # SyntaxError/AttributeError might be caused by mistouching. Don't close
                 # the editor.
                 raise e
             else:
-                self.move_iloc(info.row, info.column)
+                self.move_iloc(*pos)
         else:
-            selections = self._extract_selections(info.expr)
-            graph = Graph(self, f, selections).connect()
-            self.native._qtable_view._ref_graphs[pos] = graph  # use undo
+            # evaluated by "&=..."
+            selections = list(iter_extract(info.expr))
+            if len(selections) == 0:
+                # if no reference exists, evaluate the expression as "=..." form.
+                return self._emit_evaluated(EvalInfo(*pos, info.expr, False))
+            graph = Graph(self, literal_callable, selections)
+            qtable.setCalculationGraph(pos, graph)
 
         del qtable_view._focused_widget
         return None
-
-    def _extract_selections(self, text: str) -> list[tuple[slice, slice]]:
-        qtable_view = self.native._qtable_view
-        df = qtable_view.model().df
-
-        selections: list[tuple[slice, slice]] = []
-        for expr in _find_all_dataframe_expr(text):
-            if expr.startswith("df["):
-                # df['val'][...]
-                colname, rsl_str = expr[3:-1].split("][")
-                c_start = df.columns.get_loc(eval(colname))
-                rsl = _parse_slice(rsl_str)
-                csl = slice(c_start, c_start + 1)
-            else:
-                # df.loc[...]
-                rsl_str, csl_str = expr[7:-1].split(", ")
-                rsl = _parse_slice_loc(rsl_str, df.index)
-                csl = _parse_slice_loc(csl_str, df.columns)
-            selections.append((rsl, csl))
-        return selections
-
-
-_PATTERN = re.compile(r"df\[.+?\]\[.+?\]|df\.loc\[.+?\]")
-
-
-def _find_all_dataframe_expr(s: str) -> list[str]:
-    return _PATTERN.findall(s)
-
-
-def _parse_slice(s: str) -> slice:
-    if ":" in s:
-        start_str, stop_str = s.split(":")
-        start = eval(start_str)
-        stop = eval(stop_str)
-    else:
-        start = eval(s)
-        stop = start + 1
-    return slice(start, stop)
-
-
-def _parse_slice_loc(s: str, index: pd.Index) -> slice:
-    if ":" in s:
-        start_str, stop_str = s.split(":")
-        start = index.get_loc(eval(start_str))
-        stop = index.get_loc(eval(stop_str)) + 1
-    else:
-        start = index.get_loc(eval(s))
-        stop = start + 1
-    return slice(start, stop)
 
 
 # #############################################################################

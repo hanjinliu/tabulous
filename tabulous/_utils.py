@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from types import MappingProxyType
-from dataclasses import asdict, dataclass
+from typing import Any
+from dataclasses import asdict, dataclass, field
 from functools import wraps
 from pathlib import Path
 from appdirs import user_state_dir, user_config_dir
 
+
 TXT_PATH = Path(user_state_dir("tabulous", "tabulous", "history.txt"))
 CONFIG_PATH = Path(user_config_dir("tabulous", "tabulous", "config.toml"))
+CELL_NAMESPACE_PATH = Path(user_state_dir("tabulous", "tabulous", "cell_namespace.py"))
 
 
 def warn_on_exc(default=None):
@@ -61,6 +64,29 @@ def load_file_open_path() -> list[str]:
     return lines
 
 
+@warn_on_exc(default=MappingProxyType({}))
+def load_cell_namespace() -> MappingProxyType:
+    """Load the cell namespace from a file."""
+    if not CELL_NAMESPACE_PATH.exists():
+        CELL_NAMESPACE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        CELL_NAMESPACE_PATH.write_text("")
+    with open(CELL_NAMESPACE_PATH, encoding="utf-8") as f:
+        code = compile(f.read(), CELL_NAMESPACE_PATH, "exec")
+    ns: dict[str, Any] = {}
+    exec(code, {}, ns)
+    to_be_deleted = set()
+    for k in ns.keys():
+        if k.startswith("_"):
+            to_be_deleted.add(k)
+
+    if "__all__" in to_be_deleted:
+        _all = ns.get("__all__", [])
+        to_be_deleted.update(_all)
+    for k in to_be_deleted:
+        ns.pop(k, None)
+    return MappingProxyType(ns)
+
+
 @dataclass
 class ConsoleNamespace:
     """Default namespace of the console."""
@@ -76,8 +102,8 @@ class ConsoleNamespace:
 class Table:
     """Table settings."""
 
-    max_row_count: int = 100000
-    max_column_count: int = 100000
+    max_row_count: int = 1000000
+    max_column_count: int = 80000
     font: str = "Arial"
     font_size: int = 10
     row_size: int = 28
@@ -90,6 +116,7 @@ class Cell:
 
     eval_prefix: str = "="
     ref_prefix: str = "&="
+    slicing: str = "loc"
 
 
 @dataclass
@@ -103,10 +130,10 @@ class Window:
 class TabulousConfig:
     """The config model."""
 
-    console_namespace: ConsoleNamespace = ConsoleNamespace()
-    table: Table = Table()
-    cell: Cell = Cell()
-    window: Window = Window()
+    console_namespace: ConsoleNamespace = field(default_factory=ConsoleNamespace)
+    table: Table = field(default_factory=Table)
+    cell: Cell = field(default_factory=Cell)
+    window: Window = field(default_factory=Window)
 
     @classmethod
     def from_toml(cls, path: Path = CONFIG_PATH) -> TabulousConfig:

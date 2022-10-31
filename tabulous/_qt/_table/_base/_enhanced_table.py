@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import weakref
+import logging
 from functools import lru_cache
-from typing import TYPE_CHECKING, Iterator, cast
+from typing import TYPE_CHECKING, Iterable, Iterator, cast, Literal
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
@@ -28,6 +29,17 @@ S_COLOR_W = Qt.GlobalColor.darkBlue
 S_COLOR_B = Qt.GlobalColor.cyan
 CUR_COLOR = QtGui.QColor(128, 128, 128, 108)
 HOV_COLOR = QtGui.QColor(75, 75, 242, 80)
+
+logger = logging.getLogger("tabulous")
+
+
+class MouseTrack:
+    """Info about the mouse position and button state"""
+
+    def __init__(self):
+        self.last_pos: QtCore.QPoint | None = None
+        self.was_right_dragging: bool = False
+        self.last_button: Literal["left", "right"] | None = None
 
 
 class _QTableViewEnhanced(QtW.QTableView):
@@ -67,9 +79,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._highlight_model = RangesModel()
 
         # parameters for mouse tracking
-        self._last_pos: QtCore.QPoint | None = None
-        self._was_right_dragging: bool = False
-        self._last_mouse_button: str | None = None
+        self._mouse_track = MouseTrack()
 
         # header settings
         vheader = QVerticalHeaderView()
@@ -87,6 +97,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setVerticalScrollMode(_SCROLL_PER_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
 
+        # item delegate
         from ._delegate import TableItemDelegate
 
         delegate = TableItemDelegate(parent=self)
@@ -98,7 +109,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._focused_widget = None
         from ...._eval import GraphManager
 
-        self._ref_graphs: GraphManager[Index] = GraphManager()
+        self._ref_graphs = GraphManager()
 
     # fmt: off
     if TYPE_CHECKING:
@@ -249,30 +260,30 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         _selection_model = self._selection_model
         _selection_model.set_ctrl(e.modifiers() & Qt.KeyboardModifier.ControlModifier)
-        self._last_pos = e.pos()
+        self._mouse_track.last_pos = e.pos()
         if e.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(e.pos())
             if index.isValid():
                 r, c = index.row(), index.column()
                 self._selection_model.jump_to(r, c)
-            self._last_mouse_button = "left"
+            self._mouse_track.last_button = "left"
         elif e.button() == Qt.MouseButton.RightButton:
-            self._was_right_dragging = False
-            self._last_mouse_button = "right"
+            self._mouse_track.was_right_dragging = False
+            self._mouse_track.last_button = "right"
             return
         _selection_model.set_shift(True)
         return super().mousePressEvent(e)
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
         """Scroll table plane when mouse is moved with right click."""
-        if self._last_mouse_button == "right":
+        if self._mouse_track.last_button == "right":
             pos = e.pos()
-            dy = pos.y() - self._last_pos.y()
-            dx = pos.x() - self._last_pos.x()
+            dy = pos.y() - self._mouse_track.last_pos.y()
+            dx = pos.x() - self._mouse_track.last_pos.x()
             self.verticalScrollBar().setValue(self.verticalScrollBar().value() - dy)
             self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - dx)
-            self._last_pos = pos
-            self._was_right_dragging = True
+            self._mouse_track.last_pos = pos
+            self._mouse_track.was_right_dragging = True
         else:
             index = self.indexAt(e.pos())
             if index.isValid():
@@ -283,14 +294,17 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def mouseReleaseEvent(self, e: QtGui.QMouseEvent) -> None:
         """Delete last position."""
-        if e.button() == Qt.MouseButton.RightButton and not self._was_right_dragging:
+        if (
+            e.button() == Qt.MouseButton.RightButton
+            and not self._mouse_track.was_right_dragging
+        ):
             self.rightClickedSignal.emit(e.pos())
-        self._last_pos = None
-        self._last_mouse_button = None
+        self._mouse_track.last_pos = None
+        self._mouse_track.last_button = None
         self._selection_model.set_shift(
             e.modifiers() & Qt.KeyboardModifier.ShiftModifier
         )
-        self._was_right_dragging = False
+        self._mouse_track.was_right_dragging = False
         if wdt := self._focused_widget:
             wdt.setFocus()
         return super().mouseReleaseEvent(e)
@@ -342,12 +356,15 @@ class _QTableViewEnhanced(QtW.QTableView):
 
             else:
                 self._edit_current()
+                if wdt := self._focused_widget:
+                    wdt.setFocus()
                 focused_widget = QtW.QApplication.focusWidget()
 
             if isinstance(focused_widget, QtW.QLineEdit):
                 focused_widget = cast(QtW.QLineEdit, focused_widget)
                 focused_widget.setText(keys.key_string(check_shift=True))
                 focused_widget.deselect()
+
             return None
 
         elif keys == "F2":
@@ -360,7 +377,10 @@ class _QTableViewEnhanced(QtW.QTableView):
             elif sel_mod.current_index.column < 0:
                 parent.editVerticalHeader(sel_mod.current_index.row)
             else:
-                self._edit_current()
+                if wdt := self._focused_widget:
+                    wdt._self_focused = True
+                else:
+                    self._edit_current()
             if wdt := self._focused_widget:
                 wdt.setFocus()
             return None
@@ -376,7 +396,9 @@ class _QTableViewEnhanced(QtW.QTableView):
     def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
         keys = QtKeys(a0)
         self._selection_model.set_ctrl(keys.has_ctrl())
-        self._selection_model.set_shift(keys.has_shift() or self._last_pos is not None)
+        self._selection_model.set_shift(
+            keys.has_shift() or self._mouse_track.last_pos is not None
+        )
         return super().keyReleaseEvent(a0)
 
     def zoom(self) -> float:
@@ -461,15 +483,38 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # draw highlights
         h_color = self._get_highlight_color()
-        for i, rect in enumerate(self.rectFromRanges(self._highlight_model)):
+        for i, rect in enumerate(self._rect_from_ranges(self._highlight_model._ranges)):
             painter.fillRect(rect, h_color)
 
         # draw selections
         s_color = self._get_selection_color()
-        for i, rect in enumerate(self.rectFromRanges(self._selection_model)):
+        for i, rect in enumerate(self._rect_from_ranges(self._selection_model._ranges)):
             pen = QtGui.QPen(s_color, 2 + int(nsel == i + 1) * focused)
             painter.setPen(pen)
             painter.drawRect(rect)
+
+        # draw graphs
+        if self._ref_graphs._to_be_shown:
+            _df = self.model().df
+            try:
+                for graph in self._ref_graphs._to_be_shown:
+                    for i, rect in enumerate(
+                        self._rect_from_ranges(
+                            sel.as_iloc_slices(_df) for sel in graph._sources
+                        )
+                    ):
+                        pen = QtGui.QPen(h_color, 3)
+                        painter.setPen(pen)
+                        painter.drawRect(rect)
+                    # TODO: destination
+                    # for i, rect in enumerate(
+                    #     self._rect_from_ranges(sel.as_iloc(_df) for sel in graph._sources)
+                    # ):
+                    #     pen = QtGui.QPen(h_color, 2)
+                    #     painter.setPen(pen)
+                    #     painter.drawRect(rect)
+            except Exception as e:
+                logger.debug(f"Failed to draw graph: {e}")
 
         # current index
         idx = self._selection_model.current_index
@@ -506,10 +551,12 @@ class _QTableViewEnhanced(QtW.QTableView):
             parent = parent.parent()
         return parent
 
-    def rectFromRanges(self, ranges_model: RangesModel) -> Iterator[QtCore.QRect]:
+    def _rect_from_ranges(
+        self, ranges: Iterable[tuple[slice, slice]]
+    ) -> Iterator[QtCore.QRect]:
         """Convert range models into rectangles."""
         model = self.model()
-        for rr, cc in ranges_model._ranges:
+        for rr, cc in ranges:
             top_left = model.index(rr.start, cc.start)
             bottom_right = model.index(rr.stop - 1, cc.stop - 1)
             rect = self.visualRect(top_left) | self.visualRect(bottom_right)

@@ -86,10 +86,17 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         model: AbstractDataFrameModel,
         index: QtCore.QModelIndex,
     ) -> None:
-        if isinstance(editor, QtW.QDateTimeEdit):
+        if isinstance(editor, QCellLineEdit):
+            editor = cast(QCellLineEdit, editor)
+            text = editor.text()
+            if not editor._is_widget_changing:
+                model.setData(index, text, Qt.ItemDataRole.EditRole)
+            return None
+        elif isinstance(editor, QtW.QDateTimeEdit):
             editor = cast(QtW.QDateTimeEdit, editor)
             dt = editor.dateTime().toPyDateTime()
             model.setData(index, dt, Qt.ItemDataRole.EditRole)
+            return None
         else:
             return super().setModelData(editor, model, index)
 

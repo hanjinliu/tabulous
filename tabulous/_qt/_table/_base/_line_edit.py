@@ -11,6 +11,7 @@ from ..._qt_const import MonospaceFontFamily
 from ..._keymap import QtKeys
 from ....types import HeaderInfo, EvalInfo
 from ...._utils import get_config
+from ...._selection_op import ColumnSelOp, LocSelOp, ILocSelOp
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
@@ -40,6 +41,7 @@ class _QTableLineEdit(QtW.QLineEdit):
         self._table = table
         self._pos = pos
         self._is_valid = True
+        self._is_widget_changing = False
         self._current_exception = ""
         self.textChanged.connect(self._on_text_changed)
 
@@ -277,6 +279,8 @@ class QCellLineEdit(_QTableLineEdit):
         if self._is_eval_like(text):
             pos = self.cursorPosition()
             self.setText("")
+            # to make sure the value will not affect the table
+            self._is_widget_changing = True
             line = self.parentTableView()._create_eval_editor(text, self._pos)
             line.setCursorPosition(pos)
 
@@ -370,12 +374,7 @@ class QCellLiteralEdit(_QTableLineEdit):
     def eval_and_close(self):
         text, is_ref = self._parse_ref(self.text())
         row, col = self._pos
-        info = EvalInfo(
-            row=row,
-            column=col,
-            expr=text,
-            is_ref=is_ref,
-        )
+        info = EvalInfo(row=row, column=col, expr=text, is_ref=is_ref)
         self._table.evaluatedSignal.emit(info)
         return None
 
@@ -401,8 +400,8 @@ class QCellLiteralEdit(_QTableLineEdit):
         """Switch to QCellLineEdit if the text doesn't start with certain characters."""
         if not self._is_eval_like(text):
             qtable = self.parentTableView()
-            self.close()
             index = qtable.model().index(*self._pos)
+            self._is_widget_changing = True
             qtable.edit(index)
             line = QtW.QApplication.focusWidget()
             if not isinstance(line, QtW.QLineEdit):
@@ -472,9 +471,9 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         rsl, csl = qtable._selection_model.ranges[-1]
         _df = qtable.model().df
-        columns = _df.columns
         nr, nc = _df.shape
 
+        # normalize out-of-bound
         if rsl.stop > nr:
             if rsl.start >= nr:
                 return None
@@ -484,20 +483,19 @@ class QCellLiteralEdit(_QTableLineEdit):
                 return None
             csl = slice(csl.start, nc)
 
+        if csl.start in qtable._selection_model._col_selection_indices:
+            rsl = slice(None)
+
         if csl.start == csl.stop - 1:
-            if rsl.start == rsl.stop - 1:
-                sl1 = rsl.start
-            else:
-                sl1 = f"{rsl.start}:{rsl.stop}"
-            to_be_added = f"df[{columns[csl.start]!r}][{sl1}]"
+            selop = ColumnSelOp.from_iloc(rsl, csl, _df)
         else:
-            index = _df.index
-            if rsl.start == rsl.stop - 1:
-                sl1 = index[rsl.start]
+            if _CONFIG.cell.slicing == "loc":
+                selop = LocSelOp.from_iloc(rsl, csl, _df)
+            elif _CONFIG.cell.slicing == "iloc":
+                selop = ILocSelOp.from_iloc(rsl, csl, _df)
             else:
-                sl1 = f"{index[rsl.start]!r}:{index[rsl.stop-1]!r}"
-            sl0 = f"{columns[csl.start]!r}:{columns[csl.stop-1]!r}"
-            to_be_added = f"df.loc[{sl1}, {sl0}]"
+                raise ValueError(f"Unknown slicing mode {_CONFIG.cell.slicing}")
+        to_be_added = selop.fmt("df")
 
         if cursor_pos == 0:
             self.setText(to_be_added + text)
@@ -521,7 +519,7 @@ class QCellLiteralEdit(_QTableLineEdit):
     def _manage_completion(self, text: str):
         if text.endswith("."):
             mod_str = _find_last_module_name(text[:-1])
-            mod = self._table.parentViewer()._namespace.value().get(mod_str, None)
+            mod = self._table.parentViewer()._namespace.get(mod_str, None)
             if mod is None:
                 self._completion_module = None
                 return None

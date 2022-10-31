@@ -94,6 +94,22 @@ class TabPosition(Enum):
     right = "right"
 
 
+class _InfoVar:
+    def __init__(self) -> None:
+        self._name = None
+
+    def __set_name__(self, owner, name):
+        self._name = f"{owner.__name__}.{name}"
+
+    def __repr__(self) -> str:
+        return self._name
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, _InfoVar):
+            return self._name == other._name
+        return False
+
+
 class ItemInfo(NamedTuple):
     """
     A named tuple for item update.
@@ -108,12 +124,24 @@ class ItemInfo(NamedTuple):
         New value of the item.
     old_value : Any
         Old value of the item.
+
+    If a row or column is deleted, the value is set to ``DELETED``.
+    If a row or column is inserted, the old_value is set to ``INSERTED``.
     """
+
+    # class variables
+    DELETED = _InfoVar()
+    INSERTED = _InfoVar()
 
     row: int | slice
     column: int | slice
     value: Any
     old_value: Any
+
+    @property
+    def col(self) -> int | slice:
+        """Alias of `column`."""
+        return self.column
 
 
 class HeaderInfo(NamedTuple):
@@ -155,6 +183,11 @@ class EvalInfo(NamedTuple):
     column: int
     expr: str
     is_ref: bool
+
+    @property
+    def col(self) -> int:
+        """Alias of `column`."""
+        return self.column
 
 
 _Sliceable = Union[SupportsIndex, slice]

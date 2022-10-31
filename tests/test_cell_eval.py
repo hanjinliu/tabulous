@@ -1,5 +1,6 @@
 from tabulous import TableViewer
 import pandas as pd
+import pytest
 
 def test_set_ndarray():
     viewer = TableViewer(show=False)
@@ -92,3 +93,27 @@ def test_scalar_output():
     editor = qtable._create_eval_editor("=np.mean(df['a'][0:3]) + 1", (1, 1))
     editor.eval_and_close()
     assert sheet.data.iloc[1, 1] == 4.0
+
+def test_updating_namespace():
+    import numpy as np
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet({"a": [1, 3, 5]})
+    qtable = sheet.native._qtable_view
+    with pytest.raises(ValueError):
+        viewer.cell_namespace.update(np=0)
+    viewer.cell_namespace.update(mean=np.mean)
+    editor = qtable._create_eval_editor("=mean(df['a'][0:3])", (2, 1))
+    editor.eval_and_close()
+    assert sheet.data.iloc[2, 1] == 3.0
+
+def test_updating_namespace_by_decorator():
+    import numpy as np
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet({"a": [1, 3, 5]})
+    qtable = sheet.native._qtable_view
+    @viewer.cell_namespace.add
+    def mean(df):
+        return np.mean(df)
+    editor = qtable._create_eval_editor("=mean(df['a'][0:3])", (2, 1))
+    editor.eval_and_close()
+    assert sheet.data.iloc[2, 1] == 3.0

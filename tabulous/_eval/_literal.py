@@ -3,120 +3,14 @@ from __future__ import annotations
 from typing import (
     TYPE_CHECKING,
     Callable,
-    Any,
     Generic,
-    Hashable,
-    MutableMapping,
     TypeVar,
 )
-import weakref
-from contextlib import contextmanager
+from .._selection_model import Index
 
 if TYPE_CHECKING:
     import pandas as pd
-    from .widgets import TableBase
-
-
-class Graph:
-    """Calculation graph object that works in a table."""
-
-    def __init__(
-        self,
-        table: TableBase,
-        func: Callable[[], Any],
-        sources: list[tuple[slice, slice]],
-        destination: tuple[slice, slice] | None = None,
-    ):
-        self._sources = sources
-        self._destination = destination
-        self._func = func
-        self._table_ref = weakref.ref(table)
-        self._callback_blocked = False
-
-    def __hash__(self) -> int:
-        return id(self)
-
-    @property
-    def table(self) -> TableBase:
-        return self._table_ref()
-
-    @contextmanager
-    def blocked(self):
-        was_blocked = self._callback_blocked
-        self._callback_blocked = True
-        try:
-            yield
-        finally:
-            self._callback_blocked = was_blocked
-
-    def update(self):
-        """Update the graph."""
-        table = self.table
-        if table is None:
-            return self.disconnect()
-
-        if not self._callback_blocked:
-            with self.blocked():
-                out = self._func()
-        else:
-            out = None
-        return out
-
-    def connect(self):
-        self.table.events.data.connect(self.update)
-        # First exception should be considered as a wrong expression.
-        # Disconnect the callback.
-        try:
-            out = self.update()
-        except Exception:
-            self.disconnect()
-            raise
-        else:
-            if isinstance(out, EvalResult):
-                self._destination = out.range
-        return self
-
-    def disconnect(self):
-        self.table.events.data.disconnect(self.update)
-        return self
-
-
-_K = TypeVar("_K", bound=Hashable)
-
-
-class GraphManager(MutableMapping[_K, Graph]):
-    """Calculation graph manager."""
-
-    def __init__(self):
-        self._graphs: dict[_K, Graph] = {}
-        self._update_blocked = False
-
-    def __getitem__(self, key: _K) -> Graph:
-        return self._graphs[key]
-
-    def __setitem__(self, key: _K, value) -> None:
-        if not self._update_blocked:
-            self._graphs[key] = value
-
-    def __delitem__(self, key: _K) -> None:
-        if not self._update_blocked:
-            del self._graphs[key]
-
-    def __len__(self) -> int:
-        return len(self._graphs)
-
-    def __iter__(self):
-        return iter(self._graphs)
-
-    @contextmanager
-    def blocked(self):
-        was_blocked = self._update_blocked
-        self._update_blocked = True
-        try:
-            yield
-        finally:
-            self._update_blocked = was_blocked
-
+    from ..widgets import TableBase
 
 _T = TypeVar("_T")
 
@@ -124,12 +18,22 @@ _T = TypeVar("_T")
 class LiteralCallable(Generic[_T]):
     """A callable object for eval."""
 
-    def __init__(self, expr: str, func: Callable[[], _T]):
+    def __init__(self, expr: str, func: Callable[[LiteralCallable], _T], pos: Index):
         self._expr = expr
         self._func = func
+        self._pos = pos
+        self._unblocked = False
 
-    def __call__(self) -> _T:
-        return self._func()
+    def __call__(self, unblock: bool = False) -> EvalResult[_T]:
+        if unblock:
+            self._unblocked = True
+            try:
+                out = self._func(self)
+            finally:
+                self._unblocked = False
+            return out
+        else:
+            return self._func(self)
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}<{self._expr}>"
@@ -139,6 +43,14 @@ class LiteralCallable(Generic[_T]):
         """The expression of the function."""
         return self._expr
 
+    @property
+    def pos(self) -> Index:
+        return self._pos
+
+    def set_pos(self, pos: tuple[int, int]):
+        self._pos = Index(*pos)
+        return self
+
     @classmethod
     def from_table(
         cls: type[LiteralCallable],
@@ -146,6 +58,7 @@ class LiteralCallable(Generic[_T]):
         expr: str,
         pos: tuple[int, int],
     ) -> LiteralCallable[EvalResult]:
+        """Construct expression `expr` from `table` at `pos`."""
         import numpy as np
         import pandas as pd
 
@@ -153,16 +66,16 @@ class LiteralCallable(Generic[_T]):
         qtable_view = qtable._qtable_view
         qviewer = qtable_view.parentViewer()
 
-        def evaluator():
+        def evaluator(_self: LiteralCallable):
             df = qtable.dataShown(parse=True)
-            ns = qviewer._namespace.value()
+            ns = dict(qviewer._namespace)
             ns.update(df=df)
             try:
                 out = eval(expr, ns, {})
             except Exception as e:
-                return EvalResult(e, pos)
+                return EvalResult(e, _self.pos)
 
-            _row, _col = pos
+            _row, _col = _self.pos
 
             if isinstance(out, pd.DataFrame):
                 if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
@@ -199,24 +112,32 @@ class LiteralCallable(Generic[_T]):
                 _out = pd.DataFrame(out).astype(str)
                 if _row.start == _row.stop - 1:  # row vector
                     _out = _out.T
-                with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked():
-                    qtable.setDataFrameValue(_row, _col, _out)
 
             elif isinstance(_row, int) and isinstance(_col, int):  # set scalar
-                with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked():
-                    qtable.setDataFrameValue(_row, _col, str(_out))
+                _out = str(_out)
 
             else:
                 raise RuntimeError(_row, _col)  # Unreachable
+
+            if not _self._unblocked:
+                with (
+                    qtable_view._selection_model.blocked(),
+                    qtable_view._ref_graphs.blocked(*_self.pos),
+                ):
+                    qtable.setDataFrameValue(_row, _col, _out)
+            else:
+                with qtable_view._selection_model.blocked():
+                    qtable.setDataFrameValue(_row, _col, _out)
             return EvalResult(out, (_row, _col))
 
-        return LiteralCallable(expr, evaluator)
+        return LiteralCallable(expr, evaluator, pos)
 
 
-class EvalResult:
+class EvalResult(Generic[_T]):
     """A Rust-like Result type for evaluation."""
 
-    def __init__(self, obj: Any, range: tuple[int | slice, int | slice]):
+    def __init__(self, obj: _T | Exception, range: tuple[int | slice, int | slice]):
+        # TODO: range should be (int, int).
         self._obj = obj
         _r, _c = range
         if isinstance(_r, int):
@@ -225,17 +146,33 @@ class EvalResult:
             _c = slice(_c, _c + 1)
         self._range = (_r, _c)
 
-    @property
-    def value(self) -> Any:
-        """Result value."""
-        return self._obj
+    def __repr__(self) -> str:
+        cname = type(self).__name__
+        if isinstance(self._obj, Exception):
+            desc = "Err"
+        else:
+            desc = "Ok"
+        return f"{cname}<{desc}({self._obj!r})>"
+
+    def _short_repr(self) -> str:
+        cname = type(self).__name__
+        if isinstance(self._obj, Exception):
+            desc = "Err"
+        else:
+            desc = "Ok"
+        _obj = repr(self._obj)
+        if "\n" in _obj:
+            _obj = _obj.split("\n")[0] + "..."
+        if len(_obj.rstrip("...")) > 20:
+            _obj = _obj[:20] + "..."
+        return f"{cname}<{desc}({_obj})>"
 
     @property
     def range(self) -> tuple[slice, slice]:
         """Output range."""
         return self._range
 
-    def unwrap(self) -> Any:
+    def unwrap(self) -> _T:
         obj = self._obj
         if isinstance(obj, Exception):
             raise obj
@@ -245,6 +182,10 @@ class EvalResult:
         if isinstance(self._obj, Exception):
             return self._obj
         return None
+
+    def is_err(self) -> bool:
+        """True is an exception is wrapped."""
+        return isinstance(self._obj, Exception)
 
 
 def _infer_slices(
