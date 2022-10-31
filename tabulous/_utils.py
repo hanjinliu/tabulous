@@ -116,6 +116,7 @@ class Cell:
 
     eval_prefix: str = "="
     ref_prefix: str = "&="
+    slicing: str = "loc"
 
 
 @dataclass

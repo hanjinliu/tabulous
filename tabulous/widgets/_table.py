@@ -447,7 +447,8 @@ class TableBase(ABC):
         return None
 
     def _emit_evaluated(self, info: EvalInfo):
-        from .._eval import Graph, LiteralCallable, iter_extract
+        from .._eval import Graph, LiteralCallable
+        from .._selection_op import iter_extract
 
         if info.expr == "":
             return None

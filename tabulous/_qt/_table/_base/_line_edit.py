@@ -11,6 +11,7 @@ from ..._qt_const import MonospaceFontFamily
 from ..._keymap import QtKeys
 from ....types import HeaderInfo, EvalInfo
 from ...._utils import get_config
+from ...._selection_op import ColumnSelOp, LocSelOp, ILocSelOp
 
 if TYPE_CHECKING:
     from qtpy.QtCore import pyqtBoundSignal
@@ -470,9 +471,9 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         rsl, csl = qtable._selection_model.ranges[-1]
         _df = qtable.model().df
-        columns = _df.columns
         nr, nc = _df.shape
 
+        # normalize out-of-bound
         if rsl.stop > nr:
             if rsl.start >= nr:
                 return None
@@ -482,26 +483,19 @@ class QCellLiteralEdit(_QTableLineEdit):
                 return None
             csl = slice(csl.start, nc)
 
+        if csl.start in qtable._selection_model._col_selection_indices:
+            rsl = slice(None)
+
         if csl.start == csl.stop - 1:
-            if rsl.start == rsl.stop - 1:
-                sl1 = rsl.start
-            else:
-                sl1 = f"{rsl.start}:{rsl.stop}"
-            if csl.start in qtable._selection_model._col_selection_indices:
-                to_be_added = f"df[{columns[csl.start]!r}][:]"
-            else:
-                to_be_added = f"df[{columns[csl.start]!r}][{sl1}]"
+            selop = ColumnSelOp.from_iloc(rsl, csl, _df)
         else:
-            index = _df.index
-            if rsl.start == rsl.stop - 1:
-                sl1 = index[rsl.start]
+            if _CONFIG.cell.slicing == "loc":
+                selop = LocSelOp.from_iloc(rsl, csl, _df)
+            elif _CONFIG.cell.slicing == "iloc":
+                selop = ILocSelOp.from_iloc(rsl, csl, _df)
             else:
-                sl1 = f"{index[rsl.start]!r}:{index[rsl.stop-1]!r}"
-            sl0 = f"{columns[csl.start]!r}:{columns[csl.stop-1]!r}"
-            if csl.start in qtable._selection_model._col_selection_indices:
-                to_be_added = f"df.loc[:, {sl0}]"
-            else:
-                to_be_added = f"df.loc[{sl1}, {sl0}]"
+                raise ValueError(f"Unknown slicing mode {_CONFIG.cell.slicing}")
+        to_be_added = selop.fmt("df")
 
         if cursor_pos == 0:
             self.setText(to_be_added + text)

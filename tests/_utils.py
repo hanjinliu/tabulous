@@ -1,3 +1,4 @@
+from __future__ import annotations
 from tabulous import TableViewer
 from tabulous.widgets import TableBase
 from tabulous._qt._table import QBaseTable
@@ -23,20 +24,17 @@ def get_cell_background_color(table: QBaseTable, row, col) -> str:
 def edit_cell(table: QBaseTable, row, col, value):
     table.model().dataEdited.emit(row, col, value)
 
-def slice_equal(s1: "tuple[slice, slice]", s2: "tuple[int | slice, int | slice]"):
-    x0, x1 = s2
-    if isinstance(x0, int):
-        x0 = slice(x0, x0 + 1)
-    if isinstance(x1, int):
-        x1 = slice(x1, x1 + 1)
-    return (
-        s1[0].start == x0.start and
-        s1[1].start == x1.start and
-        s1[0].stop == x0.stop and
-        s1[1].stop == x1.stop
-    )
+def slice_equal(s1: tuple[int | slice, int | slice], s2: tuple[int | slice, int | slice]):
+    s1 = slice(_normalize_val(s1[0]), _normalize_val(s1[1]))
+    s2 = slice(_normalize_val(s2[0]), _normalize_val(s2[1]))
+    return s1 == s2
 
-def selection_equal(sel1: "list[tuple[slice, slice]]", sel2: "list[tuple[slice, slice]]"):
+def _normalize_val(s: int | slice) -> slice:
+    if isinstance(s, int):
+        return slice(s, s + 1)
+    return s
+
+def selection_equal(sel1: list[tuple[slice, slice]], sel2: list[tuple[slice, slice]]):
     if len(sel1) != len(sel2):
         return False
     for s1, s2 in zip(sel1, sel2):

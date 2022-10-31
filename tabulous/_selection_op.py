@@ -1,17 +1,20 @@
 from __future__ import annotations
 
-from typing import Hashable, Iterator, TYPE_CHECKING
+from typing import Hashable, Iterator, TYPE_CHECKING, Union
 from functools import singledispatch
 import re
 
 if TYPE_CHECKING:
     import pandas as pd
+    from typing_extensions import Self
+
+_Slice = Union[int, slice]
 
 
 class SelectionOperator:
     """An object that defines a selection on a dataframe."""
 
-    def fmt(self) -> str:
+    def fmt(self, df_expr: str = "df") -> str:
         """Format selection literal for display."""
         raise NotImplementedError()
 
@@ -23,8 +26,13 @@ class SelectionOperator:
         """Slice dataframe according to selection literal."""
         raise NotImplementedError()
 
-    def as_iloc(self, df: pd.DataFrame) -> tuple[int | slice, int | slice]:
+    def as_iloc(self, df: pd.DataFrame) -> tuple[_Slice, _Slice]:
         """Return selection literal as iloc indices."""
+        raise NotImplementedError()
+
+    @classmethod
+    def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
+        """Construct selection literal from iloc indices."""
         raise NotImplementedError()
 
 
@@ -34,18 +42,28 @@ class ColumnSelOp(SelectionOperator):
     def __init__(self, col: Hashable, rows: slice):
         self.args = (col, rows)
 
-    def fmt(self) -> str:
+    def fmt(self, df_expr: str = "df") -> str:
         col, rows = self.args
-        return f"df[{_fmt_slice(col)!r}][{_fmt_slice(rows)!r}]"
+        return f"{df_expr}[{_fmt_slice(col)}][{_fmt_slice(rows)}]"
 
     def operate(self, df: pd.DataFrame) -> pd.DataFrame:
         col, rows = self.args
         return df[col][rows]
 
-    def as_iloc(self, df: pd.DataFrame) -> tuple[int | slice, int | slice]:
+    def as_iloc(self, df: pd.DataFrame) -> tuple[_Slice, _Slice]:
         colname, rsel = self.args
         col = df.columns.get_loc(colname)
         return rsel, col
+
+    @classmethod
+    def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
+        if isinstance(c, slice):
+            if c.start == c.stop - 1:
+                c = c.start
+            else:
+                raise ValueError("Cannot convert slice to row selection.")
+        colname = df.columns[c]
+        return cls(colname, r)
 
 
 class LocSelOp(SelectionOperator):
@@ -54,37 +72,61 @@ class LocSelOp(SelectionOperator):
     def __init__(self, rsel: Hashable | slice, csel: Hashable | slice):
         self.args = (rsel, csel)
 
-    def fmt(self) -> str:
+    def fmt(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
-        return f"df.loc[{_fmt_slice(rsel)!r}, {_fmt_slice(csel)!r}]"
+        return f"{df_expr}.loc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
 
     def operate(self, df: pd.DataFrame) -> pd.DataFrame:
         rsel, csel = self.args
         return df.loc[rsel, csel]
 
-    def as_iloc(self, df: pd.DataFrame) -> tuple[int | slice, int | slice]:
+    def as_iloc(self, df: pd.DataFrame) -> tuple[_Slice, _Slice]:
         rsel, csel = self.args
-        irsel = df.index.get_loc(rsel)
-        icsel = df.index.get_loc(csel)
+        index, columns = df.axes
+        if isinstance(rsel, slice):
+            irsel = slice(index.get_loc(rsel.start), index.get_loc(rsel.stop) + 1)
+        else:
+            irsel = index.get_loc(rsel)
+        if isinstance(csel, slice):
+            icsel = slice(columns.get_loc(csel.start), columns.get_loc(csel.stop) + 1)
+        else:
+            icsel = columns.get_loc(csel)
         return irsel, icsel
+
+    @classmethod
+    def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
+        index, columns = df.axes
+        if isinstance(r, slice):
+            rsel = slice(index[r.start], index[r.stop - 1])
+        else:
+            rsel = index[r]
+        if isinstance(c, slice):
+            csel = slice(columns[c.start], columns[c.stop - 1])
+        else:
+            csel = columns[c]
+        return cls(rsel, csel)
 
 
 class ILocSelOp(SelectionOperator):
     """An object that represents selection such as ``df.iloc[4:7, 2:5]``."""
 
-    def __init__(self, rsel: int | slice, csel: int | slice):
+    def __init__(self, rsel: _Slice, csel: _Slice):
         self.args = (rsel, csel)
 
-    def fmt(self) -> str:
+    def fmt(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
-        return f"df.iloc[{_fmt_slice(rsel)!r}, {_fmt_slice(csel)!r}]"
+        return f"{df_expr}.iloc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
 
     def operate(self, df: pd.DataFrame) -> pd.DataFrame:
         rsel, csel = self.args
         return df.iloc[rsel, csel]
 
-    def as_iloc(self, df: pd.DataFrame) -> tuple[int | slice, int | slice]:
+    def as_iloc(self, df: pd.DataFrame) -> tuple[_Slice, _Slice]:
         return self.args
+
+    @classmethod
+    def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
+        return cls(r, c)
 
 
 def iter_extract(text: str, *, df_expr: str = "df") -> Iterator[SelectionOperator]:
@@ -147,9 +189,19 @@ def _fmt_slice(s) -> str:
 
 
 @_fmt_slice.register
+def _(s: int) -> str:
+    return str(s)
+
+
+@_fmt_slice.register
+def _(s: str) -> str:
+    return repr(s)
+
+
+@_fmt_slice.register
 def _(s: slice) -> str:
     if s == slice(None):
         return ":"
     start = "" if s.start is None else s.start
     stop = "" if s.stop is None else s.stop
-    return f"{start}:{stop}"
+    return f"{start!r}:{stop!r}"
