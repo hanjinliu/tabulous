@@ -4,6 +4,7 @@ from ._utils import slice_equal
 import pytest
 
 df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})
+
 @pytest.mark.parametrize("cls", (ColumnSelOp, LocSelOp, ILocSelOp))
 def test_well_defined(cls: "type[SelectionOperator]"):
     iloc_input = (slice(1, 3), slice(1, 2))

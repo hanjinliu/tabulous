@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import weakref
 from functools import lru_cache
-from typing import TYPE_CHECKING, Iterator, cast, Literal
+from typing import TYPE_CHECKING, Iterable, Iterator, cast, Literal
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
@@ -94,6 +94,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setVerticalScrollMode(_SCROLL_PER_PIXEL)
         self.setHorizontalScrollMode(_SCROLL_PER_PIXEL)
 
+        # item delegate
         from ._delegate import TableItemDelegate
 
         delegate = TableItemDelegate(parent=self)
@@ -479,15 +480,33 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # draw highlights
         h_color = self._get_highlight_color()
-        for i, rect in enumerate(self.rectFromRanges(self._highlight_model)):
+        for i, rect in enumerate(self._rect_from_ranges(self._highlight_model._ranges)):
             painter.fillRect(rect, h_color)
 
         # draw selections
         s_color = self._get_selection_color()
-        for i, rect in enumerate(self.rectFromRanges(self._selection_model)):
+        for i, rect in enumerate(self._rect_from_ranges(self._selection_model._ranges)):
             pen = QtGui.QPen(s_color, 2 + int(nsel == i + 1) * focused)
             painter.setPen(pen)
             painter.drawRect(rect)
+
+        # draw graphs
+        if self._ref_graphs._to_be_shown:
+            _df = self.model().df
+            for graph in self._ref_graphs._to_be_shown:
+                for i, rect in enumerate(
+                    self._rect_from_ranges(sel.as_iloc(_df) for sel in graph._sources)
+                ):
+                    pen = QtGui.QPen(h_color, 2)
+                    painter.setPen(pen)
+                    painter.drawRect(rect)
+                # TODO: destination
+                # for i, rect in enumerate(
+                #     self._rect_from_ranges(sel.as_iloc(_df) for sel in graph._sources)
+                # ):
+                #     pen = QtGui.QPen(h_color, 2)
+                #     painter.setPen(pen)
+                #     painter.drawRect(rect)
 
         # current index
         idx = self._selection_model.current_index
@@ -524,10 +543,12 @@ class _QTableViewEnhanced(QtW.QTableView):
             parent = parent.parent()
         return parent
 
-    def rectFromRanges(self, ranges_model: RangesModel) -> Iterator[QtCore.QRect]:
+    def _rect_from_ranges(
+        self, ranges: Iterable[tuple[slice, slice]]
+    ) -> Iterator[QtCore.QRect]:
         """Convert range models into rectangles."""
         model = self.model()
-        for rr, cc in ranges_model._ranges:
+        for rr, cc in ranges:
             top_left = model.index(rr.start, cc.start)
             bottom_right = model.index(rr.stop - 1, cc.stop - 1)
             rect = self.visualRect(top_left) | self.visualRect(bottom_right)

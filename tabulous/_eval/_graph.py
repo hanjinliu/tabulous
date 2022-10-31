@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, MutableMapping
+from typing import TYPE_CHECKING, Iterable, MutableMapping
 import weakref
 from contextlib import contextmanager
 import logging
@@ -144,6 +144,7 @@ class GraphManager(MutableMapping[Index, Graph]):
         self._graphs: dict[Index, Graph] = {}
         self._update_blocked = False
         self._blocked_ranges: RectRange = _NO_RANGE
+        self._to_be_shown: weakref.WeakSet[Graph] = weakref.WeakSet()
 
     def __getitem__(self, key: Index) -> Graph:
         return self._graphs[key]
@@ -219,6 +220,14 @@ class GraphManager(MutableMapping[Index, Graph]):
             yield
         finally:
             self._blocked_ranges = old_range
+
+    def set_to_be_shown(self, graphs: Iterable[Graph]):
+        """Set graphs to be shown."""
+        return self._to_be_shown.update(graphs)
+
+    def delete_to_be_shown(self, graphs: Iterable[Graph]):
+        """Delete graphs to be shown."""
+        return self._to_be_shown.difference_update(graphs)
 
     def insert_rows(self, row: int, count: int):
         """Insert rows and update indices."""
