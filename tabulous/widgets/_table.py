@@ -1,6 +1,5 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-import re
 from enum import Enum
 from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
 from psygnal import SignalGroup, Signal
@@ -448,7 +447,7 @@ class TableBase(ABC):
         return None
 
     def _emit_evaluated(self, info: EvalInfo):
-        from .._eval import Graph, LiteralCallable
+        from .._eval import Graph, LiteralCallable, iter_extract
 
         if info.expr == "":
             return None
@@ -481,7 +480,7 @@ class TableBase(ABC):
                 self.move_iloc(*pos)
         else:
             # evaluated by "&=..."
-            selections = self._extract_selections(info.expr)
+            selections = list(iter_extract(info.expr))
             if len(selections) == 0:
                 # if no reference exists, evaluate the expression as "=..." form.
                 return self._emit_evaluated(EvalInfo(*pos, info.expr, False))
@@ -490,70 +489,6 @@ class TableBase(ABC):
 
         del qtable_view._focused_widget
         return None
-
-    def _extract_selections(self, text: str) -> list[tuple[slice, slice]]:
-        qtable_view = self.native._qtable_view
-        df = qtable_view.model().df
-
-        selections: list[tuple[slice, slice]] = []
-        for expr in _find_all_dataframe_expr(text):
-            if expr.startswith("df["):
-                # df['val'][...]
-                colname, rsl_str = expr[3:-1].split("][")
-                c_start = df.columns.get_loc(eval(colname))
-                rsl = _parse_slice(rsl_str)
-                csl = slice(c_start, c_start + 1)
-            elif expr.startswith("df.loc["):
-                # df.loc[...]
-                rsl_str, csl_str = expr[7:-1].split(", ")
-                rsl = _parse_slice_loc(rsl_str, df.index)
-                csl = _parse_slice_loc(csl_str, df.columns)
-            elif expr.startswith("df.iloc["):
-                rsl_str, csl_str = expr[8:-1].split(", ")
-                rsl = _parse_slice(rsl_str)
-                csl = _parse_slice(csl_str)
-            else:
-                raise ValueError(f"Unreachable expression: {expr!r}")
-            selections.append((rsl, csl))
-        return selections
-
-
-_PATTERN = re.compile(r"df\[.+?\]\[.+?\]|df\.loc\[.+?\]|df\.iloc\[.+?\]")
-
-
-def _find_all_dataframe_expr(s: str) -> list[str]:
-    return _PATTERN.findall(s)
-
-
-def _eval(expr: str, default=None):
-    """evaluate expression."""
-    return eval(expr, {}, {}) if expr else default
-
-
-def _parse_slice(s: str) -> slice:
-    if ":" in s:
-        start_str, stop_str = s.split(":")
-        start = _eval(start_str)
-        stop = _eval(stop_str)
-    else:
-        start = _eval(s)
-        stop = start + 1
-    return slice(start, stop)
-
-
-def _parse_slice_loc(s: str, index: pd.Index) -> slice:
-    if ":" in s:
-        start_str, stop_str = s.split(":")
-        start_label = _eval(start_str)
-        if start_label is not None:
-            start = index.get_loc(start_label)
-            stop = index.get_loc(_eval(stop_str)) + 1
-        else:
-            start = stop = None
-    else:
-        start = index.get_loc(_eval(s))
-        stop = start + 1
-    return slice(start, stop)
 
 
 # #############################################################################

@@ -9,6 +9,7 @@ import numpy as np
 
 from ._range import RectRange, NoRange, AnyRange
 from ._literal import LiteralCallable, EvalResult
+from ._selection import SelectionOperator
 
 from .._selection_model import Index
 
@@ -25,7 +26,7 @@ class Graph:
         self,
         table: TableBase,
         func: LiteralCallable,
-        sources: list[tuple[slice, slice]],
+        sources: list[SelectionOperator],
         destination: tuple[slice, slice] | None = None,
     ):
         self._sources = sources
@@ -56,10 +57,6 @@ class Graph:
     def table(self) -> TableBase | None:
         """The parent table widget."""
         return self._table_ref()
-
-    @property
-    def destination(self) -> tuple[slice, slice] | None:
-        return self._destination
 
     def set_pos(self, pos: tuple[int, int]):
         """Set the position of the graph origin."""
@@ -181,7 +178,7 @@ class GraphManager(MutableMapping[Index, Graph]):
             graph.disconnect()
             del self._graphs[key]
 
-            dst = graph.destination
+            dst = graph._destination
             if dst:
                 rsl, csl = dst
                 area = (rsl.stop - rsl.start) * (csl.stop - csl.start)
