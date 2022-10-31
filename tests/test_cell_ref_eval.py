@@ -51,6 +51,15 @@ def test_eval_with_no_ref():
     sheet.cell[0, 0] = "&=np.arange(5)"
     assert len(sheet.cellref) == 0
 
+def test_1x1_ref_overwritten_by_Nx1_eval():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
+    sheet.cell[0, 1] = "&=np.mean(df['a'][0:3])"
+    assert (0, 1) in sheet.cellref
+    sheet.cell[1, 1] = "&=np.cumsum(df['a'][0:3])"
+    assert (0, 1) not in sheet.cellref
+    assert (1, 1) in sheet.cellref
+
 def test_eval_undo():
     viewer = TableViewer(show=False)
     sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})

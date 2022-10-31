@@ -89,7 +89,7 @@ class Graph:
         if not self._callback_blocked:
             with self.blocked():
                 out = self._func()
-                logger.debug(f"Running: {self.expr}, {out._obj}")
+                logger.debug(f"Running: {self.expr}")
                 if (e := out.get_err()) and (sl := self._destination):
                     import pandas as pd
 
@@ -151,11 +151,15 @@ class RectRange:
 
 
 class AnyRange(RectRange):
+    """Contains any indices."""
+
     def __contains__(self, item) -> bool:
         return True
 
 
 class NoRange:
+    """Contains no index."""
+
     def __contains__(self, item) -> bool:
         return False
 
@@ -330,6 +334,7 @@ class LiteralCallable(Generic[_T]):
         expr: str,
         pos: tuple[int, int],
     ) -> LiteralCallable[EvalResult]:
+        """Construct expression `expr` from `table` at `pos`."""
         import numpy as np
         import pandas as pd
 
@@ -401,6 +406,7 @@ class LiteralCallable(Generic[_T]):
                     qtable.setDataFrameValue(_row, _col, _out)
             return EvalResult(out, (_row, _col))
 
+        logger.debug(f"Literal callable {expr} constructed at {pos}.")
         return LiteralCallable(expr, evaluator, pos)
 
 
