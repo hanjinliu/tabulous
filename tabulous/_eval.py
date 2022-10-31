@@ -79,7 +79,9 @@ class Graph:
         finally:
             self._callback_blocked = was_blocked
 
-    def update(self):
+    def update(
+        self,
+    ):
         """Update the graph."""
         table = self.table
         if table is None:
@@ -208,6 +210,15 @@ class GraphManager(MutableMapping[Index, Graph]):
         else:
             graph.disconnect()
             del self._graphs[key]
+
+            dst = graph.destination
+            if dst:
+                rsl, csl = dst
+                area = (rsl.stop - rsl.start) * (csl.stop - csl.start)
+                if area > 1:
+                    logger.debug(f"Current graph pos {list(self.keys())}")
+                    graph.table.selections = [dst]
+                    graph.table._qwidget.deleteValues()
             logger.debug(f"Graph popped at {key}")
             return graph
 
@@ -218,6 +229,7 @@ class GraphManager(MutableMapping[Index, Graph]):
         return iter(self._graphs)
 
     def is_all_blocked(self) -> bool:
+        """True if manager update is disabled at any positions."""
         return self._blocked_ranges is _ANY_RANGE
 
     @contextmanager

@@ -890,7 +890,7 @@ class QMutableTable(QBaseTable):
         return None
 
     @_set_value.set_formatter
-    def _set_value_fmt(self, r, c, value):
+    def _set_value_fmt(self, r, c, r_ori, c_ori, value, old_value):
         _r = fmt_slice(r)
         _c = fmt_slice(c)
         if isinstance(value, pd.DataFrame):
