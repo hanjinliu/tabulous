@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import weakref
+import logging
 from functools import lru_cache
 from typing import TYPE_CHECKING, Iterable, Iterator, cast, Literal
 from qtpy import QtWidgets as QtW, QtGui, QtCore
@@ -28,6 +29,8 @@ S_COLOR_W = Qt.GlobalColor.darkBlue
 S_COLOR_B = Qt.GlobalColor.cyan
 CUR_COLOR = QtGui.QColor(128, 128, 128, 108)
 HOV_COLOR = QtGui.QColor(75, 75, 242, 80)
+
+logger = logging.getLogger("tabulous")
 
 
 class MouseTrack:
@@ -497,10 +500,10 @@ class _QTableViewEnhanced(QtW.QTableView):
                 for graph in self._ref_graphs._to_be_shown:
                     for i, rect in enumerate(
                         self._rect_from_ranges(
-                            sel.as_iloc(_df) for sel in graph._sources
+                            sel.as_iloc_slices(_df) for sel in graph._sources
                         )
                     ):
-                        pen = QtGui.QPen(h_color, 2)
+                        pen = QtGui.QPen(h_color, 3)
                         painter.setPen(pen)
                         painter.drawRect(rect)
                     # TODO: destination
@@ -510,8 +513,8 @@ class _QTableViewEnhanced(QtW.QTableView):
                     #     pen = QtGui.QPen(h_color, 2)
                     #     painter.setPen(pen)
                     #     painter.drawRect(rect)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Failed to draw graph: {e}")
 
         # current index
         idx = self._selection_model.current_index

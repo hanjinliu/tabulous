@@ -567,10 +567,12 @@ class CellReferenceInterface(Component["TableBase"], Mapping["tuple[int, int]", 
         """Show the graph of the given cell reference."""
         graphs = self._ref_graphs()
         graphs.set_to_be_shown([self[key]])
+        self.parent.refresh()
         return None
 
     def hide_graph(self, key: tuple[int, int]) -> None:
         """Hide the graph of the given cell reference."""
         graphs = self._ref_graphs()
         graphs.delete_to_be_shown([self[key]])
+        self.parent.refresh()
         return None

@@ -32,6 +32,19 @@ class SelectionOperator:
         """Return selection literal as iloc indices."""
         raise NotImplementedError()
 
+    def as_iloc_slices(self, df: pd.DataFrame) -> tuple[slice, slice]:
+        """Return selection literal as iloc indices, forcing slices."""
+        rsl, csl = self.as_iloc(df)
+        if isinstance(rsl, int):
+            rsl = slice(rsl, rsl + 1)
+        elif rsl == slice(None):
+            rsl = slice(0, df.index.size)
+        if isinstance(csl, int):
+            csl = slice(csl, csl + 1)
+        elif csl == slice(None):
+            csl = slice(0, df.columns.size)
+        return rsl, csl
+
     @classmethod
     def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
         """Construct selection literal from iloc indices."""
