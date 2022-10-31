@@ -14,6 +14,8 @@ _Slice = Union[int, slice]
 class SelectionOperator:
     """An object that defines a selection on a dataframe."""
 
+    args: tuple
+
     def fmt(self, df_expr: str = "df") -> str:
         """Format selection literal for display."""
         raise NotImplementedError()
@@ -34,6 +36,11 @@ class SelectionOperator:
     def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
         """Construct selection literal from iloc indices."""
         raise NotImplementedError()
+
+    def __eq__(self, other: Self) -> bool:
+        if isinstance(other, type(self)):
+            return self.args == other.args
+        return False
 
 
 class ColumnSelOp(SelectionOperator):
@@ -137,7 +144,7 @@ def iter_extract(text: str, *, df_expr: str = "df") -> Iterator[SelectionOperato
             # df['val'][...]
             colname, rsl_str = expr[ndf + 1 : -1].split("][")
             rsl = _parse_slice(rsl_str)
-            sel = ColumnSelOp(colname, rsl)
+            sel = ColumnSelOp(_eval(colname), rsl)
 
         elif expr.startswith(f"{df_expr}.loc["):
             # df.loc[..., ...]
@@ -171,16 +178,15 @@ def _eval(expr: str, default=None):
     return eval(expr, {}, {}) if expr else default
 
 
-def _parse_slice(s: str) -> slice:
+def _parse_slice(s: str) -> Hashable | slice:
     s = s.strip()
     if ":" in s:
         start_str, stop_str = s.split(":")
         start = _eval(start_str)
         stop = _eval(stop_str)
+        return slice(start, stop)
     else:
-        start = _eval(s)
-        stop = start + 1
-    return slice(start, stop)
+        return _eval(s)
 
 
 @singledispatch

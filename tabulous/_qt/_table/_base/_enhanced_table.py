@@ -493,20 +493,25 @@ class _QTableViewEnhanced(QtW.QTableView):
         # draw graphs
         if self._ref_graphs._to_be_shown:
             _df = self.model().df
-            for graph in self._ref_graphs._to_be_shown:
-                for i, rect in enumerate(
-                    self._rect_from_ranges(sel.as_iloc(_df) for sel in graph._sources)
-                ):
-                    pen = QtGui.QPen(h_color, 2)
-                    painter.setPen(pen)
-                    painter.drawRect(rect)
-                # TODO: destination
-                # for i, rect in enumerate(
-                #     self._rect_from_ranges(sel.as_iloc(_df) for sel in graph._sources)
-                # ):
-                #     pen = QtGui.QPen(h_color, 2)
-                #     painter.setPen(pen)
-                #     painter.drawRect(rect)
+            try:
+                for graph in self._ref_graphs._to_be_shown:
+                    for i, rect in enumerate(
+                        self._rect_from_ranges(
+                            sel.as_iloc(_df) for sel in graph._sources
+                        )
+                    ):
+                        pen = QtGui.QPen(h_color, 2)
+                        painter.setPen(pen)
+                        painter.drawRect(rect)
+                    # TODO: destination
+                    # for i, rect in enumerate(
+                    #     self._rect_from_ranges(sel.as_iloc(_df) for sel in graph._sources)
+                    # ):
+                    #     pen = QtGui.QPen(h_color, 2)
+                    #     painter.setPen(pen)
+                    #     painter.drawRect(rect)
+            except Exception:
+                pass
 
         # current index
         idx = self._selection_model.current_index
