@@ -11,7 +11,13 @@ from ..._qt_const import MonospaceFontFamily
 from ..._keymap import QtKeys
 from ....types import HeaderInfo, EvalInfo
 from ...._utils import get_config
-from ...._selection_op import ColumnSelOp, LocSelOp, ILocSelOp, ValueSelOp
+from ...._selection_op import (
+    ColumnSelOp,
+    LocSelOp,
+    ILocSelOp,
+    ValueSelOp,
+    find_last_dataframe_expr,
+)
 
 if TYPE_CHECKING:
     from types import ModuleType
@@ -312,7 +318,6 @@ class QCellLiteralEdit(_QTableLineEdit):
         qtable = self.parentTableView()
         qtable._selection_model.moved.connect(self._on_selection_changed)
         qtable._focused_widget = self
-        self.setPlaceholderText("Enter to eval")
 
         font = QtGui.QFont(MonospaceFontFamily, self.font().pointSize())
         font.setBold(True)
@@ -373,6 +378,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         return None
 
     def eval_and_close(self):
+        """Evaluate the text and close this editor."""
         text, is_ref = self._parse_ref(self.text())
         row, col = self._pos
         info = EvalInfo(row=row, column=col, expr=text, is_ref=is_ref)
@@ -505,7 +511,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         elif text[cursor_pos - 1] != "]":
             self.setText(text[:cursor_pos] + to_be_added + text[cursor_pos:])
         else:
-            idx = _find_last_dataframe_expr(text[:cursor_pos])
+            idx = find_last_dataframe_expr(text[:cursor_pos])
             if idx >= 0:
                 self.setText(text[:idx] + to_be_added + text[cursor_pos:])
             else:
@@ -549,30 +555,6 @@ class QCellLiteralEdit(_QTableLineEdit):
                 finally:
                     self.blockSignals(False)
                 break
-
-
-_PATTERN_DF = re.compile(r"df\[.+?\]\[.+?\]")
-_PATTERN_LOC = re.compile(r"df\.loc\[.+?\]")
-
-
-def _find_last_dataframe_expr(s: str) -> int:
-    """
-    Detect last `df[...][...]` expression from given string.
-
-    Returns start index if matched, otherwise -1.
-    """
-    start = s.rfind("df[")
-    if start == -1:
-        start = s.rfind("df.loc[")
-        if start == -1:
-            return -1
-        else:
-            ptn = _PATTERN_LOC
-    else:
-        ptn = _PATTERN_DF
-    if _match := ptn.match(s[start:]):
-        return _match.start() + start
-    return -1
 
 
 _PATTERN_IDENTIFIERS = re.compile(r"[\w\d_]+")

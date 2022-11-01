@@ -15,6 +15,7 @@ class SelectionOperator:
     """An object that defines a selection on a dataframe."""
 
     args: tuple
+    PATTERN: str
 
     def fmt(self, df_expr: str = "df") -> str:
         """Format selection literal for display."""
@@ -59,6 +60,8 @@ class SelectionOperator:
 class ColumnSelOp(SelectionOperator):
     """An object that represents selection such as ``df["foo"][2:5]``."""
 
+    PATTERN = r"df\[.+?\]\[.+?\]"
+
     def __init__(self, col: Hashable, rows: slice):
         self.args = (col, rows)
 
@@ -88,6 +91,8 @@ class ColumnSelOp(SelectionOperator):
 
 class LocSelOp(SelectionOperator):
     """An object that represents selection such as ``df.loc["foo":"bar", 2:5]``."""
+
+    PATTERN = r"df\.loc\[.+?\]"
 
     def __init__(self, rsel: Hashable | slice, csel: Hashable | slice):
         self.args = (rsel, csel)
@@ -130,6 +135,8 @@ class LocSelOp(SelectionOperator):
 class ILocSelOp(SelectionOperator):
     """An object that represents selection such as ``df.iloc[4:7, 2:5]``."""
 
+    PATTERN = r"df\.iloc\[.+?\]"
+
     def __init__(self, rsel: _Slice, csel: _Slice):
         self.args = (rsel, csel)
 
@@ -151,6 +158,8 @@ class ILocSelOp(SelectionOperator):
 
 class ValueSelOp(SelectionOperator):
     """An object that represents selection such as ``df.iloc[4:7, 2:5]``."""
+
+    PATTERN = r"df\.values\[.+?\]"
 
     def __init__(self, rsel: _Slice, csel: _Slice):
         self.args = (rsel, csel)
@@ -174,7 +183,7 @@ class ValueSelOp(SelectionOperator):
 def iter_extract(text: str, *, df_expr: str = "df") -> Iterator[SelectionOperator]:
     """Iteratively extract selection literal from text."""
     ndf = len(df_expr)
-    for expr in _find_all_dataframe_expr(text):
+    for expr in find_all_dataframe_expr(text):
         if expr.startswith(f"{df_expr}["):
             # df['val'][...]
             colname, rsl_str = expr[ndf + 1 : -1].split("][")
@@ -209,12 +218,24 @@ def iter_extract(text: str, *, df_expr: str = "df") -> Iterator[SelectionOperato
 
 
 _PATTERN = re.compile(
-    r"df\[.+?\]\[.+?\]|df\.loc\[.+?\]|df\.iloc\[.+?\]|df\.values\[.+?\]"
+    "|".join(s.PATTERN for s in (ColumnSelOp, LocSelOp, ILocSelOp, ValueSelOp))
 )
 
 
-def _find_all_dataframe_expr(s: str) -> list[str]:
+def find_all_dataframe_expr(s: str) -> list[str]:
     return _PATTERN.findall(s)
+
+
+def find_last_dataframe_expr(s: str) -> int:
+    """
+    Detect last `df[...][...]` expression from given string.
+
+    Returns start index if matched, otherwise -1.
+    """
+    _match = None
+    for _match in _PATTERN.finditer(s):
+        pass
+    return _match.start() if _match else -1
 
 
 def _eval(expr: str, default=None):
