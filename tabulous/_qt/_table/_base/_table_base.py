@@ -823,21 +823,7 @@ class QMutableTable(QBaseTable):
                             for _r in range(r.start, r.stop):
                                 self._set_graph((_r, _c), None)
 
-                _value: pd.DataFrame = value
-                if _value.size == 1:
-                    v = _value.values[0, 0]
-                    _value = data.iloc[r, c].copy()
-                    for _ic, _c in enumerate(range(c.start, c.stop)):
-                        _convert_value = self._get_converter(_c)
-                        for _ir, _r in enumerate(range(r.start, r.stop)):
-                            _value.iloc[_ir, _ic] = _convert_value(_r, _c, v)
-                else:
-                    for _ic, _c in enumerate(range(c.start, c.stop)):
-                        _convert_value = self._get_converter(_c)
-                        for _ir, _r in enumerate(range(r.start, r.stop)):
-                            _value.iloc[_ir, _ic] = _convert_value(
-                                _r, _c, _value.iloc[_ir, _ic]
-                            )
+                _value = self._pre_set_array(r, c, value)
                 _is_scalar = False
             else:
                 self._set_graph((r, c), None)
@@ -872,6 +858,27 @@ class QMutableTable(QBaseTable):
                 self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
 
         return None
+
+    def _pre_set_array(self, r: slice, c: slice, _value: pd.DataFrame):
+        """Convert input dataframe for setting to data[r, c]."""
+        # TODO: To speed up, this function should be overriden in QSpreadSheet.
+        # However, simply parsing to string is incompatible with the type
+        # validator.
+        if _value.size == 1:
+            v = _value.values[0, 0]
+            _value = self._data_raw.iloc[r, c].copy()
+            for _ic, _c in enumerate(range(c.start, c.stop)):
+                _convert_value = self._get_converter(_c)
+                for _ir, _r in enumerate(range(r.start, r.stop)):
+                    _value.iloc[_ir, _ic] = _convert_value(_r, _c, v)
+        else:
+            for _ic, _c in enumerate(range(c.start, c.stop)):
+                _convert_value = self._get_converter(_c)
+                for _ir, _r in enumerate(range(r.start, r.stop)):
+                    _value.iloc[_ir, _ic] = _convert_value(
+                        _r, _c, _value.iloc[_ir, _ic]
+                    )
+        return _value
 
     @QBaseTable._mgr.undoable
     def _set_value(self, r, c, r_ori, c_ori, value, old_value):

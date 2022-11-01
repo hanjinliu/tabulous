@@ -191,7 +191,7 @@ class QSpreadSheet(QMutableSimpleTable):
     @QMutableSimpleTable._mgr.interface
     def setDataFrame(self, data: pd.DataFrame) -> None:
         """Set data frame as a string table."""
-        self._data_raw = data.astype("string")
+        self._data_raw = data.astype(_STRING_DTYPE)
         self.model().setShape(
             data.index.size + _OUT_OF_BOUND_SIZE,
             data.columns.size + _OUT_OF_BOUND_SIZE,
@@ -229,7 +229,9 @@ class QSpreadSheet(QMutableSimpleTable):
 
     def readClipBoard(self, sep=r"\s+"):
         """Read clipboard as a string data frame."""
-        return pd.read_clipboard(header=None, sep=sep, dtype="string")  # read as string
+        return pd.read_clipboard(
+            header=None, sep=sep, dtype=_STRING_DTYPE
+        )  # read as string
 
     def setDataFrameValue(self, r: int | slice, c: int | slice, value: Any) -> None:
         nr, nc = self._data_raw.shape
@@ -251,21 +253,35 @@ class QSpreadSheet(QMutableSimpleTable):
                     return
 
         elif isinstance(value, pd.DataFrame) and any(value.dtypes != "string"):
-            value = value.astype("string")
+            value = value.astype(_STRING_DTYPE)
 
         with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
-            # NOTE: cache must be cleared to ensure event emission with updated data
-            # self._data_cache = None
             super().setDataFrameValue(r, c, value)
-            # self._data_cache = None
             self.setFilter(self._filter_slice)
 
         self._qtable_view.verticalHeader().resize(
             self._qtable_view.verticalHeader().sizeHint()
         )
         return None
+
+    def _pre_set_array(self, r: slice, c: slice, _value: pd.DataFrame):
+        """Convert input dataframe for setting to data[r, c]."""
+        if len(self.model()._validator) == 0:
+            # use faster method if no validator is set
+            out = self._data_raw.iloc[r, c].copy()
+            if _value.size == 1:
+                out[:] = str(_value.values[0, 0])
+            else:
+                # NOTE: It seems weird but setitem of pandas string array fails in
+                # certain cases that the value is of shape (N, 1).
+                try:
+                    out[:] = _value.astype(_STRING_DTYPE).values
+                except Exception:
+                    out.values[:] = _value.astype(_STRING_DTYPE).values
+            return out
+        return super()._pre_set_array(r, c, _value)
 
     @QMutableSimpleTable._mgr.undoable
     def expandDataFrame(self, nrows: int, ncols: int):
