@@ -11,9 +11,10 @@ from ..._qt_const import MonospaceFontFamily
 from ..._keymap import QtKeys
 from ....types import HeaderInfo, EvalInfo
 from ...._utils import get_config
-from ...._selection_op import ColumnSelOp, LocSelOp, ILocSelOp
+from ...._selection_op import ColumnSelOp, LocSelOp, ILocSelOp, ValueSelOp
 
 if TYPE_CHECKING:
+    from types import ModuleType
     from qtpy.QtCore import pyqtBoundSignal
     import pandas as pd
     from ._table_base import QMutableTable
@@ -319,7 +320,7 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         self._initial_rect = self.rect()
         self._self_focused = True
-        self._completion_module = None
+        self._completion_module: ModuleType | None = None
         self.textChanged.connect(self._reshape_widget)
         self.textChanged.connect(self._manage_completion)
 
@@ -486,15 +487,17 @@ class QCellLiteralEdit(_QTableLineEdit):
         if csl.start in qtable._selection_model._col_selection_indices:
             rsl = slice(None)
 
-        if csl.start == csl.stop - 1:
-            selop = ColumnSelOp.from_iloc(rsl, csl, _df)
-        else:
-            if _CONFIG.cell.slicing == "loc":
-                selop = LocSelOp.from_iloc(rsl, csl, _df)
-            elif _CONFIG.cell.slicing == "iloc":
-                selop = ILocSelOp.from_iloc(rsl, csl, _df)
+        if _CONFIG.cell.slicing == "loc":
+            if csl.start == csl.stop - 1:
+                selop = ColumnSelOp.from_iloc(rsl, csl, _df)
             else:
-                raise ValueError(f"Unknown slicing mode {_CONFIG.cell.slicing}")
+                selop = LocSelOp.from_iloc(rsl, csl, _df)
+        elif _CONFIG.cell.slicing == "iloc":
+            selop = ILocSelOp.from_iloc(rsl, csl, _df)
+        elif _CONFIG.cell.slicing == "values":
+            selop = ValueSelOp.from_iloc(rsl, csl, _df)
+        else:
+            raise RuntimeError(f"Unknwon slicing mode {_CONFIG.cell.slicing!r}")
         to_be_added = selop.fmt("df")
 
         if cursor_pos == 0:

@@ -481,18 +481,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         nsel = len(self._selection_model)
         painter = QtGui.QPainter(self.viewport())
 
-        # draw highlights
-        h_color = self._get_highlight_color()
-        for i, rect in enumerate(self._rect_from_ranges(self._highlight_model._ranges)):
-            painter.fillRect(rect, h_color)
-
-        # draw selections
-        s_color = self._get_selection_color()
-        for i, rect in enumerate(self._rect_from_ranges(self._selection_model._ranges)):
-            pen = QtGui.QPen(s_color, 2 + int(nsel == i + 1) * focused)
-            painter.setPen(pen)
-            painter.drawRect(rect)
-
         # draw graphs
         if self._ref_graphs._to_be_shown:
             _df = self.model().df
@@ -515,6 +503,18 @@ class _QTableViewEnhanced(QtW.QTableView):
                     #     painter.drawRect(rect)
             except Exception as e:
                 logger.debug(f"Failed to draw graph: {e}")
+
+        # draw highlights
+        h_color = self._get_highlight_color()
+        for i, rect in enumerate(self._rect_from_ranges(self._highlight_model._ranges)):
+            painter.fillRect(rect, h_color)
+
+        # draw selections
+        s_color = self._get_selection_color()
+        for i, rect in enumerate(self._rect_from_ranges(self._selection_model._ranges)):
+            pen = QtGui.QPen(s_color, 2 + int(nsel == i + 1) * focused)
+            painter.setPen(pen)
+            painter.drawRect(rect)
 
         # current index
         idx = self._selection_model.current_index

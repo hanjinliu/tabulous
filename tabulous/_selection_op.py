@@ -149,6 +149,28 @@ class ILocSelOp(SelectionOperator):
         return cls(r, c)
 
 
+class ValueSelOp(SelectionOperator):
+    """An object that represents selection such as ``df.iloc[4:7, 2:5]``."""
+
+    def __init__(self, rsel: _Slice, csel: _Slice):
+        self.args = (rsel, csel)
+
+    def fmt(self, df_expr: str = "df") -> str:
+        rsel, csel = self.args
+        return f"{df_expr}.values[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+
+    def operate(self, df: pd.DataFrame) -> pd.DataFrame:
+        rsel, csel = self.args
+        return df.values[rsel, csel]
+
+    def as_iloc(self, df: pd.DataFrame) -> tuple[_Slice, _Slice]:
+        return self.args
+
+    @classmethod
+    def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
+        return cls(r, c)
+
+
 def iter_extract(text: str, *, df_expr: str = "df") -> Iterator[SelectionOperator]:
     """Iteratively extract selection literal from text."""
     ndf = len(df_expr)
@@ -173,13 +195,22 @@ def iter_extract(text: str, *, df_expr: str = "df") -> Iterator[SelectionOperato
             csl = _parse_slice(csl_str)
             sel = ILocSelOp(rsl, csl)
 
+        elif expr.startswith(f"{df_expr}.values["):
+            # df.values[..., ...]
+            rsl_str, csl_str = expr[ndf + 8 : -1].split(",")
+            rsl = _parse_slice(rsl_str)
+            csl = _parse_slice(csl_str)
+            sel = ValueSelOp(rsl, csl)
+
         else:
             raise ValueError(f"Unreachable expression: {expr!r}")
 
         yield sel
 
 
-_PATTERN = re.compile(r"df\[.+?\]\[.+?\]|df\.loc\[.+?\]|df\.iloc\[.+?\]")
+_PATTERN = re.compile(
+    r"df\[.+?\]\[.+?\]|df\.loc\[.+?\]|df\.iloc\[.+?\]|df\.values\[.+?\]"
+)
 
 
 def _find_all_dataframe_expr(s: str) -> list[str]:
