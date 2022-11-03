@@ -247,13 +247,15 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def assignColumn(self, ds: pd.Series):
         raise TableImmutableError("Table is immutable.")
 
-    def convertValue(self, r: int, c: int, value: Any) -> Any:
+    def convertValue(self, c: int, value: Any) -> Any:
         """Convert value before updating DataFrame."""
         return value
 
     def _get_converter(self, c: int) -> Callable[[Any], Any]:
         if 0 <= c < len(self._filtered_columns):
             colname = self._filtered_columns[c]
+            if parser := self.model()._parser.get(colname, None):
+                return parser
             if validator := self.model()._validator.get(colname, None):
                 return partial(
                     _convert_value, validator=validator, converter=self.convertValue
@@ -473,6 +475,23 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def setDataValidator(self, name: str, validator: Callable[[Any], bool]):
         validator = self.model()._validator.get(name, None)
         return (name, validator), {}
+
+    @_mgr.interface
+    def setParser(self, name: str, parser: Callable[[str], Any]):
+        """Set a parser function to the column named `name`."""
+        if parser is None:
+            self.model()._parser.pop(name, None)
+        else:
+            if not callable(parser):
+                raise TypeError("Parser must be callable.")
+            self.model()._parser[name] = parser
+        self.refreshTable()
+        return None
+
+    @setParser.server
+    def setParser(self, name: str, parser: Callable[[Any], bool]):
+        parser = self.model()._parser.get(name, None)
+        return (name, parser), {}
 
     def setCalculationGraph(self, pos: tuple[int, int], graph: Graph):
         """Set calculation graph at the given position."""
@@ -829,7 +848,7 @@ class QMutableTable(QBaseTable):
             else:
                 self._set_graph((r, c), None)
                 _convert_value = self._get_converter(c)
-                _value = _convert_value(r, c, value)
+                _value = _convert_value(c, value)
                 _is_scalar = True
 
             # if table has filter, indices must be adjusted
@@ -871,14 +890,12 @@ class QMutableTable(QBaseTable):
             for _ic, _c in enumerate(range(c.start, c.stop)):
                 _convert_value = self._get_converter(_c)
                 for _ir, _r in enumerate(range(r.start, r.stop)):
-                    _value.iloc[_ir, _ic] = _convert_value(_r, _c, v)
+                    _value.iloc[_ir, _ic] = _convert_value(_c, v)
         else:
             for _ic, _c in enumerate(range(c.start, c.stop)):
                 _convert_value = self._get_converter(_c)
                 for _ir, _r in enumerate(range(r.start, r.stop)):
-                    _value.iloc[_ir, _ic] = _convert_value(
-                        _r, _c, _value.iloc[_ir, _ic]
-                    )
+                    _value.iloc[_ir, _ic] = _convert_value(_c, _value.iloc[_ir, _ic])
         return _value
 
     @QBaseTable._mgr.undoable
@@ -1259,13 +1276,12 @@ _V = TypeVar("_V")
 
 
 def _convert_value(
-    r: int,
     c: int,
     x: str,
     validator: Callable[[_V], bool],
     converter: Callable[[int, int, str], _V],
 ) -> _V:
     """Convert value with validation."""
-    val = converter(r, c, x)  # convert value first
+    val = converter(c, x)  # convert value first
     validator(val)  # Raise error if invalid
     return val

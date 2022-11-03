@@ -223,7 +223,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self._qtable_view.setModel(model)
         return None
 
-    def convertValue(self, r: int, c: int, value: Any) -> Any:
+    def convertValue(self, c: int, value: Any) -> Any:
         """Convert value to the type of the table."""
         return value
 
@@ -746,8 +746,10 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
     _nr, _nc = df.shape
     if nr > 0:
         # find unique index
-        if isinstance(df.index, (pd.Int64Index, pd.RangeIndex)):
-            x0 = df.index.max() + 1
+        if df.index.size == 0:
+            index = range(nr)
+        elif isinstance(df.index, (pd.Int64Index, pd.RangeIndex)):
+            x0 = int(df.index.max(skipna=True)) + 1
             index = range(x0, x0 + nr)
         else:
             index = range(_nr, _nr + nr)
@@ -758,8 +760,10 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
     _nr, _nc = df.shape  # NOTE: shape may have changed
     if nc > 0:
         # find unique columns
-        if isinstance(df.columns, (pd.Int64Index, pd.RangeIndex)):
-            x0 = df.columns.max() + 1
+        if df.columns.size == 0:
+            columns = range(nc)
+        elif isinstance(df.columns, (pd.Int64Index, pd.RangeIndex)):
+            x0 = int(df.columns.max(skipna=True)) + 1
             columns = range(x0, x0 + nc)
         else:
             columns = range(_nc, _nc + nc)

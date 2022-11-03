@@ -34,6 +34,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         self._background_colormap: dict[Hashable, Callable[[Any], ColorType]] = {}
         self._text_formatter: dict[Hashable, Callable[[Any], str]] = {}
         self._validator: dict[Hashable, Callable[[Any], None]] = {}
+        self._parser: dict[Hashable, Callable[[Any], Any]] = {}
 
         self._data_role_map = {
             Qt.ItemDataRole.DisplayRole: self._data_display,
@@ -208,6 +209,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         self._background_colormap.pop(name, None)
         self._text_formatter.pop(name, None)
         self._validator.pop(name, None)
+        self._parser.pop(name, None)
         return None
 
     def rename_column(self, old_name: str, new_name: str):
@@ -220,6 +222,8 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             self._text_formatter[new_name] = text_formatter
         if validator := self._validator.pop(old_name, None):
             self._validator[new_name] = validator
+        if parser := self._parser.pop(old_name, None):
+            self._parser[new_name] = parser
         return None
 
     def setData(self, index: QtCore.QModelIndex, value, role) -> bool:

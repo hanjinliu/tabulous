@@ -195,7 +195,7 @@ class QFinderWidget(QtW.QWidget):
         qtable = self.currentTable()
         r, c = self._current_index
         convert_value = qtable._get_converter(c)
-        value = convert_value(r, c, self._replace_box.text())
+        value = convert_value(c, self._replace_box.text())
         qtable.setDataFrameValue(r, c, value)
         return self.findNext()
 
@@ -218,7 +218,7 @@ class QFinderWidget(QtW.QWidget):
                     self.initSearchBox()
                     break
                 convert_value = qtable._get_converter(c)
-                value = convert_value(r, c, text_after)
+                value = convert_value(c, text_after)
                 qtable.setDataFrameValue(r, c, value)
 
         return None
@@ -245,7 +245,7 @@ class QFinderWidget(QtW.QWidget):
 
     def _value_match(self, qtable: QBaseTable, text: str, r: int, c: int) -> bool:
         try:
-            val = qtable.convertValue(r, c, text)
+            val = qtable.convertValue(c, text)
         except Exception:
             return False
         return qtable.dataShown().iloc[r, c] == val

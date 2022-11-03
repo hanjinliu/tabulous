@@ -97,7 +97,7 @@ class LiteralCallable(Generic[_T]):
                     raise ValueError("Cannot assign a >3D array.")
                 _out = np.squeeze(out)
                 if _out.ndim == 0:  # scalar
-                    _out = qtable.convertValue(_row, _col, _out.item())
+                    _out = qtable.convertValue(_col, _out.item())
                 elif _out.ndim == 1:  # 1D array
                     _row = slice(_row, _row + _out.shape[0])
                     _col = slice(_col, _col + 1)
@@ -106,7 +106,7 @@ class LiteralCallable(Generic[_T]):
                     _col = slice(_col, _col + _out.shape[1])
 
             else:
-                _out = qtable.convertValue(_row, _col, out)
+                _out = qtable.convertValue(_col, out)
 
             if isinstance(_row, slice) and isinstance(_col, slice):  # set 1D array
                 _out = pd.DataFrame(out).astype(str)

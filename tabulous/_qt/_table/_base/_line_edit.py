@@ -273,7 +273,7 @@ class QCellLineEdit(_QTableLineEdit):
         r, c = self._pos
         try:
             convert_value = self._table._get_converter(c)
-            convert_value(r, c, self.text())
+            convert_value(c, self.text())
         except Exception as e:
             self.current_exception = e
             return False

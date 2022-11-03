@@ -34,7 +34,7 @@ class QTableLayer(QMutableSimpleTable):
         self._qtable_view.setModel(model)
         return None
 
-    def convertValue(self, r: int, c: int, value: Any) -> Any:
+    def convertValue(self, c: int, value: Any) -> Any:
         """Convert value to the type of the table."""
         kind = self._data_raw.dtypes[c].kind
         return convert_value(kind, value)
