@@ -745,13 +745,25 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
     # pad rows
     _nr, _nc = df.shape
     if nr > 0:
-        ext = _df_full(nr, _nc, value, index=range(_nr, _nr + nr), columns=df.columns)
+        # find unique index
+        if isinstance(df.index, (pd.Int64Index, pd.RangeIndex)):
+            x0 = df.index.max() + 1
+            index = range(x0, x0 + nr)
+        else:
+            index = range(_nr, _nr + nr)
+        ext = _df_full(nr, _nc, value, index=index, columns=df.columns)
         df = pd.concat([df, ext], axis=0)
 
     # pad columns
     _nr, _nc = df.shape  # NOTE: shape may have changed
     if nc > 0:
-        ext = _df_full(_nr, nc, value, index=df.index, columns=range(_nc, _nc + nc))
+        # find unique columns
+        if isinstance(df.columns, (pd.Int64Index, pd.RangeIndex)):
+            x0 = df.columns.max() + 1
+            columns = range(x0, x0 + nc)
+        else:
+            columns = range(_nc, _nc + nc)
+        ext = _df_full(_nr, nc, value, index=df.index, columns=columns)
         df = pd.concat([df, ext], axis=1)
 
     return df
