@@ -36,6 +36,10 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         QtW.QTabWidget.__init__(self, parent)
         QActionRegistry.__init__(self)
 
+        self.setSizePolicy(
+            QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Expanding
+        )
+
         from . import _tabbar
 
         if tab_position == "top":

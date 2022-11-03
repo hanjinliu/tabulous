@@ -26,7 +26,6 @@ class QtConsole(RichJupyterWidget):
         self.setMinimumSize(100, 0)
         self.resize(100, 40)
         self._dock_parent = None
-        self._current_data_identifier = "NONE"
         self.codeExecuted.connect(self.setFocus)
 
     def connect_parent(self, widget: TableViewerBase):
@@ -104,10 +103,8 @@ class QtConsole(RichJupyterWidget):
                 _ns.numpy: np,
                 _ns.pandas: pd,
                 _ns.tabulous: tbl,
-                _ns.data: TableDataReference(widget),
             }
             self.shell.push(ns)
-            self._current_data_identifier = _ns.data
 
     def setFocus(self):
         """Set focus to the text edit."""
@@ -140,7 +137,7 @@ class QtConsole(RichJupyterWidget):
     @_keymap.bind("Ctrl+I")
     def setTempText(self, text: str | None = None) -> None:
         if text is None:
-            text = f"{self._current_data_identifier}[...]"
+            text = f"viewer.data.loc[...]"
         cursor = self._control.textCursor()
         cursor.removeSelectedText()
         pos = cursor.position()

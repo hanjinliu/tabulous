@@ -95,7 +95,6 @@ class ConsoleNamespace:
     viewer: str = "viewer"
     pandas: str = "pd"
     numpy: str = "np"
-    data: str = "DATA"
 
 
 @dataclass

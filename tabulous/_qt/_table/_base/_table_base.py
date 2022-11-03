@@ -19,6 +19,7 @@ from ..._keymap import QtKeys, QtKeyMap
 from ..._action_registry import QActionRegistry
 from ....types import FilterType, ItemInfo, HeaderInfo, EvalInfo
 from ....exceptions import SelectionRangeError, TableImmutableError
+from ...._selection_op import LocSelOp
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
@@ -742,12 +743,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         if console is None or not console.isActive():
             return
         selected = console.selectedText()
-        _df = console._current_data_identifier
-        if selected.startswith(f"{_df}["):
+        if selected.startswith(f"viewer.data.loc["):
             sels = self.selections()
             if len(sels) != 1:
                 return
-            console.setTempText(f"{_df}{_selection_to_literal(sels[0])}")
+            op = LocSelOp.from_iloc(*sels[0], self.model().df)
+            console.setTempText(op.fmt("viewer.data"))
         return None
 
 
