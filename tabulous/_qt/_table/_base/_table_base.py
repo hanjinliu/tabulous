@@ -805,7 +805,9 @@ class QMutableTable(QBaseTable):
             raise TableImmutableError("Table is immutable.")
         data = self._data_raw
 
-        with self._mgr.merging(lambda cmds: self._set_value_fmt(r, c, value)):
+        with self._mgr.merging(
+            lambda cmds: self._set_value_fmt(r, c, None, None, value, None)
+        ):
             # convert values
             if isinstance(r, slice) and isinstance(c, slice):
                 # delete references

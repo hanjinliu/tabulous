@@ -486,7 +486,11 @@ class TableBase(ABC):
                 # if no reference exists, evaluate the expression as "=..." form.
                 return self._emit_evaluated(EvalInfo(*pos, info.expr, False))
             graph = Graph(self, literal_callable, selections)
-            qtable.setCalculationGraph(pos, graph)
+            with qtable._mgr.merging():
+                literal_callable(
+                    unblock=True
+                )  # call here to properly update undo stack
+                qtable.setCalculationGraph(pos, graph)
 
         del qtable_view._focused_widget
         return None

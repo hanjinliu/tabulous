@@ -89,3 +89,15 @@ def test_eval_undo_with_many_cells():
     sheet.undo_manager.redo()
     assert sheet.data.iloc[0, 0] == 10
     assert_allclose(sheet.data.iloc[:, 1].values, [10, 12, 15])
+
+def test_eval_undo_with_overwrite():
+    import numpy as np
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
+    sheet.cell[0, 1] = "&=np.mean(df['a'][0:3])"
+    sheet.cell[1, 1] = "&=np.cumsum(df['a'][0:3])"
+    assert_allclose(sheet.data.values, [[1, 1], [2, 3], [3, 6]])
+    sheet.undo_manager.undo()
+    assert_allclose(sheet.data.values, [[1, 2], [2, np.nan], [3, np.nan]])
+    sheet.undo_manager.undo()
+    assert_allclose(sheet.data.values, [[1], [2], [3]])

@@ -179,14 +179,14 @@ class GraphManager(MutableMapping[Index, Graph]):
             graph.disconnect()
             del self._graphs[key]
 
-            dst = graph._destination
-            if dst:
-                rsl, csl = dst
-                area = (rsl.stop - rsl.start) * (csl.stop - csl.start)
-                if area > 1:
-                    logger.debug(f"Current graph pos {list(self.keys())}")
-                    graph.table.selections = [dst]
-                    graph.table._qwidget.deleteValues()
+            # dst = graph._destination
+            # if dst:
+            #     rsl, csl = dst
+            #     area = (rsl.stop - rsl.start) * (csl.stop - csl.start)
+            #     if area > 1:
+            #         logger.debug(f"Current graph pos {list(self.keys())}")
+            #         graph.table.selections = [dst]
+            #         graph.table._qwidget.deleteValues()
             logger.debug(f"Graph popped at {key}")
             return graph
 
