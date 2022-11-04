@@ -487,9 +487,8 @@ class TableBase(ABC):
                 return self._emit_evaluated(EvalInfo(*pos, info.expr, False))
             graph = Graph(self, literal_callable, selections)
             with qtable._mgr.merging():
-                literal_callable(
-                    unblock=True
-                )  # call here to properly update undo stack
+                # call here to properly update undo stack
+                literal_callable(unblock=True)
                 qtable.setCalculationGraph(pos, graph)
 
         del qtable_view._focused_widget
@@ -497,7 +496,7 @@ class TableBase(ABC):
 
 
 # #############################################################################
-# Concrete table widgets
+#   Concrete table widgets
 # #############################################################################
 
 

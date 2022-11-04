@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import (
     TYPE_CHECKING,
     Callable,
@@ -7,12 +8,15 @@ from typing import (
     TypeVar,
 )
 from .._selection_model import Index
+from .._selection_op import iter_extract
 
 if TYPE_CHECKING:
     import pandas as pd
     from ..widgets import TableBase
 
 _T = TypeVar("_T")
+
+logger = logging.getLogger("tabulous")
 
 
 class LiteralCallable(Generic[_T]):
@@ -23,6 +27,7 @@ class LiteralCallable(Generic[_T]):
         self._func = func
         self._pos = pos
         self._unblocked = False
+        self._selection_ops = iter_extract(expr)
 
     def __call__(self, unblock: bool = False) -> EvalResult[_T]:
         if unblock:
@@ -50,6 +55,11 @@ class LiteralCallable(Generic[_T]):
     def set_pos(self, pos: tuple[int, int]):
         self._pos = Index(*pos)
         return self
+
+    @property
+    def selection_ops(self):
+        """Return the list of selection operations."""
+        return self._selection_ops
 
     @classmethod
     def from_table(
