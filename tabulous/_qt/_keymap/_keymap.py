@@ -136,6 +136,9 @@ MODIFIER_KEYS = frozenset(
 ARROW_KEYS = frozenset(
     {Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Left, Qt.Key.Key_Right}
 )
+FUNC_ARROW_KEYS = frozenset(
+    {Qt.Key.Key_Home, Qt.Key.Key_End, Qt.Key.Key_PageUp, Qt.Key.Key_PageDown}
+)
 
 
 class QtKeys:
@@ -200,7 +203,12 @@ class QtKeys:
         ) and (Qt.Key.Key_Exclam <= self.key <= Qt.Key.Key_ydiaeresis)
 
     def is_moving(self) -> bool:
+        """True if arrows are pushed."""
         return self.key in ARROW_KEYS
+
+    def is_moving_func(self) -> bool:
+        """True if function arrows are pushed."""
+        return self.key in FUNC_ARROW_KEYS
 
     def key_string(self, check_shift: bool = False) -> str:
         """Get clicked key in string form."""

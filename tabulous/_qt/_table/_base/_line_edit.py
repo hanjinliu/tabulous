@@ -28,6 +28,12 @@ if TYPE_CHECKING:
     from ._header_view import QDataFrameHeaderView
 
 _CONFIG = get_config()
+_LEFT_LIKE = frozenset(
+    {"Left", "Ctrl+Left", "Shift+Left", "Ctrl+Shift+Left", "Home", "Shift+Home"}
+)
+_RIGHT_LIKE = frozenset(
+    {"Right", "Ctrl+Right", "Shift+Right", "Ctrl+Shift+Right", "End", "Shift+End"}
+)
 
 
 class _QTableLineEdit(QtW.QLineEdit):
@@ -422,7 +428,7 @@ class QCellLiteralEdit(_QTableLineEdit):
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
         keys = QtKeys(a0)
         qtable = self.parentTableView()
-        if keys.is_moving():
+        if keys.is_moving() or keys.is_moving_func():
             pos = self.cursorPosition()
             nchar = len(self.text())
             if not self._self_focused:
@@ -431,14 +437,14 @@ class QCellLiteralEdit(_QTableLineEdit):
                 self.setFocus()
                 return None
 
-            if keys == "Left":
+            if str(keys) in _LEFT_LIKE:
                 if pos == 0:
                     qtable._selection_model.move(0, -1)
                     self._self_focused = False
                     return None
                 else:
                     self._self_focused = True
-            elif keys == "Right":
+            elif str(keys) in _RIGHT_LIKE:
                 if pos == nchar and self.selectedText() == "":
                     qtable._selection_model.move(0, 1)
                     self._self_focused = False
