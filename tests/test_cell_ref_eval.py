@@ -1,6 +1,8 @@
+import numpy as np
 from tabulous import TableViewer
 import pandas as pd
 from numpy.testing import assert_allclose
+import pytest
 
 def test_scalar():
     viewer = TableViewer(show=False)
@@ -101,3 +103,33 @@ def test_eval_undo_with_overwrite():
     assert_allclose(sheet.data.values, [[1, 2], [2, np.nan], [3, np.nan]])
     sheet.undo_manager.undo()
     assert_allclose(sheet.data.values, [[1], [2], [3]])
+
+@pytest.mark.parametrize(
+    "expr",
+    [
+        "df['a'][:]",
+        "df['b'][:]",
+        "df['a'][:] + df['b'][:]",
+        "df['a'][:] + df['b'][:].mean()",
+        "np.cumsum(df['a'][:])",  # function that returns a same-length array
+        "np.mean(df.loc[:, 'a':'b'], axis=1)", # 1D reduction
+        "df.loc[:, 'a':'b'].mean(axis=1)",  # 1D reduction
+        "np.mean(df.loc[:, 'a':'b'], axis=1) + df['a'][:]",  # reduction + array
+        "df['a'][:].values",  # array
+    ]
+)
+def test_many_expr(expr: str):
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(
+        {"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 4, 5]}
+    )
+    sheet.cell[1, 2] = f"&={expr}"
+    assert_allclose(sheet.data.iloc[:, 2].values, eval(expr, {"df": sheet.data, "np": np}, {}))
+
+def test_returns_shorter():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(
+        {"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 4, 5]}
+    )
+    sheet.cell[1, 2] = f"&=np.diff(df['a'][:])"
+    assert_allclose(sheet.data.iloc[:, 2].values, [1, 1, 1, 1, np.nan])

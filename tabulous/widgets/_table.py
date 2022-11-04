@@ -448,7 +448,6 @@ class TableBase(ABC):
 
     def _emit_evaluated(self, info: EvalInfo):
         from .._eval import Graph, LiteralCallable
-        from .._selection_op import iter_extract
 
         if info.expr == "":
             return None
@@ -481,7 +480,7 @@ class TableBase(ABC):
                 self.move_iloc(*pos)
         else:
             # evaluated by "&=..."
-            selections = list(iter_extract(info.expr))
+            selections = literal_callable.selection_ops
             if len(selections) == 0:
                 # if no reference exists, evaluate the expression as "=..." form.
                 return self._emit_evaluated(EvalInfo(*pos, info.expr, False))

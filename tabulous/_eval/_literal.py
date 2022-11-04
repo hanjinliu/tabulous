@@ -5,18 +5,28 @@ from typing import (
     TYPE_CHECKING,
     Callable,
     Generic,
+    Iterable,
     TypeVar,
 )
 from .._selection_model import Index
-from .._selection_op import iter_extract
+from .._selection_op import iter_extract, SelectionOperator
 
 if TYPE_CHECKING:
+    import numpy as np
     import pandas as pd
     from ..widgets import TableBase
 
 _T = TypeVar("_T")
 
 logger = logging.getLogger("tabulous")
+
+
+class CellEvaluationError(Exception):
+    """Raised when cell evaluation is conducted in a wrong way."""
+
+    def __init__(self, msg: str, pos: Index) -> None:
+        super().__init__(msg)
+        self._pos = pos
 
 
 class LiteralCallable(Generic[_T]):
@@ -27,7 +37,7 @@ class LiteralCallable(Generic[_T]):
         self._func = func
         self._pos = pos
         self._unblocked = False
-        self._selection_ops = iter_extract(expr)
+        self._selection_ops = list(iter_extract(expr))
 
     def __call__(self, unblock: bool = False) -> EvalResult[_T]:
         if unblock:
@@ -90,30 +100,33 @@ class LiteralCallable(Generic[_T]):
             if isinstance(out, pd.DataFrame):
                 if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
                     _out = out.iloc[:, 0]
-                    _row, _col = _infer_slices(df, _out, _row, _col)
+                    _row, _col = _self._infer_slices(df, _out)
                 elif out.size == 1:
                     _out = out.iloc[0, 0]
+                    _row, _col = _self._infer_indices(df)
                 else:
                     raise NotImplementedError("Cannot assign a DataFrame now.")
 
             elif isinstance(out, pd.Series):
                 if out.shape == (1,):  # scalar
                     _out = out[0]
+                    _row, _col = _self._infer_indices(df)
                 else:  # update a column
-                    _row, _col = _infer_slices(df, out, _row, _col)
+                    _out = out
+                    _row, _col = _self._infer_slices(df, _out)
 
             elif isinstance(out, np.ndarray):
-                if out.ndim > 2:
-                    raise ValueError("Cannot assign a >3D array.")
                 _out = np.squeeze(out)
                 if _out.ndim == 0:  # scalar
                     _out = qtable.convertValue(_col, _out.item())
+                    _row, _col = _self._infer_indices(df)
                 elif _out.ndim == 1:  # 1D array
-                    _row = slice(_row, _row + _out.shape[0])
-                    _col = slice(_col, _col + 1)
-                else:
+                    _row, _col = _self._infer_slices(df, _out)
+                elif _out.ndim == 2:
                     _row = slice(_row, _row + _out.shape[0])
                     _col = slice(_col, _col + _out.shape[1])
+                else:
+                    raise CellEvaluationError("Cannot assign a >3D array.", Index(*pos))
 
             else:
                 _out = qtable.convertValue(_col, out)
@@ -141,6 +154,90 @@ class LiteralCallable(Generic[_T]):
             return EvalResult(out, (_row, _col))
 
         return LiteralCallable(expr, evaluator, pos)
+
+    def _infer_indices(self, df: pd.DataFrame) -> tuple[int, int]:
+        """Infer how to concatenate a scalar to ``df``."""
+        #  x | x | x |     1. Self-update is not safe. Raise Error.
+        #  x |(1)| x |(2)  2. OK.
+        #  x | x | x |     3. OK.
+        # ---+---+---+---  4. Cannot determine in which orientation results should
+        #    |(3)|   |(4)     be aligned. Raise Error.
+
+        # Filter array selection.
+        array_sels = _get_array_selections(self.selection_ops, df)
+        r, c = self.pos
+
+        if len(array_sels) == 0:
+            # if no array selection is found, return as a column vector.
+            return r, c
+
+        for rloc, cloc in array_sels:
+            in_r_range = rloc.start <= r < rloc.stop
+            in_c_range = cloc.start <= c < cloc.stop
+
+            if in_r_range and in_c_range:
+                raise CellEvaluationError(
+                    "Cell evaluation result overlaps with an array selection.",
+                    pos=Index(r, c),
+                )
+        return r, c
+
+    def _infer_slices(
+        self, df: pd.DataFrame, out: pd.Series | np.ndarray
+    ) -> tuple[slice, slice]:
+        """Infer how to concatenate ``out`` to ``df``."""
+        #  x | x | x |     1. Self-update is not safe. Raise Error.
+        #  x |(1)| x |(2)  2. Return as a column vector.
+        #  x | x | x |     3. Return as a row vector.
+        # ---+---+---+---  4. Cannot determine in which orientation results should
+        #    |(3)|   |(4)     be aligned. Raise Error.
+
+        # Filter array selection.
+        array_sels = _get_array_selections(self.selection_ops, df)
+        r, c = self.pos
+        len_out = len(out)
+
+        if len(array_sels) == 0:
+            # if no array selection is found, return as a column vector.
+            return slice(r, r + len_out), slice(c, c + 1)
+
+        determined = None
+        for rloc, cloc in array_sels:
+            in_r_range = rloc.start <= r < rloc.stop
+            in_c_range = cloc.start <= c < cloc.stop
+            r_len = rloc.stop - rloc.start
+            c_len = cloc.stop - cloc.start
+
+            if in_r_range:
+                if in_c_range:
+                    raise CellEvaluationError(
+                        "Cell evaluation result overlaps with an array selection.",
+                        pos=Index(r, c),
+                    )
+                else:
+                    if determined is None and len_out <= r_len:
+                        determined = (
+                            slice(rloc.start, rloc.start + len_out),
+                            slice(c, c + 1),
+                        )  # column vector
+
+            elif in_c_range:
+                if determined is None and len_out <= c_len:
+                    determined = (
+                        slice(r, r + 1),
+                        slice(cloc.start, cloc.start + len_out),
+                    )  # row vector
+            else:
+                # cannot determine output positions, try next selection.
+                pass
+
+        if determined is None:
+            raise CellEvaluationError(
+                "Cell evaluation result is ambiguous. Could not determine the "
+                "cells to write output.",
+                pos=Index(r, c),
+            )
+        return determined
 
 
 class EvalResult(Generic[_T]):
@@ -198,69 +295,11 @@ class EvalResult(Generic[_T]):
         return isinstance(self._obj, Exception)
 
 
-def _infer_slices(
-    df: pd.DataFrame,
-    out: pd.Series,
-    r: int,
-    c: int,
-) -> tuple[slice, slice]:
-    """Infer how to concatenate ``out`` to ``df``."""
-
-    #      x | x | x |
-    #      x |(1)| x |(2)
-    #      x | x | x |
-    #     ---+---+---+---
-    #        |(3)|   |(4)
-
-    # 1. Return as a column vector for now.
-    # 2. Return as a column vector.
-    # 3. Return as a row vector.
-    # 4. Cannot determine in which orientation results should be aligned. Raise Error.
-
-    _nr, _nc = df.shape
-    if _nc <= c:  # case 2, 4
-        _orientation = "c"
-    elif _nr <= r:  # case 3
-        _orientation = "r"
-    else:  # case 1
-        _orientation = "infer"
-
-    if _orientation == "infer":
-        try:
-            df.loc[:, out.index]
-        except KeyError:
-            try:
-                df.loc[out.index, :]
-            except KeyError:
-                raise KeyError("Could not infer output orientation.")
-            else:
-                _orientation = "c"
-        else:
-            _orientation = "r"
-
-    if _orientation == "r":
-        rloc = slice(r, r + 1)
-        istart = df.columns.get_loc(out.index[0])
-        istop = df.columns.get_loc(out.index[-1]) + 1
-        if (df.columns[istart:istop] == out.index).all():
-            cloc = slice(istart, istop)
-        else:
-            raise ValueError("Output Series is not well sorted.")
-    elif _orientation == "c":
-        istart = df.index.get_loc(out.index[0])
-        istop = df.index.get_loc(out.index[-1]) + 1
-        if (df.index[istart:istop] == out.index).all():
-            rloc = slice(istart, istop)
-        else:
-            raise ValueError("Output Series is not well sorted.")
-        cloc = slice(c, c + 1)
-    else:
-        raise RuntimeError(_orientation)  # unreachable
-
-    # check (r, c) is in the range
-    if not (rloc.start <= r < rloc.stop and cloc.start <= c < cloc.stop):
-        raise ValueError(
-            f"The cell on editing {(r, c)} is not in the range of output "
-            f"({rloc.start}:{rloc.stop}, {cloc.start}:{cloc.stop})."
-        )
-    return rloc, cloc
+def _get_array_selections(selops: Iterable[SelectionOperator], df: pd.DataFrame):
+    array_sels: list[tuple[slice, slice]] = []
+    for selop in selops:
+        sls = selop.as_iloc_slices(df)
+        # append only if area > 1
+        if sls[0].stop - sls[0].start > 1 or sls[1].stop - sls[1].start > 1:
+            array_sels.append(sls)
+    return array_sels
