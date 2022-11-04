@@ -133,3 +133,18 @@ def test_returns_shorter():
     )
     sheet.cell[1, 2] = f"&=np.diff(df['a'][:])"
     assert_allclose(sheet.data.iloc[:, 2].values, [1, 1, 1, 1, np.nan])
+
+def test_called_once():
+    viewer = TableViewer(show=False)
+    count = 0
+    @viewer.cell_namespace.add
+    def func(*_):
+        nonlocal count
+        count += 1
+        return 0
+
+    sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
+    sheet.cell[0, 1] = "&=func(df['a'][:])"
+    assert count == 1
+    sheet.cell[0, 0] = "4"
+    assert count == 2

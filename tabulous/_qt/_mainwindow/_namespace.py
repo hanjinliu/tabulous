@@ -46,7 +46,7 @@ class Namespace(MutableMapping[str, Any]):
         return self._ns.update(ns)
 
     def add(self, obj: _T) -> _T:
-        """A decorator to add an object to the namespace."""
+        """A decorator to add an callable object to the namespace."""
         name = obj.__name__
         self[name] = obj
         return obj

@@ -488,7 +488,8 @@ class TableBase(ABC):
             with qtable._mgr.merging():
                 # call here to properly update undo stack
                 literal_callable(unblock=True)
-                qtable.setCalculationGraph(pos, graph)
+                with graph.blocked():
+                    qtable.setCalculationGraph(pos, graph)
 
         del qtable_view._focused_widget
         return None

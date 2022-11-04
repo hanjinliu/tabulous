@@ -38,6 +38,7 @@ class LiteralCallable(Generic[_T]):
         self._pos = pos
         self._unblocked = False
         self._selection_ops = list(iter_extract(expr))
+        self._last_destination: tuple[slice, slice] | None = None
 
     def __call__(self, unblock: bool = False) -> EvalResult[_T]:
         if unblock:
@@ -151,6 +152,7 @@ class LiteralCallable(Generic[_T]):
             else:
                 with qtable_view._selection_model.blocked():
                     qtable.setDataFrameValue(_row, _col, _out)
+            _self._last_destination = (_row, _col)
             return EvalResult(out, (_row, _col))
 
         return LiteralCallable(expr, evaluator, pos)

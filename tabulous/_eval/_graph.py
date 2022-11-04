@@ -29,7 +29,6 @@ class Graph:
         sources: list[SelectionOperator],
     ):
         self._sources = sources
-        self._last_destination: tuple[slice, slice] | None = None
         self._func = func
         self._table_ref = weakref.ref(table)
         self._callback_blocked = False
@@ -43,10 +42,10 @@ class Graph:
     @property
     def expr(self) -> str:
         """Get the graph expression in 'df.iloc[...] = ...' format."""
-        if self._last_destination is None:
+        if self._func._last_destination is None:
             expr = f"out = {self._func.expr}"
         else:
-            rsl, csl = self._last_destination
+            rsl, csl = self._func._last_destination
             _r = _format_slice(rsl)
             _c = _format_slice(csl)
             expr = f"df.iloc[{_r}, {_c}] = {self._func.expr}"
@@ -87,7 +86,7 @@ class Graph:
         if not self._callback_blocked:
             with self.blocked():
                 out = self._func()
-                if (e := out.get_err()) and (sl := self._last_destination):
+                if (e := out.get_err()) and (sl := self._func._last_destination):
                     import pandas as pd
 
                     rsl, csl = sl
@@ -103,8 +102,6 @@ class Graph:
                     ):
                         table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
 
-            if isinstance(out, EvalResult):
-                self._last_destination = out.range
             logger.debug(f"Called: {self.expr}, result: {out._short_repr()}")
         else:
             out = EvalResult(None, self._func._pos)
