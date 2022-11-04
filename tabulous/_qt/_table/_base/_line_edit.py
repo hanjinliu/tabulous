@@ -129,6 +129,8 @@ class _QTableLineEdit(QtW.QLineEdit):
                 self._table._qtable_view._selection_model.move_to(r + 1, c)
                 return
 
+        elif keys == "F2":  # editing fails
+            return None
         return super().keyPressEvent(event)
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
@@ -428,6 +430,7 @@ class QCellLiteralEdit(_QTableLineEdit):
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
         keys = QtKeys(a0)
         qtable = self.parentTableView()
+        keys_str = str(keys)
         if keys.is_moving() or keys.is_moving_func():
             pos = self.cursorPosition()
             nchar = len(self.text())
@@ -437,14 +440,14 @@ class QCellLiteralEdit(_QTableLineEdit):
                 self.setFocus()
                 return None
 
-            if str(keys) in _LEFT_LIKE:
+            if keys_str in _LEFT_LIKE:
                 if pos == 0:
                     qtable._selection_model.move(0, -1)
                     self._self_focused = False
                     return None
                 else:
                     self._self_focused = True
-            elif str(keys) in _RIGHT_LIKE:
+            elif keys_str in _RIGHT_LIKE:
                 if pos == nchar and self.selectedText() == "":
                     qtable._selection_model.move(0, 1)
                     self._self_focused = False
@@ -461,9 +464,11 @@ class QCellLiteralEdit(_QTableLineEdit):
             qtable._selection_model.move_to(*self._pos)
             self.close()
             return None
+        elif keys == "F2":  # editing fails
+            return None
 
         if keys.is_typing() or keys in ("Backspace", "Delete"):
-            if keys in ("Backspace", "Delete"):
+            if keys_str in ("Backspace", "Delete"):
                 self._completion_module = None
             with qtable._selection_model.blocked():
                 qtable._selection_model.move_to(*self._pos)
