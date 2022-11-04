@@ -27,10 +27,8 @@ class Graph:
         table: TableBase,
         func: LiteralCallable,
         sources: list[SelectionOperator],
-        destination: tuple[slice, slice] | None = None,
     ):
         self._sources = sources
-        self._destination = destination
         self._func = func
         self._table_ref = weakref.ref(table)
         self._callback_blocked = False
@@ -44,10 +42,10 @@ class Graph:
     @property
     def expr(self) -> str:
         """Get the graph expression in 'df.iloc[...] = ...' format."""
-        if self._destination is None:
+        if self._func._last_destination is None:
             expr = f"out = {self._func.expr}"
         else:
-            rsl, csl = self._destination
+            rsl, csl = self._func._last_destination
             _r = _format_slice(rsl)
             _c = _format_slice(csl)
             expr = f"df.iloc[{_r}, {_c}] = {self._func.expr}"
@@ -88,8 +86,7 @@ class Graph:
         if not self._callback_blocked:
             with self.blocked():
                 out = self._func()
-                logger.debug(f"Running: {self.expr}, result: {out._short_repr()}")
-                if (e := out.get_err()) and (sl := self._destination):
+                if (e := out.get_err()) and (sl := self._func._last_destination):
                     import pandas as pd
 
                     rsl, csl = sl
@@ -104,6 +101,8 @@ class Graph:
                         qtable_view._ref_graphs.blocked(),
                     ):
                         table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
+
+            logger.debug(f"Called: {self.expr}, result: {out._short_repr()}")
         else:
             out = EvalResult(None, self._func._pos)
         return out
@@ -116,8 +115,6 @@ class Graph:
         if e := out.get_err():
             self.disconnect()
             raise e
-        elif isinstance(out, EvalResult):
-            self._destination = out.range
         return self
 
     def connect(self):
@@ -178,15 +175,6 @@ class GraphManager(MutableMapping[Index, Graph]):
         else:
             graph.disconnect()
             del self._graphs[key]
-
-            # dst = graph._destination
-            # if dst:
-            #     rsl, csl = dst
-            #     area = (rsl.stop - rsl.start) * (csl.stop - csl.start)
-            #     if area > 1:
-            #         logger.debug(f"Current graph pos {list(self.keys())}")
-            #         graph.table.selections = [dst]
-            #         graph.table._qwidget.deleteValues()
             logger.debug(f"Graph popped at {key}")
             return graph
 

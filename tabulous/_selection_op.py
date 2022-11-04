@@ -46,6 +46,11 @@ class SelectionOperator:
             csl = slice(0, df.columns.size)
         return rsl, csl
 
+    def area(self, df: pd.DataFrame) -> int:
+        """Return the number of cells selected."""
+        rsl, csl = self.as_iloc_slices(df)
+        return (rsl.stop - rsl.start) * (csl.stop - csl.start)
+
     @classmethod
     def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
         """Construct selection literal from iloc indices."""
@@ -109,11 +114,27 @@ class LocSelOp(SelectionOperator):
         rsel, csel = self.args
         index, columns = df.axes
         if isinstance(rsel, slice):
-            irsel = slice(index.get_loc(rsel.start), index.get_loc(rsel.stop) + 1)
+            if rsel.start is None:
+                rstart = None
+            else:
+                rstart = index.get_loc(rsel.start)
+            if rsel.stop is None:
+                rstop = None
+            else:
+                rstop = index.get_loc(rsel.stop) + 1
+            irsel = slice(rstart, rstop)
         else:
             irsel = index.get_loc(rsel)
         if isinstance(csel, slice):
-            icsel = slice(columns.get_loc(csel.start), columns.get_loc(csel.stop) + 1)
+            if csel.start is None:
+                cstart = None
+            else:
+                cstart = columns.get_loc(csel.start)
+            if csel.stop is None:
+                cstop = None
+            else:
+                cstop = columns.get_loc(csel.stop) + 1
+            icsel = slice(cstart, cstop)
         else:
             icsel = columns.get_loc(csel)
         return irsel, icsel

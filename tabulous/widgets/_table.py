@@ -448,7 +448,6 @@ class TableBase(ABC):
 
     def _emit_evaluated(self, info: EvalInfo):
         from .._eval import Graph, LiteralCallable
-        from .._selection_op import iter_extract
 
         if info.expr == "":
             return None
@@ -481,23 +480,23 @@ class TableBase(ABC):
                 self.move_iloc(*pos)
         else:
             # evaluated by "&=..."
-            selections = list(iter_extract(info.expr))
+            selections = literal_callable.selection_ops
             if len(selections) == 0:
                 # if no reference exists, evaluate the expression as "=..." form.
                 return self._emit_evaluated(EvalInfo(*pos, info.expr, False))
             graph = Graph(self, literal_callable, selections)
             with qtable._mgr.merging():
-                literal_callable(
-                    unblock=True
-                )  # call here to properly update undo stack
-                qtable.setCalculationGraph(pos, graph)
+                # call here to properly update undo stack
+                literal_callable(unblock=True)
+                with graph.blocked():
+                    qtable.setCalculationGraph(pos, graph)
 
         del qtable_view._focused_widget
         return None
 
 
 # #############################################################################
-# Concrete table widgets
+#   Concrete table widgets
 # #############################################################################
 
 
