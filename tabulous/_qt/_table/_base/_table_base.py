@@ -254,8 +254,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _get_converter(self, c: int) -> Callable[[Any], Any]:
         if 0 <= c < len(self._filtered_columns):
             colname = self._filtered_columns[c]
-            if parser := self.model()._parser.get(colname, None):
-                return parser
             if validator := self.model()._validator.get(colname, None):
                 return partial(
                     _convert_value, validator=validator, converter=self.convertValue
@@ -475,23 +473,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def setDataValidator(self, name: str, validator: Callable[[Any], bool]):
         validator = self.model()._validator.get(name, None)
         return (name, validator), {}
-
-    @_mgr.interface
-    def setParser(self, name: str, parser: Callable[[str], Any]):
-        """Set a parser function to the column named `name`."""
-        if parser is None:
-            self.model()._parser.pop(name, None)
-        else:
-            if not callable(parser):
-                raise TypeError("Parser must be callable.")
-            self.model()._parser[name] = parser
-        self.refreshTable()
-        return None
-
-    @setParser.server
-    def setParser(self, name: str, parser: Callable[[Any], bool]):
-        parser = self.model()._parser.get(name, None)
-        return (name, parser), {}
 
     def setCalculationGraph(self, pos: tuple[int, int], graph: Graph):
         """Set calculation graph at the given position."""
