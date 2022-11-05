@@ -556,7 +556,11 @@ class QCellLiteralEdit(_QTableLineEdit):
             selop = ValueSelOp.from_iloc(rsl, csl, _df)
         else:
             raise RuntimeError(f"Unknwon slicing mode {_CONFIG.cell.slicing!r}")
-        to_be_added = selop.fmt("df")
+
+        if selop.area(_df) > 1:
+            to_be_added = selop.fmt("df")
+        else:
+            to_be_added = selop.fmt_scalar("df")
 
         if cursor_pos == 0:
             self.setText(to_be_added + text)

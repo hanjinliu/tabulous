@@ -280,7 +280,12 @@ class _QTableViewEnhanced(QtW.QTableView):
     def _edit_current(self) -> None:
         """Enter edit mode for current cell."""
         index = self.model().index(*self._selection_model.current_index)
-        return self.edit(index)
+        self.edit(index)
+        if editor := self._focused_widget:
+            if isinstance(editor, QCellLiteralEdit):
+                editor = cast(QCellLiteralEdit, editor)
+                editor._on_text_changed(editor.text())
+        return None
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         """Register clicked position"""

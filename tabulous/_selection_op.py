@@ -21,6 +21,13 @@ class SelectionOperator:
         """Format selection literal for display."""
         raise NotImplementedError()
 
+    def fmt_scalar(self, df_expr: str = "df") -> str:
+        """Format 1x1 selection literal as a scalar reference."""
+        raise NotImplementedError()
+
+    def __format__(self, spec: str) -> str:
+        return self.fmt(df_expr=spec)
+
     def __repr__(self) -> str:
         cname = type(self).__name__
         return f"{cname}({self.fmt()})"
@@ -65,6 +72,7 @@ class SelectionOperator:
 class ColumnSelOp(SelectionOperator):
     """An object that represents selection such as ``df["foo"][2:5]``."""
 
+    args: tuple[Hashable, slice]
     PATTERN = r"df\[.+?\]\[.+?\]"
 
     def __init__(self, col: Hashable, rows: slice):
@@ -73,6 +81,13 @@ class ColumnSelOp(SelectionOperator):
     def fmt(self, df_expr: str = "df") -> str:
         col, rows = self.args
         return f"{df_expr}[{_fmt_slice(col)}][{_fmt_slice(rows)}]"
+
+    def fmt_scalar(self, df_expr: str = "df") -> str:
+        col, rows = self.args
+        start, stop = rows.start, rows.stop
+        if stop - start != 1:
+            raise ValueError("Cannot format as a scalar value.")
+        return f"{df_expr}[{_fmt_slice(col)}][{_fmt_slice(start)}]"
 
     def operate(self, df: pd.DataFrame) -> pd.DataFrame:
         col, rows = self.args
@@ -104,6 +119,18 @@ class LocSelOp(SelectionOperator):
 
     def fmt(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
+        return f"{df_expr}.loc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+
+    def fmt_scalar(self, df_expr: str = "df") -> str:
+        rsel, csel = self.args
+        if isinstance(rsel, slice):
+            if rsel.start != rsel.stop:
+                raise ValueError("Cannot format as a scalar value.")
+            rsel = rsel.start
+        if isinstance(csel, slice):
+            if csel.start != csel.stop:
+                raise ValueError("Cannot format as a scalar value.")
+            csel = csel.start
         return f"{df_expr}.loc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
 
     def operate(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -156,6 +183,7 @@ class LocSelOp(SelectionOperator):
 class ILocSelOp(SelectionOperator):
     """An object that represents selection such as ``df.iloc[4:7, 2:5]``."""
 
+    args: tuple[_Slice, _Slice]
     PATTERN = r"df\.iloc\[.+?\]"
 
     def __init__(self, rsel: _Slice, csel: _Slice):
@@ -163,6 +191,18 @@ class ILocSelOp(SelectionOperator):
 
     def fmt(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
+        return f"{df_expr}.iloc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+
+    def fmt_scalar(self, df_expr: str = "df") -> str:
+        rsel, csel = self.args
+        if isinstance(rsel, slice):
+            if rsel.start != rsel.stop - 1:
+                raise ValueError("Cannot format as a scalar value.")
+            rsel = rsel.start
+        if isinstance(csel, slice):
+            if csel.start != csel.stop - 1:
+                raise ValueError("Cannot format as a scalar value.")
+            csel = csel.start
         return f"{df_expr}.iloc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
 
     def operate(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -187,6 +227,18 @@ class ValueSelOp(SelectionOperator):
 
     def fmt(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
+        return f"{df_expr}.values[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+
+    def fmt_scalar(self, df_expr: str = "df") -> str:
+        rsel, csel = self.args
+        if isinstance(rsel, slice):
+            if rsel.start != rsel.stop - 1:
+                raise ValueError("Cannot format as a scalar value.")
+            rsel = rsel.start
+        if isinstance(csel, slice):
+            if csel.start != csel.stop - 1:
+                raise ValueError("Cannot format as a scalar value.")
+            csel = csel.start
         return f"{df_expr}.values[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
 
     def operate(self, df: pd.DataFrame) -> pd.DataFrame:
