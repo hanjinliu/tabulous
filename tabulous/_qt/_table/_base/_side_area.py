@@ -36,6 +36,9 @@ class QTableSideArea(QtW.QScrollArea):
         self.setMinimumWidth(180)
         self.setWidget(widget_inside)
         self._widgets: list[QtW.QWidget] = []
+        # add empty widget
+        splitter = self.widget()
+        splitter.addWidget(QtW.QWidget())
 
     # fmt: off
     if TYPE_CHECKING:
@@ -49,9 +52,9 @@ class QTableSideArea(QtW.QScrollArea):
 
         dock = QSplitterDockWidget(widget, name=name)
         splitter = self.widget()
-        splitter.addWidget(dock)
-        self._widgets.append(widget)
         idx = splitter.count() - 1
+        splitter.insertWidget(idx, dock)
+        self._widgets.append(widget)
         splitter.setCollapsible(idx, False)
 
         @dock._title_bar.closeSignal.connect

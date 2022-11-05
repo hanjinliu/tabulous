@@ -196,9 +196,7 @@ def test_ref_after_removal_of_column():
     assert sheet.cell[1, 3] == "1.0"
     sheet._qwidget.removeColumns(3, 1)  # insert a column
     assert sheet.cell[1, 3] == "0.0"
-    assert sheet.cell[1, 2] == "1.0"
-    assert (1, 3) not in sheet.cellref
-    assert (1, 2) in sheet.cellref
+    assert len(sheet.cellref) == 0
     # TODO: undo is not working now
     # sheet.undo_manager.undo()
     # assert sheet.cell[1, 3] == "1.0"
