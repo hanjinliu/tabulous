@@ -42,10 +42,10 @@ class Graph:
     @property
     def expr(self) -> str:
         """Get the graph expression in 'df.iloc[...] = ...' format."""
-        if self._func._last_destination is None:
+        if self._func.last_destination is None:
             expr = f"out = {self._func.expr}"
         else:
-            rsl, csl = self._func._last_destination
+            rsl, csl = self._func.last_destination
             _r = _format_slice(rsl)
             _c = _format_slice(csl)
             expr = f"df.iloc[{_r}, {_c}] = {self._func.expr}"
@@ -86,7 +86,7 @@ class Graph:
         if not self._callback_blocked:
             with self.blocked():
                 out = self._func()
-                if (e := out.get_err()) and (sl := self._func._last_destination):
+                if (e := out.get_err()) and (sl := self._func.last_destination):
                     import pandas as pd
 
                     rsl, csl = sl

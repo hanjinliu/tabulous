@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Callable, Hashable, cast
+from typing import Any, Callable, Hashable, TYPE_CHECKING
 import warnings
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from ._text_formatter import DefaultFormatter
-from ._line_edit import QCellLineEdit, QCellLiteralEdit
+from ._line_edit import QCellLiteralEdit
 from .._dtype import isna
 from ....color import normalize_color, ColorType
 
@@ -91,11 +91,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         if r < df.shape[0] and c < df.shape[1]:
             base_table = self.parent()
             if ref_expr := base_table._get_ref_expr(r, c):
-                if wdt := base_table._qtable_view._focused_widget:
-                    wdt = cast(QCellLiteralEdit, wdt)
-                    wdt.close()
-                    return ""
-                return QCellLineEdit._REF_PREFIX + ref_expr
+                return QCellLiteralEdit._REF_PREFIX + ref_expr
 
             val = df.iat[r, c]
             if isna(val):

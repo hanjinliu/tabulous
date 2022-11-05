@@ -488,7 +488,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             self._qtable_view._ref_graphs.pop(pos, None)
         else:
             self._qtable_view._ref_graphs[pos] = graph
-            if dest := graph._func._last_destination:
+            if dest := graph._func.last_destination:
                 self._qtable_view._selection_model.set_ranges([dest])
         return None
 

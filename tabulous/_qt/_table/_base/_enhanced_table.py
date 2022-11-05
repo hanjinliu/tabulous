@@ -377,12 +377,12 @@ class _QTableViewEnhanced(QtW.QTableView):
             elif sel_mod.current_index.column < 0:
                 parent.editVerticalHeader(sel_mod.current_index.row)
             else:
+                self._edit_current()
                 if wdt := self._focused_widget:
-                    wdt._self_focused = True
-                else:
-                    self._edit_current()
-            if wdt := self._focused_widget:
-                wdt.setFocus()
+                    if isinstance(wdt, QCellLiteralEdit):
+                        wdt = cast(QCellLiteralEdit, wdt)
+                        wdt._self_focused = True
+                    wdt.setFocus()
             return None
 
         if keys.has_ctrl():
