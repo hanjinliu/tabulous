@@ -68,6 +68,21 @@ class LiteralCallable(Generic[_T]):
         return self
 
     @property
+    def last_destination(self) -> tuple[slice, slice] | None:
+        return self._last_destination
+
+    @last_destination.setter
+    def last_destination(self, val):
+        if val is None:
+            self._last_destination = None
+        r, c = val
+        if isinstance(r, int):
+            r = slice(r, r + 1)
+        if isinstance(c, int):
+            c = slice(c, c + 1)
+        self._last_destination = r, c
+
+    @property
     def selection_ops(self):
         """Return the list of selection operations."""
         return self._selection_ops
@@ -152,7 +167,8 @@ class LiteralCallable(Generic[_T]):
             else:
                 with qtable_view._selection_model.blocked():
                     qtable.setDataFrameValue(_row, _col, _out)
-            _self._last_destination = (_row, _col)
+
+            _self.last_destination = (_row, _col)
             return EvalResult(out, (_row, _col))
 
         return LiteralCallable(expr, evaluator, pos)

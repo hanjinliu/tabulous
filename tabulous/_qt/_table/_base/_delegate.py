@@ -4,7 +4,7 @@ from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
 
 from ._table_base import QBaseTable
-from ._line_edit import QCellLineEdit, QCellLiteralEdit
+from ._line_edit import QCellLiteralEdit
 
 if TYPE_CHECKING:
     import numpy as np
@@ -33,9 +33,11 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             )
             if row >= df.shape[0] or col >= df.shape[1]:
                 # out-of-bounds
-                line = QCellLineEdit(parent, table, (row, col))
+                line = qtable_view._create_eval_editor(moveto=(row, col))
                 line.setFont(font)
-                return line
+                # NOTE: Don't return the line edit, otherwise it closes when outside
+                # the cell is clicked!
+                return None
 
             dtype: np.dtype = df.dtypes.values[col]
             value = df.iat[row, col]
@@ -65,19 +67,18 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 dt.setDateTime(value.to_pydatetime())
                 return dt
             else:
-                line = QCellLineEdit(parent, table, (row, col))
-                if table._get_ref_expr(row, col):
-                    # QCellLiteralEdit has its own font.
-                    line.setFocus()
-                else:
-                    line.setFont(font)
-                return line
+                line = qtable_view._create_eval_editor(moveto=(row, col))
+                line.setFont(font)
+                return None
 
     def setEditorData(self, editor: QtW.QWidget, index: QtCore.QModelIndex) -> None:
         super().setEditorData(editor, index)
         if isinstance(editor, QtW.QComboBox):
             editor = cast(QtW.QComboBox, editor)
             editor.showPopup()
+        elif isinstance(editor, QCellLiteralEdit):
+            editor = cast(QCellLiteralEdit, editor)
+            editor._on_text_changed(editor.text())
         return None
 
     def setModelData(
@@ -86,19 +87,17 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         model: AbstractDataFrameModel,
         index: QtCore.QModelIndex,
     ) -> None:
-        if isinstance(editor, QCellLineEdit):
-            editor = cast(QCellLineEdit, editor)
-            text = editor.text()
-            if not editor._is_widget_changing:
-                model.setData(index, text, Qt.ItemDataRole.EditRole)
-            return None
-        elif isinstance(editor, QtW.QDateTimeEdit):
+        if isinstance(editor, QtW.QDateTimeEdit):
             editor = cast(QtW.QDateTimeEdit, editor)
             dt = editor.dateTime().toPyDateTime()
             model.setData(index, dt, Qt.ItemDataRole.EditRole)
             return None
-        else:
-            return super().setModelData(editor, model, index)
+        elif isinstance(editor, QCellLiteralEdit):
+            editor = cast(QCellLiteralEdit, editor)
+            if editor.mode is QCellLiteralEdit.Mode.EVAL:
+                # set the evaluated data
+                return None
+        return super().setModelData(editor, model, index)
 
     def paint(
         self,

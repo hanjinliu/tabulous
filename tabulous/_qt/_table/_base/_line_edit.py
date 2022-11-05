@@ -1,10 +1,11 @@
 from __future__ import annotations
+from enum import Enum, auto
 
 import re
 import ast
 from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Signal
 import pandas as pd
 
 from ..._qt_const import MonospaceFontFamily
@@ -28,6 +29,12 @@ if TYPE_CHECKING:
     from ._header_view import QDataFrameHeaderView
 
 _CONFIG = get_config()
+_LEFT_LIKE = frozenset(
+    {"Left", "Ctrl+Left", "Shift+Left", "Ctrl+Shift+Left", "Home", "Shift+Home"}
+)
+_RIGHT_LIKE = frozenset(
+    {"Right", "Ctrl+Right", "Shift+Right", "Ctrl+Shift+Right", "End", "Shift+End"}
+)
 
 
 class _QTableLineEdit(QtW.QLineEdit):
@@ -77,12 +84,8 @@ class _QTableLineEdit(QtW.QLineEdit):
         """True if text is valid for this cell."""
         raise NotImplementedError()
 
-    def _pre_validation(self, text: str):
-        pass
-
     def _on_text_changed(self, text: str) -> None:
         """Change text color to red if invalid."""
-        self._pre_validation(text)
         palette = QtGui.QPalette()
         self._is_valid = self._is_text_valid()
         if self._is_valid:
@@ -123,6 +126,8 @@ class _QTableLineEdit(QtW.QLineEdit):
                 self._table._qtable_view._selection_model.move_to(r + 1, c)
                 return
 
+        elif keys == "F2":  # editing fails
+            return None
         return super().keyPressEvent(event)
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
@@ -265,48 +270,26 @@ class QHorizontalHeaderLineEdit(_QHeaderLineEdit):
         return self._table.columnChangedSignal
 
 
-class QCellLineEdit(_QTableLineEdit):
-    """Line edit used for editing cell text."""
-
-    def _is_text_valid(self) -> bool:
-        """True if text is valid for this cell."""
-        r, c = self._pos
-        try:
-            convert_value = self._table._get_converter(c)
-            convert_value(c, self.text())
-        except Exception as e:
-            self.current_exception = e
-            return False
-        else:
-            self.current_exception = None
-            return True
-
-    def _pre_validation(self, text: str):
-        """Switch to QCellLiteralEdit if the text starts with certain characters."""
-        if self._is_eval_like(text):
-            pos = self.cursorPosition()
-            self.setText("")
-            # to make sure the value will not affect the table
-            self._is_widget_changing = True
-            line = self.parentTableView()._create_eval_editor(text, self._pos)
-            line.setCursorPosition(pos)
-
-
 class _EventFilter(QtCore.QObject):
     """An event filter for text completion by tab."""
 
-    def eventFilter(self, o: QtCore.QObject, e: QtCore.QEvent):
+    def eventFilter(self, o: QCellLiteralEdit, e: QtCore.QEvent):
         if e.type() == QtCore.QEvent.Type.KeyPress:
             e = cast(QtGui.QKeyEvent, e)
             if e.key() == Qt.Key.Key_Tab:
-                l = cast(QCellLiteralEdit, self.parent())
-                l.setSelection(len(l.text()), len(l.text()))
+                o._on_tab_clicked()
                 return True
         return False
 
 
 class QCellLiteralEdit(_QTableLineEdit):
     """Line edit used for evaluating cell text."""
+
+    class Mode(Enum):
+        """Editing mode of the cell line edit."""
+
+        TEXT = auto()
+        EVAL = auto()
 
     def __init__(
         self,
@@ -319,22 +302,18 @@ class QCellLiteralEdit(_QTableLineEdit):
         qtable._selection_model.moved.connect(self._on_selection_changed)
         qtable._focused_widget = self
 
-        font = QtGui.QFont(MonospaceFontFamily, self.font().pointSize())
-        font.setBold(True)
-        self.setFont(font)
-
         self._initial_rect = self.rect()
         self._self_focused = True
         self._completion_module: ModuleType | None = None
-        self.textChanged.connect(self._reshape_widget)
-        self.textChanged.connect(self._manage_completion)
 
         self._event_filter = _EventFilter(self)
         self.installEventFilter(self._event_filter)
 
+        self.mode = self.Mode.TEXT
+
     @classmethod
     def from_table(
-        self,
+        cls,
         qtable: _QTableViewEnhanced,
         text: str,
     ) -> QCellLiteralEdit:
@@ -344,19 +323,24 @@ class QCellLiteralEdit(_QTableLineEdit):
         rect = qtable.visualRect(
             qtable.model().index(*qtable._selection_model.current_index)
         )
-        line = QCellLiteralEdit(parent, table, qtable._selection_model.current_index)
+        line = cls(parent, table, qtable._selection_model.current_index)
         geometry = line.geometry()
         geometry.setWidth(rect.width())
         geometry.setHeight(rect.height())
         geometry.moveCenter(rect.center())
         line.setGeometry(geometry)
         line.setText(text)
+
+        if cls._is_eval_like(text):
+            line.mode = cls.Mode.EVAL
+
         line.setFocus()
         line.selectAll()
         return line
 
     @classmethod
     def _parse_ref(cls, raw_text: str) -> tuple[str, bool]:
+        """Convert texts if it starts with the evaluation prefixes."""
         if raw_text.startswith(cls._REF_PREFIX):
             text = raw_text.lstrip(cls._REF_PREFIX).strip()
             is_ref = True
@@ -367,7 +351,47 @@ class QCellLiteralEdit(_QTableLineEdit):
             raise RuntimeError("Unreachable")
         return text, is_ref
 
-    def close(self):
+    @property
+    def mode(self) -> Mode:
+        """Edit mode."""
+        return self._mode
+
+    @mode.setter
+    def mode(self, val: Mode) -> None:
+        """Set edit mode."""
+        self._mode = self.Mode(val)
+        if self._mode is self.Mode.EVAL:
+            font = QtGui.QFont(MonospaceFontFamily, self.font().pointSize())
+            font.setBold(True)
+            self.setFont(font)
+        else:
+            font = QtGui.QFont(_CONFIG.table.font, self.font().pointSize())
+            font.setBold(False)
+            self.setFont(font)
+        return None
+
+    def _on_text_changed(self, text: str) -> None:
+        """Change text color to red if invalid."""
+        if self._is_eval_like(text):
+            self.mode = self.Mode.EVAL
+        else:
+            self.mode = self.Mode.TEXT
+
+        self._reshape_widget(text)
+        self._manage_completion(text)
+
+        palette = QtGui.QPalette()
+        self._is_valid = self._is_text_valid()
+        if self._is_valid:
+            col = Qt.GlobalColor.black
+        else:
+            col = Qt.GlobalColor.red
+
+        palette.setColor(QtGui.QPalette.ColorRole.Text, col)
+        self.setPalette(palette)
+        return None
+
+    def close(self) -> None:
         """Close this editor and deal with all the descruction."""
         qtable = self.parentTableView()
         qtable._selection_model.moved.disconnect(self._on_selection_changed)
@@ -375,54 +399,75 @@ class QCellLiteralEdit(_QTableLineEdit):
         del qtable._focused_widget
         self.deleteLater()
         qtable.setFocus()
+        # Need to emit moved signal again, otherwise table paint sometimes fails.
+        qtable._selection_model.move_to(*qtable._selection_model.current_index)
         return None
 
-    def eval_and_close(self):
+    def eval_and_close(self) -> None:
         """Evaluate the text and close this editor."""
-        text, is_ref = self._parse_ref(self.text())
-        row, col = self._pos
-        info = EvalInfo(row=row, column=col, expr=text, is_ref=is_ref)
-        self._table.evaluatedSignal.emit(info)
+        if self._mode is self.Mode.TEXT:
+            self._table.setDataFrameValue(*self._pos, self.text())
+            self.close()
+        else:
+            text, is_ref = self._parse_ref(self.text())
+            row, col = self._pos
+            info = EvalInfo(row=row, column=col, expr=text, is_ref=is_ref)
+            self._table.evaluatedSignal.emit(info)
         return None
+
+    def _on_tab_clicked(self) -> None:
+        """Tab-clicked event."""
+        if self.mode is self.Mode.TEXT:
+            # move right
+            qtable = self.parentTableView()
+            self.eval_and_close()
+            qtable._selection_model.move(0, 1)
+        elif self.mode is self.Mode.EVAL:
+            # clear selection (= auto completion)
+            nchar = len(self.text())
+            self.setSelection(nchar, nchar)
+        else:
+            raise RuntimeError("Unreachable")
 
     def _is_text_valid(self) -> bool:
         """Try to parse the text and return True if it is valid."""
-        raw_text = self.text()
-        if raw_text.startswith(self._EVAL_PREFIX):
-            text = raw_text.lstrip(self._EVAL_PREFIX).strip()
-        elif raw_text.startswith(self._REF_PREFIX):
-            text = raw_text.lstrip(self._REF_PREFIX).strip()
-        else:
-            return False
+        if self.mode is self.Mode.TEXT:
+            r, c = self._pos
+            try:
+                convert_value = self._table._get_converter(c)
+                convert_value(c, self.text())
+            except Exception as e:
+                self.current_exception = e
+                return False
+            else:
+                self.current_exception = None
+                return True
+        elif self.mode is self.Mode.EVAL:
+            raw_text = self.text()
+            if raw_text.startswith(self._EVAL_PREFIX):
+                text = raw_text.lstrip(self._EVAL_PREFIX).strip()
+            elif raw_text.startswith(self._REF_PREFIX):
+                text = raw_text.lstrip(self._REF_PREFIX).strip()
+            else:
+                return False
 
-        if text == "":
+            if text == "":
+                return True
+            try:
+                ast.parse(text)
+            except Exception:
+                return False
             return True
-        try:
-            ast.parse(text)
-        except Exception:
-            return False
-        return True
-
-    def _pre_validation(self, text: str):
-        """Switch to QCellLineEdit if the text doesn't start with certain characters."""
-        if not self._is_eval_like(text):
-            qtable = self.parentTableView()
-            index = qtable.model().index(*self._pos)
-            self._is_widget_changing = True
-            qtable.edit(index)
-            line = QtW.QApplication.focusWidget()
-            if not isinstance(line, QtW.QLineEdit):
-                return None
-
-            line = cast(QtW.QLineEdit, line)
-            line.setText(text)
-            line.setCursorPosition(self.cursorPosition())
-            return
+        else:
+            raise RuntimeError("Unreachable")
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
         keys = QtKeys(a0)
         qtable = self.parentTableView()
-        if keys.is_moving():
+        keys_str = str(keys)
+
+        if keys.is_moving() or keys.is_moving_func():
+            # cursor movements
             pos = self.cursorPosition()
             nchar = len(self.text())
             if not self._self_focused:
@@ -431,14 +476,16 @@ class QCellLiteralEdit(_QTableLineEdit):
                 self.setFocus()
                 return None
 
-            if keys == "Left":
+            if keys_str in _LEFT_LIKE:
+                # exit the editor if the cursor is at the beginning
                 if pos == 0:
                     qtable._selection_model.move(0, -1)
                     self._self_focused = False
                     return None
                 else:
                     self._self_focused = True
-            elif keys == "Right":
+            elif keys_str in _RIGHT_LIKE:
+                # exit the editor if the cursor is at the end
                 if pos == nchar and self.selectedText() == "":
                     qtable._selection_model.move(0, 1)
                     self._self_focused = False
@@ -455,9 +502,11 @@ class QCellLiteralEdit(_QTableLineEdit):
             qtable._selection_model.move_to(*self._pos)
             self.close()
             return None
+        elif keys == "F2":  # editing fails
+            return None
 
-        if keys.is_typing() or keys in ("Backspace", "Delete"):
-            if keys in ("Backspace", "Delete"):
+        if keys.is_typing() or keys_str in ("Backspace", "Delete"):
+            if keys_str in ("Backspace", "Delete"):
                 self._completion_module = None
             with qtable._selection_model.blocked():
                 qtable._selection_model.move_to(*self._pos)
@@ -465,11 +514,14 @@ class QCellLiteralEdit(_QTableLineEdit):
         self.setFocus()
         return QtW.QLineEdit.keyPressEvent(self, a0)
 
-    def _on_selection_changed(self):
+    def _on_selection_changed(self) -> None:
         """Update text based on the current selection."""
+        qtable = self.parentTableView()
+        if self.mode is self.Mode.TEXT:
+            return self.eval_and_close()
+
         text = self.text()
         cursor_pos = self.cursorPosition()
-        qtable = self.parentTableView()
 
         # prepare text
         if len(qtable._selection_model.ranges) != 1:
@@ -519,13 +571,17 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         return None
 
-    def _reshape_widget(self, text: str):
+    def _reshape_widget(self, text: str) -> None:
         """Resize to let all the characters visible."""
         fm = QtGui.QFontMetrics(self.font())
         width = min(fm.boundingRect(text).width() + 8, 300)
         return self.resize(max(width, self._initial_rect.width()), self.height())
 
-    def _manage_completion(self, text: str):
+    def _manage_completion(self, text: str) -> None:
+        """Code completion."""
+        if self.mode is self.Mode.TEXT:
+            return None
+
         if text.endswith("."):
             mod_str = _find_last_module_name(text[:-1])
             mod = self._table.parentViewer()._namespace.get(mod_str, None)
@@ -555,6 +611,7 @@ class QCellLiteralEdit(_QTableLineEdit):
                 finally:
                     self.blockSignals(False)
                 break
+        return None
 
 
 _PATTERN_IDENTIFIERS = re.compile(r"[\w\d_]+")
