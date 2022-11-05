@@ -37,7 +37,7 @@ class MouseTrack:
     """Info about the mouse position and button state"""
 
     def __init__(self):
-        self.last_pos: QtCore.QPoint | None = None
+        self.last_rightclick_pos: QtCore.QPoint | None = None
         self.was_right_dragging: bool = False
         self.last_button: Literal["left", "right"] | None = None
 
@@ -225,13 +225,13 @@ class _QTableViewEnhanced(QtW.QTableView):
             rect |= self.visualRect(model.index(*start))
 
         if src.row < 0 or dst.row < 0:
-            rect.setBottom(99999)
+            rect.setBottom(999999)
         if src.column < 0 or dst.column < 0:
-            rect.setRight(99999)
-
-        self._update_all(rect)
+            rect.setRight(999999)
 
         self.selectionChangedSignal.emit()
+
+        self._update_all(rect)
         return None
 
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
@@ -288,7 +288,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         _selection_model = self._selection_model
         _selection_model.set_ctrl(e.modifiers() & Qt.KeyboardModifier.ControlModifier)
-        self._mouse_track.last_pos = e.pos()
+        self._mouse_track.last_rightclick_pos = e.pos()
         if e.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(e.pos())
             if index.isValid():
@@ -306,11 +306,11 @@ class _QTableViewEnhanced(QtW.QTableView):
         """Scroll table plane when mouse is moved with right click."""
         if self._mouse_track.last_button == "right":
             pos = e.pos()
-            dy = pos.y() - self._mouse_track.last_pos.y()
-            dx = pos.x() - self._mouse_track.last_pos.x()
+            dy = pos.y() - self._mouse_track.last_rightclick_pos.y()
+            dx = pos.x() - self._mouse_track.last_rightclick_pos.x()
             self.verticalScrollBar().setValue(self.verticalScrollBar().value() - dy)
             self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - dx)
-            self._mouse_track.last_pos = pos
+            self._mouse_track.last_rightclick_pos = pos
             self._mouse_track.was_right_dragging = True
         else:
             index = self.indexAt(e.pos())
@@ -318,6 +318,7 @@ class _QTableViewEnhanced(QtW.QTableView):
                 r, c = index.row(), index.column()
                 if self._selection_model.current_index != (r, c):
                     self._selection_model.move_to(r, c)
+
         return None
 
     def mouseReleaseEvent(self, e: QtGui.QMouseEvent) -> None:
@@ -327,7 +328,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             and not self._mouse_track.was_right_dragging
         ):
             self.rightClickedSignal.emit(e.pos())
-        self._mouse_track.last_pos = None
+        self._mouse_track.last_rightclick_pos = None
         self._mouse_track.last_button = None
         self._selection_model.set_shift(
             e.modifiers() & Qt.KeyboardModifier.ShiftModifier
@@ -428,7 +429,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         keys = QtKeys(a0)
         self._selection_model.set_ctrl(keys.has_ctrl())
         self._selection_model.set_shift(
-            keys.has_shift() or self._mouse_track.last_pos is not None
+            keys.has_shift() or self._mouse_track.last_rightclick_pos is not None
         )
         return super().keyReleaseEvent(a0)
 

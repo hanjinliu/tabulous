@@ -149,8 +149,59 @@ def test_called_once():
     sheet.cell[0, 0] = "4"
     assert count == 2
 
-# def test_ref_after_insert():
-#     ...
+def test_ref_after_insert():
+    # 0 0 0 0 0
+    # 0 0 0 X 0 <- edit here
+    # 0 0 0 0 0
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
+    sheet.cell[1, 3] = "&=np.sum(df.loc[0:2, 0:1]) + 1"
+    assert sheet.cell[1, 3] == "1.0"
+    sheet._qwidget.insertColumns(2, 1)  # insert a column
+    assert sheet.cell[1, 3] == "0.0"
+    assert sheet.cell[1, 4] == "1.0"
+    assert (1, 3) not in sheet.cellref
+    assert (1, 4) in sheet.cellref
+    sheet.undo_manager.undo()
+    assert sheet.cell[1, 3] == "1.0"
+    assert sheet.cell[1, 4] == "0.0"
+    assert (1, 3) in sheet.cellref
+    assert (1, 4) not in sheet.cellref
 
-# def test_ref_after_removal():
-#     ...
+
+def test_ref_after_removal():
+    # 0 0 0 0 0
+    # 0 0 0 X 0 <- edit here
+    # 0 0 0 0 0
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
+    sheet.cell[1, 3] = "&=np.sum(df.loc[0:2, 0:1]) + 1"
+    assert sheet.cell[1, 3] == "1.0"
+    sheet._qwidget.removeColumns(2, 1)  # insert a column
+    assert sheet.cell[1, 3] == "0.0"
+    assert sheet.cell[1, 2] == "1.0"
+    assert (1, 3) not in sheet.cellref
+    assert (1, 2) in sheet.cellref
+    sheet.undo_manager.undo()
+    assert sheet.cell[1, 3] == "1.0"
+    assert sheet.cell[1, 2] == "0.0"
+    assert (1, 3) in sheet.cellref
+    assert (1, 2) not in sheet.cellref
+
+
+def test_ref_after_removal_of_column():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
+    sheet.cell[1, 3] = "&=np.sum(df.loc[0:2, 0:1]) + 1"
+    assert sheet.cell[1, 3] == "1.0"
+    sheet._qwidget.removeColumns(3, 1)  # insert a column
+    assert sheet.cell[1, 3] == "0.0"
+    assert sheet.cell[1, 2] == "1.0"
+    assert (1, 3) not in sheet.cellref
+    assert (1, 2) in sheet.cellref
+    # TODO: undo is not working now
+    # sheet.undo_manager.undo()
+    # assert sheet.cell[1, 3] == "1.0"
+    # assert sheet.cell[1, 2] == "0.0"
+    # assert (1, 3) in sheet.cellref
+    # assert (1, 2) not in sheet.cellref

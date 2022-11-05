@@ -249,7 +249,12 @@ class GraphManager(MutableMapping[Index, Graph]):
         stop = row + count
         for idx in list(self._graphs.keys()):
             if start <= idx.row < stop:
-                self._graphs.pop(idx)
+                self.pop(idx)
+            elif idx.row >= stop:
+                new_idx = Index(idx.row - count, idx.column)
+                graph = self._graphs.pop(idx)
+                self._graphs[new_idx] = graph
+                graph.set_pos(new_idx)
 
         return None
 
@@ -259,7 +264,12 @@ class GraphManager(MutableMapping[Index, Graph]):
         stop = col + count
         for idx in list(self._graphs.keys()):
             if start <= idx.column < stop:
-                self._graphs.pop(idx)
+                self.pop(idx)
+            elif idx.column >= stop:
+                new_idx = Index(idx.row, idx.column - count)
+                graph = self._graphs.pop(idx)
+                self._graphs[new_idx] = graph
+                graph.set_pos(new_idx)
 
         return None
 

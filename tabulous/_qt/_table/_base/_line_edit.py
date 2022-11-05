@@ -399,6 +399,8 @@ class QCellLiteralEdit(_QTableLineEdit):
         del qtable._focused_widget
         self.deleteLater()
         qtable.setFocus()
+        # Need to emit moved signal again, otherwise table paint sometimes fails.
+        qtable._selection_model.move_to(*qtable._selection_model.current_index)
         return None
 
     def eval_and_close(self) -> None:
