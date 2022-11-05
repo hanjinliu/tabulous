@@ -286,6 +286,8 @@ class QCellLiteralEdit(_QTableLineEdit):
     """Line edit used for evaluating cell text."""
 
     class Mode(Enum):
+        """Editing mode of the cell line edit."""
+
         TEXT = auto()
         EVAL = auto()
 
@@ -338,6 +340,7 @@ class QCellLiteralEdit(_QTableLineEdit):
 
     @classmethod
     def _parse_ref(cls, raw_text: str) -> tuple[str, bool]:
+        """Convert texts if it starts with the evaluation prefixes."""
         if raw_text.startswith(cls._REF_PREFIX):
             text = raw_text.lstrip(cls._REF_PREFIX).strip()
             is_ref = True
@@ -349,12 +352,13 @@ class QCellLiteralEdit(_QTableLineEdit):
         return text, is_ref
 
     @property
-    def mode(self):
+    def mode(self) -> Mode:
         """Edit mode."""
         return self._mode
 
     @mode.setter
-    def mode(self, val):
+    def mode(self, val: Mode) -> None:
+        """Set edit mode."""
         self._mode = self.Mode(val)
         if self._mode is self.Mode.EVAL:
             font = QtGui.QFont(MonospaceFontFamily, self.font().pointSize())
@@ -364,6 +368,7 @@ class QCellLiteralEdit(_QTableLineEdit):
             font = QtGui.QFont(_CONFIG.table.font, self.font().pointSize())
             font.setBold(False)
             self.setFont(font)
+        return None
 
     def _on_text_changed(self, text: str) -> None:
         """Change text color to red if invalid."""
@@ -386,7 +391,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         self.setPalette(palette)
         return None
 
-    def close(self):
+    def close(self) -> None:
         """Close this editor and deal with all the descruction."""
         qtable = self.parentTableView()
         qtable._selection_model.moved.disconnect(self._on_selection_changed)
@@ -396,7 +401,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         qtable.setFocus()
         return None
 
-    def eval_and_close(self):
+    def eval_and_close(self) -> None:
         """Evaluate the text and close this editor."""
         if self._mode is self.Mode.TEXT:
             self._table.setDataFrameValue(*self._pos, self.text())
@@ -408,7 +413,8 @@ class QCellLiteralEdit(_QTableLineEdit):
             self._table.evaluatedSignal.emit(info)
         return None
 
-    def _on_tab_clicked(self):
+    def _on_tab_clicked(self) -> None:
+        """Tab-clicked event."""
         if self.mode is self.Mode.TEXT:
             # move right
             qtable = self.parentTableView()
@@ -457,7 +463,9 @@ class QCellLiteralEdit(_QTableLineEdit):
         keys = QtKeys(a0)
         qtable = self.parentTableView()
         keys_str = str(keys)
+
         if keys.is_moving() or keys.is_moving_func():
+            # cursor movements
             pos = self.cursorPosition()
             nchar = len(self.text())
             if not self._self_focused:
@@ -467,6 +475,7 @@ class QCellLiteralEdit(_QTableLineEdit):
                 return None
 
             if keys_str in _LEFT_LIKE:
+                # exit the editor if the cursor is at the beginning
                 if pos == 0:
                     qtable._selection_model.move(0, -1)
                     self._self_focused = False
@@ -474,6 +483,7 @@ class QCellLiteralEdit(_QTableLineEdit):
                 else:
                     self._self_focused = True
             elif keys_str in _RIGHT_LIKE:
+                # exit the editor if the cursor is at the end
                 if pos == nchar and self.selectedText() == "":
                     qtable._selection_model.move(0, 1)
                     self._self_focused = False
@@ -493,7 +503,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         elif keys == "F2":  # editing fails
             return None
 
-        if keys.is_typing() or keys in ("Backspace", "Delete"):
+        if keys.is_typing() or keys_str in ("Backspace", "Delete"):
             if keys_str in ("Backspace", "Delete"):
                 self._completion_module = None
             with qtable._selection_model.blocked():
@@ -502,7 +512,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         self.setFocus()
         return QtW.QLineEdit.keyPressEvent(self, a0)
 
-    def _on_selection_changed(self):
+    def _on_selection_changed(self) -> None:
         """Update text based on the current selection."""
         qtable = self.parentTableView()
         if self.mode is self.Mode.TEXT:
@@ -559,13 +569,14 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         return None
 
-    def _reshape_widget(self, text: str):
+    def _reshape_widget(self, text: str) -> None:
         """Resize to let all the characters visible."""
         fm = QtGui.QFontMetrics(self.font())
         width = min(fm.boundingRect(text).width() + 8, 300)
         return self.resize(max(width, self._initial_rect.width()), self.height())
 
-    def _manage_completion(self, text: str):
+    def _manage_completion(self, text: str) -> None:
+        """Code completion."""
         if self.mode is self.Mode.TEXT:
             return None
 
@@ -598,6 +609,7 @@ class QCellLiteralEdit(_QTableLineEdit):
                 finally:
                     self.blockSignals(False)
                 break
+        return None
 
 
 _PATTERN_IDENTIFIERS = re.compile(r"[\w\d_]+")

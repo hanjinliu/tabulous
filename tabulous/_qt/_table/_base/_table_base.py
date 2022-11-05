@@ -113,7 +113,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Create custom handle."""
         return QTableHandle(Qt.Orientation.Horizontal, self)
 
-    def showContextMenu(self, pos: QtCore.QPoint):
+    def showContextMenu(self, pos: QtCore.QPoint) -> None:
         index = self._qtable_view.indexAt(pos)
         if not index.isValid():
             return None
@@ -145,7 +145,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         return self.execContextMenu((row, col))
 
-    def _install_actions(self):
+    def _install_actions(self) -> None:
         # fmt: off
         hheader = self._qtable_view.horizontalHeader()
         hheader.registerAction("Color>Set foreground colormap")(self._set_forground_colormap_with_dialog)
@@ -294,7 +294,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.update()
         return None
 
-    def copyToClipboard(self, headers: bool = True, sep: str = "\t"):
+    def copyToClipboard(self, headers: bool = True, sep: str = "\t") -> None:
         """Copy currently selected cells to clipboard."""
         selections = self.selections()
         if len(selections) == 0:
@@ -484,6 +484,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     @_mgr.interface
     def _set_graph(self, pos: tuple[int, int], graph: Graph):
+        """Set graph object at given position."""
         if graph is None:
             self._qtable_view._ref_graphs.pop(pos, None)
         else:
@@ -512,7 +513,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             self.addSideWidget(out, name="Undo stack")
         return out
 
-    def addSideWidget(self, widget: QtW.QWidget, name: str = ""):
+    def addSideWidget(self, widget: QtW.QWidget, name: str = "") -> None:
         """Add a widget to the side area of the table."""
         if self._side_area is None:
             from ._side_area import QTableSideArea
@@ -530,7 +531,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         widget: QtW.QWidget,
         label: str = "",
         topleft: tuple[int, int] = (0, 0),
-    ):
+    ) -> None:
         """Add a widget as an overlay of the table."""
         from ._overlay import QOverlayFrame
 
@@ -596,7 +597,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         view.exec()
         return view
 
-    def resetViewMode(self):
+    def resetViewMode(self) -> None:
         """Reset the view mode to the normal one."""
         widget0 = self.widget(0)
         if widget0 is not self._central_widget:
@@ -613,7 +614,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         row: int | None = None,
         column: int | None = None,
         clear_selection: bool = True,
-    ):
+    ) -> None:
         """Move current index."""
         selection_model = self._qtable_view._selection_model
         if row is None:
@@ -649,7 +650,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Return the parent table viewer."""
         return self._qtable_view.parentViewer()
 
-    def _switch_head_and_index(self, axis: int = 1):
+    def _switch_head_and_index(self, axis: int = 1) -> None:
+        """Switch the first row/column data and the index object."""
         self.setFilter(None)  # reset filter to avoid unexpected errors
         df = self.model().df
         if axis == 0:
@@ -687,17 +689,19 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return self.setDataFrame(df_new)
 
     def _get_ref_expr(self, r: int, c: int) -> str | None:
-        """Try to get a reference expression for a cell."""
+        """Try to get a reference expression for the cell at (r, c)."""
         graph = self._qtable_view._ref_graphs.get((r, c), None)
         if graph is not None:
             return getattr(graph._func, "expr", None)
         return None
 
     def _delete_ref_expr(self, r: int, c: int) -> None:
+        """Delete the reference expression for the cell at (r, c)."""
         self._qtable_view._ref_graphs.pop((r, c), None)
         return None
 
-    def _set_forground_colormap_with_dialog(self, index: int):
+    def _set_forground_colormap_with_dialog(self, index: int) -> None:
+        """Set the foreground colormap from a GUI dialog."""
         from ._colormap import exec_colormap_dialog
 
         column_name = self._filtered_columns[index]
@@ -705,11 +709,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             self.setForegroundColormap(column_name, cmap)
         return None
 
-    def _reset_forground_colormap(self, index: int):
+    def _reset_forground_colormap(self, index: int) -> None:
+        """Reset the foreground colormap at given index."""
         column_name = self._filtered_columns[index]
         return self.setForegroundColormap(column_name, None)
 
-    def _set_background_colormap_with_dialog(self, index: int):
+    def _set_background_colormap_with_dialog(self, index: int) -> None:
+        """Set the background colormap from a GUI dialog."""
         from ._colormap import exec_colormap_dialog
 
         column_name = self._filtered_columns[index]
@@ -717,11 +723,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             self.setBackgroundColormap(column_name, cmap)
         return None
 
-    def _reset_background_colormap(self, index: int):
+    def _reset_background_colormap(self, index: int) -> None:
+        """Reset the background colormap at given index."""
         column_name = self._filtered_columns[index]
         return self.setBackgroundColormap(column_name, None)
 
-    def _set_text_formatter_with_dialog(self, index: int):
+    def _set_text_formatter_with_dialog(self, index: int) -> None:
+        """Set the text formatter at given index."""
         from ._text_formatter import exec_formatter_dialog
 
         column_name = self._filtered_columns[index]
@@ -731,14 +739,18 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return None
 
     def _reset_text_formatter(self, index: int) -> None:
+        """Reset the text formatter at given index."""
         column_name = self._filtered_columns[index]
         return self.setTextFormatter(column_name, None)
 
-    def _delete_selected_highlights(self):
+    def _delete_selected_highlights(self) -> None:
+        """Delete the selected highlight."""
         self._qtable_view._highlight_model.delete_selected()
         self._qtable_view._selection_model.set_ctrl(False)
+        return None
 
-    def _try_update_console(self):
+    def _try_update_console(self) -> None:
+        """Update the console if it is active."""
         viewer = self._qtable_view.parentViewer()
         console = viewer._console_widget
         if console is None or not console.isActive():
@@ -884,8 +896,10 @@ class QMutableTable(QBaseTable):
 
     @QBaseTable._mgr.undoable
     def _set_value(self, r, c, r_ori, c_ori, value, old_value):
+        """Undoable set-value function."""
         self.updateValue(r, c, value)
         self._data_cache = None
+        # update selection using the non-filtered index.
         self.setSelections([(r_ori, c_ori)])
         self.itemChangedSignal.emit(ItemInfo(r, c, value, old_value))
         return None
@@ -1080,6 +1094,7 @@ class QMutableTable(QBaseTable):
         return QHorizontalHeaderLineEdit(parent=_header, table=self, pos=(-1, index))
 
     def editVerticalHeader(self, index: int) -> QVerticalHeaderLineEdit:
+        """Edit the vertical header."""
         if not self.isEditable():
             return self.tableStack().notifyEditability()
 

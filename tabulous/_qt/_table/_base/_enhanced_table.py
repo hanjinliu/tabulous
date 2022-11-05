@@ -228,6 +228,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             rect.setBottom(99999)
         if src.column < 0 or dst.column < 0:
             rect.setRight(99999)
+
         self._update_all(rect)
 
         self.selectionChangedSignal.emit()
@@ -384,8 +385,11 @@ class _QTableViewEnhanced(QtW.QTableView):
             else:
                 self._edit_current()
                 if wdt := self._focused_widget:
+                    if isinstance(wdt, QCellLiteralEdit):
+                        wdt = cast(QCellLiteralEdit, wdt)
+                        wdt._self_focused = True
                     wdt.setFocus()
-                focused_widget = QtW.QApplication.focusWidget()
+                focused_widget = wdt
 
             if isinstance(focused_widget, QtW.QLineEdit):
                 focused_widget = cast(QtW.QLineEdit, focused_widget)

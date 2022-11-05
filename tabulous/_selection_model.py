@@ -242,6 +242,8 @@ class SelectionModel(RangesModel):
         """Emulate dragging to cell (r, c)."""
         src = self._current_index
         dst = Index(r, c)
+        if src == dst:
+            return None
         self.moving.emit(src, dst)
         self._current_index = dst
         if self._is_blocked:
