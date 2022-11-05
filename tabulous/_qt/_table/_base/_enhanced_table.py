@@ -42,6 +42,18 @@ class MouseTrack:
         self.last_button: Literal["left", "right"] | None = None
 
 
+class _EventFilter(QtCore.QObject):
+    """An event filter for text completion by tab."""
+
+    def eventFilter(self, o: _QTableViewEnhanced, e: QtCore.QEvent):
+        if e.type() == QtCore.QEvent.Type.KeyPress:
+            e = cast(QtGui.QKeyEvent, e)
+            if e.key() == Qt.Key.Key_Tab:
+                o._tab_clicked()
+                return True
+        return False
+
+
 class _QTableViewEnhanced(QtW.QTableView):
     selectionChangedSignal = Signal()
     rightClickedSignal = Signal(QtCore.QPoint)
@@ -104,6 +116,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setItemDelegate(delegate)
         self._update_all()
 
+        # event filter
+        self._event_filter = _EventFilter(self)
+        self.installEventFilter(self._event_filter)
+
         # attributes relevant to in-cell calculation
         self._focused_widget_ref = None
         self._focused_widget = None
@@ -163,6 +179,17 @@ class _QTableViewEnhanced(QtW.QTableView):
         rect = self.visualRect(model.index(rsel.start, csel.start))
         rect |= self.visualRect(model.index(rsel.stop - 1, csel.stop - 1))
         return rect
+
+    def _tab_clicked(self) -> None:
+        r, c = self._selection_model.current_index
+        if c == self.model().columnCount() - 1:
+            if r < self.model().rowCount() - 1:
+                self._selection_model.move_to(r + 1, 0)
+            else:
+                return None
+        else:
+            self._selection_model.move(0, 1)
+        return None
 
     def _on_moving(self, src: Index, dst: Index) -> None:
         if not self._selection_model.is_jumping():

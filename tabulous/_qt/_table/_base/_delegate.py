@@ -35,7 +35,9 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 # out-of-bounds
                 line = qtable_view._create_eval_editor(moveto=(row, col))
                 line.setFont(font)
-                return line
+                # NOTE: Don't return the line edit, otherwise it closes when outside
+                # the cell is clicked!
+                return None
 
             dtype: np.dtype = df.dtypes.values[col]
             value = df.iat[row, col]
@@ -67,7 +69,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             else:
                 line = qtable_view._create_eval_editor(moveto=(row, col))
                 line.setFont(font)
-                return line
+                return None
 
     def setEditorData(self, editor: QtW.QWidget, index: QtCore.QModelIndex) -> None:
         super().setEditorData(editor, index)

@@ -148,3 +148,9 @@ def test_called_once():
     assert count == 1
     sheet.cell[0, 0] = "4"
     assert count == 2
+
+# def test_ref_after_insert():
+#     ...
+
+# def test_ref_after_removal():
+#     ...

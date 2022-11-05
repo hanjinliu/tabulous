@@ -273,12 +273,11 @@ class QHorizontalHeaderLineEdit(_QHeaderLineEdit):
 class _EventFilter(QtCore.QObject):
     """An event filter for text completion by tab."""
 
-    def eventFilter(self, o: QtCore.QObject, e: QtCore.QEvent):
+    def eventFilter(self, o: QCellLiteralEdit, e: QtCore.QEvent):
         if e.type() == QtCore.QEvent.Type.KeyPress:
             e = cast(QtGui.QKeyEvent, e)
             if e.key() == Qt.Key.Key_Tab:
-                l = cast(QCellLiteralEdit, self.parent())
-                l._on_tab_clicked()
+                o._on_tab_clicked()
                 return True
         return False
 
@@ -413,7 +412,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         if self.mode is self.Mode.TEXT:
             # move right
             qtable = self.parentTableView()
-            self.close()
+            self.eval_and_close()
             qtable._selection_model.move(0, 1)
         elif self.mode is self.Mode.EVAL:
             # clear selection (= auto completion)
