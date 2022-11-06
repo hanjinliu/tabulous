@@ -530,13 +530,15 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self,
         widget: QtW.QWidget,
         label: str = "",
-        topleft: tuple[int, int] = (0, 0),
+        topleft: tuple[float, float] = (0, 0),
+        size: tuple[float, float] | None = None,
+        grip: bool = True,
     ) -> None:
         """Add a widget as an overlay of the table."""
         from ._overlay import QOverlayFrame
 
         viewport = self._qtable_view.viewport()
-        frame = QOverlayFrame(widget, viewport)
+        frame = QOverlayFrame(widget, viewport, grip=grip)
         frame.setLabel(label)
         frame.show()
 
@@ -544,23 +546,41 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         top, left = topleft
         top_int, top_res = divmod(top, 1)
         left_int, left_res = divmod(left, 1)
+        top_int = int(round(top_int))
+        left_int = int(round(left_int))
 
-        index = self._qtable_view.model().index(
-            int(round(top_int)), int(round(left_int))
-        )
+        index_tl = self._qtable_view.model().index(top_int, left_int)
 
-        rect = self._qtable_view.visualRect(index)
-        pos = rect.topLeft()
-        pos.setX(pos.x() + rect.width() * left_res)
-        pos.setY(pos.y() + rect.height() * top_res)
+        rect_tl = self._qtable_view.visualRect(index_tl)
+        pos = rect_tl.topLeft()
+        pos.setX(pos.x() + rect_tl.width() * left_res)
+        pos.setY(pos.y() + rect_tl.height() * top_res)
         frame.move(pos)
 
-        size = self._qtable_view.size()
-        frame.resize(
-            max(frame.width(), int(size.width() * 0.8)),
-            max(frame.height(), int(size.height() * 0.8)),
-        )
-        return None
+        table_size = self._qtable_view.size()
+        if size is None:
+            frame.resize(
+                max(frame.width(), int(table_size.width() * 0.8)),
+                max(frame.height(), int(table_size.height() * 0.8)),
+            )
+        else:
+            width, height = size
+            bottom_int, bottom_res = divmod(top + height - 1, 1)
+            right_int, right_res = divmod(left + width - 1, 1)
+            bottom_int = int(round(bottom_int))
+            right_int = int(round(right_int))
+
+            index_br = self._qtable_view.model().index(bottom_int, right_int)
+
+            rect_br = self._qtable_view.visualRect(index_br)
+            _w = rect_br.width() * right_res
+            _h = rect_br.height() * bottom_res
+            rect_br.setBottom(rect_br.bottom() + _h)
+            rect_br.setRight(rect_br.right() + _w)
+            rect = rect_tl.united(rect_br)
+            frame.resize(rect.size())
+
+        return frame
 
     def setDualView(self, orientation: str = "horizontal"):
         """Set dual view."""

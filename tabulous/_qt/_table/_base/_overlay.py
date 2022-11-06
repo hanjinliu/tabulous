@@ -19,58 +19,69 @@ class QOverlayFrame(QtW.QDialog):
     }}
     """
 
-    def __init__(self, content: QtW.QWidget, viewport: QtW.QWidget):
+    def __init__(
+        self,
+        content: QtW.QWidget,
+        viewport: QtW.QWidget,
+        grip: bool = True,
+        drag: bool = True,
+    ):
         super().__init__(viewport, Qt.WindowType.SubWindow)
 
         self.setLayout(QtW.QVBoxLayout())
+
+        self._label_widget = QtW.QLabel()
+        self._label_widget.setContentsMargins(5, 2, 5, 2)
+        self._drag_start = None
 
         content.setSizePolicy(
             QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Expanding
         )
 
-        self.layout().addWidget(
-            QtW.QSizeGrip(self),
-            False,
-            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,
-        )
+        if grip:
+            self._add_header()
 
         self.layout().addWidget(content)
         self.layout().setSpacing(0)
         self.setContentsMargins(0, 0, 0, 0)
-        self.layout().setContentsMargins(0, 0, 0, 0)
 
-        self._label_widget = QtW.QLabel()
-        self._label_widget.setContentsMargins(5, 2, 5, 2)
+        if grip:
+            self.layout().setContentsMargins(0, 0, 0, 0)
+            self._add_footer()
+        else:
+            self.layout().setContentsMargins(2, 2, 2, 2)
 
-        _footer = QtW.QWidget()
-        _footer.setLayout(QtW.QHBoxLayout())
-        _footer.layout().addWidget(
-            self._label_widget, False, Qt.AlignmentFlag.AlignLeft
-        )
-        _footer.layout().addWidget(
-            QtW.QSizeGrip(self),
-            False,
-            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom,
-        )
-        _footer.setContentsMargins(0, 0, 0, 0)
-        _footer.layout().setContentsMargins(0, 0, 0, 0)
-        _footer.setSizePolicy(
-            QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Minimum
-        )
-        self.layout().addWidget(_footer)
-
-        effect = QtW.QGraphicsDropShadowEffect(self, blurRadius=5, xOffset=2, yOffset=3)
-        effect.setColor(QtGui.QColor(128, 128, 128, 72))
-        self.setGraphicsEffect(effect)
+        self.setDraggable(drag)
 
     def label(self) -> str:
+        """The label of the overlay widget."""
         return self._label_widget.text()
 
     def setLabel(self, label: str) -> None:
+        """Set the label of the overlay widget in the bottom."""
         return self._label_widget.setText(label)
 
+    def draggable(self) -> bool:
+        """Return if the overlay widget is draggable."""
+        return self._draggable
+
+    def setDraggable(self, draggable: bool) -> None:
+        """Set if the overlay widget is draggable."""
+        self._draggable = draggable
+        if draggable:
+            effect = QtW.QGraphicsDropShadowEffect(
+                self, blurRadius=5, xOffset=2, yOffset=3
+            )
+            effect.setColor(QtGui.QColor(128, 128, 128, 72))
+            self.setGraphicsEffect(effect)
+        else:
+            self.setGraphicsEffect(None)
+        return None
+
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
-        self._drag_start = event.pos()
+        """Change the z-order of the overlay widget."""
+        if self._draggable:
+            self._drag_start = event.pos()
         self.raise_()
         self.setFocus()
         return None
@@ -107,3 +118,28 @@ class QOverlayFrame(QtW.QDialog):
             bgcolor = "black"
         self.setStyleSheet(self._Style.format(backgroundcolor=bgcolor))
         return None
+
+    def _add_header(self):
+        self.layout().addWidget(
+            QtW.QSizeGrip(self),
+            False,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,
+        )
+
+    def _add_footer(self):
+        _footer = QtW.QWidget()
+        _footer.setLayout(QtW.QHBoxLayout())
+        _footer.layout().addWidget(
+            self._label_widget, False, Qt.AlignmentFlag.AlignLeft
+        )
+        _footer.layout().addWidget(
+            QtW.QSizeGrip(self),
+            False,
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom,
+        )
+        _footer.setContentsMargins(0, 0, 0, 0)
+        _footer.layout().setContentsMargins(0, 0, 0, 0)
+        _footer.setSizePolicy(
+            QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Minimum
+        )
+        self.layout().addWidget(_footer)
