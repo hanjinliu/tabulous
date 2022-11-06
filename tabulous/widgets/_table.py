@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 
     from .._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from .._qt._table import QBaseTable
+    from .._qt._table._base._overlay import QOverlayFrame
     from .._qt._keymap import QtKeyMap
 
     from ..color import ColorType
@@ -418,12 +419,13 @@ class TableBase(ABC):
         *,
         label: str = "",
         topleft: tuple[float, float] = (0, 0),
-    ):
+        size: tuple[float, float] | None = None,
+        grip: bool = True,
+    ) -> QOverlayFrame:
         """
         Add a widget overlaid over the table.
 
         An overlay widget is shown on top of the table, just like the chart in Excel.
-
 
         Parameters
         ----------
@@ -437,8 +439,13 @@ class TableBase(ABC):
         if hasattr(widget, "native"):
             widget = widget.native
 
-        self._qwidget.addOverlayWidget(widget, label=label, topleft=topleft)
-        return widget
+        return self._qwidget.addOverlayWidget(
+            widget,
+            label=label,
+            topleft=topleft,
+            size=size,
+            grip=grip,
+        )
 
     def _emit_selections(self):
         with self.selections.blocked():
