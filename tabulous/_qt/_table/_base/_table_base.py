@@ -22,6 +22,7 @@ from ....exceptions import SelectionRangeError, TableImmutableError
 from ...._selection_op import LocSelOp
 
 if TYPE_CHECKING:
+    from magicgui.widgets._bases import ValueWidget
     from ._delegate import TableItemDelegate
     from ._side_area import QTableSideArea
     from ._enhanced_table import _QTableViewEnhanced
@@ -944,6 +945,22 @@ class QMutableTable(QBaseTable):
         else:
             _val = fmt.map_object(value)
         return f"df.iloc[{_r}, {_c}] = {_val}"
+
+    def _set_widget_at_index(self, r: int, c: int, widget: ValueWidget) -> None:
+        index = self.model().index(r, c)
+        if wdt := self._qtable_view.indexWidget(index):
+            self.itemChangedSignal.disconnect(wdt._tabulous_callback)
+            wdt.close()
+        widget.changed.connect(lambda val: self.setDataFrameValue(r, c, val))
+
+        def _sig():
+            with widget.changed.blocked():
+                widget.value = self.model().df.iat[r, c]
+
+        self.itemChangedSignal.connect(_sig)
+        _sig()
+        widget.native._tabulous_callback = _sig
+        self._qtable_view.setIndexWidget(index, widget.native)
 
     def assignColumn(self, ds: pd.Series):
         if ds.name in self._data_raw.columns:
