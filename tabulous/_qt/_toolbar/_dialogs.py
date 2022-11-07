@@ -1,9 +1,16 @@
-from typing import List
+from typing import List, cast
 from typing_extensions import Annotated
+import weakref
+import logging
 import numpy as np
 import pandas as pd
-from ..._magicgui import dialog_factory, Axes
+
+from ..._magicgui import dialog_factory, Axes  # NOTE: Axes should be imported here!
+from ...widgets import TableBase
 from ...types import TableData
+
+
+logger = logging.getLogger(__name__)
 
 
 @dialog_factory
@@ -40,26 +47,84 @@ def sort(df: TableData, by: List[str], ascending: bool = True) -> TableData:
 
 
 @dialog_factory
-def plot(ax: Axes, x: str, y: List[str], data, alpha: float = 1.0):
-    for ylabel in y:
-        ydata: pd.Series = data[ylabel]
-        if x is None:
-            xdata = np.arange(len(ydata))
-        else:
-            xdata = data[x]
-        ax.plot(xdata, ydata, alpha=alpha, label=ylabel, picker=True)
-    return True
+def plot(
+    ax: Axes,
+    x: str,
+    y: List[str],
+    table,
+    csel,
+    alpha: float = 1.0,
+    ref: bool = False,
+):
+    table = cast(TableBase, table)
+    data = table.data
+    if x is None:
+        xdata = np.arange(len(ydata))
+    else:
+        xdata = data[x][csel]
+
+    for y_ in y:
+        ydata: pd.Series = data[y_][csel]
+        (artist,) = ax.plot(xdata, ydata, alpha=alpha, label=y_, picker=True)
+        if ref:
+            _ref = weakref.ref(artist)
+            _mpl_widget = weakref.ref(table.plt.gcw())
+
+            @table.events.data.connect
+            def _on_data_updated(info):
+                _artist = _ref()
+                _plt = _mpl_widget()
+                if _artist is None or _plt is None:
+                    table.events.data.disconnect(_on_data_updated)
+                    logger.debug(f"Disconnecting plt.plot update callback at {y_!r}")
+                    return
+                xdata = table.data[x][csel]
+                ydata = table.data[y_][csel]
+                _artist.set_data(xdata, ydata)
+                _plt.draw()
+                logger.debug(f"Updated plt.plot at {y_!r} ({info}).")
+
+    return artist
 
 
 @dialog_factory
-def scatter(ax: Axes, x: str, y: List[str], data, alpha: float = 1.0):
-    for ylabel in y:
-        ydata: pd.Series = data[ylabel]
-        if x is None:
-            xdata = np.arange(len(ydata))
-        else:
-            xdata = data[x]
-        ax.scatter(xdata, ydata, alpha=alpha, label=ylabel, picker=True)
+def scatter(
+    ax: Axes,
+    x: str,
+    y: List[str],
+    table,
+    csel,
+    alpha: float = 1.0,
+    ref: bool = False,
+):
+    table = cast(TableBase, table)
+    data = table.data
+    if x is None:
+        xdata = np.arange(len(ydata))
+    else:
+        xdata = data[x][csel]
+
+    for y_ in y:
+        ydata: pd.Series = data[y_][csel]
+        artist = ax.scatter(xdata, ydata, alpha=alpha, label=y_, picker=True)
+        if ref:
+            _ref = weakref.ref(artist)
+            _mpl_widget = weakref.ref(table.plt.gcw())
+
+            @table.events.data.connect
+            def _on_data_updated():
+                _artist = _ref()
+                _plt = _mpl_widget()
+                if _artist is None:
+                    table.events.data.disconnect(_on_data_updated)
+                    logger.debug(f"Disconnecting plt.scatter update callback at {y_!r}")
+                    return
+                xdata = table.data[x][csel]
+                ydata = table.data[y_][csel]
+                _artist.set_offsets(np.stack([xdata, ydata], axis=1))
+                _plt.draw()
+                logger.debug(f"Updated plt.scatter at {y_!r}")
+
     return True
 
 

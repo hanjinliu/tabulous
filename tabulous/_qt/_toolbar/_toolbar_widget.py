@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Callable, Hashable, TYPE_CHECKING, Union
+from typing import Callable, Hashable, TYPE_CHECKING, NamedTuple, Union
 from functools import partial
 import weakref
 from qtpy import QtWidgets as QtW, QtCore
@@ -388,27 +388,28 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if table is None:
             return
 
-        data, choices = _get_data_and_choices(table)
+        names, csel = _get_selected_ranges_and_column_names(table)
 
-        if len(choices) == 0:
+        if len(names) == 0:
             raise ValueError("Table must have at least one column.")
-        elif len(choices) == 1:
+        elif len(names) == 1:
             x = {
                 "choices": [],
                 "widget_type": "ComboBox",
                 "value": None,
                 "nullable": True,
             }
-            y = {"choices": choices, "widget_type": "Select", "value": choices[0]}
+            y = {"choices": names, "widget_type": "Select", "value": names[0]}
         else:
-            x = {"choices": choices, "nullable": True, "value": choices[0]}
-            y = {"choices": choices, "widget_type": "Select", "value": choices[1]}
+            x = {"choices": names, "nullable": True, "value": names[0]}
+            y = {"choices": names, "widget_type": "Select", "value": names[1]}
 
         if dialog(
             ax={"bind": table.plt.gca()},
             x=x,
             y=y,
-            data={"bind": data},
+            table={"bind": table},
+            csel={"bind": csel},
             alpha={"min": 0, "max": 1, "step": 0.05},
             parent=self,
         ):
@@ -528,3 +529,38 @@ def _get_data_and_choices(
         choices = list(table.data.columns)
 
     return data, choices
+
+
+class PlotInfo(NamedTuple):
+    names: list[Hashable]
+    columns: slice
+
+
+def _get_selected_ranges_and_column_names(
+    table: TableBase,
+) -> PlotInfo:
+    sels = table.selections
+    if len(sels) == 1 and _selection_area(sels[0]) == 1:
+        nrow = len(table.index)
+        infos = PlotInfo(
+            names=list(table.columns),
+            columns=slice(0, nrow),
+        )
+    else:
+        names = []
+        sl = sels[0][0]
+        columns = table.columns
+        for sel in sels:
+            if sel[0] == sl:
+                csel = sel[1]
+                for i in range(csel.start, csel.stop):
+                    names.append(columns[i])
+            else:
+                raise ValueError("Selections must be in the same rows")
+        infos = PlotInfo(names=names, columns=sl)
+
+    return infos
+
+
+def _selection_area(sel: tuple[slice, slice]) -> int:
+    return (sel[0].stop - sel[0].start) * (sel[1].stop - sel[1].start)
