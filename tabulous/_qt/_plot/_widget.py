@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 class QtMplPlotCanvas(QtW.QWidget):
     """A matplotlib figure canvas."""
 
+    _current_widget: QtMplPlotCanvas | None = None
+
     def __init__(
         self,
         nrows=1,
@@ -59,6 +61,7 @@ class QtMplPlotCanvas(QtW.QWidget):
         self._editor.setParent(self, self._editor.windowFlags())
 
         canvas.itemPicked.connect(self._edit_artist)
+        canvas.clicked.connect(self.as_current_widget)
         canvas.doubleClicked.connect(self._editor.clear)
 
     def cla(self) -> None:
@@ -105,6 +108,13 @@ class QtMplPlotCanvas(QtW.QWidget):
         self._editor.show()
         return None
 
+    @classmethod
+    def current_widget(cls):
+        return cls._current_widget
+
+    def as_current_widget(self):
+        self.__class__._current_widget = self
+
 
 def _use_seaborn_grid(f):
     """
@@ -128,6 +138,8 @@ def _use_seaborn_grid(f):
 
 
 class QMplEditor(QtW.QTabWidget):
+    """Editor widget for matplotlib artists."""
+
     def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
         self.setWindowTitle("Matplotlib Artist Editor")

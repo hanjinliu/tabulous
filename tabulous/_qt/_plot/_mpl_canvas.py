@@ -21,6 +21,7 @@ class InteractiveFigureCanvas(FigureCanvas):
     figure: Figure
     deleteRequested = Signal()
     itemPicked = Signal(object)
+    clicked = Signal(object)
     doubleClicked = Signal()  # emitted *before* itemPicked event
 
     def __init__(self, fig):
@@ -67,13 +68,13 @@ class InteractiveFigureCanvas(FigureCanvas):
 
     def mousePressEvent(self, event: QtGui.QMouseEvent):
         """Record the starting coordinates of mouse drag."""
-
         mouse_event = self.get_mouse_event(event)
         self.lastx_pressed = self.lastx = mouse_event.xdata
         self.lasty_pressed = self.lasty = mouse_event.ydata
         if mouse_event.inaxes:
             self.pressed = mouse_event.button
             self.last_axis = mouse_event.inaxes
+        self.clicked.emit(mouse_event)
         return None
 
     def mouseMoveEvent(self, event):
