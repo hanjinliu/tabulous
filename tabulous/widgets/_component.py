@@ -95,8 +95,11 @@ class Component(Generic[T]):
 class VerticalHeaderInterface(Component["TableBase"]):
     """The interface for the vertical header of the tablelist."""
 
+    def _get_index(self) -> pd.Index:
+        return self.parent._qwidget.model().df.index
+
     def __getitem__(self, key: int | slice):
-        return self.parent._qwidget.model().df.index[key]
+        return self._get_index()[key]
 
     def __setitem__(self, key: int | slice, value: Any):
         table = self.parent
@@ -114,7 +117,14 @@ class VerticalHeaderInterface(Component["TableBase"]):
         return None
 
     def __len__(self) -> int:
-        return len(self.parent.data.index)
+        return len(self._get_index())
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._get_index())
+
+    def get_loc(self, key: str) -> int:
+        """Get the location of a column."""
+        return self._get_index().get_loc(key)
 
     # fmt: off
     @overload
@@ -141,8 +151,11 @@ class VerticalHeaderInterface(Component["TableBase"]):
 class HorizontalHeaderInterface(Component["TableBase"]):
     """The interface for the horizontal header of the tablelist."""
 
+    def _get_columns(self) -> pd.Index:
+        return self.parent._qwidget.model().df.columns
+
     def __getitem__(self, key: int | slice):
-        return self.parent._qwidget.model().df.columns[key]
+        return self._get_columns()[key]
 
     def __setitem__(self, key: int | slice, value: Any):
         table = self.parent
@@ -161,7 +174,14 @@ class HorizontalHeaderInterface(Component["TableBase"]):
 
     def __len__(self) -> int:
         """Number of columns."""
-        return len(self.parent.data.columns)
+        return len(self._get_columns())
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._get_columns())
+
+    def get_loc(self, key: str) -> int:
+        """Get the location of a column."""
+        return self._get_columns().get_loc(key)
 
     # fmt: off
     @overload
@@ -301,6 +321,9 @@ class PlotInterface(Component["TableBase"]):
         if self._current_widget is None:
             self.new_widget()
         return self._current_widget.ax
+
+    def gcw(self):
+        return self._current_widget
 
     def new_widget(self, nrows=1, ncols=1):
         """Create a new plot widget and add it to the table."""
