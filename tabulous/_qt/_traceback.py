@@ -3,6 +3,7 @@ import re
 from typing import Callable, Generator
 
 from qtpy import QtWidgets as QtW
+from psygnal import EmitLoopError
 from ._qt_const import MonospaceFontFamily
 
 
@@ -68,6 +69,11 @@ class QtErrorMessageBox(QtW.QMessageBox):
     @classmethod
     def raise_(cls, e: Exception, parent=None):
         """Raise exception in the message box."""
+        # unwrap EmitLoopError
+        while isinstance(e, EmitLoopError):
+            e = e.__cause__
+            if e is None:
+                raise RuntimeError("EmitLoopError unwrapping failed.")
         self = cls(type(e).__name__, e, parent)
         self.exec_()
 

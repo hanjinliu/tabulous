@@ -482,6 +482,7 @@ class TableBase(ABC):
                     return None
                 # SyntaxError/AttributeError might be caused by mistouching. Don't close
                 # the editor.
+                e.args = (f"{str(e)}\n>>> {info.expr}",)
                 raise e
             else:
                 self.move_iloc(*pos)
