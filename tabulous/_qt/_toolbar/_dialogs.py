@@ -5,7 +5,8 @@ import logging
 import numpy as np
 import pandas as pd
 
-from ..._magicgui import dialog_factory, Axes  # NOTE: Axes should be imported here!
+# NOTE: Axes should be imported here!
+from ..._magicgui import dialog_factory, dialog_factory_mpl, Axes
 from ...widgets import TableBase
 from ...types import TableData
 
@@ -46,7 +47,7 @@ def sort(df: TableData, by: List[str], ascending: bool = True) -> TableData:
     return df.sort_values(by=by, ascending=ascending)
 
 
-@dialog_factory
+@dialog_factory_mpl
 def plot(
     ax: Axes,
     x: str,
@@ -70,6 +71,8 @@ def plot(
             _ref = weakref.ref(artist)
             _mpl_widget = weakref.ref(table.plt.gcw())
 
+            logger.debug(f"Connecting plt.plot update callback at {y_!r}")
+
             @table.events.data.connect
             def _on_data_updated(info):
                 _artist = _ref()
@@ -82,12 +85,11 @@ def plot(
                 ydata = table.data[y_][csel]
                 _artist.set_data(xdata, ydata)
                 _plt.draw()
-                logger.debug(f"Updated plt.plot at {y_!r} ({info}).")
 
     return artist
 
 
-@dialog_factory
+@dialog_factory_mpl
 def scatter(
     ax: Axes,
     x: str,
@@ -117,41 +119,59 @@ def scatter(
                 _plt = _mpl_widget()
                 if _artist is None:
                     table.events.data.disconnect(_on_data_updated)
-                    logger.debug(f"Disconnecting plt.scatter update callback at {y_!r}")
                     return
                 xdata = table.data[x][csel]
                 ydata = table.data[y_][csel]
                 _artist.set_offsets(np.stack([xdata, ydata], axis=1))
                 _plt.draw()
-                logger.debug(f"Updated plt.scatter at {y_!r}")
 
     return True
 
 
-@dialog_factory
-def errorbar(ax: Axes, x: str, y: str, yerr: str, data, alpha: float = 1.0):
+@dialog_factory_mpl
+def errorbar(
+    ax: Axes,
+    x: str,
+    y: str,
+    yerr: str,
+    table,
+    csel,
+    alpha: float = 1.0,
+):
+    table = cast(TableBase, table)
+    data = table.data
     if x is None:
         xdata = np.arange(len(y))
     else:
-        xdata = data[x]
+        xdata = data[x][csel]
     ax.errorbar(
-        xdata, data[y], yerr=data[yerr], alpha=alpha, fmt="o", label=y, picker=True
+        xdata,
+        data[y][csel],
+        yerr=data[yerr][csel],
+        alpha=alpha,
+        fmt="o",
+        label=y,
+        picker=True,
     )
+
     return True
 
 
-@dialog_factory
+@dialog_factory_mpl
 def hist(
     ax: Axes,
-    y,
-    data,
+    y: List[str],
+    table,
+    csel,
     bins: int = 10,
     alpha: float = 1.0,
     density: bool = False,
     histtype: str = "bar",
 ):
+    table = cast(TableBase, table)
+    data = table.data
     for _y in y:
-        ydata = data[_y]
+        ydata = data[_y][csel]
         ax.hist(
             ydata,
             bins=bins,
@@ -165,36 +185,42 @@ def hist(
     return True
 
 
-@dialog_factory
+@dialog_factory_mpl
 def swarmplot(
     ax: Axes,
     x: str,
     y: str,
-    data,
+    table,
+    csel,
     hue: str = None,
     dodge: bool = False,
     alpha: Annotated[float, {"min": 0.0, "max": 1.0}] = 1.0,
 ):
     import seaborn as sns
 
+    table = cast(TableBase, table)
+    data = table.data[csel]
     sns.swarmplot(
         x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax, picker=True
     )
     return True
 
 
-@dialog_factory
+@dialog_factory_mpl
 def barplot(
     ax: Axes,
     x: str,
     y: str,
-    data,
+    table,
+    csel,
     hue: str = None,
     dodge: bool = False,
     alpha: Annotated[float, {"min": 0.0, "max": 1.0}] = 1.0,
 ):
     import seaborn as sns
 
+    table = cast(TableBase, table)
+    data = table.data[csel]
     sns.barplot(
         x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax, picker=True
     )
@@ -202,32 +228,38 @@ def barplot(
     return True
 
 
-@dialog_factory
+@dialog_factory_mpl
 def boxplot(
     ax: Axes,
     x: str,
     y: str,
-    data,
+    table,
+    csel,
     hue: str = None,
     dodge: bool = False,
 ):
     import seaborn as sns
 
+    table = cast(TableBase, table)
+    data = table.data[csel]
     sns.boxplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax)
     return True
 
 
-@dialog_factory
+@dialog_factory_mpl
 def boxenplot(
     ax: Axes,
     x: str,
     y: str,
-    data,
+    table,
+    csel,
     hue: str = None,
     dodge: bool = False,
 ):
     import seaborn as sns
 
+    table = cast(TableBase, table)
+    data = table.data[csel]
     sns.boxenplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax, picker=True)
     return True
 

@@ -318,25 +318,26 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if table is None:
             return
 
-        data, choices = _get_data_and_choices(table)
+        names, csel = _get_selected_ranges_and_column_names(table)
 
-        if len(choices) < 2:
+        if len(names) < 2:
             raise ValueError("Table must have at least two columns.")
-        elif len(choices) == 2:
+        elif len(names) == 2:
             x = {"choices": [], "value": None, "nullable": True}
-            y = {"choices": choices, "value": choices[0]}
-            yerr = {"choices": choices, "value": choices[1]}
+            y = {"choices": names, "value": names[0]}
+            yerr = {"choices": names, "value": names[1]}
         else:
-            x = {"choices": choices, "nullable": True, "value": choices[0]}
-            y = {"choices": choices, "value": choices[1]}
-            yerr = {"choices": choices, "value": choices[2]}
+            x = {"choices": names, "nullable": True, "value": names[0]}
+            y = {"choices": names, "value": names[1]}
+            yerr = {"choices": names, "value": names[2]}
 
         if _dlg.errorbar(
             ax={"bind": table.plt.gca()},
             x=x,
             y=y,
             yerr=yerr,
-            data={"bind": data},
+            table={"bind": table},
+            csel={"bind": csel},
             alpha={"min": 0, "max": 1, "step": 0.05},
             parent=self,
         ):
@@ -348,12 +349,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if table is None:
             return
 
-        data, choices = _get_data_and_choices(table)
+        names, csel = _get_selected_ranges_and_column_names(table)
 
         if _dlg.hist(
             ax={"bind": table.plt.gca()},
-            y={"choices": choices, "widget_type": "Select", "value": choices[0]},
-            data={"bind": data},
+            y={"choices": names, "widget_type": "Select", "value": names[0]},
+            table={"bind": table},
+            csel={"bind": csel},
             alpha={"min": 0, "max": 1, "step": 0.05},
             histtype={
                 "choices": ["bar", "step", "stepfilled", "barstacked"],
@@ -420,31 +422,32 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if table is None:
             return
 
-        colnames = list(table.data.columns)
+        names, csel = _get_selected_ranges_and_column_names(table)
 
         # infer x, y
-        if len(colnames) == 0:
+        if len(names) == 0:
             raise ValueError("Table must have at least one column.")
-        elif len(colnames) == 1:
+        elif len(names) == 1:
             x = {"bind": None}
             y = {"bind": None}
         else:
             for i, dtype in enumerate(table.data.dtypes):
                 if dtype == "categorical":
-                    x = {"choices": colnames, "value": colnames[i], "nullable": True}
+                    x = {"choices": names, "value": names[i], "nullable": True}
                     j = 0 if i > 0 else 1
-                    y = {"choices": colnames, "value": colnames[j], "nullable": True}
+                    y = {"choices": names, "value": names[j], "nullable": True}
                     break
             else:
-                x = {"choices": colnames, "value": None, "nullable": True}
-                y = {"choices": colnames, "value": None, "nullable": True}
+                x = {"choices": names, "value": None, "nullable": True}
+                y = {"choices": names, "value": None, "nullable": True}
 
         if dialog(
             ax={"bind": table.plt.gca()},
             x=x,
             y=y,
-            data={"bind": table.data},
-            hue={"choices": colnames, "nullable": True},
+            table={"bind": table},
+            csel={"bind": csel},
+            hue={"choices": names, "nullable": True},
             parent=self,
         ):
             table.plt.draw()
@@ -516,19 +519,6 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Plot", self.new_figure, ICON_DIR / "new_figure.svg")
 
         return
-
-
-def _get_data_and_choices(
-    table: TableBase,
-) -> tuple[dict[Hashable, pd.Series], list[Hashable]]:
-    data = dict(table.selections.values.itercolumns())
-    choices = list(data.keys())
-    if len(choices) == 0 or len(next(iter(data.values()))) == 1:
-        # no selections or only one cell is selected
-        data = dict(table.data.items())
-        choices = list(table.data.columns)
-
-    return data, choices
 
 
 class PlotInfo(NamedTuple):
