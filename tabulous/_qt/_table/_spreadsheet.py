@@ -7,11 +7,16 @@ import pandas as pd
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import Qt
 
+from magicgui import widgets as mWdg
+
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from ._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 from ._base._text_formatter import DefaultFormatter
 from ...color import normalize_color
 from ...types import ItemInfo
+
+if TYPE_CHECKING:
+    from magicgui.widgets._bases import ValueWidget
 
 _OUT_OF_BOUND_SIZE = 10  # 10 more rows and columns will be displayed.
 _STRING_DTYPE = get_dtype("string")
@@ -515,6 +520,42 @@ class QSpreadSheet(QMutableSimpleTable):
             sl = f"{col}:{col + count}"
         return f"Remove column{s} at position {sl}"
 
+    @QMutableSimpleTable._mgr.interface
+    def _set_widget_at_index(self, r: int, c: int, widget: ValueWidget | None) -> None:
+        index = self.model().index(r, c)
+        if wdt := self._qtable_view.indexWidget(index):
+            try:
+                self.itemChangedSignal.disconnect(wdt._tabulous_callback)
+            except TypeError:
+                pass
+            wdt.close()
+
+        if widget is None:
+            # equivalent to delete the widget
+            return None
+
+        def _sig():
+            with widget.changed.blocked():
+                val = self.model().df.iat[r, c]
+                try:
+                    widget.value = val
+                except Exception:
+                    self.setDataFrameValue(r, c, str(widget.value))
+                    raise
+
+        if self.model().df.iat[r, c] != "":
+            _sig()
+        widget.native._tabulous_callback = _sig
+        self.itemChangedSignal.connect(_sig)
+        widget.changed.connect(lambda val: self.setDataFrameValue(r, c, str(val)))
+        self._qtable_view.setIndexWidget(index, widget.native)
+
+    @_set_widget_at_index.server
+    def _set_widget_at_index(self, r: int, c: int, widget: ValueWidget):
+        index = self.model().index(r, c)
+        wdt = self._qtable_view.indexWidget(index)
+        return (r, c, getattr(wdt, "_magic_widget", None)), {}
+
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         """Set value of the table vertical header and DataFrame at the index."""
         if value == "":
@@ -682,9 +723,16 @@ class QSpreadSheet(QMutableSimpleTable):
         self.registerAction("Insert/Remove > Insert a column on the right")(lambda idx: self._insert_column_right(idx[1]))
         self.registerAction("Insert/Remove > Remove this column")(lambda idx: self._remove_this_column(idx[1]))
         self.addSeparator()
-        # fmt: on
 
         super()._install_actions()
+
+        self.registerAction("Add widget > SpinBox")(lambda idx: self._set_widget_at_index(*idx, mWdg.SpinBox()))
+        self.registerAction("Add widget > Slider")(lambda idx: self._set_widget_at_index(*idx, mWdg.Slider()))
+        self.registerAction("Add widget > FloatSpinBox")(lambda idx: self._set_widget_at_index(*idx, mWdg.FloatSpinBox()))
+        self.registerAction("Add widget > FloatSlider")(lambda idx: self._set_widget_at_index(*idx, mWdg.FloatSlider()))
+        self.registerAction("Add widget > CheckBox")(lambda idx: self._set_widget_at_index(*idx, mWdg.CheckBox()))
+        self.registerAction("Add widget > LineEdit")(lambda idx: self._set_widget_at_index(*idx, mWdg.LineEdit()))
+        # fmt: on
         return None
 
     def _set_background_colormap_with_dialog(self, index: int):
