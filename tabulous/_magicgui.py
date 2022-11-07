@@ -354,28 +354,51 @@ def dialog_factory(function: _F) -> _F:
                 except Exception:
                     table.data = []
 
-        elif function.__annotations__.get("ax") is Axes:
-            from ._qt._plot import QtMplPlotCanvas
-
-            plt = QtMplPlotCanvas()
-            dlg.native.layout().addWidget(plt)
-            dlg.height = 400
-            dlg.width = 280
-
-            @dlg.changed.connect
-            def _on_value_change(*_):
-                kwargs = dlg.asdict()
-                kwargs["ax"] = plt.ax
-                try:
-                    plt.cla()
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("ignore")
-                        function(**kwargs)
-                    plt.draw()
-                except Exception:
-                    pass
-
             dlg.changed.emit()
+
+        dlg.native.setParent(parent, dlg.native.windowFlags())
+        if dlg.exec():
+            out = function(**dlg.asdict())
+        else:
+            out = None
+        return out
+
+    return _runner
+
+
+def dialog_factory_mpl(function: _F) -> _F:
+
+    from magicgui.signature import magic_signature
+
+    def _runner(parent=None, **param_options):
+        widgets = list(
+            magic_signature(function, gui_options=param_options).widgets().values()
+        )
+        dlg = Dialog(widgets=widgets)
+
+        from ._qt._plot import QtMplPlotCanvas
+
+        plt = QtMplPlotCanvas()
+        dlg.native.layout().addWidget(plt)
+        dlg.height = 400
+        dlg.width = 280
+
+        @dlg.changed.connect
+        def _on_value_change(*_):
+            kwargs = dlg.asdict()
+            kwargs["ax"] = plt.ax
+            if kwargs.get("ref", False):
+                kwargs["ref"] = False
+            try:
+                plt.cla()
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    function(**kwargs)
+                plt.draw()
+            except Exception:
+                pass
+
+        dlg.changed.emit()
 
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():

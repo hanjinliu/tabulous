@@ -123,6 +123,7 @@ class Window:
     """Window config."""
 
     ask_on_close: bool = True
+    show_console: bool = False
 
 
 @dataclass
