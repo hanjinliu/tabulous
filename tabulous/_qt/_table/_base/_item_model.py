@@ -179,16 +179,25 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
     ):
         if orientation == Qt.Orientation.Horizontal:
             if role == Qt.ItemDataRole.DisplayRole:
-                if section < self.df.columns.size:
-                    return str(self.df.columns[section])
-                return None
+                if section >= self.df.columns.size:
+                    return None
+                if self.df.columns.nlevels == 1:
+                    text = str(self.df.columns[section])
+                else:
+                    text = "\n".join(map(str, self.df.columns[section]))
+                return text
             elif role == Qt.ItemDataRole.ToolTipRole:
                 if section < self.df.columns.size:
                     return self._column_tooltip(section)
                 return None
 
         if orientation == Qt.Orientation.Vertical:
-            if role in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.ToolTipRole):
+            if role == Qt.ItemDataRole.DisplayRole:
+                if section >= self.df.index.size:
+                    return None
+                text = str(self.df.index[section])
+                return text
+            elif role == Qt.ItemDataRole.ToolTipRole:
                 if section < self.df.index.size:
                     return str(self.df.index[section])
                 return None
