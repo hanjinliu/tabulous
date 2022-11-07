@@ -21,6 +21,7 @@ from typing import (
 )
 
 import numpy as np
+from magicgui.widgets import Widget
 from ..exceptions import TableImmutableError
 from ..types import _SingleSelection, SelectionType, EvalInfo
 from .._eval import Graph
@@ -215,6 +216,14 @@ class CellInterface(Component["TableBase"]):
         table = self.parent
         if not table.editable:
             raise TableImmutableError("Table is not editable.")
+
+        if isinstance(value, Widget):
+            # add item widget
+            r, c = key
+            if isinstance(r, int) and isinstance(c, int):
+                return table._qwidget._set_widget_at_index(*key, value)
+            raise TypeError("Cannot set widget at slices.")
+
         import pandas as pd
         from .._qt._table._base._line_edit import QCellLiteralEdit
 
