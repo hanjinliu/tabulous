@@ -566,6 +566,10 @@ class SpreadSheet(_DataFrameTableLayer):
 
         return QSpreadSheet(data=data)
 
+    def add_item_widget(self, row: int, column: int, widget):
+        """Add a widget to a cell."""
+        return self._qwidget._set_widget_at_index(row, column, widget)
+
 
 @_doc.update_doc
 class GroupBy(TableBase):

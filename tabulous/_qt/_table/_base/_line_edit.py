@@ -325,6 +325,7 @@ class QCellLiteralEdit(_QTableLineEdit):
             qtable.model().index(*qtable._selection_model.current_index)
         )
         line = cls(parent, table, qtable._selection_model.current_index)
+        line.setMinimumSize(1, 1)
         geometry = line.geometry()
         geometry.setWidth(rect.width())
         geometry.setHeight(rect.height())
