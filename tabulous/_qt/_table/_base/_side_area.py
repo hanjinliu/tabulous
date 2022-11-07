@@ -60,9 +60,11 @@ class QTableSideArea(QtW.QScrollArea):
         @dock._title_bar.closeSignal.connect
         def _():
             self.removeWidget(widget)
+            # NOTE: if not deleted, the widget will keep emitting signals
+            widget.deleteLater()
 
     def removeWidget(self, widget: QtW.QWidget) -> None:
-        """Remove gi-en widget from the side area."""
+        """Remove given widget from the side area."""
         idx = -1
         for i, wdt in enumerate(self._widgets):
             if wdt is widget:

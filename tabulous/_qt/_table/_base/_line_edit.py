@@ -310,6 +310,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         self.installEventFilter(self._event_filter)
 
         self.mode = self.Mode.TEXT
+        self.textEdited.connect(self._ensure_visible)
 
     @classmethod
     def from_table(
@@ -460,6 +461,11 @@ class QCellLiteralEdit(_QTableLineEdit):
             return True
         else:
             raise RuntimeError("Unreachable")
+
+    def _ensure_visible(self, text: str) -> None:
+        row, col = self._pos
+        qtable = self.parentTableView()
+        qtable.scrollTo(qtable.model().index(row, col), qtable.ScrollHint.EnsureVisible)
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
         keys = QtKeys(a0)

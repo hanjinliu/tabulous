@@ -77,14 +77,21 @@ def plot(
             def _on_data_updated(info):
                 _artist = _ref()
                 _plt = _mpl_widget()
-                if _artist is None or _plt is None:
+                if _artist is None:
                     table.events.data.disconnect(_on_data_updated)
                     logger.debug(f"Disconnecting plt.plot update callback at {y_!r}")
                     return
-                xdata = table.data[x][csel]
-                ydata = table.data[y_][csel]
-                _artist.set_data(xdata, ydata)
-                _plt.draw()
+                try:
+                    xdata = table.data[x][csel]
+                    ydata = table.data[y_][csel]
+                    _artist.set_data(xdata, ydata)
+                    _plt.draw()
+                except RuntimeError as e:
+                    if str(e).startswith("wrapped C/C++ object of"):
+                        table.events.data.disconnect(_on_data_updated)
+                        logger.debug(
+                            f"Disconnecting plt.plot update callback at {y_!r}"
+                        )
 
     return artist
 
@@ -120,10 +127,14 @@ def scatter(
                 if _artist is None:
                     table.events.data.disconnect(_on_data_updated)
                     return
-                xdata = table.data[x][csel]
-                ydata = table.data[y_][csel]
-                _artist.set_offsets(np.stack([xdata, ydata], axis=1))
-                _plt.draw()
+                try:
+                    xdata = table.data[x][csel]
+                    ydata = table.data[y_][csel]
+                    _artist.set_offsets(np.stack([xdata, ydata], axis=1))
+                    _plt.draw()
+                except RuntimeError as e:
+                    if str(e).startswith("wrapped C/C++ object of"):
+                        table.events.data.disconnect(_on_data_updated)
 
     return True
 

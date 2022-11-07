@@ -353,7 +353,7 @@ class TableBase(ABC):
         return _wrapper(validator) if validator is not _Void else _wrapper
 
     @property
-    def view_mode(self) -> str:
+    def view_mode(self) -> ViewMode:
         """View mode of the table."""
         return self._view_mode
 
