@@ -15,7 +15,7 @@ class _QLabeledComboBox(QtW.QWidget):
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self._values = list[Any]
+        self._values: list[Any] = []
         _layout = QtW.QHBoxLayout()
         _layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         _layout.setContentsMargins(2, 2, 2, 2)

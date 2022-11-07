@@ -1,3 +1,4 @@
+from __future__ import annotations
 from tabulous._selection_op import (
     ColumnSelOp, LocSelOp, ILocSelOp, ValueSelOp, SelectionOperator, iter_extract
 )
@@ -9,7 +10,7 @@ df_str = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})
 df_int = pd.DataFrame({0: [1, 2, 3], 2: [4, 5, 6], 7: [7, 8, 9]})
 
 @pytest.mark.parametrize("cls", (ColumnSelOp, LocSelOp, ILocSelOp, ValueSelOp))
-def test_well_defined_str(cls: "type[SelectionOperator]"):
+def test_well_defined_str(cls: type[SelectionOperator]):
     iloc_input = (slice(1, 3), slice(1, 2))
     op = cls.from_iloc(*iloc_input, df_str)
     iloc_output = op.as_iloc(df_str)
@@ -24,12 +25,12 @@ def test_well_defined_str(cls: "type[SelectionOperator]"):
         (ValueSelOp, "df.values[1:3, 1:2]"),
     ]
 )
-def test_format_str(cls: "type[SelectionOperator]", expected: str):
+def test_format_str(cls: type[SelectionOperator], expected: str):
     selop = cls.from_iloc(slice(1, 3), slice(1, 2), df_str)
     assert selop.fmt("df") == expected
 
 @pytest.mark.parametrize("cls", (ColumnSelOp, LocSelOp, ILocSelOp, ValueSelOp))
-def test_well_defined_int(cls: "type[SelectionOperator]"):
+def test_well_defined_int(cls: type[SelectionOperator]):
     iloc_input = (slice(1, 3), slice(1, 2))
     op = cls.from_iloc(*iloc_input, df_int)
     iloc_output = op.as_iloc(df_int)
@@ -44,7 +45,7 @@ def test_well_defined_int(cls: "type[SelectionOperator]"):
         (ValueSelOp, "df.values[1:3, 1:2]"),
     ]
 )
-def test_format_int(cls: "type[SelectionOperator]", expected: str):
+def test_format_int(cls: type[SelectionOperator], expected: str):
     selop = cls.from_iloc(slice(1, 3), slice(1, 2), df_int)
     assert selop.fmt("df") == expected
 

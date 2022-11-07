@@ -96,11 +96,7 @@ class Graph:
                         dtype=object,
                     )
                     qtable_view = self.table._qwidget._qtable_view
-                    with (
-                        qtable_view._selection_model.blocked(),
-                        qtable_view._ref_graphs.blocked(),
-                        table.events.data.blocked(),
-                    ):
+                    with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked(), table.events.data.blocked():
                         table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
 
             logger.debug(f"Called: {self.expr}, result: {out._short_repr()}")

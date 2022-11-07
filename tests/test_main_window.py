@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 from tabulous import TableViewer, TableViewerWidget
 import numpy as np

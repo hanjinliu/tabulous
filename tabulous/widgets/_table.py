@@ -471,9 +471,8 @@ class TableBase(ABC):
                     del qtable_view._focused_widget
                 except RuntimeError:
                     pass
-                with (
-                    qtable_view._selection_model.blocked(),
-                    qtable_view._ref_graphs.blocked(*pos),
+                with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked(
+                    *pos
                 ):
                     qtable.setDataFrameValue(*pos, repr(e))
                 return None
