@@ -5,7 +5,7 @@ from numpy import testing
 def assert_equal(a, b):
     return testing.assert_equal(np.asarray(a), np.asarray(b))
 
-def test_copy_and_paste_on_table():
+def test_copy_and_paste_1x1():
     viewer = TableViewerWidget(show=False)
     table = viewer.add_table({
         "a": [0, 1, 2, 3, 4],
@@ -23,6 +23,15 @@ def test_copy_and_paste_on_table():
     table.undo_manager.undo()
     assert table.data.iloc[sl_dst] == old_value
 
+
+def test_copy_and_paste_same_shape():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_table({
+        "a": [0, 1, 2, 3, 4],
+        "b": [2, 4, 6, 8, 10],
+        "c": [-1, -1, -1, -1, -1],
+    }, editable=True)
+
     sl_src = (slice(3, 5), slice(1, 3))
     sl_dst = (slice(2, 4), slice(0, 2))
     viewer.copy_data([sl_src])
@@ -34,6 +43,14 @@ def test_copy_and_paste_on_table():
     table.undo_manager.undo()
     assert_equal(table.data.iloc[sl_dst], old_value)
 
+
+def test_copy_array_and_paste_single():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_table({
+        "a": [0, 1, 2, 3, 4],
+        "b": [2, 4, 6, 8, 10],
+        "c": [-1, -1, -1, -1, -1],
+    }, editable=True)
 
     sl_src = (slice(3, 5), slice(1, 3))
     sl_dst = (slice(2, 4), slice(0, 2))
