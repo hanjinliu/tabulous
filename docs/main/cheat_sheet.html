@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cheat Sheet for Napari Users &mdash; tabulous 0.2.0 documentation</title>
+  <title>Cheat Sheet for Napari Users &mdash; tabulous 0.3.0.dev0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,7 +14,6 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -31,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.2.0
+                0.3.0.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -103,7 +102,7 @@
            <div itemprop="articleBody">
 
   <section id="cheat-sheet-for-napari-users">
-<h1>Cheat Sheet for Napari Users<a class="headerlink" href="#cheat-sheet-for-napari-users" title="Permalink to this heading">¶</a></h1>
+<h1>Cheat Sheet for Napari Users<a class="headerlink" href="#cheat-sheet-for-napari-users" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
@@ -128,9 +127,9 @@
 </ul>
 </div>
 <section id="open-a-viewer">
-<h2><a class="toc-backref" href="#id1">Open a Viewer</a><a class="headerlink" href="#open-a-viewer" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id1">Open a Viewer</a><a class="headerlink" href="#open-a-viewer" title="Permalink to this headline">¶</a></h2>
 <section id="just-open-a-viewer">
-<h3><a class="toc-backref" href="#id2">Just open a viewer</a><a class="headerlink" href="#just-open-a-viewer" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id2">Just open a viewer</a><a class="headerlink" href="#just-open-a-viewer" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># napari</span>
 <span class="n">viewer</span> <span class="o">=</span> <span class="n">napari</span><span class="o">.</span><span class="n">Viewer</span><span class="p">()</span>
 
@@ -140,7 +139,7 @@
 </div>
 </section>
 <section id="open-and-read-data">
-<h3><a class="toc-backref" href="#id3">Open and read data</a><a class="headerlink" href="#open-and-read-data" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id3">Open and read data</a><a class="headerlink" href="#open-and-read-data" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># napari</span>
 <span class="n">viewer</span> <span class="o">=</span> <span class="n">napari</span><span class="o">.</span><span class="n">view_image</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 
@@ -151,9 +150,9 @@
 </section>
 </section>
 <section id="layers">
-<h2><a class="toc-backref" href="#id4">Layers</a><a class="headerlink" href="#layers" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">Layers</a><a class="headerlink" href="#layers" title="Permalink to this headline">¶</a></h2>
 <section id="list-of-layers">
-<h3><a class="toc-backref" href="#id5">List of layers</a><a class="headerlink" href="#list-of-layers" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id5">List of layers</a><a class="headerlink" href="#list-of-layers" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># napari</span>
 <span class="n">viewer</span><span class="o">.</span><span class="n">layers</span>
 
@@ -163,7 +162,7 @@
 </div>
 </section>
 <section id="add-data">
-<h3><a class="toc-backref" href="#id6">Add data</a><a class="headerlink" href="#add-data" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">Add data</a><a class="headerlink" href="#add-data" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># napari</span>
 <span class="n">viewer</span><span class="o">.</span><span class="n">add_image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Image&quot;</span><span class="p">)</span>
 
@@ -173,7 +172,7 @@
 </div>
 </section>
 <section id="get-and-set-data">
-<h3><a class="toc-backref" href="#id7">Get and set data</a><a class="headerlink" href="#get-and-set-data" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id7">Get and set data</a><a class="headerlink" href="#get-and-set-data" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># napari</span>
 <span class="n">viewer</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
 <span class="n">viewer</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">image</span>
@@ -186,9 +185,9 @@
 </section>
 </section>
 <section id="dock-widgets">
-<h2><a class="toc-backref" href="#id8">Dock widgets</a><a class="headerlink" href="#dock-widgets" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id8">Dock widgets</a><a class="headerlink" href="#dock-widgets" title="Permalink to this headline">¶</a></h2>
 <section id="add-a-dock-widget">
-<h3><a class="toc-backref" href="#id9">Add a dock widget</a><a class="headerlink" href="#add-a-dock-widget" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id9">Add a dock widget</a><a class="headerlink" href="#add-a-dock-widget" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># napari</span>
 <span class="n">viewer</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">add_dock_widget</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
 

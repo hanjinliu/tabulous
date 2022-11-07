@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Filter Table Data &mdash; tabulous 0.2.0 documentation</title>
+  <title>Filter Table Data &mdash; tabulous 0.3.0.dev0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,7 +14,6 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -31,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.2.0
+                0.3.0.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -90,7 +89,7 @@
            <div itemprop="articleBody">
 
   <section id="filter-table-data">
-<h1>Filter Table Data<a class="headerlink" href="#filter-table-data" title="Permalink to this heading">¶</a></h1>
+<h1>Filter Table Data<a class="headerlink" href="#filter-table-data" title="Permalink to this headline">¶</a></h1>
 <p>You can apply a filter to a table without converting the internal data.</p>
 <div class="contents local topic" id="contents">
 <p class="topic-title">Contents</p>
@@ -100,7 +99,7 @@
 </ul>
 </div>
 <section id="apply-filters-programmatically">
-<h2><a class="toc-backref" href="#id1">Apply Filters Programmatically</a><a class="headerlink" href="#apply-filters-programmatically" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id1">Apply Filters Programmatically</a><a class="headerlink" href="#apply-filters-programmatically" title="Permalink to this headline">¶</a></h2>
 <p>You only have to set a function that maps a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> to a 1-D boolean array to
 the property <code class="docutils literal notranslate"><span class="pre">filter</span></code>. For instance, following code</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">filter</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">df</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;A&quot;</span>
@@ -161,9 +160,9 @@ the property <code class="docutils literal notranslate"><span class="pre">filter
 </table>
 </section>
 <section id="use-query-style-filtering">
-<h2><a class="toc-backref" href="#id2">Use Query-style Filtering</a><a class="headerlink" href="#use-query-style-filtering" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id2">Use Query-style Filtering</a><a class="headerlink" href="#use-query-style-filtering" title="Permalink to this headline">¶</a></h2>
 <p>You can open a overlay dialog to filter the table data from the <a class="reference internal" href="../_images/filter.svg"><img alt="filter" src="../_images/filter.svg" width="20em" /></a> button in the toolbar,
-push key combo <code class="docutils literal notranslate"><span class="pre">Alt,</span> <span class="pre">A,</span> <span class="pre">2</span></code>, or right click on the tab.</p>
+push key combo <code class="docutils literal notranslate"><span class="pre">Alt,</span> <span class="pre">A,</span> <span class="pre">3</span></code>, or right click on the tab.</p>
 <p>In this widget you have to specify a query-style expression to apply the filter. For details,
 see <a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.eval.html">the API reference of pandas.eval</a>.
 The line edit for filter expression supports auto-completion (Tab) and history browsing

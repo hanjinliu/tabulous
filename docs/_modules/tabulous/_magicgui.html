@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous._magicgui &mdash; tabulous 0.1.2 documentation</title>
+  <title>tabulous._magicgui &mdash; tabulous 0.3.0.dev0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,7 +13,6 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -28,7 +27,7 @@
             <a href="../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.1.2
+                0.3.0.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -40,13 +39,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../main/quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/user_interface.html">User Interface</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../main/user_interface.html">User Interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../main/selections.html">Table Selections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/selections.html">Table Selections and Highlights</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../main/filter.html">Filter Table Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../main/cell_color.html">Set Cell Colors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/columnwise_settings.html">Column-wise Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../main/table_advanced.html">Working with Tables</a></li>
 </ul>
 <ul>
@@ -54,6 +52,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../main/register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../apidoc/modules.html">tabulous</a></li>
 </ul>
 
@@ -438,28 +438,51 @@
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="n">table</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="k">elif</span> <span class="n">function</span><span class="o">.</span><span class="vm">__annotations__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ax&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Axes</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">._qt._plot</span> <span class="kn">import</span> <span class="n">QtMplPlotCanvas</span>
-
-            <span class="n">plt</span> <span class="o">=</span> <span class="n">QtMplPlotCanvas</span><span class="p">()</span>
-            <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">layout</span><span class="p">()</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">plt</span><span class="p">)</span>
-            <span class="n">dlg</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">400</span>
-            <span class="n">dlg</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">280</span>
-
-            <span class="nd">@dlg</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span>
-            <span class="k">def</span> <span class="nf">_on_value_change</span><span class="p">(</span><span class="o">*</span><span class="n">_</span><span class="p">):</span>
-                <span class="n">kwargs</span> <span class="o">=</span> <span class="n">dlg</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">ax</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">plt</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
-                    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
-                        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
-                        <span class="n">function</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-                    <span class="n">plt</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="k">pass</span>
-
             <span class="n">dlg</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span>
+
+        <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setParent</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">windowFlags</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">dlg</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="o">**</span><span class="n">dlg</span><span class="o">.</span><span class="n">asdict</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">return</span> <span class="n">_runner</span>
+
+
+<span class="k">def</span> <span class="nf">dialog_factory_mpl</span><span class="p">(</span><span class="n">function</span><span class="p">:</span> <span class="n">_F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_F</span><span class="p">:</span>
+
+    <span class="kn">from</span> <span class="nn">magicgui.signature</span> <span class="kn">import</span> <span class="n">magic_signature</span>
+
+    <span class="k">def</span> <span class="nf">_runner</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">param_options</span><span class="p">):</span>
+        <span class="n">widgets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">magic_signature</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">gui_options</span><span class="o">=</span><span class="n">param_options</span><span class="p">)</span><span class="o">.</span><span class="n">widgets</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">dlg</span> <span class="o">=</span> <span class="n">Dialog</span><span class="p">(</span><span class="n">widgets</span><span class="o">=</span><span class="n">widgets</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">._qt._plot</span> <span class="kn">import</span> <span class="n">QtMplPlotCanvas</span>
+
+        <span class="n">plt</span> <span class="o">=</span> <span class="n">QtMplPlotCanvas</span><span class="p">()</span>
+        <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">layout</span><span class="p">()</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">plt</span><span class="p">)</span>
+        <span class="n">dlg</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">400</span>
+        <span class="n">dlg</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">280</span>
+
+        <span class="nd">@dlg</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span>
+        <span class="k">def</span> <span class="nf">_on_value_change</span><span class="p">(</span><span class="o">*</span><span class="n">_</span><span class="p">):</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="n">dlg</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">ax</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ref&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;ref&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
+                <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+                    <span class="n">function</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="n">dlg</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span>
 
         <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setParent</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">windowFlags</span><span class="p">())</span>
         <span class="k">if</span> <span class="n">dlg</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>

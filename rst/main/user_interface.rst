@@ -46,7 +46,7 @@ automatically switched to the literal evaluation mode and cell selection will in
 reference to the editor. For instance, if you select column ``'A'`` and rows from 1 to 8, then
 ``df['A'][1:9]`` will be inserted.
 
-One of the differences between :mod:`tabulous` and Excel is that :mod:`tabulous` does not use
+One of the differences between this mode and Excel is that this evaluation does not use
 reference, so that changing the value of any of the source cells will **NOT** affect the value
 of the destinations.
 
@@ -154,6 +154,34 @@ will return ``pd.Series([20, 40])``, which will update the table to
 | 3 |   20 |   40 |
 +---+------+------+
 
+Evaluate with references
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+To use cell references like Excel, use "&=" instead of "=".
+
++---+------+----------------------------+
+|   | col-0|                       col-1|
++---+------+----------------------------+
+| 0 |   10 | &=np.mean(df['col-0'][0:3])|
++---+------+----------------------------+
+| 1 |   20 |                            |
++---+------+----------------------------+
+| 2 |   30 |                            |
++---+------+----------------------------+
+
++---+------+------+
+|   | col-0| col-1|
++---+------+------+
+| 0 |   10 |   20 |
++---+------+------+
+| 1 |   20 |      |
++---+------+------+
+| 2 |   30 |      |
++---+------+------+
+
+When one of the cell is edited, the value of the destination will also be updated. For instance,
+editing 10 → 40 will cause the value of ``(0, "col-1")`` to be updated to 30.
+
 User-defined namespace
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -204,8 +232,8 @@ want to add more variables or functions, there are two ways to do it.
 Send the values to the console
 ------------------------------
 
-``Ctrl + I`` in the console will insert a data reference object ``DATA[...]`` at the cursor
-position. The data reference object is updated in real-time when the table selection is
+``Ctrl + I`` in the console will insert a data reference object ``viewer.data[...]`` at the
+cursor position. The data reference object is updated in real-time when the table selection is
 changed. This is the fastest way to obtain the values in the table.
 
 Toolbar

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register Custom Actions &mdash; tabulous 0.2.0 documentation</title>
+  <title>Register Custom Actions &mdash; tabulous 0.3.0.dev0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,7 +14,6 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -31,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.2.0
+                0.3.0.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -91,7 +90,7 @@
            <div itemprop="articleBody">
 
   <section id="register-custom-actions">
-<h1>Register Custom Actions<a class="headerlink" href="#register-custom-actions" title="Permalink to this heading">¶</a></h1>
+<h1>Register Custom Actions<a class="headerlink" href="#register-custom-actions" title="Permalink to this headline">¶</a></h1>
 <p>Tabulous viewer has several components that support custom action registration
 to the context menu. Suppose you have a viewer and a table:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">TableViewer</span>
@@ -107,7 +106,7 @@ to the context menu. Suppose you have a viewer and a table:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">table.cells.register_action</span></code> … register action to the table cells.</p></li>
 </ul>
 <section id="register-actions-to-the-tab-bar">
-<h2>Register actions to the tab bar<a class="headerlink" href="#register-actions-to-the-tab-bar" title="Permalink to this heading">¶</a></h2>
+<h2>Register actions to the tab bar<a class="headerlink" href="#register-actions-to-the-tab-bar" title="Permalink to this headline">¶</a></h2>
 <p>Action for <code class="docutils literal notranslate"><span class="pre">viewer.tables.register_action</span></code> must have signature <code class="docutils literal notranslate"><span class="pre">(index:</span> <span class="pre">int)</span></code>.
 <code class="docutils literal notranslate"><span class="pre">index</span></code> is the index of the right-clicked tab.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># register function &quot;func&quot; as an action named &quot;Print tab name&quot;</span>
@@ -124,7 +123,7 @@ to the context menu. Suppose you have a viewer and a table:</p>
 </div>
 </section>
 <section id="register-actions-to-the-headers">
-<h2>Register actions to the headers<a class="headerlink" href="#register-actions-to-the-headers" title="Permalink to this heading">¶</a></h2>
+<h2>Register actions to the headers<a class="headerlink" href="#register-actions-to-the-headers" title="Permalink to this headline">¶</a></h2>
 <p>Other <code class="docutils literal notranslate"><span class="pre">register_action</span></code> method works similarly. In the case of headers,
 the signature for the action is also <code class="docutils literal notranslate"><span class="pre">(index:</span> <span class="pre">int)</span></code>. Here, <code class="docutils literal notranslate"><span class="pre">index</span></code> is
 the index of the right-clicked position (ready for <code class="xref py py-meth docutils literal notranslate"><span class="pre">iloc()</span></code>).</p>
@@ -139,7 +138,7 @@ the index of the right-clicked position (ready for <code class="xref py py-meth 
 </div>
 </section>
 <section id="register-actions-to-the-cells">
-<h2>Register actions to the cells<a class="headerlink" href="#register-actions-to-the-cells" title="Permalink to this heading">¶</a></h2>
+<h2>Register actions to the cells<a class="headerlink" href="#register-actions-to-the-cells" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">register_action</span></code> method for cells also work in a similar way, but has
 signature <code class="docutils literal notranslate"><span class="pre">(index:</span> <span class="pre">tuple[int,</span> <span class="pre">int])</span></code> unlike others. Here, <code class="docutils literal notranslate"><span class="pre">index</span></code> is a
 tuple of row index and column index (ready for <code class="xref py py-meth docutils literal notranslate"><span class="pre">iloc()</span></code>).</p>

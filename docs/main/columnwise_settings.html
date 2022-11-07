@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Column-wise Settings &mdash; tabulous 0.2.0 documentation</title>
+  <title>Column-wise Settings &mdash; tabulous 0.3.0.dev0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,7 +14,6 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -31,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.2.0
+                0.3.0.dev0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -105,7 +104,7 @@
            <div itemprop="articleBody">
 
   <section id="column-wise-settings">
-<h1>Column-wise Settings<a class="headerlink" href="#column-wise-settings" title="Permalink to this heading">¶</a></h1>
+<h1>Column-wise Settings<a class="headerlink" href="#column-wise-settings" title="Permalink to this headline">¶</a></h1>
 <p>Tables are composed of several columns with different data types. There are some settings
 that can be applied to each column individually, for better visualizing the data and safely
 editing the data.</p>
@@ -135,9 +134,9 @@ editing the data.</p>
 </ul>
 </div>
 <section id="colormap">
-<h2><a class="toc-backref" href="#id1">Colormap</a><a class="headerlink" href="#colormap" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id1">Colormap</a><a class="headerlink" href="#colormap" title="Permalink to this headline">¶</a></h2>
 <section id="use-colormap-functions">
-<h3><a class="toc-backref" href="#id2">Use Colormap Functions</a><a class="headerlink" href="#use-colormap-functions" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id2">Use Colormap Functions</a><a class="headerlink" href="#use-colormap-functions" title="Permalink to this headline">¶</a></h3>
 <p>The foreground color (text color) and the background color can be set for each column.
 You have to provide a colormap (function that maps values to colors) to do this. A colormap
 must return a RGBA array (0-255) or a standard color name.</p>
@@ -161,7 +160,7 @@ must return a RGBA array (0-255) or a standard color name.</p>
 <img alt="../_images/colormap.png" src="../_images/colormap.png" />
 </section>
 <section id="use-dictionaries">
-<h3><a class="toc-backref" href="#id3">Use Dictionaries</a><a class="headerlink" href="#use-dictionaries" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id3">Use Dictionaries</a><a class="headerlink" href="#use-dictionaries" title="Permalink to this headline">¶</a></h3>
 <p>For categorical data, you can also use dictionaries to set the colors.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cmap</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;setosa&quot;</span><span class="p">:</span> <span class="s2">&quot;red&quot;</span><span class="p">,</span>
@@ -173,17 +172,17 @@ must return a RGBA array (0-255) or a standard color name.</p>
 </div>
 </section>
 <section id="set-colormaps-in-gui">
-<h3><a class="toc-backref" href="#id4">Set Colormaps in GUI</a><a class="headerlink" href="#set-colormaps-in-gui" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id4">Set Colormaps in GUI</a><a class="headerlink" href="#set-colormaps-in-gui" title="Permalink to this headline">¶</a></h3>
 <p>Some basic colormaps are available in the right-click context menu of the columns,
 such as <code class="docutils literal notranslate"><span class="pre">Color</span> <span class="pre">&gt;</span> <span class="pre">Set</span> <span class="pre">foreground</span> <span class="pre">colormap</span></code>.</p>
 </section>
 </section>
 <section id="validator">
-<h2><a class="toc-backref" href="#id5">Validator</a><a class="headerlink" href="#validator" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">Validator</a><a class="headerlink" href="#validator" title="Permalink to this headline">¶</a></h2>
 <p>Simple data type conversion is sometimes not enough. To make editing data safer, you can
 customize the validator for each column.</p>
 <section id="set-validator-functions">
-<h3><a class="toc-backref" href="#id6">Set validator Functions</a><a class="headerlink" href="#set-validator-functions" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">Set validator Functions</a><a class="headerlink" href="#set-validator-functions" title="Permalink to this headline">¶</a></h3>
 <p>A validator function doesn’t care about the returned value. It should raise an exception
 if the input value is invalid.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span> <span class="o">=</span> <span class="n">TableViewer</span><span class="p">()</span>
@@ -208,7 +207,7 @@ changing data validation rule might break the safety of the table data.</p>
 </section>
 </section>
 <section id="text-formatter">
-<h2><a class="toc-backref" href="#id7">Text Formatter</a><a class="headerlink" href="#text-formatter" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id7">Text Formatter</a><a class="headerlink" href="#text-formatter" title="Permalink to this headline">¶</a></h2>
 <p>Text formatters are used to convert the values to strings without changing the data
 itself. This is useful for displaying data in a more readable format.</p>
 <div class="admonition note">
@@ -217,36 +216,36 @@ itself. This is useful for displaying data in a more readable format.</p>
 take too much time to run.</p>
 </div>
 <section id="set-formatter-function">
-<h3><a class="toc-backref" href="#id8">Set formatter function</a><a class="headerlink" href="#set-formatter-function" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id8">Set formatter function</a><a class="headerlink" href="#set-formatter-function" title="Permalink to this headline">¶</a></h3>
 <p>As usual in this chapter, you can use functions that convert a value into a string
 as formatter function. The formatted strings are not necessary to satisfy the
 column specific validation including data type conversion.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span> <span class="o">=</span> <span class="n">TableViewer</span><span class="p">()</span>
 <span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">open_sample</span><span class="p">(</span><span class="s2">&quot;iris&quot;</span><span class="p">)</span>
 
-<span class="nd">@table</span><span class="o">.</span><span class="n">text_formatter</span><span class="p">(</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">)</span>
+<span class="nd">@table</span><span class="o">.</span><span class="n">formatter</span><span class="p">(</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">_</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> cm&quot;</span>
 </pre></div>
 </div>
 </section>
 <section id="set-formatter-string">
-<h3><a class="toc-backref" href="#id9">Set formatter string</a><a class="headerlink" href="#set-formatter-string" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id9">Set formatter string</a><a class="headerlink" href="#set-formatter-string" title="Permalink to this headline">¶</a></h3>
 <p>Instead of passing a function, you can also use a ready-to-be-formatted strings.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">text_formatter</span><span class="p">(</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:.2f}</span><span class="s2"> cm&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">formatter</span><span class="p">(</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:.2f}</span><span class="s2"> cm&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Example above is identical to passing <code class="docutils literal notranslate"><span class="pre">&quot;{:.2f}</span> <span class="pre">cm&quot;.format</span></code>.</p>
 </section>
 <section id="set-formatter-in-gui">
-<h3><a class="toc-backref" href="#id10">Set Formatter in GUI</a><a class="headerlink" href="#set-formatter-in-gui" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id10">Set Formatter in GUI</a><a class="headerlink" href="#set-formatter-in-gui" title="Permalink to this headline">¶</a></h3>
 <p>Some basic formatters are available in the right-click context menu of the columns,
 such as <code class="docutils literal notranslate"><span class="pre">Formatter</span> <span class="pre">&gt;</span> <span class="pre">Set</span> <span class="pre">text</span> <span class="pre">formatter</span></code>. You’ll see a preview of the column in
 the dialog.</p>
 </section>
 </section>
 <section id="typing-spreadsheet">
-<h2><a class="toc-backref" href="#id11">Typing Spreadsheet</a><a class="headerlink" href="#typing-spreadsheet" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id11">Typing Spreadsheet</a><a class="headerlink" href="#typing-spreadsheet" title="Permalink to this headline">¶</a></h2>
 <p>In a spreadsheet, data types are determined for each column based on its content
 because a spreadsheet is a string-based table data in general. This characteristic
 raises a problem of data type. This drawback is especially important when you want

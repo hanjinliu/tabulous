@@ -116,7 +116,7 @@ column specific validation including data type conversion.
     viewer = TableViewer()
     table = viewer.open_sample("iris")
 
-    @table.text_formatter("sepal_length")
+    @table.formatter("sepal_length")
     def _(x: float):
         return f"{x:.2f} cm"
 
@@ -127,7 +127,7 @@ Instead of passing a function, you can also use a ready-to-be-formatted strings.
 
 .. code-block:: python
 
-    table.text_formatter("sepal_length", "{:.2f} cm")
+    table.formatter("sepal_length", "{:.2f} cm")
 
 Example above is identical to passing ``"{:.2f} cm".format``.
 

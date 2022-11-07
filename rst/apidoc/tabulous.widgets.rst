@@ -12,14 +12,6 @@ tabulous.widgets.filtering module
    :undoc-members:
    :show-inheritance:
 
-tabulous.widgets.mainwindow module
-----------------------------------
-
-.. automodule:: tabulous.widgets.mainwindow
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 
