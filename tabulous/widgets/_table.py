@@ -464,26 +464,29 @@ class TableBase(ABC):
         qtable = self.native
         qtable_view = qtable._qtable_view
 
+        def _raise(e):
+            if not isinstance(e, (SyntaxError, AttributeError)):
+                # Update cell text with the exception object.
+                try:
+                    del qtable_view._focused_widget
+                except RuntimeError:
+                    pass
+                with (
+                    qtable_view._selection_model.blocked(),
+                    qtable_view._ref_graphs.blocked(*pos),
+                ):
+                    qtable.setDataFrameValue(*pos, repr(e))
+                return None
+            # SyntaxError/AttributeError might be caused by mistouching. Don't close
+            # the editor.
+            e.args = (f"{str(e)}\n>>> {info.expr}",)
+            raise e
+
         if not info.is_ref:
             # evaluated by "=..."
             result = literal_callable(unblock=True)  # cells updated here if succeeded
             if e := result.get_err():
-                if not isinstance(e, (SyntaxError, AttributeError)):
-                    # Update cell text with the exception object.
-                    try:
-                        del qtable_view._focused_widget
-                    except RuntimeError:
-                        pass
-                    with (
-                        qtable_view._selection_model.blocked(),
-                        qtable_view._ref_graphs.blocked(*pos),
-                    ):
-                        qtable.setDataFrameValue(*pos, repr(e))
-                    return None
-                # SyntaxError/AttributeError might be caused by mistouching. Don't close
-                # the editor.
-                e.args = (f"{str(e)}\n>>> {info.expr}",)
-                raise e
+                _raise(e)
             else:
                 self.move_iloc(*pos)
         else:
@@ -495,7 +498,9 @@ class TableBase(ABC):
             graph = Graph(self, literal_callable, selections)
             with qtable._mgr.merging():
                 # call here to properly update undo stack
-                literal_callable(unblock=True)
+                result = literal_callable(unblock=True)
+                if e := result.get_err():
+                    _raise(e)
                 with graph.blocked():
                     qtable.setCalculationGraph(pos, graph)
 
