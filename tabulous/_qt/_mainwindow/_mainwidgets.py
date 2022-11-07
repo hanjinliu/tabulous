@@ -118,7 +118,8 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
         from ..._utils import get_config
 
-        self._ask_on_close = get_config().window.ask_on_close
+        _config = get_config()
+        self._ask_on_close = _config.window.ask_on_close
 
         from .._toolbar import QTableStackToolBar
 
@@ -129,6 +130,9 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self.resize(800, 600)
         self.statusBar()
         QMainWindow._instances.append(self)
+
+        if _config.window.show_console:
+            self.setConsoleVisible(True)
 
     def consoleVisible(self) -> bool:
         """True if embeded console is visible."""
