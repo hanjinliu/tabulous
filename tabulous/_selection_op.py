@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Hashable, Iterator, TYPE_CHECKING, Union
+from typing import Hashable, Iterator, TYPE_CHECKING, Union, SupportsIndex
 from functools import singledispatch
 import re
 
@@ -43,15 +43,33 @@ class SelectionOperator:
     def as_iloc_slices(self, df: pd.DataFrame) -> tuple[slice, slice]:
         """Return selection literal as iloc indices, forcing slices."""
         rsl, csl = self.as_iloc(df)
-        if isinstance(rsl, int):
-            rsl = slice(rsl, rsl + 1)
+        if isinstance(rsl, SupportsIndex):
+            r = rsl.__index__()
+            rsl = slice(r, r + 1)
         elif rsl == slice(None):
             rsl = slice(0, df.index.size)
-        if isinstance(csl, int):
-            csl = slice(csl, csl + 1)
+        if isinstance(csl, SupportsIndex):
+            c = csl.__index__()
+            csl = slice(c, c + 1)
         elif csl == slice(None):
             csl = slice(0, df.columns.size)
         return rsl, csl
+
+    def as_iat(self, df: pd.DataFrame) -> tuple[int, int]:
+        rsl, csl = self.as_iloc(df)
+        if isinstance(rsl, SupportsIndex):
+            r = rsl.__index__()
+        elif isinstance(rsl, slice):
+            if rsl.stop - rsl.start != 1:
+                raise ValueError(f"{self} is not a scalar reference.")
+            r = rsl.start
+        if isinstance(csl, SupportsIndex):
+            c = csl.__index__()
+        elif isinstance(csl, slice):
+            if csl.stop - csl.start != 1:
+                raise ValueError(f"{self} is not a scalar reference.")
+            c = csl.start
+        return r, c
 
     def area(self, df: pd.DataFrame) -> int:
         """Return the number of cells selected."""
@@ -288,6 +306,23 @@ def iter_extract(text: str, *, df_expr: str = "df") -> Iterator[SelectionOperato
             raise ValueError(f"Unreachable expression: {expr!r}")
 
         yield sel
+
+
+def construct(
+    rsl: slice, csl: slice, df: pd.DataFrame, method: str
+) -> SelectionOperator:
+    if method == "loc":
+        if csl.start == csl.stop - 1:
+            selop = ColumnSelOp.from_iloc(rsl, csl, df)
+        else:
+            selop = LocSelOp.from_iloc(rsl, csl, df)
+    elif method == "iloc":
+        selop = ILocSelOp.from_iloc(rsl, csl, df)
+    elif method == "values":
+        selop = ValueSelOp.from_iloc(rsl, csl, df)
+    else:
+        raise RuntimeError(f"Unknwon slicing mode {method!r}")
+    return selop
 
 
 _PATTERN = re.compile(

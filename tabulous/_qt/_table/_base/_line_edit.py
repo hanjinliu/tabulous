@@ -18,6 +18,7 @@ from ...._selection_op import (
     ILocSelOp,
     ValueSelOp,
     find_last_dataframe_expr,
+    construct,
 )
 
 if TYPE_CHECKING:
@@ -552,17 +553,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         if csl.start in qtable._selection_model._col_selection_indices:
             rsl = slice(None)
 
-        if _CONFIG.cell.slicing == "loc":
-            if csl.start == csl.stop - 1:
-                selop = ColumnSelOp.from_iloc(rsl, csl, _df)
-            else:
-                selop = LocSelOp.from_iloc(rsl, csl, _df)
-        elif _CONFIG.cell.slicing == "iloc":
-            selop = ILocSelOp.from_iloc(rsl, csl, _df)
-        elif _CONFIG.cell.slicing == "values":
-            selop = ValueSelOp.from_iloc(rsl, csl, _df)
-        else:
-            raise RuntimeError(f"Unknwon slicing mode {_CONFIG.cell.slicing!r}")
+        selop = construct(rsl, csl, _df, _CONFIG.cell.slicing)
 
         if selop.area(_df) > 1:
             to_be_added = selop.fmt("df")
