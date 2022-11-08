@@ -13,11 +13,12 @@ from ._table_base import QBaseTable, QMutableTable
 from ._line_edit import QCellLiteralEdit
 
 from ..._keymap import QtKeys
-from ...._selection_model import RangesModel, SelectionModel, Index
+from ...._selection_model import SelectionModel, AnnotatedRangesModel, Index
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
     from ..._mainwindow import _QtMainWidgetBase
+    from ...._selection_model import RangesModel
 
 # Flags
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
@@ -88,7 +89,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         )
         self._selection_model.moving.connect(self._on_moving)
         self._selection_model.moved.connect(self._on_moved)
-        self._highlight_model = RangesModel()
+        self._highlight_model = AnnotatedRangesModel()
 
         # parameters for mouse tracking
         self._mouse_track = MouseTrack()

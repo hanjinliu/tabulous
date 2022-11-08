@@ -1,5 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable, Iterable, Iterator, NamedTuple
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Iterable,
+    Iterator,
+    NamedTuple,
+    Any,
+    MutableSequence,
+)
 from contextlib import contextmanager
 from psygnal import Signal
 
@@ -297,3 +305,96 @@ class SelectionModel(RangesModel):
             c = max(idx_min, c)
 
         return self.move_to(r, c)
+
+
+class AnnotatedRangeList(MutableSequence["Range"]):
+    def __init__(
+        self,
+        iterable: Iterable[Range] = (),
+        /,
+        annotations: Iterable[dict[str, Any]] | None = None,
+    ):
+        self._list = list(iterable)
+        if annotations is None:
+            self._annotations = [None] * len(self._list)
+        else:
+            annot = list(annotations)
+            if len(annot) != len(self._list):
+                raise ValueError("Lenght mismatch between ranges and annotations.")
+
+    def __getitem__(self, key):
+        """Get the range at the specified index."""
+        # NOTE: annotation should not be returned for better compatibility with
+        # the selection model.
+        return self._list[key]
+
+    def __setitem__(self, key, val: Range) -> None:
+        """Set range and initialize it with an empty annotation."""
+        self._list[key] = val
+        self._annotations[key] = None
+        return None
+
+    def __delitem__(self, key):
+        del self._list[key]
+        del self._annotations[key]
+        return None
+
+    def __iter__(self):
+        return iter(self._list)
+
+    def __len__(self) -> int:
+        return len(self._list)
+
+    def insert(self, key: int, val):
+        """Insert a range with no annotation."""
+        self._list.insert(key, val)
+        self._annotations.insert(key, None)
+
+    def __add__(self, other: MutableSequence) -> AnnotatedRangeList:
+        if isinstance(other, AnnotatedRangeList):
+            return self.__class__(
+                self._list + other._list,
+                self._annotations + other._annotations,
+            )
+        other = list(other)
+        return self.__class__(
+            self._list + other,
+            self._annotations + [None] * len(other),
+        )
+
+    def __repr__(self) -> str:
+        clsname = type(self).__name__
+        return f"{clsname}({self._list!r})"
+
+
+class AnnotatedRange(NamedTuple):
+    range: tuple[slice, slice]
+    annotations: dict[str, Any]
+
+
+class AnnotatedRangeRef(MutableSequence["tuple[Range, dict[str, Any]]"]):
+    def __init__(self, parent: AnnotatedRangeList):
+        import weakref
+
+        self._parent_ref = weakref.ref(parent)
+
+    @property
+    def parent(self) -> AnnotatedRangeList:
+        parent = self._parent_ref()
+        if parent is None:
+            raise RuntimeError("Parent range list has been garbage collected.")
+        return parent
+
+    def __getitem__(self, key):
+        parent = self.parent
+        return AnnotatedRange(parent[key], parent._annotations[key])
+
+
+class AnnotatedRangesModel(RangesModel):
+    def __init__(self):
+        super().__init__()
+        self._ranges = AnnotatedRangeList()
+
+    @property
+    def ref(self) -> AnnotatedRangeRef:
+        return AnnotatedRangeRef(self)
