@@ -5,18 +5,14 @@ import re
 import ast
 from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt
 import pandas as pd
 
-from ..._qt_const import MonospaceFontFamily
-from ..._keymap import QtKeys
-from ....types import HeaderInfo, EvalInfo
-from ...._utils import get_config
-from ...._selection_op import (
-    ColumnSelOp,
-    LocSelOp,
-    ILocSelOp,
-    ValueSelOp,
+from tabulous._qt._qt_const import MonospaceFontFamily
+from tabulous._qt._keymap import QtKeys
+from tabulous.types import HeaderInfo, EvalInfo
+from tabulous._utils import get_config
+from tabulous._selection_op import (
     find_last_dataframe_expr,
     construct,
 )

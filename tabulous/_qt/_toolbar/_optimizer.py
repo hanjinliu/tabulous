@@ -2,10 +2,10 @@ from typing import TYPE_CHECKING
 from scipy import optimize as sp_opt
 import numpy as np
 import pandas as pd
-from magicgui.widgets import Container, ComboBox, CheckBox, PushButton
+from magicgui.widgets import Container, ComboBox, PushButton
 
-from ..._selection_op import SelectionOperator
-from ..._magicgui import find_current_table, SelectionWidget
+from tabulous._selection_op import SelectionOperator
+from tabulous._magicgui import find_current_table, SelectionWidget
 
 if TYPE_CHECKING:
     from .._table._base import QMutableSimpleTable
@@ -24,9 +24,6 @@ class OptimizerWidget(Container):
         self._minimize_cbox = ComboBox(
             label="Optimize by", choices=["minimize", "maximize"]
         )
-        self._refresh_checkbox = CheckBox(
-            value=True, label="Update during optimization"
-        )
         self._call_button = PushButton(text="Run", tooltip="Run optimization")
         self._call_button.changed.connect(self._on_called)
         super().__init__(
@@ -34,7 +31,6 @@ class OptimizerWidget(Container):
                 self._cost_selector,
                 self._param_selector,
                 self._minimize_cbox,
-                self._refresh_checkbox,
                 self._call_button,
             ]
         )
@@ -44,7 +40,6 @@ class OptimizerWidget(Container):
             cost=self._cost_selector.value,
             parameters=self._param_selector.value,
             minimize=self._minimize_cbox.value == "minimize",
-            refresh=self._refresh_checkbox.value,
         )
 
     def optimize(
@@ -52,13 +47,12 @@ class OptimizerWidget(Container):
         cost: SelectionOperator,
         parameters: SelectionOperator,
         minimize: bool = True,
-        refresh: bool = True,
     ):
         table = find_current_table(self)
         df = table.data_shown
         dst = cost.as_iat(df)
         params = parameters.as_iloc_slices(df)
-        return _optimize_in_table(table._qwidget, dst, params, minimize, refresh)
+        return _optimize_in_table(table._qwidget, dst, params, minimize)
 
     @classmethod
     def new(cls) -> "OptimizerWidget":
@@ -72,10 +66,7 @@ def _optimize_in_table(
     dst: tuple[int, int],
     params: tuple[slice, slice],
     minimize: bool = True,
-    refresh: bool = True,
 ):
-    # TODO: merge command
-
     if dst not in table._qtable_view._ref_graphs:
         raise ValueError(f"{dst} has no reference.")
 
@@ -87,11 +78,12 @@ def _optimize_in_table(
     data = table.dataShown().iloc[params]
     param0 = data.to_numpy(dtype=np.float64, copy=False)
 
-    if refresh:
-        callback = lambda x: table.refreshTable(True)
-    else:
-        callback = None
-    return sp_opt.minimize(cost_function, param0, callback=callback)
+    callback = lambda x: table.refreshTable(True)
+    with table._mgr.merging(lambda x: "optimize"):
+        sp_opt.minimize(
+            cost_function, param0, callback=callback, options=dict(maxiter=50)
+        )
+    return None
 
 
 def _get_minimize_target(
