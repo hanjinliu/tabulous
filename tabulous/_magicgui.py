@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import Any, Callable, Iterable, TYPE_CHECKING, TypeVar
+from typing import Any, Callable, Iterable, TYPE_CHECKING, TypeVar, cast
 import warnings
-from qtpy.QtWidgets import QWidget, QVBoxLayout
+from qtpy import QtWidgets as QtW
 from magicgui import register_type
 from magicgui.widgets import Widget, Container, ComboBox, Label, Dialog
 from magicgui.widgets._bases import CategoricalWidget
@@ -15,11 +15,19 @@ from .types import (
     TableInfoInstance,
     TabPosition,
 )
+from ._selection_op import (
+    SelectionOperator,
+    iter_extract,
+    construct,
+    LocSelOp,
+    ILocSelOp,
+)
 
 if TYPE_CHECKING:
     import pandas as pd
     from magicgui.widgets import FunctionGui
     from matplotlib.axes import Axes
+    from .widgets import TableBase
 else:
     Axes = Any
 
@@ -54,7 +62,7 @@ class MagicTableViewer(Widget, TableViewerWidget):
     ):
         super().__init__(
             widget_type=QBaseWidget,
-            backend_kwargs={"qwidg": QWidget},
+            backend_kwargs={"qwidg": QtW.QWidget},
             name=name,
             label=label,
             tooltip=tooltip,
@@ -62,8 +70,8 @@ class MagicTableViewer(Widget, TableViewerWidget):
             enabled=enabled,
         )
         TableViewerWidget.__init__(self, tab_position=tab_position, show=False)
-        self.native: QWidget
-        self.native.setLayout(QVBoxLayout())
+        self.native: QtW.QWidget
+        self.native.setLayout(QtW.QVBoxLayout())
         self.native.layout().addWidget(self._qwidget)
         self.native.setContentsMargins(0, 0, 0, 0)
 
@@ -84,7 +92,7 @@ class MagicTable(Widget, Table):
         Table.__init__(self, data, name=name, editable=editable)
         super().__init__(
             widget_type=QBaseWidget,
-            backend_kwargs={"qwidg": QWidget},
+            backend_kwargs={"qwidg": QtW.QWidget},
             name=name,
             label=label,
             tooltip=tooltip,
@@ -92,8 +100,8 @@ class MagicTable(Widget, Table):
             enabled=enabled,
             gui_only=gui_only,
         )
-        self.native: QWidget
-        self.native.setLayout(QVBoxLayout())
+        self.native: QtW.QWidget
+        self.native.setLayout(QtW.QVBoxLayout())
         self.native.layout().addWidget(self._qwidget)
         self.native.setContentsMargins(0, 0, 0, 0)
 
@@ -105,23 +113,34 @@ class MagicTable(Widget, Table):
 _DEFAULT_NAME = "Result"
 
 
-def find_table_viewer_ancestor(widget: Widget | QWidget) -> TableViewer | None:
+def find_table_viewer_ancestor(widget: Widget | QtW.QWidget) -> TableViewer | None:
     from ._qt._mainwindow import _QtMainWidgetBase
 
     if isinstance(widget, Widget):
         qwidget = widget.native
-    elif isinstance(widget, QWidget):
+    elif isinstance(widget, QtW.QWidget):
         qwidget = widget
     else:
         raise TypeError(f"Cannot use {type(widget)} as an input.")
-    qwidget: QWidget
+    qwidget: QtW.QWidget
     parent = qwidget.parent()
     while (parent := qwidget.parent()) is not None:
         qwidget = parent
         if isinstance(qwidget, _QtMainWidgetBase):
+            qwidget = cast(_QtMainWidgetBase, qwidget)
             return qwidget._table_viewer
 
     return None
+
+
+def find_current_table(widget: Widget | QtW.QWidget) -> TableBase | None:
+    viewer = find_table_viewer_ancestor(widget)
+    if viewer is None:
+        return None
+    table = viewer.current_table
+    if table is None:
+        return None
+    return table
 
 
 def get_tables(widget: CategoricalWidget) -> list[tuple[str, Any]]:
@@ -408,3 +427,73 @@ def dialog_factory_mpl(function: _F) -> _F:
         return out
 
     return _runner
+
+
+# #############################################################################
+#   Selection widget
+# #############################################################################
+
+
+class SelectionWidget(Container):
+    """A container widget for a table selection."""
+
+    def __init__(self, value: Any = None, nullable=False, **kwargs):
+        from magicgui.widgets import PushButton, LineEdit
+
+        self._line = LineEdit()
+        self._btn = PushButton(text="Read selection")
+        super().__init__(layout="horizontal", widgets=[self._line, self._btn], **kwargs)
+        self.margins = (0, 0, 0, 0)
+        self._line.changed.disconnect()
+        self._btn.changed.disconnect()
+        self._line.changed.connect(self.changed.emit(self._line.value))
+        self._btn.changed.connect(lambda: self._read_selection())
+        if isinstance(value, SelectionOperator):
+            self._selop = value
+        else:
+            self._selop = ILocSelOp(slice(None), slice(None))
+
+    @property
+    def value(self) -> SelectionOperator:
+        return self._selop
+
+    @value.setter
+    def value(self, val: str | SelectionOperator) -> None:
+        if isinstance(val, str):
+            val = next(iter_extract(val, df_expr="df"))
+        self._selop = val
+        self._line.value = val.fmt()
+        return None
+
+    def as_iloc(self) -> tuple[slice, slice]:
+        df = self._find_table().data_shown
+        return self._selop.as_iloc(df)
+
+    def as_iloc_slices(self) -> tuple[slice, slice]:
+        df = self._find_table().data_shown
+        return self._selop.as_iloc_slices(df)
+
+    def _find_table(self) -> TableBase:
+        table = find_current_table(self)
+        if table is None:
+            raise ValueError("No table found.")
+        return table
+
+    def _read_selection(self, table: TableBase | None = None):
+        from ._utils import get_config
+
+        if table is None:
+            table = self._find_table()
+
+        sels = table.selections
+        if len(sels) > 1:
+            raise ValueError("More than one selection is given.")
+        sel = sels[0]
+        slicing_method = get_config().cell.slicing
+
+        self._selop = construct(*sel, table.data_shown, slicing_method)
+        self._line.value = self._selop.fmt()
+        return None
+
+
+register_type(SelectionOperator, widget_type=SelectionWidget)

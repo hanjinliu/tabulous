@@ -297,6 +297,17 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         """Evaluate a Python expression."""
         return self.parent()._tablestack.openEvalDialog()
 
+    def optimize(self):
+        """Optimizer."""
+        from ._optimizer import OptimizerWidget
+
+        tablestack = self.parent()._tablestack
+        ol = tablestack._overlay
+        ol.show()
+
+        ol.addWidget(OptimizerWidget.new().native)
+        ol.setTitle("Optimization")
+
     def change_view_mode(self, view_mode: str):
         """Change view mode."""
         table = self.viewer.current_table
@@ -482,6 +493,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         )
         self.registerAction("Analyze", self.eval, ICON_DIR / "eval.svg")
         self.registerAction("Analyze", self.filter, ICON_DIR / "filter.svg")
+        self.addSeparatorToChild("Analyze")
+        self.registerAction("Analyze", self.optimize, ICON_DIR / "optimize.svg")
         self.addSeparatorToChild("Analyze")
         self.registerAction(
             "Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg"

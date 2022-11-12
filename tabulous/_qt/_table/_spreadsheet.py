@@ -12,8 +12,8 @@ from magicgui import widgets as mWdg
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from ._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 from ._base._text_formatter import DefaultFormatter
-from ...color import normalize_color
-from ...types import ItemInfo
+from tabulous.color import normalize_color
+from tabulous.types import ItemInfo
 
 if TYPE_CHECKING:
     from magicgui.widgets._bases import ValueWidget

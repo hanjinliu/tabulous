@@ -518,9 +518,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _set_graph_fmt(self, pos, graph):
         return repr(graph)
 
-    def refreshTable(self) -> None:
+    def refreshTable(self, process: bool = False) -> None:
         """Refresh table view."""
-        return self._qtable_view._update_all()
+        self._qtable_view._update_all()
+        if process:
+            QtW.QApplication.processEvents()
+        return None
 
     def undoStackView(self, show: bool = True):
         """Show undo stack viewer."""

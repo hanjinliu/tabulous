@@ -219,8 +219,8 @@ class TableBase(ABC):
         return self._qwidget
 
     def refresh(self) -> None:
-        """Refresh the table view."""
-        return self._qwidget.refreshTable()
+        """Refresh the table view and force table to update."""
+        return self._qwidget.refreshTable(process=True)
 
     def move_loc(self, row: Hashable, column: Hashable):
         """
