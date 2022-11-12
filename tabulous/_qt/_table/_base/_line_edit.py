@@ -643,7 +643,6 @@ class QCellLabelEdit(QtW.QLineEdit):
         super().__init__(parent)
         self._table = table
         self._pos = pos
-        self.setStyleSheet("color: gray; border-color: gray; border-width: 3px;")
         table_config = get_config().table
         font = QtGui.QFont(table_config.font, table_config.font_size)
         font.setBold(True)
