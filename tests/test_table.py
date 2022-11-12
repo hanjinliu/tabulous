@@ -174,6 +174,17 @@ def test_cell_interface_in_spreadsheet():
     assert table.data.shape == (8, 6)
     assert np.all(table.data.iloc[0:8, 0].values == np.arange(8))
 
+def test_cell_labels():
+    viewer = TableViewer(show=False)
+    table = viewer.add_spreadsheet(np.zeros((6, 6)))
+    assert table.data.shape == (6, 6)
+    table.cell.set_label(0, 0, "a =")
+    assert table.cell.get_label(0, 0) == "a ="
+    table.undo_manager.undo()
+    assert table.cell.get_label(0, 0) is None
+    table.undo_manager.redo()
+    assert table.cell.get_label(0, 0) == "a ="
+
 def test_side_area():
     viewer = TableViewer(show=False)
     table = viewer.add_spreadsheet(np.zeros((6, 6)))

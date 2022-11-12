@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, Callable, Hashable, TYPE_CHECKING
 import warnings
-from qtpy import QtCore, QtGui
+from qtpy import QtCore, QtGui, QtWidgets as QtW
 from qtpy.QtCore import Qt, Signal
 import numpy as np
 import pandas as pd
@@ -9,7 +9,8 @@ import pandas as pd
 from ._text_formatter import DefaultFormatter
 from ._line_edit import QCellLiteralEdit
 from .._dtype import isna
-from ....color import normalize_color, ColorType
+from tabulous.color import normalize_color, ColorType
+from tabulous._map_model import TableMapping
 
 if TYPE_CHECKING:
     from ._table_base import QBaseTable
@@ -41,7 +42,10 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             Qt.ItemDataRole.TextColorRole: self._data_text_color,
             Qt.ItemDataRole.ToolTipRole: self._data_tooltip,
             Qt.ItemDataRole.BackgroundColorRole: self._data_background_color,
+            Qt.ItemDataRole.DecorationRole: self._data_decoration,
         }
+
+        self._decorations: TableMapping[tuple[QtGui.QPixmap, str]] = TableMapping()
 
     @property
     def df(self) -> pd.DataFrame:
@@ -165,6 +169,34 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 return QtGui.QColor(*rgba)
         return QtCore.QVariant()
 
+    def _data_decoration(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        if content := self._decorations.get((r, c), None):
+            return content[0]
+        return QtCore.QVariant()
+
+    def set_cell_label(self, index: QtCore.QModelIndex, text: str | None):
+        if text is None:
+            self._decorations.pop((index.row(), index.column()), None)
+        else:
+            qlabel = QtW.QLabel(text, self.parent())
+            qlabel.setStyleSheet("background-color: transparent; color: gray;")
+            qlabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            from tabulous._utils import get_config
+
+            table_config = get_config().table
+            font = QtGui.QFont(table_config.font, table_config.font_size)
+            font.setBold(True)
+            qlabel.setFont(font)
+            rect = QtGui.QFontMetrics(font).boundingRect(text)
+            qlabel.resize(rect.size())
+            pixmap = qlabel.grab()
+            qlabel.deleteLater()
+            self._decorations[(index.row(), index.column())] = pixmap, text
+        qtable_view = self.parent()._qtable_view
+        qtable_view.update(index)
+        return None
+
     def flags(self, index):
         if self._editable:
             return Qt.ItemFlag.ItemIsEditable | _READ_ONLY
@@ -263,6 +295,30 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             self.endRemoveColumns()
 
         return None
+
+    def insertColumns(
+        self, column: int, count: int, parent: QtCore.QModelIndex = None
+    ) -> bool:
+        self._decorations.insert_columns(column, count)
+        return super().insertColumns(column, count, parent)
+
+    def removeColumns(
+        self, column: int, count: int, parent: QtCore.QModelIndex = None
+    ) -> bool:
+        self._decorations.remove_columns(column, count)
+        return super().removeColumns(column, count, parent)
+
+    def insertRows(
+        self, row: int, count: int, parent: QtCore.QModelIndex = None
+    ) -> bool:
+        self._decorations.insert_rows(row, count)
+        return super().insertRows(row, count, parent)
+
+    def removeRows(
+        self, row: int, count: int, parent: QtCore.QModelIndex = None
+    ) -> bool:
+        self._decorations.remove_rows(row, count)
+        return super().removeRows(row, count, parent)
 
     if TYPE_CHECKING:
 
