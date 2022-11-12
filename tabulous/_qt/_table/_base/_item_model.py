@@ -296,6 +296,30 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
 
         return None
 
+    def insertColumns(
+        self, column: int, count: int, parent: QtCore.QModelIndex = None
+    ) -> bool:
+        self._decorations.insert_columns(column, count)
+        return super().insertColumns(column, count, parent)
+
+    def removeColumns(
+        self, column: int, count: int, parent: QtCore.QModelIndex = None
+    ) -> bool:
+        self._decorations.remove_columns(column, count)
+        return super().removeColumns(column, count, parent)
+
+    def insertRows(
+        self, row: int, count: int, parent: QtCore.QModelIndex = None
+    ) -> bool:
+        self._decorations.insert_rows(row, count)
+        return super().insertRows(row, count, parent)
+
+    def removeRows(
+        self, row: int, count: int, parent: QtCore.QModelIndex = None
+    ) -> bool:
+        self._decorations.remove_rows(row, count)
+        return super().removeRows(row, count, parent)
+
     if TYPE_CHECKING:
 
         def parent(self) -> QBaseTable:
