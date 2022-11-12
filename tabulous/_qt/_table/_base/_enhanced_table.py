@@ -13,7 +13,7 @@ from tabulous._qt._table._base._header_view import (
     QVerticalHeaderView,
 )
 from tabulous._qt._table._base._table_base import QBaseTable, QMutableTable
-from tabulous._qt._table._base._line_edit import QCellLiteralEdit
+from tabulous._qt._table._base._line_edit import QCellLiteralEdit, QCellLabelEdit
 
 from tabulous._qt._keymap import QtKeys
 from tabulous._selection_model import RangesModel, SelectionModel, Index
@@ -424,6 +424,11 @@ class _QTableViewEnhanced(QtW.QTableView):
                         wdt = cast(QCellLiteralEdit, wdt)
                         wdt._self_focused = True
                     wdt.setFocus()
+            return None
+
+        elif keys == "F3":
+            editor = QCellLabelEdit.from_table(self)
+            editor.show()
             return None
 
         if keys.has_ctrl():
