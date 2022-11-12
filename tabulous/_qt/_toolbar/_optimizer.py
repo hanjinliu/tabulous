@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from magicgui.widgets import Container, ComboBox, PushButton, SpinBox
 
-from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import find_current_table, SelectionWidget
 
 if TYPE_CHECKING:
@@ -39,27 +38,15 @@ class OptimizerWidget(Container):
         )
 
     def _on_called(self):
-        self.optimize(
-            cost=self._cost_selector.value,
-            parameters=self._param_selector.value,
-            minimize=self._minimize_cbox.value == "minimize",
-        )
-
-    def optimize(
-        self,
-        cost: SelectionOperator,
-        parameters: SelectionOperator,
-        minimize: bool = True,
-    ):
         table = find_current_table(self)
         df = table.data_shown
-        dst = cost.as_iat(df)
-        params = parameters.as_iloc_slices(df)
+        dst = self._cost_selector.value.as_iat(df)
+        params = self._param_selector.value.as_iloc_slices(df)
         qtable = table._qwidget
         if dst not in qtable._qtable_view._ref_graphs:
             raise ValueError(f"{dst} has no reference.")
 
-        if minimize:
+        if self._minimize_cbox.value == "minimize":
             cost_function = _get_minimize_target(qtable, dst, params)
         else:
             cost_function = _get_maximize_target(qtable, dst, params)
