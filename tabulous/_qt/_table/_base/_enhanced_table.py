@@ -7,13 +7,16 @@ from typing import TYPE_CHECKING, Iterable, Iterator, cast, Literal
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
-from ._item_model import AbstractDataFrameModel
-from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
-from ._table_base import QBaseTable, QMutableTable
-from ._line_edit import QCellLiteralEdit
+from tabulous._qt._table._base._item_model import AbstractDataFrameModel
+from tabulous._qt._table._base._header_view import (
+    QHorizontalHeaderView,
+    QVerticalHeaderView,
+)
+from tabulous._qt._table._base._table_base import QBaseTable, QMutableTable
+from tabulous._qt._table._base._line_edit import QCellLiteralEdit
 
-from ..._keymap import QtKeys
-from ...._selection_model import RangesModel, SelectionModel, Index
+from tabulous._qt._keymap import QtKeys
+from tabulous._selection_model import RangesModel, SelectionModel, Index
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
@@ -67,9 +70,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         else:
             self._parent_table = None
 
-        from ...._utils import get_config
+        from tabulous._utils import get_config
 
-        table = get_config().table  # get config
+        table = get_config().table
 
         # settings
         self._font_size = table.font_size
