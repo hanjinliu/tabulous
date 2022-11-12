@@ -90,6 +90,11 @@ _QTableLineEdit {
     border-bottom: 2px solid #BADEF4;
 }
 
+QCellLabelEdit {
+    color: gray;
+    border-bottom: 2px solid gray;
+}
+
 QKeyMapList:item {
     border-top: 1px solid lightgray;
     border-bottom: 1px solid lightgray;

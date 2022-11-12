@@ -311,6 +311,14 @@ class CellInterface(Component["TableBase"]):
         else:
             raise ValueError("input must be a string or callable.")
 
+    def get_label(self, r: int, c: int) -> str | None:
+        """Get the label of a cell."""
+        return self.parent._qwidget.itemLabel(r, c)
+
+    def set_label(self, r: int, c: int, text: str):
+        """Set the label of a cell."""
+        return self.parent._qwidget.setItemLabel(r, c, text)
+
 
 class PlotInterface(Component["TableBase"]):
     """The interface of plotting."""

@@ -474,6 +474,22 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         validator = self.model()._validator.get(name, None)
         return (name, validator), {}
 
+    def itemLabel(self, r: int, c: int):
+        model = self.model()
+        if content := model._decorations.get((r, c), None):
+            return content[1]
+        return None
+
+    @_mgr.interface
+    def setItemLabel(self, r: int, c: int, text: str | None):
+        model = self.model()
+        index = model.index(r, c)
+        return model.set_cell_label(index, text)
+
+    @setItemLabel.server
+    def setItemLabel(self, r: int, c: int, text: str):
+        return (r, c, self.itemLabel(r, c)), {}
+
     def setCalculationGraph(self, pos: tuple[int, int], graph: Graph):
         """Set calculation graph at the given position."""
         if graph is None:

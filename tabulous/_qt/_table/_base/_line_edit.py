@@ -56,7 +56,6 @@ class _QTableLineEdit(QtW.QLineEdit):
         self._table = table
         self._pos = pos
         self._is_valid = True
-        self._is_widget_changing = False
         self._current_exception = ""
         self.textChanged.connect(self._on_text_changed)
 
@@ -621,3 +620,96 @@ _PATTERN_IDENTIFIERS = re.compile(r"[\w\d_]+")
 
 def _find_last_module_name(s: str):
     return _PATTERN_IDENTIFIERS.findall(s)[-1]
+
+
+class QCellLabelEdit(QtW.QLineEdit):
+    """A QLineEdit that can be used to edit the label of a cell."""
+
+    def __init__(
+        self,
+        parent: QtCore.QObject | None = None,
+        table: QMutableTable | None = None,
+        pos: tuple[int, int] = (0, 0),
+    ):
+        super().__init__(parent)
+        self._table = table
+        self._pos = pos
+        table_config = get_config().table
+        font = QtGui.QFont(table_config.font, table_config.font_size)
+        font.setBold(True)
+        self.setFont(font)
+        self.editingFinished.connect(self._on_editing_finished)
+
+    def _on_editing_finished(self):
+        self._hide_and_delete()
+        text = self.text()
+        if text == "":
+            text = None
+        self._table.setItemLabel(*self._pos, text)
+        return None
+
+    def _hide_and_delete(self):
+        self.hide()
+        self.deleteLater()
+        self._table._qtable_view.setFocus()
+        return None
+
+    def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
+        keys = QtKeys(event)
+        pos = self.cursorPosition()
+        nchar = len(self.text())
+        r, c = self._pos
+        if keys == "Escape":
+            self._hide_and_delete()
+            return None
+        if keys.is_moving():
+            if pos == 0 and keys == "Left" and c >= 0:
+                self._on_editing_finished()
+                self._table._qtable_view._selection_model.move_to(r, c - 1)
+                return
+            elif (
+                pos == nchar
+                and keys == "Right"
+                and c < self._table.model().columnCount() - 1
+                and self.selectedText() == ""
+            ):
+                self._on_editing_finished()
+                self._table._qtable_view._selection_model.move_to(r, c + 1)
+                return
+            elif keys == "Up" and r >= 0:
+                self._on_editing_finished()
+                self._table._qtable_view._selection_model.move_to(r - 1, c)
+                return
+            elif keys == "Down" and r < self._table.model().rowCount() - 1:
+                self._on_editing_finished()
+                self._table._qtable_view._selection_model.move_to(r + 1, c)
+                return
+
+        elif keys == "F2":
+            return
+        return super().keyPressEvent(event)
+
+    @classmethod
+    def from_table(
+        cls,
+        qtable: _QTableViewEnhanced,
+    ) -> QCellLiteralEdit:
+        """Create a new literal editor from a table."""
+        parent = qtable.viewport()
+        table = qtable.parentTable()
+        index = qtable._selection_model.current_index
+        rect = qtable.visualRect(qtable.model().index(*index))
+        line = cls(parent, table, index)
+        line.setMinimumSize(1, 1)
+        geometry = line.geometry()
+        geometry.setWidth(rect.width())
+        geometry.setHeight(rect.height())
+        geometry.moveCenter(rect.center())
+        line.setGeometry(geometry)
+
+        text = table.itemLabel(*index)
+        line.setText(text)
+
+        line.setFocus()
+        line.selectAll()
+        return line
