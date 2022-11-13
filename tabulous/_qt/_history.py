@@ -6,7 +6,7 @@ from qtpy import QtWidgets as QtW, QtCore
 from .._utils import load_file_open_path
 
 # Modified from magicgui
-# See https://github.com/napari/magicgui/blob/main/magicgui/backends/_qtpy/widgets.py
+# See https://github.com/pyapp-kit/magicgui/blob/main/magicgui/backends/_qtpy/widgets.py
 class FileDialogMode(Enum):
     """FileDialog mode options."""
 

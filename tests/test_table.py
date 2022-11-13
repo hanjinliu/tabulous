@@ -185,6 +185,26 @@ def test_cell_labels():
     table.undo_manager.redo()
     assert table.cell.get_label(0, 0) == "a ="
 
+def test_cell_labeled_data():
+    viewer = TableViewer(show=False)
+    table = viewer.add_spreadsheet(np.zeros((6, 6)))
+    table.cell.set_labeled_data(0, 0, {"a:": 10, "b:": 20})
+    assert table.cell.get_label(0, 0) == "a:"
+    assert table.cell.get_label(1, 0) == "b:"
+    assert table.cell[0, 0] == "10"
+    assert table.cell[1, 0] == "20"
+    table.undo_manager.undo()
+    assert table.cell.get_label(0, 0) is None
+    assert table.cell.get_label(1, 0) is None
+    assert table.cell[0, 0] == "0.0"
+    assert table.cell[1, 0] == "0.0"
+    table.undo_manager.redo()
+    assert table.cell.get_label(0, 0) == "a:"
+    assert table.cell.get_label(1, 0) == "b:"
+    assert table.cell[0, 0] == "10"
+    assert table.cell[1, 0] == "20"
+
+
 def test_side_area():
     viewer = TableViewer(show=False)
     table = viewer.add_spreadsheet(np.zeros((6, 6)))

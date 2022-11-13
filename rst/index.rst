@@ -6,7 +6,7 @@ tabulous
 
 This package is strongly inspired by `napari <https://github.com/napari/napari>`_
 in the design and API. Accordingly, custom widget creation is easily achievable
-for beginners using `magicgui <https://github.com/napari/magicgui>`_, or any
+for beginners using `magicgui <https://github.com/pyapp-kit/magicgui>`_, or any
 Qt widgets for more trained users.
 
 

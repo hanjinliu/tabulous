@@ -319,6 +319,25 @@ class CellInterface(Component["TableBase"]):
         """Set the label of a cell."""
         return self.parent._qwidget.setItemLabel(r, c, text)
 
+    def set_labeled_data(
+        self, r: int, c: int, data: dict[str, Any] | pd.Series | tuple
+    ):
+        import pandas as pd
+
+        ndata = len(data)
+        if isinstance(data, dict):
+            _data = pd.Series(data)
+        elif isinstance(data, tuple):
+            index = getattr(data, "_fields", range(ndata))
+            _data = pd.Series(data, index=index)
+        elif isinstance(data, pd.Series):
+            _data = data
+        else:
+            raise TypeError(f"Cannot convert {data!r} to Series.")
+
+        self.parent._qwidget.setLabeledData(slice(r, r + ndata), slice(c, c + 1), _data)
+        return None
+
 
 class PlotInterface(Component["TableBase"]):
     """The interface of plotting."""
