@@ -226,6 +226,9 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def setDataFrameValue(self, row: int, col: int, value: Any) -> None:
         raise TableImmutableError("Table is immutable.")
 
+    def setLabeledData(self, row, col, value) -> None:
+        raise TableImmutableError("Table is immutable.")
+
     def deleteValues(self) -> None:
         raise TableImmutableError("Table is immutable.")
 
@@ -864,19 +867,7 @@ class QMutableTable(QBaseTable):
             if isinstance(r, slice) and isinstance(c, slice):
                 # delete references
                 if not self._qtable_view._ref_graphs.is_all_blocked():
-                    # this with-block is not needed but make it more efficient
-                    if len(self._qtable_view._ref_graphs) < 128:
-                        for key in list(self._qtable_view._ref_graphs.keys()):
-                            if (
-                                r.start <= key[0] < r.stop
-                                and c.start <= key[1] < c.stop
-                            ):
-                                self._set_graph(key, None)
-
-                    else:
-                        for _c in range(c.start, c.stop):
-                            for _r in range(r.start, r.stop):
-                                self._set_graph((_r, _c), None)
+                    self._clear_graphs(r, c)
 
                 _value = self._pre_set_array(r, c, value)
                 _is_scalar = False
@@ -912,6 +903,72 @@ class QMutableTable(QBaseTable):
             if _was_changed(_value, _old_value) and self.isEditable():
                 self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
 
+        return None
+
+    def _clear_graphs(self, r: slice, c: slice) -> None:
+        # this with-block is not needed but make it more efficient
+        if len(self._qtable_view._ref_graphs) < 128:
+            for key in list(self._qtable_view._ref_graphs.keys()):
+                if r.start <= key[0] < r.stop and c.start <= key[1] < c.stop:
+                    self._set_graph(key, None)
+
+        else:
+            for _c in range(c.start, c.stop):
+                for _r in range(r.start, r.stop):
+                    self._set_graph((_r, _c), None)
+        return None
+
+    def setLabeledData(self, r: slice, c: slice, value: pd.Series):
+        """Set 1D data with index as labels."""
+
+        if not self.isEditable():
+            raise TableImmutableError("Table is immutable.")
+        if c.stop != c.start + 1:
+            raise ValueError("Only one column can be set at a time.")
+        data = self._data_raw
+
+        with self._mgr.merging(
+            lambda cmds: self._set_value_fmt(r, c, None, None, value, None)
+        ):
+            # delete references
+            if not self._qtable_view._ref_graphs.is_all_blocked():
+                # this with-block is not needed but make it more efficient
+                self._clear_graphs(r, c)
+
+            _value = self._pre_set_array(r, c, pd.DataFrame(value))
+
+            # if table has filter, indices must be adjusted
+            if self._filter_slice is None:
+                r0 = r
+            else:
+                if callable(self._filter_slice):
+                    sl = self._filter_slice(data)
+                else:
+                    sl = self._filter_slice
+
+                spec = np.where(sl)[0].tolist()
+                r0 = spec[r]
+
+            _old_value = data.iloc[r0, c]
+            _old_value: pd.DataFrame
+            _old_value = _old_value.copy()  # this is needed for undo
+
+            if self._filter_slice is not None:
+                # If table is filtered, the dataframe to be displayed is a different object
+                # so we have to update it as well.
+                self.model().updateValue(r, c, _value)
+
+            # emit item changed signal if value changed
+            if _was_changed(_value, _old_value) and self.isEditable():
+                self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
+                if isinstance(r0, slice):
+                    _iter = range(r0.start, r0.stop)
+                elif isinstance(r0, np.ndarray):
+                    _iter = r0
+                else:
+                    raise RuntimeError(f"Unreachable data type {type(r0)!r}.")
+                for _i, _r in enumerate(_iter):
+                    self.setItemLabel(_r, c.start, value.index[_i])
         return None
 
     def _pre_set_array(self, r: slice, c: slice, _value: pd.DataFrame):

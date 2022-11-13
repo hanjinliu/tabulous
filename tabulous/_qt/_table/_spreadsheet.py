@@ -271,6 +271,26 @@ class QSpreadSheet(QMutableSimpleTable):
         )
         return None
 
+    def setLabeledData(self, r: slice, c: slice, value: pd.Series):
+        nr, nc = self._data_raw.shape
+        rmax = _get_limit(r)
+        cmax = _get_limit(c)
+        need_expand = nr <= rmax or nc <= cmax
+
+        if value.dtype != "string":
+            value = value.astype(_STRING_DTYPE)
+
+        with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
+            if need_expand:
+                self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
+            super().setLabeledData(r, c, value)
+            self.setFilter(self._filter_slice)
+
+        self._qtable_view.verticalHeader().resize(
+            self._qtable_view.verticalHeader().sizeHint()
+        )
+        return None
+
     def _pre_set_array(self, r: slice, c: slice, _value: pd.DataFrame):
         """Convert input dataframe for setting to data[r, c]."""
         if len(self.model()._validator) == 0:

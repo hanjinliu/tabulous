@@ -113,6 +113,24 @@ class LiteralCallable(Generic[_T]):
 
             _row, _col = _self.pos
 
+            _is_named_tuple = isinstance(out, tuple) and hasattr(out, "_fields")
+            _is_dict = isinstance(out, dict)
+            if _is_named_tuple or _is_dict:
+                if not _self._unblocked:
+                    with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked(
+                        *_self.pos
+                    ), table.events.data.blocked():
+                        table.cell.set_labeled_data(_row, _col, out, sep=":")
+                else:
+                    with qtable_view._selection_model.blocked(), table.events.data.blocked():
+                        table.cell.set_labeled_data(_row, _col, out, sep=":")
+
+                _self.last_destination = (
+                    slice(_row, _row + len(out)),
+                    slice(_col, _col + 1),
+                )
+                return EvalResult(out, (_row, _col))
+
             if isinstance(out, pd.DataFrame):
                 if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
                     _out = out.iloc[:, 0]
