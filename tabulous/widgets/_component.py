@@ -320,8 +320,26 @@ class CellInterface(Component["TableBase"]):
         return self.parent._qwidget.setItemLabel(r, c, text)
 
     def set_labeled_data(
-        self, r: int, c: int, data: dict[str, Any] | pd.Series | tuple
+        self,
+        r: int,
+        c: int,
+        data: dict[str, Any] | pd.Series | tuple,
+        sep: str = "",
     ):
+        """
+        Set given data with cell labels.
+
+        Parameters
+        ----------
+        r : int
+            Starting row index.
+        c : int
+            Starting column index.
+        data : dict[str, Any], pd.Series or (named) tuple
+            Data to be set.
+        sep : str, optional
+            Separator added at the end of labels.
+        """
         import pandas as pd
 
         ndata = len(data)
@@ -331,9 +349,12 @@ class CellInterface(Component["TableBase"]):
             index = getattr(data, "_fields", range(ndata))
             _data = pd.Series(data, index=index)
         elif isinstance(data, pd.Series):
-            _data = data
+            _data = data.copy()
         else:
             raise TypeError(f"Cannot convert {data!r} to Series.")
+
+        if sep:
+            _data.index = [f"{idx}{sep}" for idx in _data.index]
 
         self.parent._qwidget.setLabeledData(slice(r, r + ndata), slice(c, c + 1), _data)
         return None
