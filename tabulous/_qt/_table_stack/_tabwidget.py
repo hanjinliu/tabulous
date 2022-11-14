@@ -182,7 +182,9 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
             for path in text.splitlines():
                 if path:
                     # properly format path
-                    if path.startswith("file:///"):  # NOTE: this is needed! lstrip-only does not work
+                    if path.startswith(
+                        "file:///"
+                    ):  # NOTE: this is needed! lstrip-only does not work
                         path = path.lstrip("file:///")
                     elif path.startswith("file:"):
                         path = path.lstrip("file:")
@@ -530,11 +532,3 @@ class QEditabilityNotifier(QtW.QWidget):
 
         def parentWidget(self) -> QOverlayWidget:
             ...
-
-def _is_ip_address(host: str) -> bool:
-    import ipaddress
-    try:
-        ipaddress.ip_address(host)
-        return True
-    except ValueError:
-        return False
