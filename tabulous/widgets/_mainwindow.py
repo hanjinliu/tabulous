@@ -342,7 +342,7 @@ class TableViewerBase:
         import pandas as pd
 
         if suf in (".csv", ".txt", ".dat"):
-            df = pd.read_csv(path)
+            df = pd.read_csv(path, index_col=_get_index_col(path))
             fopen(df, name=path.stem)
         elif suf in (".xlsx", ".xls", ".xlsb", ".xlsm", ".xltm", "xltx", ".xml"):
             df_dict: dict[str, pd.DataFrame] = pd.read_excel(path, sheet_name=None)
@@ -367,7 +367,7 @@ class TableViewerBase:
             df.to_excel(path)
         elif suf in (".html",):
             df.to_html(path)
-        elif suf in (".parquet",):
+        elif suf in (".parquet", ".pq"):
             df.to_parquet(path)
         else:
             raise ValueError(f"Extension {suf} not supported.")
@@ -586,3 +586,11 @@ def _find_parent_table(qwidget: _QtMainWidgetBase) -> TableViewerBase:
         if hasattr(x, "_table_viewer"):
             return x._table_viewer
     raise RuntimeError
+
+
+def _get_index_col(path, sep=",") -> int | None:
+    with open(path) as f:
+        first_char = f.read(1)
+    if first_char == sep:
+        return 0
+    return None
