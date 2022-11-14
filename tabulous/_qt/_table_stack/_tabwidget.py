@@ -4,17 +4,17 @@ import weakref
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Qt, Signal
 
-from ._start import QStartupWidget
-from ._utils import create_temporal_line_edit
+from tabulous._qt._table_stack._start import QStartupWidget
+from tabulous._qt._table_stack._utils import create_temporal_line_edit
 
-from .._table._base._table_group import QTableGroup
-from .._clickable_label import QClickableLabel
-from .._action_registry import QActionRegistry
+from tabulous._qt._table._base._table_group import QTableGroup
+from tabulous._qt._clickable_label import QClickableLabel
+from tabulous._qt._action_registry import QActionRegistry
 
 if TYPE_CHECKING:
-    from .._table import QBaseTable, QMutableTable
-    from ._overlay import QOverlayWidget
-    from .._mainwindow._base import _QtMainWidgetBase
+    from tabulous._qt._table import QBaseTable, QMutableTable
+    from tabulous._qt._mainwindow._base import _QtMainWidgetBase
+    from tabulous._qt._table_stack._overlay import QOverlayWidget
 
 
 class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):

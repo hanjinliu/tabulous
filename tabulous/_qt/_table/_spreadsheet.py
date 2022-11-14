@@ -166,6 +166,7 @@ class QSpreadSheet(QMutableSimpleTable):
                 buf,
                 sep=_sep,
                 header=0,
+                na_values=["#ERROR"],
                 names=data_raw.columns,
                 **self._columns_dtype.as_pandas_kwargs(),
             )

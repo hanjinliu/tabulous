@@ -86,13 +86,18 @@ class Graph:
         if not self._callback_blocked:
             with self.blocked():
                 out = self._func()
-                if (e := out.get_err()) and (sl := self._func.last_destination):
+                if out.get_err() and (sl := self._func.last_destination):
                     import pandas as pd
 
                     rsl, csl = sl
+                    # determine the error object
+                    if table.table_type == "SpreadSheet":
+                        err_repr = "#ERROR"
+                    else:
+                        err_repr = pd.NA
                     val = np.full(
                         (rsl.stop - rsl.start, csl.stop - csl.start),
-                        repr(e),
+                        err_repr,
                         dtype=object,
                     )
                     qtable_view = self.table._qwidget._qtable_view

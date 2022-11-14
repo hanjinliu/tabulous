@@ -474,7 +474,7 @@ class TableBase(ABC):
                 with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked(
                     *pos
                 ):
-                    qtable.setDataFrameValue(*pos, repr(e))
+                    qtable.setDataFrameValue(*pos, "#ERROR")
                 return None
             # SyntaxError/AttributeError might be caused by mistouching. Don't close
             # the editor.
