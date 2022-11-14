@@ -15,11 +15,10 @@ from .types import (
     TableInfoInstance,
     TabPosition,
 )
-from ._selection_op import (
+from tabulous._selection_op import (
     SelectionOperator,
     iter_extract,
     construct,
-    LocSelOp,
     ILocSelOp,
 )
 

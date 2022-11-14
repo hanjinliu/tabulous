@@ -31,7 +31,6 @@ setup(
         "appdirs>=1.4.4",
         "qtconsole",
         "toml",
-        "superqt>=0.3.8",
     ],
     extras_require={
         "all": ["seaborn>=0.11", "matplotlib>=3.1", "pyqt5>=5.12.3"],

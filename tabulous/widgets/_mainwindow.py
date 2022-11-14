@@ -12,16 +12,16 @@ from ._sample import open_sample
 from ._component import Component
 from . import _doc
 
-from ..types import SelectionType, TabPosition, _TableLike, _SingleSelection
-from .. import _utils
+from tabulous.types import SelectionType, TabPosition, _TableLike, _SingleSelection
+from tabulous import _utils
 
 if TYPE_CHECKING:
-    from ._table import TableBase
-    from .._qt import QMainWindow, QMainWidget
-    from .._qt._dockwidget import QtDockWidget
-    from .._qt._mainwindow import _QtMainWidgetBase
-    from .._qt._mainwindow._namespace import Namespace
-    from .._qt._keymap import QtKeyMap
+    from tabulous.widgets._table import TableBase
+    from tabulous._qt import QMainWindow, QMainWidget
+    from tabulous._qt._dockwidget import QtDockWidget
+    from tabulous._qt._mainwindow import _QtMainWidgetBase
+    from tabulous._qt._mainwindow._namespace import Namespace
+    from tabulous._qt._keymap import QtKeyMap
     from qtpy.QtWidgets import QWidget
     from magicgui.widgets import Widget
     import numpy as np
@@ -169,9 +169,7 @@ class TableViewerBase:
     @property
     def config(self) -> MappingProxyType:
         """Return the config info."""
-        from .._utils import get_config
-
-        return get_config().as_immutable()
+        return _utils.get_config().as_immutable()
 
     @property
     def cell_namespace(self) -> Namespace:

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtCore import Qt
 
-from ..._titlebar import QTitleBar
+from tabulous._qt._titlebar import QTitleBar
 
 
 class QInnerSplitter(QtW.QSplitter):

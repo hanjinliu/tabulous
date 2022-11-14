@@ -8,13 +8,13 @@ from typing import (
     Iterable,
     TypeVar,
 )
-from .._selection_model import Index
-from .._selection_op import iter_extract, SelectionOperator
+from tabulous._selection_model import Index
+from tabulous._selection_op import iter_extract, SelectionOperator
 
 if TYPE_CHECKING:
     import numpy as np
     import pandas as pd
-    from ..widgets import TableBase
+    from tabulous.widgets import TableBase
 
 _T = TypeVar("_T")
 

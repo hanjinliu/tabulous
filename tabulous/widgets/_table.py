@@ -17,7 +17,7 @@ from ._component import (
 )
 from . import _doc
 
-from ..types import ItemInfo, HeaderInfo, EvalInfo
+from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -25,12 +25,12 @@ if TYPE_CHECKING:
     from qtpy import QtWidgets as QtW
     from magicgui.widgets import Widget
 
-    from .._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
-    from .._qt._table import QBaseTable
-    from .._qt._table._base._overlay import QOverlayFrame
-    from .._qt._keymap import QtKeyMap
+    from tabulous._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
+    from tabulous._qt._table import QBaseTable
+    from tabulous._qt._table._base._overlay import QOverlayFrame
+    from tabulous._qt._keymap import QtKeyMap
 
-    from ..color import ColorType
+    from tabulous.color import ColorType
 
     ColorMapping = Union[Callable[[Any], ColorType], Mapping[Hashable, ColorType]]
     Formatter = Union[Callable[[Any], str], str, None]

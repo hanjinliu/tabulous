@@ -2,14 +2,14 @@ from __future__ import annotations
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 import weakref
 from typing import TYPE_CHECKING, cast
-from qtpy.QtCore import Signal, Qt
+from qtpy.QtCore import Signal
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 
-from ._keymap import QtKeys, QtKeyMap
+from tabulous._qt._keymap import QtKeys, QtKeyMap
 
 if TYPE_CHECKING:
-    from ._dockwidget import QtDockWidget
-    from ..widgets._mainwindow import TableViewerBase
+    from tabulous._qt._dockwidget import QtDockWidget
+    from tabulous.widgets._mainwindow import TableViewerBase
 
     class RichJupyterWidget(RichJupyterWidget, QtW.QWidget):
         """To fix typing problem"""

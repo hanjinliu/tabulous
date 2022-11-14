@@ -22,16 +22,16 @@ from typing import (
 
 import numpy as np
 from magicgui.widgets import Widget
-from ..exceptions import TableImmutableError
-from ..types import _SingleSelection, SelectionType, EvalInfo
-from .._eval import Graph
+from tabulous.exceptions import TableImmutableError
+from tabulous.types import _SingleSelection, SelectionType, EvalInfo
+from tabulous._eval import Graph
 
 if TYPE_CHECKING:
     from typing_extensions import Self
     import pandas as pd
     from pandas.core.dtypes.dtypes import ExtensionDtype
-    from ._table import TableBase, SpreadSheet
-    from .._qt._table._base._header_view import QDataFrameHeaderView
+    from tabulous.widgets._table import TableBase, SpreadSheet
+    from tabulous._qt._table._base._header_view import QDataFrameHeaderView
 
     _DtypeLike = Union[np.dtype, ExtensionDtype]
 

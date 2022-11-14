@@ -19,8 +19,8 @@ from tabulous._qt._keymap import QtKeys
 from tabulous._selection_model import RangesModel, SelectionModel, Index
 
 if TYPE_CHECKING:
-    from ._delegate import TableItemDelegate
-    from ..._mainwindow import _QtMainWidgetBase
+    from tabulous._qt._table._base._delegate import TableItemDelegate
+    from tabulous._qt._mainwindow import _QtMainWidgetBase
 
 # Flags
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel

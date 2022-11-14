@@ -1,7 +1,7 @@
 __version__ = "0.3.1.dev0"
 
-from .widgets import TableViewer, TableViewerWidget
-from .core import (
+from tabulous.widgets import TableViewer, TableViewerWidget
+from tabulous.core import (
     current_viewer,
     read_csv,
     read_excel,
@@ -9,7 +9,7 @@ from .core import (
     view_spreadsheet,
     open_sample,
 )
-from ._magicgui import MagicTableViewer
+from tabulous._magicgui import MagicTableViewer
 
 __all__ = [
     "TableViewer",

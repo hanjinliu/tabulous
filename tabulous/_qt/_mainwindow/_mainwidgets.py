@@ -6,14 +6,14 @@ from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, QEvent, QTimer
 
 from ._base import _QtMainWidgetBase
-from .._keymap import QtKeyMap
-from ...types import TabPosition
-from ..._utils import get_config
+from tabulous._qt._keymap import QtKeyMap
+from tabulous.types import TabPosition
+from tabulous._utils import get_config
 
 if TYPE_CHECKING:
-    from ...widgets import TableViewer
-    from .._table_stack import QTabbedTableStack
-    from .._dockwidget import QtDockWidget
+    from tabulous.widgets import TableViewer
+    from tabulous._qt._table_stack import QTabbedTableStack
+    from tabulous._qt._dockwidget import QtDockWidget
 
 ICON_DIR = Path(__file__).parent.parent / "_icons"
 STYLE_DIR = Path(__file__).parent.parent

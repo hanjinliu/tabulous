@@ -6,16 +6,16 @@ from qtpy.QtCore import QEvent, Signal
 
 from ._namespace import Namespace
 
-from .._table_stack import QTabbedTableStack
-from .._keymap import QtKeyMap
-from .._history import QtFileHistoryManager
-from ...types import TabPosition
-from ..._utils import load_cell_namespace
+from tabulous._qt._table_stack import QTabbedTableStack
+from tabulous._qt._keymap import QtKeyMap
+from tabulous._qt._history import QtFileHistoryManager
+from tabulous.types import TabPosition
+from tabulous._utils import load_cell_namespace
 
 if TYPE_CHECKING:
-    from .._toolbar import QTableStackToolBar
-    from .._console import QtConsole
-    from ...widgets import TableViewer
+    from tabulous._qt._toolbar import QTableStackToolBar
+    from tabulous._qt._console import QtConsole
+    from tabulous.widgets import TableViewer
 
 
 class _EventFilter(QtCore.QObject):

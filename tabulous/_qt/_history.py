@@ -3,7 +3,7 @@ from pathlib import Path
 from enum import Enum
 from typing import Callable, Literal, overload
 from qtpy import QtWidgets as QtW, QtCore
-from .._utils import load_file_open_path
+from tabulous._utils import load_file_open_path
 
 # Modified from magicgui
 # See https://github.com/pyapp-kit/magicgui/blob/main/magicgui/backends/_qtpy/widgets.py

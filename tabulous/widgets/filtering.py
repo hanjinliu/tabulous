@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Callable
 import operator as op
 
-from ..types import FilterType
+from tabulous.types import FilterType
 
 if TYPE_CHECKING:
     from ._table import TableBase

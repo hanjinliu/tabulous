@@ -9,9 +9,9 @@ import numpy as np
 
 from ._range import RectRange, NoRange, AnyRange
 from ._literal import LiteralCallable, EvalResult
-from .._selection_op import SelectionOperator
 
-from .._selection_model import Index
+from tabulous._selection_op import SelectionOperator
+from tabulous._selection_model import Index
 
 if TYPE_CHECKING:
     from ..widgets import TableBase

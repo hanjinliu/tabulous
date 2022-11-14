@@ -1,6 +1,6 @@
 from __future__ import annotations
-from types import FunctionType
 
+from types import FunctionType
 from typing import MutableMapping, Any, TypeVar
 
 _T = TypeVar("_T", FunctionType, type)

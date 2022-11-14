@@ -12,23 +12,23 @@ from collections_undo import fmt
 
 from ._item_model import AbstractDataFrameModel
 from ._line_edit import QHorizontalHeaderLineEdit, QVerticalHeaderLineEdit
-from .._dtype import isna
-from ..._undo import QtUndoManager, fmt_slice
-from ..._svg import QColoredSVGIcon
-from ..._keymap import QtKeys, QtKeyMap
-from ..._action_registry import QActionRegistry
-from ....types import FilterType, ItemInfo, HeaderInfo, EvalInfo
-from ....exceptions import SelectionRangeError, TableImmutableError
-from ...._selection_op import LocSelOp
+from tabulous._qt._table._dtype import isna
+from tabulous._qt._undo import QtUndoManager, fmt_slice
+from tabulous._qt._svg import QColoredSVGIcon
+from tabulous._qt._keymap import QtKeys, QtKeyMap
+from tabulous._qt._action_registry import QActionRegistry
+from tabulous.types import FilterType, ItemInfo, HeaderInfo, EvalInfo
+from tabulous.exceptions import SelectionRangeError, TableImmutableError
+from tabulous._selection_op import LocSelOp
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
     from ._side_area import QTableSideArea
     from ._enhanced_table import _QTableViewEnhanced
-    from ..._table_stack import QTabbedTableStack
-    from ..._mainwindow import _QtMainWidgetBase
-    from ....types import SelectionType, _Sliceable
-    from ...._eval import Graph
+    from tabulous._qt._table_stack import QTabbedTableStack
+    from tabulous._qt._mainwindow import _QtMainWidgetBase
+    from tabulous.types import SelectionType, _Sliceable
+    from tabulous._eval import Graph
 
 ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
 
