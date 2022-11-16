@@ -329,30 +329,12 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if table is None:
             return
 
-        names, csel = _get_selected_ranges_and_column_names(table)
-
-        if len(names) < 2:
-            raise ValueError("Table must have at least two columns.")
-        elif len(names) == 2:
-            x = {"choices": [], "value": None, "nullable": True}
-            y = {"choices": names, "value": names[0]}
-            yerr = {"choices": names, "value": names[1]}
-        else:
-            x = {"choices": names, "nullable": True, "value": names[0]}
-            y = {"choices": names, "value": names[1]}
-            yerr = {"choices": names, "value": names[2]}
-
-        if _dlg.errorbar(
+        _dlg.errorbar(
             ax={"bind": table.plt.gca()},
-            x=x,
-            y=y,
-            yerr=yerr,
             table={"bind": table},
-            csel={"bind": csel},
             alpha={"min": 0, "max": 1, "step": 0.05},
             parent=self,
-        ):
-            table.plt.draw()
+        )
 
     def hist(self):
         """Histogram."""
@@ -360,21 +342,16 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if table is None:
             return
 
-        names, csel = _get_selected_ranges_and_column_names(table)
-
-        if _dlg.hist(
+        _dlg.hist(
             ax={"bind": table.plt.gca()},
-            y={"choices": names, "widget_type": "Select", "value": names[0]},
             table={"bind": table},
-            csel={"bind": csel},
             alpha={"min": 0, "max": 1, "step": 0.05},
             histtype={
                 "choices": ["bar", "step", "stepfilled", "barstacked"],
                 "value": "bar",
             },
             parent=self,
-        ):
-            table.plt.draw()
+        )
 
     def swarmplot(self):
         """Swarm plot."""
@@ -401,32 +378,12 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if table is None:
             return
 
-        names, csel = _get_selected_ranges_and_column_names(table)
-
-        if len(names) == 0:
-            raise ValueError("Table must have at least one column.")
-        elif len(names) == 1:
-            x = {
-                "choices": [],
-                "widget_type": "ComboBox",
-                "value": None,
-                "nullable": True,
-            }
-            y = {"choices": names, "widget_type": "Select", "value": names[0]}
-        else:
-            x = {"choices": names, "nullable": True, "value": names[0]}
-            y = {"choices": names, "widget_type": "Select", "value": names[1]}
-
-        if dialog(
+        dialog(
             ax={"bind": table.plt.gca()},
-            x=x,
-            y=y,
             table={"bind": table},
-            csel={"bind": csel},
             alpha={"min": 0, "max": 1, "step": 0.05},
             parent=self,
-        ):
-            table.plt.draw()
+        )
 
     def _plot_sns(self, dialog):
         table = self.viewer.current_table

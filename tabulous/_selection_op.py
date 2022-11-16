@@ -273,39 +273,43 @@ class ValueSelOp(SelectionOperator):
 
 def iter_extract(text: str, *, df_expr: str = "df") -> Iterator[SelectionOperator]:
     """Iteratively extract selection literal from text."""
-    ndf = len(df_expr)
     for expr in find_all_dataframe_expr(text):
-        if expr.startswith(f"{df_expr}["):
-            # df['val'][...]
-            colname, rsl_str = expr[ndf + 1 : -1].split("][")
-            rsl = _parse_slice(rsl_str)
-            sel = ColumnSelOp(_eval(colname), rsl)
+        yield parse(expr, df_expr=df_expr)
 
-        elif expr.startswith(f"{df_expr}.loc["):
-            # df.loc[..., ...]
-            rsl_str, csl_str = expr[ndf + 5 : -1].split(",")
-            rsl = _parse_slice(rsl_str)
-            csl = _parse_slice(csl_str)
-            sel = LocSelOp(rsl, csl)
 
-        elif expr.startswith(f"{df_expr}.iloc["):
-            # df.iloc[..., ...]
-            rsl_str, csl_str = expr[ndf + 6 : -1].split(",")
-            rsl = _parse_slice(rsl_str)
-            csl = _parse_slice(csl_str)
-            sel = ILocSelOp(rsl, csl)
+def parse(expr: str, *, df_expr: str = "df") -> SelectionOperator:
+    ndf = len(df_expr)
+    if expr.startswith(f"{df_expr}["):
+        # df['val'][...]
+        colname, rsl_str = expr[ndf + 1 : -1].split("][")
+        rsl = _parse_slice(rsl_str)
+        sel = ColumnSelOp(_eval(colname), rsl)
 
-        elif expr.startswith(f"{df_expr}.values["):
-            # df.values[..., ...]
-            rsl_str, csl_str = expr[ndf + 8 : -1].split(",")
-            rsl = _parse_slice(rsl_str)
-            csl = _parse_slice(csl_str)
-            sel = ValueSelOp(rsl, csl)
+    elif expr.startswith(f"{df_expr}.loc["):
+        # df.loc[..., ...]
+        rsl_str, csl_str = expr[ndf + 5 : -1].split(",")
+        rsl = _parse_slice(rsl_str)
+        csl = _parse_slice(csl_str)
+        sel = LocSelOp(rsl, csl)
 
-        else:
-            raise ValueError(f"Unreachable expression: {expr!r}")
+    elif expr.startswith(f"{df_expr}.iloc["):
+        # df.iloc[..., ...]
+        rsl_str, csl_str = expr[ndf + 6 : -1].split(",")
+        rsl = _parse_slice(rsl_str)
+        csl = _parse_slice(csl_str)
+        sel = ILocSelOp(rsl, csl)
 
-        yield sel
+    elif expr.startswith(f"{df_expr}.values["):
+        # df.values[..., ...]
+        rsl_str, csl_str = expr[ndf + 8 : -1].split(",")
+        rsl = _parse_slice(rsl_str)
+        csl = _parse_slice(csl_str)
+        sel = ValueSelOp(rsl, csl)
+
+    else:
+        raise ValueError(f"Unreachable expression: {expr!r}")
+
+    return sel
 
 
 def construct(

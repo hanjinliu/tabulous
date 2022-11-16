@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, Callable, Iterable, TYPE_CHECKING, TypeVar, cast
 import warnings
 from qtpy import QtWidgets as QtW
-from magicgui import register_type
+from magicgui import register_type, magicgui
 from magicgui.widgets import Widget, Container, ComboBox, Label, Dialog
 from magicgui.widgets._bases import CategoricalWidget
 from magicgui.backends._qtpy.widgets import QBaseWidget
@@ -17,9 +17,8 @@ from .types import (
 )
 from tabulous._selection_op import (
     SelectionOperator,
-    iter_extract,
+    parse,
     construct,
-    ILocSelOp,
 )
 
 if TYPE_CHECKING:
@@ -385,14 +384,8 @@ def dialog_factory(function: _F) -> _F:
 
 
 def dialog_factory_mpl(function: _F) -> _F:
-
-    from magicgui.signature import magic_signature
-
     def _runner(parent=None, **param_options):
-        widgets = list(
-            magic_signature(function, gui_options=param_options).widgets().values()
-        )
-        dlg = Dialog(widgets=widgets)
+        dlg = magicgui(function, **param_options)
 
         from ._qt._plot import QtMplPlotCanvas
 
@@ -419,11 +412,8 @@ def dialog_factory_mpl(function: _F) -> _F:
         dlg.changed.emit()
 
         dlg.native.setParent(parent, dlg.native.windowFlags())
-        if dlg.exec():
-            out = function(**dlg.asdict())
-        else:
-            out = None
-        return out
+        dlg.called.connect(lambda: dlg.close())
+        return dlg.show()
 
     return _runner
 
@@ -448,29 +438,33 @@ class SelectionWidget(Container):
         self._line.changed.connect(self.changed.emit(self._line.value))
         self._btn.changed.connect(lambda: self._read_selection())
         if isinstance(value, SelectionOperator):
-            self._selop = value
-        else:
-            self._selop = ILocSelOp(slice(None), slice(None))
+            self.value = value
 
     @property
-    def value(self) -> SelectionOperator:
-        return self._selop
+    def value(self) -> SelectionOperator | None:
+        """Get selection operator that represents current selection."""
+        text = self._line.value
+        if text:
+            return parse(text, df_expr="df")
+        return None
 
     @value.setter
     def value(self, val: str | SelectionOperator) -> None:
         if isinstance(val, str):
-            val = next(iter_extract(val, df_expr="df"))
-        self._selop = val
-        self._line.value = val.fmt()
+            if val:
+                text = parse(val, df_expr="df").fmt()
+            else:
+                text = ""
+        self._line.value = text
         return None
 
     def as_iloc(self) -> tuple[slice, slice]:
         df = self._find_table().data_shown
-        return self._selop.as_iloc(df)
+        return self.value.as_iloc(df)
 
     def as_iloc_slices(self) -> tuple[slice, slice]:
         df = self._find_table().data_shown
-        return self._selop.as_iloc_slices(df)
+        return self.value.as_iloc_slices(df)
 
     def _find_table(self) -> TableBase:
         table = find_current_table(self)
@@ -490,8 +484,9 @@ class SelectionWidget(Container):
         sel = sels[0]
         slicing_method = get_config().cell.slicing
 
-        self._selop = construct(*sel, table.data_shown, slicing_method)
-        self._line.value = self._selop.fmt()
+        _selop = construct(*sel, table.data_shown, slicing_method)
+        self._line.value = _selop.fmt()
+        self.changed.emit(_selop)
         return None
 
 
