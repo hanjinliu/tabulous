@@ -459,10 +459,12 @@ class SelectionWidget(Container):
         return None
 
     def as_iloc(self) -> tuple[slice, slice]:
+        """Return current value as a indexer for ``iloc`` method."""
         df = self._find_table().data_shown
         return self.value.as_iloc(df)
 
     def as_iloc_slices(self) -> tuple[slice, slice]:
+        """Return current value as slices for ``iloc`` method."""
         df = self._find_table().data_shown
         return self.value.as_iloc_slices(df)
 
@@ -484,7 +486,14 @@ class SelectionWidget(Container):
         sel = sels[0]
         slicing_method = get_config().cell.slicing
 
-        _selop = construct(*sel, table.data_shown, slicing_method)
+        qwidget = table._qwidget
+        column_selected = qwidget._qtable_view._selection_model._col_selection_indices
+        _selop = construct(
+            *sel,
+            qwidget.model().df,
+            method=slicing_method,
+            column_selected=column_selected,
+        )
         self._line.value = _selop.fmt()
         self.changed.emit(_selop)
         return None
