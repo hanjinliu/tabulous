@@ -8,6 +8,7 @@ from qtpy import QtCore, QtGui
 from qtpy.QtCore import Qt
 
 from magicgui import widgets as mWdg
+from collections_undo import arguments
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from ._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
@@ -217,7 +218,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @setDataFrame.server
     def setDataFrame(self, data):
-        return (getattr(self, "_data_raw", None),), {}
+        return arguments(getattr(self, "_data_raw", None))
 
     @setDataFrame.set_formatter
     def _setDataFrame_fmt(self, data: pd.DataFrame):
@@ -575,7 +576,7 @@ class QSpreadSheet(QMutableSimpleTable):
     def _set_widget_at_index(self, r: int, c: int, widget: ValueWidget):
         index = self.model().index(r, c)
         wdt = self._qtable_view.indexWidget(index)
-        return (r, c, getattr(wdt, "_magic_widget", None)), {}
+        return arguments(r, c, getattr(wdt, "_magic_widget", None))
 
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         """Set value of the table vertical header and DataFrame at the index."""
@@ -635,7 +636,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @setColumnDtype.server
     def setColumnDtype(self, label: Hashable, dtype: Any):
-        return (label, self._columns_dtype.get(label, None)), {}
+        return arguments(label, self._columns_dtype.get(label, None))
 
     def _insert_row_above(self, row: int):
         if not self.isEditable():

@@ -3,6 +3,7 @@ from typing import Any, Hashable, Iterable, Sequence, TYPE_CHECKING
 from pandas.core.groupby.generic import DataFrameGroupBy
 from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Signal, Qt
+from collections_undo import arguments
 
 from ._base import QBaseTable, _QTableViewEnhanced, DataFrameModel
 
@@ -180,7 +181,7 @@ class QTableGroupBy(QBaseTable):
 
     @setDataFrame.server
     def setDataFrame(self, data) -> None:
-        return (getattr(self, "_data_raw", None),), {}
+        return arguments(getattr(self, "_data_raw", None))
 
     def createModel(self):
         model = DataFrameModel(self)

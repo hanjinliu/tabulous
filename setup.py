@@ -5,29 +5,29 @@ with open("tabulous/__init__.py", encoding="utf-8") as f:
     VERSION = line.strip().split()[-1][1:-1]
 
 with open("README.md") as f:
-    readme = f.read()
+    README = f.read()
+
+TABULOUS = "tabulous"
 
 setup(
-    name="tabulous",
+    name=TABULOUS,
     version=VERSION,
     description="A table data viewer for Python",
-    long_description=readme,
+    long_description=README,
     long_description_content_type="text/markdown",
     author="Hanjin Liu",
     author_email="liuhanjin-sc@g.ecc.u-tokyo.ac.jp",
     license="BSD 3-Clause",
     download_url="https://github.com/hanjinliu/tabulous",
     packages=find_packages(exclude=["docs", "examples", "rst", "tests", "tests.*"]),
-    package_data={
-        "tabulous": ["**/*.pyi", "*.pyi", "**/*.svg", "**/*.png", "**/*.qss"]
-    },
+    package_data={TABULOUS: ["**/*.pyi", "*.pyi", "**/*.svg", "**/*.png", "**/*.qss"]},
     include_package_data=True,
     install_requires=[
         "magicgui>=0.5.1",
         "psygnal>=0.3.5",
         "qtpy>=1.10.0",
         "pandas>=1.0.0",
-        "collections-undo>=0.0.6",
+        "collections-undo>=0.0.7",
         "appdirs>=1.4.4",
         "qtconsole",
         "toml",

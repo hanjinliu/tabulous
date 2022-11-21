@@ -377,6 +377,7 @@ class PlotInterface(Component["TableBase"]):
         return self.gcw().ax
 
     def gcw(self):
+        """Get current widget."""
         if self._current_widget is None or isdeleted(self._current_widget):
             self.new_widget()
         return self._current_widget

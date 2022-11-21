@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any
 import pandas as pd
+from collections_undo import arguments
 
 from ._base import QMutableSimpleTable, DataFrameModel
 from ._dtype import convert_value
@@ -21,7 +22,7 @@ class QTableLayer(QMutableSimpleTable):
     @setDataFrame.server
     def setDataFrame(self, data):
         try:
-            return (self.getDataFrame(),), {}
+            return arguments(self.getDataFrame())
         except Exception:
             return None
 

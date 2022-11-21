@@ -8,7 +8,7 @@ from qtpy.QtCore import Signal, Qt
 
 import numpy as np
 import pandas as pd
-from collections_undo import fmt
+from collections_undo import fmt, arguments
 
 from ._item_model import AbstractDataFrameModel
 from ._line_edit import QHorizontalHeaderLineEdit, QVerticalHeaderLineEdit
@@ -397,7 +397,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     @setFilter.server
     def setFilter(self, sl: FilterType):
-        return (self.filter(),), {}
+        return arguments(self.filter())
 
     @setFilter.set_formatter
     def _setFilter_fmt(self, sl):
@@ -422,7 +422,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     @setForegroundColormap.server
     def setForegroundColormap(self, name: str, colormap: Callable):
         cmap = self.model()._foreground_colormap.get(name, None)
-        return (name, cmap), {}
+        return arguments(name, cmap)
 
     @_mgr.interface
     def setBackgroundColormap(self, name: str, colormap: Callable | None):
@@ -439,7 +439,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     @setBackgroundColormap.server
     def setBackgroundColormap(self, name: str, colormap: Callable):
         cmap = self.model()._background_colormap.get(name, None)
-        return (name, cmap), {}
+        return arguments(name, cmap)
 
     @_mgr.interface
     def setTextFormatter(self, name: str, fmt: Callable[[Any], str] | str):
@@ -458,7 +458,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     @setTextFormatter.server
     def setTextFormatter(self, name: str, fmt: Callable[[Any], str] | str):
         fmt = self.model()._text_formatter.get(name, None)
-        return (name, fmt), {}
+        return arguments(name, fmt)
 
     @_mgr.interface
     def setDataValidator(self, name: str, validator: Callable[[Any], None]):
@@ -475,7 +475,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     @setDataValidator.server
     def setDataValidator(self, name: str, validator: Callable[[Any], bool]):
         validator = self.model()._validator.get(name, None)
-        return (name, validator), {}
+        return arguments(name, validator)
 
     def itemLabel(self, r: int, c: int):
         model = self.model()
@@ -491,7 +491,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     @setItemLabel.server
     def setItemLabel(self, r: int, c: int, text: str):
-        return (r, c, self.itemLabel(r, c)), {}
+        return arguments(r, c, self.itemLabel(r, c))
 
     def setCalculationGraph(self, pos: tuple[int, int], graph: Graph):
         """Set calculation graph at the given position."""
@@ -515,7 +515,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     @_set_graph.server
     def _set_graph(self, pos: tuple[int, int], graph: Graph):
         graph = self._qtable_view._ref_graphs.get(pos, None)
-        return (pos, graph), {}
+        return arguments(pos, graph)
 
     @_set_graph.set_formatter
     def _set_graph_fmt(self, pos, graph):
@@ -1061,7 +1061,7 @@ class QMutableTable(QBaseTable):
 
     @setEditable.server
     def setEditable(self, editable: bool):
-        return (self.isEditable(),), {}
+        return arguments(self.isEditable())
 
     @setEditable.set_formatter
     def _setEditable_fmt(self, editable: bool):
@@ -1226,7 +1226,7 @@ class QMutableTable(QBaseTable):
 
     @setHorizontalHeaderValue.server
     def setHorizontalHeaderValue(self, index: int, value: Any) -> Any:
-        return (index, self.model().df.columns[index]), {}
+        return arguments(index, self.model().df.columns[index])
 
     @setHorizontalHeaderValue.set_formatter
     def _setHorizontalHeaderValue_fmt(self, index: int, value: Any) -> Any:
@@ -1254,7 +1254,7 @@ class QMutableTable(QBaseTable):
 
     @setVerticalHeaderValue.server
     def setVerticalHeaderValue(self, index: int, value: Any) -> Any:
-        return (index, self.model().df.index[index]), {}
+        return arguments(index, self.model().df.index[index])
 
     @setVerticalHeaderValue.set_formatter
     def _setVerticalHeaderValue_fmt(self, index: int, value: Any) -> Any:
