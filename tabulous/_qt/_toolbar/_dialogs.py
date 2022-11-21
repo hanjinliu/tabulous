@@ -86,9 +86,12 @@ def plot(
                     logger.debug(f"Disconnecting plt.plot update callback at {y_!r}")
                     return
                 try:
-                    xdata = table.data[xdata.name]
-                    ydata = table.data[y_]
-                    _artist.set_data(xdata, ydata)
+                    _ydata = table.data[y_]
+                    if x is None:
+                        _artist.set_ydata(_ydata)
+                    else:
+                        _xdata = table.data[xdata.name]
+                        _artist.set_data(_xdata, _ydata)
                     _plt.draw()
                 except RuntimeError as e:
                     if str(e).startswith("wrapped C/C++ object of"):
@@ -135,9 +138,12 @@ def scatter(
                     table.events.data.disconnect(_on_data_updated)
                     return
                 try:
-                    xdata = table.data[x][xdata.name]
-                    ydata = table.data[y_]
-                    _artist.set_offsets(np.stack([xdata, ydata], axis=1))
+                    _ydata = table.data[y_]
+                    if x is None:
+                        _xdata = np.arange(len(_ydata))
+                    else:
+                        _xdata = table.data[xdata.name]
+                    _artist.set_offsets(np.stack([_xdata, _ydata], axis=1))
                     _plt.draw()
                 except RuntimeError as e:
                     if str(e).startswith("wrapped C/C++ object of"):
