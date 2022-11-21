@@ -59,15 +59,16 @@ def plot(
 ):
     table = cast(TableBase, table)
     data = table.data
-    if x is None:
-        xdata = np.arange(len(ydata))
-    else:
-        xdata = x.operate(data)
-
     if y is None:
         raise ValueError("Y must be set.")
 
     ydata_all = data.iloc[y.as_iloc_slices(data)]
+
+    if x is None:
+        xdata = np.arange(len(ydata_all))
+    else:
+        xdata = x.operate(data)
+
     for y_, ydata in ydata_all.items():
         (artist,) = ax.plot(xdata, ydata, alpha=alpha, label=y_, picker=True)
         if ref:
@@ -111,15 +112,15 @@ def scatter(
 ):
     table = cast(TableBase, table)
     data = table.data
-    if x is None:
-        xdata = np.arange(len(ydata))
-    else:
-        xdata = x.operate(data)
 
     if y is None:
         raise ValueError("Y must be set.")
-
     ydata_all = data.iloc[y.as_iloc_slices(data)]
+
+    if x is None:
+        xdata = np.arange(len(ydata_all))
+    else:
+        xdata = x.operate(data)
     for y_, ydata in ydata_all.items():
         artist = ax.scatter(xdata, ydata, alpha=alpha, label=y_, picker=True)
         if ref:
@@ -157,12 +158,12 @@ def errorbar(
 ):
     table = cast(TableBase, table)
     data = table.data
-    if x is None:
-        xdata = np.arange(len(y))
-    else:
-        xdata = x.operate(data)
     ydata = y.operate(data)
     yerrdata = yerr.operate(data)
+    if x is None:
+        xdata = np.arange(len(ydata))
+    else:
+        xdata = x.operate(data)
 
     ax.errorbar(
         xdata,
