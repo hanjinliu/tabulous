@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 
 # NOTE: Axes should be imported here!
-from ..._magicgui import dialog_factory, dialog_factory_mpl, Axes
-from ...widgets import TableBase
-from ...types import TableData
+from tabulous.widgets import TableBase
+from tabulous.types import TableData
+from tabulous._selection_op import SelectionOperator
+from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
 
 
 logger = logging.getLogger(__name__)
@@ -50,22 +51,25 @@ def sort(df: TableData, by: List[str], ascending: bool = True) -> TableData:
 @dialog_factory_mpl
 def plot(
     ax: Axes,
-    x: str,
-    y: List[str],
+    x: SelectionOperator,
+    y: SelectionOperator,
     table,
-    csel,
     alpha: float = 1.0,
     ref: bool = False,
 ):
     table = cast(TableBase, table)
     data = table.data
-    if x is None:
-        xdata = np.arange(len(ydata))
-    else:
-        xdata = data[x][csel]
+    if y is None:
+        raise ValueError("Y must be set.")
 
-    for y_ in y:
-        ydata: pd.Series = data[y_][csel]
+    ydata_all = data.iloc[y.as_iloc_slices(data)]
+
+    if x is None:
+        xdata = np.arange(len(ydata_all))
+    else:
+        xdata = x.operate(data)
+
+    for y_, ydata in ydata_all.items():
         (artist,) = ax.plot(xdata, ydata, alpha=alpha, label=y_, picker=True)
         if ref:
             _ref = weakref.ref(artist)
@@ -82,9 +86,12 @@ def plot(
                     logger.debug(f"Disconnecting plt.plot update callback at {y_!r}")
                     return
                 try:
-                    xdata = table.data[x][csel]
-                    ydata = table.data[y_][csel]
-                    _artist.set_data(xdata, ydata)
+                    _ydata = table.data[y_]
+                    if x is None:
+                        _artist.set_ydata(_ydata)
+                    else:
+                        _xdata = table.data[xdata.name]
+                        _artist.set_data(_xdata, _ydata)
                     _plt.draw()
                 except RuntimeError as e:
                     if str(e).startswith("wrapped C/C++ object of"):
@@ -93,28 +100,31 @@ def plot(
                             f"Disconnecting plt.plot update callback at {y_!r}"
                         )
 
+    table.plt.draw()
     return artist
 
 
 @dialog_factory_mpl
 def scatter(
     ax: Axes,
-    x: str,
-    y: List[str],
+    x: SelectionOperator,
+    y: SelectionOperator,
     table,
-    csel,
     alpha: float = 1.0,
     ref: bool = False,
 ):
     table = cast(TableBase, table)
     data = table.data
-    if x is None:
-        xdata = np.arange(len(ydata))
-    else:
-        xdata = data[x][csel]
 
-    for y_ in y:
-        ydata: pd.Series = data[y_][csel]
+    if y is None:
+        raise ValueError("Y must be set.")
+    ydata_all = data.iloc[y.as_iloc_slices(data)]
+
+    if x is None:
+        xdata = np.arange(len(ydata_all))
+    else:
+        xdata = x.operate(data)
+    for y_, ydata in ydata_all.items():
         artist = ax.scatter(xdata, ydata, alpha=alpha, label=y_, picker=True)
         if ref:
             _ref = weakref.ref(artist)
@@ -128,52 +138,58 @@ def scatter(
                     table.events.data.disconnect(_on_data_updated)
                     return
                 try:
-                    xdata = table.data[x][csel]
-                    ydata = table.data[y_][csel]
-                    _artist.set_offsets(np.stack([xdata, ydata], axis=1))
+                    _ydata = table.data[y_]
+                    if x is None:
+                        _xdata = np.arange(len(_ydata))
+                    else:
+                        _xdata = table.data[xdata.name]
+                    _artist.set_offsets(np.stack([_xdata, _ydata], axis=1))
                     _plt.draw()
                 except RuntimeError as e:
                     if str(e).startswith("wrapped C/C++ object of"):
                         table.events.data.disconnect(_on_data_updated)
 
+    table.plt.draw()
     return True
 
 
 @dialog_factory_mpl
 def errorbar(
     ax: Axes,
-    x: str,
-    y: str,
-    yerr: str,
+    x: SelectionOperator,
+    y: SelectionOperator,
+    yerr: SelectionOperator,
     table,
-    csel,
     alpha: float = 1.0,
 ):
     table = cast(TableBase, table)
     data = table.data
+    ydata = y.operate(data)
+    yerrdata = yerr.operate(data)
     if x is None:
-        xdata = np.arange(len(y))
+        xdata = np.arange(len(ydata))
     else:
-        xdata = data[x][csel]
+        xdata = x.operate(data)
+
     ax.errorbar(
         xdata,
-        data[y][csel],
-        yerr=data[yerr][csel],
+        y=ydata,
+        yerr=yerrdata,
         alpha=alpha,
         fmt="o",
         label=y,
         picker=True,
     )
 
+    table.plt.draw()
     return True
 
 
 @dialog_factory_mpl
 def hist(
     ax: Axes,
-    y: List[str],
+    y: SelectionOperator,
     table,
-    csel,
     bins: int = 10,
     alpha: float = 1.0,
     density: bool = False,
@@ -181,8 +197,13 @@ def hist(
 ):
     table = cast(TableBase, table)
     data = table.data
-    for _y in y:
-        ydata = data[_y][csel]
+
+    if y is None:
+        raise ValueError("Y must be set.")
+
+    ydata_all = data.iloc[y.as_iloc_slices(data)]
+
+    for _y, ydata in ydata_all.items():
         ax.hist(
             ydata,
             bins=bins,
@@ -193,6 +214,7 @@ def hist(
             picker=True,
         )
     ax.axhline(0, color="gray", lw=0.5, alpha=0.5, zorder=-1)
+    table.plt.draw()
     return True
 
 
@@ -214,6 +236,7 @@ def swarmplot(
     sns.swarmplot(
         x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax, picker=True
     )
+    table.plt.draw()
     return True
 
 
@@ -236,6 +259,7 @@ def barplot(
         x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax, picker=True
     )
     ax.axhline(0, color="gray", lw=0.5, alpha=0.5, zorder=-1)
+    table.plt.draw()
     return True
 
 
@@ -254,6 +278,7 @@ def boxplot(
     table = cast(TableBase, table)
     data = table.data[csel]
     sns.boxplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax)
+    table.plt.draw()
     return True
 
 
@@ -272,6 +297,7 @@ def boxenplot(
     table = cast(TableBase, table)
     data = table.data[csel]
     sns.boxenplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax, picker=True)
+    table.plt.draw()
     return True
 
 

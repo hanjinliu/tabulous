@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Hashable, Iterator, TYPE_CHECKING, Union, SupportsIndex
+from typing import Hashable, Iterator, TYPE_CHECKING, Literal, Union, SupportsIndex
 from functools import singledispatch
 import re
 
@@ -186,16 +186,29 @@ class LocSelOp(SelectionOperator):
 
     @classmethod
     def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
+        """Construct operator from an iloc-style slices."""
         index, columns = df.axes
         if isinstance(r, slice):
-            rsel = slice(index[r.start], index[r.stop - 1])
+            rsel = _normalize_loc_slice(r, index)
         else:
             rsel = index[r]
         if isinstance(c, slice):
-            csel = slice(columns[c.start], columns[c.stop - 1])
+            csel = _normalize_loc_slice(c, columns)
         else:
             csel = columns[c]
         return cls(rsel, csel)
+
+
+def _normalize_loc_slice(sl: slice, index: pd.Index) -> slice:
+    if sl.start is None:
+        start = 0
+    else:
+        start = sl.start
+    if sl.stop is None:
+        stop = -1
+    else:
+        stop = sl.stop
+    return slice(index[start], index[stop - 1])
 
 
 class ILocSelOp(SelectionOperator):
@@ -232,6 +245,7 @@ class ILocSelOp(SelectionOperator):
 
     @classmethod
     def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
+        """Construct operator from an iloc-style slices."""
         return cls(r, c)
 
 
@@ -268,49 +282,76 @@ class ValueSelOp(SelectionOperator):
 
     @classmethod
     def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
+        """Construct operator from an iloc-style slices."""
         return cls(r, c)
 
 
 def iter_extract(text: str, *, df_expr: str = "df") -> Iterator[SelectionOperator]:
     """Iteratively extract selection literal from text."""
-    ndf = len(df_expr)
     for expr in find_all_dataframe_expr(text):
-        if expr.startswith(f"{df_expr}["):
-            # df['val'][...]
-            colname, rsl_str = expr[ndf + 1 : -1].split("][")
-            rsl = _parse_slice(rsl_str)
-            sel = ColumnSelOp(_eval(colname), rsl)
+        yield parse(expr, df_expr=df_expr)
 
-        elif expr.startswith(f"{df_expr}.loc["):
-            # df.loc[..., ...]
-            rsl_str, csl_str = expr[ndf + 5 : -1].split(",")
-            rsl = _parse_slice(rsl_str)
-            csl = _parse_slice(csl_str)
-            sel = LocSelOp(rsl, csl)
 
-        elif expr.startswith(f"{df_expr}.iloc["):
-            # df.iloc[..., ...]
-            rsl_str, csl_str = expr[ndf + 6 : -1].split(",")
-            rsl = _parse_slice(rsl_str)
-            csl = _parse_slice(csl_str)
-            sel = ILocSelOp(rsl, csl)
+def parse(expr: str, *, df_expr: str = "df") -> SelectionOperator:
+    """Parse dataframe-slicing expression."""
+    ndf = len(df_expr)
+    if expr.startswith(f"{df_expr}["):
+        # df['val'][...]
+        colname, rsl_str = expr[ndf + 1 : -1].split("][")
+        rsl = _parse_slice(rsl_str)
+        sel = ColumnSelOp(_eval(colname), rsl)
 
-        elif expr.startswith(f"{df_expr}.values["):
-            # df.values[..., ...]
-            rsl_str, csl_str = expr[ndf + 8 : -1].split(",")
-            rsl = _parse_slice(rsl_str)
-            csl = _parse_slice(csl_str)
-            sel = ValueSelOp(rsl, csl)
+    elif expr.startswith(f"{df_expr}.loc["):
+        # df.loc[..., ...]
+        rsl_str, csl_str = expr[ndf + 5 : -1].split(",")
+        rsl = _parse_slice(rsl_str)
+        csl = _parse_slice(csl_str)
+        sel = LocSelOp(rsl, csl)
 
-        else:
-            raise ValueError(f"Unreachable expression: {expr!r}")
+    elif expr.startswith(f"{df_expr}.iloc["):
+        # df.iloc[..., ...]
+        rsl_str, csl_str = expr[ndf + 6 : -1].split(",")
+        rsl = _parse_slice(rsl_str)
+        csl = _parse_slice(csl_str)
+        sel = ILocSelOp(rsl, csl)
 
-        yield sel
+    elif expr.startswith(f"{df_expr}.values["):
+        # df.values[..., ...]
+        rsl_str, csl_str = expr[ndf + 8 : -1].split(",")
+        rsl = _parse_slice(rsl_str)
+        csl = _parse_slice(csl_str)
+        sel = ValueSelOp(rsl, csl)
+
+    else:
+        raise ValueError(f"Unreachable expression: {expr!r}")
+
+    return sel
 
 
 def construct(
-    rsl: slice, csl: slice, df: pd.DataFrame, method: str
+    rsl: slice,
+    csl: slice,
+    df: pd.DataFrame,
+    method: Literal["loc", "iloc", "values"] = "loc",
+    column_selected: bool = False,
 ) -> SelectionOperator:
+    """Construct a selection operator from given slices and data frame."""
+
+    nr, nc = df.shape
+
+    # normalize out-of-bound
+    if rsl.stop > nr:
+        if rsl.start >= nr:
+            return None
+        rsl = slice(rsl.start, nr)
+    if csl.stop > nc:
+        if csl.start >= nc:
+            return None
+        csl = slice(csl.start, nc)
+
+    if column_selected:
+        rsl = slice(None)
+
     if method == "loc":
         if csl.start == csl.stop - 1:
             selop = ColumnSelOp.from_iloc(rsl, csl, df)

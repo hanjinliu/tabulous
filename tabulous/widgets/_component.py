@@ -21,6 +21,7 @@ from typing import (
 )
 
 import numpy as np
+from qtpy.sip import isdeleted
 from magicgui.widgets import Widget
 from tabulous.exceptions import TableImmutableError
 from tabulous.types import _SingleSelection, SelectionType, EvalInfo
@@ -369,22 +370,20 @@ class PlotInterface(Component["TableBase"]):
 
     def gcf(self):
         """Get current figure."""
-        if self._current_widget is None:
-            self.new_widget()
-        return self._current_widget.figure
+        return self.gcw().figure
 
     def gca(self):
         """Get current axis."""
-        if self._current_widget is None:
-            self.new_widget()
-        return self._current_widget.ax
+        return self.gcw().ax
 
     def gcw(self):
+        if self._current_widget is None or isdeleted(self._current_widget):
+            self.new_widget()
         return self._current_widget
 
     def new_widget(self, nrows=1, ncols=1):
         """Create a new plot widget and add it to the table."""
-        from .._qt._plot import QtMplPlotCanvas
+        from tabulous._qt._plot import QtMplPlotCanvas
 
         table = self.parent
         if table._qwidget._qtable_view.parentViewer()._white_background:

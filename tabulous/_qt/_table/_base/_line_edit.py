@@ -57,6 +57,7 @@ class _QTableLineEdit(QtW.QLineEdit):
 
     @property
     def current_exception(self) -> str:
+        """The current exception that happened in the cell."""
         return self._current_exception
 
     @current_exception.setter
@@ -533,22 +534,10 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         rsl, csl = qtable._selection_model.ranges[-1]
         _df = qtable.model().df
-        nr, nc = _df.shape
-
-        # normalize out-of-bound
-        if rsl.stop > nr:
-            if rsl.start >= nr:
-                return None
-            rsl = slice(rsl.start, nr)
-        if csl.stop > nc:
-            if csl.start >= nc:
-                return None
-            csl = slice(csl.start, nc)
-
-        if csl.start in qtable._selection_model._col_selection_indices:
-            rsl = slice(None)
-
-        selop = construct(rsl, csl, _df, _CONFIG.cell.slicing)
+        column_selected = len(qtable._selection_model._col_selection_indices) > 0
+        selop = construct(
+            rsl, csl, _df, method=_CONFIG.cell.slicing, column_selected=column_selected
+        )
 
         if selop.area(_df) > 1:
             to_be_added = selop.fmt("df")
