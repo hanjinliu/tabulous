@@ -2,13 +2,61 @@ from __future__ import annotations
 
 from typing import Callable
 import weakref
-from psygnal import Signal, SignalInstance
+from psygnal import Signal, SignalInstance, EmitLoopError
 from tabulous._range import RectRange
+from inspect import Signature
+from typing import overload, Any, Callable
+
+
+class SignalArray(Signal):
+    @overload
+    def __get__(
+        self, instance: None, owner: type[Any] | None = None
+    ) -> SignalArray:  # noqa
+        ...  # pragma: no cover
+
+    @overload
+    def __get__(  # noqa
+        self, instance: Any, owner: type[Any] | None = None
+    ) -> SignalArrayInstance:
+        ...  # pragma: no cover
+
+    def __get__(self, instance: Any, owner: type[Any] | None = None):
+        if instance is None:
+            return self
+        name = self._name
+        signal_instance = SignalArrayInstance(
+            self.signature,
+            instance=instance,
+            name=name,
+            check_nargs_on_connect=self._check_nargs_on_connect,
+            check_types_on_connect=self._check_types_on_connect,
+        )
+        setattr(instance, name, signal_instance)
+        return signal_instance
+
+
+_empty_signature = Signature()
 
 
 class SignalArrayInstance(SignalInstance):
-    def __init__(self):
+    def __init__(
+        self,
+        signature: Signature | tuple = _empty_signature,
+        *,
+        instance: Any = None,
+        name: str | None = None,
+        check_nargs_on_connect: bool = True,
+        check_types_on_connect: bool = False,
+    ) -> None:
         self._registry: list[tuple[RectRange, Callable]] = []
+        super().__init__(
+            signature,
+            instance=instance,
+            name=name,
+            check_nargs_on_connect=check_nargs_on_connect,
+            check_types_on_connect=check_types_on_connect,
+        )
 
     def __getitem__(self, key):
         if isinstance(key, tuple):
@@ -18,13 +66,50 @@ class SignalArrayInstance(SignalInstance):
         return _SignalSubArrayRef(self, key)
 
     def _connect_at_range(self, range: RectRange, slot: Callable):
+        """Connect a slot to the signal at a given range."""
         self._registry.append((range, slot))
         return slot
 
     def _emit_at_range(self, range: RectRange, *args, **kwargs):
+        """Emit values at a given range."""
         for r, slot in self._registry:
             if range.includes(r):
                 slot(*args, **kwargs)
+
+    def _run_emit_loop(self, args: tuple[Any, ...]) -> None:
+        rem = []
+        # allow receiver to query sender with Signal.current_emitter()
+        with self._lock:
+            with Signal._emitting(self):
+                for (slot, max_args) in self._slots:
+                    if isinstance(slot, tuple):
+                        _ref, name, method = slot
+                        obj = _ref()
+                        if obj is None:
+                            rem.append(slot)  # add dead weakref
+                            continue
+                        if method is not None:
+                            cb = method
+                        else:
+                            _cb = getattr(obj, name, None)
+                            if _cb is None:  # pragma: no cover
+                                rem.append(slot)  # object has changed?
+                                continue
+                            cb = _cb
+                    else:
+                        cb = slot
+
+                    try:
+                        cb(*args[:max_args])
+                    except Exception as e:
+                        raise EmitLoopError(
+                            slot=slot, args=args[:max_args], exc=e
+                        ) from e
+
+            for slot in rem:
+                self.disconnect(slot)
+
+        return None
 
 
 class _SignalSubArrayRef:
