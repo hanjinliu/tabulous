@@ -7,9 +7,9 @@ import logging
 
 import numpy as np
 
-from ._range import RectRange, NoRange, AnyRange
-from ._literal import LiteralCallable, EvalResult
+from tabulous._eval._literal import LiteralCallable, EvalResult
 
+from tabulous._range import RectRange, NoRange, AnyRange
 from tabulous._selection_op import SelectionOperator
 from tabulous._selection_model import Index
 
