@@ -14,7 +14,11 @@ class RectRange:
         r, c = other
         rsl = self._rsl
         csl = self._csl
-        return rsl.start <= r < rsl.stop and csl.start <= c < csl.stop
+        rlower = rsl.start <= r if rsl.start is not None else True
+        rupper = r < rsl.stop if rsl.stop is not None else True
+        clower = csl.start <= c if csl.start is not None else True
+        cupper = c < csl.stop if csl.stop is not None else True
+        return rlower and rupper and clower and cupper
 
     def includes(self, other: RectRange) -> bool:
         r0_s, r1_s = self._rsl.start, self._rsl.stop
@@ -22,15 +26,25 @@ class RectRange:
         r0_o, r1_o = other._rsl.start, other._rsl.stop
         c0_o, c1_o = other._csl.start, other._csl.stop
 
-        return r0_s <= r0_o and r1_o <= r1_s and c0_s <= c0_o and c1_o <= c1_s
+        rlower = r0_s <= r0_o if r0_s is not None else True
+        rupper = r1_o <= r1_s if r1_s is not None else True
+        clower = c0_s <= c0_o if c0_s is not None else True
+        cupper = c1_o <= c1_s if c1_s is not None else True
 
-    def overlap_with(self, other: RectRange) -> bool:
+        return rlower and rupper and clower and cupper
+
+    def overlaps_with(self, other: RectRange) -> bool:
         r0_s, r1_s = self._rsl.start, self._rsl.stop
         c0_s, c1_s = self._csl.start, self._csl.stop
         r0_o, r1_o = other._rsl.start, other._rsl.stop
         c0_o, c1_o = other._csl.start, other._csl.stop
 
-        return (r0_s < r1_o or r0_o < r1_s) and (c0_s < c1_o or c0_o < c1_s)
+        rlower = r0_s <= r0_o if r0_s is not None else True
+        rupper = r1_o <= r1_s if r1_s is not None else True
+        clower = c0_s <= c0_o if c0_s is not None else True
+        cupper = c1_o <= c1_s if c1_s is not None else True
+
+        return (rlower or rupper) and (clower or cupper)
 
 
 class AnyRange(RectRange):
@@ -39,9 +53,21 @@ class AnyRange(RectRange):
     def __contains__(self, item) -> bool:
         return True
 
+    def includes(self, other: RectRange) -> bool:
+        return True
+
+    def overlaps_with(self, other: RectRange) -> bool:
+        return True
+
 
 class NoRange:
     """Contains no index."""
 
     def __contains__(self, item) -> bool:
+        return False
+
+    def includes(self, other: RectRange) -> bool:
+        return False
+
+    def overlap_with(self, other: RectRange) -> bool:
         return False
