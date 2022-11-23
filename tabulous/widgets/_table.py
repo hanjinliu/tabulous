@@ -4,8 +4,8 @@ from enum import Enum
 from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
 from psygnal import SignalGroup, Signal
 
-from .filtering import FilterProxy
-from ._component import (
+from tabulous.widgets.filtering import FilterProxy
+from tabulous.widgets._component import (
     CellInterface,
     HorizontalHeaderInterface,
     VerticalHeaderInterface,
@@ -15,9 +15,9 @@ from ._component import (
     SelectionRanges,
     HighlightRanges,
 )
-from . import _doc
-
+from tabulous.widgets import _doc
 from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
+from tabulous._psygnal import SignalArray
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -42,7 +42,7 @@ _Void = object()
 class TableSignals(SignalGroup):
     """Signal group for a Table."""
 
-    data = Signal(ItemInfo)
+    data = SignalArray(ItemInfo)
     index = Signal(HeaderInfo)
     columns = Signal(HeaderInfo)
     evaluated = Signal(EvalInfo)

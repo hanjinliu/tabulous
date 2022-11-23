@@ -24,13 +24,18 @@ if TYPE_CHECKING:
     from typing_extensions import ParamSpec
 
     _P = ParamSpec("_P")
-    _R = TypeVar("_R")
     MethodRef = tuple[weakref.ReferenceType[object], str, Union[Callable, None]]
     NormedCallback = Union[MethodRef, Callable]
 
+else:
+    _P = TypeVar("_P")
+_R = TypeVar("_R")
 
-class RangedSlot(Generic["_P", _R]):
+
+class RangedSlot(Generic[_P, _R]):
     def __init__(self, func: Callable[_P, _R], range: RectRange):
+        if not callable(func):
+            raise TypeError(f"func must be callable, not {type(func)}")
         if not isinstance(range, RectRange):
             raise TypeError("range must be a RectRange")
         self._func = func
@@ -95,9 +100,10 @@ class SignalArrayInstance(SignalInstance):
             check_types_on_connect=check_types_on_connect,
         )
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> _SignalSubArrayRef:
         if isinstance(key, tuple):
-            key = RectRange(_parse_a_key(key[0]), _parse_a_key(key[1]))
+            r, c = key
+            key = RectRange(_parse_a_key(r), _parse_a_key(c))
         else:
             key = RectRange(_parse_a_key(key), slice(None))
         return _SignalSubArrayRef(self, key)
@@ -164,7 +170,7 @@ class SignalArrayInstance(SignalInstance):
                         extra = f"- Slot types {slot_sig} do not match types in signal."
                         self._raise_connection_error(slot, extra)
 
-                self._slots.append((RangedSlot(_normalize_slot(slot), range), max_args))
+                self._slots.append((_normalize_slot(RangedSlot(slot, range)), max_args))
             return slot
 
         return _wrapper if slot is None else _wrapper(slot)

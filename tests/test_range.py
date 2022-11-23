@@ -73,4 +73,4 @@ def test_overlaps_with(a, b):
     ]
 )
 def test_does_not_overlap_with(a, b):
-    assert RectRange(*b).overlaps_with(RectRange(*a))
+    assert not RectRange(*b).overlaps_with(RectRange(*a))
