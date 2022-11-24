@@ -29,12 +29,9 @@ class RectRange:
         r0_o, r1_o = other._rsl.start, other._rsl.stop
         c0_o, c1_o = other._csl.start, other._csl.stop
 
-        rlower = r0_s <= r0_o if r0_s is not None else True
-        rupper = r1_o <= r1_s if r1_s is not None else True
-        clower = c0_s <= c0_o if c0_s is not None else True
-        cupper = c1_o <= c1_s if c1_s is not None else True
-
-        return rlower and rupper and clower and cupper
+        return (
+            _le(r0_s, r0_o) and _ge(r1_s, r1_o) and _le(c0_s, c0_o) and _ge(c1_s, c1_o)
+        )
 
     def overlaps_with(self, other: RectRange) -> bool:
         r0_s, r1_s = self._rsl.start, self._rsl.stop
@@ -42,20 +39,16 @@ class RectRange:
         r0_o, r1_o = other._rsl.start, other._rsl.stop
         c0_o, c1_o = other._csl.start, other._csl.stop
 
-        r_not_overlap = (r1_s <= r0_o if r1_s is not None else False) or (
-            r1_o <= r0_s if r0_s is not None else False
+        return _overlap_1d(r0_s, r1_s, r0_o, r1_o) and _overlap_1d(
+            c0_s, c1_s, c0_o, c1_o
         )
-        if r_not_overlap:
-            return False
-
-        c_not_overlap = (c1_s <= c0_o if c1_s is not None else False) or (
-            c1_o <= c0_s if c0_s is not None else False
-        )
-        return not c_not_overlap
 
 
 class AnyRange(RectRange):
     """Contains any indices."""
+
+    def __init__(self):
+        super().__init__(slice(None), slice(None))
 
     def __contains__(self, item) -> bool:
         return True
@@ -70,8 +63,11 @@ class AnyRange(RectRange):
         return True
 
 
-class NoRange:
+class NoRange(RectRange):
     """Contains no index."""
+
+    def __init__(self):
+        super().__init__(slice(0, -1), slice(0, -1))
 
     def __contains__(self, item) -> bool:
         return False
@@ -90,3 +86,39 @@ def _fmt_slice(sl: slice) -> str:
     s0 = sl.start if sl.start is not None else ""
     s1 = sl.stop if sl.stop is not None else ""
     return f"{s0}:{s1}"
+
+
+def _le(r0_s, r0_o):
+    if r0_s is not None:
+        if r0_o is None:
+            return False
+        else:
+            return r0_s <= r0_o
+    else:
+        return True
+
+
+def _ge(r1_s, r1_o):
+    if r1_s is not None:
+        if r1_o is None:
+            return False
+        else:
+            return r1_o <= r1_s
+    else:
+        return True
+
+
+INF = float("inf")
+
+
+def _overlap_1d(r0_s, r1_s, r0_o, r1_o):
+    if r0_s is None:
+        r0_s = 0
+    if r1_s is None:
+        r1_s = INF
+    if r0_o is None:
+        r0_o = 0
+    if r1_o is None:
+        r1_o = INF
+
+    return r0_o < r1_s and r0_s < r1_o

@@ -107,7 +107,7 @@ class TableBase(ABC):
             with self._qwidget._mgr.blocked():
                 self._qwidget.setEditable(editable)
             self._qwidget.connectItemChangedSignal(
-                self.events.data.emit,
+                self._emit_data_changed_signal,
                 self.events.index.emit,
                 self.events.columns.emit,
                 self.events.evaluated.emit,
@@ -117,6 +117,10 @@ class TableBase(ABC):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}<{self.name!r}>"
+
+    def _emit_data_changed_signal(self, info: ItemInfo) -> None:
+        r, c = info.row, info.column
+        self.events.data[r, c].emit(info)
 
     @abstractmethod
     def _create_backend(self, data: pd.DataFrame) -> QBaseTable:

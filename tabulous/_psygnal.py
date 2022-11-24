@@ -20,6 +20,8 @@ import inspect
 from inspect import Parameter, Signature, isclass
 from typing_extensions import get_args, get_origin
 
+__all__ = ["SignalArray"]
+
 if TYPE_CHECKING:
     from typing_extensions import ParamSpec
 
@@ -371,7 +373,7 @@ def _normalize_slot(slot: Callable | NormedCallback) -> NormedCallback:
     if isinstance(slot, MethodType):
         return _get_method_name(slot) + (None,)
     if isinstance(slot, PartialMethod):
-        return _partial_weakref(slot)
+        raise NotImplementedError()
     if isinstance(slot, tuple) and not isinstance(slot[0], weakref.ref):
         return (weakref.ref(slot[0]), slot[1], slot[2])
     return slot
@@ -432,18 +434,6 @@ def _is_subclass(left: type[Any], right: type) -> bool:
     if not isclass(left) and get_origin(left) is Union:
         return any(issubclass(i, right) for i in get_args(left))
     return issubclass(left, right)
-
-
-def _partial_weakref(slot_partial: PartialMethod) -> tuple[weakref.ref, str, Callable]:
-    """For partial methods, make the weakref point to the wrapped object."""
-    ref, name = _get_method_name(slot_partial.func)
-    args_ = slot_partial.args
-    kwargs_ = slot_partial.keywords
-
-    def wrap(*args: Any, **kwargs: Any) -> Any:
-        getattr(ref(), name)(*args_, *args, **kwargs_, **kwargs)
-
-    return (ref, name, wrap)
 
 
 def _get_method_name(slot: MethodType) -> tuple[weakref.ref, str]:
