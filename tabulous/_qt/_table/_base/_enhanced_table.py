@@ -528,27 +528,27 @@ class _QTableViewEnhanced(QtW.QTableView):
         painter = QtGui.QPainter(self.viewport())
 
         # draw graphs
-        if self._ref_graphs._to_be_shown:
-            _df = self.model().df
-            try:
-                for graph in self._ref_graphs._to_be_shown:
-                    for i, rect in enumerate(
-                        self._rect_from_ranges(
-                            sel.as_iloc_slices(_df) for sel in graph._sources
-                        )
-                    ):
-                        pen = QtGui.QPen(h_color, 3)
-                        painter.setPen(pen)
-                        painter.drawRect(rect)
-                    # TODO: destination
-                    # for i, rect in enumerate(
-                    #     self._rect_from_ranges(sel.as_iloc(_df) for sel in graph._sources)
-                    # ):
-                    #     pen = QtGui.QPen(h_color, 2)
-                    #     painter.setPen(pen)
-                    #     painter.drawRect(rect)
-            except Exception as e:
-                logger.debug(f"Failed to draw graph: {e}")
+        # if self._ref_graphs._to_be_shown:
+        #     _df = self.model().df
+        #     try:
+        #         for graph in self._ref_graphs._to_be_shown:
+        #             for i, rect in enumerate(
+        #                 self._rect_from_ranges(
+        #                     sel.as_iloc_slices(_df) for sel in graph._sources
+        #                 )
+        #             ):
+        #                 pen = QtGui.QPen(h_color, 3)
+        #                 painter.setPen(pen)
+        #                 painter.drawRect(rect)
+        #             # TODO: destination
+        #             # for i, rect in enumerate(
+        #             #     self._rect_from_ranges(sel.as_iloc(_df) for sel in graph._sources)
+        #             # ):
+        #             #     pen = QtGui.QPen(h_color, 2)
+        #             #     painter.setPen(pen)
+        #             #     painter.drawRect(rect)
+        #     except Exception as e:
+        #         logger.debug(f"Failed to draw graph: {e}")
 
         # draw highlights
         h_color = self._get_highlight_color()

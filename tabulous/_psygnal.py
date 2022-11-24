@@ -43,8 +43,15 @@ class RangedSlot(Generic[_P, _R]):
     def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> Any:
         return self._func(*args, **kwargs)
 
+    def __eq__(self, other: Any) -> bool:
+        """Also return True if the wrapped function is the same."""
+        if isinstance(other, RangedSlot):
+            other = other._func
+        return self._func == other
+
     @property
     def range(self) -> RectRange:
+        """Slot range."""
         return self._range
 
 

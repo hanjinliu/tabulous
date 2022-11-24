@@ -37,3 +37,26 @@ def test_total_connect():
 
     a.sig[7:12, 0:10].emit(3)
     mock.assert_called_with(3)
+
+def test_disconnect():
+    mock = MagicMock()
+    a = A()
+    a.sig.connect(mock)
+    assert mock in a.sig
+
+    a.sig.disconnect(mock)
+    assert mock not in a.sig
+
+    mock.assert_not_called()
+    a.sig.emit(0)
+    mock.assert_not_called()
+
+def test_blocked():
+    mock = MagicMock()
+    a = A()
+    a.sig.connect(mock)
+
+    with a.sig.blocked():
+        a.sig.emit(0)
+
+    mock.assert_not_called()
