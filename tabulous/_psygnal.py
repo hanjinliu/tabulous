@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 class RangedSlot(Generic[_P, _R]):
-    def __init__(self, func: Callable[_P, _R], range: RectRange):
+    def __init__(self, func: Callable[_P, _R], range: RectRange = AnyRange()):
         if not callable(func):
             raise TypeError(f"func must be callable, not {type(func)}")
         if not isinstance(range, RectRange):
@@ -49,10 +49,18 @@ class RangedSlot(Generic[_P, _R]):
             other = other._func
         return self._func == other
 
+    def __repr__(self) -> str:
+        return f"RangedSlot<{self._func!r}>"
+
     @property
     def range(self) -> RectRange:
         """Slot range."""
         return self._range
+
+    @property
+    def func(self) -> Callable[_P, _R]:
+        """The wrapped function."""
+        return self._func
 
 
 class SignalArray(Signal):
@@ -234,6 +242,14 @@ class SignalArrayInstance(SignalInstance):
 
         self._run_emit_loop(args, range)
         return None
+
+    def _slot_index(self, slot: NormedCallback) -> int:
+        """Get index of `slot` in `self._slots`.  Return -1 if not connected."""
+        with self._lock:
+            if not isinstance(slot, RangedSlot):
+                slot = RangedSlot(slot, AnyRange())
+            normed = _normalize_slot(slot)
+            return next((i for i, s in enumerate(self._slots) if s[0] == normed), -1)
 
     def _run_emit_loop(
         self,

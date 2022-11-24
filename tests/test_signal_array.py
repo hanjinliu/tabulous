@@ -51,6 +51,26 @@ def test_disconnect():
     a.sig.emit(0)
     mock.assert_not_called()
 
+def test_disconnect_method():
+    mock = MagicMock()
+
+    class X:
+        def f(self, x):
+            mock(x)
+
+    a = A()
+    x = X()
+    a.sig.connect(x.f)
+    assert x.f in a.sig
+
+    a.sig.disconnect(x.f)
+    assert x.f not in a.sig
+
+    mock.assert_not_called()
+    a.sig.emit(0)
+    mock.assert_not_called()
+
+
 def test_blocked():
     mock = MagicMock()
     a = A()
