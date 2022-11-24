@@ -122,9 +122,28 @@ class TableBase(ABC):
         r, c = info.row, info.column
         if info.value is info.DELETED or info.old_value is info.INSERTED:
             # insertion/deletion emits signal from the next row/column.
+            _is_deleted = info.value is info.DELETED
             if r == slice(None):
+                # column is deleted/inserted
+                if isinstance(c, slice):
+                    index, count = c.start, c.stop - c.start
+                else:
+                    index, count = c, 1
+                if _is_deleted:
+                    self.events.data.remove_columns(index, count)
+                else:
+                    self.events.data.insert_columns(index, count)
                 self.events.data[:, c.start :].emit(info)
             else:
+                # row is deleted/inserted
+                if isinstance(r, slice):
+                    index, count = r.start, r.stop - r.start
+                else:
+                    index, count = r, 1
+                if _is_deleted:
+                    self.events.data.remove_rows(index, count)
+                else:
+                    self.events.data.insert_rows(index, count)
                 self.events.data[r.start :, :].emit(info)
         else:
             self.events.data[r, c].emit(info)

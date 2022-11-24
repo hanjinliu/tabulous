@@ -64,6 +64,30 @@ class RangedSlot(Generic[_P, _R]):
 
 
 class SignalArray(Signal):
+    """
+    A 2D-parametric signal for a table widget.
+
+    This class is an extension of `psygnal.Signal` that allows partial slot
+    connection.
+
+    ```python
+    class MyEmitter:
+        changed = SignalArray(int)
+
+    emitter = MyEmitter()
+
+    # Connect a slot to the whole table
+    emitter.changed.connect(lambda arg: print(arg))
+    # Connect a slot to a specific range of the table
+    emitter.changed[0:5, 0:4].connect(lambda arg: print("partial:", arg))
+
+    # Emit the signal
+    emitter.changed.emit(1)
+    # Emit the signal to a specific range
+    emitter.changed[8, 8].emit(1)
+    ```
+    """
+
     @overload
     def __get__(
         self, instance: None, owner: type[Any] | None = None
@@ -95,6 +119,8 @@ _empty_signature = Signature()
 
 
 class SignalArrayInstance(SignalInstance):
+    """Parametric version of `SignalInstance`."""
+
     def __init__(
         self,
         signature: Signature | tuple = _empty_signature,
@@ -104,7 +130,6 @@ class SignalArrayInstance(SignalInstance):
         check_nargs_on_connect: bool = True,
         check_types_on_connect: bool = False,
     ) -> None:
-        self._registry: list[tuple[RectRange, Callable]] = []
         super().__init__(
             signature,
             instance=instance,
@@ -243,6 +268,44 @@ class SignalArrayInstance(SignalInstance):
         self._run_emit_loop(args, range)
         return None
 
+    def insert_rows(self, row: int, count: int) -> None:
+        """Insert rows and update slot ranges in-place."""
+        for slot, _ in self._slots:
+            if isinstance(slot, RangedSlot):
+                slot.range.insert_rows(row, count)
+        return None
+
+    def insert_columns(self, col: int, count: int) -> None:
+        """Insert columns and update slices in-place."""
+        for slot, _ in self._slots:
+            if isinstance(slot, RangedSlot):
+                slot.range.insert_rows(col, count)
+        return None
+
+    def remove_rows(self, row: int, count: int):
+        """Remove rows and update slices in-place."""
+        to_be_disconnected: list[RangedSlot] = []
+        for slot, _ in self._slots:
+            if isinstance(slot, RangedSlot):
+                slot.range.remove_rows(row, count)
+                if slot.range.is_empty():
+                    to_be_disconnected.append(slot)
+        for slot in to_be_disconnected:
+            self.disconnect(slot)
+        return None
+
+    def remove_columns(self, col: int, count: int):
+        """Remove columns and update slices in-place."""
+        to_be_disconnected: list[RangedSlot] = []
+        for slot, _ in self._slots:
+            if isinstance(slot, RangedSlot):
+                slot.range.remove_columns(col, count)
+                if slot.range.is_empty():
+                    to_be_disconnected.append(slot)
+        for slot in to_be_disconnected:
+            self.disconnect(slot)
+        return None
+
     def _slot_index(self, slot: NormedCallback) -> int:
         """Get index of `slot` in `self._slots`.  Return -1 if not connected."""
         with self._lock:
@@ -294,6 +357,8 @@ class SignalArrayInstance(SignalInstance):
 
 
 class _SignalSubArrayRef:
+    """A reference to a subarray of a signal."""
+
     def __init__(self, sig: SignalArrayInstance, key):
         self._sig: weakref.ReferenceType[SignalArrayInstance] = weakref.ref(sig)
         self._key = key

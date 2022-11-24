@@ -43,6 +43,37 @@ class RectRange:
             c0_s, c1_s, c0_o, c1_o
         )
 
+    def insert_rows(self, row: int, count: int) -> None:
+        """Insert rows and update slices in-place."""
+        self._rsl = _translate_slice(self._rsl, row, count)
+        return None
+
+    def insert_columns(self, col: int, count: int) -> None:
+        """Insert columns and update slices in-place."""
+        self._csl = _translate_slice(self._csl, col, count)
+        return None
+
+    def remove_rows(self, row: int, count: int):
+        """Remove rows and update slices in-place."""
+        self._rsl = _translate_slice(self._rsl, row, -count)
+        return None
+
+    def remove_columns(self, col: int, count: int):
+        """Remove columns and update slices in-place."""
+        self._csl = _translate_slice(self._csl, col, -count)
+        return None
+
+    def is_empty(self) -> bool:
+        """True if the range is empty."""
+        r0_s, r1_s = self._rsl.start, self._rsl.stop
+        c0_s, c1_s = self._csl.start, self._csl.stop
+        if r0_s is None or r1_s is None or c0_s is None or c1_s is None:
+            return False
+        return self._rsl.start >= self._rsl.stop and self._csl.start >= self._csl.stop
+
+
+_DO_NOTHING = lambda *args, **kwargs: None
+
 
 class AnyRange(RectRange):
     """Contains any indices."""
@@ -62,6 +93,14 @@ class AnyRange(RectRange):
     def overlaps_with(self, other: RectRange) -> bool:
         return True
 
+    insert_rows = _DO_NOTHING
+    insert_columns = _DO_NOTHING
+    remove_rows = _DO_NOTHING
+    remove_columns = _DO_NOTHING
+
+    def is_empty(self) -> bool:
+        return False
+
 
 class NoRange(RectRange):
     """Contains no index."""
@@ -80,6 +119,14 @@ class NoRange(RectRange):
 
     def overlap_with(self, other: RectRange) -> bool:
         return False
+
+    insert_rows = _DO_NOTHING
+    insert_columns = _DO_NOTHING
+    remove_rows = _DO_NOTHING
+    remove_columns = _DO_NOTHING
+
+    def is_empty(self) -> bool:
+        return True
 
 
 def _fmt_slice(sl: slice) -> str:
@@ -111,7 +158,9 @@ def _ge(r1_s, r1_o):
 INF = float("inf")
 
 
-def _overlap_1d(r0_s, r1_s, r0_o, r1_o):
+def _overlap_1d(
+    r0_s: int | None, r1_s: int | None, r0_o: int | None, r1_o: int | None
+) -> bool:
     if r0_s is None:
         r0_s = 0
     if r1_s is None:
@@ -122,3 +171,14 @@ def _overlap_1d(r0_s, r1_s, r0_o, r1_o):
         r1_o = INF
 
     return r0_o < r1_s and r0_s < r1_o
+
+
+def _translate_slice(sl: slice, index: int, count: int) -> slice:
+    start, stop = sl.start, sl.stop
+
+    if start is not None and start >= index:
+        start = start + count
+    if stop is not None and stop >= index:
+        stop = stop + count
+
+    return slice(start, stop)
