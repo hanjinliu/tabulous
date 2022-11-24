@@ -18,20 +18,16 @@ from psygnal import Signal, SignalInstance, EmitLoopError
 from tabulous._range import RectRange, AnyRange
 import inspect
 from inspect import Parameter, Signature, isclass
-from typing_extensions import get_args, get_origin
+from typing_extensions import get_args, get_origin, ParamSpec
 
 __all__ = ["SignalArray"]
 
-if TYPE_CHECKING:
-    from typing_extensions import ParamSpec
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
 
-    _P = ParamSpec("_P")
+if TYPE_CHECKING:
     MethodRef = tuple[weakref.ReferenceType[object], str, Union[Callable, None]]
     NormedCallback = Union[MethodRef, Callable]
-
-else:
-    _P = TypeVar("_P")
-_R = TypeVar("_R")
 
 
 class RangedSlot(Generic[_P, _R]):

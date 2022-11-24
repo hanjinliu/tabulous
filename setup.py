@@ -24,7 +24,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "magicgui>=0.5.1",
-        "psygnal>=0.3.5",
+        "psygnal>=0.6.1",
         "qtpy>=1.10.0",
         "pandas>=1.0.0",
         "collections-undo>=0.0.7",
