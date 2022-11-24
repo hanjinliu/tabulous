@@ -120,7 +120,14 @@ class TableBase(ABC):
 
     def _emit_data_changed_signal(self, info: ItemInfo) -> None:
         r, c = info.row, info.column
-        self.events.data[r, c].emit(info)
+        if info.value is info.DELETED or info.old_value is info.INSERTED:
+            # insertion/deletion emits signal from the next row/column.
+            if r == slice(None):
+                self.events.data[:, c.start :].emit(info)
+            else:
+                self.events.data[r.start :, :].emit(info)
+        else:
+            self.events.data[r, c].emit(info)
 
     @abstractmethod
     def _create_backend(self, data: pd.DataFrame) -> QBaseTable:

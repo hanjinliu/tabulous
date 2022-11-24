@@ -95,11 +95,8 @@ class TabPosition(Enum):
 
 
 class _InfoVar:
-    def __init__(self) -> None:
-        self._name = None
-
-    def __set_name__(self, owner, name):
-        self._name = f"{owner.__name__}.{name}"
+    def __init__(self, name: str) -> None:
+        self._name = name
 
     def __repr__(self) -> str:
         return self._name
@@ -130,8 +127,8 @@ class ItemInfo(NamedTuple):
     """
 
     # class variables
-    DELETED = _InfoVar()
-    INSERTED = _InfoVar()
+    DELETED = _InfoVar("DELETED")
+    INSERTED = _InfoVar("INSERTED")
 
     row: int | slice
     column: int | slice
