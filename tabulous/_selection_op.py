@@ -334,7 +334,7 @@ def construct(
     df: pd.DataFrame,
     method: Literal["loc", "iloc", "values"] = "loc",
     column_selected: bool = False,
-) -> SelectionOperator:
+) -> SelectionOperator | None:
     """Construct a selection operator from given slices and data frame."""
 
     nr, nc = df.shape

@@ -539,6 +539,9 @@ class QCellLiteralEdit(_QTableLineEdit):
             rsl, csl, _df, method=_CONFIG.cell.slicing, column_selected=column_selected
         )
 
+        if selop is None:  # out of bound
+            return None
+
         if selop.area(_df) > 1:
             to_be_added = selop.fmt("df")
         else:

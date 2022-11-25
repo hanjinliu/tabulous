@@ -1,7 +1,10 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, Hashable
+import re
 from functools import cached_property
 from io import StringIO
+
 import numpy as np
 import pandas as pd
 from qtpy import QtCore, QtGui
@@ -22,6 +25,7 @@ if TYPE_CHECKING:
 _OUT_OF_BOUND_SIZE = 10  # 10 more rows and columns will be displayed.
 _STRING_DTYPE = get_dtype("string")
 _EMPTY = object()
+_EXP_FLOAT = re.compile(r"[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)")
 
 
 class SpreadSheetModel(AbstractDataFrameModel):
@@ -78,6 +82,9 @@ class SpreadSheetModel(AbstractDataFrameModel):
                     text = self._FORMAT_ERROR
             else:
                 text = str(val)
+            # Exponentially formatted float numbers are not displayed correctly.
+            if _EXP_FLOAT.match(text):
+                text = format(float(text), ".5e")
             return text
         return QtCore.QVariant()
 
