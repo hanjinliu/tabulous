@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from functools import partial
 from pathlib import Path
 from typing import Any, Callable, TYPE_CHECKING, Tuple, TypeVar
@@ -19,7 +20,7 @@ from tabulous._qt._keymap import QtKeys, QtKeyMap
 from tabulous._qt._action_registry import QActionRegistry
 from tabulous.types import FilterType, ItemInfo, HeaderInfo, EvalInfo
 from tabulous.exceptions import SelectionRangeError, TableImmutableError
-from tabulous._selection_op import LocSelOp
+from tabulous._selection_op import LocSelOp, ILocSelOp
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
@@ -157,14 +158,16 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         hheader.addSeparator()
 
         self.registerAction("Copy")(lambda index: self.copyToClipboard(headers=False))
-        self.registerAction("Copy as ...>Tab separated text")(lambda index: self.copyToClipboard(headers=False, sep="\t"))
-        self.registerAction("Copy as ...>Tab separated text with headers")(lambda index: self.copyToClipboard(headers=True, sep="\t"))
-        self.registerAction("Copy as ...>Comma separated text")(lambda index: self.copyToClipboard(headers=False, sep=","))
-        self.registerAction("Copy as ...>Comma separated text with headers")(lambda index: self.copyToClipboard(headers=True, sep=","))
-        self.registerAction("Copy as ...>Literal")(lambda index: self._copy_as_literal())
+        self.registerAction("Copy as ... > Tab separated text")(lambda index: self.copyToClipboard(headers=False, sep="\t"))
+        self.registerAction("Copy as ... > Tab separated text with headers")(lambda index: self.copyToClipboard(headers=True, sep="\t"))
+        self.registerAction("Copy as ... > Comma separated text")(lambda index: self.copyToClipboard(headers=False, sep=","))
+        self.registerAction("Copy as ... > Comma separated text with headers")(lambda index: self.copyToClipboard(headers=True, sep=","))
+        self.registerAction("Copy as ... > Literal")(lambda index: self._copy_as_literal())
         self.registerAction("Paste")(lambda index: self.pasteFromClipBoard())
-        self.registerAction("Paste from ...>Comma separated text")(lambda index: self.pasteFromClipBoard(sep=","))
+        self.registerAction("Paste from ... > Comma separated text")(lambda index: self.pasteFromClipBoard(sep=","))
         self.addSeparator()
+        self.registerAction("Code ... > Data-changed signal")(lambda index: self._write_data_changed_signal())
+        self.registerAction("Code ... > Get slice")(lambda index: self._write_slice())
         self.registerAction("Add highlight")(lambda index: self.setHighlights(self.highlights() + self.selections()))
         self.registerAction("Delete highlight")(lambda index: self._delete_selected_highlights())
         self.addSeparator()
@@ -804,6 +807,86 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
                 return
             op = LocSelOp.from_iloc(*sels[0], self.model().df)
             console.setTempText(op.fmt("viewer.data"))
+        return None
+
+    def _write_data_changed_signal(self) -> None:
+        sels = self.selections()
+        if len(sels) != 1:
+            return
+        viewer = self._qtable_view.parentViewer()
+        console = viewer._console_widget
+        if console is None or not console.isActive():
+            delay = 500  # need delay to wait for the console to be activated
+        else:
+            delay = 0
+        viewer.setConsoleVisible(True)
+
+        def _update_console():
+            console = viewer._console_widget
+            df = self.model().df
+            rsl, csl = ILocSelOp.from_iloc(*sels[0], df).as_iloc_slices(df)
+            if rsl == slice(None) and csl == slice(None):
+                _getitem = ""
+            else:
+                r0 = str(rsl.start) if rsl.start is not None else ""
+                r1 = str(rsl.stop) if rsl.stop is not None else ""
+                c0 = str(csl.start) if csl.start is not None else ""
+                c1 = str(csl.stop) if csl.stop is not None else ""
+                _getitem = f"[{r0}:{r1}, {c0}:{c1}]"
+            text = (
+                f"@viewer.current_table.events.data{_getitem}.connect\n"
+                "def _on_data_changed(info: 'ItemInfo'):\n"
+                "    "
+            )
+            if buf := console.buffer():
+                if not buf.endswith("\n"):
+                    buf += "\n"
+                text = buf + text
+            console.setBuffer(text)
+            console.setFocus()
+            console.setTempText("...")
+
+        QtCore.QTimer.singleShot(delay, _update_console)
+        return None
+
+    def _write_slice(self) -> None:
+        sels = self.selections()
+        if len(sels) != 1:
+            return
+        viewer = self._qtable_view.parentViewer()
+        console = viewer._console_widget
+        if console is None or not console.isActive():
+            delay = 500  # need delay to wait for the console to be activated
+        else:
+            delay = 0
+        viewer.setConsoleVisible(True)
+
+        def _update_console():
+            console = viewer._console_widget
+            df = self.model().df
+            rsl, csl = ILocSelOp.from_iloc(*sels[0], df).as_iloc_slices(df)
+            if rsl.start is None:
+                rsl_str = f"slice({rsl.stop})"
+            elif rsl.stop is None:
+                rsl_str = f"slice({rsl.start}, None)"
+            else:
+                rsl_str = f"slice({rsl.start}, {rsl.stop})"
+            if csl.start is None:
+                csl_str = f"slice({csl.stop})"
+            elif csl.stop is None:
+                csl_str = f"slice({csl.start}, None)"
+            else:
+                csl_str = f"slice({csl.start}, {csl.stop})"
+
+            text = f"sl = ({rsl_str}, {csl_str})\n"
+            if buf := console.buffer():
+                if not buf.endswith("\n"):
+                    buf += "\n"
+                text = buf + text
+            console.setBuffer(text)
+            console.setFocus()
+
+        QtCore.QTimer.singleShot(delay, _update_console)
         return None
 
 

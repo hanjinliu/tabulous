@@ -245,11 +245,11 @@ class ILocSelOp(SelectionOperator):
         rsel, csel = self.args
         return df.iloc[rsel, csel]
 
-    def as_iloc(self, df: pd.DataFrame) -> tuple[_Slice, _Slice]:
+    def as_iloc(self, df: pd.DataFrame = None) -> tuple[_Slice, _Slice]:
         return self.args
 
     @classmethod
-    def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame) -> Self:
+    def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame = None) -> Self:
         """Construct operator from an iloc-style slices."""
         return cls(r, c)
 
