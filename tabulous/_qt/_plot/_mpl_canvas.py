@@ -33,7 +33,6 @@ class InteractiveFigureCanvas(FigureCanvas):
         self.lasty = None
         self.last_axis: Axes | None = None
         self._interactive = True
-        self._mouse_click_callbacks = []
         fig.canvas.mpl_connect("pick_event", self._emit_pick_event)
 
     def _emit_pick_event(self, event):
@@ -74,7 +73,7 @@ class InteractiveFigureCanvas(FigureCanvas):
         if mouse_event.inaxes:
             self.pressed = mouse_event.button
             self.last_axis = mouse_event.inaxes
-        self.clicked.emit(mouse_event)
+        # self.clicked.emit(mouse_event)
         return None
 
     def mouseMoveEvent(self, event):
@@ -116,11 +115,10 @@ class InteractiveFigureCanvas(FigureCanvas):
         if self.lastx == mouse_event.xdata and self.lasty == mouse_event.ydata:
             # clicked, not dragged
             if self.pressed == MouseButton.LEFT:
-                for callbacks in self._mouse_click_callbacks:
-                    callbacks(mouse_event)
+                self.clicked.emit(mouse_event)
 
             elif self.pressed == MouseButton.RIGHT:
-                menu = self._make_context_menu()
+                menu = self._make_context_menu(mouse_event)
                 menu.exec_(self.mapToGlobal(pos))
 
         self.pressed = None
@@ -160,7 +158,7 @@ class InteractiveFigureCanvas(FigureCanvas):
         mouse_event = MouseEvent(name, self, x, y, button=button, guiEvent=event)
         return mouse_event
 
-    def _make_context_menu(self):
+    def _make_context_menu(self, event: MouseEvent) -> QtW.QMenu:
         """Make a QMenu object with default actions."""
         menu = QtW.QMenu(self)
         menu.addAction("Copy ...", self._copy_canvas)
