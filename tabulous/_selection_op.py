@@ -71,6 +71,11 @@ class SelectionOperator:
             c = csl.start
         return r, c
 
+    def shape(self, df: pd.DataFrame) -> tuple[int, int]:
+        """Return the shape of the selection."""
+        rsl, csl = self.as_iloc_slices(df)
+        return (rsl.stop - rsl.start, csl.stop - csl.start)
+
     def area(self, df: pd.DataFrame) -> int:
         """Return the number of cells selected."""
         rsl, csl = self.as_iloc_slices(df)

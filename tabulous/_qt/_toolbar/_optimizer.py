@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 
 
 class OptimizerWidget(Container):
+    """A widget for Excel's solver-like optimization."""
+
     _current_widget = None
 
     def __init__(self):

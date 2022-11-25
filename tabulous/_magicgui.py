@@ -426,7 +426,7 @@ def dialog_factory_mpl(function: _F) -> _F:
 class SelectionWidget(Container):
     """A container widget for a table selection."""
 
-    def __init__(self, value: Any = None, nullable=False, **kwargs):
+    def __init__(self, value: Any = None, nullable=False, format: str = None, **kwargs):
         from magicgui.widgets import PushButton, LineEdit
 
         self._line = LineEdit()
@@ -437,6 +437,13 @@ class SelectionWidget(Container):
         self._btn.changed.disconnect()
         self._line.changed.connect(self.changed.emit(self._line.value))
         self._btn.changed.connect(lambda: self._read_selection())
+
+        if format is None:
+            from tabulous._utils import get_config
+
+            format = get_config().cell.slicing
+        self._format = format
+
         if isinstance(value, SelectionOperator):
             self.value = value
 
@@ -458,6 +465,10 @@ class SelectionWidget(Container):
         self._line.value = text
         return None
 
+    @property
+    def format(self) -> str:
+        return self._format
+
     def as_iloc(self) -> tuple[slice, slice]:
         """Return current value as a indexer for ``iloc`` method."""
         df = self._find_table().data_shown
@@ -475,8 +486,6 @@ class SelectionWidget(Container):
         return table
 
     def _read_selection(self, table: TableBase | None = None):
-        from ._utils import get_config
-
         if table is None:
             table = self._find_table()
 
@@ -484,14 +493,13 @@ class SelectionWidget(Container):
         if len(sels) > 1:
             raise ValueError("More than one selection is given.")
         sel = sels[0]
-        slicing_method = get_config().cell.slicing
 
         qwidget = table._qwidget
         column_selected = qwidget._qtable_view._selection_model._col_selection_indices
         _selop = construct(
             *sel,
             qwidget.model().df,
-            method=slicing_method,
+            method=self.format,
             column_selected=column_selected,
         )
         self._line.value = _selop.fmt()
