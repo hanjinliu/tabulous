@@ -6,16 +6,15 @@ import weakref
 from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtWidgets import QAction
 
-from .._svg import QColoredSVGIcon
-from .._multitips import QHasToolTip
+from tabulous._qt._svg import QColoredSVGIcon
+from tabulous._qt._multitips import QHasToolTip
 from . import _dialogs as _dlg
 
 
 if TYPE_CHECKING:
-    import pandas as pd
-    from .._mainwindow import _QtMainWidgetBase
-    from ...widgets._mainwindow import TableViewerBase
-    from ...widgets import TableBase
+    from tabulous._qt._mainwindow import _QtMainWidgetBase
+    from tabulous.widgets._mainwindow import TableViewerBase
+    from tabulous.widgets import TableBase
 
 # fmt: off
 SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]

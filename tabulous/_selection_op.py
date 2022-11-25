@@ -339,20 +339,22 @@ def construct(
     df: pd.DataFrame,
     method: Literal["loc", "iloc", "values"] = "loc",
     column_selected: bool = False,
+    allow_out_of_bounds: bool = False,
 ) -> SelectionOperator | None:
     """Construct a selection operator from given slices and data frame."""
 
     nr, nc = df.shape
 
     # normalize out-of-bound
-    if rsl.stop > nr:
-        if rsl.start >= nr:
-            return None
-        rsl = slice(rsl.start, nr)
-    if csl.stop > nc:
-        if csl.start >= nc:
-            return None
-        csl = slice(csl.start, nc)
+    if not allow_out_of_bounds:
+        if rsl.stop > nr:
+            if rsl.start >= nr:
+                return None
+            rsl = slice(rsl.start, nr)
+        if csl.stop > nc:
+            if csl.start >= nc:
+                return None
+            csl = slice(csl.start, nc)
 
     if column_selected:
         rsl = slice(None)

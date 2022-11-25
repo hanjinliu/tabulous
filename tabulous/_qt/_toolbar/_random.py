@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from enum import Enum
 import numpy as np
 from magicgui.widgets import (
@@ -11,6 +12,9 @@ from magicgui.widgets import (
     Widget,
 )
 from tabulous._magicgui import SelectionWidget
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class _RandomGenerator(Container):
@@ -28,8 +32,8 @@ class _RandomGenerator(Container):
 class UniformRandomGenerator(_RandomGenerator):
     def prepare_widgets(self) -> list[Widget]:
         return [
-            LineEdit(label="minimum"),
-            LineEdit(label="maximum"),
+            LineEdit(value="0", label="minimum"),
+            LineEdit(value="1", label="maximum"),
         ]
 
     def generate(self, shape: tuple[int, int]) -> np.ndarray:
@@ -43,8 +47,9 @@ class ChoiceRandomGenerator(_RandomGenerator):
     def prepare_widgets(self) -> list[Widget]:
         return [
             LiteralEvalLineEdit(
+                value="[0, 1, 2]",
                 label="choices",
-                tooltip="Iterable object that provide choices (e.g. [1, 3, 5])",
+                tooltip="Iterable object that provide choices",
             ),
         ]
 
@@ -56,8 +61,8 @@ class ChoiceRandomGenerator(_RandomGenerator):
 class NormalRandomGenerator(_RandomGenerator):
     def prepare_widgets(self) -> list[Widget]:
         return [
-            LineEdit(label="mean"),
-            LineEdit(label="sigma"),
+            LineEdit(value="0", label="mean"),
+            LineEdit(value="1", label="sigma"),
         ]
 
     def generate(self, shape: tuple[int, int]) -> np.ndarray:
@@ -76,7 +81,7 @@ class Generator(Enum):
 
 class RandomGeneratorDialog(Container):
     def __init__(self):
-        self._selection_wdt = SelectionWidget(format="iloc")
+        self._selection_wdt = SelectionWidget(format="iloc", allow_out_of_bounds=True)
         self._radio_buttons = RadioButtons(choices=Generator, value=Generator.uniform)
         self._uniform_wdt = UniformRandomGenerator(label="parameters")
         self._normal_wdt = NormalRandomGenerator(label="parameters")
@@ -105,13 +110,16 @@ class RandomGeneratorDialog(Container):
         self._choices_wdt.visible = choice == Generator.choices
 
     def _current_widget(self) -> _RandomGenerator:
-        for wdt in (self._uniform_wdt, self._normal_wdt, self._choices_wdt):
-            if wdt.visible:
-                return wdt
+        if self._radio_buttons.value is Generator.uniform:
+            return self._uniform_wdt
+        elif self._radio_buttons.value is Generator.normal:
+            return self._normal_wdt
+        elif self._radio_buttons.value is Generator.choices:
+            return self._choices_wdt
         else:
             raise RuntimeError("Unreachable error happened.")
 
-    def get_value(self, df) -> tuple[slice, slice, np.ndarray]:
+    def get_value(self, df: pd.DataFrame) -> tuple[slice, slice, np.ndarray]:
         selop = self._selection_wdt.value
         shape = selop.shape(df)
         random_data = self._current_widget().generate(shape)

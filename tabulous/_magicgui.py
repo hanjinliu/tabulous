@@ -3,7 +3,15 @@ from typing import Any, Callable, Iterable, TYPE_CHECKING, TypeVar, cast
 import warnings
 from qtpy import QtWidgets as QtW
 from magicgui import register_type, magicgui
-from magicgui.widgets import Widget, Container, ComboBox, Label, Dialog
+from magicgui.widgets import (
+    Widget,
+    Container,
+    ComboBox,
+    Label,
+    Dialog,
+    PushButton,
+    LineEdit,
+)
 from magicgui.widgets._bases import CategoricalWidget
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
@@ -426,11 +434,18 @@ def dialog_factory_mpl(function: _F) -> _F:
 class SelectionWidget(Container):
     """A container widget for a table selection."""
 
-    def __init__(self, value: Any = None, nullable=False, format: str = None, **kwargs):
-        from magicgui.widgets import PushButton, LineEdit
-
-        self._line = LineEdit()
-        self._btn = PushButton(text="Read selection")
+    def __init__(
+        self,
+        value: Any = None,
+        nullable=False,
+        format: str = None,
+        allow_out_of_bounds: bool = False,
+        **kwargs,
+    ):
+        self._line = LineEdit(tooltip="Selection string (e.g. 'df.iloc[2:4, 3:]')")
+        self._btn = PushButton(
+            text="Read selection", tooltip="Read current table selection."
+        )
         super().__init__(layout="horizontal", widgets=[self._line, self._btn], **kwargs)
         self.margins = (0, 0, 0, 0)
         self._line.changed.disconnect()
@@ -443,6 +458,7 @@ class SelectionWidget(Container):
 
             format = get_config().cell.slicing
         self._format = format
+        self._allow_out_of_bounds = allow_out_of_bounds
 
         if isinstance(value, SelectionOperator):
             self.value = value
@@ -501,6 +517,7 @@ class SelectionWidget(Container):
             qwidget.model().df,
             method=self.format,
             column_selected=column_selected,
+            allow_out_of_bounds=self._allow_out_of_bounds,
         )
         self._line.value = _selop.fmt()
         self.changed.emit(_selop)
