@@ -81,8 +81,12 @@ class Generator(Enum):
 
 class RandomGeneratorDialog(Container):
     def __init__(self):
-        self._selection_wdt = SelectionWidget(format="iloc", allow_out_of_bounds=True)
-        self._radio_buttons = RadioButtons(choices=Generator, value=Generator.uniform)
+        self._selection_wdt = SelectionWidget(
+            format="iloc", allow_out_of_bounds=True, label="Selection"
+        )
+        self._radio_buttons = RadioButtons(
+            choices=Generator, value=Generator.uniform, label="Distribution"
+        )
         self._uniform_wdt = UniformRandomGenerator(label="parameters")
         self._normal_wdt = NormalRandomGenerator(label="parameters")
         self._choices_wdt = ChoiceRandomGenerator(label="parameters")
