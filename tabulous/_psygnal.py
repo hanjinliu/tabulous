@@ -4,6 +4,7 @@ from types import MethodType
 from typing import (
     Callable,
     Generic,
+    SupportsIndex,
     overload,
     Any,
     TYPE_CHECKING,
@@ -30,9 +31,18 @@ _R = TypeVar("_R")
 if TYPE_CHECKING:
     MethodRef = tuple[weakref.ReferenceType[object], str, Union[Callable, None]]
     NormedCallback = Union[MethodRef, Callable]
+    Slice1D = Union[SupportsIndex, slice]
+    Slice2D = tuple[Slice1D, Slice1D]
 
 
 class RangedSlot(Generic[_P, _R]):
+    """
+    Callable object tagged with response range.
+
+    This object will be used in `SignalArray` to store the callback function.
+    `range` indicates the range that the callback function will be called.
+    """
+
     def __init__(self, func: Callable[_P, _R], range: RectRange = AnyRange()):
         if not callable(func):
             raise TypeError(f"func must be callable, not {type(func)}")
@@ -63,6 +73,10 @@ class RangedSlot(Generic[_P, _R]):
     def func(self) -> Callable[_P, _R]:
         """The wrapped function."""
         return self._func
+
+
+# Following codes are mostly copied from psygnal (https://github.com/pyapp-kit/psygnal),
+# except for the parametrized part.
 
 
 class SignalArray(Signal):
@@ -140,10 +154,16 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
             check_types_on_connect=check_types_on_connect,
         )
 
-    def __getitem__(self, key) -> _SignalSubArrayRef:
+    def __getitem__(self, key: Slice1D | Slice2D) -> _SignalSubArrayRef:
+        """Return a sub-array reference."""
         if isinstance(key, tuple):
-            r, c = key
-            key = RectRange(_parse_a_key(r), _parse_a_key(c))
+            if len(key) == 2:
+                r, c = key
+                key = RectRange(_parse_a_key(r), _parse_a_key(c))
+            elif len(key) == 1:
+                key = RectRange(_parse_a_key(key[0]))
+            else:
+                raise IndexError("too many indices")
         else:
             key = RectRange(_parse_a_key(key), slice(None))
         return _SignalSubArrayRef(self, key)
