@@ -194,6 +194,18 @@ def _overlap_1d(
 
 
 def translate_slice(sl: slice, index: int, count: int) -> slice:
+    """
+    Return the translated slice suppose row/column changed at given index.
+
+    Parameters
+    ----------
+    sl : slice
+        The slice to translate.
+    index : int
+        The starting index of the row/column that changed.
+    count : int
+        The number of rows/columns that changed.
+    """
     start, stop = sl.start, sl.stop
 
     if count > 0:  # insertion

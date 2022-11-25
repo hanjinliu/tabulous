@@ -81,3 +81,27 @@ def test_list_like_methods():
     assert selection_equal(table.selections, [(slice(1, 3), slice(1, 2))])
     table.selections.clear()
     assert selection_equal(table.selections, [])
+
+def test_highlight_translation():
+    import numpy as np
+
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((10, 10)))
+    sheet.highlights.append((slice(2, 5), slice(2, 5)))
+    assert selection_equal(sheet.highlights, [(slice(2, 5), slice(2, 5))])
+    sheet._qwidget.removeColumns(0, 1)
+    assert selection_equal(sheet.highlights, [(slice(2, 5), slice(1, 4))])
+    sheet._qwidget.insertColumns(0, 2)
+    assert selection_equal(sheet.highlights, [(slice(2, 5), slice(3, 6))])
+    sheet._qwidget.insertColumns(6, 1)
+    assert selection_equal(sheet.highlights, [(slice(2, 5), slice(3, 6))])
+    sheet._qwidget.removeColumns(2, 1)
+    assert selection_equal(sheet.highlights, [(slice(2, 5), slice(2, 5))])
+    sheet._qwidget.removeColumns(2, 1)
+    assert selection_equal(sheet.highlights, [(slice(2, 5), slice(2, 4))])
+    sheet._qwidget.removeColumns(4, 1)
+    assert selection_equal(sheet.highlights, [(slice(2, 5), slice(2, 4))])
+    sheet._qwidget.removeColumns(3, 1)
+    assert selection_equal(sheet.highlights, [(slice(2, 5), slice(2, 3))])
+    sheet._qwidget.removeColumns(2, 1)
+    assert selection_equal(sheet.highlights, [])

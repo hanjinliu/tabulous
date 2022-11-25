@@ -9,12 +9,12 @@ import numpy as np
 
 from tabulous._eval._literal import LiteralCallable, EvalResult
 
-from tabulous._range import RectRange, NoRange, AnyRange
+from tabulous._range import RectRange, NoRange, AnyRange, TableAnchorBase
 from tabulous._selection_op import SelectionOperator
 from tabulous._selection_model import Index
 
 if TYPE_CHECKING:
-    from ..widgets import TableBase
+    from tabulous.widgets import TableBase
 
 logger = logging.getLogger("tabulous")
 
@@ -136,7 +136,7 @@ _ANY_RANGE = AnyRange()
 _NO_RANGE = NoRange()
 
 
-class GraphManager(MutableMapping[Index, Graph]):
+class GraphManager(MutableMapping[Index, Graph], TableAnchorBase):
     """Calculation graph manager."""
 
     def __init__(self):
