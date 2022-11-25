@@ -3,8 +3,9 @@ from typing import TYPE_CHECKING, Callable, Iterable, Iterator, NamedTuple
 from contextlib import contextmanager
 from psygnal import Signal
 
-if TYPE_CHECKING:
+from tabulous._range import TableAnchorBase, translate_slice
 
+if TYPE_CHECKING:
     Range = tuple[slice, slice]
 
 
@@ -27,7 +28,7 @@ class DummyRange(NamedTuple):
 _DUMMY_RANGE = DummyRange(slice(0, 0), slice(0, 0))
 
 
-class RangesModel:
+class RangesModel(TableAnchorBase):
     """Custom 2D range model for efficient overlay handling on a large table."""
 
     def __init__(self):
@@ -172,6 +173,36 @@ class RangesModel:
         except StopIteration:
             out = -1, None
         return out
+
+    def insert_rows(self, row: int, count: int) -> None:
+        for i, (r, c) in enumerate(self._ranges):
+            r = translate_slice(r, row, count)
+            self._ranges[i] = (r, c)
+
+    def insert_columns(self, col: int, count: int) -> None:
+        for i, (r, c) in enumerate(self._ranges):
+            c = translate_slice(c, col, count)
+            self._ranges[i] = (r, c)
+
+    def remove_rows(self, row: int, count: int) -> None:
+        to_be_removed = []
+        for i, (r, c) in enumerate(self._ranges):
+            r = translate_slice(r, row, -count)
+            if r.start >= r.stop:
+                to_be_removed.append(i)
+            self._ranges[i] = (r, c)
+        for i in reversed(to_be_removed):
+            self._ranges.pop(i)
+
+    def remove_columns(self, col: int, count: int) -> None:
+        to_be_removed = []
+        for i, (r, c) in enumerate(self._ranges):
+            c = translate_slice(c, col, -count)
+            if c.start >= c.stop:
+                to_be_removed.append(i)
+            self._ranges[i] = (r, c)
+        for i in reversed(to_be_removed):
+            self._ranges.pop(i)
 
 
 class SelectionModel(RangesModel):

@@ -4,8 +4,8 @@ from enum import Enum
 from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
 from psygnal import SignalGroup, Signal
 
-from .filtering import FilterProxy
-from ._component import (
+from tabulous.widgets.filtering import FilterProxy
+from tabulous.widgets._component import (
     CellInterface,
     HorizontalHeaderInterface,
     VerticalHeaderInterface,
@@ -15,9 +15,9 @@ from ._component import (
     SelectionRanges,
     HighlightRanges,
 )
-from . import _doc
-
+from tabulous.widgets import _doc
 from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
+from tabulous._psygnal import SignalArray
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -42,7 +42,7 @@ _Void = object()
 class TableSignals(SignalGroup):
     """Signal group for a Table."""
 
-    data = Signal(ItemInfo)
+    data = SignalArray(ItemInfo)
     index = Signal(HeaderInfo)
     columns = Signal(HeaderInfo)
     evaluated = Signal(EvalInfo)
@@ -107,7 +107,7 @@ class TableBase(ABC):
             with self._qwidget._mgr.blocked():
                 self._qwidget.setEditable(editable)
             self._qwidget.connectItemChangedSignal(
-                self.events.data.emit,
+                self._emit_data_changed_signal,
                 self.events.index.emit,
                 self.events.columns.emit,
                 self.events.evaluated.emit,
@@ -117,6 +117,36 @@ class TableBase(ABC):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}<{self.name!r}>"
+
+    def _emit_data_changed_signal(self, info: ItemInfo) -> None:
+        r, c = info.row, info.column
+        if info.value is info.DELETED or info.old_value is info.INSERTED:
+            # insertion/deletion emits signal from the next row/column.
+            _is_deleted = info.value is info.DELETED
+            if r == slice(None):
+                # column is deleted/inserted
+                if isinstance(c, slice):
+                    index, count = c.start, c.stop - c.start
+                else:
+                    index, count = c, 1
+                if _is_deleted:
+                    self.events.data.remove_columns(index, count)
+                else:
+                    self.events.data.insert_columns(index, count)
+                self.events.data[:, c.start :].emit(info)
+            else:
+                # row is deleted/inserted
+                if isinstance(r, slice):
+                    index, count = r.start, r.stop - r.start
+                else:
+                    index, count = r, 1
+                if _is_deleted:
+                    self.events.data.remove_rows(index, count)
+                else:
+                    self.events.data.insert_rows(index, count)
+                self.events.data[r.start :, :].emit(info)
+        else:
+            self.events.data[r, c].emit(info)
 
     @abstractmethod
     def _create_backend(self, data: pd.DataFrame) -> QBaseTable:

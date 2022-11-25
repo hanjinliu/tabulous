@@ -377,6 +377,8 @@ class QSpreadSheet(QMutableSimpleTable):
 
         # update graph indices
         self._qtable_view._ref_graphs.insert_rows(row, count)
+        self._qtable_view._selection_model.insert_rows(row, count)
+        self._qtable_view._highlight_model.insert_rows(row, count)
 
         info = ItemInfo(
             slice(row, row + count),
@@ -440,6 +442,8 @@ class QSpreadSheet(QMutableSimpleTable):
 
         # update graph indices
         self._qtable_view._ref_graphs.insert_columns(col, count)
+        self._qtable_view._selection_model.insert_columns(col, count)
+        self._qtable_view._highlight_model.insert_columns(col, count)
 
         info = ItemInfo(
             slice(None),
@@ -477,6 +481,8 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = None
 
         self._qtable_view._ref_graphs.remove_rows(row, count)
+        self._qtable_view._highlight_model.remove_rows(row, count)
+        self._qtable_view._selection_model.remove_rows(row, count)
         info = ItemInfo(
             slice(row, row + count), slice(None), ItemInfo.DELETED, old_values
         )
@@ -521,6 +527,8 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = None
 
         self._qtable_view._ref_graphs.remove_columns(col, count)
+        self._qtable_view._highlight_model.remove_columns(col, count)
+        self._qtable_view._selection_model.remove_columns(col, count)
         info = ItemInfo(
             slice(None), slice(col, col + count), ItemInfo.DELETED, old_values
         )

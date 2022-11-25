@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, MutableMapping
+from typing import MutableMapping, TYPE_CHECKING
 import weakref
 from contextlib import contextmanager
 import logging
 
 import numpy as np
 
-from ._range import RectRange, NoRange, AnyRange
-from ._literal import LiteralCallable, EvalResult
+from tabulous._eval._literal import LiteralCallable, EvalResult
 
+from tabulous._range import RectRange, NoRange, AnyRange, TableAnchorBase
 from tabulous._selection_op import SelectionOperator
 from tabulous._selection_model import Index
 
 if TYPE_CHECKING:
-    from ..widgets import TableBase
+    from tabulous.widgets import TableBase
 
 logger = logging.getLogger("tabulous")
 
@@ -136,14 +136,13 @@ _ANY_RANGE = AnyRange()
 _NO_RANGE = NoRange()
 
 
-class GraphManager(MutableMapping[Index, Graph]):
+class GraphManager(MutableMapping[Index, Graph], TableAnchorBase):
     """Calculation graph manager."""
 
     def __init__(self):
         self._graphs: dict[Index, Graph] = {}
         self._update_blocked = False
         self._blocked_ranges: RectRange = _NO_RANGE
-        self._to_be_shown: weakref.WeakSet[Graph] = weakref.WeakSet()
 
     def __getitem__(self, key: Index) -> Graph:
         return self._graphs[key]
@@ -186,6 +185,9 @@ class GraphManager(MutableMapping[Index, Graph]):
     def __iter__(self):
         return iter(self._graphs)
 
+    def __repr__(self) -> str:
+        return f"GraphManager<{self._graphs!r}>"
+
     def is_all_blocked(self) -> bool:
         """True if manager update is disabled at any positions."""
         return self._blocked_ranges is _ANY_RANGE
@@ -210,14 +212,6 @@ class GraphManager(MutableMapping[Index, Graph]):
             yield
         finally:
             self._blocked_ranges = old_range
-
-    def set_to_be_shown(self, graphs: Iterable[Graph]):
-        """Set graphs to be shown."""
-        return self._to_be_shown.update(graphs)
-
-    def delete_to_be_shown(self, graphs: Iterable[Graph]):
-        """Delete graphs to be shown."""
-        return self._to_be_shown.difference_update(graphs)
 
     def insert_rows(self, row: int, count: int):
         """Insert rows and update indices."""
