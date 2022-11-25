@@ -175,7 +175,7 @@ class Line2DEdit(ArtistEditor[Line2D]):
 
 class ScatterEdit(ArtistEditor[PathCollection]):
     def _create_widgets(self) -> list[Widget]:
-        from .._color_edit import ColorEdit
+        from tabulous._qt._color_edit import ColorEdit
 
         scatter = self.artist
 
@@ -193,8 +193,8 @@ class ScatterEdit(ArtistEditor[PathCollection]):
         # _edgewidth = FloatSpinBox(name="edge width", value=scatter.get_linewidth())
 
         # marker
-        # _marker_edit = ComboBox(choices=Marker, value=line.get_marker(), name="marker")
-        # _marker_edit.changed.connect(self.set_marker)
+        _marker_edit = ComboBox(choices=Marker, value=Marker.circle, name="marker")
+        _marker_edit.changed.connect(self.set_marker)
 
         _size_edit = FloatSpinBox(
             min=0.0, max=500.0, step=0.5, value=scatter.get_sizes()[0], name="size"
@@ -207,7 +207,7 @@ class ScatterEdit(ArtistEditor[PathCollection]):
         )
         _zorder.changed.connect(self.set_zorder)
 
-        return [_facecolor, _edgecolor, _size_edit, _zorder]
+        return [_facecolor, _edgecolor, _marker_edit, _size_edit, _zorder]
 
     def set_facecolor(self, rgba: tuple[int, int, int, int]) -> None:
         """Set face colors of the scatter."""
@@ -217,8 +217,14 @@ class ScatterEdit(ArtistEditor[PathCollection]):
         """Set edge colors of the scatter."""
         self.artist.set_edgecolors(_to_float_rgba(rgba))
 
-    # def set_marker(self, marker: str):
-    #     self.line.set_marker(marker)
+    def set_marker(self, marker: Marker | str):
+        import matplotlib.markers as mmarkers
+
+        marker = Marker(marker)
+        marker_obj = mmarkers.MarkerStyle(marker.value)
+
+        path = marker_obj.get_path().transformed(marker_obj.get_transform())
+        self.artist.set_paths((path,))
 
     def set_size(self, size: int) -> None:
         self.artist.set_sizes([size])
@@ -270,7 +276,7 @@ class PatchContainerEdit(ArtistEditor[BarContainer]):
 class LineCollectionEdit(ArtistEditor[LineCollection]):
     def _create_widgets(self) -> list[Widget]:
 
-        from .._color_edit import ColorEdit
+        from tabulous._qt._color_edit import ColorEdit
 
         line = self.artist
 
