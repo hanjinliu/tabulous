@@ -418,19 +418,25 @@ class PlotInterface(Component["TableBase"]):
 
     def plot(self, *args, **kwargs):
         """Call ``plt.plot`` on the current side figure."""
-        out = self.gca().plot(*args, **kwargs)
+        out = self.gca().plot(*args, picker=True, **kwargs)
         self.draw()
         return out
 
     def scatter(self, *args, **kwargs):
         """Call ``plt.scatter`` on the current side figure."""
-        out = self.gca().scatter(*args, **kwargs)
+        out = self.gca().scatter(*args, picker=True, **kwargs)
         self.draw()
         return out
 
     def hist(self, *args, **kwargs):
         """Call ``plt.hist`` on the current side figure."""
-        out = self.gca().hist(*args, **kwargs)
+        out = self.gca().hist(*args, picker=True, **kwargs)
+        self.draw()
+        return out
+
+    def text(self, *args, **kwargs):
+        """Call ``plt.text`` on the current side figure."""
+        out = self.gca().text(*args, picker=True, **kwargs)
         self.draw()
         return out
 

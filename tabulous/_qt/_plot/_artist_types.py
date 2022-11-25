@@ -55,3 +55,21 @@ class HatchStyle(Enum):
     dots = "."
     stars = "*"
     none = "None"
+
+
+class VerticalAlignment(Enum):
+    """Vertical alignment."""
+
+    top = "top"
+    center = "center"
+    bottom = "bottom"
+    baseline = "baseline"
+    center_baseline = "center_baseline"
+
+
+class HorizontalAlignment(Enum):
+    """Horizontal alignment."""
+
+    left = "left"
+    center = "center"
+    right = "right"

@@ -180,7 +180,7 @@ class TableBase(ABC):
     @property
     def mutable(self) -> bool:
         """Mutability of the table."""
-        from .._qt._table import QMutableTable
+        from tabulous._qt._table import QMutableTable
 
         return isinstance(self._qwidget, QMutableTable)
 

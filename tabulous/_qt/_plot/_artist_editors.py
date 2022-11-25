@@ -5,16 +5,39 @@ from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.container import BarContainer
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
-from matplotlib.patches import Patch
+from matplotlib.patches import Patch, Polygon
 
 from matplotlib.artist import Artist
 
-from magicgui.widgets import ComboBox, Container, SpinBox, FloatSpinBox, Widget
+from magicgui.widgets import (
+    ComboBox,
+    Container,
+    SpinBox,
+    FloatSpinBox,
+    LineEdit,
+    Widget,
+)
 
-from ._artist_types import LineStyle, Marker, HatchStyle
+from ._artist_types import (
+    LineStyle,
+    Marker,
+    HatchStyle,
+    VerticalAlignment,
+    HorizontalAlignment,
+)
 
 _A = TypeVar("_A", bound=Artist)
 _T = TypeVar("_T")
+
+_TYPE_MAP: dict[type[Artist], type[ArtistEditor]] = {}
+
+
+def _register(artist: type[Artist]):
+    def _wrapper(cls: _T) -> _T:
+        _TYPE_MAP[artist] = cls
+        return cls
+
+    return _wrapper
 
 
 class _Ref(Generic[_T]):
@@ -63,6 +86,7 @@ class ArtistEditor(Container, Generic[_A]):
         return None
 
 
+@_register(Line2D)
 class Line2DEdit(ArtistEditor[Line2D]):
     def _create_widgets(self) -> None:
         from .._color_edit import ColorEdit
@@ -173,6 +197,7 @@ class Line2DEdit(ArtistEditor[Line2D]):
         self.artist.set_markersize(size)
 
 
+@_register(PathCollection)
 class ScatterEdit(ArtistEditor[PathCollection]):
     def _create_widgets(self) -> list[Widget]:
         from tabulous._qt._color_edit import ColorEdit
@@ -233,6 +258,7 @@ class ScatterEdit(ArtistEditor[PathCollection]):
         self.artist.set_zorder(zorder)
 
 
+@_register(BarContainer)
 class PatchContainerEdit(ArtistEditor[BarContainer]):
     def _create_widgets(self) -> list[Widget]:
         from .._color_edit import ColorEdit
@@ -273,9 +299,9 @@ class PatchContainerEdit(ArtistEditor[BarContainer]):
         return self.artist[0].get_label()
 
 
+@_register(LineCollection)
 class LineCollectionEdit(ArtistEditor[LineCollection]):
     def _create_widgets(self) -> list[Widget]:
-
         from tabulous._qt._color_edit import ColorEdit
 
         line = self.artist
@@ -298,16 +324,91 @@ class LineCollectionEdit(ArtistEditor[LineCollection]):
         self.artist.set_linewidth(width)
 
 
+@_register(Polygon)
+class PolygonEdit(ArtistEditor[Polygon]):
+    def _create_widgets(self) -> list[Widget]:
+        from tabulous._qt._color_edit import ColorEdit
+
+        polygon = self.artist
+        _facecolor = ColorEdit(
+            label="face color", value=fix_color(polygon.get_facecolor())
+        )
+        _facecolor.changed.connect(self.set_facecolor)
+        _edgecolor = ColorEdit(
+            label="edge color", value=fix_color(polygon.get_edgecolor())
+        )
+        _edgecolor.changed.connect(self.set_edgecolor)
+
+        _linewidth = FloatSpinBox(
+            label="edge width",
+            value=polygon.get_linewidth(),
+            min=0.0,
+            max=50.0,
+            step=0.5,
+        )
+        _linewidth.changed.connect(self.set_linewidth)
+
+        return [_facecolor, _edgecolor, _linewidth]
+
+    def set_facecolor(self, rgba):
+        rgba = _to_float_rgba(rgba)
+        self.artist.set_facecolor(rgba)
+
+    def set_edgecolor(self, rgba):
+        rgba = _to_float_rgba(rgba)
+        self.artist.set_edgecolor(rgba)
+
+    def set_linewidth(self, width: float):
+        self.artist.set_linewidth(width)
+
+
+@_register(Text)
+class TextEdit(ArtistEditor[Text]):
+    def _create_widgets(self) -> list[Widget]:
+        from tabulous._qt._color_edit import ColorEdit
+
+        _color = ColorEdit(name="color", value=fix_color(self.artist.get_color()))
+        _color.changed.connect(self.set_color)
+
+        _font_size = SpinBox(
+            name="font size", value=self.artist.get_fontsize(), min=1, max=180
+        )
+        _font_size.changed.connect(self.artist.set_fontsize)
+
+        _text = LineEdit(name="text", value=self.artist.get_text())
+        _text.changed.connect(self.artist.set_text)
+
+        _va = ComboBox(
+            name="vertical",
+            choices=VerticalAlignment,
+            value=VerticalAlignment(self.artist.get_verticalalignment()),
+        )
+        _ha = ComboBox(
+            name="horizontal",
+            choices=HorizontalAlignment,
+            value=HorizontalAlignment(self.artist.get_horizontalalignment()),
+        )
+        _va.changed.connect(self.set_verticalalignment)
+        _ha.changed.connect(self.set_horizontalalignment)
+
+        _alignment = Container(widgets=[_va, _ha], name="alignment")
+        return [_color, _font_size, _text, _alignment]
+
+    def set_color(self, rgba):
+        self.artist.set_color(_to_float_rgba(rgba))
+
+    def set_verticalalignment(self, alignment: VerticalAlignment):
+        self.artist.set_verticalalignment(alignment.value)
+
+    def set_horizontalalignment(self, alignment: HorizontalAlignment):
+        self.artist.set_horizontalalignment(alignment.value)
+
+
 def pick_container(artist: Artist) -> ArtistEditor:
     """Return a proper container for the given artist."""
-    if isinstance(artist, Line2D):
-        return Line2DEdit(artist)
-    elif isinstance(artist, PathCollection):
-        return ScatterEdit(artist)
-    elif isinstance(artist, BarContainer):
-        return PatchContainerEdit(artist)
-    elif isinstance(artist, LineCollection):
-        return LineCollectionEdit(artist)
+    for artist_cls, wdt_cls in _TYPE_MAP.items():
+        if isinstance(artist, artist_cls):
+            return wdt_cls(artist)
     raise ValueError(f"No container found for artist {type(artist).__name__}.")
 
 
