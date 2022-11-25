@@ -6,16 +6,15 @@ import weakref
 from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtWidgets import QAction
 
-from .._svg import QColoredSVGIcon
-from .._multitips import QHasToolTip
+from tabulous._qt._svg import QColoredSVGIcon
+from tabulous._qt._multitips import QHasToolTip
 from . import _dialogs as _dlg
 
 
 if TYPE_CHECKING:
-    import pandas as pd
-    from .._mainwindow import _QtMainWidgetBase
-    from ...widgets._mainwindow import TableViewerBase
-    from ...widgets import TableBase
+    from tabulous._qt._mainwindow import _QtMainWidgetBase
+    from tabulous.widgets._mainwindow import TableViewerBase
+    from tabulous.widgets import TableBase
 
 # fmt: off
 SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
@@ -289,6 +288,23 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if out is not None:
             self.viewer.add_table(out, name=f"{table.name}-sorted")
 
+    def random(self):
+        """Add random data to the specified data range."""
+        table = self.viewer.current_table
+        if table is None:
+            return
+        from ._random import RandomGeneratorDialog
+
+        dlg = RandomGeneratorDialog()
+        dlg.native.setParent(self, dlg.native.windowFlags())
+        dlg.show()
+
+        @dlg.called.connect
+        def _on_called():
+            val = dlg.get_value(table._qwidget.model().df)
+            rsl, csl, data = val
+            table.cell[rsl, csl] = data
+
     def filter(self):
         """Apply filter to the current table."""
         return self.parent()._tablestack.openFilterDialog()
@@ -298,7 +314,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         return self.parent()._tablestack.openEvalDialog()
 
     def optimize(self):
-        """Optimizer."""
+        """Open the optimizer widget."""
         from ._optimizer import OptimizerWidget
 
         tablestack = self.parent()._tablestack
@@ -444,6 +460,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.addSeparatorToChild("Table")
         self.registerAction("Table", self.find_item, ICON_DIR / "find_item.svg")
         self.registerAction("Table", self.sort_table, ICON_DIR / "sort_table.svg")
+        self.addSeparatorToChild("Table")
+        self.registerAction("Table", self.random, ICON_DIR / "random.svg")
 
         self.registerAction(
             "Analyze", self.summarize_table, ICON_DIR / "summarize_table.svg"
