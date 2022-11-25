@@ -11,14 +11,16 @@ from typing import (
     get_type_hints,
     Union,
 )
+from typing_extensions import get_args, get_origin, ParamSpec
 import weakref
 from contextlib import suppress
 from functools import wraps, partial, lru_cache
 from psygnal import Signal, SignalInstance, EmitLoopError
-from tabulous._range import RectRange, AnyRange
 import inspect
 from inspect import Parameter, Signature, isclass
-from typing_extensions import get_args, get_origin, ParamSpec
+
+from tabulous._range import RectRange, AnyRange, TableAnchorBase
+
 
 __all__ = ["SignalArray"]
 
@@ -118,7 +120,7 @@ class SignalArray(Signal):
 _empty_signature = Signature()
 
 
-class SignalArrayInstance(SignalInstance):
+class SignalArrayInstance(SignalInstance, TableAnchorBase):
     """Parametric version of `SignalInstance`."""
 
     def __init__(
@@ -279,7 +281,7 @@ class SignalArrayInstance(SignalInstance):
         """Insert columns and update slices in-place."""
         for slot, _ in self._slots:
             if isinstance(slot, RangedSlot):
-                slot.range.insert_rows(col, count)
+                slot.range.insert_columns(col, count)
         return None
 
     def remove_rows(self, row: int, count: int):

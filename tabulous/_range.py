@@ -1,7 +1,27 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 
-class RectRange:
+
+class TableAnchorBase(ABC):
+    @abstractmethod
+    def insert_rows(self, row: int, count: int) -> None:
+        ...
+
+    @abstractmethod
+    def insert_columns(self, col: int, count: int) -> None:
+        ...
+
+    @abstractmethod
+    def remove_rows(self, row: int, count: int) -> None:
+        ...
+
+    @abstractmethod
+    def remove_columns(self, col: int, count: int) -> None:
+        ...
+
+
+class RectRange(TableAnchorBase):
     def __init__(
         self,
         rsl: slice = slice(0, 0),
@@ -45,22 +65,22 @@ class RectRange:
 
     def insert_rows(self, row: int, count: int) -> None:
         """Insert rows and update slices in-place."""
-        self._rsl = _translate_slice(self._rsl, row, count)
+        self._rsl = translate_slice(self._rsl, row, count)
         return None
 
     def insert_columns(self, col: int, count: int) -> None:
         """Insert columns and update slices in-place."""
-        self._csl = _translate_slice(self._csl, col, count)
+        self._csl = translate_slice(self._csl, col, count)
         return None
 
     def remove_rows(self, row: int, count: int):
         """Remove rows and update slices in-place."""
-        self._rsl = _translate_slice(self._rsl, row, -count)
+        self._rsl = translate_slice(self._rsl, row, -count)
         return None
 
     def remove_columns(self, col: int, count: int):
         """Remove columns and update slices in-place."""
-        self._csl = _translate_slice(self._csl, col, -count)
+        self._csl = translate_slice(self._csl, col, -count)
         return None
 
     def is_empty(self) -> bool:
@@ -173,12 +193,18 @@ def _overlap_1d(
     return r0_o < r1_s and r0_s < r1_o
 
 
-def _translate_slice(sl: slice, index: int, count: int) -> slice:
+def translate_slice(sl: slice, index: int, count: int) -> slice:
     start, stop = sl.start, sl.stop
 
-    if start is not None and start >= index:
-        start = start + count
-    if stop is not None and stop >= index:
-        stop = stop + count
+    if count > 0:  # insertion
+        if start is not None and start >= index:
+            start = start + count
+        if stop is not None and stop > index:
+            stop = stop + count
+    else:  # deletion
+        if start is not None and start > index:
+            start = start + count
+        if stop is not None and stop > index:
+            stop = stop + count
 
     return slice(start, stop)
