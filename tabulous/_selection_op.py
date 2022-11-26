@@ -361,17 +361,21 @@ def construct(
     if column_selected:
         rsl = slice(None)
 
-    if method == "loc":
-        if csl.start == csl.stop - 1:
-            selop = ColumnSelOp.from_iloc(rsl, csl, df)
+    try:
+        if method == "loc":
+            if csl.start == csl.stop - 1:
+                selop = ColumnSelOp.from_iloc(rsl, csl, df)
+            else:
+                selop = LocSelOp.from_iloc(rsl, csl, df)
+        elif method == "iloc":
+            selop = ILocSelOp.from_iloc(rsl, csl, df)
+        elif method == "values":
+            selop = ValueSelOp.from_iloc(rsl, csl, df)
         else:
-            selop = LocSelOp.from_iloc(rsl, csl, df)
-    elif method == "iloc":
-        selop = ILocSelOp.from_iloc(rsl, csl, df)
-    elif method == "values":
-        selop = ValueSelOp.from_iloc(rsl, csl, df)
-    else:
-        raise RuntimeError(f"Unknwon slicing mode {method!r}")
+            raise RuntimeError(f"Unknwon slicing mode {method!r}")
+    except IndexError:
+        # out-of-bound in spreadsheet
+        return None
     return selop
 
 
