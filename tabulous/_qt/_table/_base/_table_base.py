@@ -688,20 +688,31 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     ) -> None:
         """Move current index."""
         selection_model = self._qtable_view._selection_model
+        df_shape = self.model().df.shape
+        table_shape = self.model().rowCount(), self.model().columnCount()
+
         if row is None:
             row = selection_model.current_index.row
         elif row < 0:
-            row += self.model().df.shape[0]
+            if row == -1 and df_shape[0] - 1 <= selection_model.current_index.row:
+                row += table_shape[0]
+            else:
+                row += df_shape[0]
 
         if column is None:
             column = selection_model.current_index.column
         elif column < 0:
-            column += self.model().df.shape[1]
+            if column == -1 and df_shape[1] - 1 <= selection_model.current_index.column:
+                column += table_shape[1]
+            else:
+                column += df_shape[1]
 
+        # If selection is not going to be expanded, clear the selection first.
         if clear_selection or not (
             selection_model._ctrl_on or selection_model._shift_on
         ):
             selection_model.clear()
+
         selection_model.move_to(row, column)
         return None
 
