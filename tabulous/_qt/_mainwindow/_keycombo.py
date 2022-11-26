@@ -257,4 +257,12 @@ def _(self: _QtMainWidgetBase):
     idx = self._tablestack.currentIndex()
     self._tablestack.untileTable(idx)
 
+@QMainWindow._keymap.bind("F11")
+def _(self: QMainWindow):
+    """Toggle fullscreen mode."""
+    if self.isFullScreen():
+        self.showNormal()
+    else:
+        self.showFullScreen()
+
 # fmt: on
