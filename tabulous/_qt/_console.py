@@ -1,9 +1,13 @@
 from __future__ import annotations
-from qtconsole.rich_jupyter_widget import RichJupyterWidget
+
+from pathlib import Path
 import weakref
 from typing import TYPE_CHECKING, cast
+from contextlib import suppress
+
 from qtpy.QtCore import Signal
 from qtpy import QtWidgets as QtW, QtCore, QtGui
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from tabulous._qt._keymap import QtKeys, QtKeyMap
 
@@ -91,12 +95,28 @@ class QtConsole(RichJupyterWidget):
             raise ValueError("ipython shell not recognized; " f"got {type(shell)}")
 
         if self.shell is not None:
-            import tabulous as tbl
-            import numpy as np
-            import pandas as pd
+
+            from IPython.paths import get_ipython_dir
             from tabulous._utils import get_config
 
             _ns = get_config().console_namespace
+
+            # run IPython startup files
+            profile_dir = Path(get_ipython_dir()) / "profile_default" / "startup"
+            if profile_dir.exists() and _ns.load_startup_file:
+                import runpy
+
+                _globals = {}
+                for startup in profile_dir.glob("*.py"):
+                    with suppress(Exception):
+                        _globals.update(runpy.run_path(startup))
+
+                self.shell.push(_globals)
+
+            # update namespaces
+            import tabulous as tbl
+            import numpy as np
+            import pandas as pd
 
             ns = {
                 _ns.viewer: widget,
@@ -240,14 +260,3 @@ class QtConsole(RichJupyterWidget):
     @_keymap.bind("Ctrl+.")
     def _ignore(self):
         """Ignore restarting the kernel."""
-
-
-class TableDataReference:
-    """Reference to the table data in the console namespace."""
-
-    def __init__(self, viewer: TableViewerBase) -> None:
-        self._viewer_ref = weakref.ref(viewer)
-
-    def __getitem__(self, key):
-        df = self._viewer_ref().current_table.data
-        return df.iloc[key]
