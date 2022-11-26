@@ -22,7 +22,9 @@ from tabulous.types import ItemInfo
 if TYPE_CHECKING:
     from magicgui.widgets._bases import ValueWidget
 
-_OUT_OF_BOUND_SIZE = 10  # 10 more rows and columns will be displayed.
+# More rows/columns will be displayed
+_OUT_OF_BOUND_R = 60
+_OUT_OF_BOUND_C = 10
 _STRING_DTYPE = get_dtype("string")
 _EMPTY = object()
 _EXP_FLOAT = re.compile(r"[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)")
@@ -55,13 +57,13 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
     def rowCount(self, parent=None):
         return min(
-            self._df.shape[0] + _OUT_OF_BOUND_SIZE,
+            self._df.shape[0] + _OUT_OF_BOUND_R,
             self._table_config.max_row_count,
         )
 
     def columnCount(self, parent=None):
         return min(
-            self._df.shape[1] + _OUT_OF_BOUND_SIZE,
+            self._df.shape[1] + _OUT_OF_BOUND_C,
             self._table_config.max_column_count,
         )
 
@@ -207,8 +209,8 @@ class QSpreadSheet(QMutableSimpleTable):
         """Set data frame as a string table."""
         self._data_raw = data.astype(_STRING_DTYPE)
         self.model().setShape(
-            data.index.size + _OUT_OF_BOUND_SIZE,
-            data.columns.size + _OUT_OF_BOUND_SIZE,
+            data.index.size + _OUT_OF_BOUND_R,
+            data.columns.size + _OUT_OF_BOUND_C,
         )
         self._data_cache = None
         self.setFilter(None)
@@ -325,8 +327,8 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_raw = _pad_dataframe(self._data_raw, nrows, ncols)
         new_shape = self._data_raw.shape
         self.model().setShape(
-            new_shape[0] + _OUT_OF_BOUND_SIZE,
-            new_shape[1] + _OUT_OF_BOUND_SIZE,
+            new_shape[0] + _OUT_OF_BOUND_R,
+            new_shape[1] + _OUT_OF_BOUND_C,
         )
         return None
 
@@ -336,8 +338,8 @@ class QSpreadSheet(QMutableSimpleTable):
         model = self.model()
         self._data_raw = self._data_raw.iloc[: nr - nrows, : nc - ncols]
         model.setShape(
-            self._data_raw.shape[0] + _OUT_OF_BOUND_SIZE,
-            self._data_raw.shape[1] + _OUT_OF_BOUND_SIZE,
+            self._data_raw.shape[0] + _OUT_OF_BOUND_R,
+            self._data_raw.shape[1] + _OUT_OF_BOUND_C,
         )
         self.setFilter(self._filter_slice)
         self._data_cache = None
