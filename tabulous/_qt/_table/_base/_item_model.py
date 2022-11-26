@@ -275,23 +275,24 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         dc = ncol - c0
 
         # Adjust rows
+        parent = QtCore.QModelIndex()
         if dr > 0:
-            self.beginInsertRows(QtCore.QModelIndex(), r0, r0 + dr - 1)
-            self.insertRows(r0, dr, QtCore.QModelIndex())
+            self.beginInsertRows(parent, r0, r0 + dr - 1)
+            self.insertRows(r0, dr, parent)
             self.endInsertRows()
         elif dr < 0:
-            self.beginRemoveRows(QtCore.QModelIndex(), r0 + dr, r0 - 1)
-            self.removeRows(r0 + dr, -dr, QtCore.QModelIndex())
+            self.beginRemoveRows(parent, r0 + dr, r0 - 1)
+            self.removeRows(r0 + dr, -dr, parent)
             self.endRemoveRows()
 
         # Adjust columns
         if dc > 0:
-            self.beginInsertColumns(QtCore.QModelIndex(), c0, c0 + dc - 1)
-            self.insertColumns(c0, dc, QtCore.QModelIndex())
+            self.beginInsertColumns(parent, c0, c0 + dc - 1)
+            self.insertColumns(c0, dc, parent)
             self.endInsertColumns()
         elif dc < 0:
-            self.beginRemoveColumns(QtCore.QModelIndex(), c0 + dc, c0 - 1)
-            self.removeColumns(c0 + dc, -dc, QtCore.QModelIndex())
+            self.beginRemoveColumns(parent, c0 + dc, c0 - 1)
+            self.removeColumns(c0 + dc, -dc, parent)
             self.endRemoveColumns()
 
         return None

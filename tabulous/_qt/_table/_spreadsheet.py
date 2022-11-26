@@ -334,9 +334,11 @@ class QSpreadSheet(QMutableSimpleTable):
     def expandDataFrame(self, nrows: int, ncols: int):
         nr, nc = self._data_raw.shape
         model = self.model()
-        model.removeRows(nr - nrows, nrows, QtCore.QModelIndex())
-        model.removeColumns(nc - ncols, ncols, QtCore.QModelIndex())
         self._data_raw = self._data_raw.iloc[: nr - nrows, : nc - ncols]
+        model.setShape(
+            self._data_raw.shape[0] + _OUT_OF_BOUND_SIZE,
+            self._data_raw.shape[1] + _OUT_OF_BOUND_SIZE,
+        )
         self.setFilter(self._filter_slice)
         self._data_cache = None
         return None
