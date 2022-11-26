@@ -278,7 +278,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def selections(self) -> SelectionType:
         """Get list of selections as slicable tuples"""
-        return self._qtable_view._selection_model._ranges
+        return self._qtable_view._selection_model.as_ranges()
 
     def setSelections(self, selections: SelectionType):
         """Set list of selections."""
@@ -291,8 +291,9 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def highlights(self) -> SelectionType:
         """Get list of selections as slicable tuples"""
-        return self._qtable_view._highlight_model._ranges
+        return self._qtable_view._highlight_model.as_ranges()
 
+    @_mgr.interface
     def setHighlights(self, selections: SelectionType):
         """Set list of selections."""
         qtable = self._qtable_view
@@ -301,6 +302,10 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         qtable.set_highlights(_normalize_selections(selections, nr, nc))
         self.update()
         return None
+
+    @setHighlights.server
+    def setHighlights(self, selections: SelectionType):
+        return arguments(self.highlights())
 
     def copyToClipboard(self, headers: bool = True, sep: str = "\t") -> None:
         """Copy currently selected cells to clipboard."""
@@ -861,7 +866,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         def _update_console():
             console = viewer._console_widget
             df = self.model().df
-            rsl, csl = ILocSelOp.from_iloc(*sels[0], df).as_iloc_slices(df)
+            rsl, csl = sels[0]
             if rsl == slice(None) and csl == slice(None):
                 _getitem = ""
             else:
@@ -901,7 +906,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         def _update_console():
             console = viewer._console_widget
             df = self.model().df
-            rsl, csl = ILocSelOp.from_iloc(*sels[0], df).as_iloc_slices(df)
+            rsl, csl = sels[0]
             if rsl.start is None:
                 rsl_str = f"slice({rsl.stop})"
             elif rsl.stop is None:

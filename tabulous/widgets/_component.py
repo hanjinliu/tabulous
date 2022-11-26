@@ -465,7 +465,7 @@ class _TableRanges(Component["TableBase"], MutableSequence[_Range]):
         rng_str: list[str] = []
         for rng in self:
             r, c = rng
-            rng_str.append(f"[{r.start}:{r.stop}, {c.start}:{c.stop}]")
+            rng_str.append(f"[{_fmt_slice(r)}, {_fmt_slice(c)}]")
         return f"{self.__class__.__name__}({', '.join(rng_str)})"
 
     def __getitem__(self, index: int) -> _Range:
@@ -544,7 +544,7 @@ class HighlightRanges(_TableRanges):
     def _get_list(self):
         return list(self.parent._qwidget.highlights())
 
-    def update(self, value: SelectionRanges):
+    def update(self, value: HighlightRanges):
         """Update the highlight ranges."""
         return self.parent._qwidget.setHighlights(value)
 
@@ -648,3 +648,9 @@ class CellReferenceInterface(Component["TableBase"], Mapping["tuple[int, int]", 
             return f"{cname}()"
         s = ",\n\t".join(f"{k}: {graph!r}" for k, graph in graphs.items())
         return f"{cname}(\n\t{s}\n)"
+
+
+def _fmt_slice(sl: slice) -> str:
+    s0 = sl.start if sl.start is not None else ""
+    s1 = sl.stop if sl.stop is not None else ""
+    return f"{s0}:{s1}"

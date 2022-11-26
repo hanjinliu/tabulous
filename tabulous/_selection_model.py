@@ -62,6 +62,21 @@ class RangesModel(TableAnchorBase):
         for i in self._col_selection_indices:
             yield self._ranges[i][1]
 
+    def as_ranges(self) -> list[Range]:
+        """Return a list of ranges considering row/column selections."""
+        out: list[Range] = []
+        for i, rng in enumerate(self._ranges):
+            if i in self._row_selection_indices:
+                if i in self._col_selection_indices:
+                    out.append((slice(None), slice(None)))
+                else:
+                    out.append((rng[0], slice(None)))
+            elif i in self._col_selection_indices:
+                out.append((slice(None), rng[1]))
+            else:
+                out.append(rng)
+        return out
+
     def append(self, range: Range, row: bool = False, column: bool = False) -> None:
         """Append a new range."""
         if self._is_blocked:
