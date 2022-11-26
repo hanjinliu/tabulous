@@ -347,10 +347,12 @@ def construct(
 
     # normalize out-of-bound
     if not allow_out_of_bounds:
+        rsl = slice(*rsl.indices(nr))
         if rsl.stop > nr:
             if rsl.start >= nr:
                 return None
             rsl = slice(rsl.start, nr)
+        csl = slice(*csl.indices(nc))
         if csl.stop > nc:
             if csl.start >= nc:
                 return None
