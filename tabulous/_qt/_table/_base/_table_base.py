@@ -163,6 +163,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.registerAction("Copy as ... > Comma separated text")(lambda index: self.copyToClipboard(headers=False, sep=","))
         self.registerAction("Copy as ... > Comma separated text with headers")(lambda index: self.copyToClipboard(headers=True, sep=","))
         self.registerAction("Copy as ... > Literal")(lambda index: self._copy_as_literal())
+        self.registerAction("Copy as ... > New table")(lambda index: self._copy_as_new_table("table"))
+        self.registerAction("Copy as ... > New spreadsheet")(lambda index: self._copy_as_new_table("spreadsheet"))
         self.registerAction("Paste")(lambda index: self.pasteFromClipBoard())
         self.registerAction("Paste from ... > Comma separated text")(lambda index: self.pasteFromClipBoard(sep=","))
         self.addSeparator()
@@ -339,6 +341,30 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         from pandas.io.clipboards import to_clipboard
 
         return to_clipboard(f"viewer.tables[{name!r}].data.iloc{_sl}", excel=False)
+
+    def _copy_as_new_table(self, type_: str = "same"):
+        """Copy the selected range to a new table."""
+        sels = self.selections()
+        if len(sels) != 1:
+            raise SelectionRangeError("Inappropriate selection range.")
+
+        table_stack = self.tableStack()
+        i = table_stack.currentIndex()
+        viewer = table_stack.parentWidget()._table_viewer
+        name = viewer.tables[i].name
+
+        df_cropped = self.getDataFrame().iloc[sels[0]]
+        if type_ == "table":
+            viewer.add_table(df_cropped, name=f"{name}-cropped", copy=False)
+        elif type_ == "spreadsheet":
+            viewer.add_spreadsheet(df_cropped, name=f"{name}-cropped", copy=False)
+        elif type_ == "same":
+            if viewer.tables[i].table_type == "SpreadSheet":
+                viewer.add_spreadsheet(df_cropped, name=f"{name}-cropped", copy=False)
+            else:
+                viewer.add_table(df_cropped, name=f"{name}-cropped", copy=False)
+        else:
+            raise RuntimeError(f"Unknown type: {type_!r}")
 
     def pasteFromClipBoard(self):
         raise TableImmutableError("Table is immutable.")

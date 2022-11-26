@@ -51,7 +51,7 @@ class QtConsole(RichJupyterWidget):
 
             self.kernel_manager = kernel_manager
             self.kernel_client = kernel_client
-            self.shell = kernel_manager.kernel.shell
+            self.shell: InProcessInteractiveShell = kernel_manager.kernel.shell
             self.push = self.shell.push
 
         elif type(shell) == InProcessInteractiveShell:
@@ -94,7 +94,7 @@ class QtConsole(RichJupyterWidget):
             import tabulous as tbl
             import numpy as np
             import pandas as pd
-            from .._utils import get_config
+            from tabulous._utils import get_config
 
             _ns = get_config().console_namespace
 
