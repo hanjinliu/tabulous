@@ -325,6 +325,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         ol.addWidget(OptimizerWidget.new().native)
         ol.setTitle("Optimization")
 
+    def stats_test(self):
+        from ._statistics import StatsTestDialog
+
+        dlg = StatsTestDialog()
+        dlg.native.setParent(self, dlg.native.windowFlags())
+        dlg.show()
+
     def change_view_mode(self, view_mode: str):
         """Change view mode."""
         table = self.viewer.current_table
@@ -471,6 +478,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Analyze", self.filter, ICON_DIR / "filter.svg")
         self.addSeparatorToChild("Analyze")
         self.registerAction("Analyze", self.optimize, ICON_DIR / "optimize.svg")
+        self.registerAction("Analyze", self.stats_test, ICON_DIR / "stats_test.svg")
         self.addSeparatorToChild("Analyze")
         self.registerAction(
             "Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg"
