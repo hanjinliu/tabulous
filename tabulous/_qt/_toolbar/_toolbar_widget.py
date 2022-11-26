@@ -297,6 +297,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
         dlg = RandomGeneratorDialog()
         dlg.native.setParent(self, dlg.native.windowFlags())
+        dlg._selection_wdt._read_selection(table)
         dlg.show()
 
         @dlg.called.connect
