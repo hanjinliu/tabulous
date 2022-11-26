@@ -484,7 +484,7 @@ class TableBase(ABC):
         return None
 
     def _emit_evaluated(self, info: EvalInfo):
-        from .._eval import Graph, LiteralCallable
+        from tabulous._eval import Graph, LiteralCallable
 
         if info.expr == "":
             return None

@@ -1146,6 +1146,17 @@ class QMutableTable(QBaseTable):
             _val = fmt.map_object(value)
         return f"df.iloc[{_r}, {_c}] = {_val}"
 
+    @_set_value.reduce_rule
+    def _set_value_reduce(self, args_old, args_new):
+        # r, c, r_ori, c_ori, value, old_value
+        r = args_new["r"]
+        c = args_new["c"]
+        r_ori = args_new["r_ori"]
+        c_ori = args_new["c_ori"]
+        value = args_new["value"]
+        old_value = args_old["old_value"]
+        return arguments(r, c, r_ori, c_ori, value, old_value)
+
     def assignColumn(self, ds: pd.Series):
         if ds.name in self._data_raw.columns:
             ic = self._data_raw.columns.get_loc(ds.name)

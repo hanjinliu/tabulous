@@ -404,6 +404,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
         dialog(
             ax={"bind": table.plt.gca()},
+            x={"format": "iloc"},
+            y={"format": "iloc"},
             table={"bind": table},
             alpha={"min": 0, "max": 1, "step": 0.05},
             parent=self,
