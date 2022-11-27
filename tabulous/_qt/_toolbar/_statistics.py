@@ -44,9 +44,10 @@ class MeltedData(Container):
         if data.shape[1] != 1:
             raise ValueError("Data must be a single column")
 
+        label = np.asarray(label.dropna()).ravel()
+        data = np.asarray(data.dropna()).ravel()
         unique_labels = np.unique(label)
-
-        return {l: np.asarray(data[label == l]) for l in unique_labels}
+        return {l: data[label == l] for l in unique_labels}
 
     def all_selections(self, df: pd.DataFrame) -> list[tuple[slice, slice]]:
         range0 = self._label_range_wdt.value.as_iloc_slices(df)
@@ -57,7 +58,10 @@ class MeltedData(Container):
 class UnstructuredData(Container):
     def __init__(self, **kwargs):
         self._data_range_list = ListEdit(
-            annotation=List[SelectionOperator], name="data"
+            annotation=List[SelectionOperator],
+            name="data",
+            layout="vertical",
+            options=dict(format="iloc"),
         )
         super().__init__(widgets=[self._data_range_list], **kwargs)
 
@@ -66,9 +70,9 @@ class UnstructuredData(Container):
         for op in self._data_range_list.value:
             op: SelectionOperator
             data = op.operate(df)
-            if data.shape[1] != 1:
+            if len(data) == 2 and data.shape[1] != 1:
                 raise ValueError("Data must be a single column")
-            data_dict[data.columns[0]] = np.asarray(data)
+            data_dict[data.columns[0]] = np.asarray(data.dropna()).ravel()
         return data_dict
 
     def all_selections(self, df: pd.DataFrame) -> list[tuple[slice, slice]]:
@@ -77,7 +81,9 @@ class UnstructuredData(Container):
 
 class StatsTestDialog(Container):
     def __init__(self, **kwargs):
-        self._radio_buttons = RadioButtons(choices=["Separate data", "Labeled data"])
+        self._radio_buttons = RadioButtons(
+            choices=["Separate data", "Labeled data"], value="Separate data"
+        )
         self._separate_data = UnstructuredData()
         self._labeled_data = MeltedData()
         self._call_button = PushButton(text="Run")
@@ -115,5 +121,5 @@ class StatsTestDialog(Container):
             raise NotImplementedError
 
     def _on_radiobutton_changed(self, v):
-        self._separate_data = v == "Separate data"
-        self._labeled_data = v == "Labeled data"
+        self._separate_data.visible = v == "Separate data"
+        self._labeled_data.visible = v == "Labeled data"
