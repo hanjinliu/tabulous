@@ -11,6 +11,7 @@ from magicgui.widgets import (
     ListEdit,
     PushButton,
     ComboBox,
+    Label,
 )
 
 from tabulous._magicgui import find_current_table, SelectionWidget
@@ -274,8 +275,10 @@ class StatsTestDialog(Container):
 
         super().__init__(
             widgets=[
+                Label(value="Input datasets"),
                 self._data_types,
                 *self._data_containers.values(),
+                Label(value="Test method and parameters"),
                 self._test_types,
                 *self._test_runners.values(),
                 self._call_button,
