@@ -11,6 +11,8 @@ from tabulous.core import (
 )
 from tabulous._magicgui import MagicTableViewer
 
+newaxis = None  # alias for table.cell
+
 __all__ = [
     "TableViewer",
     "TableViewerWidget",
@@ -21,4 +23,5 @@ __all__ = [
     "view_table",
     "view_spreadsheet",
     "open_sample",
+    "newaxis",
 ]

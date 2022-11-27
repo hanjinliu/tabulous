@@ -226,7 +226,7 @@ class CellInterface(Component["TableBase"]):
             raise TypeError("Cannot set widget at slices.")
 
         import pandas as pd
-        from .._qt._table._base._line_edit import QCellLiteralEdit
+        from tabulous._qt._table._base._line_edit import QCellLiteralEdit
 
         row, col = self._normalize_key(key)
 
@@ -273,23 +273,29 @@ class CellInterface(Component["TableBase"]):
 
     def _normalize_key(
         self,
-        key: tuple[int | slice, int | slice],
+        key: tuple[int | slice | None, int | slice | None],
     ) -> tuple[slice, slice]:
         if len(key) == 1:
             key = (key, slice(None))
         row, col = key
-        _row_is_slice = isinstance(row, slice)
-        _col_is_slice = isinstance(col, slice)
-        if _row_is_slice:
-            row = slice(*row.indices(self.parent.table_shape[0]))
+
+        if isinstance(row, slice):
+            row = slice(*row.indices(self.parent._qwidget.model().df.shape[0]))
             if row.step != 1:
                 raise ValueError("Row slice step must be 1.")
+        elif row is None:
+            start = self.parent._qwidget.model().df.shape[0]
+            row = slice(start, start + 1)
         else:
             row = slice(row, row + 1)
-        if _col_is_slice:
-            col = slice(*col.indices(self.parent.table_shape[1]))
+
+        if isinstance(col, slice):
+            col = slice(*col.indices(self.parent._qwidget.model().df.shape[1]))
             if col.step != 1:
                 raise ValueError("Column slice step must be 1.")
+        elif col is None:
+            start = self.parent._qwidget.model().df.shape[1]
+            col = slice(start, start + 1)
         else:
             col = slice(col, col + 1)
         return row, col

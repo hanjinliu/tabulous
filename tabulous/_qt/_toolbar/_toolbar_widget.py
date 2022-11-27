@@ -332,6 +332,16 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         dlg.native.setParent(self, dlg.native.windowFlags())
         dlg.show()
 
+    def sklearn_analysis(self):
+        from ._sklearn import SkLearnContainer
+
+        tablestack = self.parent()._tablestack
+        ol = tablestack._overlay
+        ol.show()
+
+        ol.addWidget(SkLearnContainer.new().native)
+        ol.setTitle("scikit-learn")
+
     def change_view_mode(self, view_mode: str):
         """Change view mode."""
         table = self.viewer.current_table
@@ -481,6 +491,9 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.addSeparatorToChild("Analyze")
         self.registerAction("Analyze", self.optimize, ICON_DIR / "optimize.svg")
         self.registerAction("Analyze", self.stats_test, ICON_DIR / "stats_test.svg")
+        self.registerAction(
+            "Analyze", self.sklearn_analysis, ICON_DIR / "sklearn_analysis.svg"
+        )
         self.addSeparatorToChild("Analyze")
         self.registerAction(
             "Analyze", self.toggle_console, ICON_DIR / "toggle_console.svg"
