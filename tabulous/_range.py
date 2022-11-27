@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Iterator, Sequence
 
 
 class TableAnchorBase(ABC):
@@ -44,6 +45,9 @@ class RectRange(TableAnchorBase):
         return rlower and rupper and clower and cupper
 
     def includes(self, other: RectRange) -> bool:
+        if isinstance(other, MultiRectRange):
+            return all(self.includes(rng) for rng in other)
+
         r0_s, r1_s = self._rsl.start, self._rsl.stop
         c0_s, c1_s = self._csl.start, self._csl.stop
         r0_o, r1_o = other._rsl.start, other._rsl.stop
@@ -54,6 +58,8 @@ class RectRange(TableAnchorBase):
         )
 
     def overlaps_with(self, other: RectRange) -> bool:
+        if isinstance(other, MultiRectRange):
+            return other.overlaps_with(self)
         r0_s, r1_s = self._rsl.start, self._rsl.stop
         c0_s, c1_s = self._csl.start, self._csl.stop
         r0_o, r1_o = other._rsl.start, other._rsl.stop
@@ -89,7 +95,7 @@ class RectRange(TableAnchorBase):
         c0_s, c1_s = self._csl.start, self._csl.stop
         if r0_s is None or r1_s is None or c0_s is None or c1_s is None:
             return False
-        return self._rsl.start >= self._rsl.stop and self._csl.start >= self._csl.stop
+        return self._rsl.start >= self._rsl.stop or self._csl.start >= self._csl.stop
 
 
 _DO_NOTHING = lambda *args, **kwargs: None
@@ -147,6 +153,57 @@ class NoRange(RectRange):
 
     def is_empty(self) -> bool:
         return True
+
+
+class MultiRectRange(RectRange):
+    """Range composed of multiple RectRanges."""
+
+    def __init__(self, ranges: Sequence[RectRange]):
+        self._ranges = ranges
+
+    def __repr__(self):
+        s = ", ".join(repr(rng) for rng in self)
+        return f"MultiRectRange[{s}]"
+
+    def __contains__(self, other: tuple[int, int]):
+        return any(other in rng for rng in self)
+
+    def __iter__(self) -> Iterator[RectRange]:
+        return iter(self._ranges)
+
+    def includes(self, other: RectRange) -> bool:
+        if isinstance(other, MultiRectRange):
+            return all(self.includes(rng) for rng in other)
+        return any(rng.includes(other) for rng in self)
+
+    def overlaps_with(self, other: RectRange) -> bool:
+        if isinstance(other, MultiRectRange):
+            return any(self.overlaps_with(rng) for rng in other)
+        return any(rng.overlaps_with(other) for rng in self)
+
+    def insert_rows(self, row: int, count: int) -> None:
+        """Insert rows and update slices in-place."""
+        for rng in self._ranges:
+            rng.insert_rows(row, count)
+
+    def insert_columns(self, col: int, count: int) -> None:
+        """Insert columns and update slices in-place."""
+        for rng in self._ranges:
+            rng.insert_columns(col, count)
+
+    def remove_rows(self, row: int, count: int):
+        """Remove rows and update slices in-place."""
+        for rng in self._ranges:
+            rng.remove_rows(row, count)
+
+    def remove_columns(self, col: int, count: int):
+        """Remove columns and update slices in-place."""
+        for rng in self._ranges:
+            rng.remove_columns(col, count)
+
+    def is_empty(self) -> bool:
+        """True if ANY of the range is empty."""
+        return any(rng.is_empty() for rng in self)
 
 
 def _fmt_slice(sl: slice) -> str:

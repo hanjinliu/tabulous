@@ -4,6 +4,7 @@ from types import MethodType
 from typing import (
     Callable,
     Generic,
+    Sequence,
     SupportsIndex,
     overload,
     Any,
@@ -20,7 +21,7 @@ from psygnal import Signal, SignalInstance, EmitLoopError
 import inspect
 from inspect import Parameter, Signature, isclass
 
-from tabulous._range import RectRange, AnyRange, TableAnchorBase
+from tabulous._range import RectRange, AnyRange, MultiRectRange, TableAnchorBase
 
 
 __all__ = ["SignalArray"]
@@ -156,17 +157,12 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
 
     def __getitem__(self, key: Slice1D | Slice2D) -> _SignalSubArrayRef:
         """Return a sub-array reference."""
-        if isinstance(key, tuple):
-            if len(key) == 2:
-                r, c = key
-                key = RectRange(_parse_a_key(r), _parse_a_key(c))
-            elif len(key) == 1:
-                key = RectRange(_parse_a_key(key[0]))
-            else:
-                raise IndexError("too many indices")
-        else:
-            key = RectRange(_parse_a_key(key), slice(None))
-        return _SignalSubArrayRef(self, key)
+        _key = _parse_key(key)
+        return _SignalSubArrayRef(self, _key)
+
+    def mloc(self, keys: Sequence[Slice1D | Slice2D]) -> _SignalSubArrayRef:
+        ranges = [_parse_key(key) for key in keys]
+        return _SignalSubArrayRef(self, MultiRectRange(ranges))
 
     @overload
     def connect(
@@ -426,6 +422,20 @@ def _parse_a_key(k):
     else:
         k = k.__index__()
         return slice(k, k + 1)
+
+
+def _parse_key(key):
+    if isinstance(key, tuple):
+        if len(key) == 2:
+            r, c = key
+            key = RectRange(_parse_a_key(r), _parse_a_key(c))
+        elif len(key) == 1:
+            key = RectRange(_parse_a_key(key[0]))
+        else:
+            raise IndexError("too many indices")
+    else:
+        key = RectRange(_parse_a_key(key), slice(None))
+    return key
 
 
 class PartialMethodMeta(type):

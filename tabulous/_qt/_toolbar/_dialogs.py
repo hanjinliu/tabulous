@@ -59,46 +59,38 @@ def plot(
 ):
     table = cast(TableBase, table)
     data = table.data
-    if y is None:
-        raise ValueError("Y must be set.")
-
-    ydata_all = data.iloc[y.as_iloc_slices(data)]
-
-    if x is None:
-        xdata = np.arange(len(ydata_all))
-    else:
-        xdata = x.operate(data)
+    xdata, ydata_all, reactive_ranges = _normalize_2d_plot(data, x, y)
 
     for y_, ydata in ydata_all.items():
         (artist,) = ax.plot(xdata, ydata, alpha=alpha, label=y_, picker=True)
-        if ref:
-            _ref = weakref.ref(artist)
-            _mpl_widget = weakref.ref(table.plt.gcw())
+        if not ref:
+            continue
+        _ref = weakref.ref(artist)
+        _mpl_widget = weakref.ref(table.plt.gcw())
 
-            logger.debug(f"Connecting plt.plot update callback at {y_!r}")
+        logger.debug(f"Connecting plt.plot update callback at {y_!r}")
 
-            @table.events.data.connect
-            def _on_data_updated(info):
-                _artist = _ref()
-                _plt = _mpl_widget()
-                if _artist is None:
+        def _on_data_updated(info):
+            _artist = _ref()
+            _plt = _mpl_widget()
+            if _artist is None:
+                table.events.data.disconnect(_on_data_updated)
+                logger.debug(f"Disconnecting plt.plot update callback at {y_!r}")
+                return
+            try:
+                _ydata = table.data[y_]
+                if x is None:
+                    _artist.set_ydata(_ydata)
+                else:
+                    _xdata = table.data[xdata.name]
+                    _artist.set_data(_xdata, _ydata)
+                _plt.draw()
+            except RuntimeError as e:
+                if str(e).startswith("wrapped C/C++ object of"):
                     table.events.data.disconnect(_on_data_updated)
                     logger.debug(f"Disconnecting plt.plot update callback at {y_!r}")
-                    return
-                try:
-                    _ydata = table.data[y_]
-                    if x is None:
-                        _artist.set_ydata(_ydata)
-                    else:
-                        _xdata = table.data[xdata.name]
-                        _artist.set_data(_xdata, _ydata)
-                    _plt.draw()
-                except RuntimeError as e:
-                    if str(e).startswith("wrapped C/C++ object of"):
-                        table.events.data.disconnect(_on_data_updated)
-                        logger.debug(
-                            f"Disconnecting plt.plot update callback at {y_!r}"
-                        )
+
+        table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
 
     table.plt.draw()
     return artist
@@ -116,38 +108,34 @@ def scatter(
     table = cast(TableBase, table)
     data = table.data
 
-    if y is None:
-        raise ValueError("Y must be set.")
-    ydata_all = data.iloc[y.as_iloc_slices(data)]
+    xdata, ydata_all, reactive_ranges = _normalize_2d_plot(data, x, y)
 
-    if x is None:
-        xdata = np.arange(len(ydata_all))
-    else:
-        xdata = x.operate(data)
     for y_, ydata in ydata_all.items():
         artist = ax.scatter(xdata, ydata, alpha=alpha, label=y_, picker=True)
-        if ref:
-            _ref = weakref.ref(artist)
-            _mpl_widget = weakref.ref(table.plt.gcw())
+        if not ref:
+            continue
+        _ref = weakref.ref(artist)
+        _mpl_widget = weakref.ref(table.plt.gcw())
 
-            @table.events.data.connect
-            def _on_data_updated():
-                _artist = _ref()
-                _plt = _mpl_widget()
-                if _artist is None:
+        def _on_data_updated():
+            _artist = _ref()
+            _plt = _mpl_widget()
+            if _artist is None:
+                table.events.data.disconnect(_on_data_updated)
+                return
+            try:
+                _ydata = table.data[y_]
+                if x is None:
+                    _xdata = np.arange(len(_ydata))
+                else:
+                    _xdata = table.data[xdata.name]
+                _artist.set_offsets(np.stack([_xdata, _ydata], axis=1))
+                _plt.draw()
+            except RuntimeError as e:
+                if str(e).startswith("wrapped C/C++ object of"):
                     table.events.data.disconnect(_on_data_updated)
-                    return
-                try:
-                    _ydata = table.data[y_]
-                    if x is None:
-                        _xdata = np.arange(len(_ydata))
-                    else:
-                        _xdata = table.data[xdata.name]
-                    _artist.set_offsets(np.stack([_xdata, _ydata], axis=1))
-                    _plt.draw()
-                except RuntimeError as e:
-                    if str(e).startswith("wrapped C/C++ object of"):
-                        table.events.data.disconnect(_on_data_updated)
+
+        table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
 
     table.plt.draw()
     return True
@@ -304,3 +292,24 @@ def boxenplot(
 @dialog_factory
 def choose_one(choice: str):
     return choice
+
+
+def _normalize_2d_plot(data: pd.DataFrame, x: SelectionOperator, y: SelectionOperator):
+    if y is None:
+        raise ValueError("Y must be set.")
+
+    yslice = y.as_iloc_slices(data)
+    ydata_all = data.iloc[yslice]
+
+    reactive_ranges = [yslice]
+
+    if x is None:
+        xdata = np.arange(len(ydata_all))
+    else:
+        xslice = x.as_iloc_slices(data)
+        reactive_ranges.append(xslice)
+        if xslice[1].start != xslice[1].stop - 1:
+            raise ValueError("X must be a single column.")
+        xdata = data.iloc[xslice[0], xslice[1].start]
+
+    return xdata, ydata_all, reactive_ranges

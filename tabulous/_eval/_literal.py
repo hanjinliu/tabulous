@@ -176,13 +176,12 @@ class LiteralCallable(Generic[_T]):
             else:
                 raise RuntimeError(_row, _col)  # Unreachable
 
+            _sel_model = qtable_view._selection_model
             if not _self._unblocked:
-                with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked(
-                    *_self.pos
-                ), table.events.data.blocked():
+                with _sel_model.blocked(), qtable_view._ref_graphs.blocked(*_self.pos):
                     qtable.setDataFrameValue(_row, _col, _out)
             else:
-                with qtable_view._selection_model.blocked(), table.events.data.blocked():
+                with _sel_model.blocked():
                     qtable.setDataFrameValue(_row, _col, _out)
 
             _self.last_destination = (_row, _col)

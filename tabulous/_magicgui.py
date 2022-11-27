@@ -478,7 +478,7 @@ class SelectionWidget(Container):
                 text = parse(val, df_expr="df").fmt()
             else:
                 text = ""
-        self._line.value = text
+            self._line.value = text
         return None
 
     @property
