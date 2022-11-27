@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import List, NamedTuple, Sequence
+from functools import partial
 from scipy import stats
 import numpy as np
 import pandas as pd
@@ -10,7 +11,6 @@ from magicgui.widgets import (
     ListEdit,
     PushButton,
     ComboBox,
-    CheckBox,
 )
 
 from tabulous._magicgui import find_current_table, SelectionWidget
@@ -25,9 +25,25 @@ def result_table(result: NamedTuple) -> Table:
     for k, v in result._asdict().items():
         index.append(k)
         data.append(v)
-    df = pd.DataFrame(data, index=index, columns=["Results"])
-    return Table(df)
+    df = pd.DataFrame(data, index=index, columns=[type(result).__name__])
+    return Table(df, editable=False)
 
+
+combobox_alternative = partial(
+    ComboBox,
+    choices=["two-sided", "greater", "less"],
+    value="two-sided",
+    name="alternative",
+    tooltip="Alternative hypothesis",
+)
+
+combobox_nan_policy = partial(
+    ComboBox,
+    choices=["propagate", "omit", "raise"],
+    value="omit",
+    name="nan_values",
+    tooltip="How to handle NaN values",
+)
 
 # ########################################################
 #   Data container
@@ -36,9 +52,6 @@ def result_table(result: NamedTuple) -> Table:
 
 class DataContainer(Container):
     def extract_dataset(self, df: pd.DataFrame) -> dict[str, np.ndarray]:
-        raise NotImplementedError
-
-    def all_selections(self, df: pd.DataFrame) -> list[tuple[slice, slice]]:
         raise NotImplementedError
 
 
@@ -67,11 +80,6 @@ class MeltedDataContainer(DataContainer):
         unique_labels = np.unique(label)
         return {l: data[label == l] for l in unique_labels}
 
-    def all_selections(self, df: pd.DataFrame) -> list[tuple[slice, slice]]:
-        range0 = self._label_range_wdt.value.as_iloc_slices(df)
-        range1 = self._data_range_wdt.value.as_iloc_slices(df)
-        return [range0, range1]
-
 
 class UnstructuredDataContainer(DataContainer):
     """Data container for unstructured data, each column for each data."""
@@ -97,9 +105,6 @@ class UnstructuredDataContainer(DataContainer):
             data_dict[data.columns[0]] = np.asarray(data).ravel()
         return data_dict
 
-    def all_selections(self, df: pd.DataFrame) -> list[tuple[slice, slice]]:
-        return [op.as_iloc_slices(df) for op in self._data_range_list.value]
-
 
 # ########################################################
 #   Parameters for each test
@@ -118,14 +123,8 @@ class TtestRunner(TestRunner):
         self._test_type = ComboBox(
             choices=["Student's", "Welch's", "Related"], name="type"
         )
-        self._alternative = ComboBox(
-            choices=["two-sided", "greater", "less"],
-            value="two-sided",
-            name="alternative",
-        )
-        self._nan_policy = ComboBox(
-            choices=["propagate", "omit", "raise"], value="omit", name="nan_values"
-        )
+        self._alternative = combobox_alternative()
+        self._nan_policy = combobox_nan_policy()
         super().__init__(
             widgets=[self._test_type, self._alternative, self._nan_policy],
             **kwargs,
@@ -153,14 +152,8 @@ class MannwhitneyuRunner(TestRunner):
     """Parameters for Mann-Whitney U-test"""
 
     def __init__(self, **kwargs):
-        self._alternative = ComboBox(
-            choices=["two-sided", "greater", "less"],
-            value="two-sided",
-            name="alternative",
-        )
-        self._nan_policy = ComboBox(
-            choices=["propagate", "omit", "raise"], value="omit", name="nan_values"
-        )
+        self._alternative = combobox_alternative()
+        self._nan_policy = combobox_nan_policy()
         super().__init__(widgets=[self._alternative, self._nan_policy], **kwargs)
         self.margins = (0, 0, 0, 0)
 
@@ -179,14 +172,54 @@ class KruskalRunner(TestRunner):
     """Parameters for Kruskal-Wallis H test"""
 
     def __init__(self, **kwargs):
-        self._nan_policy = ComboBox(
-            choices=["propagate", "omit", "raise"], value="omit", name="nan_values"
-        )
+        self._nan_policy = combobox_nan_policy()
         super().__init__(widgets=[self._nan_policy], **kwargs)
         self.margins = (0, 0, 0, 0)
 
     def run_test(self, data: Sequence[np.ndarray]):
         return stats.kruskal(*data, nan_policy=self._nan_policy.value)
+
+
+class WilcoxonRunner(TestRunner):
+    """Parameters for Wilcoxon signed-rank test"""
+
+    def __init__(self, **kwargs):
+        self._alternative = combobox_alternative()
+        self._nan_policy = combobox_nan_policy()
+        super().__init__(widgets=[self._alternative, self._nan_policy], **kwargs)
+        self.margins = (0, 0, 0, 0)
+
+    def run_test(self, data: Sequence[np.ndarray]):
+        if len(data) != 2:
+            raise ValueError("Wilcoxon signed-rank test only supports two data sets")
+        return stats.wilcoxon(
+            data[0],
+            data[1],
+            alternative=self._alternative.value,
+            nan_policy=self._nan_policy.value,
+        )
+
+
+class FriedmanRunner(TestRunner):
+    """Parameters for Friedman test"""
+
+    def __init__(self, **kwargs):
+        super().__init__(widgets=[], **kwargs)
+        self.margins = (0, 0, 0, 0)
+
+    def run_test(self, data: Sequence[np.ndarray]):
+        return stats.friedmanchisquare(*data)
+
+
+class AnovaRunner(TestRunner):
+    """Parameters for ANOVA"""
+
+    def __init__(self, **kwargs):
+        super().__init__(widgets=[], **kwargs)
+        self.margins = (0, 0, 0, 0)
+
+    def run_test(self, data: Sequence[np.ndarray]):
+        return stats.f_oneway(*data)
 
 
 # ########################################################
@@ -207,6 +240,11 @@ class TestTypes:
     T = "Student's t-test"
     U = "Mann-Whitney U-test"
     H = "Kruskal-Wallis H-test"
+    Wilcoxon = "Wilcoxon signed-rank test"
+    Friedman = "Friedman test"
+    ANOVA = "one-way ANOVA"
+
+    _all = [T, U, H, Wilcoxon, Friedman, ANOVA]
 
 
 class StatsTestDialog(Container):
@@ -220,13 +258,16 @@ class StatsTestDialog(Container):
         }
 
         self._test_types = ComboBox(
-            choices=[TestTypes.T, TestTypes.U, TestTypes.H],
+            choices=TestTypes._all,
             value=TestTypes.T,
         )
         self._test_runners: dict[str, TestRunner] = {
             TestTypes.T: TtestRunner(),
             TestTypes.U: MannwhitneyuRunner(),
             TestTypes.H: KruskalRunner(),
+            TestTypes.Wilcoxon: WilcoxonRunner(),
+            TestTypes.Friedman: FriedmanRunner(),
+            TestTypes.ANOVA: AnovaRunner(),
         }
 
         self._call_button = PushButton(text="Run")
@@ -260,9 +301,7 @@ class StatsTestDialog(Container):
 
         data_input = list(data_dict.values())
         results = self._test_runners[self._test_types.value].run_test(data_input)
-        table.add_side_widget(result_table(results))
-        sels = widget.all_selections(df)
-        # table.events.data.mloc(sels).connect()
+        table.add_side_widget(result_table(results), name="Test result")
 
     def _on_data_type_changed(self, v):
         for k, w in self._data_containers.items():

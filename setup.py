@@ -1,13 +1,13 @@
 from setuptools import setup, find_packages
 
-with open("tabulous/__init__.py", encoding="utf-8") as f:
+TABULOUS = "tabulous"
+
+with open(f"{TABULOUS}/__init__.py", encoding="utf-8") as f:
     line = next(iter(f))
     VERSION = line.strip().split()[-1][1:-1]
 
 with open("README.md") as f:
     README = f.read()
-
-TABULOUS = "tabulous"
 
 setup(
     name=TABULOUS,
@@ -38,7 +38,7 @@ setup(
         "pyqt6": ["pyqt6>=6.3.1"],
     },
     entry_points={
-        "console_scripts": ["tabulous=tabulous.__main__:main"],
+        "console_scripts": [f"{TABULOUS}={TABULOUS}.__main__:main"],
     },
     python_requires=">=3.8",
 )
