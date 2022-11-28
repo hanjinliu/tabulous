@@ -12,11 +12,10 @@ from magicgui.widgets import (
     PushButton,
     LineEdit,
 )
-from magicgui.widgets._bases import CategoricalWidget
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
-from .widgets import TableViewer, Table, SpreadSheet, TableViewerWidget
-from .types import (
+from tabulous.widgets import TableViewer, Table, SpreadSheet, TableViewerWidget
+from tabulous.types import (
     TableColumn,
     TableData,
     TableDataTuple,
@@ -149,7 +148,7 @@ def find_current_table(widget: Widget | QtW.QWidget) -> TableBase | None:
     return table
 
 
-def get_tables(widget: CategoricalWidget) -> list[tuple[str, Any]]:
+def get_tables(widget: Widget) -> list[tuple[str, Any]]:
     """Get the list of available tables and the names."""
     v = find_table_viewer_ancestor(widget)
     if v is None:
@@ -157,7 +156,7 @@ def get_tables(widget: CategoricalWidget) -> list[tuple[str, Any]]:
     return v.tables
 
 
-def get_table_data(widget: CategoricalWidget) -> list[tuple[str, Any]]:
+def get_table_data(widget: Widget) -> list[tuple[str, Any]]:
     """Get the list of available table data and the names."""
     v = find_table_viewer_ancestor(widget)
     if v is None:

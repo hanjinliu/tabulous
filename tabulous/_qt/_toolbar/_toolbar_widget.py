@@ -340,7 +340,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         ol.show()
 
         ol.addWidget(SkLearnContainer.new().native)
-        ol.setTitle("scikit-learn")
+        ol.setTitle("scikit-learn analysis")
 
     def change_view_mode(self, view_mode: str):
         """Change view mode."""

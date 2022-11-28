@@ -280,9 +280,7 @@ class CellInterface(Component["TableBase"]):
         row, col = key
 
         if isinstance(row, slice):
-            row = slice(*row.indices(self.parent._qwidget.model().df.shape[0]))
-            if row.step != 1:
-                raise ValueError("Row slice step must be 1.")
+            row = _normalize_slice(row, self.parent._qwidget.model().df.shape[0])
         elif row is None:
             start = self.parent._qwidget.model().df.shape[0]
             row = slice(start, start + 1)
@@ -290,9 +288,7 @@ class CellInterface(Component["TableBase"]):
             row = slice(row, row + 1)
 
         if isinstance(col, slice):
-            col = slice(*col.indices(self.parent._qwidget.model().df.shape[1]))
-            if col.step != 1:
-                raise ValueError("Column slice step must be 1.")
+            col = _normalize_slice(col, self.parent._qwidget.model().df.shape[1])
         elif col is None:
             start = self.parent._qwidget.model().df.shape[1]
             col = slice(start, start + 1)
@@ -443,6 +439,36 @@ class PlotInterface(Component["TableBase"]):
     def text(self, *args, **kwargs):
         """Call ``plt.text`` on the current side figure."""
         out = self.gca().text(*args, picker=True, **kwargs)
+        self.draw()
+        return out
+
+    def xlabel(self, *args, **kwargs):
+        """Call ``plt.xlabel`` on the current side figure."""
+        out = self.gca().set_xlabel(*args, **kwargs)
+        self.draw()
+        return out
+
+    def ylabel(self, *args, **kwargs):
+        """Call ``plt.ylabel`` on the current side figure."""
+        out = self.gca().set_ylabel(*args, **kwargs)
+        self.draw()
+        return out
+
+    def xlim(self, *args, **kwargs):
+        """Call ``plt.xlim`` on the current side figure."""
+        out = self.gca().set_xlim(*args, **kwargs)
+        self.draw()
+        return out
+
+    def ylim(self, *args, **kwargs):
+        """Call ``plt.ylim`` on the current side figure."""
+        out = self.gca().set_ylim(*args, **kwargs)
+        self.draw()
+        return out
+
+    def title(self, *args, **kwargs):
+        """Call ``plt.title`` on the current side figure."""
+        out = self.gca().set_title(*args, **kwargs)
         self.draw()
         return out
 
@@ -660,3 +686,21 @@ def _fmt_slice(sl: slice) -> str:
     s0 = sl.start if sl.start is not None else ""
     s1 = sl.stop if sl.stop is not None else ""
     return f"{s0}:{s1}"
+
+
+def _normalize_slice(sl: slice, size: int) -> slice:
+    start = sl.start
+    stop = sl.stop
+
+    if sl.step not in (None, 1):
+        raise ValueError("Row slice step must be 1.")
+
+    if start is None:
+        start = 0
+    elif start < 0:
+        start = size + start
+    if stop is None:
+        stop = size
+    elif stop < 0:
+        stop = size + stop
+    return slice(start, stop)

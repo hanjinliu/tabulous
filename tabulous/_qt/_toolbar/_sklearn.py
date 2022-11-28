@@ -12,6 +12,7 @@ from magicgui.widgets import (
     PushButton,
     ComboBox,
     Label,
+    Select,
     TextEdit,
 )
 
@@ -34,7 +35,8 @@ class SkLearnInput(NamedTuple):
     """Input for sklearn algorithms"""
 
     X: np.ndarray
-    Y: np.ndarray | None = None
+    Y: np.ndarray | None
+    labels: list[str]
 
 
 class XYContainer(Container):
@@ -45,7 +47,9 @@ class XYContainer(Container):
         self.margins = (0, 0, 0, 0)
 
     def get_values(self, df: pd.DataFrame) -> SkLearnInput:
-        X = self._X_widget.value.operate(df).values
+        df_sub = self._X_widget.value.operate(df)
+        X = df_sub.values
+        labels = df_sub.columns.tolist()
         if self._Y_widget.value is not None:
             Y = self._Y_widget.value.operate(df)
 
@@ -57,7 +61,7 @@ class XYContainer(Container):
         else:
             Y = None
 
-        return SkLearnInput(X, Y)
+        return SkLearnInput(X, Y, labels)
 
 
 def _normalize_random_state(state) -> int | None:
@@ -309,6 +313,7 @@ class SkLearnContainer(Container):
         _hlayout_2.margins = (0, 0, 0, 0)
 
         self._output_area = TextEdit(label="Output")
+        self._output_area.max_height = 100
         self._output_area.read_only = True
 
         super().__init__(
@@ -349,6 +354,10 @@ class SkLearnContainer(Container):
         predicted = self._model_widget.model.predict(input.X)
         table.cell[: predicted.shape[0], None] = predicted
 
+        # update Y if it is empty
+        if input.Y is None:
+            self._data_widget._Y_widget._read_selection(table)
+
     def _transform(self):
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
@@ -377,10 +386,42 @@ class SkLearnContainer(Container):
     def _plot(self):
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
+
+        # specify dimension
+        if input.X.shape[1] > 2:
+            select = Select(choices=range(input.X.shape[1]))
+            dlg = Dialog(
+                widgets=[Label(value="Select two dimensions to plot"), select],
+                labels=False,
+            )
+            if dlg.exec():
+                if len(select.value) != 2:
+                    raise ValueError("Select two.")
+                dim0, dim1 = select.value
+            else:
+                return
+        else:
+            dim0, dim1 = 0, 1
+
         if input.Y is not None:
             unique_labels = np.unique(input.Y)
+
             for label in unique_labels:
                 spec = input.Y == label
-                table.plt.scatter(input.X[spec, 0], input.X[spec, 1], label=label)
+                if input.X.shape[1] == 1:
+                    table.plt.hist(input.X[spec, 0], label=label)
+                else:
+                    table.plt.scatter(
+                        input.X[spec, dim0], input.X[spec, dim1], label=label
+                    )
         else:
-            table.plt.scatter(input.X[:, 0], input.X[:, 1], label=label)
+            if input.X.shape[1] == 1:
+                table.plt.hist(input.X[:, 0], label=label)
+            else:
+                table.plt.scatter(input.X[:, dim0], input.X[:, dim1])
+
+        if input.X.shape[1] == 1:
+            table.plt.xlabel(input.labels[0])
+        else:
+            table.plt.xlabel(input.labels[dim0])
+            table.plt.ylabel(input.labels[dim1])
