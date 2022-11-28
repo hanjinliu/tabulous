@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import NamedTuple, Protocol
-from typing_extensions import Annotated, Literal
 import numpy as np
 import pandas as pd
 
@@ -17,18 +16,7 @@ from magicgui.widgets import (
 )
 
 from tabulous._magicgui import find_current_table, SelectionWidget
-
-from sklearn.cluster import (
-    KMeans,
-    DBSCAN,
-    AgglomerativeClustering,
-    OPTICS,
-    SpectralClustering,
-    AffinityPropagation,
-    Birch,
-    MeanShift,
-)
-from sklearn.mixture import GaussianMixture
+from ._models import MODELS
 
 
 class SkLearnInput(NamedTuple):
@@ -64,156 +52,6 @@ class XYContainer(Container):
         return SkLearnInput(X, Y, labels)
 
 
-def _normalize_random_state(state) -> int | None:
-    if state:
-        return int(state)
-    else:
-        return None
-
-
-# Model factories
-def kmeans(
-    n_clusters: int = 8,
-    init: Literal["k-means++", "random"] = "k-means++",
-    n_init: Annotated[int, {"min": 1, "max": 100}] = 10,
-    max_iter: Annotated[int, {"min": 1, "max": 10000}] = 300,
-    tol: str = "1e-4",
-    random_state: str = "",
-):
-    random_state = _normalize_random_state(random_state)
-    tol = float(tol)
-    return KMeans(
-        n_clusters=n_clusters,
-        init=init,
-        n_init=n_init,
-        max_iter=max_iter,
-        tol=tol,
-        random_state=random_state,
-    )
-
-
-def dbscan(
-    eps: Annotated[float, {"min": 0.0, "max": 1000.0}] = 0.5,
-    min_samples: Annotated[int, {"min": 1, "max": 100}] = 5,
-    metric: str = "euclidean",
-    algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
-    leaf_size: Annotated[int, {"min": 1, "max": 100}] = 30,
-    p: Annotated[int, {"min": 1, "max": 100}] = 2,
-    n_jobs: Annotated[int, {"min": 1, "max": 100}] = None,
-):
-    return DBSCAN(
-        eps=eps,
-        min_samples=min_samples,
-        metric=metric,
-        algorithm=algorithm,
-        leaf_size=leaf_size,
-        p=p,
-        n_jobs=n_jobs,
-    )
-
-
-def agglomerative(
-    n_clusters: Annotated[int, {"min": 1, "max": 100}] = 2,
-    affinity: Literal[
-        "euclidean", "l1", "l2", "manhattan", "cosine", "precomputed"
-    ] = "euclidean",
-    compute_full_tree: Literal["auto", "true", "false"] = "auto",
-    linkage: Literal["ward", "complete", "average", "single"] = "ward",
-):
-    return AgglomerativeClustering(
-        n_clusters=n_clusters,
-        affinity=affinity,
-        compute_full_tree=compute_full_tree,
-        linkage=linkage,
-    )
-
-
-def optics(
-    min_samples: Annotated[int, {"min": 1, "max": 100}] = 5,
-    max_eps: Annotated[float, {"min": 0.0, "max": 100.0}] = np.inf,
-    metric: str = "minkowski",
-    algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
-    leaf_size: Annotated[int, {"min": 1, "max": 100}] = 30,
-    p: Annotated[int, {"min": 1, "max": 100}] = 2,
-    n_jobs: Annotated[int, {"min": 1, "max": 100}] = None,
-):
-    return OPTICS(
-        min_samples=min_samples,
-        max_eps=max_eps,
-        metric=metric,
-        algorithm=algorithm,
-        leaf_size=leaf_size,
-        p=p,
-        n_jobs=n_jobs,
-    )
-
-
-def spectral(
-    n_clusters: Annotated[int, {"min": 1, "max": 100}] = 8,
-    eigen_solver: Literal["arpack", "lobpcg", "amg"] = "arpack",
-    random_state: str = "",
-    n_init: Annotated[int, {"min": 1, "max": 100}] = 10,
-    gamma: Annotated[float, {"min": 0.0, "max": 100.0}] = 1.0,
-    affinity: Literal["nearest_neighbors", "rbf"] = "rbf",
-    n_neighbors: Annotated[int, {"min": 1, "max": 100}] = 10,
-    eigen_tol: Annotated[float, {"min": 0.0, "max": 100.0}] = 0.0,
-    assign_labels: Literal["kmeans", "discretize"] = "kmeans",
-    degree: float = 3,
-    coef0: float = 1,
-):
-    random_state = _normalize_random_state(random_state)
-    return SpectralClustering(
-        n_clusters=n_clusters,
-        eigen_solver=eigen_solver,
-        random_state=random_state,
-        n_init=n_init,
-        gamma=gamma,
-        affinity=affinity,
-        n_neighbors=n_neighbors,
-        eigen_tol=eigen_tol,
-        assign_labels=assign_labels,
-        degree=degree,
-        coef0=coef0,
-    )
-
-
-def gaussian_mixture(
-    n_components: Annotated[int, {"min": 1, "max": 100}] = 1,
-    covariance_type: Literal["full", "tied", "diag", "spherical"] = "full",
-    tol: str = "1e-3",
-    reg_covar: Annotated[float, {"min": 0.0, "max": 100.0}] = 1e-6,
-    max_iter: Annotated[int, {"min": 1, "max": 1000}] = 100,
-    n_init: Annotated[int, {"min": 1, "max": 100}] = 1,
-    init_params: Literal["kmeans", "random"] = "kmeans",
-    random_state: str = "",
-):
-    random_state = _normalize_random_state(random_state)
-    tol = float(tol)
-    return GaussianMixture(
-        n_components=n_components,
-        covariance_type=covariance_type,
-        tol=tol,
-        reg_covar=reg_covar,
-        max_iter=max_iter,
-        n_init=n_init,
-        init_params=init_params,
-        random_state=random_state,
-    )
-
-
-MODELS = {
-    "KMeans": kmeans,
-    "DBSCAN": dbscan,
-    "AgglomerativeClustering": agglomerative,
-    "OPTICS": optics,
-    "SpectralClustering": spectral,
-    "AffinityPropagation": AffinityPropagation,
-    "Birch": Birch,
-    "MeanShift": MeanShift,
-    "GaussianMixture": gaussian_mixture,
-}
-
-
 class SkLearnModelProtocol(Protocol):
     """A protocol for sklearn models"""
 
@@ -234,6 +72,8 @@ class SkLearnModelProtocol(Protocol):
 
 
 class SkLearnModelEdit(Container):
+    """Widget for editing sklearn models and constructing them."""
+
     def __init__(self, **kwargs):
         self._text = Label(name="Model", value="")
         self._text.min_width = 200
@@ -253,7 +93,7 @@ class SkLearnModelEdit(Container):
     def _on_clicked(self):
         _model_choice = ComboBox(choices=MODELS.keys(), nullable=False)
         if model_name := self._text.value:
-            _model_choice.value = model_name
+            _model_choice.value = str(model_name).rstrip(" (fitted)")
         container = Container(widgets=[], labels=False)
         container.margins = (0, 0, 0, 0)
 
@@ -362,7 +202,8 @@ class SkLearnContainer(Container):
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         transformed = self._model_widget.model.transform(input.X)
-        table.cell[: transformed.shape[0], None] = transformed
+        for i in range(transformed.shape[1]):
+            table.cell[: transformed.shape[0], None] = transformed[:, i]
 
     def _describe(self):
         model = self._model_widget.model
