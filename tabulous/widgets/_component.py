@@ -124,9 +124,24 @@ class VerticalHeaderInterface(Component["TableBase"]):
     def __iter__(self) -> Iterator[str]:
         return iter(self._get_index())
 
+    def __contains__(self, key: str) -> bool:
+        return key in self._get_index()
+
     def get_loc(self, key: str) -> int:
         """Get the location of a column."""
         return self._get_index().get_loc(key)
+
+    def coerce_name(self, name: str, start: int | None = None) -> str:
+        """Coerce a name to avoid name collision."""
+        index = self._get_index()
+        i = 0
+        if start is not None:
+            name = f"{name}_{start}"
+            i = start + 1
+        while name in index:
+            name = f"{name}_{i}"
+            i += 1
+        return name
 
     # fmt: off
     @overload
@@ -181,9 +196,24 @@ class HorizontalHeaderInterface(Component["TableBase"]):
     def __iter__(self) -> Iterator[str]:
         return iter(self._get_columns())
 
+    def __contains__(self, key: str) -> bool:
+        return key in self._get_columns()
+
     def get_loc(self, key: str) -> int:
         """Get the location of a column."""
         return self._get_columns().get_loc(key)
+
+    def coerce_name(self, name: str, start: int | None = None) -> str:
+        """Coerce a name to avoid name collision."""
+        index = self._get_columns()
+        i = 0
+        if start is not None:
+            name = f"{name}_{start}"
+            i = start + 1
+        while name in index:
+            name = f"{name}_{i}"
+            i += 1
+        return name
 
     # fmt: off
     @overload

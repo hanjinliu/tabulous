@@ -28,6 +28,8 @@ class SkLearnInput(NamedTuple):
 
 
 class XYContainer(Container):
+    """Data selection widgets for sklearn algorithms."""
+
     def __init__(self, **kwargs):
         self._X_widget = SelectionWidget(format="iloc", name="X")
         self._Y_widget = SelectionWidget(format="iloc", name="Y")
@@ -78,12 +80,14 @@ class SkLearnModelEdit(Container):
         self._text = Label(name="Model", value="")
         self._text.min_width = 200
         self._btn = PushButton(name="Select model")
-        self._model = None
+        self._model: SkLearnModelProtocol | None = None
 
         super().__init__(
             widgets=[self._text, self._btn], labels=False, layout="horizontal", **kwargs
         )
-
+        # disconnect existing signales
+        self._text.changed.disconnect()
+        self._btn.changed.disconnect()
         self._btn.changed.connect(self._on_clicked)
 
     @property
@@ -113,9 +117,17 @@ class SkLearnModelEdit(Container):
             mgui = dlg[-1][0]
             self._model = mgui()
             self._text.value = _model_choice.value
+            self.changed.emit(self._model)
 
 
 class SkLearnContainer(Container):
+    """
+    The main container widget for scikit-learn analysis.
+
+    This widget contains a data selection widget, a model selection widget, and
+    buttons that perform the analysis.
+    """
+
     _current_widget = None
 
     def __init__(self, **kwargs):
@@ -168,6 +180,7 @@ class SkLearnContainer(Container):
         )
         self.margins = (0, 0, 0, 0)
 
+        self._model_widget.changed.connect(self._on_model_changed)
         self._fit_button.changed.connect(self._fit)
         self._predict_button.changed.connect(self._predict)
         self._transform_button.changed.connect(self._transform)
@@ -182,17 +195,25 @@ class SkLearnContainer(Container):
             cls._current_widget = SkLearnContainer()
         return cls._current_widget
 
+    def _on_model_changed(self, model: SkLearnModelProtocol):
+        """Check attributes of the model and enable/disable buttons."""
+        self._predict_button.enabled = hasattr(model, "predict")
+        self._transform_button.enabled = hasattr(model, "transform")
+
     def _fit(self):
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         self._model_widget.model.fit(input.X, input.Y)
-        self._model_widget._text.value = self._model_widget._text.value + " (fitted)"
+        text = self._model_widget._text.value
+        if not text.endswith(" (fitted)"):
+            self._model_widget._text.value = text + " (fitted)"
 
     def _predict(self):
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         predicted = self._model_widget.model.predict(input.X)
         table.cell[: predicted.shape[0], None] = predicted
+        table.columns[-1] = table.columns.coerce_name("predicted")
 
         # update Y if it is empty
         if input.Y is None:
@@ -204,6 +225,7 @@ class SkLearnContainer(Container):
         transformed = self._model_widget.model.transform(input.X)
         for i in range(transformed.shape[1]):
             table.cell[: transformed.shape[0], None] = transformed[:, i]
+            table.columns[-1] = table.columns.coerce_name(f"transformed", start=i)
 
     def _describe(self):
         model = self._model_widget.model
