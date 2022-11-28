@@ -303,7 +303,7 @@ class CellInterface(Component["TableBase"]):
 
     def _normalize_key(
         self,
-        key: tuple[int | slice | None, int | slice | None],
+        key: tuple[int | slice, int | slice],
     ) -> tuple[slice, slice]:
         if len(key) == 1:
             key = (key, slice(None))
@@ -311,17 +311,11 @@ class CellInterface(Component["TableBase"]):
 
         if isinstance(row, slice):
             row = _normalize_slice(row, self.parent._qwidget.model().df.shape[0])
-        elif row is None:
-            start = self.parent._qwidget.model().df.shape[0]
-            row = slice(start, start + 1)
         else:
             row = slice(row, row + 1)
 
         if isinstance(col, slice):
             col = _normalize_slice(col, self.parent._qwidget.model().df.shape[1])
-        elif col is None:
-            start = self.parent._qwidget.model().df.shape[1]
-            col = slice(start, start + 1)
         else:
             col = slice(col, col + 1)
         return row, col

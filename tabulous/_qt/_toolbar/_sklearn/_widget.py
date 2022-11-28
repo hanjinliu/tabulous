@@ -212,20 +212,28 @@ class SkLearnContainer(Container):
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         predicted = self._model_widget.model.predict(input.X)
-        table.cell[: predicted.shape[0], None] = predicted
-        table.columns[-1] = table.columns.coerce_name("predicted")
+        name = table.columns.coerce_name("predicted")
+        table.assign({name: predicted})
+        table.selections = [(slice(None), table.columns.get_loc(name))]
 
         # update Y if it is empty
         if input.Y is None:
             self._data_widget._Y_widget._read_selection(table)
+        return None
 
     def _transform(self):
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         transformed = self._model_widget.model.transform(input.X)
+        df_dict = {}
         for i in range(transformed.shape[1]):
-            table.cell[: transformed.shape[0], None] = transformed[:, i]
-            table.columns[-1] = table.columns.coerce_name(f"transformed", start=i)
+            name = table.columns.coerce_name(f"transformed", start=i)
+            df_dict[name] = transformed[:, i]
+        nc_before = len(table.columns)
+        table.assign(df_dict)
+        nc_after = len(table.columns)
+        table.selections = [(slice(None), slice(nc_before, nc_after))]
+        return None
 
     def _describe(self):
         model = self._model_widget.model
