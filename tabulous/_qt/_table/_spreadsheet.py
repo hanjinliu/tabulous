@@ -270,6 +270,11 @@ class QSpreadSheet(QMutableSimpleTable):
                 old_param[k] = self.__delete
         return arguments(old_param)
 
+    @assignColumns.set_formatter
+    def _assignColumns_fmt(self, serieses: dict[str, pd.Series]):
+        keys = set(serieses.keys())
+        return f"assign new data to {keys}"
+
     def createModel(self) -> None:
         """Create spreadsheet model."""
         model = SpreadSheetModel(self)

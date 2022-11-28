@@ -283,13 +283,16 @@ class SkLearnContainer(Container):
                     table.plt.hist(input.X[spec, 0], label=label)
                 else:
                     table.plt.scatter(
-                        input.X[spec, dim0], input.X[spec, dim1], label=label
+                        input.X[spec, dim0],
+                        input.X[spec, dim1],
+                        label=label,
+                        s=12,
                     )
         else:
             if input.X.shape[1] == 1:
                 table.plt.hist(input.X[:, 0], label=label)
             else:
-                table.plt.scatter(input.X[:, dim0], input.X[:, dim1])
+                table.plt.scatter(input.X[:, dim0], input.X[:, dim1], s=12)
 
         if input.X.shape[1] == 1:
             table.plt.xlabel(input.labels[0])

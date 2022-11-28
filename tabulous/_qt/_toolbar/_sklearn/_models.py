@@ -1,6 +1,5 @@
-from __future__ import annotations
 from functools import partial
-
+from typing import Union
 from typing_extensions import Annotated, Literal
 from sklearn import cluster, svm, linear_model, decomposition
 from sklearn.mixture import GaussianMixture
@@ -18,7 +17,7 @@ class ModelRegistry(dict):
 MODELS = ModelRegistry()
 
 
-def _normalize_random_state(state) -> int | None:
+def _normalize_random_state(state) -> Union[int, None]:
     if state:
         return int(state)
     else:
@@ -222,7 +221,7 @@ def svc(
     shrinking: bool = True,
     probability: bool = False,
     tol: str = "1e-3",
-    cache_size: Annotated[int, {"min": 1, "max": 100}] = 200,
+    cache_size: Annotated[int, {"min": 1, "max": 1000}] = 200,
     random_state: str = "",
     regression: bool = False,
 ):
