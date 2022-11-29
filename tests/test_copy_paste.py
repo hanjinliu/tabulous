@@ -62,3 +62,14 @@ def test_copy_array_and_paste_single():
 
     table.undo_manager.undo()
     assert_equal(table.data.iloc[sl_dst], old_value)
+
+# def test_paste_with_column_selected():
+#     viewer = TableViewerWidget(show=False)
+#     table = viewer.add_spreadsheet({
+#         "a": [0, 1, 2, 3, 4],
+#         "b": [2, 4, 6, 8, 10],
+#         "c": [-1, -1, -1, -1, -1],
+#     })
+
+#     viewer.copy_data([(slice(0, 5), slice(2, 3))])
+#     table.move_iloc

@@ -1218,12 +1218,22 @@ class QMutableTable(QBaseTable):
         elif n_selections > 1:
             raise SelectionRangeError("Cannot paste to multiple selections.")
 
+        dr, dc = df.shape
+
         # check size and normalize selection slices
         sel = selections[0]
         rrange, crange = sel
-        rlen = rrange.stop - rrange.start
-        clen = crange.stop - crange.start
-        dr, dc = df.shape
+        rstart = 0 if rrange.start is None else rrange.start
+        rstop = rstart + dr if rrange.stop is None else rrange.stop
+        cstart = 0 if crange.start is None else crange.start
+        cstop = cstart + dc if crange.stop is None else crange.stop
+        rrange = slice(rstart, rstop)
+        crange = slice(cstart, cstop)
+        sel = (rrange, crange)
+
+        # check if the selection is valid
+        rlen = rstop - rstart
+        clen = cstop - cstart
         size = dr * dc
 
         if rlen * clen == 1 and size > 1:
@@ -1319,10 +1329,19 @@ class QMutableTable(QBaseTable):
         if not self.isEditable():
             return None
         selections = self.selections()
+        rsize, csize = self._data_raw.shape
         for sel in selections:
+            # normalize selection range to non-None slices
             rsel, csel = sel
-            nr = rsel.stop - rsel.start
-            nc = csel.stop - csel.start
+            rstart = 0 if rsel.start is None else rsel.start
+            rstop = rsize if rsel.stop is None else rsel.stop
+            cstart = 0 if csel.start is None else csel.start
+            cstop = csize if csel.stop is None else csel.stop
+            rsel = slice(rstart, rstop)
+            csel = slice(cstart, cstop)
+
+            nr = rstop - rstart
+            nc = cstop - cstart
             dtypes = list(self._data_raw.dtypes.values[csel])
             df = pd.DataFrame(
                 {
