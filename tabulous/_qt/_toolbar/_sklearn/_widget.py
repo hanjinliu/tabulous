@@ -190,7 +190,7 @@ class SkLearnContainer(Container):
 
     @classmethod
     def new(cls) -> SkLearnContainer:
-        """Build a new widget."""
+        """Build a new widget (singleton constructor)."""
         if cls._current_widget is None:
             cls._current_widget = SkLearnContainer()
         return cls._current_widget
@@ -201,6 +201,7 @@ class SkLearnContainer(Container):
         self._transform_button.enabled = hasattr(model, "transform")
 
     def _fit(self):
+        """Run self.fit(X, Y)."""
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         self._model_widget.model.fit(input.X, input.Y)
@@ -209,6 +210,7 @@ class SkLearnContainer(Container):
             self._model_widget._text.value = text + " (fitted)"
 
     def _predict(self):
+        """Run self.predict(X)."""
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         predicted = self._model_widget.model.predict(input.X)
@@ -222,6 +224,7 @@ class SkLearnContainer(Container):
         return None
 
     def _transform(self):
+        """Run self.transform(X)."""
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         transformed = self._model_widget.model.transform(input.X)
@@ -249,6 +252,7 @@ class SkLearnContainer(Container):
         return None
 
     def _score(self):
+        """Run self.score(X)."""
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         score = self._model_widget.model.score(input.X, input.Y)

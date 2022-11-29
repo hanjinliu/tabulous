@@ -252,7 +252,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         if editable:
             raise TableImmutableError("Table is immutable.")
 
-    def assignColumns(self, serieses: list[pd.Series]):
+    def assignColumns(self, serieses: list[pd.Series]) -> None:
         raise TableImmutableError("Table is immutable.")
 
     def convertValue(self, c: int, value: Any) -> Any:

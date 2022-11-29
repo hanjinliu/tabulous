@@ -249,7 +249,7 @@ class TableBase(ABC):
         """The backend widget."""
         return self._qwidget
 
-    def assign(self, other: dict[str, Any], **kwargs: dict[str, Any]) -> Self:
+    def assign(self, other: dict[str, Any] = {}, **kwargs: dict[str, Any]) -> Self:
         import pandas as pd
 
         kwargs = dict(**other, **kwargs)
@@ -260,7 +260,7 @@ class TableBase(ABC):
         self._qwidget.assignColumns(serieses)
         return self
 
-    # TODO: drop
+    # TODO: def drop(self, labels: list[str]) -> Self:
 
     def refresh(self) -> None:
         """Refresh the table view and force table to update."""

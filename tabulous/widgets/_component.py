@@ -94,46 +94,60 @@ class Component(Generic[T]):
         raise AttributeError("Cannot set attribute.")
 
 
-class VerticalHeaderInterface(Component["TableBase"]):
-    """The interface for the vertical header of the tablelist."""
+class _HeaderInterface(Component["TableBase"]):
+    def _get_axis(self) -> pd.Index:
+        raise NotImplementedError()
 
-    def _get_index(self) -> pd.Index:
-        return self.parent._qwidget.model().df.index
+    def _set_value(self, idx: int, val: Any):
+        raise NotImplementedError()
+
+    def _get_header(self) -> QDataFrameHeaderView:
+        raise NotImplementedError()
 
     def __getitem__(self, key: int | slice):
-        return self._get_index()[key]
+        return self._get_axis()[key]
 
     def __setitem__(self, key: int | slice, value: Any):
         table = self.parent
         if not table.editable:
             raise TableImmutableError("Table is not editable.")
         qtable = table._qwidget
-        df = table._qwidget.model().df
         if isinstance(key, slice):
-            start, stop, step = key.indices(len(df.index))
+            start, stop, step = key.indices(len(self._get_axis()))
             for i, idx in enumerate(range(start, stop, step)):
-                qtable.setVerticalHeaderValue(idx, value[i])
+                self._set_value(idx, value[i])
         else:
             idx = key.__index__()
-            qtable.setVerticalHeaderValue(idx, value)
+            self._set_value(idx, value)
         return None
 
     def __len__(self) -> int:
-        return len(self._get_index())
+        return len(self._get_axis())
 
     def __iter__(self) -> Iterator[str]:
-        return iter(self._get_index())
+        return iter(self._get_axis())
 
     def __contains__(self, key: str) -> bool:
-        return key in self._get_index()
+        return key in self._get_axis()
+
+    def __eq__(self, other: Sequence[str]) -> np.ndarray:
+        return self._get_axis() == other
+
+    @property
+    def str(self):
+        return self._get_axis().str
 
     def get_loc(self, key: str) -> int:
         """Get the location of a column."""
-        return self._get_index().get_loc(key)
+        return self._get_axis().get_loc(key)
+
+    def isin(self, values) -> np.ndarray:
+        """Return a boolean array of whether each value is found in the passed values."""
+        return self._get_axis().isin(values)
 
     def coerce_name(self, name: str, start: int | None = None) -> str:
         """Coerce a name to avoid name collision."""
-        index = self._get_index()
+        index = self._get_axis()
         i = 0
         if start is not None:
             name = f"{name}_{start}"
@@ -160,78 +174,29 @@ class VerticalHeaderInterface(Component["TableBase"]):
             return header.registerAction(location)(val)
         else:
             raise ValueError("input must be a string or callable.")
+
+
+class VerticalHeaderInterface(_HeaderInterface):
+    """The interface for the vertical header of the tablelist."""
+
+    def _get_axis(self) -> pd.Index:
+        return self.parent._qwidget.model().df.index
+
+    def _set_value(self, idx: int, val: Any):
+        return self.parent._qwidget.setVerticalHeaderValue(idx, val)
 
     def _get_header(self) -> QDataFrameHeaderView:
         return self.parent._qwidget._qtable_view.verticalHeader()
 
 
-class HorizontalHeaderInterface(Component["TableBase"]):
+class HorizontalHeaderInterface(_HeaderInterface):
     """The interface for the horizontal header of the tablelist."""
 
-    def _get_columns(self) -> pd.Index:
+    def _get_axis(self) -> pd.Index:
         return self.parent._qwidget.model().df.columns
 
-    def __getitem__(self, key: int | slice):
-        return self._get_columns()[key]
-
-    def __setitem__(self, key: int | slice, value: Any):
-        table = self.parent
-        if not table.editable:
-            raise TableImmutableError("Table is not editable.")
-        qtable = table._qwidget
-        df = table._qwidget.model().df
-        if isinstance(key, slice):
-            start, stop, step = key.indices(len(df.index))
-            for i, idx in enumerate(range(start, stop, step)):
-                qtable.setHorizontalHeaderValue(idx, value[i])
-        else:
-            idx = key.__index__()
-            qtable.setHorizontalHeaderValue(idx, value)
-        return None
-
-    def __len__(self) -> int:
-        """Number of columns."""
-        return len(self._get_columns())
-
-    def __iter__(self) -> Iterator[str]:
-        return iter(self._get_columns())
-
-    def __contains__(self, key: str) -> bool:
-        return key in self._get_columns()
-
-    def get_loc(self, key: str) -> int:
-        """Get the location of a column."""
-        return self._get_columns().get_loc(key)
-
-    def coerce_name(self, name: str, start: int | None = None) -> str:
-        """Coerce a name to avoid name collision."""
-        index = self._get_columns()
-        i = 0
-        if start is not None:
-            name = f"{name}_{start}"
-            i = start + 1
-        while name in index:
-            name = f"{name}_{i}"
-            i += 1
-        return name
-
-    # fmt: off
-    @overload
-    def register_action(self, val: str) -> Callable[[_F], _F]: ...
-    @overload
-    def register_action(self, val: _F) -> _F: ...
-    # fmt: on
-
-    def register_action(self, val: str | Callable[[int], Any]):
-        """Register an contextmenu action to the tablelist."""
-        header = self._get_header()
-        if isinstance(val, str):
-            return header.registerAction(val)
-        elif callable(val):
-            location = val.__name__.replace("_", " ")
-            return header.registerAction(location)(val)
-        else:
-            raise ValueError("input must be a string or callable.")
+    def _set_value(self, idx: int, val: Any):
+        return self.parent._qwidget.setHorizontalHeaderValue(idx, val)
 
     def _get_header(self) -> QDataFrameHeaderView:
         return self.parent._qwidget._qtable_view.horizontalHeader()
