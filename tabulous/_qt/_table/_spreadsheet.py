@@ -237,25 +237,24 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.interface
     def assignColumns(self, serieses: dict[str, pd.Series]):
-        with self._mgr.merging():
-            to_delete = set()
-            to_assign: dict[str, pd.Series] = {}
-            for k, v in serieses.items():
-                if v is self.__delete:
-                    to_delete.add(k)
-                else:
-                    to_assign[k] = v
-            self._data_raw: pd.DataFrame = self._data_raw.assign(**to_assign).drop(
-                to_delete, axis=1
-            )
-            nr, nc = self._data_raw.shape
-            self.model().df = self._data_raw
-            self.model().setShape(
-                nr + _OUT_OF_BOUND_R,
-                nc + _OUT_OF_BOUND_C,
-            )
-            self.setFilter(None)
-            self.refreshTable()
+        to_delete = set()
+        to_assign: dict[str, pd.Series] = {}
+        for k, v in serieses.items():
+            if v is self.__delete:
+                to_delete.add(k)
+            else:
+                to_assign[k] = v
+        self._data_raw: pd.DataFrame = self._data_raw.assign(**to_assign).drop(
+            to_delete, axis=1
+        )
+        nr, nc = self._data_raw.shape
+        self.model().df = self._data_raw
+        self.model().setShape(
+            nr + _OUT_OF_BOUND_R,
+            nc + _OUT_OF_BOUND_C,
+        )
+        self.setFilter(None)
+        self.refreshTable()
         self._data_cache = None
         return None
 

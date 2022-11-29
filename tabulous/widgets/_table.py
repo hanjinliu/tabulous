@@ -93,13 +93,13 @@ class TableBase(ABC):
         editable: bool = True,
         metadata: dict[str, Any] | None = None,
     ):
-        self._data = self._normalize_data(data)
+        _data = self._normalize_data(data)
 
         if name is None:
             name = self._Default_Name
         self.events = TableSignals()
         self._name = str(name)
-        self._qwidget = self._create_backend(self._data)
+        self._qwidget = self._create_backend(_data)
         self._qwidget.connectSelectionChangedSignal(self._emit_selections)
         self._view_mode = ViewMode.normal
         self._metadata: dict[str, Any] = metadata or {}
@@ -170,8 +170,8 @@ class TableBase(ABC):
     @data.setter
     def data(self, value):
         """Set table data."""
-        self._data = self._normalize_data(value)
-        self._qwidget.setDataFrame(self._data)
+        _data = self._normalize_data(value)
+        self._qwidget.setDataFrame(_data)
 
     @property
     def data_shown(self) -> pd.DataFrame:
@@ -248,17 +248,6 @@ class TableBase(ABC):
     def native(self) -> QBaseTable:
         """The backend widget."""
         return self._qwidget
-
-    def assign(self, other: dict[str, Any] = {}, **kwargs: dict[str, Any]) -> Self:
-        import pandas as pd
-
-        kwargs = dict(**other, **kwargs)
-        serieses: dict[str, pd.Series] = {}
-        for k, v in kwargs.items():
-            serieses[str(k)] = pd.Series(v, index=self.data.index, name=k)
-
-        self._qwidget.assignColumns(serieses)
-        return self
 
     # TODO: def drop(self, labels: list[str]) -> Self:
 
@@ -539,7 +528,7 @@ class TableBase(ABC):
                 # if no reference exists, evaluate the expression as "=..." form.
                 return self._emit_evaluated(EvalInfo(*pos, info.expr, False))
             graph = Graph(self, literal_callable, selections)
-            with qtable._mgr.merging():
+            with qtable._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
                 # call here to properly update undo stack
                 result = literal_callable(unblock=True)
                 if e := result.get_err():
@@ -559,12 +548,42 @@ class TableBase(ABC):
 class _DataFrameTableLayer(TableBase):
     """Table layer for DataFrame."""
 
+    _qwidget: QTableLayer | QSpreadSheet
+
     def _normalize_data(self, data) -> pd.DataFrame:
         import pandas as pd
 
         if not isinstance(data, pd.DataFrame):
             data = pd.DataFrame(data)
         return data
+
+    def assign(self, other: dict[str, Any] = {}, **kwargs: dict[str, Any]) -> Self:
+        """
+        Assign new column(s) to the table.
+
+        Examples
+        --------
+        >>> table.assign(a=[1, 2, 3], b=[2, 3, 4])
+        >>> table.assign({"a": [1, 2, 3], "b": [2, 3, 4]})
+
+        Returns
+        -------
+        TableBase
+            Same table object with new columns.
+        """
+        import pandas as pd
+
+        kwargs = dict(**other, **kwargs)
+        if self._qwidget._data_raw.size == 0:
+            # DataFrame.assign does not support updating empty DataFrame.
+            self._qwidget.setDataFrame(pd.DataFrame(kwargs))
+        else:
+            serieses: dict[str, pd.Series] = {}
+            for k, v in kwargs.items():
+                serieses[str(k)] = pd.Series(v, index=self.data.index, name=k)
+
+            self._qwidget.assignColumns(serieses)
+        return self
 
 
 @_doc.update_doc
