@@ -17,6 +17,7 @@ from magicgui.widgets import (
 
 from tabulous._magicgui import find_current_table, SelectionWidget
 from ._models import MODELS
+from tabulous._qt._qt_const import MonospaceFontFamily
 
 
 class SkLearnInput(NamedTuple):
@@ -48,6 +49,8 @@ class XYContainer(Container):
             if Y.shape[0] != X.shape[0]:
                 raise ValueError("Label and data must have the same number of rows")
             Y = Y.values.ravel()
+            if Y.dtype.kind not in "ui":
+                lut, Y = np.unique(Y, return_inverse=True)
         else:
             Y = None
 
@@ -57,20 +60,14 @@ class XYContainer(Container):
 class SkLearnModelProtocol(Protocol):
     """A protocol for sklearn models"""
 
-    def fit(self, X: np.ndarray, Y: np.ndarray | None = None):
-        ...
-
-    def predict(self, X: np.ndarray) -> np.ndarray:
-        ...
-
-    def transform(self, X: np.ndarray) -> np.ndarray:
-        ...
-
-    def score(self, X: np.ndarray, Y: np.ndarray | None = None) -> float:
-        ...
-
-    def get_params(self, deep: bool = True) -> dict:
-        ...
+    # fmt: off
+    def fit(self, X: np.ndarray, Y: np.ndarray | None = None): ...
+    def predict(self, X: np.ndarray) -> np.ndarray: ...
+    def fit_predict(self, X: np.ndarray, Y: np.ndarray | None = None) -> np.ndarray: ...
+    def transform(self, X: np.ndarray) -> np.ndarray: ...
+    def score(self, X: np.ndarray, Y: np.ndarray | None = None) -> float: ...
+    def get_params(self, deep: bool = True) -> dict: ...
+    # fmt: on
 
 
 class SkLearnModelEdit(Container):
@@ -97,7 +94,10 @@ class SkLearnModelEdit(Container):
     def _on_clicked(self):
         _model_choice = ComboBox(choices=MODELS.keys(), nullable=False)
         if model_name := self._text.value:
-            _model_choice.value = str(model_name).rstrip(" (fitted)")
+            model_name: str
+            if model_name.endswith(" (fitted)"):
+                model_name = model_name[:-9]
+            _model_choice.value = model_name
         container = Container(widgets=[], labels=False)
         container.margins = (0, 0, 0, 0)
 
@@ -131,35 +131,37 @@ class SkLearnContainer(Container):
     _current_widget = None
 
     def __init__(self, **kwargs):
-        self._model_widget = SkLearnModelEdit(name="model")
-        self._data_widget = XYContainer(name="data")
+        self._model_widget = SkLearnModelEdit(label="model")
+        self._data_widget = XYContainer(label="data")
 
-        self._fit_button = PushButton(name="Fit", tooltip="Fit model by data")
+        self._fit_button = PushButton(label="Fit", tooltip="Fit model by data")
         self._predict_button = PushButton(
-            name="Predict", tooltip="Predict labels by data"
+            label="Predict", tooltip="Predict labels by data"
         )
-        self._transform_button = PushButton(name="Transform", tooltip="Transform data")
+        self._fit_predict_button = PushButton(
+            label="Fit/Predict", tooltip="Fit model and predict labels by data"
+        )
+        self._transform_button = PushButton(label="Transform", tooltip="Transform data")
         self._describe_button = PushButton(
-            name="Describe", tooltip="Describe the model"
+            label="Describe", tooltip="Describe the model"
         )
-        self._score_button = PushButton(name="Score", tooltip="Score the model")
-        self._plot_button = PushButton(name="Plot", tooltip="Plot the model")
+        self._score_button = PushButton(label="Score", tooltip="Score the model")
 
         _hlayout_1 = Container(
             layout="horizontal",
             widgets=[
                 self._fit_button,
                 self._predict_button,
-                self._transform_button,
+                self._fit_predict_button,
             ],
         )
         _hlayout_1.margins = (0, 0, 0, 0)
         _hlayout_2 = Container(
             layout="horizontal",
             widgets=[
+                self._transform_button,
                 self._describe_button,
                 self._score_button,
-                self._plot_button,
             ],
         )
         _hlayout_2.margins = (0, 0, 0, 0)
@@ -167,6 +169,7 @@ class SkLearnContainer(Container):
         self._output_area = TextEdit(label="Output")
         self._output_area.max_height = 100
         self._output_area.read_only = True
+        self._output_area.native.setFontFamily(MonospaceFontFamily)
 
         super().__init__(
             widgets=[
@@ -183,10 +186,10 @@ class SkLearnContainer(Container):
         self._model_widget.changed.connect(self._on_model_changed)
         self._fit_button.changed.connect(self._fit)
         self._predict_button.changed.connect(self._predict)
+        self._fit_predict_button.changed.connect(self._fit_predict)
         self._transform_button.changed.connect(self._transform)
         self._describe_button.changed.connect(self._describe)
         self._score_button.changed.connect(self._score)
-        self._plot_button.changed.connect(self._plot)
 
     @classmethod
     def new(cls) -> SkLearnContainer:
@@ -198,7 +201,9 @@ class SkLearnContainer(Container):
     def _on_model_changed(self, model: SkLearnModelProtocol):
         """Check attributes of the model and enable/disable buttons."""
         self._predict_button.enabled = hasattr(model, "predict")
+        self._fit_predict_button.enabled = hasattr(model, "fit_predict")
         self._transform_button.enabled = hasattr(model, "transform")
+        self._score_button.enabled = hasattr(model, "score")
 
     def _fit(self):
         """Run self.fit(X, Y)."""
@@ -214,6 +219,23 @@ class SkLearnContainer(Container):
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         predicted = self._model_widget.model.predict(input.X)
+        name = table.columns.coerce_name("predicted")
+        table.assign({name: predicted})
+        table.selections = [(slice(None), table.columns.get_loc(name))]
+
+        # update Y if it is empty
+        if input.Y is None:
+            self._data_widget._Y_widget._read_selection(table)
+        return None
+
+    def _fit_predict(self):
+        """Run self.fit_predict(X, Y)."""
+        table = find_current_table(self)
+        input = self._data_widget.get_values(table.data)
+        predicted = self._model_widget.model.fit_predict(input.X, input.Y)
+        text = self._model_widget._text.value
+        if not text.endswith(" (fitted)"):
+            self._model_widget._text.value = text + " (fitted)"
         name = table.columns.coerce_name("predicted")
         table.assign({name: predicted})
         table.selections = [(slice(None), table.columns.get_loc(name))]
@@ -239,6 +261,7 @@ class SkLearnContainer(Container):
         return None
 
     def _describe(self):
+        """Describe current model state."""
         model = self._model_widget.model
         output: list[str] = []
         params = model.get_params()
@@ -257,49 +280,3 @@ class SkLearnContainer(Container):
         input = self._data_widget.get_values(table.data)
         score = self._model_widget.model.score(input.X, input.Y)
         self._output_area.value = f"score = {score}"
-
-    def _plot(self):
-        table = find_current_table(self)
-        input = self._data_widget.get_values(table.data)
-
-        # specify dimension
-        if input.X.shape[1] > 2:
-            select = Select(choices=range(input.X.shape[1]))
-            dlg = Dialog(
-                widgets=[Label(value="Select two dimensions to plot"), select],
-                labels=False,
-            )
-            if dlg.exec():
-                if len(select.value) != 2:
-                    raise ValueError("Select two.")
-                dim0, dim1 = select.value
-            else:
-                return
-        else:
-            dim0, dim1 = 0, 1
-
-        if input.Y is not None:
-            unique_labels = np.unique(input.Y)
-
-            for label in unique_labels:
-                spec = input.Y == label
-                if input.X.shape[1] == 1:
-                    table.plt.hist(input.X[spec, 0], label=label)
-                else:
-                    table.plt.scatter(
-                        input.X[spec, dim0],
-                        input.X[spec, dim1],
-                        label=label,
-                        s=12,
-                    )
-        else:
-            if input.X.shape[1] == 1:
-                table.plt.hist(input.X[:, 0], label=label)
-            else:
-                table.plt.scatter(input.X[:, dim0], input.X[:, dim1], s=12)
-
-        if input.X.shape[1] == 1:
-            table.plt.xlabel(input.labels[0])
-        else:
-            table.plt.xlabel(input.labels[dim0])
-            table.plt.ylabel(input.labels[dim1])
