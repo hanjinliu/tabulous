@@ -1294,7 +1294,7 @@ class QMutableTable(QBaseTable):
         Also, if data is filtrated, pasted data also follows the filtration.
         """
         df = self.readClipBoard(sep=sep)
-        if df.shape == (1, 1) and QCellLiteralEdit._is_eval_like(df.iat[0, 0]):
+        if df.shape == (1, 1) and QCellLiteralEdit._is_eval_like(str(df.iat[0, 0])):
             sels = self.selections()
             if len(sels) != 1:
                 raise SelectionRangeError(
