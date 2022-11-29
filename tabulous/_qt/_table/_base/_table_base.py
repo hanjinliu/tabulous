@@ -252,7 +252,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         if editable:
             raise TableImmutableError("Table is immutable.")
 
-    def assignColumn(self, ds: pd.Series):
+    def assignColumns(self, serieses: list[pd.Series]) -> None:
         raise TableImmutableError("Table is immutable.")
 
     def convertValue(self, c: int, value: Any) -> Any:
@@ -1156,25 +1156,6 @@ class QMutableTable(QBaseTable):
         value = args_new["value"]
         old_value = args_old["old_value"]
         return arguments(r, c, r_ori, c_ori, value, old_value)
-
-    def assignColumn(self, ds: pd.Series):
-        if ds.name in self._data_raw.columns:
-            ic = self._data_raw.columns.get_loc(ds.name)
-            self.setDataFrameValue(
-                slice(0, ds.size), slice(ic, ic + 1), pd.DataFrame(ds)
-            )
-        else:
-            self.assignNewColumn(ds)
-
-    @QBaseTable._mgr.undoable
-    def assignNewColumn(self, ds: pd.Series):
-        self._data_raw[ds.name] = ds
-        self.setDataFrame(self._data_raw)
-
-    @assignNewColumn.undo_def
-    def assignNewColumn(self, ds: pd.Series):
-        del self._data_raw[ds.name]
-        self.setDataFrame(self._data_raw)
 
     def updateValue(self, r, c, value):
         with warnings.catch_warnings():

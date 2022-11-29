@@ -75,6 +75,8 @@ class MeltedDataContainer(DataContainer):
             raise ValueError("Label must be a single column")
         if data.shape[1] != 1:
             raise ValueError("Data must be a single column")
+        if label.size != data.size:
+            raise ValueError("Label and data must have the same size")
 
         label = np.asarray(label).ravel()
         data = np.asarray(data).ravel()

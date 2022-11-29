@@ -47,6 +47,7 @@ def get_app():
 
     if app.windowIcon().isNull():
         app.setWindowIcon(QtGui.QIcon(str(ICON_PATH / "window_icon.png")))
+    app.setApplicationName("tabulous")
     APPLICATION = app
     return app
 

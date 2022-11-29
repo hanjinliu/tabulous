@@ -96,6 +96,18 @@ def test_move_location():
     with pytest.raises(IndexError):
         table.move_iloc(5, 2)
 
+def test_assign():
+    viewer = TableViewer(show=False)
+    table = viewer.add_table(df0)
+    table.assign(c=[1, 2, 3])
+    assert all(table.columns == ["a", "b", "c"])
+    assert all(table.data["c"] == [1, 2, 3])
+
+    table.assign(b=[True, False, True])
+    assert all(table.columns == ["a", "b", "c"])
+    assert all(table.data["b"] == [True, False, True])
+    assert table.data.dtypes[1] == bool
+
 def test_dual_view():
     viewer = TableViewer(show=False)
     table = viewer.add_table(df0)

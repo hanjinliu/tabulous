@@ -20,6 +20,7 @@ from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
 from tabulous._psygnal import SignalArray
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
     import pandas as pd
     from collections_undo import UndoManager
     from qtpy import QtWidgets as QtW
@@ -247,6 +248,19 @@ class TableBase(ABC):
     def native(self) -> QBaseTable:
         """The backend widget."""
         return self._qwidget
+
+    def assign(self, other: dict[str, Any] = {}, **kwargs: dict[str, Any]) -> Self:
+        import pandas as pd
+
+        kwargs = dict(**other, **kwargs)
+        serieses: dict[str, pd.Series] = {}
+        for k, v in kwargs.items():
+            serieses[str(k)] = pd.Series(v, index=self.data.index, name=k)
+
+        self._qwidget.assignColumns(serieses)
+        return self
+
+    # TODO: def drop(self, labels: list[str]) -> Self:
 
     def refresh(self) -> None:
         """Refresh the table view and force table to update."""

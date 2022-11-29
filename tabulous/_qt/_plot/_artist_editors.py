@@ -222,7 +222,7 @@ class ScatterEdit(ArtistEditor[PathCollection]):
         _marker_edit.changed.connect(self.set_marker)
 
         _size_edit = FloatSpinBox(
-            min=0.0, max=500.0, step=0.5, value=scatter.get_sizes()[0], name="size"
+            min=0.0, max=500.0, step=1, value=scatter.get_sizes()[0], name="size"
         )
         _size_edit.changed.connect(self.set_size)
 
