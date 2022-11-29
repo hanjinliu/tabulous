@@ -167,6 +167,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.registerAction("Copy as ... > New spreadsheet")(lambda index: self._copy_as_new_table("spreadsheet"))
         self.registerAction("Paste")(lambda index: self.pasteFromClipBoard())
         self.registerAction("Paste from ... > Comma separated text")(lambda index: self.pasteFromClipBoard(sep=","))
+        self.registerAction("Paste from ... > numpy-style text")(lambda index: self._paste_numpy_str())
         self.addSeparator()
         self.registerAction("Code ... > Data-changed signal")(lambda index: self._write_data_changed_signal())
         self.registerAction("Code ... > Get slice")(lambda index: self._write_slice())
@@ -1206,18 +1207,8 @@ class QMutableTable(QBaseTable):
         if not self._keymap.press_key(keys):
             return super().keyPressEvent(e)
 
-    def pasteFromClipBoard(self, sep=r"\s+"):
-        """
-        Paste data to table.
-
-        This function supports many types of pasting.
-        1. Single selection, single data in clipboard -> just paste
-        2. Single selection, multiple data in clipboard -> paste starts from the selection position.
-        3. Multiple selection, single data in clipboard -> paste the same value for all the selection.
-        4. Multiple selection, multiple data in clipboard -> paste only if their shape is identical.
-
-        Also, if data is filtrated, pasted data also follows the filtration.
-        """
+    def _paste_data(self, df: pd.DataFrame):
+        """Paste data to the table."""
         selections = self.selections()
         n_selections = len(selections)
         if n_selections == 0:
@@ -1226,8 +1217,6 @@ class QMutableTable(QBaseTable):
             return self.tableStack().notifyEditability()
         elif n_selections > 1:
             raise SelectionRangeError("Cannot paste to multiple selections.")
-
-        df = self.readClipBoard(sep=sep)
 
         # check size and normalize selection slices
         sel = selections[0]
@@ -1277,6 +1266,53 @@ class QMutableTable(QBaseTable):
         self.setSelections([sel])
 
         return None
+
+    def pasteFromClipBoard(self, sep=r"\s+"):
+        """
+        Paste data to table.
+
+        This function supports many types of pasting.
+        1. Single selection, single data in clipboard -> just paste
+        2. Single selection, multiple data in clipboard -> paste starts from the selection position.
+        3. Multiple selection, single data in clipboard -> paste the same value for all the selection.
+        4. Multiple selection, multiple data in clipboard -> paste only if their shape is identical.
+
+        Also, if data is filtrated, pasted data also follows the filtration.
+        """
+        df = self.readClipBoard(sep=sep)
+        return self._paste_data(df)
+
+    def _paste_numpy_str(self):
+        """
+        Paste numpy array representation to the table.
+
+        Strings formatted as following will be correctly parsed:
+
+        1. String returned by repr() of numpy array.
+        >>> array([[1, 2, 3],
+        >>>        [4, 5, 6]])
+
+        2. String returned by str() of numpy array.
+        >>> [[1 2 3]
+        >>>  [4 5 6]]
+        """
+        s = QtW.QApplication.clipboard().text().strip()
+        _is_repr = s.startswith("array(") and s.endswith(")")
+        _is_str = s.startswith("[") and s.endswith("]")
+        if _is_repr:
+            arr = eval(f"np.{s}", {"np": np}, {})
+            if not isinstance(arr, np.ndarray):
+                raise ValueError("Invalid numpy array representation.")
+            if arr.ndim > 2:
+                raise ValueError("Cannot paste array with dimension > 2.")
+            return self._paste_data(pd.DataFrame(arr))
+        elif _is_str:
+            arr = np.asarray(eval(s.replace(" ", ", "), {}, {}))
+            if arr.ndim > 2:
+                raise ValueError("Cannot paste array with dimension > 2.")
+            return self._paste_data(pd.DataFrame(arr))
+        else:
+            raise ValueError("Invalid numpy array representation.")
 
     def deleteValues(self):
         """Replace selected cells with NaN."""
