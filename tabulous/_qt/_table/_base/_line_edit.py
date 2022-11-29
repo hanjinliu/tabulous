@@ -629,6 +629,7 @@ class QCellLabelEdit(QtW.QLineEdit):
         self.editingFinished.connect(self._on_editing_finished)
 
     def _on_editing_finished(self):
+        self.editingFinished.disconnect()
         self._hide_and_delete()
         text = self.text()
         if text == "":
