@@ -508,6 +508,11 @@ class QCellLiteralEdit(_QTableLineEdit):
             return None
         elif keys == "F2":  # editing fails
             return None
+        elif keys == "F3":
+            self.eval_and_close()
+            editor = QCellLabelEdit.from_table(qtable)
+            editor.show()
+            return
 
         if keys.is_typing() or keys_str in ("Backspace", "Delete"):
             if keys_str in ("Backspace", "Delete"):
@@ -675,7 +680,9 @@ class QCellLabelEdit(QtW.QLineEdit):
                 return
 
         elif keys == "F2":
-            return
+            return None
+        elif keys == "F3":
+            return None  # do nothing
         return super().keyPressEvent(event)
 
     @classmethod
