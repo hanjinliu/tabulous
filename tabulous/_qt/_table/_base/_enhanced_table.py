@@ -281,7 +281,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._update_all()
         return None
 
-    def _edit_current(self) -> None:
+    def _edit_current(self) -> QCellLiteralEdit | None:
         """Enter edit mode for current cell."""
         index = self.model().index(*self._selection_model.current_index)
         self.edit(index)
@@ -289,7 +289,9 @@ class _QTableViewEnhanced(QtW.QTableView):
             if isinstance(editor, QCellLiteralEdit):
                 editor = cast(QCellLiteralEdit, editor)
                 editor._on_text_changed(editor.text())
-        return None
+                editor._self_focused = True
+            editor.setFocus()
+        return editor
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         """Register clicked position"""
@@ -393,13 +395,7 @@ class _QTableViewEnhanced(QtW.QTableView):
                 focused_widget = parent.editVerticalHeader(sel_mod.current_index.row)
 
             else:
-                self._edit_current()
-                if wdt := self._focused_widget:
-                    if isinstance(wdt, QCellLiteralEdit):
-                        wdt = cast(QCellLiteralEdit, wdt)
-                        wdt._self_focused = True
-                    wdt.setFocus()
-                focused_widget = wdt
+                focused_widget = self._edit_current()
 
             if isinstance(focused_widget, QtW.QLineEdit):
                 focused_widget = cast(QtW.QLineEdit, focused_widget)
@@ -419,11 +415,7 @@ class _QTableViewEnhanced(QtW.QTableView):
                 parent.editVerticalHeader(sel_mod.current_index.row)
             else:
                 self._edit_current()
-                if wdt := self._focused_widget:
-                    if isinstance(wdt, QCellLiteralEdit):
-                        wdt = cast(QCellLiteralEdit, wdt)
-                        wdt._self_focused = True
-                    wdt.setFocus()
+
             return None
 
         elif keys == "F3":

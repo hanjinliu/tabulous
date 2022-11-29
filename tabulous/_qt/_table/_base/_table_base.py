@@ -12,7 +12,11 @@ import pandas as pd
 from collections_undo import fmt, arguments
 
 from ._item_model import AbstractDataFrameModel
-from ._line_edit import QHorizontalHeaderLineEdit, QVerticalHeaderLineEdit
+from ._line_edit import (
+    QHorizontalHeaderLineEdit,
+    QVerticalHeaderLineEdit,
+    QCellLiteralEdit,
+)
 from tabulous._qt._table._dtype import isna
 from tabulous._qt._undo import QtUndoManager, fmt_slice
 from tabulous._qt._svg import QColoredSVGIcon
@@ -1290,6 +1294,21 @@ class QMutableTable(QBaseTable):
         Also, if data is filtrated, pasted data also follows the filtration.
         """
         df = self.readClipBoard(sep=sep)
+        if df.shape == (1, 1) and QCellLiteralEdit._is_eval_like(df.iat[0, 0]):
+            sels = self.selections()
+            if len(sels) != 1:
+                raise SelectionRangeError(
+                    "Multiple ranges are selected. Failed to paste."
+                )
+            sel = sels[0]
+            rsel, csel = sel
+            if None in (rsel.start, rsel.stop, csel.start, csel.stop):
+                raise SelectionRangeError("Selection is not valid. Failed to paste.")
+            if rsel.stop - rsel.start == 1 and csel.stop - csel.start == 1:
+                # single cell selection
+                editor = self._qtable_view._edit_current()
+                editor.setText(df.iat[0, 0])
+
         return self._paste_data(df)
 
     def _paste_numpy_str(self):
