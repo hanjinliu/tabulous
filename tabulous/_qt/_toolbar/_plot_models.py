@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterator, TYPE_CHECKING, NamedTuple
+from typing import Iterator, TYPE_CHECKING, NamedTuple, Generic, TypeVar
 import weakref
 import logging
 from dataclasses import dataclass
@@ -13,7 +13,9 @@ from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import Axes
 
 if TYPE_CHECKING:
+    from matplotlib.artist import Artist
     from matplotlib.collections import PathCollection
+    from matplotlib.lines import Line2D
     from tabulous._qt._plot import QtMplPlotCanvas
 
 logger = logging.getLogger(__name__)
@@ -34,25 +36,30 @@ class PlotRef(NamedTuple):
         return _widget, _artists
 
 
-@dataclass
-class ScatterModel:
+_T = TypeVar("_T", bound="Artist")
+
+
+class XYDataModel(Generic[_T]):
     ax: Axes
     x_selection: SelectionOperator | None
     y_selection: SelectionOperator
     table: TableBase
-    label_selection: SelectionOperator | None = None
-    alpha: float = 1.0
-    ref: bool = False
+
+    label_selection = None  # default
+    ref = False
+
+    def update_ax(self, *args, **kwargs) -> _T:
+        raise NotImplementedError()
+
+    def update_artist(self, artist: _T, x: pd.Series, y: pd.Series):
+        raise NotImplementedError()
 
     def add_data(self):
         _mpl_widget = weakref.ref(self.table.plt.gcw())
-        _artist_refs: list[weakref.ReferenceType[PathCollection]] = []
+        _artist_refs: list[weakref.ReferenceType[_T]] = []
         for x, y in self._iter_data():
             label_name = y.name
-
-            artist = self.ax.scatter(
-                x, y, alpha=self.alpha, label=label_name, picker=True
-            )
+            artist = self.update_ax(x, y, label=label_name)
             if not self.ref:
                 # if plot does not refer the table data, there's nothing to be done
                 return
@@ -77,16 +84,14 @@ class ScatterModel:
         self.table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
         return None
 
-    def update_data(
-        self, artists: list[PathCollection], mpl_widget: QtMplPlotCanvas
-    ) -> bool:
+    def update_data(self, artists: list[_T], mpl_widget: QtMplPlotCanvas) -> bool:
         """
         Update the data of the artist.
         Return True if the data is successfully updated.
         """
         try:
             for i, (x, y) in enumerate(self._iter_data()):
-                artists[i].set_offsets(np.stack([x, y], axis=1))
+                self.update_artist(artists[i], x, y)
             mpl_widget.draw()
         except RuntimeError as e:
             if str(e).startswith("wrapped C/C++ object of"):
@@ -132,6 +137,39 @@ class ScatterModel:
                 xdata_subset = xdata[spec]
                 for _, ydata in ydata_all[spec].items():
                     yield xdata_subset, ydata
+
+
+@dataclass
+class PlotModel(XYDataModel["Line2D"]):
+    ax: Axes
+    x_selection: SelectionOperator | None
+    y_selection: SelectionOperator
+    table: TableBase
+    alpha: float = 1.0
+    ref: bool = False
+
+    def update_ax(self, x, y, label=None):
+        return self.ax.plot(x, y, alpha=self.alpha, label=label, picker=True)[0]
+
+    def update_artist(self, artist: Line2D, x: pd.Series, y: pd.Series):
+        return artist.set_data(x, y)
+
+
+@dataclass
+class ScatterModel(XYDataModel["PathCollection"]):
+    ax: Axes
+    x_selection: SelectionOperator | None
+    y_selection: SelectionOperator
+    table: TableBase
+    label_selection: SelectionOperator | None = None
+    alpha: float = 1.0
+    ref: bool = False
+
+    def update_ax(self, x, y, label=None):
+        return self.ax.scatter(x, y, alpha=self.alpha, label=label, picker=True)
+
+    def update_artist(self, artist: PathCollection, x: pd.Series, y: pd.Series):
+        return artist.set_offsets(np.stack([x, y], axis=1))
 
 
 def get_column(selection: SelectionOperator, df: pd.DataFrame) -> pd.Series:

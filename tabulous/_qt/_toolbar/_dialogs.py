@@ -1,7 +1,6 @@
 from functools import partial
-from typing import List, cast, Union
+from typing import List, Union
 from typing_extensions import Annotated
-import weakref
 import logging
 import numpy as np
 import pandas as pd
@@ -12,7 +11,7 @@ from tabulous.types import TableData
 from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
 
-from ._plot_models import ScatterModel
+from ._plot_models import PlotModel, ScatterModel
 
 
 logger = logging.getLogger(__name__)
@@ -56,47 +55,14 @@ def plot(
     ax: Axes,
     x: SelectionOperator,
     y: SelectionOperator,
-    table,
+    table: TableBase,
     alpha: float = 1.0,
     ref: bool = False,
 ):
-    table = cast(TableBase, table)
-    data = table.data
-    xdata, ydata_all, reactive_ranges = _normalize_2d_plot(data, x, y)
-
-    for y_, ydata in ydata_all.items():
-        (artist,) = ax.plot(xdata, ydata, alpha=alpha, label=y_, picker=True)
-        if not ref:
-            continue
-        _ref = weakref.ref(artist)
-        _mpl_widget = weakref.ref(table.plt.gcw())
-
-        logger.debug(f"Connecting plt.plot update callback at {y_!r}")
-
-        def _on_data_updated(info):
-            _artist = _ref()
-            _plt = _mpl_widget()
-            if _artist is None:
-                table.events.data.disconnect(_on_data_updated)
-                logger.debug(f"Disconnecting plt.plot update callback at {y_!r}")
-                return
-            try:
-                _ydata = table.data[y_]
-                if x is None:
-                    _artist.set_ydata(_ydata)
-                else:
-                    _xdata = table.data[xdata.name]
-                    _artist.set_data(_xdata, _ydata)
-                _plt.draw()
-            except RuntimeError as e:
-                if str(e).startswith("wrapped C/C++ object of"):
-                    table.events.data.disconnect(_on_data_updated)
-                    logger.debug(f"Disconnecting plt.plot update callback at {y_!r}")
-
-        table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
-
+    model = PlotModel(ax, x, y, table=table, alpha=alpha, ref=ref)
+    model.add_data()
     table.plt.draw()
-    return artist
+    return True
 
 
 @dialog_factory_mpl
@@ -105,12 +71,10 @@ def scatter(
     x: SelectionOperator,
     y: SelectionOperator,
     label: SelectionOperator,
-    table,
+    table: TableBase,
     alpha: float = 1.0,
     ref: bool = False,
 ):
-    table = cast(TableBase, table)
-
     model = ScatterModel(
         ax, x, y, table=table, label_selection=label, alpha=alpha, ref=ref
     )
@@ -127,10 +91,9 @@ def errorbar(
     xerr: SelectionOperator,
     yerr: SelectionOperator,
     label: SelectionOperator,
-    table,
+    table: TableBase,
     alpha: float = 1.0,
 ):
-    table = cast(TableBase, table)
     data = table.data
     ydata = _operate_column(y, data)
 
@@ -168,13 +131,12 @@ def errorbar(
 def hist(
     ax: Axes,
     y: SelectionOperator,
-    table,
+    table: TableBase,
     bins: int = 10,
     alpha: float = 1.0,
     density: bool = False,
     histtype: str = "bar",
 ):
-    table = cast(TableBase, table)
     data = table.data
 
     if y is None:
@@ -202,7 +164,7 @@ def swarmplot(
     ax: Axes,
     x: str,
     y: str,
-    table,
+    table: TableBase,
     csel,
     hue: str = None,
     dodge: bool = False,
@@ -210,7 +172,6 @@ def swarmplot(
 ):
     import seaborn as sns
 
-    table = cast(TableBase, table)
     data = table.data[csel]
     sns.swarmplot(
         x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax, picker=True
@@ -224,7 +185,7 @@ def barplot(
     ax: Axes,
     x: str,
     y: str,
-    table,
+    table: TableBase,
     csel,
     hue: str = None,
     dodge: bool = False,
@@ -232,7 +193,6 @@ def barplot(
 ):
     import seaborn as sns
 
-    table = cast(TableBase, table)
     data = table.data[csel]
     sns.barplot(
         x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax, picker=True
@@ -247,14 +207,13 @@ def boxplot(
     ax: Axes,
     x: str,
     y: str,
-    table,
+    table: TableBase,
     csel,
     hue: str = None,
     dodge: bool = False,
 ):
     import seaborn as sns
 
-    table = cast(TableBase, table)
     data = table.data[csel]
     sns.boxplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax)
     table.plt.draw()
@@ -266,14 +225,13 @@ def boxenplot(
     ax: Axes,
     x: str,
     y: str,
-    table,
+    table: TableBase,
     csel,
     hue: str = None,
     dodge: bool = False,
 ):
     import seaborn as sns
 
-    table = cast(TableBase, table)
     data = table.data[csel]
     sns.boxenplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax, picker=True)
     table.plt.draw()

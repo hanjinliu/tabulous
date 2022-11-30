@@ -14,7 +14,13 @@ from magicgui.widgets import (
 )
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
-from tabulous.widgets import TableViewer, Table, SpreadSheet, TableViewerWidget
+from tabulous.widgets import (
+    TableViewer,
+    TableBase,
+    Table,
+    SpreadSheet,
+    TableViewerWidget,
+)
 from tabulous.types import (
     TableColumn,
     TableData,
@@ -148,12 +154,28 @@ def find_current_table(widget: Widget | QtW.QWidget) -> TableBase | None:
     return table
 
 
+def get_any_tables(widget: Widget) -> list[tuple[str, Any]]:
+    """Get the list of available tables and the names."""
+    v = find_table_viewer_ancestor(widget)
+    if v is None:
+        return []
+    return [(t.name, t) for t in v.tables]
+
+
 def get_tables(widget: Widget) -> list[tuple[str, Any]]:
     """Get the list of available tables and the names."""
     v = find_table_viewer_ancestor(widget)
     if v is None:
         return []
-    return v.tables
+    return [(t.name, t) for t in v.tables if isinstance(t, Table)]
+
+
+def get_spreasheets(widget: Widget) -> list[tuple[str, Any]]:
+    """Get the list of available table data and the names."""
+    v = find_table_viewer_ancestor(widget)
+    if v is None:
+        return []
+    return [(t.name, t) for t in v.tables if isinstance(t, SpreadSheet)]
 
 
 def get_table_data(widget: Widget) -> list[tuple[str, Any]]:
@@ -219,8 +241,9 @@ def add_table_data_tuple_to_viewer(
 register_type(
     TableViewer, return_callback=open_viewer, choices=find_table_viewer_ancestor
 )
+register_type(TableBase, return_callback=add_table_to_viewer, choices=get_any_tables)
 register_type(Table, return_callback=add_table_to_viewer, choices=get_tables)
-register_type(SpreadSheet, return_callback=add_table_to_viewer, choices=get_tables)
+register_type(SpreadSheet, return_callback=add_table_to_viewer, choices=get_spreasheets)
 register_type(
     TableData,
     return_callback=add_table_data_to_viewer,
