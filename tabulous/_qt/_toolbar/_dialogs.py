@@ -1,4 +1,5 @@
-from typing import List, cast
+from functools import partial
+from typing import List, cast, Union
 from typing_extensions import Annotated
 import weakref
 import logging
@@ -10,6 +11,8 @@ from tabulous.widgets import TableBase
 from tabulous.types import TableData
 from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
+
+from ._plot_models import ScatterModel
 
 
 logger = logging.getLogger(__name__)
@@ -101,42 +104,17 @@ def scatter(
     ax: Axes,
     x: SelectionOperator,
     y: SelectionOperator,
+    label: SelectionOperator,
     table,
     alpha: float = 1.0,
     ref: bool = False,
 ):
     table = cast(TableBase, table)
-    data = table.data
 
-    xdata, ydata_all, reactive_ranges = _normalize_2d_plot(data, x, y)
-
-    for y_, ydata in ydata_all.items():
-        artist = ax.scatter(xdata, ydata, alpha=alpha, label=y_, picker=True)
-        if not ref:
-            continue
-        _ref = weakref.ref(artist)
-        _mpl_widget = weakref.ref(table.plt.gcw())
-
-        def _on_data_updated():
-            _artist = _ref()
-            _plt = _mpl_widget()
-            if _artist is None:
-                table.events.data.disconnect(_on_data_updated)
-                return
-            try:
-                _ydata = table.data[y_]
-                if x is None:
-                    _xdata = np.arange(len(_ydata))
-                else:
-                    _xdata = table.data[xdata.name]
-                _artist.set_offsets(np.stack([_xdata, _ydata], axis=1))
-                _plt.draw()
-            except RuntimeError as e:
-                if str(e).startswith("wrapped C/C++ object of"):
-                    table.events.data.disconnect(_on_data_updated)
-
-        table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
-
+    model = ScatterModel(
+        ax, x, y, table=table, label_selection=label, alpha=alpha, ref=ref
+    )
+    model.add_data()
     table.plt.draw()
     return True
 
@@ -146,28 +124,41 @@ def errorbar(
     ax: Axes,
     x: SelectionOperator,
     y: SelectionOperator,
+    xerr: SelectionOperator,
     yerr: SelectionOperator,
+    label: SelectionOperator,
     table,
     alpha: float = 1.0,
 ):
     table = cast(TableBase, table)
     data = table.data
-    ydata = y.operate(data)
-    yerrdata = yerr.operate(data)
-    if x is None:
-        xdata = np.arange(len(ydata))
-    else:
-        xdata = x.operate(data)
+    ydata = _operate_column(y, data)
 
-    ax.errorbar(
-        xdata,
-        y=ydata,
-        yerr=yerrdata,
-        alpha=alpha,
-        fmt="o",
-        label=y,
-        picker=True,
-    )
+    xerrdata = _operate_column(xerr, data, default=None)
+    yerrdata = _operate_column(yerr, data, default=None)
+    if xerrdata is None and yerrdata is None:
+        raise ValueError("Either x-error or y-error must be set.")
+
+    labeldata = _operate_column(label, data, default=None)
+    if x is None:
+        xdata = pd.Series(np.arange(len(ydata)), name="X")
+    else:
+        xdata = _operate_column(x, data)
+
+    _errorbar = partial(ax.errorbar, alpha=alpha, fmt="o", picker=True)
+    if labeldata is None:
+        _errorbar(xdata, ydata, xerr=xerrdata, yerr=yerrdata, label=y)
+    else:
+        unique = labeldata.unique()
+        for label_ in unique:
+            spec = labeldata == label_
+            _errorbar(
+                xdata[spec],
+                ydata[spec],
+                xerr=xerrdata[spec],
+                yerr=yerrdata[spec],
+                label=label_,
+            )
 
     table.plt.draw()
     return True
@@ -304,7 +295,7 @@ def _normalize_2d_plot(data: pd.DataFrame, x: SelectionOperator, y: SelectionOpe
     reactive_ranges = [yslice]
 
     if x is None:
-        xdata = np.arange(len(ydata_all))
+        xdata = pd.Series(np.arange(len(ydata_all)), name="X")
     else:
         xslice = x.as_iloc_slices(data)
         reactive_ranges.append(xslice)
@@ -313,3 +304,23 @@ def _normalize_2d_plot(data: pd.DataFrame, x: SelectionOperator, y: SelectionOpe
         xdata = data.iloc[xslice[0], xslice[1].start]
 
     return xdata, ydata_all, reactive_ranges
+
+
+__void = object()
+
+
+def _operate_column(
+    op: Union[SelectionOperator, None],
+    data: pd.DataFrame,
+    default=__void,
+) -> Union[pd.Series, None]:
+    if op is None:
+        if default is __void:
+            raise ValueError("Wrong selection.")
+        return default
+    ds = op.operate(data)
+    if isinstance(ds, pd.DataFrame):
+        if len(ds.columns) != 1:
+            raise ValueError("Operation must return a single column.")
+        ds = ds.iloc[:, 0]
+    return ds

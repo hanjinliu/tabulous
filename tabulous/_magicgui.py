@@ -437,7 +437,7 @@ class SelectionWidget(Container):
         self,
         value: Any = None,
         nullable=False,
-        format: str = None,
+        format: str = "iloc",
         allow_out_of_bounds: bool = False,
         **kwargs,
     ):
@@ -452,10 +452,6 @@ class SelectionWidget(Container):
         self._line.changed.connect(self.changed.emit(self._line.value))
         self._btn.changed.connect(lambda: self._read_selection())
 
-        if format is None:
-            from tabulous._utils import get_config
-
-            format = get_config().cell.slicing
         self._format = format
         self._allow_out_of_bounds = allow_out_of_bounds
 
