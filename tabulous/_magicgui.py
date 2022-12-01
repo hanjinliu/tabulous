@@ -15,7 +15,7 @@ from magicgui.widgets import (
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
 from tabulous.widgets import (
-    TableViewer,
+    TableViewerBase,
     TableBase,
     Table,
     SpreadSheet,
@@ -124,8 +124,8 @@ class MagicTable(Widget, Table):
 _DEFAULT_NAME = "Result"
 
 
-def find_table_viewer_ancestor(widget: Widget | QtW.QWidget) -> TableViewer | None:
-    from ._qt._mainwindow import _QtMainWidgetBase
+def find_table_viewer_ancestor(widget: Widget | QtW.QWidget) -> TableViewerBase | None:
+    from tabulous._qt._mainwindow import _QtMainWidgetBase
 
     if isinstance(widget, Widget):
         qwidget = widget.native
@@ -186,7 +186,7 @@ def get_table_data(widget: Widget) -> list[tuple[str, Any]]:
     return [(table.name, table.data) for table in v.tables]
 
 
-def open_viewer(gui, result: TableViewer, return_type: type):
+def open_viewer(gui, result: TableViewerBase, return_type: type):
     return result.show()
 
 
@@ -239,7 +239,9 @@ def add_table_data_tuple_to_viewer(
 
 
 register_type(
-    TableViewer, return_callback=open_viewer, choices=find_table_viewer_ancestor
+    TableViewerBase,
+    return_callback=open_viewer,
+    choices=find_table_viewer_ancestor,
 )
 register_type(TableBase, return_callback=add_table_to_viewer, choices=get_any_tables)
 register_type(Table, return_callback=add_table_to_viewer, choices=get_tables)

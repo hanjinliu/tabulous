@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 
 # NOTE: Axes should be imported here!
-from tabulous.widgets import TableBase
+from tabulous.widgets import TableBase, TableViewerBase
 from tabulous.types import TableData
 from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
 
-from ._plot_models import PlotModel, ScatterModel
+from ._plot_models import PlotModel, ScatterModel, HistModel
 
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,10 @@ def groupby(df: TableData, by: List[str]):
 
 @dialog_factory
 def concat(
-    viewer, names: List[str], axis: int, ignore_index: bool = False
+    viewer: TableViewerBase,
+    names: List[str],
+    axis: int,
+    ignore_index: bool = False,
 ) -> TableData:
     dfs = [viewer.tables[name].data for name in names]
     return pd.concat(dfs, axis=axis, ignore_index=ignore_index)
@@ -131,29 +134,31 @@ def errorbar(
 def hist(
     ax: Axes,
     y: SelectionOperator,
+    label: SelectionOperator,
     table: TableBase,
     bins: int = 10,
+    range: tuple[str, str] = ("", ""),
     alpha: float = 1.0,
     density: bool = False,
     histtype: str = "bar",
 ):
-    data = table.data
-
-    if y is None:
-        raise ValueError("Y must be set.")
-
-    ydata_all = data.iloc[y.as_iloc_slices(data)]
-
-    for _y, ydata in ydata_all.items():
-        ax.hist(
-            ydata,
-            bins=bins,
-            alpha=alpha,
-            density=density,
-            label=_y,
-            histtype=histtype,
-            picker=True,
-        )
+    r0, r1 = range
+    if r0 or r1:
+        _range = float(r0), float(r1)
+    else:
+        _range = None
+    model = HistModel(
+        ax,
+        y,
+        bins=bins,
+        table=table,
+        range=_range,
+        label_selection=label,
+        alpha=alpha,
+        density=density,
+        histtype=histtype,
+    )
+    model.add_data()
     ax.axhline(0, color="gray", lw=0.5, alpha=0.5, zorder=-1)
     table.plt.draw()
     return True
@@ -241,27 +246,6 @@ def boxenplot(
 @dialog_factory
 def choose_one(choice: str):
     return choice
-
-
-def _normalize_2d_plot(data: pd.DataFrame, x: SelectionOperator, y: SelectionOperator):
-    if y is None:
-        raise ValueError("Y must be set.")
-
-    yslice = y.as_iloc_slices(data)
-    ydata_all = data.iloc[yslice]
-
-    reactive_ranges = [yslice]
-
-    if x is None:
-        xdata = pd.Series(np.arange(len(ydata_all)), name="X")
-    else:
-        xslice = x.as_iloc_slices(data)
-        reactive_ranges.append(xslice)
-        if xslice[1].start != xslice[1].stop - 1:
-            raise ValueError("X must be a single column.")
-        xdata = data.iloc[xslice[0], xslice[1].start]
-
-    return xdata, ydata_all, reactive_ranges
 
 
 __void = object()
