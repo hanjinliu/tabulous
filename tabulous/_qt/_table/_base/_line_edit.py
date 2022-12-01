@@ -533,16 +533,16 @@ class QCellLiteralEdit(_QTableLineEdit):
         cursor_pos = self.cursorPosition()
 
         # prepare text
-        if len(qtable._selection_model.ranges) != 1:
-            # if multiple cells are selected, don't update
+        if len(qtable._selection_model.ranges) != 1 or cursor_pos == 0:
+            # If multiple cells are selected, don't update because selection range
+            # is not well-defined. If cursor position is at the beginning, don't
+            # update because it is before "=".
             return None
 
         rsl, csl = qtable._selection_model.ranges[-1]
         _df = qtable.model().df
         column_selected = len(qtable._selection_model._col_selection_indices) > 0
-        selop = construct(
-            rsl, csl, _df, method=_CONFIG.cell.slicing, column_selected=column_selected
-        )
+        selop = construct(rsl, csl, _df, method="iloc", column_selected=column_selected)
 
         if selop is None:  # out of bound
             return None

@@ -602,7 +602,7 @@ class Table(_DataFrameTableLayer):
     _qwidget: QTableLayer
 
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
-        from .._qt import QTableLayer
+        from tabulous._qt import QTableLayer
 
         return QTableLayer(data=data)
 
@@ -624,7 +624,7 @@ class SpreadSheet(_DataFrameTableLayer):
     dtypes = ColumnDtypeInterface()
 
     def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
-        from .._qt import QSpreadSheet
+        from tabulous._qt import QSpreadSheet
 
         return QSpreadSheet(data=data)
 
@@ -649,7 +649,7 @@ class GroupBy(TableBase):
     _qwidget: QTableGroupBy
 
     def _create_backend(self, data: pd.DataFrame) -> QTableGroupBy:
-        from .._qt import QTableGroupBy
+        from tabulous._qt import QTableGroupBy
 
         return QTableGroupBy(data=data)
 
@@ -702,7 +702,7 @@ class TableDisplay(TableBase):
     _qwidget: QTableDisplay
 
     def _create_backend(self, data: Callable[[], Any]) -> QTableDisplay:
-        from .._qt import QTableDisplay
+        from tabulous._qt import QTableDisplay
 
         return QTableDisplay(loader=data)
 
@@ -734,6 +734,7 @@ class TableDisplay(TableBase):
 
     @property
     def running(self) -> bool:
+        """True if the loading task is running"""
         return self._qwidget.running()
 
     @running.setter

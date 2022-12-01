@@ -102,8 +102,8 @@ class ConsoleNamespace:
 class Table:
     """Table settings."""
 
-    max_row_count: int = 1000000
-    max_column_count: int = 80000
+    max_row_count: int = 400000
+    max_column_count: int = 40000
     font: str = "Arial"
     font_size: int = 10
     row_size: int = 28
@@ -116,7 +116,6 @@ class Cell:
 
     eval_prefix: str = "="
     ref_prefix: str = "&="
-    slicing: str = "loc"
 
 
 @dataclass
@@ -152,10 +151,10 @@ class TabulousConfig:
         cell = tm.get("cell", {})
         window = tm.get("window", {})
         return cls(
-            ConsoleNamespace(**console_namespace),
-            Table(**table),
-            Cell(**cell),
-            Window(**window),
+            ConsoleNamespace(**_as_fields(console_namespace, ConsoleNamespace)),
+            Table(**_as_fields(table, Table)),
+            Cell(**_as_fields(cell, Cell)),
+            Window(**_as_fields(window, Window)),
         )
 
     def as_toml(self):
@@ -186,3 +185,9 @@ def get_config(reload: bool = False) -> TabulousConfig:
     if CONFIG is None or reload:
         CONFIG = TabulousConfig.from_toml()
     return CONFIG
+
+
+def _as_fields(kwargs: dict[str, Any], dcls: type) -> dict[str, Any]:
+    """Remove dict keys that does not belong to the dataclass fields."""
+    fields = set(dcls.__annotations__.keys())
+    return {k: v for k, v in kwargs.items() if k in fields}
