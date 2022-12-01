@@ -118,11 +118,19 @@ def errorbar(
         unique = labeldata.unique()
         for label_ in unique:
             spec = labeldata == label_
+            if xerrdata is not None:
+                xerr_ = xerrdata[spec]
+            else:
+                xerr_ = None
+            if yerrdata is not None:
+                yerr_ = yerrdata[spec]
+            else:
+                yerr_ = None
             _errorbar(
                 xdata[spec],
                 ydata[spec],
-                xerr=xerrdata[spec],
-                yerr=yerrdata[spec],
+                xerr=xerr_,
+                yerr=yerr_,
                 label=label_,
             )
 
