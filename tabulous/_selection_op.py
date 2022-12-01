@@ -32,7 +32,7 @@ class SelectionOperator:
         cname = type(self).__name__
         return f"{cname}({self.fmt()})"
 
-    def operate(self, df: pd.DataFrame) -> pd.DataFrame:
+    def operate(self, df: pd.DataFrame) -> pd.DataFrame | pd.Series:
         """Slice dataframe according to selection literal."""
         raise NotImplementedError()
 
@@ -241,7 +241,7 @@ class ILocSelOp(SelectionOperator):
             csel = csel.start
         return f"{df_expr}.iloc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
 
-    def operate(self, df: pd.DataFrame) -> pd.DataFrame:
+    def operate(self, df: pd.DataFrame) -> pd.DataFrame | pd.Series:
         rsel, csel = self.args
         return df.iloc[rsel, csel]
 

@@ -14,7 +14,13 @@ from magicgui.widgets import (
 )
 from magicgui.backends._qtpy.widgets import QBaseWidget
 
-from tabulous.widgets import TableViewer, Table, SpreadSheet, TableViewerWidget
+from tabulous.widgets import (
+    TableViewerBase,
+    TableBase,
+    Table,
+    SpreadSheet,
+    TableViewerWidget,
+)
 from tabulous.types import (
     TableColumn,
     TableData,
@@ -118,8 +124,8 @@ class MagicTable(Widget, Table):
 _DEFAULT_NAME = "Result"
 
 
-def find_table_viewer_ancestor(widget: Widget | QtW.QWidget) -> TableViewer | None:
-    from ._qt._mainwindow import _QtMainWidgetBase
+def find_table_viewer_ancestor(widget: Widget | QtW.QWidget) -> TableViewerBase | None:
+    from tabulous._qt._mainwindow import _QtMainWidgetBase
 
     if isinstance(widget, Widget):
         qwidget = widget.native
@@ -148,12 +154,28 @@ def find_current_table(widget: Widget | QtW.QWidget) -> TableBase | None:
     return table
 
 
+def get_any_tables(widget: Widget) -> list[tuple[str, Any]]:
+    """Get the list of available tables and the names."""
+    v = find_table_viewer_ancestor(widget)
+    if v is None:
+        return []
+    return [(t.name, t) for t in v.tables]
+
+
 def get_tables(widget: Widget) -> list[tuple[str, Any]]:
     """Get the list of available tables and the names."""
     v = find_table_viewer_ancestor(widget)
     if v is None:
         return []
-    return v.tables
+    return [(t.name, t) for t in v.tables if isinstance(t, Table)]
+
+
+def get_spreasheets(widget: Widget) -> list[tuple[str, Any]]:
+    """Get the list of available table data and the names."""
+    v = find_table_viewer_ancestor(widget)
+    if v is None:
+        return []
+    return [(t.name, t) for t in v.tables if isinstance(t, SpreadSheet)]
 
 
 def get_table_data(widget: Widget) -> list[tuple[str, Any]]:
@@ -164,7 +186,7 @@ def get_table_data(widget: Widget) -> list[tuple[str, Any]]:
     return [(table.name, table.data) for table in v.tables]
 
 
-def open_viewer(gui, result: TableViewer, return_type: type):
+def open_viewer(gui, result: TableViewerBase, return_type: type):
     return result.show()
 
 
@@ -217,10 +239,13 @@ def add_table_data_tuple_to_viewer(
 
 
 register_type(
-    TableViewer, return_callback=open_viewer, choices=find_table_viewer_ancestor
+    TableViewerBase,
+    return_callback=open_viewer,
+    choices=find_table_viewer_ancestor,
 )
+register_type(TableBase, return_callback=add_table_to_viewer, choices=get_any_tables)
 register_type(Table, return_callback=add_table_to_viewer, choices=get_tables)
-register_type(SpreadSheet, return_callback=add_table_to_viewer, choices=get_tables)
+register_type(SpreadSheet, return_callback=add_table_to_viewer, choices=get_spreasheets)
 register_type(
     TableData,
     return_callback=add_table_data_to_viewer,
@@ -437,7 +462,7 @@ class SelectionWidget(Container):
         self,
         value: Any = None,
         nullable=False,
-        format: str = None,
+        format: str = "iloc",
         allow_out_of_bounds: bool = False,
         **kwargs,
     ):
@@ -452,10 +477,6 @@ class SelectionWidget(Container):
         self._line.changed.connect(self.changed.emit(self._line.value))
         self._btn.changed.connect(lambda: self._read_selection())
 
-        if format is None:
-            from tabulous._utils import get_config
-
-            format = get_config().cell.slicing
         self._format = format
         self._allow_out_of_bounds = allow_out_of_bounds
 

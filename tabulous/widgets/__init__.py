@@ -1,2 +1,2 @@
 from ._table import TableBase, Table, SpreadSheet, GroupBy, TableDisplay
-from ._mainwindow import TableViewer, TableViewerWidget
+from ._mainwindow import TableViewer, TableViewerWidget, TableViewerBase

@@ -1,15 +1,17 @@
-from typing import List, cast
+from functools import partial
+from typing import List, Union
 from typing_extensions import Annotated
-import weakref
 import logging
 import numpy as np
 import pandas as pd
 
 # NOTE: Axes should be imported here!
-from tabulous.widgets import TableBase
+from tabulous.widgets import TableBase, TableViewerBase
 from tabulous.types import TableData
 from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
+
+from ._plot_models import PlotModel, ScatterModel, HistModel
 
 
 logger = logging.getLogger(__name__)
@@ -27,7 +29,10 @@ def groupby(df: TableData, by: List[str]):
 
 @dialog_factory
 def concat(
-    viewer, names: List[str], axis: int, ignore_index: bool = False
+    viewer: TableViewerBase,
+    names: List[str],
+    axis: int,
+    ignore_index: bool = False,
 ) -> TableData:
     dfs = [viewer.tables[name].data for name in names]
     return pd.concat(dfs, axis=axis, ignore_index=ignore_index)
@@ -53,47 +58,14 @@ def plot(
     ax: Axes,
     x: SelectionOperator,
     y: SelectionOperator,
-    table,
+    table: TableBase,
     alpha: float = 1.0,
     ref: bool = False,
 ):
-    table = cast(TableBase, table)
-    data = table.data
-    xdata, ydata_all, reactive_ranges = _normalize_2d_plot(data, x, y)
-
-    for y_, ydata in ydata_all.items():
-        (artist,) = ax.plot(xdata, ydata, alpha=alpha, label=y_, picker=True)
-        if not ref:
-            continue
-        _ref = weakref.ref(artist)
-        _mpl_widget = weakref.ref(table.plt.gcw())
-
-        logger.debug(f"Connecting plt.plot update callback at {y_!r}")
-
-        def _on_data_updated(info):
-            _artist = _ref()
-            _plt = _mpl_widget()
-            if _artist is None:
-                table.events.data.disconnect(_on_data_updated)
-                logger.debug(f"Disconnecting plt.plot update callback at {y_!r}")
-                return
-            try:
-                _ydata = table.data[y_]
-                if x is None:
-                    _artist.set_ydata(_ydata)
-                else:
-                    _xdata = table.data[xdata.name]
-                    _artist.set_data(_xdata, _ydata)
-                _plt.draw()
-            except RuntimeError as e:
-                if str(e).startswith("wrapped C/C++ object of"):
-                    table.events.data.disconnect(_on_data_updated)
-                    logger.debug(f"Disconnecting plt.plot update callback at {y_!r}")
-
-        table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
-
+    model = PlotModel(ax, x, y, table=table, alpha=alpha, ref=ref)
+    model.add_data()
     table.plt.draw()
-    return artist
+    return True
 
 
 @dialog_factory_mpl
@@ -101,42 +73,15 @@ def scatter(
     ax: Axes,
     x: SelectionOperator,
     y: SelectionOperator,
-    table,
+    label: SelectionOperator,
+    table: TableBase,
     alpha: float = 1.0,
     ref: bool = False,
 ):
-    table = cast(TableBase, table)
-    data = table.data
-
-    xdata, ydata_all, reactive_ranges = _normalize_2d_plot(data, x, y)
-
-    for y_, ydata in ydata_all.items():
-        artist = ax.scatter(xdata, ydata, alpha=alpha, label=y_, picker=True)
-        if not ref:
-            continue
-        _ref = weakref.ref(artist)
-        _mpl_widget = weakref.ref(table.plt.gcw())
-
-        def _on_data_updated():
-            _artist = _ref()
-            _plt = _mpl_widget()
-            if _artist is None:
-                table.events.data.disconnect(_on_data_updated)
-                return
-            try:
-                _ydata = table.data[y_]
-                if x is None:
-                    _xdata = np.arange(len(_ydata))
-                else:
-                    _xdata = table.data[xdata.name]
-                _artist.set_offsets(np.stack([_xdata, _ydata], axis=1))
-                _plt.draw()
-            except RuntimeError as e:
-                if str(e).startswith("wrapped C/C++ object of"):
-                    table.events.data.disconnect(_on_data_updated)
-
-        table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
-
+    model = ScatterModel(
+        ax, x, y, table=table, label_selection=label, alpha=alpha, ref=ref
+    )
+    model.add_data()
     table.plt.draw()
     return True
 
@@ -146,28 +91,48 @@ def errorbar(
     ax: Axes,
     x: SelectionOperator,
     y: SelectionOperator,
+    xerr: SelectionOperator,
     yerr: SelectionOperator,
-    table,
+    label: SelectionOperator,
+    table: TableBase,
     alpha: float = 1.0,
 ):
-    table = cast(TableBase, table)
     data = table.data
-    ydata = y.operate(data)
-    yerrdata = yerr.operate(data)
-    if x is None:
-        xdata = np.arange(len(ydata))
-    else:
-        xdata = x.operate(data)
+    ydata = _operate_column(y, data)
 
-    ax.errorbar(
-        xdata,
-        y=ydata,
-        yerr=yerrdata,
-        alpha=alpha,
-        fmt="o",
-        label=y,
-        picker=True,
-    )
+    xerrdata = _operate_column(xerr, data, default=None)
+    yerrdata = _operate_column(yerr, data, default=None)
+    if xerrdata is None and yerrdata is None:
+        raise ValueError("Either x-error or y-error must be set.")
+
+    labeldata = _operate_column(label, data, default=None)
+    if x is None:
+        xdata = pd.Series(np.arange(len(ydata)), name="X")
+    else:
+        xdata = _operate_column(x, data)
+
+    _errorbar = partial(ax.errorbar, alpha=alpha, fmt="o", picker=True)
+    if labeldata is None:
+        _errorbar(xdata, ydata, xerr=xerrdata, yerr=yerrdata, label=y)
+    else:
+        unique = labeldata.unique()
+        for label_ in unique:
+            spec = labeldata == label_
+            if xerrdata is not None:
+                xerr_ = xerrdata[spec]
+            else:
+                xerr_ = None
+            if yerrdata is not None:
+                yerr_ = yerrdata[spec]
+            else:
+                yerr_ = None
+            _errorbar(
+                xdata[spec],
+                ydata[spec],
+                xerr=xerr_,
+                yerr=yerr_,
+                label=label_,
+            )
 
     table.plt.draw()
     return True
@@ -177,30 +142,31 @@ def errorbar(
 def hist(
     ax: Axes,
     y: SelectionOperator,
-    table,
+    label: SelectionOperator,
+    table: TableBase,
     bins: int = 10,
+    range: tuple[str, str] = ("", ""),
     alpha: float = 1.0,
     density: bool = False,
     histtype: str = "bar",
 ):
-    table = cast(TableBase, table)
-    data = table.data
-
-    if y is None:
-        raise ValueError("Y must be set.")
-
-    ydata_all = data.iloc[y.as_iloc_slices(data)]
-
-    for _y, ydata in ydata_all.items():
-        ax.hist(
-            ydata,
-            bins=bins,
-            alpha=alpha,
-            density=density,
-            label=_y,
-            histtype=histtype,
-            picker=True,
-        )
+    r0, r1 = range
+    if r0 or r1:
+        _range = float(r0), float(r1)
+    else:
+        _range = None
+    model = HistModel(
+        ax,
+        y,
+        bins=bins,
+        table=table,
+        range=_range,
+        label_selection=label,
+        alpha=alpha,
+        density=density,
+        histtype=histtype,
+    )
+    model.add_data()
     ax.axhline(0, color="gray", lw=0.5, alpha=0.5, zorder=-1)
     table.plt.draw()
     return True
@@ -211,7 +177,7 @@ def swarmplot(
     ax: Axes,
     x: str,
     y: str,
-    table,
+    table: TableBase,
     csel,
     hue: str = None,
     dodge: bool = False,
@@ -219,7 +185,6 @@ def swarmplot(
 ):
     import seaborn as sns
 
-    table = cast(TableBase, table)
     data = table.data[csel]
     sns.swarmplot(
         x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax, picker=True
@@ -233,7 +198,7 @@ def barplot(
     ax: Axes,
     x: str,
     y: str,
-    table,
+    table: TableBase,
     csel,
     hue: str = None,
     dodge: bool = False,
@@ -241,7 +206,6 @@ def barplot(
 ):
     import seaborn as sns
 
-    table = cast(TableBase, table)
     data = table.data[csel]
     sns.barplot(
         x=x, y=y, data=data, hue=hue, dodge=dodge, alpha=alpha, ax=ax, picker=True
@@ -256,14 +220,13 @@ def boxplot(
     ax: Axes,
     x: str,
     y: str,
-    table,
+    table: TableBase,
     csel,
     hue: str = None,
     dodge: bool = False,
 ):
     import seaborn as sns
 
-    table = cast(TableBase, table)
     data = table.data[csel]
     sns.boxplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax)
     table.plt.draw()
@@ -275,14 +238,13 @@ def boxenplot(
     ax: Axes,
     x: str,
     y: str,
-    table,
+    table: TableBase,
     csel,
     hue: str = None,
     dodge: bool = False,
 ):
     import seaborn as sns
 
-    table = cast(TableBase, table)
     data = table.data[csel]
     sns.boxenplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax, picker=True)
     table.plt.draw()
@@ -294,22 +256,21 @@ def choose_one(choice: str):
     return choice
 
 
-def _normalize_2d_plot(data: pd.DataFrame, x: SelectionOperator, y: SelectionOperator):
-    if y is None:
-        raise ValueError("Y must be set.")
+__void = object()
 
-    yslice = y.as_iloc_slices(data)
-    ydata_all = data.iloc[yslice]
 
-    reactive_ranges = [yslice]
-
-    if x is None:
-        xdata = np.arange(len(ydata_all))
-    else:
-        xslice = x.as_iloc_slices(data)
-        reactive_ranges.append(xslice)
-        if xslice[1].start != xslice[1].stop - 1:
-            raise ValueError("X must be a single column.")
-        xdata = data.iloc[xslice[0], xslice[1].start]
-
-    return xdata, ydata_all, reactive_ranges
+def _operate_column(
+    op: Union[SelectionOperator, None],
+    data: pd.DataFrame,
+    default=__void,
+) -> Union[pd.Series, None]:
+    if op is None:
+        if default is __void:
+            raise ValueError("Wrong selection.")
+        return default
+    ds = op.operate(data)
+    if isinstance(ds, pd.DataFrame):
+        if len(ds.columns) != 1:
+            raise ValueError("Operation must return a single column.")
+        ds = ds.iloc[:, 0]
+    return ds
