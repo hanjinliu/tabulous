@@ -293,7 +293,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         table = self.viewer.current_table
         if table is None:
             return
-        from ._random import RandomGeneratorDialog
+        from ._random_data import RandomGeneratorDialog
 
         dlg = RandomGeneratorDialog()
         dlg.native.setParent(self, dlg.native.windowFlags())

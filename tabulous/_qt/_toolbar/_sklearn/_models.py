@@ -1,17 +1,35 @@
 from functools import partial
-from typing import Union
+from typing import Union, Iterable
 from typing_extensions import Annotated, Literal
 from sklearn import cluster, svm, linear_model, decomposition
 from sklearn.mixture import GaussianMixture
 
 
 class ModelRegistry(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._hidden = {}
+
     def register(self, name: str):
-        def _wrapper(cls):
-            self[name] = cls
-            return cls
+        """Register a model class to the registry."""
+
+        def _wrapper(val):
+            self[name] = val
+            return val
 
         return _wrapper
+
+    def hide_keys(self, keys: Iterable[str]) -> None:
+        """Hide given keys from the registry."""
+        self._hidden = {key: self.pop(key) for key in keys}
+        return None
+
+    def show_keys(self, keys: Union[Iterable[str], None] = None) -> None:
+        """Show given keys from the registry."""
+        if keys is None:
+            keys = list(self._hidden.keys())
+        self.update({key: self._hidden.pop(key) for key in keys})
+        return None
 
 
 MODELS = ModelRegistry()
@@ -432,3 +450,26 @@ def pca(
         iterated_power=iterated_power,
         random_state=random_state,
     )
+
+
+@MODELS.register("FactICA")
+def fact_ica(
+    n_components: Annotated[int, {"min": 1, "max": 1000}] = 2,
+    algorithm: Literal["parallel", "deflation"] = "parallel",
+    whiten: bool = False,
+    fun: Literal["logcosh", "exp", "cube"] = "logcosh",
+    max_iter: Annotated[int, {"min": 1, "max": 1000}] = 200,
+    tol: str = "1e-4",
+):
+    return decomposition.FastICA(
+        n_components=n_components,
+        algorithm=algorithm,
+        whiten=whiten,
+        fun=fun,
+        max_iter=max_iter,
+        tol=float(tol),
+    )
+
+
+BASIC = {"k-means", "Gaussian mixture", "Ridge", "PCA"}
+ADVANCED = set(MODELS.keys()).difference(BASIC)

@@ -9,14 +9,14 @@ from magicgui.widgets import (
     Container,
     Dialog,
     PushButton,
+    RadioButton,
     ComboBox,
     Label,
-    Select,
     TextEdit,
 )
 
 from tabulous._magicgui import find_current_table, SelectionWidget
-from ._models import MODELS
+from ._models import MODELS, ADVANCED
 from tabulous._qt._qt_const import MonospaceFontFamily
 
 
@@ -76,16 +76,24 @@ class SkLearnModelEdit(Container):
     def __init__(self, **kwargs):
         self._text = Label(name="Model", value="")
         self._text.min_width = 200
-        self._btn = PushButton(name="Select model")
+        self._btn = PushButton(text="Select model")
+        self._check = RadioButton(
+            value=False, label="Advanced", tooltip="Check to show more models"
+        )
         self._model: SkLearnModelProtocol | None = None
 
         super().__init__(
-            widgets=[self._text, self._btn], labels=False, layout="horizontal", **kwargs
+            widgets=[self._text, self._btn, self._check],
+            labels=False,
+            layout="horizontal",
+            **kwargs,
         )
         # disconnect existing signales
         self._text.changed.disconnect()
         self._btn.changed.disconnect()
+        self._check.changed.disconnect()
         self._btn.changed.connect(self._on_clicked)
+        self._check.changed.connect(self._on_check_changed)
 
     @property
     def model(self) -> SkLearnModelProtocol | None:
@@ -118,6 +126,14 @@ class SkLearnModelEdit(Container):
             self._model = mgui()
             self._text.value = _model_choice.value
             self.changed.emit(self._model)
+        return None
+
+    def _on_check_changed(self, checked: bool):
+        if checked:
+            MODELS.show_keys()  # advanced mode
+        else:
+            MODELS.hide_keys(ADVANCED)  # basic mode
+        return None
 
 
 class SkLearnContainer(Container):
@@ -183,6 +199,7 @@ class SkLearnContainer(Container):
         )
         self.margins = (0, 0, 0, 0)
 
+        # connect signals
         self._model_widget.changed.connect(self._on_model_changed)
         self._fit_button.changed.connect(self._fit)
         self._predict_button.changed.connect(self._predict)
@@ -210,7 +227,7 @@ class SkLearnContainer(Container):
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         self._model_widget.model.fit(input.X, input.Y)
-        text = self._model_widget._text.value
+        text: str = self._model_widget._text.value
         if not text.endswith(" (fitted)"):
             self._model_widget._text.value = text + " (fitted)"
 
@@ -233,7 +250,7 @@ class SkLearnContainer(Container):
         table = find_current_table(self)
         input = self._data_widget.get_values(table.data)
         predicted = self._model_widget.model.fit_predict(input.X, input.Y)
-        text = self._model_widget._text.value
+        text: str = self._model_widget._text.value
         if not text.endswith(" (fitted)"):
             self._model_widget._text.value = text + " (fitted)"
         name = table.columns.coerce_name("predicted")
