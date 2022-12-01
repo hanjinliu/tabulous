@@ -9,7 +9,12 @@ from typing import (
     TypeVar,
 )
 from tabulous._selection_model import Index
-from tabulous._selection_op import iter_extract, SelectionOperator
+from tabulous._selection_op import (
+    iter_extract,
+    iter_extract_with_range,
+    SelectionOperator,
+    ILocSelOp,
+)
 
 if TYPE_CHECKING:
     import numpy as np
@@ -34,10 +39,10 @@ class LiteralCallable(Generic[_T]):
 
     def __init__(self, expr: str, func: Callable[[LiteralCallable], _T], pos: Index):
         self._expr = expr
+        self._selection_ops: list[ILocSelOp] = list(iter_extract(expr))
         self._func = func
         self._pos = pos
         self._unblocked = False
-        self._selection_ops = list(iter_extract(expr))
         self._last_destination: tuple[slice, slice] | None = None
 
     def __call__(self, unblock: bool = False) -> EvalResult[_T]:
@@ -102,12 +107,23 @@ class LiteralCallable(Generic[_T]):
         qtable_view = qtable._qtable_view
         qviewer = qtable_view.parentViewer()
 
+        # normalize expression to iloc-slicing.
+        df_ref = qtable.dataShown(parse=False)
+        current_end = 0
+        outputs: list[str] = []
+        for (start, end), op in iter_extract_with_range(expr):
+            outputs.append(expr[current_end:start])
+            outputs.append(op.fmt_iloc(df_ref))
+            current_end = end
+        outputs.append(expr[current_end:])
+        expr = "".join(outputs)
+
         def evaluator(_self: LiteralCallable):
             df = qtable.dataShown(parse=True)
             ns = dict(qviewer._namespace)
             ns.update(df=df)
             try:
-                out = eval(expr, ns, {})
+                out = eval(_self.expr, ns, {})
             except Exception as e:
                 return EvalResult(e, _self.pos)
 

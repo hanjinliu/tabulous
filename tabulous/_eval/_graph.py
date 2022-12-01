@@ -10,7 +10,7 @@ import numpy as np
 from tabulous._eval._literal import LiteralCallable, EvalResult
 
 from tabulous._range import RectRange, NoRange, AnyRange, TableAnchorBase
-from tabulous._selection_op import SelectionOperator
+from tabulous._selection_op import SelectionOperator, ILocSelOp
 from tabulous._selection_model import Index
 
 if TYPE_CHECKING:
@@ -121,7 +121,9 @@ class Graph:
 
     def connect(self):
         """Connect the graph to the table data-changed event."""
-        self.table.events.data.connect(self.update)
+        keys = [op.as_iloc() for op in self._func.selection_ops]
+
+        self.table.events.data.mloc(keys).connect(self.update)
         logger.debug(f"Graph connected: {self.expr}")
         return self
 

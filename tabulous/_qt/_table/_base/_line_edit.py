@@ -11,6 +11,7 @@ import pandas as pd
 from tabulous._qt._qt_const import MonospaceFontFamily
 from tabulous._qt._keymap import QtKeys
 from tabulous.types import HeaderInfo, EvalInfo
+from tabulous._range import RectRange
 from tabulous._utils import get_config
 from tabulous._selection_op import (
     find_last_dataframe_expr,
@@ -541,17 +542,25 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         rsl, csl = qtable._selection_model.ranges[-1]
         _df = qtable.model().df
+        table_range = RectRange(slice(0, _df.shape[0]), slice(0, _df.shape[1]))
+
+        # out of border
+        if not table_range.overlaps_with(RectRange(rsl, csl)):
+            return None
+
         column_selected = len(qtable._selection_model._col_selection_indices) > 0
         selop = construct(rsl, csl, _df, method="iloc", column_selected=column_selected)
 
         if selop is None:  # out of bound
             return None
 
+        # get string that represents the selection
         if selop.area(_df) > 1:
             to_be_added = selop.fmt("df")
         else:
             to_be_added = selop.fmt_scalar("df")
 
+        # add the representation to the text at the proper position
         if cursor_pos == 0:
             self.setText(to_be_added + text)
         elif text[cursor_pos - 1] != "]":
