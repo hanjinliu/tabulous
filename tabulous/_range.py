@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterator, Sequence
+from typing import Iterable, Iterator, Sequence
 
 
 class TableAnchorBase(ABC):
@@ -97,6 +97,9 @@ class RectRange(TableAnchorBase):
             return False
         return self._rsl.start >= self._rsl.stop or self._csl.start >= self._csl.stop
 
+    def iter_ranges(self) -> Iterator[tuple[slice, slice]]:
+        return iter([(self._rsl, self._csl)])
+
 
 _DO_NOTHING = lambda *args, **kwargs: None
 
@@ -161,6 +164,11 @@ class MultiRectRange(RectRange):
     def __init__(self, ranges: Sequence[RectRange]):
         self._ranges = ranges
 
+    @classmethod
+    def from_slices(cls, slices: Iterable[tuple[slice, slice]]):
+        """Construct from list of slices."""
+        return cls([RectRange(rsl, csl) for rsl, csl in slices])
+
     def __repr__(self):
         s = ", ".join(repr(rng) for rng in self)
         return f"MultiRectRange[{s}]"
@@ -183,27 +191,31 @@ class MultiRectRange(RectRange):
 
     def insert_rows(self, row: int, count: int) -> None:
         """Insert rows and update slices in-place."""
-        for rng in self._ranges:
+        for rng in self:
             rng.insert_rows(row, count)
 
     def insert_columns(self, col: int, count: int) -> None:
         """Insert columns and update slices in-place."""
-        for rng in self._ranges:
+        for rng in self:
             rng.insert_columns(col, count)
 
     def remove_rows(self, row: int, count: int):
         """Remove rows and update slices in-place."""
-        for rng in self._ranges:
+        for rng in self:
             rng.remove_rows(row, count)
 
     def remove_columns(self, col: int, count: int):
         """Remove columns and update slices in-place."""
-        for rng in self._ranges:
+        for rng in self:
             rng.remove_columns(col, count)
 
     def is_empty(self) -> bool:
         """True if ANY of the range is empty."""
         return any(rng.is_empty() for rng in self)
+
+    def iter_ranges(self) -> Iterator[tuple[slice, slice]]:
+        for rng in self:
+            yield from rng.iter_ranges()
 
 
 def _fmt_slice(sl: slice) -> str:

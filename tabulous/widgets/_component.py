@@ -647,6 +647,7 @@ class ColumnDtypeInterface(
         return None
 
 
+# TODO: fix this
 class CellReferenceInterface(Component["TableBase"], Mapping["tuple[int, int]", Graph]):
     """Interface to the cell references of a table."""
 

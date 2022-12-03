@@ -194,7 +194,7 @@ def test_ref_after_removal_of_column():
     sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
     sheet.cell[1, 3] = "&=np.sum(df.loc[0:2, 0:1]) + 1"
     assert sheet.cell[1, 3] == "1.0"
-    sheet._qwidget.removeColumns(3, 1)  # insert a column
+    sheet._qwidget.removeColumns(3, 1)  # remove a column
     assert sheet.cell[1, 3] == "0.0"
     assert len(sheet.cellref) == 0
     # TODO: undo is not working now
@@ -203,3 +203,43 @@ def test_ref_after_removal_of_column():
     # assert sheet.cell[1, 2] == "0.0"
     # assert (1, 3) in sheet.cellref
     # assert (1, 2) not in sheet.cellref
+
+
+def test_removing_source():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((3, 1), dtype=np.float32))
+    sheet.cell[0, 1] = "&=np.sum(df.iloc[:, 0])"
+    assert len(sheet.cellref) == 1
+    sheet._qwidget.removeColumns(0, 1)  # remove a column
+    assert sheet.data.shape == (3, 1)
+    assert len(sheet.cellref) == 0
+
+
+def test_removing_one_of_two_sources():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((3, 2), dtype=np.float32))
+    sheet.cell[0, 2] = "&=np.sum(df.iloc[:, 0]) + np.sum(df.iloc[:, 1])"
+    assert len(sheet.cellref) == 1
+    sheet._qwidget.removeColumns(0, 1)  # remove a column
+    assert sheet.data.shape == (3, 2)
+    assert len(sheet.cellref) == 0
+
+def test_removing_or_inserting_left_column():
+    # --- table ---
+    # 0 0 &=np.sum(df.iloc[:, 1:2])
+    # 0 0
+    # 0 0
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet([[0., 1.], [1., 2.], [3., 5.]])
+    sheet.cell[0, 2] = "&=np.sum(df.iloc[:, 1])"
+    assert sheet.cell[0, 2] == "8.0"
+    sheet._qwidget.removeColumns(0, 1)  # remove a column
+    assert sheet.data.shape == (3, 2)
+    assert sheet.cell[0, 1] == "8.0"
+    sheet.cell[1, 0] = 4
+    assert sheet.cell[0, 1] == "10.0"
+    sheet._qwidget.insertColumns(0, 1)  # insert a column
+    assert sheet.data.shape == (3, 3)
+    assert sheet.cell[0, 2] == "10.0"
+    sheet.cell[1, 0] = 5
+    assert sheet.cell[0, 3] == "10.0"

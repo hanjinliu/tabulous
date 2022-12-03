@@ -33,7 +33,8 @@ if TYPE_CHECKING:
     from tabulous._qt._table_stack import QTabbedTableStack
     from tabulous._qt._mainwindow import _QtMainWidgetBase
     from tabulous.types import SelectionType, _Sliceable
-    from tabulous._eval import Graph
+
+    # from tabulous._eval import Graph
 
 ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
 
@@ -532,33 +533,33 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def setItemLabel(self, r: int, c: int, text: str):
         return arguments(r, c, self.itemLabel(r, c))
 
-    def setCalculationGraph(self, pos: tuple[int, int], graph: Graph):
-        """Set calculation graph at the given position."""
-        if graph is None:
-            self._qtable_view._ref_graphs.pop(pos)
-        else:
-            self._set_graph(pos, graph)
-        return None
+    # def setCalculationGraph(self, pos: tuple[int, int], graph: Graph):
+    #     """Set calculation graph at the given position."""
+    #     if graph is None:
+    #         self._qtable_view._ref_graphs.pop(pos)
+    #     else:
+    #         self._set_graph(pos, graph)
+    #     return None
 
-    @_mgr.interface
-    def _set_graph(self, pos: tuple[int, int], graph: Graph):
-        """Set graph object at given position."""
-        if graph is None:
-            self._qtable_view._ref_graphs.pop(pos, None)
-        else:
-            self._qtable_view._ref_graphs[pos] = graph
-            if dest := graph._func.last_destination:
-                self._qtable_view._selection_model.set_ranges([dest])
-        return None
+    # @_mgr.interface
+    # def _set_graph(self, pos: tuple[int, int], graph: Graph):
+    #     """Set graph object at given position."""
+    #     if graph is None:
+    #         self._qtable_view._ref_graphs.pop(pos, None)
+    #     else:
+    #         self._qtable_view._ref_graphs[pos] = graph
+    #         if dest := graph._func.last_destination:
+    #             self._qtable_view._selection_model.set_ranges([dest])
+    #     return None
 
-    @_set_graph.server
-    def _set_graph(self, pos: tuple[int, int], graph: Graph):
-        graph = self._qtable_view._ref_graphs.get(pos, None)
-        return arguments(pos, graph)
+    # @_set_graph.server
+    # def _set_graph(self, pos: tuple[int, int], graph: Graph):
+    #     graph = self._qtable_view._ref_graphs.get(pos, None)
+    #     return arguments(pos, graph)
 
-    @_set_graph.set_formatter
-    def _set_graph_fmt(self, pos, graph):
-        return repr(graph)
+    # @_set_graph.set_formatter
+    # def _set_graph_fmt(self, pos, graph):
+    #     return repr(graph)
 
     def refreshTable(self, process: bool = False) -> None:
         """Refresh table view."""

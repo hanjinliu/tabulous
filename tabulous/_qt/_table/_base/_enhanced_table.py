@@ -126,9 +126,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         # attributes relevant to in-cell calculation
         self._focused_widget_ref = None
         self._focused_widget = None
-        from tabulous._eval import GraphManager
+        # from tabulous._eval import GraphManager
 
-        self._ref_graphs = GraphManager()
+        # self._ref_graphs = GraphManager()
 
     # fmt: off
     if TYPE_CHECKING:

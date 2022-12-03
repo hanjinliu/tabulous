@@ -159,7 +159,7 @@ class LiteralCallable(Generic[_T]):
 
             elif isinstance(out, pd.Series):
                 if out.shape == (1,):  # scalar
-                    _out = out[0]
+                    _out = out.values[0]
                     _row, _col = _self._infer_indices(df)
                 else:  # update a column
                     _out = out
