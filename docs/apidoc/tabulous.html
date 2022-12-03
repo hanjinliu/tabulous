@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous package &mdash; tabulous 0.3.0 documentation</title>
+  <title>tabulous package &mdash; tabulous 0.3.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.3.0
+                0.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -249,12 +249,12 @@
 If a row or column is inserted, the old_value is set to <code class="docutils literal notranslate"><span class="pre">INSERTED</span></code>.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="tabulous.types.ItemInfo.DELETED">
-<span class="sig-name descname"><span class="pre">DELETED</span></span><a class="headerlink" href="#tabulous.types.ItemInfo.DELETED" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">DELETED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DELETED</span></em><a class="headerlink" href="#tabulous.types.ItemInfo.DELETED" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="tabulous.types.ItemInfo.INSERTED">
-<span class="sig-name descname"><span class="pre">INSERTED</span></span><a class="headerlink" href="#tabulous.types.ItemInfo.INSERTED" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">INSERTED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">INSERTED</span></em><a class="headerlink" href="#tabulous.types.ItemInfo.INSERTED" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
@@ -319,7 +319,7 @@ with additional information for magicgui construction.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="tabulous.MagicTableViewer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tabulous.</span></span><span class="sig-name descname"><span class="pre">MagicTableViewer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab_position</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TabPosition</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">TabPosition.top</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tooltip</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visible</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enabled</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/_magicgui.html#MagicTableViewer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.MagicTableViewer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">magicgui.widgets._bases.widget.Widget</span></code>, <a class="reference internal" href="#tabulous.TableViewerWidget" title="tabulous.widgets._mainwindow.TableViewerWidget"><code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets._mainwindow.TableViewerWidget</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">magicgui.widgets.bases._widget.Widget</span></code>, <a class="reference internal" href="#tabulous.TableViewerWidget" title="tabulous.widgets._mainwindow.TableViewerWidget"><code class="xref py py-class docutils literal notranslate"><span class="pre">tabulous.widgets._mainwindow.TableViewerWidget</span></code></a></p>
 <p>A magicgui widget of table viewer.</p>
 <p>This class is a subclass of <code class="docutils literal notranslate"><span class="pre">magicgui.widget.Widget</span></code> so that it can be used
 in a compatible way with magicgui and napari.</p>

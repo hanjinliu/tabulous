@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous._magicgui &mdash; tabulous 0.3.0.dev0 documentation</title>
+  <title>tabulous._magicgui &mdash; tabulous 0.3.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -27,7 +27,7 @@
             <a href="../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.3.0.dev0
+                0.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -83,27 +83,46 @@
 
   <h1>Source code for tabulous._magicgui</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">TypeVar</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">cast</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">qtpy.QtWidgets</span> <span class="kn">import</span> <span class="n">QWidget</span><span class="p">,</span> <span class="n">QVBoxLayout</span>
-<span class="kn">from</span> <span class="nn">magicgui</span> <span class="kn">import</span> <span class="n">register_type</span>
-<span class="kn">from</span> <span class="nn">magicgui.widgets</span> <span class="kn">import</span> <span class="n">Widget</span><span class="p">,</span> <span class="n">Container</span><span class="p">,</span> <span class="n">ComboBox</span><span class="p">,</span> <span class="n">Label</span><span class="p">,</span> <span class="n">Dialog</span>
-<span class="kn">from</span> <span class="nn">magicgui.widgets._bases</span> <span class="kn">import</span> <span class="n">CategoricalWidget</span>
+<span class="kn">from</span> <span class="nn">qtpy</span> <span class="kn">import</span> <span class="n">QtWidgets</span> <span class="k">as</span> <span class="n">QtW</span>
+<span class="kn">from</span> <span class="nn">magicgui</span> <span class="kn">import</span> <span class="n">register_type</span><span class="p">,</span> <span class="n">magicgui</span>
+<span class="kn">from</span> <span class="nn">magicgui.widgets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Widget</span><span class="p">,</span>
+    <span class="n">Container</span><span class="p">,</span>
+    <span class="n">ComboBox</span><span class="p">,</span>
+    <span class="n">Label</span><span class="p">,</span>
+    <span class="n">Dialog</span><span class="p">,</span>
+    <span class="n">PushButton</span><span class="p">,</span>
+    <span class="n">LineEdit</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">magicgui.backends._qtpy.widgets</span> <span class="kn">import</span> <span class="n">QBaseWidget</span>
 
-<span class="kn">from</span> <span class="nn">.widgets</span> <span class="kn">import</span> <span class="n">TableViewer</span><span class="p">,</span> <span class="n">Table</span><span class="p">,</span> <span class="n">SpreadSheet</span><span class="p">,</span> <span class="n">TableViewerWidget</span>
-<span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">tabulous.widgets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TableViewerBase</span><span class="p">,</span>
+    <span class="n">TableBase</span><span class="p">,</span>
+    <span class="n">Table</span><span class="p">,</span>
+    <span class="n">SpreadSheet</span><span class="p">,</span>
+    <span class="n">TableViewerWidget</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">tabulous.types</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">TableColumn</span><span class="p">,</span>
     <span class="n">TableData</span><span class="p">,</span>
     <span class="n">TableDataTuple</span><span class="p">,</span>
     <span class="n">TableInfoInstance</span><span class="p">,</span>
     <span class="n">TabPosition</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">tabulous._selection_op</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SelectionOperator</span><span class="p">,</span>
+    <span class="n">parse</span><span class="p">,</span>
+    <span class="n">construct</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
     <span class="kn">from</span> <span class="nn">magicgui.widgets</span> <span class="kn">import</span> <span class="n">FunctionGui</span>
     <span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="kn">import</span> <span class="n">Axes</span>
+    <span class="kn">from</span> <span class="nn">.widgets</span> <span class="kn">import</span> <span class="n">TableBase</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="n">Axes</span> <span class="o">=</span> <span class="n">Any</span>
 
@@ -138,7 +157,7 @@
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">widget_type</span><span class="o">=</span><span class="n">QBaseWidget</span><span class="p">,</span>
-            <span class="n">backend_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;qwidg&quot;</span><span class="p">:</span> <span class="n">QWidget</span><span class="p">},</span>
+            <span class="n">backend_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;qwidg&quot;</span><span class="p">:</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span><span class="p">},</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
             <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
             <span class="n">tooltip</span><span class="o">=</span><span class="n">tooltip</span><span class="p">,</span>
@@ -146,8 +165,8 @@
             <span class="n">enabled</span><span class="o">=</span><span class="n">enabled</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">TableViewerWidget</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab_position</span><span class="o">=</span><span class="n">tab_position</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="p">:</span> <span class="n">QWidget</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">QVBoxLayout</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="p">:</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">QtW</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">layout</span><span class="p">()</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
 
@@ -168,7 +187,7 @@
         <span class="n">Table</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="n">editable</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">widget_type</span><span class="o">=</span><span class="n">QBaseWidget</span><span class="p">,</span>
-            <span class="n">backend_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;qwidg&quot;</span><span class="p">:</span> <span class="n">QWidget</span><span class="p">},</span>
+            <span class="n">backend_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;qwidg&quot;</span><span class="p">:</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span><span class="p">},</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
             <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
             <span class="n">tooltip</span><span class="o">=</span><span class="n">tooltip</span><span class="p">,</span>
@@ -176,8 +195,8 @@
             <span class="n">enabled</span><span class="o">=</span><span class="n">enabled</span><span class="p">,</span>
             <span class="n">gui_only</span><span class="o">=</span><span class="n">gui_only</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="p">:</span> <span class="n">QWidget</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">QVBoxLayout</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="p">:</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">QtW</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">layout</span><span class="p">()</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
@@ -189,34 +208,61 @@
 <span class="n">_DEFAULT_NAME</span> <span class="o">=</span> <span class="s2">&quot;Result&quot;</span>
 
 
-<span class="k">def</span> <span class="nf">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span> <span class="o">|</span> <span class="n">QWidget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableViewer</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">._qt._mainwindow</span> <span class="kn">import</span> <span class="n">_QtMainWidgetBase</span>
+<span class="k">def</span> <span class="nf">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span> <span class="o">|</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableViewerBase</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tabulous._qt._mainwindow</span> <span class="kn">import</span> <span class="n">_QtMainWidgetBase</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">Widget</span><span class="p">):</span>
         <span class="n">qwidget</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">native</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">QWidget</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
         <span class="n">qwidget</span> <span class="o">=</span> <span class="n">widget</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot use </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span><span class="si">}</span><span class="s2"> as an input.&quot;</span><span class="p">)</span>
-    <span class="n">qwidget</span><span class="p">:</span> <span class="n">QWidget</span>
+    <span class="n">qwidget</span><span class="p">:</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span>
     <span class="n">parent</span> <span class="o">=</span> <span class="n">qwidget</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
     <span class="k">while</span> <span class="p">(</span><span class="n">parent</span> <span class="o">:=</span> <span class="n">qwidget</span><span class="o">.</span><span class="n">parent</span><span class="p">())</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">qwidget</span> <span class="o">=</span> <span class="n">parent</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qwidget</span><span class="p">,</span> <span class="n">_QtMainWidgetBase</span><span class="p">):</span>
+            <span class="n">qwidget</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">_QtMainWidgetBase</span><span class="p">,</span> <span class="n">qwidget</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">qwidget</span><span class="o">.</span><span class="n">_table_viewer</span>
 
     <span class="k">return</span> <span class="kc">None</span>
 
 
-<span class="k">def</span> <span class="nf">get_tables</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">CategoricalWidget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="k">def</span> <span class="nf">find_current_table</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span> <span class="o">|</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableBase</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">viewer</span> <span class="o">=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">viewer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">current_table</span>
+    <span class="k">if</span> <span class="n">table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">table</span>
+
+
+<span class="k">def</span> <span class="nf">get_any_tables</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;Get the list of available tables and the names.&quot;&quot;&quot;</span>
     <span class="n">v</span> <span class="o">=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[]</span>
-    <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">tables</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">t</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">tables</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">get_table_data</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">CategoricalWidget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="k">def</span> <span class="nf">get_tables</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;Get the list of available tables and the names.&quot;&quot;&quot;</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">t</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">tables</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">Table</span><span class="p">)]</span>
+
+
+<span class="k">def</span> <span class="nf">get_spreasheets</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;Get the list of available table data and the names.&quot;&quot;&quot;</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">t</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">tables</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">SpreadSheet</span><span class="p">)]</span>
+
+
+<span class="k">def</span> <span class="nf">get_table_data</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;Get the list of available table data and the names.&quot;&quot;&quot;</span>
     <span class="n">v</span> <span class="o">=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -224,7 +270,7 @@
     <span class="k">return</span> <span class="p">[(</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">tables</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">open_viewer</span><span class="p">(</span><span class="n">gui</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">TableViewer</span><span class="p">,</span> <span class="n">return_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">open_viewer</span><span class="p">(</span><span class="n">gui</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">,</span> <span class="n">return_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
 
@@ -277,10 +323,13 @@
 
 
 <span class="n">register_type</span><span class="p">(</span>
-    <span class="n">TableViewer</span><span class="p">,</span> <span class="n">return_callback</span><span class="o">=</span><span class="n">open_viewer</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">find_table_viewer_ancestor</span>
+    <span class="n">TableViewerBase</span><span class="p">,</span>
+    <span class="n">return_callback</span><span class="o">=</span><span class="n">open_viewer</span><span class="p">,</span>
+    <span class="n">choices</span><span class="o">=</span><span class="n">find_table_viewer_ancestor</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="n">register_type</span><span class="p">(</span><span class="n">TableBase</span><span class="p">,</span> <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_to_viewer</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">get_any_tables</span><span class="p">)</span>
 <span class="n">register_type</span><span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_to_viewer</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">get_tables</span><span class="p">)</span>
-<span class="n">register_type</span><span class="p">(</span><span class="n">SpreadSheet</span><span class="p">,</span> <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_to_viewer</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">get_tables</span><span class="p">)</span>
+<span class="n">register_type</span><span class="p">(</span><span class="n">SpreadSheet</span><span class="p">,</span> <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_to_viewer</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">get_spreasheets</span><span class="p">)</span>
 <span class="n">register_type</span><span class="p">(</span>
     <span class="n">TableData</span><span class="p">,</span>
     <span class="n">return_callback</span><span class="o">=</span><span class="n">add_table_data_to_viewer</span><span class="p">,</span>
@@ -451,14 +500,8 @@
 
 
 <span class="k">def</span> <span class="nf">dialog_factory_mpl</span><span class="p">(</span><span class="n">function</span><span class="p">:</span> <span class="n">_F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_F</span><span class="p">:</span>
-
-    <span class="kn">from</span> <span class="nn">magicgui.signature</span> <span class="kn">import</span> <span class="n">magic_signature</span>
-
     <span class="k">def</span> <span class="nf">_runner</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">param_options</span><span class="p">):</span>
-        <span class="n">widgets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-            <span class="n">magic_signature</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">gui_options</span><span class="o">=</span><span class="n">param_options</span><span class="p">)</span><span class="o">.</span><span class="n">widgets</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-        <span class="p">)</span>
-        <span class="n">dlg</span> <span class="o">=</span> <span class="n">Dialog</span><span class="p">(</span><span class="n">widgets</span><span class="o">=</span><span class="n">widgets</span><span class="p">)</span>
+        <span class="n">dlg</span> <span class="o">=</span> <span class="n">magicgui</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="o">**</span><span class="n">param_options</span><span class="p">)</span>
 
         <span class="kn">from</span> <span class="nn">._qt._plot</span> <span class="kn">import</span> <span class="n">QtMplPlotCanvas</span>
 
@@ -485,13 +528,107 @@
         <span class="n">dlg</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span>
 
         <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setParent</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">windowFlags</span><span class="p">())</span>
-        <span class="k">if</span> <span class="n">dlg</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="o">**</span><span class="n">dlg</span><span class="o">.</span><span class="n">asdict</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="n">out</span>
+        <span class="n">dlg</span><span class="o">.</span><span class="n">called</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">dlg</span><span class="o">.</span><span class="n">close</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">dlg</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">_runner</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1">#   Selection widget</span>
+<span class="c1"># #############################################################################</span>
+
+
+<span class="k">class</span> <span class="nc">SelectionWidget</span><span class="p">(</span><span class="n">Container</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A container widget for a table selection.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="nb">format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;iloc&quot;</span><span class="p">,</span>
+        <span class="n">allow_out_of_bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_line</span> <span class="o">=</span> <span class="n">LineEdit</span><span class="p">(</span><span class="n">tooltip</span><span class="o">=</span><span class="s2">&quot;Selection string (e.g. &#39;df.iloc[2:4, 3:]&#39;)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_btn</span> <span class="o">=</span> <span class="n">PushButton</span><span class="p">(</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Read selection&quot;</span><span class="p">,</span> <span class="n">tooltip</span><span class="o">=</span><span class="s2">&quot;Read current table selection.&quot;</span>
+        <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="s2">&quot;horizontal&quot;</span><span class="p">,</span> <span class="n">widgets</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_line</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_btn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">margins</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_line</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_btn</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_line</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_line</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_btn</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_selection</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="o">=</span> <span class="nb">format</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_out_of_bounds</span> <span class="o">=</span> <span class="n">allow_out_of_bounds</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">SelectionOperator</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SelectionOperator</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get selection operator that represents current selection.&quot;&quot;&quot;</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="n">text</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">parse</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">df_expr</span><span class="o">=</span><span class="s2">&quot;df&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@value</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">SelectionOperator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">val</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">df_expr</span><span class="o">=</span><span class="s2">&quot;df&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">fmt</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_line</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span>
+
+    <span class="k">def</span> <span class="nf">as_iloc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">slice</span><span class="p">,</span> <span class="nb">slice</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return current value as a indexer for ``iloc`` method.&quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_table</span><span class="p">()</span><span class="o">.</span><span class="n">data_shown</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">as_iloc</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">as_iloc_slices</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">slice</span><span class="p">,</span> <span class="nb">slice</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return current value as slices for ``iloc`` method.&quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_table</span><span class="p">()</span><span class="o">.</span><span class="n">data_shown</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">as_iloc_slices</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_find_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableBase</span><span class="p">:</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">find_current_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No table found.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">table</span>
+
+    <span class="k">def</span> <span class="nf">_read_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="n">TableBase</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_table</span><span class="p">()</span>
+
+        <span class="n">sels</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">selections</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sels</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;More than one selection is given.&quot;</span><span class="p">)</span>
+        <span class="n">sel</span> <span class="o">=</span> <span class="n">sels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">qwidget</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_qwidget</span>
+        <span class="n">column_selected</span> <span class="o">=</span> <span class="n">qwidget</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">_col_selection_indices</span>
+        <span class="n">_selop</span> <span class="o">=</span> <span class="n">construct</span><span class="p">(</span>
+            <span class="o">*</span><span class="n">sel</span><span class="p">,</span>
+            <span class="n">qwidget</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">df</span><span class="p">,</span>
+            <span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+            <span class="n">column_selected</span><span class="o">=</span><span class="n">column_selected</span><span class="p">,</span>
+            <span class="n">allow_out_of_bounds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_allow_out_of_bounds</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_line</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">_selop</span><span class="o">.</span><span class="n">fmt</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">_selop</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="n">register_type</span><span class="p">(</span><span class="n">SelectionOperator</span><span class="p">,</span> <span class="n">widget_type</span><span class="o">=</span><span class="n">SelectionWidget</span><span class="p">)</span>
 </pre></div>
 
            </div>

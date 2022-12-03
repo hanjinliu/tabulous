@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets._mainwindow &mdash; tabulous 0.3.0.dev0 documentation</title>
+  <title>tabulous.widgets._mainwindow &mdash; tabulous 0.3.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -27,7 +27,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.3.0.dev0
+                0.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -96,16 +96,16 @@
 <span class="kn">from</span> <span class="nn">._component</span> <span class="kn">import</span> <span class="n">Component</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_doc</span>
 
-<span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">SelectionType</span><span class="p">,</span> <span class="n">TabPosition</span><span class="p">,</span> <span class="n">_TableLike</span><span class="p">,</span> <span class="n">_SingleSelection</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">_utils</span>
+<span class="kn">from</span> <span class="nn">tabulous.types</span> <span class="kn">import</span> <span class="n">SelectionType</span><span class="p">,</span> <span class="n">TabPosition</span><span class="p">,</span> <span class="n">_TableLike</span><span class="p">,</span> <span class="n">_SingleSelection</span>
+<span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">_utils</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">._table</span> <span class="kn">import</span> <span class="n">TableBase</span>
-    <span class="kn">from</span> <span class="nn">.._qt</span> <span class="kn">import</span> <span class="n">QMainWindow</span><span class="p">,</span> <span class="n">QMainWidget</span>
-    <span class="kn">from</span> <span class="nn">.._qt._dockwidget</span> <span class="kn">import</span> <span class="n">QtDockWidget</span>
-    <span class="kn">from</span> <span class="nn">.._qt._mainwindow</span> <span class="kn">import</span> <span class="n">_QtMainWidgetBase</span>
-    <span class="kn">from</span> <span class="nn">.._qt._mainwindow._namespace</span> <span class="kn">import</span> <span class="n">Namespace</span>
-    <span class="kn">from</span> <span class="nn">.._qt._keymap</span> <span class="kn">import</span> <span class="n">QtKeyMap</span>
+    <span class="kn">from</span> <span class="nn">tabulous.widgets._table</span> <span class="kn">import</span> <span class="n">TableBase</span>
+    <span class="kn">from</span> <span class="nn">tabulous._qt</span> <span class="kn">import</span> <span class="n">QMainWindow</span><span class="p">,</span> <span class="n">QMainWidget</span>
+    <span class="kn">from</span> <span class="nn">tabulous._qt._dockwidget</span> <span class="kn">import</span> <span class="n">QtDockWidget</span>
+    <span class="kn">from</span> <span class="nn">tabulous._qt._mainwindow</span> <span class="kn">import</span> <span class="n">_QtMainWidgetBase</span>
+    <span class="kn">from</span> <span class="nn">tabulous._qt._mainwindow._namespace</span> <span class="kn">import</span> <span class="n">Namespace</span>
+    <span class="kn">from</span> <span class="nn">tabulous._qt._keymap</span> <span class="kn">import</span> <span class="n">QtKeyMap</span>
     <span class="kn">from</span> <span class="nn">qtpy.QtWidgets</span> <span class="kn">import</span> <span class="n">QWidget</span>
     <span class="kn">from</span> <span class="nn">magicgui.widgets</span> <span class="kn">import</span> <span class="n">Widget</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -253,9 +253,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MappingProxyType</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the config info.&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.._utils</span> <span class="kn">import</span> <span class="n">get_config</span>
-
-        <span class="k">return</span> <span class="n">get_config</span><span class="p">()</span><span class="o">.</span><span class="n">as_immutable</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span><span class="o">.</span><span class="n">as_immutable</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">cell_namespace</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Namespace</span><span class="p">:</span>
@@ -426,7 +424,7 @@
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
         <span class="k">if</span> <span class="n">suf</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;.dat&quot;</span><span class="p">):</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="n">_get_index_col</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
             <span class="n">fopen</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">suf</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.xlsx&quot;</span><span class="p">,</span> <span class="s2">&quot;.xls&quot;</span><span class="p">,</span> <span class="s2">&quot;.xlsb&quot;</span><span class="p">,</span> <span class="s2">&quot;.xlsm&quot;</span><span class="p">,</span> <span class="s2">&quot;.xltm&quot;</span><span class="p">,</span> <span class="s2">&quot;xltx&quot;</span><span class="p">,</span> <span class="s2">&quot;.xml&quot;</span><span class="p">):</span>
             <span class="n">df_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -451,7 +449,7 @@
             <span class="n">df</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">suf</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.html&quot;</span><span class="p">,):</span>
             <span class="n">df</span><span class="o">.</span><span class="n">to_html</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">suf</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.parquet&quot;</span><span class="p">,):</span>
+        <span class="k">elif</span> <span class="n">suf</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.parquet&quot;</span><span class="p">,</span> <span class="s2">&quot;.pq&quot;</span><span class="p">):</span>
             <span class="n">df</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extension </span><span class="si">{</span><span class="n">suf</span><span class="si">}</span><span class="s2"> not supported.&quot;</span><span class="p">)</span>
@@ -670,6 +668,14 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;_table_viewer&quot;</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">_table_viewer</span>
     <span class="k">raise</span> <span class="ne">RuntimeError</span>
+
+
+<span class="k">def</span> <span class="nf">_get_index_col</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">first_char</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">first_char</span> <span class="o">==</span> <span class="n">sep</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="kc">None</span>
 </pre></div>
 
            </div>

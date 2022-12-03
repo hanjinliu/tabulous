@@ -308,6 +308,10 @@ Analyze menu
   :width: 20em
 .. |filter| image:: ../../tabulous/_qt/_icons/filter.svg
   :width: 20em
+.. |stats| image:: ../../tabulous/_qt/_icons/stats_test.svg
+  :width: 20em
+.. |sklearn| image:: ../../tabulous/_qt/_icons/sklearn_analysis.svg
+  :width: 20em
 .. |toggle_console| image:: ../../tabulous/_qt/_icons/toggle_console.svg
   :width: 20em
 
@@ -315,6 +319,8 @@ Analyze menu
 - |eval| ... Evaluate a string expression on the table data. Essentially equivalent
   to call :meth:`pd.eval`.
 - |filter| ... Filter table data by a string expression.
+- |stats| ... Perform statistical tests on the table data using :mod:`scipy.stats`.
+- |sklearn| ... Perform clustering, regression or decomposition on the table data using :mod:`scikit-learn`.
 - |toggle_console| ... Toggle the console widget visibility.
 
 View menu
