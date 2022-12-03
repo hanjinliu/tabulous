@@ -42,7 +42,7 @@ window version of it. The ``native`` property returns the Qt backend widget.
 Use TableViewer with magicgui
 =============================
 
-If you want to use a `magicgui <https://github.com/napari/magicgui>`_ version of it, you can
+If you want to use a `magicgui <https://github.com/pyapp-kit/magicgui>`_ version of it, you can
 use ``MagicTableViewer``. ``MagicTableViewer`` is a subclass of ``TableViewerWidget`` and
 ``magicgui.widgets.Widget`` so it is compatible with all the ``magicgui`` functionalities.
 
