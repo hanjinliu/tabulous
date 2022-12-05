@@ -1,1 +1,18 @@
-<svg width="83" height="61" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden"><defs><clipPath id="clip0"><rect x="616" y="610" width="83" height="61"/></clipPath></defs><g clip-path="url(#clip0)" transform="translate(-616 -610)"><path d="M621 670C621 660.059 621 652 621 652L694 652C694 652 694 660.059 694 670" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/><path d="M655 639 658 621 661 639Z" fill-rule="evenodd"/><path d="M0 18 3 0 6 18Z" fill-rule="evenodd" transform="matrix(1 0 0 -1 655 629)"/><path d="M644.521 628.677 661.866 622.373 647.734 634.241Z" fill-rule="evenodd"/><path d="M0 18.1731 3.2126 0 6.4252 18.1731Z" fill-rule="evenodd" transform="matrix(0.5 0.866025 0.866025 -0.5 652.956 623.807)"/><path d="M668.718 635.014 654.586 623.145 671.931 629.449Z" fill-rule="evenodd"/><path d="M0 18.1731 3.2126 0 6.4252 18.1731Z" fill-rule="evenodd" transform="matrix(0.5 -0.866025 -0.866025 -0.5 660.283 630.144)"/></g></svg>
+<svg width="83" height="61"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden">
+    <defs>
+        <clipPath id="clip0">
+            <rect x="616" y="610" width="83" height="61"/>
+        </clipPath>
+    </defs>
+    <g clip-path="url(#clip0)" transform="translate(-616 -610)">
+        <path d="M621 670C621 660.059 621 652 621 652L694 652C694 652 694 660.059 694 670" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M655 639 658 621 661 639Z" fill="#000000" fill-rule="evenodd"/>
+        <path d="M0 18 3 0 6 18Z" fill="#000000" fill-rule="evenodd" transform="matrix(1 0 0 -1 655 629)"/>
+        <path d="M644.521 628.677 661.866 622.373 647.734 634.241Z" fill="#000000" fill-rule="evenodd"/>
+        <path d="M0 18.1731 3.2126 0 6.4252 18.1731Z" fill="#000000" fill-rule="evenodd" transform="matrix(0.5 0.866025 0.866025 -0.5 652.956 623.807)"/>
+        <path d="M668.718 635.014 654.586 623.145 671.931 629.449Z" fill="#000000" fill-rule="evenodd"/>
+        <path d="M0 18.1731 3.2126 0 6.4252 18.1731Z" fill="#000000" fill-rule="evenodd" transform="matrix(0.5 -0.866025 -0.866025 -0.5 660.283 630.144)"/>
+    </g>
+</svg>
