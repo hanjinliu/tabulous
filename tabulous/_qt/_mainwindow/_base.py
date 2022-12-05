@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 import qtpy
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import QEvent, Signal
+from qt_command_palette import get_palette
 
 from ._namespace import Namespace
 
@@ -63,6 +64,14 @@ class _QtMainWidgetBase(QtW.QWidget):
         for k in self._namespace._static:
             _user_ns.pop(k, None)
         self._namespace.update(_user_ns)
+
+        # install command palette
+        self._command_palette = get_palette("tabulous")
+        self._command_palette.install(self)
+
+    def showCommandPalette(self):
+        self._command_palette.show_widget(self)
+        return None
 
     def updateWidgetStyle(self):
         bg = self.palette().color(self.backgroundRole())
