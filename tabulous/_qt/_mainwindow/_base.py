@@ -104,7 +104,8 @@ class _QtMainWidgetBase(QtW.QWidget):
             arr = np.array(bits).reshape(h, w, c)
         else:
             bits.setsize(h * w * c)
-            arr = np.frombuffer(bits, np.uint8).reshape(h, w, c)
+            arr: np.ndarray = np.frombuffer(bits, np.uint8)
+            arr = arr.reshape(h, w, c)
 
         return arr[:, :, [2, 1, 0, 3]]
 

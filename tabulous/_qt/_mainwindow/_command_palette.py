@@ -5,6 +5,7 @@ from qt_command_palette import get_palette
 
 if TYPE_CHECKING:
     from ._base import _QtMainWidgetBase
+    from tabulous._qt._table import QSpreadSheet
 
 palette = get_palette("tabulous")
 
@@ -15,6 +16,7 @@ analysis_group = palette.add_group("Analysis")
 view_group = palette.add_group("View")
 plot_group = palette.add_group("Plot")
 selection_group = palette.add_group("Selection")
+spreadsheet_group = palette.add_group("Spreadsheet")
 
 
 @default_group.register("Show key map")
@@ -307,3 +309,76 @@ def paste(self: _QtMainWidgetBase):
 @selection_group.register("Delete selected cells")
 def delete(self: _QtMainWidgetBase):
     self._table_viewer.current_table._qwidget.deleteValues()
+
+
+def _get_spreadsheet(self: _QtMainWidgetBase) -> QSpreadSheet:
+    from tabulous._qt._table import QSpreadSheet
+
+    qwidget = self._table_viewer.current_table._qwidget
+    if isinstance(qwidget, QSpreadSheet):
+        return qwidget
+    raise TypeError("This action is only available for a Spreadsheet")
+
+
+@spreadsheet_group.register("Insert row above")
+def insert_row_above(self: _QtMainWidgetBase):
+    qspreadsheet = _get_spreadsheet(self)
+    qspreadsheet._insert_row_above(
+        qspreadsheet._qtable_view._selection_model.current_index.row
+    )
+
+
+@spreadsheet_group.register("Insert row below")
+def insert_row_above(self: _QtMainWidgetBase):
+    qspreadsheet = _get_spreadsheet(self)
+    qspreadsheet._insert_row_below(
+        qspreadsheet._qtable_view._selection_model.current_index.row
+    )
+
+
+@spreadsheet_group.register("Insert column left")
+def insert_row_above(self: _QtMainWidgetBase):
+    qspreadsheet = _get_spreadsheet(self)
+    qspreadsheet._insert_column_left(
+        qspreadsheet._qtable_view._selection_model.current_index.column
+    )
+
+
+@spreadsheet_group.register("Insert column right")
+def insert_row_above(self: _QtMainWidgetBase):
+    qspreadsheet = _get_spreadsheet(self)
+    qspreadsheet._insert_column_right(
+        qspreadsheet._qtable_view._selection_model.current_index.column
+    )
+
+
+@spreadsheet_group.register("Remove selected rows")
+def remove_row(self: _QtMainWidgetBase):
+    qspreadsheet = _get_spreadsheet(self)
+    qspreadsheet._remove_selected_rows(
+        qspreadsheet._qtable_view._selection_model.current_index.row
+    )
+
+
+@spreadsheet_group.register("Remove selected columns")
+def remove_column(self: _QtMainWidgetBase):
+    qspreadsheet = _get_spreadsheet(self)
+    qspreadsheet._remove_selected_columns(
+        qspreadsheet._qtable_view._selection_model.current_index.column
+    )
+
+
+@spreadsheet_group.register("Set column dtype")
+def set_column_dtype(self: _QtMainWidgetBase):
+    qspreadsheet = _get_spreadsheet(self)
+    colsel = qspreadsheet._qtable_view._selection_model._col_selection_indices
+    if len(colsel) == 0:
+        raise ValueError("No columns selected")
+    if len(colsel) > 1:
+        raise ValueError("Multiple columns selected")
+    idx = next(iter(colsel))
+    rng = qspreadsheet._qtable_view._selection_model.ranges[idx]
+    if rng[1].start != rng[1].stop - 1:
+        raise ValueError("Multiple columns selected")
+
+    qspreadsheet._set_column_dtype_with_dialog(rng[1].start)
