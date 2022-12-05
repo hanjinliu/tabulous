@@ -110,3 +110,11 @@ QToolButton:hover {
     border-radius: 4px;
     padding: 2px;
 }
+
+QCommandList:item:selected {
+    background-color: #C9D4FF;
+}
+
+QCommandList:item:hover {
+    background-color: #BADEF4;
+}
