@@ -55,6 +55,12 @@ def _(self: _QtMainWidgetBase):
     return self.toggleConsoleVisibility()
 
 
+@QMainWidget._keymap.bind("Ctrl+Shift+P")
+@QMainWindow._keymap.bind("Ctrl+Shift+P")
+def _(self: _QtMainWidgetBase):
+    """Show command palette."""
+    return self.showCommandPalette()
+
 @QMainWidget._keymap.bind("Ctrl+0")
 @QMainWindow._keymap.bind("Ctrl+0")
 def _(self: _QtMainWidgetBase):

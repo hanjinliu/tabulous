@@ -30,6 +30,7 @@ setup(
         "collections-undo>=0.0.7",
         "appdirs>=1.4.4",
         "qtconsole",
+        "qt-command-palette>=0.0.3",
         "toml",
     ],
     extras_require={
@@ -42,6 +43,7 @@ setup(
         ],
         "pyqt5": ["pyqt5>=5.12.3"],
         "pyqt6": ["pyqt6>=6.3.1"],
+        "scikit-learn": ["scikit-learn>=1.0"],
     },
     entry_points={
         "console_scripts": [f"{TABULOUS}={TABULOUS}.__main__:main"],
