@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 import qtpy
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import QEvent, Signal
+from qt_command_palette import get_palette
 
 from ._namespace import Namespace
 
@@ -64,16 +65,33 @@ class _QtMainWidgetBase(QtW.QWidget):
             _user_ns.pop(k, None)
         self._namespace.update(_user_ns)
 
+        # install command palette
+        self._command_palette = get_palette("tabulous")
+        self._command_palette.install(self)
+        qcommand_palette = self._command_palette.get_widget(self)
+        qcommand_palette.hidden.connect(self._on_hidden)
+        qcommand_palette.setFont(QtGui.QFont("Arial", 10))
+
+    def _on_hidden(self):
+        try:
+            self.setCellFocus()
+        except AttributeError:
+            pass
+
+    def showCommandPalette(self):
+        self._command_palette.show_widget(self)
+        return None
+
     def updateWidgetStyle(self):
         bg = self.palette().color(self.backgroundRole())
         whiteness = bg.red() + bg.green() + bg.blue()
         self._white_background = whiteness > 128 * 3
         if self._white_background:
             if self._toolbar is not None:
-                self._toolbar.setToolButtonColor("#000000")
+                self._toolbar.setToolButtonColor("#1E1E1E")
         else:
             if self._toolbar is not None:
-                self._toolbar.setToolButtonColor("#FFFFFF")
+                self._toolbar.setToolButtonColor("#CCCCCC")
 
     def screenshot(self):
         """Create an array of pixel data of the current view."""
@@ -86,7 +104,8 @@ class _QtMainWidgetBase(QtW.QWidget):
             arr = np.array(bits).reshape(h, w, c)
         else:
             bits.setsize(h * w * c)
-            arr = np.frombuffer(bits, np.uint8).reshape(h, w, c)
+            arr: np.ndarray = np.frombuffer(bits, np.uint8)
+            arr = arr.reshape(h, w, c)
 
         return arr[:, :, [2, 1, 0, 3]]
 
