@@ -17,7 +17,7 @@ from tabulous.widgets._component import (
 )
 from tabulous.widgets import _doc
 from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
-from tabulous._psygnal import SignalArray
+from tabulous._psygnal import SignalArray, InCellRangedSlot
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -101,6 +101,12 @@ class TableBase(ABC):
         self._name = str(name)
         self._qwidget = self._create_backend(_data)
         self._qwidget.connectSelectionChangedSignal(self._emit_selections)
+        self._qwidget._qtable_view._table_map.set.connect(
+            lambda k, v: self.events.data.connect_cell_slot(v)
+        )
+        self._qwidget._qtable_view._table_map.deleted.connect(
+            self.events.data.disconnect
+        )
         self._view_mode = ViewMode.normal
         self._metadata: dict[str, Any] = metadata or {}
 
@@ -487,8 +493,6 @@ class TableBase(ABC):
         return None
 
     def _emit_evaluated(self, info: EvalInfo):
-        # from tabulous._eval import Graph, LiteralCallable
-
         if info.expr == "":
             return None
 
@@ -497,7 +501,8 @@ class TableBase(ABC):
         qtable = self.native
         qtable_view = qtable._qtable_view
 
-        slot = self.events.data.connect_expr(self, info.expr, pos)
+        # slot = self.events.data.connect_expr(self, info.expr, pos)
+        slot = InCellRangedSlot.from_table(self, info.expr, pos)
 
         def _raise(e):
             # the common exception handling
@@ -530,6 +535,7 @@ class TableBase(ABC):
                 result = slot.evaluate()
                 if e := result.get_err():
                     _raise(e)
+                qtable.setCalculationGraph(pos, slot)
 
         # if not info.is_ref:
         #     # evaluated by "=..."

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Iterator, Sequence
+from typing import Iterable, Iterator, Sequence, SupportsIndex
 
 
 class TableAnchorBase(ABC):
@@ -28,8 +28,17 @@ class RectRange(TableAnchorBase):
         rsl: slice = slice(0, 0),
         csl: slice = slice(0, 0),
     ):
+        assert type(rsl) is slice and type(csl) is slice
         self._rsl = rsl
         self._csl = csl
+
+    @classmethod
+    def new(cls, r, c):
+        if isinstance(r, SupportsIndex):
+            r = slice(r, r + 1)
+        if isinstance(c, SupportsIndex):
+            c = slice(c, c + 1)
+        return cls(r, c)
 
     def __repr__(self):
         return f"RectRange[{_fmt_slice(self._rsl)}, {_fmt_slice(self._csl)}]"

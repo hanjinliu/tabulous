@@ -45,7 +45,7 @@ class OptimizerWidget(Container):
         dst = self._cost_selector.value.as_iat(df)
         params = self._param_selector.value.as_iloc_slices(df)
         qtable = table._qwidget
-        if dst not in qtable._qtable_view._ref_graphs:
+        if dst not in qtable._qtable_view._table_map:
             raise ValueError(f"{dst} has no reference.")
 
         if self._minimize_cbox.value == "minimize":

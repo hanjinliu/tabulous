@@ -1,5 +1,11 @@
 from __future__ import annotations
-from typing import Iterator, MutableMapping, NamedTuple, TypeVar
+from contextlib import contextmanager
+from typing import Iterator, MutableMapping, NamedTuple, TypeVar, TYPE_CHECKING
+from psygnal import Signal
+import logging
+
+if TYPE_CHECKING:
+    from tabulous._range import RectRange
 
 
 class Index(NamedTuple):
@@ -9,19 +15,31 @@ class Index(NamedTuple):
 
 _V = TypeVar("_V")
 
+logger = logging.getLogger(__name__)
+
 
 class TableMapping(MutableMapping[Index, _V]):
+    set = Signal(Index, object)
+    deleted = Signal(object)
+
     def __init__(self) -> None:
         self._dict: dict[Index, _V] = {}
+        from tabulous._range import NoRange
+
+        self._marked_range = NoRange()
 
     def __getitem__(self, key: Index) -> _V:
         return self._dict[key]
 
     def __setitem__(self, key: tuple[int, int], value: _V) -> None:
+        logger.debug(f"Setting TableMapping item at {key}")
         self._dict[Index(*key)] = value
+        self.set.emit(key, value)
 
     def __delitem__(self, key: Index) -> None:
-        del self._dict[key]
+        logger.debug(f"Deleting TableMapping item at {key}")
+        value = self._dict.pop(key)
+        self.deleted.emit(value)
 
     def __iter__(self) -> Iterator[Index]:
         return iter(self._dict)
@@ -80,3 +98,15 @@ class TableMapping(MutableMapping[Index, _V]):
                 self._dict[new_idx] = graph
 
         return None
+
+    @contextmanager
+    def mark_range(self, rng: RectRange):
+        _old_range = self._marked_range
+        self._marked_range = rng
+        try:
+            yield
+        finally:
+            self._marked_range = _old_range
+
+    def is_marking(self, rng: RectRange) -> bool:
+        return self._marked_range.includes(rng)

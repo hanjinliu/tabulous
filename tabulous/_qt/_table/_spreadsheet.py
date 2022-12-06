@@ -35,7 +35,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        from ..._utils import get_config
+        from tabulous._utils import get_config
 
         self._table_config = get_config().table
         self._columns_dtype = self.parent()._columns_dtype
@@ -428,7 +428,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = None
 
         # update graph indices
-        self._qtable_view._ref_graphs.insert_rows(row, count)
+        self._qtable_view._table_map.insert_rows(row, count)
         self._qtable_view._selection_model.insert_rows(row, count)
         self._qtable_view._highlight_model.insert_rows(row, count)
 
@@ -493,7 +493,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = None
 
         # update graph indices
-        self._qtable_view._ref_graphs.insert_columns(col, count)
+        self._qtable_view._table_map.insert_columns(col, count)
         self._qtable_view._selection_model.insert_columns(col, count)
         self._qtable_view._highlight_model.insert_columns(col, count)
 
@@ -532,7 +532,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         self._data_cache = None
 
-        self._qtable_view._ref_graphs.remove_rows(row, count)
+        self._qtable_view._table_map.remove_rows(row, count)
         self._qtable_view._highlight_model.remove_rows(row, count)
         self._qtable_view._selection_model.remove_rows(row, count)
         info = ItemInfo(
@@ -578,7 +578,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         self._data_cache = None
 
-        self._qtable_view._ref_graphs.remove_columns(col, count)
+        self._qtable_view._table_map.remove_columns(col, count)
         self._qtable_view._highlight_model.remove_columns(col, count)
         self._qtable_view._selection_model.remove_columns(col, count)
         info = ItemInfo(

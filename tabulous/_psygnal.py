@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from types import MethodType
+import logging
 from typing import (
     Callable,
     Generic,
@@ -21,19 +22,12 @@ from psygnal import Signal, SignalInstance, EmitLoopError
 import inspect
 from inspect import Parameter, Signature, isclass
 
-from tabulous.types import ItemInfo
-from tabulous._eval._literal import EvalResult  # TODO: remove this
 from tabulous._range import RectRange, AnyRange, MultiRectRange, TableAnchorBase
-from tabulous._selection_op import (
-    iter_extract,
-    iter_extract_with_range,
-    SelectionOperator,
-    ILocSelOp,
-)
-
+from tabulous._selection_op import iter_extract_with_range
 
 __all__ = ["SignalArray"]
 
+logger = logging.getLogger(__name__)
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
 
@@ -159,6 +153,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         return cls(expr, pos, table, MultiRectRange.from_slices(ranges))
 
     def evaluate(self) -> EvalResult:
+        """Evaluate expression, update cells and return the result."""
         import numpy as np
         import pandas as pd
 
@@ -172,6 +167,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         ns.update(df=df)
         try:
             out = eval(self._expr, ns, {})
+            logger.debug(f"Evaluated {self._expr!r}")
         except Exception as e:
             return EvalResult(e, self.pos)
 
@@ -235,7 +231,9 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             raise RuntimeError(_row, _col)  # Unreachable
 
         _sel_model = qtable_view._selection_model
-        with _sel_model.blocked():
+        with _sel_model.blocked(), qtable_view._table_map.mark_range(
+            RectRange.new(_row, _col)
+        ):
             qtable.setDataFrameValue(_row, _col, _out)
 
         self.last_destination = (_row, _col)
@@ -260,7 +258,9 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
                 err_repr,
                 dtype=object,
             )
-            with qtable_view._selection_model.blocked(), table.events.data.blocked():
+            with qtable_view._selection_model.blocked(), qtable_view._table_map.mark_range(
+                RectRange(rsl, csl)
+            ), table.events.data.blocked():
                 table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
         return None
 
@@ -515,14 +515,10 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
 
         return _wrapper if slot is None else _wrapper(slot)
 
-    def connect_expr(
+    def connect_cell_slot(
         self,
-        table: TableBase,
-        expr: str,
-        pos: tuple[int, int],
-    ) -> InCellRangedSlot:
-        slot = InCellRangedSlot.from_table(table, expr, pos)
-
+        slot: InCellRangedSlot,
+    ):
         with self._lock:
             _, max_args = self._check_nargs(slot, self.signature)
             self._slots.append((_normalize_slot(slot), max_args))
@@ -733,6 +729,64 @@ def _parse_key(key):
     else:
         key = RectRange(_parse_a_key(key), slice(None))
     return key
+
+
+_T = TypeVar("_T")
+
+
+class EvalResult(Generic[_T]):
+    """A Rust-like Result type for evaluation."""
+
+    def __init__(self, obj: _T | Exception, range: tuple[int | slice, int | slice]):
+        # TODO: range should be (int, int).
+        self._obj = obj
+        _r, _c = range
+        if isinstance(_r, int):
+            _r = slice(_r, _r + 1)
+        if isinstance(_c, int):
+            _c = slice(_c, _c + 1)
+        self._range = (_r, _c)
+
+    def __repr__(self) -> str:
+        cname = type(self).__name__
+        if isinstance(self._obj, Exception):
+            desc = "Err"
+        else:
+            desc = "Ok"
+        return f"{cname}<{desc}({self._obj!r})>"
+
+    def _short_repr(self) -> str:
+        cname = type(self).__name__
+        if isinstance(self._obj, Exception):
+            desc = "Err"
+        else:
+            desc = "Ok"
+        _obj = repr(self._obj)
+        if "\n" in _obj:
+            _obj = _obj.split("\n")[0] + "..."
+        if len(_obj.rstrip("...")) > 20:
+            _obj = _obj[:20] + "..."
+        return f"{cname}<{desc}({_obj})>"
+
+    @property
+    def range(self) -> tuple[slice, slice]:
+        """Output range."""
+        return self._range
+
+    def unwrap(self) -> _T:
+        obj = self._obj
+        if isinstance(obj, Exception):
+            raise obj
+        return obj
+
+    def get_err(self) -> Exception | None:
+        if isinstance(self._obj, Exception):
+            return self._obj
+        return None
+
+    def is_err(self) -> bool:
+        """True is an exception is wrapped."""
+        return isinstance(self._obj, Exception)
 
 
 class PartialMethodMeta(type):
