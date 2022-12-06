@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     Slice2D = tuple[Slice1D, Slice1D]
 
 
-class RangedSlot(Generic[_P, _R]):
+class RangedSlot(Generic[_P, _R], TableAnchorBase):
     """
     Callable object tagged with response range.
 
@@ -81,6 +81,22 @@ class RangedSlot(Generic[_P, _R]):
         """The wrapped function."""
         return self._func
 
+    def insert_columns(self, col: int, count: int) -> None:
+        """Insert columns and update range."""
+        return self._range.insert_columns(col, count)
+
+    def insert_rows(self, row: int, count: int) -> None:
+        """Insert rows and update range."""
+        return self._range.insert_rows(row, count)
+
+    def remove_columns(self, col: int, count: int) -> None:
+        """Remove columns and update range."""
+        return self._range.remove_columns(col, count)
+
+    def remove_rows(self, row: int, count: int) -> None:
+        """Remove rows and update range."""
+        return self._range.remove_rows(row, count)
+
 
 class InCellRangedSlot(RangedSlot[_P, _R]):
     def __init__(
@@ -91,7 +107,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         range: RectRange = AnyRange(),
     ):
         self._expr = expr
-        super().__init__(self.call, range)
+        super().__init__(lambda: self.call(), range)
         self._pos = pos
         self._table = weakref.ref(table)
         self._last_destination: tuple[slice, slice] | None = None
@@ -265,9 +281,40 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         return None
 
     def call(self):
+        """Function that will be called when cells changed."""
         out = self.evaluate()
         self.after_called(out)
         return out
+
+    def insert_columns(self, col: int, count: int) -> None:
+        """Insert columns and update range."""
+        self._range.insert_columns(col, count)
+        # if self.last_destination:
+        #     ...
+        r, c = self.pos
+        if c >= col:
+            self.set_pos((r, c + count))
+
+    def insert_rows(self, row: int, count: int) -> None:
+        """Insert rows and update range."""
+        self._range.insert_rows(row, count)
+        r, c = self.pos
+        if r >= row:
+            self.set_pos((r + count, c))
+
+    def remove_columns(self, col: int, count: int) -> None:
+        """Remove columns and update range."""
+        self._range.remove_columns(col, count)
+        r, c = self.pos
+        if c >= col:
+            self.set_pos((r, c - count))
+
+    def remove_rows(self, row: int, count: int) -> None:
+        """Remove rows and update range."""
+        self._range.remove_rows(row, count)
+        r, c = self.pos
+        if r >= row:
+            self.set_pos((r - count, c))
 
     def _infer_indices(self) -> tuple[int, int]:
         """Infer how to concatenate a scalar to ``df``."""
@@ -583,14 +630,14 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
         """Insert rows and update slot ranges in-place."""
         for slot, _ in self._slots:
             if isinstance(slot, RangedSlot):
-                slot.range.insert_rows(row, count)
+                slot.insert_rows(row, count)
         return None
 
     def insert_columns(self, col: int, count: int) -> None:
         """Insert columns and update slices in-place."""
         for slot, _ in self._slots:
             if isinstance(slot, RangedSlot):
-                slot.range.insert_columns(col, count)
+                slot.insert_columns(col, count)
         return None
 
     def remove_rows(self, row: int, count: int):
@@ -598,11 +645,12 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
         to_be_disconnected: list[RangedSlot] = []
         for slot, _ in self._slots:
             if isinstance(slot, RangedSlot):
-                slot.range.remove_rows(row, count)
+                slot.remove_rows(row, count)
                 if slot.range.is_empty():
+                    logger.debug(f"Range became empty by removing rows")
                     to_be_disconnected.append(slot)
         for slot in to_be_disconnected:
-            self.disconnect(slot)
+            self.disconnect(slot, missing_ok=False)
         return None
 
     def remove_columns(self, col: int, count: int):
@@ -610,11 +658,12 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
         to_be_disconnected: list[RangedSlot] = []
         for slot, _ in self._slots:
             if isinstance(slot, RangedSlot):
-                slot.range.remove_columns(col, count)
+                slot.remove_columns(col, count)
                 if slot.range.is_empty():
+                    logger.debug(f"Range became empty by removing columns")
                     to_be_disconnected.append(slot)
         for slot in to_be_disconnected:
-            self.disconnect(slot)
+            self.disconnect(slot, missing_ok=False)
         return None
 
     def _slot_index(self, slot: NormedCallback) -> int:

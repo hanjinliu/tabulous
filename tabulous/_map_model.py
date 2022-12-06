@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from typing import Iterator, MutableMapping, NamedTuple, TypeVar, TYPE_CHECKING
 from psygnal import Signal
 import logging
+from tabulous._range import TableAnchorBase
 
 if TYPE_CHECKING:
     from tabulous._range import RectRange
@@ -18,7 +19,7 @@ _V = TypeVar("_V")
 logger = logging.getLogger(__name__)
 
 
-class TableMapping(MutableMapping[Index, _V]):
+class TableMapping(MutableMapping[Index, _V], TableAnchorBase):
     set = Signal(Index, object)
     deleted = Signal(object)
 
@@ -33,7 +34,10 @@ class TableMapping(MutableMapping[Index, _V]):
 
     def __setitem__(self, key: tuple[int, int], value: _V) -> None:
         logger.debug(f"Setting TableMapping item at {key}")
-        self._dict[Index(*key)] = value
+        index = Index(*key)
+        if index in self._dict:
+            del self[index]
+        self._dict[index] = value
         self.set.emit(key, value)
 
     def __delitem__(self, key: Index) -> None:
@@ -53,8 +57,10 @@ class TableMapping(MutableMapping[Index, _V]):
         for idx in list(self._dict.keys()):
             if idx.row >= row:
                 new_idx = Index(idx.row + count, idx.column)
-                graph = self._dict.pop(idx)
-                new_dict[new_idx] = graph
+                child = self._dict.pop(idx)
+                new_dict[new_idx] = child
+                # if isinstance(child, TableAnchorBase):
+                #     child.insert_rows(row, count)
 
         self._dict.update(new_dict)
         return None
@@ -65,8 +71,10 @@ class TableMapping(MutableMapping[Index, _V]):
         for idx in list(self._dict.keys()):
             if idx.column >= col:
                 new_idx = Index(idx.row, idx.column + count)
-                graph = self._dict.pop(idx)
-                new_dict[new_idx] = graph
+                child = self._dict.pop(idx)
+                new_dict[new_idx] = child
+                # if isinstance(child, TableAnchorBase):
+                #     child.insert_columns(col, count)
 
         self._dict.update(new_dict)
         return None
@@ -80,8 +88,10 @@ class TableMapping(MutableMapping[Index, _V]):
                 self.pop(idx)
             elif idx.row >= stop:
                 new_idx = Index(idx.row - count, idx.column)
-                graph = self._dict.pop(idx)
-                self._dict[new_idx] = graph
+                child = self._dict.pop(idx)
+                self._dict[new_idx] = child
+                # if isinstance(child, TableAnchorBase):
+                #     child.remove_rows(row, count)
 
         return None
 
@@ -94,8 +104,10 @@ class TableMapping(MutableMapping[Index, _V]):
                 self.pop(idx)
             elif idx.column >= stop:
                 new_idx = Index(idx.row, idx.column - count)
-                graph = self._dict.pop(idx)
-                self._dict[new_idx] = graph
+                child = self._dict.pop(idx)
+                self._dict[new_idx] = child
+                # if isinstance(child, TableAnchorBase):
+                #     child.remove_columns(col, count)
 
         return None
 

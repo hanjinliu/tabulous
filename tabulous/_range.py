@@ -33,7 +33,7 @@ class RectRange(TableAnchorBase):
         self._csl = csl
 
     @classmethod
-    def new(cls, r, c):
+    def new(cls, r: slice | SupportsIndex, c: slice | SupportsIndex):
         if isinstance(r, SupportsIndex):
             r = slice(r, r + 1)
         if isinstance(c, SupportsIndex):
