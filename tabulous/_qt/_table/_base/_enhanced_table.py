@@ -21,7 +21,7 @@ from tabulous._selection_model import RangesModel, SelectionModel, Index
 if TYPE_CHECKING:
     from tabulous._qt._table._base._delegate import TableItemDelegate
     from tabulous._qt._mainwindow import _QtMainWidgetBase
-    from tabulous._psygnal import InCellRangedSlot
+    from tabulous._map_model import SlotRefMapping
 
 # Flags
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
@@ -63,6 +63,8 @@ class _QTableViewEnhanced(QtW.QTableView):
     rightClickedSignal = Signal(QtCore.QPoint)
     focusedSignal = Signal()
     resizedSignal = Signal()
+
+    _table_map: SlotRefMapping
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -127,9 +129,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         # attributes relevant to in-cell calculation
         self._focused_widget_ref = None
         self._focused_widget = None
-        from tabulous._map_model import TableMapping
-
-        self._table_map: TableMapping[InCellRangedSlot] = TableMapping()
 
     # fmt: off
     if TYPE_CHECKING:

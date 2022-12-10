@@ -5,6 +5,7 @@ import logging
 from typing import (
     Callable,
     Generic,
+    Iterator,
     Sequence,
     SupportsIndex,
     overload,
@@ -69,7 +70,8 @@ class RangedSlot(Generic[_P, _R], TableAnchorBase):
         return self._func == other
 
     def __repr__(self) -> str:
-        return f"RangedSlot<{self._func!r}>"
+        clsname = type(self).__name__
+        return f"{clsname}<{self._func!r}>"
 
     @property
     def range(self) -> RectRange:
@@ -111,6 +113,10 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         self._pos = pos
         self._table = weakref.ref(table)
         self._last_destination: tuple[slice, slice] | None = None
+        self._deleted = False  # manually set to True when this slot no more exists.
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}<{self._expr!r}>"
 
     @property
     def table(self) -> TableBase:
@@ -173,6 +179,9 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         import numpy as np
         import pandas as pd
 
+        if self._deleted:
+            raise RuntimeError(f"{self!r} has been deleted.")
+
         table = self.table
         qtable = table._qwidget
         qtable_view = qtable._qtable_view
@@ -183,7 +192,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         ns.update(df=df)
         try:
             out = eval(self._expr, ns, {})
-            logger.debug(f"Evaluated {self._expr!r}")
+            logger.debug(f"Evaluated {self._expr!r} at {self.pos!r}")
         except Exception as e:
             return EvalResult(e, self.pos)
 
@@ -247,9 +256,8 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             raise RuntimeError(_row, _col)  # Unreachable
 
         _sel_model = qtable_view._selection_model
-        with _sel_model.blocked(), qtable_view._table_map.mark_range(
-            RectRange.new(_row, _col)
-        ):
+        _rect = RectRange.new(_row, _col)
+        with _sel_model.blocked(), qtable_view._table_map.mark_range(_rect):
             qtable.setDataFrameValue(_row, _col, _out)
 
         self.last_destination = (_row, _col)
@@ -714,6 +722,25 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
                 self.disconnect(slot)
 
         return None
+
+    def iter_slots(self) -> Iterator[Callable]:
+        """Iterate over all connected slots."""
+        for slot, _ in self._slots:
+            if isinstance(slot, tuple):
+                _ref, name, method = slot
+                obj = _ref()
+                if obj is None:
+                    continue
+                if method is not None:
+                    cb = method
+                else:
+                    _cb = getattr(obj, name, None)
+                    if _cb is None:
+                        continue
+                    cb = _cb
+            else:
+                cb = slot
+            yield cb
 
 
 class _SignalSubArrayRef:

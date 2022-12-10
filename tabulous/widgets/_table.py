@@ -101,12 +101,9 @@ class TableBase(ABC):
         self._name = str(name)
         self._qwidget = self._create_backend(_data)
         self._qwidget.connectSelectionChangedSignal(self._emit_selections)
-        self._qwidget._qtable_view._table_map.set.connect(
-            lambda k, v: self.events.data.connect_cell_slot(v)
-        )
-        self._qwidget._qtable_view._table_map.deleted.connect(
-            self.events.data.disconnect
-        )
+        from tabulous._map_model import SlotRefMapping
+
+        self._qwidget._qtable_view._table_map = SlotRefMapping(self)
         self._view_mode = ViewMode.normal
         self._metadata: dict[str, Any] = metadata or {}
 

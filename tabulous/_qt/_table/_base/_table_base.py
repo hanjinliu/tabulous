@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from functools import partial
 from pathlib import Path
 from typing import Any, Callable, TYPE_CHECKING, Tuple, TypeVar
@@ -36,6 +37,7 @@ if TYPE_CHECKING:
     from tabulous.types import SelectionType, _Sliceable
     from tabulous._psygnal import InCellRangedSlot
 
+logger = logging.getLogger("tabulous")
 ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
 
 _SplitterStyle = """
