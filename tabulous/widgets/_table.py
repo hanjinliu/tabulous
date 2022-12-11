@@ -494,11 +494,9 @@ class TableBase(ABC):
             return None
 
         pos = (info.row, info.column)
-        # literal_callable = LiteralCallable.from_table(self, info.expr, pos)
         qtable = self.native
         qtable_view = qtable._qtable_view
 
-        # slot = self.events.data.connect_expr(self, info.expr, pos)
         slot = InCellRangedSlot.from_table(self, info.expr, pos)
 
         def _raise(e):

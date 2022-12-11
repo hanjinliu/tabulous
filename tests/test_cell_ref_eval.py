@@ -242,4 +242,4 @@ def test_removing_or_inserting_left_column():
     assert sheet.data.shape == (3, 3)
     assert sheet.cell[0, 2] == "10.0"
     sheet.cell[1, 0] = 5
-    assert sheet.cell[0, 3] == "10.0"
+    assert sheet.cell[0, 2] == "10.0"

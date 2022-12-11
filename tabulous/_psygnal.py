@@ -24,7 +24,7 @@ import inspect
 from inspect import Parameter, Signature, isclass
 
 from tabulous._range import RectRange, AnyRange, MultiRectRange, TableAnchorBase
-from tabulous._selection_op import iter_extract_with_range
+from tabulous._selection_op import iter_extract_with_range, SelectionOperator
 
 __all__ = ["SignalArray"]
 
@@ -100,10 +100,35 @@ class RangedSlot(Generic[_P, _R], TableAnchorBase):
         return self._range.remove_rows(row, count)
 
 
+class InCellExpr:
+    SELECT = object()
+
+    def __init__(self, objs: list):
+        self._objs = objs
+
+    def eval(self, ns: dict[str, Any], ranges: MultiRectRange):
+        expr = self.as_literal(ranges)
+        logger.debug(f"About to run: {expr!r}")
+        return eval(expr, ns, {})
+
+    def as_literal(self, ranges: MultiRectRange) -> str:
+        out: list[str] = []
+        _it = iter(ranges)
+        for o in self._objs:
+            if o is self.SELECT:
+                op = next(_it)
+                out.append(op.as_iloc_string())
+            else:
+                out.append(o)
+        return "".join(out)
+
+
 class InCellRangedSlot(RangedSlot[_P, _R]):
+    """A slot object with a reference to the table and position."""
+
     def __init__(
         self,
-        expr: str,
+        expr: InCellExpr,
         pos: tuple[int, int],
         table: TableBase,
         range: RectRange = AnyRange(),
@@ -113,10 +138,10 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         self._pos = pos
         self._table = weakref.ref(table)
         self._last_destination: tuple[slice, slice] | None = None
-        self._deleted = False  # manually set to True when this slot no more exists.
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}<{self._expr!r}>"
+        expr = self._expr.as_literal(self.range)
+        return f"{type(self).__name__}<{expr!r}>"
 
     @property
     def table(self) -> TableBase:
@@ -127,9 +152,11 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
 
     @property
     def pos(self) -> tuple[int, int]:
+        """The position of the cell that this slot is attached to."""
         return self._pos
 
     def set_pos(self, pos: tuple[int, int]):
+        """Set the position of the cell that this slot is attached to."""
         self._pos = pos
         return self
 
@@ -161,26 +188,23 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         # normalize expression to iloc-slicing.
         df_ref = qtable.dataShown(parse=False)
         current_end = 0
-        output_str: list[str] = []
+        output: list[str] = []
         ranges = []
         for (start, end), op in iter_extract_with_range(expr):
-            output_str.append(expr[current_end:start])
-            output_str.append(op.fmt_iloc(df_ref))
+            output.append(expr[current_end:start])
+            output.append(InCellExpr.SELECT)
             ranges.append(op.as_iloc_slices(df_ref))
             current_end = end
-        output_str.append(expr[current_end:])
-        expr = "".join(output_str)
+        output.append(expr[current_end:])
+        expr_obj = InCellExpr(output)
 
         # func pos range
-        return cls(expr, pos, table, MultiRectRange.from_slices(ranges))
+        return cls(expr_obj, pos, table, MultiRectRange.from_slices(ranges))
 
     def evaluate(self) -> EvalResult:
         """Evaluate expression, update cells and return the result."""
         import numpy as np
         import pandas as pd
-
-        if self._deleted:
-            raise RuntimeError(f"{self!r} has been deleted.")
 
         table = self.table
         qtable = table._qwidget
@@ -191,9 +215,10 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         ns = dict(qviewer._namespace)
         ns.update(df=df)
         try:
-            out = eval(self._expr, ns, {})
-            logger.debug(f"Evaluated {self._expr!r} at {self.pos!r}")
+            out = self._expr.eval(ns, self.range)
+            logger.debug(f"Evaluated at {self.pos!r}")
         except Exception as e:
+            logger.debug(f"Evaluation failed at {self.pos!r}: {e!r}")
             return EvalResult(e, self.pos)
 
         _row, _col = self.pos
@@ -230,6 +255,8 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
 
         elif isinstance(out, np.ndarray):
             _out = np.squeeze(out)
+            if _out.size == 0:
+                raise CellEvaluationError("Evaluation returned 0-sized array.")
             if _out.ndim == 0:  # scalar
                 _out = qtable.convertValue(_col, _out.item())
                 _row, _col = self._infer_indices()

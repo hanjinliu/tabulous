@@ -109,6 +109,12 @@ class RectRange(TableAnchorBase):
     def iter_ranges(self) -> Iterator[tuple[slice, slice]]:
         return iter([(self._rsl, self._csl)])
 
+    def as_iloc(self) -> tuple[slice, slice]:
+        return self._rsl, self._csl
+
+    def as_iloc_string(self, df_expr: str = "df") -> str:
+        return f"{df_expr}.iloc[{_parse_slice(self._rsl)}, {_parse_slice(self._csl)}]"
+
 
 _DO_NOTHING = lambda *args, **kwargs: None
 
@@ -226,8 +232,23 @@ class MultiRectRange(RectRange):
         for rng in self:
             yield from rng.iter_ranges()
 
+    def as_iloc(self):
+        raise TypeError("Cannot convert MultiRectRange to iloc")
+
 
 def _fmt_slice(sl: slice) -> str:
+    s0 = sl.start if sl.start is not None else ""
+    s1 = sl.stop if sl.stop is not None else ""
+    return f"{s0}:{s1}"
+
+
+def _parse_slice(sl: slice) -> str:
+    """Convert slice to 'a:b' representation or to int if possible"""
+    if sl.start is not None and sl.stop is not None:
+        s0 = sl.start
+        s1 = sl.stop
+        if s0 == s1 - 1:
+            return str(int(s0))
     s0 = sl.start if sl.start is not None else ""
     s1 = sl.stop if sl.stop is not None else ""
     return f"{s0}:{s1}"
