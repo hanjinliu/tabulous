@@ -11,11 +11,12 @@ import pandas as pd
 from tabulous._qt._qt_const import MonospaceFontFamily
 from tabulous._qt._keymap import QtKeys
 from tabulous.types import HeaderInfo, EvalInfo
-from tabulous._range import RectRange
+from tabulous._range import RectRange, MultiRectRange
 from tabulous._utils import get_config
 from tabulous._selection_op import (
     find_last_dataframe_expr,
     construct,
+    iter_extract,
 )
 
 if TYPE_CHECKING:
@@ -296,6 +297,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         pos: tuple[int, int] = (0, 0),
     ):
         super().__init__(parent, table, pos)
+        self._old_range: RectRange | None = None
         qtable = self.parentTableView()
         qtable._selection_model.moved.connect(self._on_selection_changed)
         qtable._focused_widget = self
@@ -389,6 +391,22 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         palette.setColor(QtGui.QPalette.ColorRole.Text, col)
         self.setPalette(palette)
+
+        if self.mode is self.Mode.TEXT:
+            return None
+
+        # draw ranges
+        _table = self._table
+        ranges: list[tuple[slice, slice]] = []
+        for op in iter_extract(text):
+            ranges.append(op.as_iloc_slices(_table.model().df))
+        if ranges:
+            new_range = MultiRectRange.from_slices(ranges)
+        else:
+            new_range = None
+        if self._old_range or new_range:
+            _table._qtable_view._current_drawing_slot_ranges = new_range
+            _table._qtable_view._update_all()
         return None
 
     def close(self) -> None:

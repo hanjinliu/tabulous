@@ -530,29 +530,7 @@ class TableBase(ABC):
                 result = slot.evaluate()
                 if e := result.get_err():
                     _raise(e)
-                qtable.setCalculationGraph(pos, slot)
-
-        # if not info.is_ref:
-        #     # evaluated by "=..."
-        #     result = literal_callable(unblock=True)  # cells updated here if succeeded
-        #     if e := result.get_err():
-        #         _raise(e)
-        #     else:
-        #         self.move_iloc(*pos)
-        # else:
-        #     # evaluated by "&=..."
-        #     selections = literal_callable.selection_ops
-        #     if len(selections) == 0:
-        #         # if no reference exists, evaluate the expression as "=..." form.
-        #         return self._emit_evaluated(EvalInfo(*pos, info.expr, False))
-        #     graph = Graph(self, literal_callable, selections)
-        #     with qtable._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
-        #         # call here to properly update undo stack
-        #         result = literal_callable(unblock=True)
-        #         if e := result.get_err():
-        #             _raise(e)
-        #         with graph.blocked():
-        #             qtable.setCalculationGraph(pos, graph)
+                qtable.setInCellSlot(pos, slot)
 
         del qtable_view._focused_widget
         return None

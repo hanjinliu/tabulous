@@ -535,17 +535,17 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def setItemLabel(self, r: int, c: int, text: str):
         return arguments(r, c, self.itemLabel(r, c))
 
-    def setCalculationGraph(self, pos: tuple[int, int], slot: InCellRangedSlot):
-        """Set calculation graph at the given position."""
+    def setInCellSlot(self, pos: tuple[int, int], slot: InCellRangedSlot):
+        """Set in-cell slot at the given position."""
         if slot is None:
             self._qtable_view._table_map.pop(pos)
         else:
-            self._set_graph(pos, slot)
+            self._set_incell_slot(pos, slot)
         return None
 
     @_mgr.interface
-    def _set_graph(self, pos: tuple[int, int], slot: InCellRangedSlot):
-        """Set graph object at given position."""
+    def _set_incell_slot(self, pos: tuple[int, int], slot: InCellRangedSlot):
+        """Set in-cell slot at the given position undoably."""
         if slot is None:
             self._qtable_view._table_map.pop(pos, None)
         else:
@@ -554,14 +554,14 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
                 self._qtable_view._selection_model.set_ranges([dest])
         return None
 
-    @_set_graph.server
-    def _set_graph(self, pos: tuple[int, int], slot: InCellRangedSlot):
+    @_set_incell_slot.server
+    def _set_incell_slot(self, pos: tuple[int, int], slot: InCellRangedSlot):
         slot = self._qtable_view._table_map.get(pos, None)
         return arguments(pos, slot)
 
-    @_set_graph.set_formatter
-    def _set_graph_fmt(self, pos, graph):
-        return repr(graph)
+    @_set_incell_slot.set_formatter
+    def _set_incell_slot_fmt(self, pos, slot):
+        return repr(slot)
 
     def refreshTable(self, process: bool = False) -> None:
         """Refresh table view."""
@@ -998,11 +998,11 @@ class QMutableTable(QBaseTable):
             # convert values
             if isinstance(r, slice) and isinstance(c, slice):
                 # delete references
-                self._clear_graphs(r, c)
+                self._clear_incell_slots(r, c)
                 _value = self._pre_set_array(r, c, value)
                 _is_scalar = False
             else:
-                self._set_graph((r, c), None)
+                self._set_incell_slot((r, c), None)
                 _convert_value = self._get_converter(c)
                 _value = _convert_value(c, value)
                 _is_scalar = True
@@ -1035,17 +1035,17 @@ class QMutableTable(QBaseTable):
 
         return None
 
-    def _clear_graphs(self, r: slice, c: slice) -> None:
+    def _clear_incell_slots(self, r: slice, c: slice) -> None:
         # this with-block is not needed but make it more efficient
         if len(self._qtable_view._table_map) < 128:
             for key in list(self._qtable_view._table_map.keys()):
                 if r.start <= key[0] < r.stop and c.start <= key[1] < c.stop:
-                    self._set_graph(key, None)
+                    self._set_incell_slot(key, None)
 
         else:
             for _c in range(c.start, c.stop):
                 for _r in range(r.start, r.stop):
-                    self._set_graph((_r, _c), None)
+                    self._set_incell_slot((_r, _c), None)
         return None
 
     def setLabeledData(self, r: slice, c: slice, value: pd.Series):
@@ -1061,7 +1061,7 @@ class QMutableTable(QBaseTable):
             lambda cmds: self._set_value_fmt(r, c, None, None, value, None)
         ):
             # delete references
-            self._clear_graphs(r, c)
+            self._clear_incell_slots(r, c)
 
             _value = self._pre_set_array(r, c, pd.DataFrame(value))
 

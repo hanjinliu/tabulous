@@ -427,7 +427,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setFilter(self._filter_slice)
         self._data_cache = None
 
-        # update graph indices
+        # update indices
         self._qtable_view._table_map.insert_rows(row, count)
         self._qtable_view._selection_model.insert_rows(row, count)
         self._qtable_view._highlight_model.insert_rows(row, count)
@@ -492,7 +492,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setFilter(self._filter_slice)
         self._data_cache = None
 
-        # update graph indices
+        # update indices
         self._qtable_view._table_map.insert_columns(col, count)
         self._qtable_view._selection_model.insert_columns(col, count)
         self._qtable_view._highlight_model.insert_columns(col, count)
@@ -521,7 +521,7 @@ class QSpreadSheet(QMutableSimpleTable):
         df = self.model().df.iloc[row : row + count, :]
 
         with self._mgr.merging():
-            self._clear_graphs(
+            self._clear_incell_slots(
                 slice(row, row + count),
                 slice(0, self._data_raw.shape[1]),
             )
@@ -567,7 +567,7 @@ class QSpreadSheet(QMutableSimpleTable):
         """Remove columns at the given column number and count."""
         df = self.model().df.iloc[:, column : column + count]
         with self._mgr.merging():
-            self._clear_graphs(
+            self._clear_incell_slots(
                 slice(0, self._data_raw.shape[0]),
                 slice(column, column + count),
             )

@@ -665,11 +665,11 @@ class CellReferenceInterface(
         return len(self._table_map())
 
     def __repr__(self) -> str:
-        graphs = self._table_map()
+        slots = self._table_map()
         cname = type(self).__name__
-        if len(graphs) == 0:
+        if len(slots) == 0:
             return f"{cname}()"
-        s = ",\n\t".join(f"{k}: {graph!r}" for k, graph in graphs.items())
+        s = ",\n\t".join(f"{k}: {slot!r}" for k, slot in slots.items())
         return f"{cname}(\n\t{s}\n)"
 
 
