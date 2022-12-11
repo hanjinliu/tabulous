@@ -199,7 +199,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def _on_moving(self, src: Index, dst: Index) -> None:
         _need_update_all = self._current_drawing_slot_ranges is not None
-        if slot := self._table_map.get(dst, None):
+        if slot := self._table_map.get_by_dest(dst, None):
             self._current_drawing_slot_ranges = slot.range
             _need_update_all = True
         else:

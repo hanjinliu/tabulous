@@ -130,13 +130,27 @@ class SlotRefMapping(MutableMapping[Index, InCellRangedSlot], TableAnchorBase):
             return table
         raise RuntimeError("Table has been deleted")
 
-    def __getitem__(self, key: Index) -> _V:
+    def __getitem__(self, key: Index) -> InCellRangedSlot:
         for slot in self.table().events.data.iter_slots():
             if not isinstance(slot, InCellRangedSlot):
                 continue
             if slot.pos == key:
                 return slot
         raise KeyError(key)
+
+    def get_by_dest(self, key: Index, default=None) -> InCellRangedSlot:
+        for slot in self.table().events.data.iter_slots():
+            if not isinstance(slot, InCellRangedSlot):
+                continue
+            if slot.pos == key:
+                return slot
+            dest = slot.last_destination
+            if dest is not None:
+                rsl, csl = dest
+                r, c = key
+                if rsl.start <= r < rsl.stop and csl.start <= c < csl.stop:
+                    return slot
+        return default
 
     def __setitem__(self, key: Index, slot: InCellRangedSlot) -> None:
         if self._locked_pos == key:

@@ -129,7 +129,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
             if slot := self.parent()._qtable_view._table_map.get((r, c), None):
                 ref = f"\nExpr: {slot.as_literal()}"
                 if slot._current_error is not None:
-                    ref += slot.format_error()
+                    ref += "\n" + slot.format_error()
             else:
                 ref = ""
             dtype = self._columns_dtype.get(name, None)
