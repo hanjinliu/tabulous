@@ -140,8 +140,12 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         self._last_destination: tuple[slice, slice] | None = None
 
     def __repr__(self) -> str:
-        expr = self._expr.as_literal(self.range)
+        expr = self.as_literal()
         return f"{type(self).__name__}<{expr!r}>"
+
+    def as_literal(self) -> str:
+        """As a literal string that represents this slot."""
+        return self._expr.as_literal(self.range)
 
     @property
     def table(self) -> TableBase:

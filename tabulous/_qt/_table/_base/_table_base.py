@@ -785,9 +785,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def _get_ref_expr(self, r: int, c: int) -> str | None:
         """Try to get a reference expression for the cell at (r, c)."""
-        graph = self._qtable_view._table_map.get((r, c), None)
-        if graph is not None:
-            return getattr(graph._func, "expr", None)
+        if slot := self._qtable_view._table_map.get((r, c), None):
+            return slot.as_literal()
         return None
 
     def _delete_ref_expr(self, r: int, c: int) -> None:
