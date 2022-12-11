@@ -32,11 +32,11 @@ setup(
         "qtconsole",
         "qt-command-palette>=0.0.3",
         "toml",
+        "matplotlib>=3.1",
     ],
     extras_require={
         "all": [
             "seaborn>=0.11",
-            "matplotlib>=3.1",
             "pyqt5>=5.12.3",
             "scipy>=1.7",
             "scikit-learn>=1.1",

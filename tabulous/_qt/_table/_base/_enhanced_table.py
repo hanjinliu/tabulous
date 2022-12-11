@@ -556,9 +556,11 @@ class _QTableViewEnhanced(QtW.QTableView):
             painter.drawRect(rect_cursor)
 
             # in-cell slot source ranges of the current index
+            color_cycle = _color_cycle()
             if rng := self._current_drawing_slot_ranges:
                 for rect in self._rect_from_ranges(rng.iter_ranges()):
-                    pen = QtGui.QPen(h_color, 2)
+                    rect.adjust(1, 1, -1, -1)
+                    pen = QtGui.QPen(next(color_cycle), 3)
                     painter.setPen(pen)
                     painter.drawRect(rect)
 
@@ -613,3 +615,25 @@ class _QTableViewEnhanced(QtW.QTableView):
         line.show()
         line.setFocus()
         return line
+
+
+def _color_cycle() -> Iterator[QtGui.QColor]:
+    """Generate easily distinguishable colors."""
+    # This is the default color cycle of matplotlib
+    colors = [
+        QtGui.QColor(31, 119, 180),
+        QtGui.QColor(255, 127, 14),
+        QtGui.QColor(44, 160, 44),
+        QtGui.QColor(214, 39, 40),
+        QtGui.QColor(148, 103, 189),
+        QtGui.QColor(140, 86, 75),
+        QtGui.QColor(227, 119, 194),
+        QtGui.QColor(127, 127, 127),
+        QtGui.QColor(188, 189, 34),
+        QtGui.QColor(23, 190, 207),
+    ]
+    ncolor = len(colors)
+    i = 0
+    while True:
+        yield colors[i]
+        i = i + 1 if i < ncolor - 1 else 0
