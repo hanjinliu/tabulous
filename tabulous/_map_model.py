@@ -142,12 +142,15 @@ class SlotRefMapping(MutableMapping[Index, InCellRangedSlot], TableAnchorBase):
         raise KeyError(key)
 
     def __setitem__(self, key: Index, slot: InCellRangedSlot) -> None:
-        self.pop(key, None)
+        if self.pop(key, None):
+            logger.debug(f"Overwriting slot at {key}")
         self.table().events.data.connect_cell_slot(slot)
+        logger.debug(f"Connecting slot at {key}")
 
     def __delitem__(self, key: Index) -> None:
         slot = self[key]
         self.table().events.data.disconnect(slot)
+        logger.debug(f"Deleting slot at {key}")
 
     def _remove_multiple(self, slots: Iterable[InCellRangedSlot]):
         data = self.table().events.data

@@ -124,21 +124,21 @@ class SpreadSheetModel(AbstractDataFrameModel):
         if r < self.df.shape[0] and c < self.df.shape[1]:
             val = self.df.iat[r, c]
             name = self.df.columns[c]
-            dtype = self._columns_dtype.get(name, None)
             if ref_expr := self.parent()._get_ref_expr(r, c):
                 ref = f"\nExpr: {ref_expr}"
             else:
                 ref = ""
+            dtype = self._columns_dtype.get(name, None)
             if dtype is None:
                 return f"{val!r} (dtype: infer){ref}"
             else:
                 return f"{val!r} (dtype: {dtype}){ref}"
         return QtCore.QVariant()
 
-    # fmt: off
     if TYPE_CHECKING:
-        def parent(self) -> QSpreadSheet: ...
-    # fmt: on
+
+        def parent(self) -> QSpreadSheet:
+            ...
 
 
 class QSpreadSheet(QMutableSimpleTable):
@@ -158,10 +158,10 @@ class QSpreadSheet(QMutableSimpleTable):
         super().__init__(parent, data)
         self._qtable_view.verticalHeader().setMinimumWidth(20)
 
-    # fmt: off
     if TYPE_CHECKING:
-        def model(self) -> SpreadSheetModel: ...
-    # fmt: on
+
+        def model(self) -> SpreadSheetModel:
+            ...
 
     def getDataFrame(self) -> pd.DataFrame:
         if self._data_cache is not None:
