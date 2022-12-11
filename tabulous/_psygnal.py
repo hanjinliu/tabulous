@@ -287,8 +287,8 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             raise RuntimeError(_row, _col)  # Unreachable
 
         _sel_model = qtable_view._selection_model
-        _rect = RectRange.new(_row, _col)
-        with _sel_model.blocked(), qtable_view._table_map.mark_range(_rect):
+        _rect = RectRange.new(*self.pos)
+        with _sel_model.blocked(), qtable_view._table_map.lock_pos(self.pos):
             qtable.setDataFrameValue(_row, _col, _out)
 
         self.last_destination = (_row, _col)
@@ -313,10 +313,10 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
                 err_repr,
                 dtype=object,
             )
-            with qtable_view._selection_model.blocked(), qtable_view._table_map.mark_range(
-                RectRange(rsl, csl)
-            ), table.events.data.blocked():
-                table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
+            with qtable_view._selection_model.blocked():
+                with qtable_view._table_map.lock_pos(self.pos):
+                    with table.events.data.blocked():
+                        table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
         return None
 
     def call(self):

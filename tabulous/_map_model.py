@@ -123,10 +123,7 @@ class TableMapping(MutableMapping[Index, _V], TableAnchorBase):
 class SlotRefMapping(MutableMapping[Index, InCellRangedSlot], TableAnchorBase):
     def __init__(self, table: TableBase) -> None:
         self._table_ref = weakref.ref(table)
-
-        from tabulous._range import NoRange
-
-        self._marked_range = NoRange()
+        self._locked_pos = None
 
     def table(self) -> TableBase:
         if table := self._table_ref():
@@ -142,12 +139,16 @@ class SlotRefMapping(MutableMapping[Index, InCellRangedSlot], TableAnchorBase):
         raise KeyError(key)
 
     def __setitem__(self, key: Index, slot: InCellRangedSlot) -> None:
+        if self._locked_pos == key:
+            return
         if self.pop(key, None):
             logger.debug(f"Overwriting slot at {key}")
         self.table().events.data.connect_cell_slot(slot)
         logger.debug(f"Connecting slot at {key}")
 
     def __delitem__(self, key: Index) -> None:
+        if self._locked_pos == key:
+            return
         slot = self[key]
         self.table().events.data.disconnect(slot)
         logger.debug(f"Deleting slot at {key}")
@@ -179,16 +180,13 @@ class SlotRefMapping(MutableMapping[Index, InCellRangedSlot], TableAnchorBase):
         return len([i for i in self])
 
     @contextmanager
-    def mark_range(self, rng: RectRange):
-        _old_range = self._marked_range
-        self._marked_range = rng
+    def lock_pos(self, pos: Index):
+        _old_pos = self._locked_pos
+        self._locked_pos = pos
         try:
             yield
         finally:
-            self._marked_range = _old_range
-
-    def is_marking(self, rng: RectRange) -> bool:
-        return self._marked_range.includes(rng)
+            self._locked_pos = _old_pos
 
     def insert_rows(self, row: int, count: int):
         """Insert rows and update indices."""

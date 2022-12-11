@@ -998,16 +998,11 @@ class QMutableTable(QBaseTable):
             # convert values
             if isinstance(r, slice) and isinstance(c, slice):
                 # delete references
-                if not self._qtable_view._table_map.is_marking(RectRange(r, c)):
-                    self._clear_graphs(r, c)
-
+                self._clear_graphs(r, c)
                 _value = self._pre_set_array(r, c, value)
                 _is_scalar = False
             else:
-                if not self._qtable_view._table_map.is_marking(
-                    RectRange(slice(r, r + 1), slice(c, c + 1))
-                ):
-                    self._set_graph((r, c), None)
+                self._set_graph((r, c), None)
                 _convert_value = self._get_converter(c)
                 _value = _convert_value(c, value)
                 _is_scalar = True
@@ -1066,9 +1061,7 @@ class QMutableTable(QBaseTable):
             lambda cmds: self._set_value_fmt(r, c, None, None, value, None)
         ):
             # delete references
-            if not self._qtable_view._table_map.is_marking(RectRange(r, c)):
-                # this with-block is not needed but make it more efficient
-                self._clear_graphs(r, c)
+            self._clear_graphs(r, c)
 
             _value = self._pre_set_array(r, c, pd.DataFrame(value))
 
