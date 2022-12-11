@@ -324,8 +324,10 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
     def insert_columns(self, col: int, count: int) -> None:
         """Insert columns and update range."""
         self._range.insert_columns(col, count)
-        # if self.last_destination:
-        #     ...
+        if dest := self.last_destination:
+            rect = RectRange(*dest)
+            rect.insert_columns(col, count)
+            self.last_destination = rect.as_iloc()
         r, c = self.pos
         if c >= col:
             self.set_pos((r, c + count))
@@ -333,6 +335,10 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
     def insert_rows(self, row: int, count: int) -> None:
         """Insert rows and update range."""
         self._range.insert_rows(row, count)
+        if dest := self.last_destination:
+            rect = RectRange(*dest)
+            rect.insert_rows(row, count)
+            self.last_destination = rect.as_iloc()
         r, c = self.pos
         if r >= row:
             self.set_pos((r + count, c))
@@ -340,6 +346,10 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
     def remove_columns(self, col: int, count: int) -> None:
         """Remove columns and update range."""
         self._range.remove_columns(col, count)
+        if dest := self.last_destination:
+            rect = RectRange(*dest)
+            rect.remove_columns(col, count)
+            self.last_destination = rect.as_iloc()
         r, c = self.pos
         if c >= col:
             self.set_pos((r, c - count))
@@ -348,6 +358,10 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         """Remove rows and update range."""
         self._range.remove_rows(row, count)
         r, c = self.pos
+        if dest := self.last_destination:
+            rect = RectRange(*dest)
+            rect.remove_rows(row, count)
+            self.last_destination = rect.as_iloc()
         if r >= row:
             self.set_pos((r - count, c))
 
