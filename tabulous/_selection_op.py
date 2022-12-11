@@ -21,6 +21,11 @@ class SelectionOperator:
         """Format selection literal for display."""
         raise NotImplementedError()
 
+    def fmt_iloc(self, df: pd.DataFrame, df_expr: str = "df") -> str:
+        """Format selection literal as iloc indices."""
+        rsel, csel = self.as_iloc(df)
+        return f"{df_expr}.iloc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+
     def fmt_scalar(self, df_expr: str = "df") -> str:
         """Format 1x1 selection literal as a scalar reference."""
         raise NotImplementedError()
@@ -147,11 +152,11 @@ class LocSelOp(SelectionOperator):
     def fmt_scalar(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
         if isinstance(rsel, slice):
-            if rsel.start != rsel.stop:
+            if _has_none(rsel) or rsel.start != rsel.stop:
                 raise ValueError("Cannot format as a scalar value.")
             rsel = rsel.start
         if isinstance(csel, slice):
-            if csel.start != csel.stop:
+            if _has_none(csel) or csel.start != csel.stop:
                 raise ValueError("Cannot format as a scalar value.")
             csel = csel.start
         return f"{df_expr}.loc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
@@ -232,11 +237,11 @@ class ILocSelOp(SelectionOperator):
     def fmt_scalar(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
         if isinstance(rsel, slice):
-            if rsel.start != rsel.stop - 1:
+            if _has_none(rsel) or rsel.start != rsel.stop - 1:
                 raise ValueError("Cannot format as a scalar value.")
             rsel = rsel.start
         if isinstance(csel, slice):
-            if csel.start != csel.stop - 1:
+            if _has_none(csel) or csel.start != csel.stop - 1:
                 raise ValueError("Cannot format as a scalar value.")
             csel = csel.start
         return f"{df_expr}.iloc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
@@ -247,6 +252,9 @@ class ILocSelOp(SelectionOperator):
 
     def as_iloc(self, df: pd.DataFrame = None) -> tuple[_Slice, _Slice]:
         return self.args
+
+    def as_iloc_slices(self, df: pd.DataFrame | None = None) -> tuple[slice, slice]:
+        return super().as_iloc_slices(df)
 
     @classmethod
     def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame = None) -> Self:
@@ -269,11 +277,11 @@ class ValueSelOp(SelectionOperator):
     def fmt_scalar(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
         if isinstance(rsel, slice):
-            if rsel.start != rsel.stop - 1:
+            if _has_none(rsel) or rsel.start != rsel.stop - 1:
                 raise ValueError("Cannot format as a scalar value.")
             rsel = rsel.start
         if isinstance(csel, slice):
-            if csel.start != csel.stop - 1:
+            if _has_none(csel) or csel.start != csel.stop - 1:
                 raise ValueError("Cannot format as a scalar value.")
             csel = csel.start
         return f"{df_expr}.values[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
@@ -293,8 +301,18 @@ class ValueSelOp(SelectionOperator):
 
 def iter_extract(text: str, *, df_expr: str = "df") -> Iterator[SelectionOperator]:
     """Iteratively extract selection literal from text."""
-    for expr in find_all_dataframe_expr(text):
-        yield parse(expr, df_expr=df_expr)
+    for match_obj in _PATTERN.finditer(text):
+        yield parse(match_obj.group(), df_expr=df_expr)
+
+
+def iter_extract_with_range(
+    text: str,
+    *,
+    df_expr: str = "df",
+) -> Iterator[tuple[tuple[int, int], SelectionOperator]]:
+    for match_obj in _PATTERN.finditer(text):
+        range = (match_obj.start(), match_obj.end())
+        yield range, parse(match_obj.group(), df_expr=df_expr)
 
 
 def parse(expr: str, *, df_expr: str = "df") -> SelectionOperator:
@@ -414,6 +432,10 @@ def _parse_slice(s: str) -> Hashable | slice:
         return slice(start, stop)
     else:
         return _eval(s)
+
+
+def _has_none(sl: slice):
+    return sl.start is None or sl.stop is None
 
 
 @singledispatch

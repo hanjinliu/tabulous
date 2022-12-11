@@ -193,8 +193,9 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         window = cls._instances[-1] if cls._instances else None
         return window._table_viewer if window else None
 
-    def close(self) -> bool:
-        self._ask_on_close = False
+    def close(self, ask: bool | None = False) -> bool:
+        if ask is not None:
+            self._ask_on_close = ask
         return super().close()
 
     def event(self, e: QEvent):

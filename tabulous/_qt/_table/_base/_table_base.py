@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from functools import partial
 from pathlib import Path
 from typing import Any, Callable, TYPE_CHECKING, Tuple, TypeVar
@@ -24,7 +25,8 @@ from tabulous._qt._keymap import QtKeys, QtKeyMap
 from tabulous._qt._action_registry import QActionRegistry
 from tabulous.types import FilterType, ItemInfo, HeaderInfo, EvalInfo
 from tabulous.exceptions import SelectionRangeError, TableImmutableError
-from tabulous._selection_op import LocSelOp, ILocSelOp
+from tabulous._selection_op import LocSelOp
+from tabulous._range import RectRange
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
@@ -33,8 +35,9 @@ if TYPE_CHECKING:
     from tabulous._qt._table_stack import QTabbedTableStack
     from tabulous._qt._mainwindow import _QtMainWidgetBase
     from tabulous.types import SelectionType, _Sliceable
-    from tabulous._eval import Graph
+    from tabulous._psygnal import InCellRangedSlot
 
+logger = logging.getLogger("tabulous")
 ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
 
 _SplitterStyle = """
@@ -532,33 +535,33 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def setItemLabel(self, r: int, c: int, text: str):
         return arguments(r, c, self.itemLabel(r, c))
 
-    def setCalculationGraph(self, pos: tuple[int, int], graph: Graph):
-        """Set calculation graph at the given position."""
-        if graph is None:
-            self._qtable_view._ref_graphs.pop(pos)
+    def setInCellSlot(self, pos: tuple[int, int], slot: InCellRangedSlot):
+        """Set in-cell slot at the given position."""
+        if slot is None:
+            self._qtable_view._table_map.pop(pos)
         else:
-            self._set_graph(pos, graph)
+            self._set_incell_slot(pos, slot)
         return None
 
     @_mgr.interface
-    def _set_graph(self, pos: tuple[int, int], graph: Graph):
-        """Set graph object at given position."""
-        if graph is None:
-            self._qtable_view._ref_graphs.pop(pos, None)
+    def _set_incell_slot(self, pos: tuple[int, int], slot: InCellRangedSlot):
+        """Set in-cell slot at the given position undoably."""
+        if slot is None:
+            self._qtable_view._table_map.pop(pos, None)
         else:
-            self._qtable_view._ref_graphs[pos] = graph
-            if dest := graph._func.last_destination:
+            self._qtable_view._table_map[pos] = slot
+            if dest := slot.last_destination:
                 self._qtable_view._selection_model.set_ranges([dest])
         return None
 
-    @_set_graph.server
-    def _set_graph(self, pos: tuple[int, int], graph: Graph):
-        graph = self._qtable_view._ref_graphs.get(pos, None)
-        return arguments(pos, graph)
+    @_set_incell_slot.server
+    def _set_incell_slot(self, pos: tuple[int, int], slot: InCellRangedSlot):
+        slot = self._qtable_view._table_map.get(pos, None)
+        return arguments(pos, slot)
 
-    @_set_graph.set_formatter
-    def _set_graph_fmt(self, pos, graph):
-        return repr(graph)
+    @_set_incell_slot.set_formatter
+    def _set_incell_slot_fmt(self, pos, slot):
+        return repr(slot)
 
     def refreshTable(self, process: bool = False) -> None:
         """Refresh table view."""
@@ -782,14 +785,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def _get_ref_expr(self, r: int, c: int) -> str | None:
         """Try to get a reference expression for the cell at (r, c)."""
-        graph = self._qtable_view._ref_graphs.get((r, c), None)
-        if graph is not None:
-            return getattr(graph._func, "expr", None)
+        if slot := self._qtable_view._table_map.get((r, c), None):
+            return slot.as_literal()
         return None
 
     def _delete_ref_expr(self, r: int, c: int) -> None:
         """Delete the reference expression for the cell at (r, c)."""
-        self._qtable_view._ref_graphs.pop((r, c), None)
+        self._qtable_view._table_map.pop((r, c), None)
         return None
 
     def _set_forground_colormap_with_dialog(self, index: int) -> None:
@@ -996,13 +998,11 @@ class QMutableTable(QBaseTable):
             # convert values
             if isinstance(r, slice) and isinstance(c, slice):
                 # delete references
-                if not self._qtable_view._ref_graphs.is_all_blocked():
-                    self._clear_graphs(r, c)
-
+                self._clear_incell_slots(r, c)
                 _value = self._pre_set_array(r, c, value)
                 _is_scalar = False
             else:
-                self._set_graph((r, c), None)
+                self._set_incell_slot((r, c), None)
                 _convert_value = self._get_converter(c)
                 _value = _convert_value(c, value)
                 _is_scalar = True
@@ -1035,17 +1035,17 @@ class QMutableTable(QBaseTable):
 
         return None
 
-    def _clear_graphs(self, r: slice, c: slice) -> None:
+    def _clear_incell_slots(self, r: slice, c: slice) -> None:
         # this with-block is not needed but make it more efficient
-        if len(self._qtable_view._ref_graphs) < 128:
-            for key in list(self._qtable_view._ref_graphs.keys()):
+        if len(self._qtable_view._table_map) < 128:
+            for key in list(self._qtable_view._table_map.keys()):
                 if r.start <= key[0] < r.stop and c.start <= key[1] < c.stop:
-                    self._set_graph(key, None)
+                    self._set_incell_slot(key, None)
 
         else:
             for _c in range(c.start, c.stop):
                 for _r in range(r.start, r.stop):
-                    self._set_graph((_r, _c), None)
+                    self._set_incell_slot((_r, _c), None)
         return None
 
     def setLabeledData(self, r: slice, c: slice, value: pd.Series):
@@ -1061,9 +1061,7 @@ class QMutableTable(QBaseTable):
             lambda cmds: self._set_value_fmt(r, c, None, None, value, None)
         ):
             # delete references
-            if not self._qtable_view._ref_graphs.is_all_blocked():
-                # this with-block is not needed but make it more efficient
-                self._clear_graphs(r, c)
+            self._clear_incell_slots(r, c)
 
             _value = self._pre_set_array(r, c, pd.DataFrame(value))
 

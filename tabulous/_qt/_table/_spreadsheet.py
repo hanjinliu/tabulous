@@ -35,7 +35,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        from ..._utils import get_config
+        from tabulous._utils import get_config
 
         self._table_config = get_config().table
         self._columns_dtype = self.parent()._columns_dtype
@@ -124,21 +124,21 @@ class SpreadSheetModel(AbstractDataFrameModel):
         if r < self.df.shape[0] and c < self.df.shape[1]:
             val = self.df.iat[r, c]
             name = self.df.columns[c]
-            dtype = self._columns_dtype.get(name, None)
             if ref_expr := self.parent()._get_ref_expr(r, c):
                 ref = f"\nExpr: {ref_expr}"
             else:
                 ref = ""
+            dtype = self._columns_dtype.get(name, None)
             if dtype is None:
                 return f"{val!r} (dtype: infer){ref}"
             else:
                 return f"{val!r} (dtype: {dtype}){ref}"
         return QtCore.QVariant()
 
-    # fmt: off
     if TYPE_CHECKING:
-        def parent(self) -> QSpreadSheet: ...
-    # fmt: on
+
+        def parent(self) -> QSpreadSheet:
+            ...
 
 
 class QSpreadSheet(QMutableSimpleTable):
@@ -158,10 +158,10 @@ class QSpreadSheet(QMutableSimpleTable):
         super().__init__(parent, data)
         self._qtable_view.verticalHeader().setMinimumWidth(20)
 
-    # fmt: off
     if TYPE_CHECKING:
-        def model(self) -> SpreadSheetModel: ...
-    # fmt: on
+
+        def model(self) -> SpreadSheetModel:
+            ...
 
     def getDataFrame(self) -> pd.DataFrame:
         if self._data_cache is not None:
@@ -427,8 +427,8 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setFilter(self._filter_slice)
         self._data_cache = None
 
-        # update graph indices
-        self._qtable_view._ref_graphs.insert_rows(row, count)
+        # update indices
+        self._qtable_view._table_map.insert_rows(row, count)
         self._qtable_view._selection_model.insert_rows(row, count)
         self._qtable_view._highlight_model.insert_rows(row, count)
 
@@ -492,8 +492,8 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setFilter(self._filter_slice)
         self._data_cache = None
 
-        # update graph indices
-        self._qtable_view._ref_graphs.insert_columns(col, count)
+        # update indices
+        self._qtable_view._table_map.insert_columns(col, count)
         self._qtable_view._selection_model.insert_columns(col, count)
         self._qtable_view._highlight_model.insert_columns(col, count)
 
@@ -519,7 +519,14 @@ class QSpreadSheet(QMutableSimpleTable):
     def removeRows(self, row: int, count: int):
         """Remove rows at the given row number and count."""
         df = self.model().df.iloc[row : row + count, :]
-        return self._remove_rows(row, count, df)
+
+        with self._mgr.merging():
+            self._clear_incell_slots(
+                slice(row, row + count),
+                slice(0, self._data_raw.shape[1]),
+            )
+            self._remove_rows(row, count, df)
+        return None
 
     @QMutableSimpleTable._mgr.undoable
     def _remove_rows(self, row: int, count: int, old_values: pd.DataFrame):
@@ -532,7 +539,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         self._data_cache = None
 
-        self._qtable_view._ref_graphs.remove_rows(row, count)
+        self._qtable_view._table_map.remove_rows(row, count)
         self._qtable_view._highlight_model.remove_rows(row, count)
         self._qtable_view._selection_model.remove_rows(row, count)
         info = ItemInfo(
@@ -559,7 +566,13 @@ class QSpreadSheet(QMutableSimpleTable):
     def removeColumns(self, column: int, count: int):
         """Remove columns at the given column number and count."""
         df = self.model().df.iloc[:, column : column + count]
-        return self._remove_columns(column, count, df)
+        with self._mgr.merging():
+            self._clear_incell_slots(
+                slice(0, self._data_raw.shape[0]),
+                slice(column, column + count),
+            )
+            self._remove_columns(column, count, df)
+        return None
 
     @QMutableSimpleTable._mgr.undoable
     def _remove_columns(self, col: int, count: int, old_values: pd.DataFrame):
@@ -578,7 +591,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         self._data_cache = None
 
-        self._qtable_view._ref_graphs.remove_columns(col, count)
+        self._qtable_view._table_map.remove_columns(col, count)
         self._qtable_view._highlight_model.remove_columns(col, count)
         self._qtable_view._selection_model.remove_columns(col, count)
         info = ItemInfo(

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from types import MethodType
+import logging
 from typing import (
     Callable,
     Generic,
+    Iterator,
     Sequence,
     SupportsIndex,
     overload,
@@ -13,7 +15,7 @@ from typing import (
     get_type_hints,
     Union,
 )
-from typing_extensions import get_args, get_origin, ParamSpec
+from typing_extensions import get_args, get_origin, ParamSpec, Self
 import weakref
 from contextlib import suppress
 from functools import wraps, partial, lru_cache
@@ -22,21 +24,26 @@ import inspect
 from inspect import Parameter, Signature, isclass
 
 from tabulous._range import RectRange, AnyRange, MultiRectRange, TableAnchorBase
-
+from tabulous._selection_op import iter_extract_with_range, SelectionOperator
 
 __all__ = ["SignalArray"]
 
+logger = logging.getLogger(__name__)
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
 
 if TYPE_CHECKING:
+    from tabulous.widgets import TableBase
+    import numpy as np
+    import pandas as pd
+
     MethodRef = tuple[weakref.ReferenceType[object], str, Union[Callable, None]]
     NormedCallback = Union[MethodRef, Callable]
     Slice1D = Union[SupportsIndex, slice]
     Slice2D = tuple[Slice1D, Slice1D]
 
 
-class RangedSlot(Generic[_P, _R]):
+class RangedSlot(Generic[_P, _R], TableAnchorBase):
     """
     Callable object tagged with response range.
 
@@ -63,7 +70,8 @@ class RangedSlot(Generic[_P, _R]):
         return self._func == other
 
     def __repr__(self) -> str:
-        return f"RangedSlot<{self._func!r}>"
+        clsname = type(self).__name__
+        return f"{clsname}<{self._func!r}>"
 
     @property
     def range(self) -> RectRange:
@@ -74,6 +82,382 @@ class RangedSlot(Generic[_P, _R]):
     def func(self) -> Callable[_P, _R]:
         """The wrapped function."""
         return self._func
+
+    def insert_columns(self, col: int, count: int) -> None:
+        """Insert columns and update range."""
+        return self._range.insert_columns(col, count)
+
+    def insert_rows(self, row: int, count: int) -> None:
+        """Insert rows and update range."""
+        return self._range.insert_rows(row, count)
+
+    def remove_columns(self, col: int, count: int) -> None:
+        """Remove columns and update range."""
+        return self._range.remove_columns(col, count)
+
+    def remove_rows(self, row: int, count: int) -> None:
+        """Remove rows and update range."""
+        return self._range.remove_rows(row, count)
+
+
+class InCellExpr:
+    SELECT = object()
+
+    def __init__(self, objs: list):
+        self._objs = objs
+
+    def eval(self, ns: dict[str, Any], ranges: MultiRectRange):
+        expr = self.as_literal(ranges)
+        logger.debug(f"About to run: {expr!r}")
+        return eval(expr, ns, {})
+
+    def as_literal(self, ranges: MultiRectRange) -> str:
+        out: list[str] = []
+        _it = iter(ranges)
+        for o in self._objs:
+            if o is self.SELECT:
+                op = next(_it)
+                out.append(op.as_iloc_string())
+            else:
+                out.append(o)
+        return "".join(out)
+
+
+class InCellRangedSlot(RangedSlot[_P, _R]):
+    """A slot object with a reference to the table and position."""
+
+    def __init__(
+        self,
+        expr: InCellExpr,
+        pos: tuple[int, int],
+        table: TableBase,
+        range: RectRange = AnyRange(),
+    ):
+        self._expr = expr
+        super().__init__(lambda: self.call(), range)
+        self._pos = pos
+        self._table = weakref.ref(table)
+        self._last_destination: tuple[slice, slice] | None = None
+
+    def __repr__(self) -> str:
+        expr = self.as_literal()
+        return f"{type(self).__name__}<{expr!r}>"
+
+    def as_literal(self) -> str:
+        """As a literal string that represents this slot."""
+        return self._expr.as_literal(self.range)
+
+    @property
+    def table(self) -> TableBase:
+        """Get the parent table"""
+        if table := self._table():
+            return table
+        raise RuntimeError("Table has been deleted.")
+
+    @property
+    def pos(self) -> tuple[int, int]:
+        """The position of the cell that this slot is attached to."""
+        return self._pos
+
+    def set_pos(self, pos: tuple[int, int]):
+        """Set the position of the cell that this slot is attached to."""
+        self._pos = pos
+        return self
+
+    @property
+    def last_destination(self) -> tuple[slice, slice] | None:
+        return self._last_destination
+
+    @last_destination.setter
+    def last_destination(self, val):
+        if val is None:
+            self._last_destination = None
+        r, c = val
+        if isinstance(r, int):
+            r = slice(r, r + 1)
+        if isinstance(c, int):
+            c = slice(c, c + 1)
+        self._last_destination = r, c
+
+    @classmethod
+    def from_table(
+        cls: type[Self],
+        table: TableBase,
+        expr: str,
+        pos: tuple[int, int],
+    ) -> Self:
+        """Construct expression `expr` from `table` at `pos`."""
+        qtable = table.native
+
+        # normalize expression to iloc-slicing.
+        df_ref = qtable.dataShown(parse=False)
+        current_end = 0
+        output: list[str] = []
+        ranges = []
+        for (start, end), op in iter_extract_with_range(expr):
+            output.append(expr[current_end:start])
+            output.append(InCellExpr.SELECT)
+            ranges.append(op.as_iloc_slices(df_ref))
+            current_end = end
+        output.append(expr[current_end:])
+        expr_obj = InCellExpr(output)
+
+        # func pos range
+        return cls(expr_obj, pos, table, MultiRectRange.from_slices(ranges))
+
+    def evaluate(self) -> EvalResult:
+        """Evaluate expression, update cells and return the result."""
+        import numpy as np
+        import pandas as pd
+
+        table = self.table
+        qtable = table._qwidget
+        qtable_view = qtable._qtable_view
+        qviewer = qtable.parentViewer()
+
+        df = qtable.dataShown(parse=True)
+        ns = dict(qviewer._namespace)
+        ns.update(df=df)
+        try:
+            out = self._expr.eval(ns, self.range)
+            logger.debug(f"Evaluated at {self.pos!r}")
+        except Exception as e:
+            logger.debug(f"Evaluation failed at {self.pos!r}: {e!r}")
+            return EvalResult(e, self.pos)
+
+        _row, _col = self.pos
+
+        _is_named_tuple = isinstance(out, tuple) and hasattr(out, "_fields")
+        _is_dict = isinstance(out, dict)
+        if _is_named_tuple or _is_dict:
+            with qtable_view._selection_model.blocked(), table.events.data.blocked():
+                table.cell.set_labeled_data(_row, _col, out, sep=":")
+
+            self.last_destination = (
+                slice(_row, _row + len(out)),
+                slice(_col, _col + 1),
+            )
+            return EvalResult(out, (_row, _col))
+
+        if isinstance(out, pd.DataFrame):
+            if out.shape[0] > 1 and out.shape[1] == 1:  # 1D array
+                _out = out.iloc[:, 0]
+                _row, _col = self._infer_slices(_out)
+            elif out.size == 1:
+                _out = out.iloc[0, 0]
+                _row, _col = self._infer_indices()
+            else:
+                raise NotImplementedError("Cannot assign a DataFrame now.")
+
+        elif isinstance(out, pd.Series):
+            if out.shape == (1,):  # scalar
+                _out = out.values[0]
+                _row, _col = self._infer_indices()
+            else:  # update a column
+                _out = out
+                _row, _col = self._infer_slices(_out)
+
+        elif isinstance(out, np.ndarray):
+            _out = np.squeeze(out)
+            if _out.size == 0:
+                raise CellEvaluationError("Evaluation returned 0-sized array.")
+            if _out.ndim == 0:  # scalar
+                _out = qtable.convertValue(_col, _out.item())
+                _row, _col = self._infer_indices()
+            elif _out.ndim == 1:  # 1D array
+                _row, _col = self._infer_slices(_out)
+            elif _out.ndim == 2:
+                _row = slice(_row, _row + _out.shape[0])
+                _col = slice(_col, _col + _out.shape[1])
+            else:
+                raise CellEvaluationError("Cannot assign a >3D array.", self.pos)
+
+        else:
+            _out = qtable.convertValue(_col, out)
+
+        if isinstance(_row, slice) and isinstance(_col, slice):  # set 1D array
+            _out = pd.DataFrame(out).astype(str)
+            if _row.start == _row.stop - 1:  # row vector
+                _out = _out.T
+
+        elif isinstance(_row, int) and isinstance(_col, int):  # set scalar
+            _out = str(_out)
+
+        else:
+            raise RuntimeError(_row, _col)  # Unreachable
+
+        _sel_model = qtable_view._selection_model
+        _rect = RectRange.new(*self.pos)
+        with _sel_model.blocked(), qtable_view._table_map.lock_pos(self.pos):
+            qtable.setDataFrameValue(_row, _col, _out)
+
+        self.last_destination = (_row, _col)
+        return EvalResult(out, (_row, _col))
+
+    def after_called(self, out: EvalResult) -> None:
+        table = self.table
+        qtable = table._qwidget
+        qtable_view = qtable._qtable_view
+
+        if out.get_err() and (sl := self.last_destination):
+            import pandas as pd
+
+            rsl, csl = sl
+            # determine the error object
+            if table.table_type == "SpreadSheet":
+                err_repr = "#ERROR"
+            else:
+                err_repr = pd.NA
+            val = np.full(
+                (rsl.stop - rsl.start, csl.stop - csl.start),
+                err_repr,
+                dtype=object,
+            )
+            with qtable_view._selection_model.blocked():
+                with qtable_view._table_map.lock_pos(self.pos):
+                    with table.events.data.blocked():
+                        table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
+        return None
+
+    def call(self):
+        """Function that will be called when cells changed."""
+        out = self.evaluate()
+        self.after_called(out)
+        return out
+
+    def insert_columns(self, col: int, count: int) -> None:
+        """Insert columns and update range."""
+        self._range.insert_columns(col, count)
+        if dest := self.last_destination:
+            rect = RectRange(*dest)
+            rect.insert_columns(col, count)
+            self.last_destination = rect.as_iloc()
+        r, c = self.pos
+        if c >= col:
+            self.set_pos((r, c + count))
+
+    def insert_rows(self, row: int, count: int) -> None:
+        """Insert rows and update range."""
+        self._range.insert_rows(row, count)
+        if dest := self.last_destination:
+            rect = RectRange(*dest)
+            rect.insert_rows(row, count)
+            self.last_destination = rect.as_iloc()
+        r, c = self.pos
+        if r >= row:
+            self.set_pos((r + count, c))
+
+    def remove_columns(self, col: int, count: int) -> None:
+        """Remove columns and update range."""
+        self._range.remove_columns(col, count)
+        if dest := self.last_destination:
+            rect = RectRange(*dest)
+            rect.remove_columns(col, count)
+            self.last_destination = rect.as_iloc()
+        r, c = self.pos
+        if c >= col:
+            self.set_pos((r, c - count))
+
+    def remove_rows(self, row: int, count: int) -> None:
+        """Remove rows and update range."""
+        self._range.remove_rows(row, count)
+        r, c = self.pos
+        if dest := self.last_destination:
+            rect = RectRange(*dest)
+            rect.remove_rows(row, count)
+            self.last_destination = rect.as_iloc()
+        if r >= row:
+            self.set_pos((r - count, c))
+
+    def _infer_indices(self) -> tuple[int, int]:
+        """Infer how to concatenate a scalar to ``df``."""
+        #  x | x | x |     1. Self-update is not safe. Raise Error.
+        #  x |(1)| x |(2)  2. OK.
+        #  x | x | x |     3. OK.
+        # ---+---+---+---  4. Cannot determine in which orientation results should
+        #    |(3)|   |(4)     be aligned. Raise Error.
+
+        # Filter array selection.
+        array_sels = list(self._range.iter_ranges())
+        r, c = self.pos
+
+        if len(array_sels) == 0:
+            # if no array selection is found, return as a column vector.
+            return r, c
+
+        for rloc, cloc in array_sels:
+            in_r_range = rloc.start <= r < rloc.stop
+            in_c_range = cloc.start <= c < cloc.stop
+
+            if in_r_range and in_c_range:
+                raise CellEvaluationError(
+                    "Cell evaluation result overlaps with an array selection.",
+                    pos=(r, c),
+                )
+        return r, c
+
+    def _infer_slices(self, out: pd.Series | np.ndarray) -> tuple[slice, slice]:
+        """Infer how to concatenate ``out`` to ``df``."""
+        #  x | x | x |     1. Self-update is not safe. Raise Error.
+        #  x |(1)| x |(2)  2. Return as a column vector.
+        #  x | x | x |     3. Return as a row vector.
+        # ---+---+---+---  4. Cannot determine in which orientation results should
+        #    |(3)|   |(4)     be aligned. Raise Error.
+
+        # Filter array selection.
+        array_sels = list(self.range.iter_ranges())
+        r, c = self.pos
+        len_out = len(out)
+
+        if len(array_sels) == 0:
+            # if no array selection is found, return as a column vector.
+            return slice(r, r + len_out), slice(c, c + 1)
+
+        determined = None
+        for rloc, cloc in array_sels:
+            in_r_range = rloc.start <= r < rloc.stop
+            in_c_range = cloc.start <= c < cloc.stop
+            r_len = rloc.stop - rloc.start
+            c_len = cloc.stop - cloc.start
+
+            if in_r_range:
+                if in_c_range:
+                    raise CellEvaluationError(
+                        "Cell evaluation result overlaps with an array selection.",
+                        pos=(r, c),
+                    )
+                else:
+                    if determined is None and len_out <= r_len:
+                        determined = (
+                            slice(rloc.start, rloc.start + len_out),
+                            slice(c, c + 1),
+                        )  # column vector
+
+            elif in_c_range:
+                if determined is None and len_out <= c_len:
+                    determined = (
+                        slice(r, r + 1),
+                        slice(cloc.start, cloc.start + len_out),
+                    )  # row vector
+            else:
+                # cannot determine output positions, try next selection.
+                pass
+
+        if determined is None:
+            raise CellEvaluationError(
+                "Cell evaluation result is ambiguous. Could not determine the "
+                "cells to write output.",
+                pos=(r, c),
+            )
+        return determined
+
+
+class CellEvaluationError(Exception):
+    """Raised when cell evaluation is conducted in a wrong way."""
+
+    def __init__(self, msg: str, pos: tuple[int, int]) -> None:
+        super().__init__(msg)
+        self._pos = pos
 
 
 # Following codes are mostly copied from psygnal (https://github.com/pyapp-kit/psygnal),
@@ -231,6 +615,15 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
 
         return _wrapper if slot is None else _wrapper(slot)
 
+    def connect_cell_slot(
+        self,
+        slot: InCellRangedSlot,
+    ):
+        with self._lock:
+            _, max_args = self._check_nargs(slot, self.signature)
+            self._slots.append((_normalize_slot(slot), max_args))
+        return slot
+
     @overload
     def emit(
         self,
@@ -290,14 +683,14 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
         """Insert rows and update slot ranges in-place."""
         for slot, _ in self._slots:
             if isinstance(slot, RangedSlot):
-                slot.range.insert_rows(row, count)
+                slot.insert_rows(row, count)
         return None
 
     def insert_columns(self, col: int, count: int) -> None:
         """Insert columns and update slices in-place."""
         for slot, _ in self._slots:
             if isinstance(slot, RangedSlot):
-                slot.range.insert_columns(col, count)
+                slot.insert_columns(col, count)
         return None
 
     def remove_rows(self, row: int, count: int):
@@ -305,11 +698,12 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
         to_be_disconnected: list[RangedSlot] = []
         for slot, _ in self._slots:
             if isinstance(slot, RangedSlot):
-                slot.range.remove_rows(row, count)
+                slot.remove_rows(row, count)
                 if slot.range.is_empty():
+                    logger.debug(f"Range became empty by removing rows")
                     to_be_disconnected.append(slot)
         for slot in to_be_disconnected:
-            self.disconnect(slot)
+            self.disconnect(slot, missing_ok=False)
         return None
 
     def remove_columns(self, col: int, count: int):
@@ -317,11 +711,12 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
         to_be_disconnected: list[RangedSlot] = []
         for slot, _ in self._slots:
             if isinstance(slot, RangedSlot):
-                slot.range.remove_columns(col, count)
+                slot.remove_columns(col, count)
                 if slot.range.is_empty():
+                    logger.debug(f"Range became empty by removing columns")
                     to_be_disconnected.append(slot)
         for slot in to_be_disconnected:
-            self.disconnect(slot)
+            self.disconnect(slot, missing_ok=False)
         return None
 
     def _slot_index(self, slot: NormedCallback) -> int:
@@ -372,6 +767,25 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
                 self.disconnect(slot)
 
         return None
+
+    def iter_slots(self) -> Iterator[Callable]:
+        """Iterate over all connected slots."""
+        for slot, _ in self._slots:
+            if isinstance(slot, tuple):
+                _ref, name, method = slot
+                obj = _ref()
+                if obj is None:
+                    continue
+                if method is not None:
+                    cb = method
+                else:
+                    _cb = getattr(obj, name, None)
+                    if _cb is None:
+                        continue
+                    cb = _cb
+            else:
+                cb = slot
+            yield cb
 
 
 class _SignalSubArrayRef:
@@ -436,6 +850,64 @@ def _parse_key(key):
     else:
         key = RectRange(_parse_a_key(key), slice(None))
     return key
+
+
+_T = TypeVar("_T")
+
+
+class EvalResult(Generic[_T]):
+    """A Rust-like Result type for evaluation."""
+
+    def __init__(self, obj: _T | Exception, range: tuple[int | slice, int | slice]):
+        # TODO: range should be (int, int).
+        self._obj = obj
+        _r, _c = range
+        if isinstance(_r, int):
+            _r = slice(_r, _r + 1)
+        if isinstance(_c, int):
+            _c = slice(_c, _c + 1)
+        self._range = (_r, _c)
+
+    def __repr__(self) -> str:
+        cname = type(self).__name__
+        if isinstance(self._obj, Exception):
+            desc = "Err"
+        else:
+            desc = "Ok"
+        return f"{cname}<{desc}({self._obj!r})>"
+
+    def _short_repr(self) -> str:
+        cname = type(self).__name__
+        if isinstance(self._obj, Exception):
+            desc = "Err"
+        else:
+            desc = "Ok"
+        _obj = repr(self._obj)
+        if "\n" in _obj:
+            _obj = _obj.split("\n")[0] + "..."
+        if len(_obj.rstrip("...")) > 20:
+            _obj = _obj[:20] + "..."
+        return f"{cname}<{desc}({_obj})>"
+
+    @property
+    def range(self) -> tuple[slice, slice]:
+        """Output range."""
+        return self._range
+
+    def unwrap(self) -> _T:
+        obj = self._obj
+        if isinstance(obj, Exception):
+            raise obj
+        return obj
+
+    def get_err(self) -> Exception | None:
+        if isinstance(self._obj, Exception):
+            return self._obj
+        return None
+
+    def is_err(self) -> bool:
+        """True is an exception is wrapped."""
+        return isinstance(self._obj, Exception)
 
 
 class PartialMethodMeta(type):

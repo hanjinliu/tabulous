@@ -11,10 +11,12 @@ import pandas as pd
 from tabulous._qt._qt_const import MonospaceFontFamily
 from tabulous._qt._keymap import QtKeys
 from tabulous.types import HeaderInfo, EvalInfo
+from tabulous._range import RectRange, MultiRectRange
 from tabulous._utils import get_config
 from tabulous._selection_op import (
     find_last_dataframe_expr,
     construct,
+    iter_extract,
 )
 
 if TYPE_CHECKING:
@@ -295,6 +297,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         pos: tuple[int, int] = (0, 0),
     ):
         super().__init__(parent, table, pos)
+        self._old_range: RectRange | None = None
         qtable = self.parentTableView()
         qtable._selection_model.moved.connect(self._on_selection_changed)
         qtable._focused_widget = self
@@ -388,6 +391,22 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         palette.setColor(QtGui.QPalette.ColorRole.Text, col)
         self.setPalette(palette)
+
+        if self.mode is self.Mode.TEXT:
+            return None
+
+        # draw ranges
+        _table = self._table
+        ranges: list[tuple[slice, slice]] = []
+        for op in iter_extract(text):
+            ranges.append(op.as_iloc_slices(_table.model().df))
+        if ranges:
+            new_range = MultiRectRange.from_slices(ranges)
+        else:
+            new_range = None
+        if self._old_range or new_range:
+            _table._qtable_view._current_drawing_slot_ranges = new_range
+            _table._qtable_view._update_all()
         return None
 
     def close(self) -> None:
@@ -533,25 +552,33 @@ class QCellLiteralEdit(_QTableLineEdit):
         cursor_pos = self.cursorPosition()
 
         # prepare text
-        if len(qtable._selection_model.ranges) != 1:
-            # if multiple cells are selected, don't update
+        if len(qtable._selection_model.ranges) != 1 or cursor_pos == 0:
+            # If multiple cells are selected, don't update because selection range
+            # is not well-defined. If cursor position is at the beginning, don't
+            # update because it is before "=".
             return None
 
         rsl, csl = qtable._selection_model.ranges[-1]
         _df = qtable.model().df
+        table_range = RectRange(slice(0, _df.shape[0]), slice(0, _df.shape[1]))
+
+        # out of border
+        if not table_range.overlaps_with(RectRange(rsl, csl)):
+            return None
+
         column_selected = len(qtable._selection_model._col_selection_indices) > 0
-        selop = construct(
-            rsl, csl, _df, method=_CONFIG.cell.slicing, column_selected=column_selected
-        )
+        selop = construct(rsl, csl, _df, method="iloc", column_selected=column_selected)
 
         if selop is None:  # out of bound
             return None
 
+        # get string that represents the selection
         if selop.area(_df) > 1:
             to_be_added = selop.fmt("df")
         else:
             to_be_added = selop.fmt_scalar("df")
 
+        # add the representation to the text at the proper position
         if cursor_pos == 0:
             self.setText(to_be_added + text)
         elif text[cursor_pos - 1] != "]":

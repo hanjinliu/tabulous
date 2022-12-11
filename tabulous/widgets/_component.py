@@ -25,7 +25,7 @@ from qtpy.sip import isdeleted
 from magicgui.widgets import Widget
 from tabulous.exceptions import TableImmutableError
 from tabulous.types import _SingleSelection, SelectionType, EvalInfo
-from tabulous._eval import Graph
+from tabulous._psygnal import InCellRangedSlot
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -647,27 +647,29 @@ class ColumnDtypeInterface(
         return None
 
 
-class CellReferenceInterface(Component["TableBase"], Mapping["tuple[int, int]", Graph]):
+class CellReferenceInterface(
+    Component["TableBase"], Mapping["tuple[int, int]", InCellRangedSlot]
+):
     """Interface to the cell references of a table."""
 
-    def _ref_graphs(self):
-        return self.parent._qwidget._qtable_view._ref_graphs
+    def _table_map(self):
+        return self.parent._qwidget._qtable_view._table_map
 
     def __getitem__(self, key: tuple[int, int]):
-        return self._ref_graphs()[key]
+        return self._table_map()[key]
 
-    def __iter__(self) -> Iterator[Graph]:
-        return iter(self._ref_graphs())
+    def __iter__(self) -> Iterator[InCellRangedSlot]:
+        return iter(self._table_map())
 
     def __len__(self) -> int:
-        return len(self._ref_graphs())
+        return len(self._table_map())
 
     def __repr__(self) -> str:
-        graphs = self._ref_graphs()
+        slots = self._table_map()
         cname = type(self).__name__
-        if len(graphs) == 0:
+        if len(slots) == 0:
             return f"{cname}()"
-        s = ",\n\t".join(f"{k}: {graph!r}" for k, graph in graphs.items())
+        s = ",\n\t".join(f"{k}: {slot!r}" for k, slot in slots.items())
         return f"{cname}(\n\t{s}\n)"
 
 

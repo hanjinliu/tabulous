@@ -17,7 +17,7 @@ from tabulous.widgets._component import (
 )
 from tabulous.widgets import _doc
 from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
-from tabulous._psygnal import SignalArray
+from tabulous._psygnal import SignalArray, InCellRangedSlot
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -101,6 +101,9 @@ class TableBase(ABC):
         self._name = str(name)
         self._qwidget = self._create_backend(_data)
         self._qwidget.connectSelectionChangedSignal(self._emit_selections)
+        from tabulous._map_model import SlotRefMapping
+
+        self._qwidget._qtable_view._table_map = SlotRefMapping(self)
         self._view_mode = ViewMode.normal
         self._metadata: dict[str, Any] = metadata or {}
 
@@ -487,26 +490,24 @@ class TableBase(ABC):
         return None
 
     def _emit_evaluated(self, info: EvalInfo):
-        from tabulous._eval import Graph, LiteralCallable
-
         if info.expr == "":
             return None
 
         pos = (info.row, info.column)
-        literal_callable = LiteralCallable.from_table(self, info.expr, pos)
         qtable = self.native
         qtable_view = qtable._qtable_view
 
+        slot = InCellRangedSlot.from_table(self, info.expr, pos)
+
         def _raise(e):
+            # the common exception handling
             if not isinstance(e, (SyntaxError, AttributeError)):
                 # Update cell text with the exception object.
                 try:
                     del qtable_view._focused_widget
                 except RuntimeError:
                     pass
-                with qtable_view._selection_model.blocked(), qtable_view._ref_graphs.blocked(
-                    *pos
-                ):
+                with qtable_view._selection_model.blocked():
                     qtable.setDataFrameValue(*pos, "#ERROR")
                 return None
             # SyntaxError/AttributeError might be caused by mistouching. Don't close
@@ -515,26 +516,21 @@ class TableBase(ABC):
             raise e
 
         if not info.is_ref:
-            # evaluated by "=..."
-            result = literal_callable(unblock=True)  # cells updated here if succeeded
+            result = slot.evaluate()
             if e := result.get_err():
                 _raise(e)
             else:
                 self.move_iloc(*pos)
         else:
-            # evaluated by "&=..."
-            selections = literal_callable.selection_ops
-            if len(selections) == 0:
+            if next(iter(slot.range), None) is None:
                 # if no reference exists, evaluate the expression as "=..." form.
                 return self._emit_evaluated(EvalInfo(*pos, info.expr, False))
-            graph = Graph(self, literal_callable, selections)
             with qtable._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
                 # call here to properly update undo stack
-                result = literal_callable(unblock=True)
+                result = slot.evaluate()
                 if e := result.get_err():
                     _raise(e)
-                with graph.blocked():
-                    qtable.setCalculationGraph(pos, graph)
+                qtable.setInCellSlot(pos, slot)
 
         del qtable_view._focused_widget
         return None
@@ -602,7 +598,7 @@ class Table(_DataFrameTableLayer):
     _qwidget: QTableLayer
 
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
-        from .._qt import QTableLayer
+        from tabulous._qt import QTableLayer
 
         return QTableLayer(data=data)
 
@@ -624,7 +620,7 @@ class SpreadSheet(_DataFrameTableLayer):
     dtypes = ColumnDtypeInterface()
 
     def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
-        from .._qt import QSpreadSheet
+        from tabulous._qt import QSpreadSheet
 
         return QSpreadSheet(data=data)
 
@@ -649,7 +645,7 @@ class GroupBy(TableBase):
     _qwidget: QTableGroupBy
 
     def _create_backend(self, data: pd.DataFrame) -> QTableGroupBy:
-        from .._qt import QTableGroupBy
+        from tabulous._qt import QTableGroupBy
 
         return QTableGroupBy(data=data)
 
@@ -702,7 +698,7 @@ class TableDisplay(TableBase):
     _qwidget: QTableDisplay
 
     def _create_backend(self, data: Callable[[], Any]) -> QTableDisplay:
-        from .._qt import QTableDisplay
+        from tabulous._qt import QTableDisplay
 
         return QTableDisplay(loader=data)
 
@@ -734,6 +730,7 @@ class TableDisplay(TableBase):
 
     @property
     def running(self) -> bool:
+        """True if the loading task is running"""
         return self._qwidget.running()
 
     @running.setter

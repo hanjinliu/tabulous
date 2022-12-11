@@ -21,6 +21,7 @@ from tabulous._selection_model import RangesModel, SelectionModel, Index
 if TYPE_CHECKING:
     from tabulous._qt._table._base._delegate import TableItemDelegate
     from tabulous._qt._mainwindow import _QtMainWidgetBase
+    from tabulous._map_model import SlotRefMapping
 
 # Flags
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
@@ -62,6 +63,8 @@ class _QTableViewEnhanced(QtW.QTableView):
     rightClickedSignal = Signal(QtCore.QPoint)
     focusedSignal = Signal()
     resizedSignal = Signal()
+
+    _table_map: SlotRefMapping
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -126,9 +129,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         # attributes relevant to in-cell calculation
         self._focused_widget_ref = None
         self._focused_widget = None
-        from tabulous._eval import GraphManager
 
-        self._ref_graphs = GraphManager()
+        # the source ranges of in-cell slot are drawed or not
+        self._current_drawing_slot_ranges = None
 
     # fmt: off
     if TYPE_CHECKING:
@@ -195,6 +198,17 @@ class _QTableViewEnhanced(QtW.QTableView):
         return None
 
     def _on_moving(self, src: Index, dst: Index) -> None:
+        _need_update_all = self._current_drawing_slot_ranges is not None
+        if slot := self._table_map.get(dst, None):
+            self._current_drawing_slot_ranges = slot.range
+            _need_update_all = True
+        else:
+            self._current_drawing_slot_ranges = None
+
+        if _need_update_all:
+            self._update_all()
+            return None
+
         if not self._selection_model.is_jumping():
             # clear all the multi-selections
             for sel in self._selection_model:
@@ -519,29 +533,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         nsel = len(self._selection_model)
         painter = QtGui.QPainter(self.viewport())
 
-        # draw graphs
-        # if self._ref_graphs._to_be_shown:
-        #     _df = self.model().df
-        #     try:
-        #         for graph in self._ref_graphs._to_be_shown:
-        #             for i, rect in enumerate(
-        #                 self._rect_from_ranges(
-        #                     sel.as_iloc_slices(_df) for sel in graph._sources
-        #                 )
-        #             ):
-        #                 pen = QtGui.QPen(h_color, 3)
-        #                 painter.setPen(pen)
-        #                 painter.drawRect(rect)
-        #             # TODO: destination
-        #             # for i, rect in enumerate(
-        #             #     self._rect_from_ranges(sel.as_iloc(_df) for sel in graph._sources)
-        #             # ):
-        #             #     pen = QtGui.QPen(h_color, 2)
-        #             #     painter.setPen(pen)
-        #             #     painter.drawRect(rect)
-        #     except Exception as e:
-        #         logger.debug(f"Failed to draw graph: {e}")
-
         # draw highlights
         h_color = self._get_highlight_color()
         for i, rect in enumerate(self._rect_from_ranges(self._highlight_model._ranges)):
@@ -550,7 +541,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         # draw selections
         s_color = self._get_selection_color()
         for i, rect in enumerate(self._rect_from_ranges(self._selection_model._ranges)):
-            pen = QtGui.QPen(s_color, 2 + int(nsel == i + 1) * focused)
+            last_one = nsel == i + 1
+            pen = QtGui.QPen(s_color, 2 + int(last_one) * focused)
             painter.setPen(pen)
             painter.drawRect(rect)
 
@@ -562,6 +554,15 @@ class _QTableViewEnhanced(QtW.QTableView):
             pen = QtGui.QPen(CUR_COLOR, 3)
             painter.setPen(pen)
             painter.drawRect(rect_cursor)
+
+            # in-cell slot source ranges of the current index
+            color_cycle = _color_cycle()
+            if rng := self._current_drawing_slot_ranges:
+                for rect in self._rect_from_ranges(rng.iter_ranges()):
+                    rect.adjust(1, 1, -1, -1)
+                    pen = QtGui.QPen(next(color_cycle), 3)
+                    painter.setPen(pen)
+                    painter.drawRect(rect)
 
         # mouse hover
         mouse_idx = self.indexAt(self.viewport().mapFromGlobal(QtGui.QCursor.pos()))
@@ -614,3 +615,25 @@ class _QTableViewEnhanced(QtW.QTableView):
         line.show()
         line.setFocus()
         return line
+
+
+def _color_cycle() -> Iterator[QtGui.QColor]:
+    """Generate easily distinguishable colors."""
+    # This is the default color cycle of matplotlib
+    colors = [
+        QtGui.QColor(31, 119, 180),
+        QtGui.QColor(255, 127, 14),
+        QtGui.QColor(44, 160, 44),
+        QtGui.QColor(214, 39, 40),
+        QtGui.QColor(148, 103, 189),
+        QtGui.QColor(140, 86, 75),
+        QtGui.QColor(227, 119, 194),
+        QtGui.QColor(127, 127, 127),
+        QtGui.QColor(188, 189, 34),
+        QtGui.QColor(23, 190, 207),
+    ]
+    ncolor = len(colors)
+    i = 0
+    while True:
+        yield colors[i]
+        i = i + 1 if i < ncolor - 1 else 0

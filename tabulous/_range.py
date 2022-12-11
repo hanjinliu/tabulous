@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterator, Sequence
+from typing import Iterable, Iterator, Sequence, SupportsIndex
 
 
 class TableAnchorBase(ABC):
@@ -28,8 +28,17 @@ class RectRange(TableAnchorBase):
         rsl: slice = slice(0, 0),
         csl: slice = slice(0, 0),
     ):
+        assert type(rsl) is slice and type(csl) is slice
         self._rsl = rsl
         self._csl = csl
+
+    @classmethod
+    def new(cls, r: slice | SupportsIndex, c: slice | SupportsIndex):
+        if isinstance(r, SupportsIndex):
+            r = slice(r, r + 1)
+        if isinstance(c, SupportsIndex):
+            c = slice(c, c + 1)
+        return cls(r, c)
 
     def __repr__(self):
         return f"RectRange[{_fmt_slice(self._rsl)}, {_fmt_slice(self._csl)}]"
@@ -97,6 +106,15 @@ class RectRange(TableAnchorBase):
             return False
         return self._rsl.start >= self._rsl.stop or self._csl.start >= self._csl.stop
 
+    def iter_ranges(self) -> Iterator[tuple[slice, slice]]:
+        return iter([(self._rsl, self._csl)])
+
+    def as_iloc(self) -> tuple[slice, slice]:
+        return self._rsl, self._csl
+
+    def as_iloc_string(self, df_expr: str = "df") -> str:
+        return f"{df_expr}.iloc[{_parse_slice(self._rsl)}, {_parse_slice(self._csl)}]"
+
 
 _DO_NOTHING = lambda *args, **kwargs: None
 
@@ -161,6 +179,11 @@ class MultiRectRange(RectRange):
     def __init__(self, ranges: Sequence[RectRange]):
         self._ranges = ranges
 
+    @classmethod
+    def from_slices(cls, slices: Iterable[tuple[slice, slice]]):
+        """Construct from list of slices."""
+        return cls([RectRange(rsl, csl) for rsl, csl in slices])
+
     def __repr__(self):
         s = ", ".join(repr(rng) for rng in self)
         return f"MultiRectRange[{s}]"
@@ -183,30 +206,49 @@ class MultiRectRange(RectRange):
 
     def insert_rows(self, row: int, count: int) -> None:
         """Insert rows and update slices in-place."""
-        for rng in self._ranges:
+        for rng in self:
             rng.insert_rows(row, count)
 
     def insert_columns(self, col: int, count: int) -> None:
         """Insert columns and update slices in-place."""
-        for rng in self._ranges:
+        for rng in self:
             rng.insert_columns(col, count)
 
     def remove_rows(self, row: int, count: int):
         """Remove rows and update slices in-place."""
-        for rng in self._ranges:
+        for rng in self:
             rng.remove_rows(row, count)
 
     def remove_columns(self, col: int, count: int):
         """Remove columns and update slices in-place."""
-        for rng in self._ranges:
+        for rng in self:
             rng.remove_columns(col, count)
 
     def is_empty(self) -> bool:
         """True if ANY of the range is empty."""
         return any(rng.is_empty() for rng in self)
 
+    def iter_ranges(self) -> Iterator[tuple[slice, slice]]:
+        for rng in self:
+            yield from rng.iter_ranges()
+
+    def as_iloc(self):
+        raise TypeError("Cannot convert MultiRectRange to iloc")
+
 
 def _fmt_slice(sl: slice) -> str:
+    s0 = sl.start if sl.start is not None else ""
+    s1 = sl.stop if sl.stop is not None else ""
+    return f"{s0}:{s1}"
+
+
+def _parse_slice(sl: slice) -> str:
+    """Convert slice to 'a:b' representation or to int if possible"""
+    if sl.start is not None and sl.stop is not None:
+        s0 = sl.start
+        s1 = sl.stop
+        if s0 == s1 - 1:
+            return str(int(s0))
     s0 = sl.start if sl.start is not None else ""
     s1 = sl.stop if sl.stop is not None else ""
     return f"{s0}:{s1}"
