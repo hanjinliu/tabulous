@@ -789,11 +789,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             return slot.as_literal()
         return None
 
-    def _delete_ref_expr(self, r: int, c: int) -> None:
-        """Delete the reference expression for the cell at (r, c)."""
-        self._qtable_view._table_map.pop((r, c), None)
-        return None
-
     def _set_forground_colormap_with_dialog(self, index: int) -> None:
         """Set the foreground colormap from a GUI dialog."""
         from ._colormap import exec_colormap_dialog

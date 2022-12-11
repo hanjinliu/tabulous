@@ -116,12 +116,11 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self._console_dock_widget = None
         self._dock_widgets = weakref.WeakValueDictionary()
 
-        from ..._utils import get_config
+        from tabulous._utils import get_config
+        from tabulous._qt._toolbar import QTableStackToolBar
 
         _config = get_config()
         self._ask_on_close = _config.window.ask_on_close
-
-        from .._toolbar import QTableStackToolBar
 
         self._toolbar = QTableStackToolBar(self)
         self.addToolBar(self._toolbar)

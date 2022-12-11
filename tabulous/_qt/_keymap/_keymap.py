@@ -290,6 +290,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         self._current_combo: list[QtKeys] = []
         self._activated_callback = activated or _DUMMY_CALLBACK
         self._deactivated_callback = deactivated or _DUMMY_CALLBACK
+        self._released_callback = _DUMMY_CALLBACK
         self._instances: dict[int, QtKeyMap] = {}
         self._obj = instance
 
@@ -464,6 +465,32 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
 
         return wrapper if callback is None else wrapper(callback)
 
+    def bind_released(self, key, callback=None, overwrite=False, desc=None, **kwargs):
+        def wrapper(func):
+            _key = _normalize_key_combo(key)
+            _func = BoundCallback(func, keys=_key, kwargs=kwargs)
+
+            if isinstance(_key, (str, QtKeys)):
+                _key = [_key]
+            current = self
+            for i, k in enumerate(_key):
+                if not isinstance(current, QtKeyMap):
+                    seq = _key[:i]
+                    raise ValueError(
+                        f"Non keymap object {type(current)} encountered at {', '.join(seq)}."
+                    )
+                k = QtKeys(k)
+                try:
+                    current = current[k]
+                except KeyError:
+                    raise KeyError(f"Key {k} not found in {current!r}")
+            if current._released_callback is not _DUMMY_CALLBACK and not overwrite:
+                raise ValueError(f"Key {key} already exists")
+            current._released_callback = _func
+            return func
+
+        return wrapper if callback is None else wrapper(callback)
+
     def rebind(
         self,
         old: KeyType | Sequence[KeyType],
@@ -545,6 +572,14 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             for k in key:
                 out = self._press_one_key(QtKeys(k))
             return out
+
+    def release_key(self) -> None:
+        current = self.current_map
+        if current._obj is None:
+            current._released_callback()
+        else:
+            current._released_callback(current._obj)
+        return None
 
     def _press_one_key(self, key: QtKeys) -> bool:
         current = self.current_map

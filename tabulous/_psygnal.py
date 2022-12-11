@@ -19,9 +19,11 @@ from typing_extensions import get_args, get_origin, ParamSpec, Self
 import weakref
 from contextlib import suppress
 from functools import wraps, partial, lru_cache
-from psygnal import Signal, SignalInstance, EmitLoopError
 import inspect
 from inspect import Parameter, Signature, isclass
+
+import numpy as np
+from psygnal import Signal, SignalInstance, EmitLoopError
 
 from tabulous._range import RectRange, AnyRange, MultiRectRange, TableAnchorBase
 from tabulous._selection_op import iter_extract_with_range, SelectionOperator
@@ -138,6 +140,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         self._pos = pos
         self._table = weakref.ref(table)
         self._last_destination: tuple[slice, slice] | None = None
+        self._current_error: Exception | None = None
 
     def __repr__(self) -> str:
         expr = self.as_literal()
@@ -146,6 +149,15 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
     def as_literal(self) -> str:
         """As a literal string that represents this slot."""
         return self._expr.as_literal(self.range)
+
+    def format_error(self) -> str:
+        """Format current exception as a string."""
+        if self._current_error is None:
+            return ""
+        else:
+            exc_type = type(self._current_error).__name__
+            exc_msg = str(self._current_error)
+            return f"{exc_type}: {exc_msg}"
 
     @property
     def table(self) -> TableBase:
@@ -207,13 +219,13 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
 
     def evaluate(self) -> EvalResult:
         """Evaluate expression, update cells and return the result."""
-        import numpy as np
         import pandas as pd
 
         table = self.table
         qtable = table._qwidget
         qtable_view = qtable._qtable_view
         qviewer = qtable.parentViewer()
+        self._current_error = None
 
         df = qtable.dataShown(parse=True)
         ns = dict(qviewer._namespace)
@@ -223,6 +235,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             logger.debug(f"Evaluated at {self.pos!r}")
         except Exception as e:
             logger.debug(f"Evaluation failed at {self.pos!r}: {e!r}")
+            self._current_error = e
             return EvalResult(e, self.pos)
 
         _row, _col = self.pos
@@ -287,7 +300,6 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             raise RuntimeError(_row, _col)  # Unreachable
 
         _sel_model = qtable_view._selection_model
-        _rect = RectRange.new(*self.pos)
         with _sel_model.blocked(), qtable_view._table_map.lock_pos(self.pos):
             qtable.setDataFrameValue(_row, _col, _out)
 
@@ -299,7 +311,9 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         qtable = table._qwidget
         qtable_view = qtable._qtable_view
 
-        if out.get_err() and (sl := self.last_destination):
+        err = out.get_err()
+
+        if err and (sl := self.last_destination):
             import pandas as pd
 
             rsl, csl = sl
@@ -324,6 +338,14 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         out = self.evaluate()
         self.after_called(out)
         return out
+
+    def raise_in_msgbox(self) -> None:
+        """Raise current error in a message box."""
+        if self._current_error is None:
+            raise ValueError("No error to raise.")
+        from tabulous._qt._traceback import QtErrorMessageBox
+
+        return QtErrorMessageBox.from_exc(self._current_error).exec_traceback()
 
     def insert_columns(self, col: int, count: int) -> None:
         """Insert columns and update range."""

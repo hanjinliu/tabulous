@@ -104,7 +104,7 @@ class TableViewerBase:
     def __init__(
         self, *, tab_position: TabPosition | str = TabPosition.top, show: bool = True
     ):
-        from .._qt import get_app
+        from tabulous._qt import get_app
 
         app = get_app()
         self._qwidget = self._qwidget_class(tab_position=tab_position)
@@ -489,7 +489,7 @@ class TableViewer(TableViewerBase):
 
     @property
     def _qwidget_class(self) -> QMainWindow:
-        from .._qt import QMainWindow
+        from tabulous._qt import QMainWindow
 
         return QMainWindow
 

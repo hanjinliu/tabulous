@@ -77,3 +77,12 @@ QMutableTable._keymap.bind("Delete", QMutableTable.deleteValues)
 QMutableTable._keymap.bind("Backspace", QMutableTable.deleteValues)
 QMutableTable._keymap.bind("Ctrl+Z", QMutableTable.undo)
 QMutableTable._keymap.bind("Ctrl+Y", QMutableTable.redo)
+
+
+@QMutableTable._keymap.bind("F6")
+def _(self: QMutableTable):
+    qtable_view = self._qtable_view
+    idx = qtable_view._selection_model.current_index
+    if slot := qtable_view._table_map.get(idx, None):
+        if slot._current_error is not None:
+            slot.raise_in_msgbox()

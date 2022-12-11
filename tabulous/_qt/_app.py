@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 from qtpy.QtWidgets import QApplication
 from qtpy.QtCore import Qt
@@ -62,7 +64,7 @@ def run_app():
         return None
 
 
-def _excepthook(exc_type, exc_value, exc_traceback):
+def _excepthook(exc_type: type[Exception], exc_value: Exception, exc_traceback):
     """Exception hook used during application execution."""
     from ._traceback import QtErrorMessageBox
 

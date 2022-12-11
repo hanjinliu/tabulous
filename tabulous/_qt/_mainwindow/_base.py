@@ -115,6 +115,10 @@ class _QtMainWidgetBase(QtW.QWidget):
             return super().keyPressEvent(a0)
         return None
 
+    def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
+        self._keymap.release_key()
+        return None
+
     def showKeyMap(self) -> None:
         """Show keymap viewer widget."""
         if self._keymap_widget is None:

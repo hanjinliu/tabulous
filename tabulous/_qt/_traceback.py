@@ -60,22 +60,33 @@ class QtErrorMessageBox(QtW.QMessageBox):
     def exec_(self):
         returned = super().exec_()
         if returned == QtW.QMessageBox.StandardButton.Help:
-            tb = self._get_traceback()
-            dlg = QtTracebackDialog(self)
-            dlg.setText(tb)
-            dlg.exec_()
+            self.exec_traceback()
         return returned
 
+    def exec_traceback(self):
+        """Excecute traceback dialog"""
+        tb = self._get_traceback()
+        dlg = QtTracebackDialog(self)
+        dlg.setText(tb)
+        dlg.exec_()
+        return None
+
     @classmethod
-    def raise_(cls, e: Exception, parent=None):
-        """Raise exception in the message box."""
+    def from_exc(cls, e: Exception, parent=None):
+        """Construct message box from a exception."""
         # unwrap EmitLoopError
         while isinstance(e, EmitLoopError):
             e = e.__cause__
             if e is None:
                 raise RuntimeError("EmitLoopError unwrapping failed.")
         self = cls(type(e).__name__, e, parent)
-        self.exec_()
+        return self
+
+    @classmethod
+    def raise_(cls, e: Exception, parent=None):
+        """Raise exception in the message box."""
+        # unwrap EmitLoopError
+        return cls.from_exc(e, parent=parent).exec_()
 
     def _get_traceback(self):
         if self._exc is None:
