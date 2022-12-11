@@ -271,4 +271,9 @@ def _(self: QMainWindow):
     else:
         self.showFullScreen()
 
+@QMainWindow._keymap.bind("Ctrl+W")
+def _(self: QMainWindow):
+    """Close the window."""
+    return self.close(ask=None)
+
 # fmt: on

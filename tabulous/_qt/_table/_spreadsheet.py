@@ -519,7 +519,14 @@ class QSpreadSheet(QMutableSimpleTable):
     def removeRows(self, row: int, count: int):
         """Remove rows at the given row number and count."""
         df = self.model().df.iloc[row : row + count, :]
-        return self._remove_rows(row, count, df)
+
+        with self._mgr.merging():
+            self._clear_graphs(
+                slice(row, row + count),
+                slice(0, self._data_raw.shape[1]),
+            )
+            self._remove_rows(row, count, df)
+        return None
 
     @QMutableSimpleTable._mgr.undoable
     def _remove_rows(self, row: int, count: int, old_values: pd.DataFrame):
@@ -559,7 +566,13 @@ class QSpreadSheet(QMutableSimpleTable):
     def removeColumns(self, column: int, count: int):
         """Remove columns at the given column number and count."""
         df = self.model().df.iloc[:, column : column + count]
-        return self._remove_columns(column, count, df)
+        with self._mgr.merging():
+            self._clear_graphs(
+                slice(0, self._data_raw.shape[0]),
+                slice(column, column + count),
+            )
+            self._remove_columns(column, count, df)
+        return None
 
     @QMutableSimpleTable._mgr.undoable
     def _remove_columns(self, col: int, count: int, old_values: pd.DataFrame):
