@@ -156,8 +156,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _install_actions(self) -> None:
         # fmt: off
         hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Color>Set foreground colormap")(self._set_forground_colormap_with_dialog)
-        hheader.registerAction("Color>Reset foreground colormap")(self._reset_forground_colormap)
+        hheader.registerAction("Color>Set foreground colormap")(self._set_foreground_colormap_with_dialog)
+        hheader.registerAction("Color>Reset foreground colormap")(self._reset_foreground_colormap)
         hheader.registerAction("Color>Set background colormap")(self._set_background_colormap_with_dialog)
         hheader.registerAction("Color>Reset background colormap")(self._reset_background_colormap)
         hheader.registerAction("Formatter>Set text formatter")(self._set_text_formatter_with_dialog)
@@ -789,7 +789,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             return slot.as_literal()
         return None
 
-    def _set_forground_colormap_with_dialog(self, index: int) -> None:
+    def _set_foreground_colormap_with_dialog(self, index: int) -> None:
         """Set the foreground colormap from a GUI dialog."""
         from ._colormap import exec_colormap_dialog
 
@@ -798,7 +798,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             self.setForegroundColormap(column_name, cmap)
         return None
 
-    def _reset_forground_colormap(self, index: int) -> None:
+    def _reset_foreground_colormap(self, index: int) -> None:
         """Reset the foreground colormap at given index."""
         column_name = self._filtered_columns[index]
         return self.setForegroundColormap(column_name, None)

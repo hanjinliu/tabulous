@@ -16,7 +16,7 @@ _DEFAULT_MAX = "#FF696B"
 
 def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
     """Open a dialog to define a colormap for a series."""
-    from ..._color_edit import ColorEdit
+    from tabulous._qt._color_edit import ColorEdit
     from magicgui.widgets import Dialog, LineEdit, Container
 
     dtype = ds.dtype
@@ -141,7 +141,7 @@ def _random_color() -> list[int]:
 
 
 def _make_color_edit(color: str, label: str, widget: Widget):
-    from ..._color_edit import ColorEdit
+    from tabulous._qt._color_edit import ColorEdit
     from magicgui.widgets import Container
 
     col = ColorEdit(value=color, label=label)

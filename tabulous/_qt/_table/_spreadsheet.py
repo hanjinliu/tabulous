@@ -834,7 +834,7 @@ class QSpreadSheet(QMutableSimpleTable):
         # fmt: on
         return None
 
-    def _set_background_colormap_with_dialog(self, index: int):
+    def _set_foreground_colormap_with_dialog(self, index: int):
         return self._set_colormap(index, self.model()._foreground_colormap)
 
     def _set_background_colormap_with_dialog(self, index: int):

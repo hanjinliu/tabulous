@@ -81,8 +81,9 @@ QMutableTable._keymap.bind("Ctrl+Y", QMutableTable.redo)
 
 @QMutableTable._keymap.bind("F6")
 def _(self: QMutableTable):
+    """Show the traceback dialog."""
     qtable_view = self._qtable_view
     idx = qtable_view._selection_model.current_index
-    if slot := qtable_view._table_map.get(idx, None):
+    if slot := qtable_view._table_map.get_by_dest(idx, None):
         if slot._current_error is not None:
             slot.raise_in_msgbox()
