@@ -206,8 +206,9 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 msgbox.setWindowTitle("tabulous")
                 msgbox.setIcon(QtW.QMessageBox.Icon.Question)
                 msgbox.setText("Are you sure to close this window?")
-                msgbox.addButton(QtW.QMessageBox.StandardButton.Yes)
+                btn = msgbox.addButton(QtW.QMessageBox.StandardButton.Yes)
                 msgbox.addButton(QtW.QMessageBox.StandardButton.No)
+                btn.setShortcut(QtGui.QKeySequence("Ctrl+W"))
 
                 cbox = QtW.QCheckBox("Don't ask again")
                 msgbox.setCheckBox(cbox)

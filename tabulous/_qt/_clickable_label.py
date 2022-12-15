@@ -25,17 +25,20 @@ class QClickableLabel(QtW.QLabel):
         return None
 
     def setText(self, text: str):
+        """Set the label text and resize the widget to fit the text."""
         fm = QtGui.QFontMetrics(self.font())
         width = fm.width(text)
         self.setFixedWidth(width + 18)
         return super().setText(text)
 
     def mouseReleaseEvent(self, ev: QtGui.QMouseEvent) -> None:
+        """Emit the clicked signal when the left mouse button is released."""
         if ev.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit()
         return super().mouseReleaseEvent(ev)
 
     def enterEvent(self, a0: QtCore.QEvent) -> None:
+        """Add an underline to the text and change the cursor to a hand."""
         font = self.font()
         font.setUnderline(True)
         self.setFont(font)
@@ -44,6 +47,7 @@ class QClickableLabel(QtW.QLabel):
         return super().enterEvent(a0)
 
     def leaveEvent(self, a0: QtCore.QEvent) -> None:
+        """Reset the text and cursor to their original state."""
         font = self.font()
         font.setUnderline(False)
         self.setFont(font)
@@ -51,10 +55,12 @@ class QClickableLabel(QtW.QLabel):
         return super().leaveEvent(a0)
 
     def setTooltipFunction(self, f: Callable[[], str]) -> None:
+        """Set the function that returns the tooltip text."""
         self._tooltip_func = f
         return None
 
     def event(self, event: QtCore.QEvent):
+        """Show dynamic tooltip."""
         tp = event.type()
         if tp == QtCore.QEvent.Type.ToolTip:
             tooltip = self._tooltip_func()

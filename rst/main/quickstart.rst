@@ -247,3 +247,8 @@ to register custom key combo.
     @viewer.keymap.bind_key("Ctrl+K, Ctrl+Q", overwrite=True)
     def function():
         """do something"""
+
+Command palette
+===============
+
+``Ctrl+Shift+P`` opens a command palette widget. You can search for a variety of registered commands.
