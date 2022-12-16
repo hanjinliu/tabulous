@@ -169,6 +169,9 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.registerAction("Copy as ... > Tab separated text with headers")(lambda index: self.copyToClipboard(headers=True, sep="\t"))
         self.registerAction("Copy as ... > Comma separated text")(lambda index: self.copyToClipboard(headers=False, sep=","))
         self.registerAction("Copy as ... > Comma separated text with headers")(lambda index: self.copyToClipboard(headers=True, sep=","))
+        self.registerAction("Copy as ... > Markdown")(lambda index: self._copy_as_formated(format="markdown"))
+        self.registerAction("Copy as ... > Latex")(lambda index: self._copy_as_formated(format="latex"))
+        self.registerAction("Copy as ... > HTML")(lambda index: self._copy_as_formated(format="html"))
         self.registerAction("Copy as ... > Literal")(lambda index: self._copy_as_literal())
         self.registerAction("Copy as ... > New table")(lambda index: self._copy_as_new_table("table"))
         self.registerAction("Copy as ... > New spreadsheet")(lambda index: self._copy_as_new_table("spreadsheet"))
@@ -315,8 +318,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def setHighlights(self, selections: SelectionType):
         return arguments(self.highlights())
 
-    def copyToClipboard(self, headers: bool = True, sep: str = "\t") -> None:
-        """Copy currently selected cells to clipboard."""
+    def _selected_dataframe(self) -> pd.DataFrame:
+        """Currently selected cells as a data frame."""
         selections = self.selections()
         if len(selections) == 0:
             return
@@ -337,7 +340,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             else:
                 axis = 0
             ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
-            ref.to_clipboard(index=headers, header=headers, sep=sep)
+            return ref
+
+    def copyToClipboard(self, headers: bool = True, sep: str = "\t") -> None:
+        """Copy currently selected cells to clipboard."""
+        ref = self._selected_dataframe()
+        ref.to_clipboard(index=headers, header=headers, sep=sep)
         return None
 
     def _copy_as_literal(self):
@@ -350,10 +358,21 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         viewer = table_stack.parentWidget()._table_viewer
         name = viewer.tables[i].name
         _sl = _selection_to_literal(sels[-1])
+        return _to_clipboard(f"viewer.tables[{name!r}].data.iloc{_sl}", excel=False)
 
-        from pandas.io.clipboards import to_clipboard
+    def _copy_as_formated(self, format: str = "markdown"):
+        """Copy the selected cells as markdown format."""
+        ref = self._selected_dataframe()
 
-        return to_clipboard(f"viewer.tables[{name!r}].data.iloc{_sl}", excel=False)
+        if format == "markdown":
+            s = ref.to_markdown()
+        elif format == "latex":
+            s = ref.to_latex()
+        elif format == "html":
+            s = ref.to_html()
+        else:
+            raise ValueError(f"Unknown format: {format!r}")
+        return _to_clipboard(s, excel=False)
 
     def _copy_as_new_table(self, type_: str = "same"):
         """Copy the selected range to a new table."""
@@ -1564,3 +1583,10 @@ def _convert_value(
     val = converter(c, x)  # convert value first
     validator(val)  # Raise error if invalid
     return val
+
+
+def _to_clipboard(s: str, excel: bool = True, **kwargs) -> None:
+    """Copy dataframe to clipboard."""
+    from pandas.io.clipboards import to_clipboard
+
+    return to_clipboard(s, excel=excel, **kwargs)
