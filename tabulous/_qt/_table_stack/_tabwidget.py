@@ -289,7 +289,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         if table is None:
             return
         index = self.tableIndex(table)
-        return self.execContextMenu(index)
+        return self.execContextMenu(self.mapToGlobal(pos), index)
 
     def notifyEditability(self):
         """Show a notification saying that the table is not editable."""

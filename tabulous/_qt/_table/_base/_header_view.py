@@ -50,7 +50,7 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
 
     def _show_context_menu(self, pos: QtCore.QPoint) -> None:
         index = self.logicalIndexAt(pos)
-        return self.execContextMenu(index)
+        return self.execContextMenu(self.viewport().mapToGlobal(pos), index)
 
     def _iter_selections(self) -> Iterator[slice]:
         """Iterate selections"""

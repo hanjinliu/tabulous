@@ -151,7 +151,9 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
                 self.setSelections([(row, col)])
             highlight_model.select([])
 
-        return self.execContextMenu((row, col))
+        return self.execContextMenu(
+            self._qtable_view.viewport().mapToGlobal(pos), (row, col)
+        )
 
     def _install_actions(self) -> None:
         # fmt: off

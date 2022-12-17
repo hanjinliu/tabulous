@@ -89,9 +89,21 @@ def _(self: QMutableTable):
             slot.raise_in_msgbox()
 
 
-# @QBaseTable._keymap.bind("Menu")
-# def _(self: QBaseTable):
-#     """Show context menu at the current index."""
-#     index = self._qtable_view.model().index(*self._qtable_view._selection_model.current_index)
-#     rect = self._qtable_view.visualRect(index)
-#     self.showContextMenu(rect.center())
+@QBaseTable._keymap.bind("Menu")
+def _(self: QBaseTable):
+    """Show context menu at the current index."""
+    r, c = self._qtable_view._selection_model.current_index
+    if r >= 0 and c >= 0:
+        index = self._qtable_view.model().index(r, c)
+        rect = self._qtable_view.visualRect(index)
+        self.showContextMenu(rect.center())
+    elif r < 0:
+        header = self._qtable_view.horizontalHeader()
+        rect = header.visualRectAtIndex(c)
+        header._show_context_menu(rect.center())
+    elif c < 0:
+        header = self._qtable_view.verticalHeader()
+        rect = header.visualRectAtIndex(r)
+        header._show_context_menu(rect.center())
+    else:
+        raise RuntimeError("Invalid index")
