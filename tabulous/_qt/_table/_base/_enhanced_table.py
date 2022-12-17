@@ -64,6 +64,8 @@ class _QTableViewEnhanced(QtW.QTableView):
     focusedSignal = Signal()
     resizedSignal = Signal()
 
+    _focused_widget_ref: weakref.ReferenceType[QtW.QWidget] = None
+
     _table_map: SlotRefMapping
 
     def __init__(self, parent=None):
@@ -126,10 +128,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._event_filter = _EventFilter(self)
         self.installEventFilter(self._event_filter)
 
-        # attributes relevant to in-cell calculation
-        self._focused_widget_ref = None
-        self._focused_widget = None
-
         # the source ranges of in-cell slot are drawed or not
         self._current_drawing_slot_ranges = None
 
@@ -144,18 +142,18 @@ class _QTableViewEnhanced(QtW.QTableView):
     @property
     def _focused_widget(self) -> QtW.QWidget | None:
         """QWidget that force focusing after focus is moved to the table."""
-        if self._focused_widget_ref is None:
+        if self.__class__._focused_widget_ref is None:
             return None
-        return self._focused_widget_ref()
+        return self.__class__._focused_widget_ref()
 
     @_focused_widget.setter
     def _focused_widget(self, widget: QtW.QWidget | None) -> None:
         current = self._focused_widget
 
         if widget is None:
-            self._focused_widget_ref = None
+            self.__class__._focused_widget_ref = None
         else:
-            self._focused_widget_ref = weakref.ref(widget)
+            self.__class__._focused_widget_ref = weakref.ref(widget)
 
         if current is not None:
             current.close()
@@ -259,6 +257,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             new._selection_model = self._selection_model
             new._selection_model.moving.connect(new._on_moving)
             new._selection_model.moved.connect(new._on_moved)
+            new._table_map = self._table_map
         new.setZoom(self.zoom())
         new._selection_model.current_index = self._selection_model.current_index
         return new

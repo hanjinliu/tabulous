@@ -505,9 +505,6 @@ class TableViewer(TableViewerBase):
             show=show,
         )
 
-    # def register_action(self, location: str):
-    #     return self._qwidget.registerAction(location)
-
     @property
     def status(self) -> str:
         """Return the statup tip"""
@@ -536,6 +533,7 @@ class TableViewer(TableViewerBase):
         return dock
 
     def remove_dock_widget(self, name_or_widget: str | Widget | QWidget):
+        """Remove dock widget from the table viewer."""
         if isinstance(name_or_widget, str):
             name = name_or_widget
             dock = self._dock_widgets[name_or_widget]
@@ -552,6 +550,7 @@ class TableViewer(TableViewerBase):
         return None
 
     def reset_choices(self, *_):
+        """Reset all the magicgui combo boxes."""
         for dock in self._dock_widgets.values():
             widget = dock.widget
             if hasattr(widget, "reset_choices"):

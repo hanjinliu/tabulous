@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 from glob import glob
 import runpy
+import warnings
 
 DATA_PATH = Path(__file__).parent / "data"
 
@@ -19,4 +20,6 @@ def test_io():
     "fname", [f for f in glob("examples/*.py") if "napari" not in f]
 )
 def test_examples(fname):
-    runpy.run_path(fname)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        runpy.run_path(fname)
