@@ -87,3 +87,11 @@ def _(self: QMutableTable):
     if slot := qtable_view._table_map.get_by_dest(idx, None):
         if slot._current_error is not None:
             slot.raise_in_msgbox()
+
+
+# @QBaseTable._keymap.bind("Menu")
+# def _(self: QBaseTable):
+#     """Show context menu at the current index."""
+#     index = self._qtable_view.model().index(*self._qtable_view._selection_model.current_index)
+#     rect = self._qtable_view.visualRect(index)
+#     self.showContextMenu(rect.center())

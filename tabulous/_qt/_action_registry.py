@@ -46,8 +46,26 @@ class QActionRegistry(QtCore.QObject, Generic[_T]):
 
         return wrapper
 
-    def addSeparator(self):
-        return self._qt_context_menu.addSeparator()
+    def addSeparator(self, location: str | None = None):
+        menu = self._qt_context_menu
+        if location is None:
+            locs = []
+        else:
+            locs = location.split(">")
+
+        for loc in locs:
+            a = menu.searchChild(loc)
+            if a is None:
+                raise ValueError(f"{location} is not a valid location.")
+            elif not isinstance(a, QContextMenu):
+                i = locs.index(loc)
+                err_loc = ">".join(locs[:i])
+                raise TypeError(f"{err_loc} is not a menu.")
+            else:
+                menu = a
+
+        menu.addSeparator()
+        return None
 
     def execContextMenu(self, index: _T) -> None:
         """Execute the context menu at the given index."""
