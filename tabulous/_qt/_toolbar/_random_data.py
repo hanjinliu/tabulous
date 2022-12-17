@@ -73,9 +73,23 @@ class NormalRandomGenerator(_RandomGenerator):
         )
 
 
+class PoissonRandomGenerator(_RandomGenerator):
+    def prepare_widgets(self) -> list[Widget]:
+        return [
+            LineEdit(value="1.0", label="mean"),
+        ]
+
+    def generate(self, shape: tuple[int, int]) -> np.ndarray:
+        return np.random.poisson(
+            float(self[0].value),
+            size=shape,
+        )
+
+
 class Generator(Enum):
     uniform = "uniform"
     normal = "normal"
+    poisson = "poisson"
     choices = "choices"
 
 
@@ -89,6 +103,7 @@ class RandomGeneratorDialog(Container):
         )
         self._uniform_wdt = UniformRandomGenerator(label="parameters")
         self._normal_wdt = NormalRandomGenerator(label="parameters")
+        self._poisson_wdt = PoissonRandomGenerator(label="parameters")
         self._choices_wdt = ChoiceRandomGenerator(label="parameters")
         self._call_button = PushButton(text="Generate data")
 
@@ -98,6 +113,7 @@ class RandomGeneratorDialog(Container):
                 self._radio_buttons,
                 self._uniform_wdt,
                 self._normal_wdt,
+                self._poisson_wdt,
                 self._choices_wdt,
                 self._call_button,
             ]
@@ -111,6 +127,7 @@ class RandomGeneratorDialog(Container):
     def _on_choice_changed(self, choice: Generator):
         self._uniform_wdt.visible = choice == Generator.uniform
         self._normal_wdt.visible = choice == Generator.normal
+        self._poisson_wdt.visible = choice == Generator.poisson
         self._choices_wdt.visible = choice == Generator.choices
 
     def _current_widget(self) -> _RandomGenerator:
@@ -118,6 +135,8 @@ class RandomGeneratorDialog(Container):
             return self._uniform_wdt
         elif self._radio_buttons.value is Generator.normal:
             return self._normal_wdt
+        elif self._radio_buttons.value is Generator.poisson:
+            return self._poisson_wdt
         elif self._radio_buttons.value is Generator.choices:
             return self._choices_wdt
         else:
