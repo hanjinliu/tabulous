@@ -256,6 +256,11 @@ def choose_one(choice: str):
     return choice
 
 
+@dialog_factory
+def choose_multiple(choices: List):
+    return choices
+
+
 __void = object()
 
 
