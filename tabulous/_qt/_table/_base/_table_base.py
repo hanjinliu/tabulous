@@ -26,7 +26,7 @@ from tabulous._qt._action_registry import QActionRegistry
 from tabulous.types import FilterType, ItemInfo, HeaderInfo, EvalInfo
 from tabulous.exceptions import SelectionRangeError, TableImmutableError
 from tabulous._selection_op import LocSelOp
-from tabulous._range import RectRange
+from tabulous import commands as cmds
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate

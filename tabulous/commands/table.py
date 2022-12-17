@@ -118,15 +118,24 @@ def random(viewer: TableViewerBase):
         table.cell[rsl, csl] = data
 
 
-def copy_data(viewer: TableViewerBase):
-    _utils.get_table(viewer)._qwidget.copyToClipboard(header=False)
+def copy_data_tab_separated(viewer: TableViewerBase):
+    _utils.get_table(viewer)._qwidget.copyToClipboard(headers=False, sep="\t")
 
 
-def copy_data_with_header(viewer: TableViewerBase):
-    _utils.get_table(viewer)._qwidget.copyToClipboard(header=True)
+def copy_data_with_header_tab_separated(viewer: TableViewerBase):
+    _utils.get_table(viewer)._qwidget.copyToClipboard(headers=True, sep="\t")
 
 
-# TODO: other copy as
+def copy_data_comma_separated(viewer: TableViewerBase):
+    _utils.get_table(viewer)._qwidget.copyToClipboard(headers=False, sep=",")
+
+
+def copy_data_with_header_comma_separated(viewer: TableViewerBase):
+    _utils.get_table(viewer)._qwidget.copyToClipboard(headers=True, sep=",")
+
+
+def copy_as_literal(viewer: TableViewerBase):
+    _utils.get_table(viewer)._qwidget._copy_as_literal()
 
 
 def show_undo_stack_view(viewer: TableViewerBase):
@@ -147,12 +156,25 @@ def cut_data(viewer: TableViewerBase):
     qtable.deleteValues()
 
 
-def paste_data(viewer: TableViewerBase):
-    _utils.get_mutable_table(viewer)._qwidget.pasteFromClipBoard()
+def paste_data_tab_separated(viewer: TableViewerBase):
+    _utils.get_mutable_table(viewer)._qwidget.pasteFromClipBoard(sep="\t")
+
+
+def paste_data_comma_separated(viewer: TableViewerBase):
+    _utils.get_mutable_table(viewer)._qwidget.pasteFromClipBoard(sep=",")
+
+
+def paste_data_from_numpy_string(viewer: TableViewerBase):
+    _utils.get_mutable_table(viewer)._qwidget._paste_numpy_str()
 
 
 def delete_values(viewer: TableViewerBase):
     _utils.get_mutable_table(viewer)._qwidget.deleteValues()
+
+
+def add_highlight(viewer: TableViewerBase):
+    qwidget = _utils.get_table(viewer)._qwidget
+    qwidget.setHighlights(qwidget.highlights() + qwidget.selections())
 
 
 def undo_table(viewer: TableViewerBase):

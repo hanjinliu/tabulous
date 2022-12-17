@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 from qt_command_palette import get_palette
+from tabulous import commands as cmds
 
 if TYPE_CHECKING:
     from ._base import _QtMainWidgetBase
+    from tabulous.widgets import TableViewerBase
     from tabulous._qt._table import QSpreadSheet
 
 palette = get_palette("tabulous")
@@ -19,353 +21,109 @@ selection_group = palette.add_group("Selection")
 spreadsheet_group = palette.add_group("Spreadsheet")
 
 
-@default_group.register("Show key map widget")
-def show_keymap(self: _QtMainWidgetBase):
-    """Show the widget to search for key bindings."""
-    self.showKeyMap()
-
-
-@default_group.register("Close window")
-def close_window(self: _QtMainWidgetBase):
-    """Close this window."""
-    self.close()
-
-
-@default_group.register("New window")
-def new_window(self: _QtMainWidgetBase):
-    """Create a new window."""
-    viewer = self._table_viewer.__class__()
-    return viewer._qwidget.activateWindow()
-
-
-@default_group.register("Toggle toolbar visibility")
-def toggle_toolbar(self: _QtMainWidgetBase):
-    """Show or collapse the toolbar."""
-    self.toggleToolBarVisibility()
-
-
-@default_group.register("Toggle fullscreen")
-def toggle_fullscreen(self: _QtMainWidgetBase):
-    """Enable or disable fullscreen mode."""
-    if self.isFullScreen():
-        self.showNormal()
-    else:
-        self.showFullScreen()
-
-
-@default_group.register("Undo")
-def undo(self: _QtMainWidgetBase):
-    """Undo last action."""
-    self._table_viewer.current_table.undo_manager.undo()
-
-
-@default_group.register("Redo")
-def redo(self: _QtMainWidgetBase):
-    """Redo last undone action."""
-    self._table_viewer.current_table.undo_manager.redo()
-
-
-@file_group.register("Open a file as a table")
-def open_table(self: _QtMainWidgetBase):
-    """Select a file in the file dialog and open it as a Table."""
-    self._toolbar.open_table()
-
-
-@file_group.register("Open a file as a spreadsheet")
-def open_spreadsheet(self: _QtMainWidgetBase):
-    """Select a file in the file dialog and open it as a Spreadsheet."""
-    self._toolbar.open_spreadsheet()
-
-
-@file_group.register("Save current table/spreadsheet")
-def save_table(self: _QtMainWidgetBase):
-    """Save the current table or spreadsheet as a file."""
-    self._toolbar.save_table()
-
-
-@file_group.register("Open sample data")
-def open_sample(self: _QtMainWidgetBase):
-    """Open a seaborn sample data as a Table."""
-    self._toolbar.open_sample()
-
-
-@table_group.register("Copy current table as a new Table")
-def copy_as_table(self: _QtMainWidgetBase):
-    """Copy the data of the current table as a new Table."""
-    self._toolbar.copy_as_table()
-
-
-@table_group.register("Copy current table as a new Spreadsheet")
-def copy_as_spreadsheet(self: _QtMainWidgetBase):
-    """Copy the data of the current table as a new Spreadsheet."""
-    self._toolbar.copy_as_spreadsheet()
-
-
-@table_group.register("Group by")
-def groupby(self: _QtMainWidgetBase):
-    """Run groupby function on the current table by arbitrary columns."""
-    self._toolbar.groupby()
-
-
-@table_group.register("Switch header and the top row")
-def switch_header(self: _QtMainWidgetBase):
-    """Convert the top row to header or vice versa."""
-    self._toolbar.switch_header()
-
-
-@table_group.register("Concatenate tables")
-def concat(self: _QtMainWidgetBase):
-    """Concatenate multiple tables into one table."""
-    self._toolbar.concat()
-
-
-@table_group.register("Pivot table")
-def pivot(self: _QtMainWidgetBase):
-    """Pivot the current table."""
-    self._toolbar.pivot()
-
-
-@table_group.register("Melt table")
-def melt(self: _QtMainWidgetBase):
-    """Melt the current table."""
-    self._toolbar.melt()
-
-
-@table_group.register("Find item")
-def find_item(self: _QtMainWidgetBase):
-    """Open the finder widget to find table items by its text or value."""
-    self._toolbar.find_item()
-
-
-@table_group.register("Sort table")
-def sort_table(self: _QtMainWidgetBase):
-    """Sort the current table by arbitrary columns."""
-    self._toolbar.sort_table()
-
-
-@table_group.register("Generate random values")
-def random(self: _QtMainWidgetBase):
-    """Open the random value generator widget."""
-    self._toolbar.random()
-
-
-@analysis_group.register("Summarize table")
-def summarize_table(self: _QtMainWidgetBase):
-    """Summarize the current table by mean, std, etc."""
-    self._toolbar.summarize_table()
-
-
-@analysis_group.register("Evaluate expression")
-def eval(self: _QtMainWidgetBase):
-    """Evaluate an expression on the current table."""
-    self._toolbar.eval()
-
-
-@analysis_group.register("Filter table")
-def filter(self: _QtMainWidgetBase):
-    """Filter the current table by arbitrary conditions."""
-    self._toolbar.filter()
-
-
-@analysis_group.register("Open optimizer widget")
-def optimize(self: _QtMainWidgetBase):
-    """Open the optimizer widget to run scipy.minimize on the table."""
-    self._toolbar.optimize()
-
-
-@analysis_group.register("Open statistics test widget")
-def stats_test(self: _QtMainWidgetBase):
-    """Open the statistics test widget to run scipy.stats tests."""
-    self._toolbar.stats_test()
-
-
-@analysis_group.register("Open scikit-learn widget")
-def sklearn_analysis(self: _QtMainWidgetBase):
-    """Open the scikit-learn widget to run clustering, decomposition, etc."""
-    self._toolbar.sklearn_analysis()
-
-
-@analysis_group.register("Toggle QtConsole")
-def toggle_console(self: _QtMainWidgetBase):
-    """Show or hide the console widget visibility."""
-    self._toolbar.toggle_console()
-
-
-@view_group.register("Popup table")
-def view_popup(self: _QtMainWidgetBase):
-    """View the current table in a popup window."""
-    self._toolbar.change_view_mode("popup")
-
-
-@view_group.register("Split table horizontally")
-def view_horizontal(self: _QtMainWidgetBase):
-    """Split the current table horizontally."""
-    self._toolbar.change_view_mode("horizontal")
-
-
-@view_group.register("Split table vertically")
-def view_vertical(self: _QtMainWidgetBase):
-    """Split the current table vertically."""
-    self._toolbar.change_view_mode("vertical")
-
-
-@view_group.register("Reset view")
-def view_normal(self: _QtMainWidgetBase):
-    """Reset the view mode of the current table."""
-    self._toolbar.change_view_mode("normal")
-
-
-@plot_group.register("Run plt.plot")
-def plot(self: _QtMainWidgetBase):
-    """Open a dialog to run plt.plot."""
-    self._toolbar.plot()
-
-
-@plot_group.register("Run plt.scatter")
-def scatter(self: _QtMainWidgetBase):
-    """Open a dialog to run plt.scatter."""
-    self._toolbar.scatter()
-
-
-@plot_group.register("Run plt.errorbar")
-def errorbar(self: _QtMainWidgetBase):
-    """Open a dialog to run plt.errorbar."""
-    self._toolbar.errorbar()
-
-
-@plot_group.register("Run plt.hist")
-def hist(self: _QtMainWidgetBase):
-    """Open a dialog to run plt.hist."""
-    self._toolbar.hist()
-
-
-@plot_group.register("Run sns.swarmplot")
-def swarmplot(self: _QtMainWidgetBase):
-    """Open a dialog to run sns.swarmplot."""
-    self._toolbar.swarmplot()
-
-
-@plot_group.register("Run sns.barplot")
-def barplot(self: _QtMainWidgetBase):
-    """Open a dialog to run sns.barplot."""
-    self._toolbar.barplot()
-
-
-@plot_group.register("Run sns.boxplot")
-def boxplot(self: _QtMainWidgetBase):
-    """Open a dialog to run sns.boxplot."""
-    self._toolbar.boxplot()
-
-
-@plot_group.register("Run sns.boxenplot")
-def boxenplot(self: _QtMainWidgetBase):
-    """Open a dialog to run sns.boxenplot."""
-    self._toolbar.boxenplot()
-
-
-@plot_group.register("Create a new figure canvas")
-def new_figure(self: _QtMainWidgetBase):
-    """Create a new figure canvas in the side area."""
-    self._toolbar.new_figure()
-
-
-@selection_group.register("Copy cells")
-def copy(self: _QtMainWidgetBase):
-    """Copy the selected cells to the clipboard as tab-separated text."""
-    self._table_viewer.copy_data()
-
-
-@selection_group.register("Copy cells with headers")
-def copy_with_header(self: _QtMainWidgetBase):
-    """Copy the selected cells and headers to the clipboard as tab-separated text."""
-    self._table_viewer.copy_data(header=True)
-
-
-@selection_group.register("Copy as a new Table")
-def copy_as_new_table(self: _QtMainWidgetBase):
-    """Copy the selected cells and create a new table."""
-    self._table_viewer.current_table._qwidget._copy_as_new_table("table")
-
-
-@selection_group.register("Copy as a new SpreadSheet")
-def copy_as_new_spreadsheet(self: _QtMainWidgetBase):
-    """Copy the selected cells and create a new spreadsheet."""
-    self._table_viewer.current_table._qwidget._copy_as_new_table("spreadsheet")
-
-
-@selection_group.register("Copy as tab separated text")
-def copy_as_tab(self: _QtMainWidgetBase):
-    """Copy the selected cells to the clipboard as tab-separated text."""
-    self._table_viewer.current_table._qwidget.copyToClipboard(headers=False, sep="\t")
-
-
-@selection_group.register("Copy as tab separated text with headers")
-def copy_as_tab_with_header(self: _QtMainWidgetBase):
-    """Copy the selected cells and headers to the clipboard as tab-separated text."""
-    self._table_viewer.current_table._qwidget.copyToClipboard(headers=True, sep="\t")
-
-
-@selection_group.register("Copy as comma separated text")
-def copy_as_comma(self: _QtMainWidgetBase):
-    """Copy the selected cells to the clipboard as comma-separated text."""
-    self._table_viewer.current_table._qwidget.copyToClipboard(headers=False, sep=",")
-
-
-@selection_group.register("Copy as comma separated text with headers")
-def copy_as_comma_with_header(self: _QtMainWidgetBase):
-    """Copy the selected cells and headers to the clipboard as comma-separated text."""
-    self._table_viewer.current_table._qwidget.copyToClipboard(headers=True, sep=",")
-
-
-@selection_group.register("Copy as literal")
-def copy_as_literal(self: _QtMainWidgetBase):
-    """Copy the selected cells as a python literal for use in the console."""
-    self._table_viewer.current_table._qwidget._copy_as_literal()
-
-
-@selection_group.register("Paste from comma separated text")
-def paste_from_comma(self: _QtMainWidgetBase):
-    """Paste comma-separated text from the clipboard at the selection."""
-    self._table_viewer.current_table._qwidget.pasteFromClipBoard(sep=",")
-
-
-@selection_group.register("Paste from numpy-style text")
-def paste_from_numpy(self: _QtMainWidgetBase):
-    """Paste numpy-style text from the clipboard at the selection."""
-    self._table_viewer.current_table._qwidget._paste_numpy_str()
-
-
-@selection_group.register("Add highlight")
-def add_highlight(self: _QtMainWidgetBase):
-    """Add highlight at the selection."""
-    qwidget = self._table_viewer.current_table._qwidget
-    qwidget.setHighlights(qwidget.highlights() + qwidget.selections())
-
-
-@selection_group.register("Select all")
-def select_all(self: _QtMainWidgetBase):
-    """Select all the cells in the table."""
-    self._table_viewer.current_table._qwidget._qtable_view.selectAll()
-
-
-@selection_group.register("Cut selected cells")
-def cut(self: _QtMainWidgetBase):
-    """Cut the selected cells to the clipboard as tab-separated text."""
-    qwidget = self._table_viewer.current_table._qwidget
-    qwidget.copyToClipboard(headers=False)
-    return qwidget.deleteValues()
-
-
-@selection_group.register("Paste data")
-def paste(self: _QtMainWidgetBase):
-    """Paste data from the clipboard at the selection."""
-    self._table_viewer.paste_data()
-
-
-@selection_group.register("Delete selected cells")
-def delete(self: _QtMainWidgetBase):
-    """Delete the selected cells."""
-    self._table_viewer.current_table._qwidget.deleteValues()
+def _command_to_function(
+    f: Callable[[TableViewerBase], Any]
+) -> Callable[[_QtMainWidgetBase], Any]:
+    def wrapper(self: _QtMainWidgetBase):
+        return f(self._table_viewer)
+
+    wrapper.__doc__ = f.__doc__
+    return wrapper
+
+
+for cmd, desc in [
+    (cmds.window.show_keymap, "Show key map widget"),
+    (cmds.window.close_window, "Close window"),
+    (cmds.window.new_window, "New window"),
+    (cmds.window.toggle_toolbar, "Toggle toolbar visibility"),
+    (cmds.window.toggle_fullscreen, "Toggle fullscreen"),
+    (cmds.table.undo_table, "Undo table"),
+    (cmds.table.redo_table, "Redo table"),
+]:
+    default_group.register(_command_to_function(cmd), desc=desc)
+
+
+for cmd, desc in [
+    (cmds.io.open_table, "Open a file as a table"),
+    (cmds.io.open_spreadsheet, "Open a file as a spreadsheet"),
+    (cmds.io.save_table, "Save current table/spreadsheet"),
+    (cmds.io.open_sample, "Open sample data"),
+]:
+    file_group.register(_command_to_function(cmd), desc=desc)
+
+for cmd, desc in [
+    (cmds.table.copy_as_new_table, "Copy current table as a new Table"),
+    (cmds.table.copy_as_spreadsheet, "Copy current table as a new Spreadsheet"),
+    (cmds.table.groupby, "Group by column(s)"),
+    (cmds.table.switch_header, "Switch header and the top row"),
+    (cmds.table.concat, "Concatenate tables"),
+    (cmds.table.pivot, "Pivot current table"),
+    (cmds.table.melt, "Melt (unpivot) current table"),
+    (cmds.table.show_finder_widget, "Find item"),
+    (cmds.table.sort_table, "Sort table"),
+    (cmds.table.random, "Generate random values"),
+]:
+    table_group.register(_command_to_function(cmd), desc=desc)
+
+
+for cmd, desc in [
+    (cmds.analysis.summarize_table, "Summarize table"),
+    (cmds.analysis.show_eval_widget, "Evaluate expression on current table"),
+    (cmds.analysis.show_filter_widget, "Filter current table"),
+    (cmds.analysis.show_optimizer_widget, "Open optimizer widget"),
+    (cmds.analysis.show_stats_widget, "Open statistics test widget"),
+    (cmds.analysis.show_sklearn_widget, "Open scikit-learn widget"),
+    (cmds.analysis.toggle_console, "Toggle QtConsole"),
+]:
+    analysis_group.register(_command_to_function(cmd), desc=desc)
+
+for cmd, desc in [
+    (cmds.view.set_popup_mode, "Popup table"),
+    (cmds.view.set_dual_h_mode, "Dual-view table horizontally"),
+    (cmds.view.set_dual_v_mode, "Dual-view table vertically"),
+    (cmds.view.reset_view_mode, "Reset table view mode"),
+    (cmds.view.tile_tables, "Tile tables"),
+    (cmds.view.untile_table, "Untile tables"),
+]:
+    view_group.register(_command_to_function(cmd), desc=desc)
+
+for cmd, desc in [
+    (cmds.plot.plot, "Run plt.plot"),
+    (cmds.plot.scatter, "Run plt.scatter"),
+    (cmds.plot.errorbar, "Run plt.errorbar"),
+    (cmds.plot.hist, "Run plt.hist"),
+    (cmds.plot.swarmplot, "Run sns.swarmplot"),
+    (cmds.plot.barplot, "Run sns.barplot"),
+    (cmds.plot.boxplot, "Run sns.boxplot"),
+    (cmds.plot.boxenplot, "Run sns.boxenplot"),
+    (cmds.plot.new_figure, "Create a new figure canvas"),
+]:
+    plot_group.register(_command_to_function(cmd), desc=desc)
+
+
+for cmd, desc in [
+    (cmds.table.copy_data_tab_separated, "Copy cells (tab separated)"),
+    (
+        cmds.table.copy_data_with_header_tab_separated,
+        "Copy cells with headers (tab separated)",
+    ),
+    (cmds.table.copy_data_comma_separated, "Copy cells (comma separated)"),
+    (
+        cmds.table.copy_data_with_header_comma_separated,
+        "Copy cells with headers (comma separated)",
+    ),
+    (cmds.table.copy_as_new_table, "Copy as a new table"),
+    (cmds.table.copy_as_spreadsheet, "Copy as a new spreadsheet"),
+    (cmds.table.copy_as_literal, "Copy as literal"),
+    (cmds.table.paste_data_tab_separated, "Paste from tab separated text"),
+    (cmds.table.paste_data_comma_separated, "Paste from comma separated text"),
+    (cmds.table.paste_data_from_numpy_string, "Paste from numpy-style text"),
+    (cmds.table.select_all, "Select all the cells"),
+    (cmds.table.cut_data, "Cut selected cells"),
+    (cmds.table.delete_values, "Delete selected cells"),
+    (cmds.table.add_highlight, "Add highlight to selected cells"),
+]:
+    selection_group.register(_command_to_function(cmd), desc=desc)
 
 
 def _get_spreadsheet(self: _QtMainWidgetBase) -> QSpreadSheet:

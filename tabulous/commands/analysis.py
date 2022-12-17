@@ -42,7 +42,7 @@ def show_eval_widget(viewer: TableViewerBase):
     return viewer._qwidget._tablestack.openEvalDialog()
 
 
-def optimize(viewer: TableViewerBase):
+def show_optimizer_widget(viewer: TableViewerBase):
     """Open the optimizer widget."""
     from ._optimizer import OptimizerWidget
 
@@ -54,7 +54,7 @@ def optimize(viewer: TableViewerBase):
     ol.setTitle("Optimization")
 
 
-def stats_test(viewer: TableViewerBase):
+def show_stats_widget(viewer: TableViewerBase):
     from ._statistics import StatsTestDialog
 
     dlg = StatsTestDialog()
@@ -62,7 +62,7 @@ def stats_test(viewer: TableViewerBase):
     dlg.show()
 
 
-def sklearn_analysis(viewer: TableViewerBase):
+def show_sklearn_widget(viewer: TableViewerBase):
     from ._sklearn import SkLearnContainer
 
     tablestack = viewer._qwidget._tablestack

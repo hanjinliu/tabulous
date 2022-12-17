@@ -169,9 +169,9 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Analyze", cmd.analysis.show_eval_widget, ICON_DIR / "eval.svg")
         self.registerAction("Analyze", cmd.analysis.show_filter_widget, ICON_DIR / "filter.svg")
         self.addSeparatorToChild("Analyze")
-        self.registerAction("Analyze", cmd.analysis.optimize, ICON_DIR / "optimize.svg")
-        self.registerAction("Analyze", cmd.analysis.stats_test, ICON_DIR / "stats_test.svg")
-        self.registerAction("Analyze", cmd.analysis.sklearn_analysis, ICON_DIR / "sklearn_analysis.svg")
+        self.registerAction("Analyze", cmd.analysis.show_optimizer_widget, ICON_DIR / "optimize.svg")
+        self.registerAction("Analyze", cmd.analysis.show_stats_widget, ICON_DIR / "stats_test.svg")
+        self.registerAction("Analyze", cmd.analysis.show_sklearn_widget, ICON_DIR / "sklearn_analysis.svg")
         self.addSeparatorToChild("Analyze")
         self.registerAction("Analyze", cmd.analysis.toggle_console, ICON_DIR / "toggle_console.svg")
 
