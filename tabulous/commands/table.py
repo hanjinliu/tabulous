@@ -376,3 +376,9 @@ def reset_text_formatter(viewer: TableViewerBase) -> None:
     index = _utils.get_selected_column(viewer)
     column_name = sheet._filtered_columns[index]
     return sheet.setTextFormatter(column_name, None)
+
+
+def delete_table(viewer: TableViewerBase) -> None:
+    """Delete current table."""
+    idx = viewer.current_index
+    del viewer.tables[idx]

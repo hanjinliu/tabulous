@@ -344,11 +344,9 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
                 table = self.untileTable(i)
             tables.append(table)
         group = QTableGroup(tables, ori)
-        widgets = [group.copy() for _ in indices]
 
-        for j, index in enumerate(indices):
-            wdt = widgets[j]
-            self.replaceWidget(index, wdt)
+        for index in indices:
+            self.replaceWidget(index, group.copy())
 
         self.setCurrentIndex(current_index)
         return None
@@ -404,18 +402,20 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
                 count += 1
 
         unmerged = None
-        for i, tablegroup in enumerate(all_groups):
-            table = tablegroup.pop(target_idx)
+        for i, group in enumerate(all_groups):
+            table = group.pop(target_idx)
             j = appeared_idx[i]
             if j == index:
                 unmerged = table
                 self.replaceWidget(j, table)
             elif n_merged == 2:
-                self.replaceWidget(j, tablegroup.pop(0))
+                self.replaceWidget(j, group.pop(0))
 
         if unmerged is None:
             raise RuntimeError("Unmerging could not be resolved.")
         self.setCurrentIndex(current_index)
+        target_group.deleteLater()
+        self.parentWidget().setCellFocus()
         return unmerged
 
     def copyData(self, index: int):

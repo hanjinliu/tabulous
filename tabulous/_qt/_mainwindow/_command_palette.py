@@ -54,6 +54,8 @@ for cmd, desc in [
     file_group.register(_command_to_function(cmd), desc=desc)
 
 for cmd, desc in [
+    (cmds.table.new_spreadsheet, "Add a new spreadsheet"),
+    (cmds.table.delete_table, "Delete current table"),
     (cmds.table.copy_as_table, "Copy current table as a new Table"),
     (cmds.table.copy_as_spreadsheet, "Copy current table as a new Spreadsheet"),
     (cmds.table.groupby, "Group by column(s)"),

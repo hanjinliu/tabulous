@@ -48,8 +48,10 @@ class QTableGroup(QtW.QSplitter):
             index += self.count()
         out = self._tables.pop(index)
         table = self.widget(index)  # this is a copy
-        table.setParent(None)
+        table._selection_model.moving.disconnect(table._on_moving)
+        table._selection_model.moved.disconnect(table._on_moved)
         table.deleteLater()
+        table.setParent(None)
         return out
 
     def tableIndex(self, table: QBaseTable) -> int:
@@ -110,6 +112,14 @@ class QTableGroup(QtW.QSplitter):
 
     def tableStack(self) -> QTabbedTableStack:
         return self.parent().parent()
+
+    def deleteLater(self) -> None:
+        for i in range(self.count()):
+            qtableview = self.widget(i)
+            qtableview._selection_model.moving.disconnect(qtableview._on_moving)
+            qtableview._selection_model.moved.disconnect(qtableview._on_moved)
+
+        return super().deleteLater()
 
     if TYPE_CHECKING:
 

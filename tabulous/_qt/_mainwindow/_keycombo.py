@@ -1,5 +1,6 @@
 from __future__ import annotations
 from ._mainwidgets import QMainWindow, QMainWidget, _QtMainWidgetBase
+from tabulous import commands as cmds
 
 # fmt: off
 
@@ -268,14 +269,16 @@ def _(self: _QtMainWidgetBase):
 @QMainWindow._keymap.bind("F11")
 def _(self: QMainWindow):
     """Toggle fullscreen mode."""
-    if self.isFullScreen():
-        self.showNormal()
-    else:
-        self.showFullScreen()
+    cmds.window.toggle_fullscreen(self._table_viewer)
 
 @QMainWindow._keymap.bind("Ctrl+W")
 def _(self: QMainWindow):
     """Close the window."""
     return self.close(ask=None)
+
+@QMainWindow._keymap.bind("Ctrl+Delete")
+def _(self: QMainWindow):
+    """Delete the current table."""
+    cmds.table.delete_table(self._table_viewer)
 
 # fmt: on
