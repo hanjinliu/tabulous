@@ -100,35 +100,32 @@ def _(self: _QtMainWidgetBase):
 @QMainWindow._keymap.bind("Ctrl+N")
 def _(self: _QtMainWidgetBase):
     """New spreadsheet"""
-    self._table_viewer.add_spreadsheet(name="New")
-    return self.setCellFocus()
+    cmds.table.new_spreadsheet(self._table_viewer)
 
 
 @QMainWindow._keymap.bind("Ctrl+Shift+N")
 def _(self: _QtMainWidgetBase):
     """New window"""
-    viewer = self._table_viewer.__class__()
-    return viewer._qwidget.activateWindow()
-
+    cmds.window.new_window(self._table_viewer)
 
 @QMainWidget._keymap.bind("Ctrl+O")
 @QMainWindow._keymap.bind("Ctrl+O")
 def _(self: _QtMainWidgetBase):
     """Open a file as a table."""
-    return self.openFromDialog(type="table")
+    cmds.io.open_table(self._table_viewer)
 
 @QMainWidget._keymap.bind("Ctrl+K, Ctrl+O")
 @QMainWindow._keymap.bind("Ctrl+K, Ctrl+O")
 def _(self: _QtMainWidgetBase):
     """Open a file as a table."""
-    return self.openFromDialog(type="spreadsheet")
+    cmds.io.open_spreadsheet(self._table_viewer)
 
 
 @QMainWidget._keymap.bind("Ctrl+S")
 @QMainWindow._keymap.bind("Ctrl+S")
 def _(self: _QtMainWidgetBase):
     """Save current table."""
-    return self._toolbar.save_table()
+    cmds.io.save_table(self._table_viewer)
 
 
 @QMainWindow._keymap.bind("Alt")
@@ -235,7 +232,7 @@ def _(self: _QtMainWidgetBase):
 @QMainWindow._keymap.bind("Ctrl+F")
 def _(self: _QtMainWidgetBase):
     """Open finder."""
-    self._toolbar.find_item()
+    cmds.table.show_finder_widget(self._table_viewer)
 
 @QMainWidget._keymap.bind("Ctrl+K, ^")
 @QMainWindow._keymap.bind("Ctrl+K, ^")
