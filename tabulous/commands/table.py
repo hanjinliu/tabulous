@@ -6,6 +6,11 @@ if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase
 
 
+def new_spreadsheet(viewer: TableViewerBase):
+    """Add an empty spreadsheet."""
+    viewer.add_spreadsheet()
+
+
 def copy_as_table(viewer: TableViewerBase):
     """Make a copy of the current table."""
     table = _utils.get_table(viewer)

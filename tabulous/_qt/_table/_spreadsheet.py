@@ -767,33 +767,6 @@ class QSpreadSheet(QMutableSimpleTable):
         # fmt: on
         return None
 
-    def _set_foreground_colormap_with_dialog(self, index: int):
-        return self._set_colormap(index, self.model()._foreground_colormap)
-
-    def _set_background_colormap_with_dialog(self, index: int):
-        return self._set_colormap(index, self.model()._background_colormap)
-
-    def _set_colormap(self, index, colormap_dict: dict):
-        from ._base._colormap import exec_colormap_dialog
-
-        column_name = self._filtered_columns[index]
-        df = self.getDataFrame()
-        dtype: np.dtype = df.dtypes[column_name]
-        _converter = get_converter(dtype.kind)
-        if cmap := exec_colormap_dialog(df[column_name], self):
-
-            def _cmap(val):
-                try:
-                    _val = _converter(val)
-                except Exception:
-                    return None
-                else:
-                    return cmap(_val)
-
-            colormap_dict[column_name] = _cmap
-            self.refresh()
-        return None
-
 
 def _get_limit(a) -> int:
     if isinstance(a, int):

@@ -33,3 +33,8 @@ def toggle_fullscreen(viewer: TableViewerBase):
         viewer._qwidget.showNormal()
     else:
         viewer._qwidget.showFullScreen()
+
+
+def show_command_palette(viewer: TableViewerBase):
+    """Show the command palette."""
+    viewer._qwidget.showCommandPalette()

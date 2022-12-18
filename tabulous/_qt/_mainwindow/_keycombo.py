@@ -57,6 +57,8 @@ def _(self: _QtMainWidgetBase):
 
 @QMainWidget._keymap.bind("Ctrl+Shift+P")
 @QMainWindow._keymap.bind("Ctrl+Shift+P")
+@QMainWidget._keymap.bind("F1")
+@QMainWindow._keymap.bind("F1")
 def _(self: _QtMainWidgetBase):
     """Show command palette."""
     return self.showCommandPalette()
