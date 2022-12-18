@@ -717,54 +717,6 @@ class QSpreadSheet(QMutableSimpleTable):
     def setColumnDtype(self, label: Hashable, dtype: Any):
         return arguments(label, self._columns_dtype.get(label, None))
 
-    def _insert_row_above(self, row: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.insertRows(row, 1)
-
-    def _insert_row_below(self, row: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.insertRows(row + 1, 1)
-
-    def _insert_column_left(self, col: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.insertColumns(col, 1)
-
-    def _insert_column_right(self, col: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.insertColumns(col + 1, 1)
-
-    def _remove_this_row(self, row: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.removeRows(row, 1)
-
-    def _remove_selected_rows(self, row: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        _, rng = self._qtable_view._selection_model.range_under_index(row, 0)
-        if rng is not None:
-            row_range = rng[0]
-            self.removeRows(row_range.start, row_range.stop - row_range.start)
-        return None
-
-    def _remove_this_column(self, col: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.removeColumns(col, 1)
-
-    def _remove_selected_columns(self, col: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        _, rng = self._qtable_view._selection_model.range_under_index(0, col)
-        if rng is not None:
-            col_range = rng[1]
-            self.removeColumns(col_range.start, col_range.stop - col_range.start)
-        return None
-
     def _set_default_data_validator(self, name: Hashable):
         """Set default data validator based on the dtype."""
         dtype = self._columns_dtype[name]
