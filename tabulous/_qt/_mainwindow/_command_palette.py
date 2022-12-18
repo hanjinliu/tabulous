@@ -31,6 +31,8 @@ def _command_to_function(
     return wrapper
 
 
+# fmt: off
+
 for cmd, desc in [
     (cmds.window.show_keymap, "Show key map widget"),
     (cmds.window.close_window, "Close window"),
@@ -52,7 +54,7 @@ for cmd, desc in [
     file_group.register(_command_to_function(cmd), desc=desc)
 
 for cmd, desc in [
-    (cmds.table.copy_as_new_table, "Copy current table as a new Table"),
+    (cmds.table.copy_as_table, "Copy current table as a new Table"),
     (cmds.table.copy_as_spreadsheet, "Copy current table as a new Spreadsheet"),
     (cmds.table.groupby, "Group by column(s)"),
     (cmds.table.switch_header, "Switch header and the top row"),
@@ -103,17 +105,11 @@ for cmd, desc in [
 
 for cmd, desc in [
     (cmds.table.copy_data_tab_separated, "Copy cells (tab separated)"),
-    (
-        cmds.table.copy_data_with_header_tab_separated,
-        "Copy cells with headers (tab separated)",
-    ),
+    (cmds.table.copy_data_with_header_tab_separated, "Copy cells with headers (tab separated)"),
     (cmds.table.copy_data_comma_separated, "Copy cells (comma separated)"),
-    (
-        cmds.table.copy_data_with_header_comma_separated,
-        "Copy cells with headers (comma separated)",
-    ),
+    (cmds.table.copy_data_with_header_comma_separated, "Copy cells with headers (comma separated)"),
     (cmds.table.copy_as_new_table, "Copy as a new table"),
-    (cmds.table.copy_as_spreadsheet, "Copy as a new spreadsheet"),
+    (cmds.table.copy_as_new_spreadsheet, "Copy as a new spreadsheet"),
     (cmds.table.copy_as_literal, "Copy as literal"),
     (cmds.table.paste_data_tab_separated, "Paste from tab separated text"),
     (cmds.table.paste_data_comma_separated, "Paste from comma separated text"),
@@ -122,106 +118,20 @@ for cmd, desc in [
     (cmds.table.cut_data, "Cut selected cells"),
     (cmds.table.delete_values, "Delete selected cells"),
     (cmds.table.add_highlight, "Add highlight to selected cells"),
+    (cmds.table.insert_row_above, "Insert row above current index"),
+    (cmds.table.insert_row_below, "Insert row below current index"),
+    (cmds.table.insert_column_left, "Insert column left of current index"),
+    (cmds.table.insert_column_right, "Insert column right of current index"),
+    (cmds.table.remove_this_row, "Remove current row"),
+    (cmds.table.remove_this_column, "Remove current column"),
+    (cmds.table.set_column_dtype, "Set column dtype"),
+    (cmds.table.set_foreground_colormap, "Set foreground colormap"),
+    (cmds.table.set_background_colormap, "Set background colormap"),
+    (cmds.table.reset_foreground_colormap, "Reset foreground colormap"),
+    (cmds.table.reset_background_colormap, "Reset background colormap"),
+    (cmds.table.set_text_formatter, "Set text formatter"),
+    (cmds.table.reset_text_formatter, "Reset text formatter"),
 ]:
     selection_group.register(_command_to_function(cmd), desc=desc)
 
-
-def _get_spreadsheet(self: _QtMainWidgetBase) -> QSpreadSheet:
-    from tabulous._qt._table import QSpreadSheet
-
-    qwidget = self._table_viewer.current_table._qwidget
-    if isinstance(qwidget, QSpreadSheet):
-        return qwidget
-    raise TypeError("This action is only available for a Spreadsheet")
-
-
-def _get_selected_column(qspreadsheet: QSpreadSheet) -> int:
-    colsel = qspreadsheet._qtable_view._selection_model._col_selection_indices
-    if len(colsel) == 0:
-        raise ValueError("No columns selected")
-    if len(colsel) > 1:
-        raise ValueError("Multiple columns selected")
-    idx = next(iter(colsel))
-    rng = qspreadsheet._qtable_view._selection_model.ranges[idx]
-    if rng[1].start != rng[1].stop - 1:
-        raise ValueError("Multiple columns selected")
-
-    return rng[1].start
-
-
-@spreadsheet_group.register("Insert row above")
-def insert_row_above(self: _QtMainWidgetBase):
-    """Insert a row above the current selection"""
-    qspreadsheet = _get_spreadsheet(self)
-    qspreadsheet._insert_row_above(
-        qspreadsheet._qtable_view._selection_model.current_index.row
-    )
-
-
-@spreadsheet_group.register("Insert row below")
-def insert_row_below(self: _QtMainWidgetBase):
-    """Insert a row below the current selection"""
-    qspreadsheet = _get_spreadsheet(self)
-    qspreadsheet._insert_row_below(
-        qspreadsheet._qtable_view._selection_model.current_index.row
-    )
-
-
-@spreadsheet_group.register("Insert column left")
-def insert_column_left(self: _QtMainWidgetBase):
-    """Insert a column on the left side of the current selection"""
-    qspreadsheet = _get_spreadsheet(self)
-    qspreadsheet._insert_column_left(
-        qspreadsheet._qtable_view._selection_model.current_index.column
-    )
-
-
-@spreadsheet_group.register("Insert column right")
-def insert_column_right(self: _QtMainWidgetBase):
-    """Insert a column on the right side of the current selection"""
-    qspreadsheet = _get_spreadsheet(self)
-    qspreadsheet._insert_column_right(
-        qspreadsheet._qtable_view._selection_model.current_index.column
-    )
-
-
-@spreadsheet_group.register("Remove selected rows")
-def remove_row(self: _QtMainWidgetBase):
-    """Remove all the selected rows."""
-    qspreadsheet = _get_spreadsheet(self)
-    qspreadsheet._remove_selected_rows(
-        qspreadsheet._qtable_view._selection_model.current_index.row
-    )
-
-
-@spreadsheet_group.register("Remove selected columns")
-def remove_column(self: _QtMainWidgetBase):
-    """Remove all the selected columns."""
-    qspreadsheet = _get_spreadsheet(self)
-    qspreadsheet._remove_selected_columns(
-        qspreadsheet._qtable_view._selection_model.current_index.column
-    )
-
-
-@spreadsheet_group.register("Set column dtype")
-def set_column_dtype(self: _QtMainWidgetBase):
-    """Open a dialog to set the dtype to the selected column."""
-    qspreadsheet = _get_spreadsheet(self)
-    index = _get_selected_column(qspreadsheet)
-    qspreadsheet._set_column_dtype_with_dialog(index)
-
-
-@spreadsheet_group.register("Set foreground color")
-def set_foreground_color(self: _QtMainWidgetBase):
-    """Set the foreground color of the selected cells."""
-    qspreadsheet = _get_spreadsheet(self)
-    index = _get_selected_column(qspreadsheet)
-    qspreadsheet._set_foreground_colormap_with_dialog(index)
-
-
-@spreadsheet_group.register("Set background color")
-def set_background_color(self: _QtMainWidgetBase):
-    """Set the background color of the selected cells."""
-    qspreadsheet = _get_spreadsheet(self)
-    index = _get_selected_column(qspreadsheet)
-    qspreadsheet._set_background_colormap_with_dialog(index)
+# fmt: on

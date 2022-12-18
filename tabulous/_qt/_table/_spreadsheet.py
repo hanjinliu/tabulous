@@ -13,11 +13,13 @@ from qtpy.QtCore import Qt
 from magicgui import widgets as mWdg
 from collections_undo import arguments
 
+
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from ._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 from ._base._text_formatter import DefaultFormatter
 from tabulous.color import normalize_color
 from tabulous.types import ItemInfo
+from tabulous import commands as cmds
 
 if TYPE_CHECKING:
     from magicgui.widgets._bases import ValueWidget
@@ -763,27 +765,6 @@ class QSpreadSheet(QMutableSimpleTable):
             self.removeColumns(col_range.start, col_range.stop - col_range.start)
         return None
 
-    def _set_column_dtype_with_dialog(self, col: int):
-        """
-        Set column specific dtype for data conversion and validation.
-
-        If a column in a spreadsheet is tagged with a dtype, table data will be
-        parsed according to the specified data type.
-        """
-        from ._dtype import QDtypeWidget
-
-        if out := QDtypeWidget.requestValue(self):
-            dtype_str, validation, formatting = out
-            if dtype_str == "unset":
-                dtype_str = None
-            colname = self._data_raw.columns[col]
-            self.setColumnDtype(colname, dtype_str)
-            if validation:
-                self._set_default_data_validator(colname)
-            if formatting:
-                self._set_default_text_formatter(colname)
-        return None
-
     def _set_default_data_validator(self, name: Hashable):
         """Set default data validator based on the dtype."""
         dtype = self._columns_dtype[name]
@@ -799,28 +780,28 @@ class QSpreadSheet(QMutableSimpleTable):
     def _install_actions(self):
         # fmt: off
         vheader = self._qtable_view.verticalHeader()
-        vheader.registerAction("Insert/Remove > Insert row above")(self._insert_row_above)
-        vheader.registerAction("Insert/Remove > Insert row below")(self._insert_row_below)
-        vheader.registerAction("Insert/Remove > Remove this row")(self._remove_this_row)
-        vheader.registerAction("Insert/Remove > Remove selected rows")(self._remove_selected_rows)
+        vheader.registerAction("Insert/Remove > Insert row above")(lambda idx: cmds.table.insert_row_above(self.parentViewer()._table_viewer))
+        vheader.registerAction("Insert/Remove > Insert row below")(lambda idx: cmds.table.insert_row_below(self.parentViewer()._table_viewer))
+        vheader.registerAction("Insert/Remove > Remove this row")(lambda idx: cmds.table.remove_this_row(self.parentViewer()._table_viewer))
+        vheader.registerAction("Insert/Remove > Remove selected rows")(lambda idx: cmds.table.remove_selected_rows(self.parentViewer()._table_viewer))
         vheader.addSeparator()
 
         hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Insert/Remove > Insert column left")(self._insert_column_left)
-        hheader.registerAction("Insert/Remove > Insert column right")(self._insert_column_right)
-        hheader.registerAction("Insert/Remove > Remove this column")(self._remove_this_column)
-        hheader.registerAction("Insert/Remove > Remove selected columns")(self._remove_selected_columns)
+        hheader.registerAction("Insert/Remove > Insert column left")(lambda idx: cmds.table.insert_column_left(self.parentViewer()._table_viewer))
+        hheader.registerAction("Insert/Remove > Insert column right")(lambda idx: cmds.table.insert_column_right(self.parentViewer()._table_viewer))
+        hheader.registerAction("Insert/Remove > Remove this column")(lambda idx: cmds.table.remove_this_column(self.parentViewer()._table_viewer))
+        hheader.registerAction("Insert/Remove > Remove selected columns")(lambda idx: cmds.table.remove_selected_columns(self.parentViewer()._table_viewer))
         hheader.addSeparator()
-        hheader.registerAction("Column dtype")(self._set_column_dtype_with_dialog)
+        hheader.registerAction("Column dtype")(lambda idx: cmds.table.set_column_dtype(self.parentViewer()._table_viewer))
         hheader.addSeparator()
 
-        self.registerAction("Insert/Remove > Insert a row above")(lambda idx: self._insert_row_above(idx[0]))
-        self.registerAction("Insert/Remove > Insert a row below")(lambda idx: self._insert_row_below(idx[0]))
-        self.registerAction("Insert/Remove > Remove this row")(lambda idx: self._remove_this_row(idx[0]))
+        self.registerAction("Insert/Remove > Insert a row above")(lambda idx: cmds.table.insert_row_above(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Insert a row below")(lambda idx: cmds.table.insert_row_below(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Remove this row")(lambda idx: cmds.table.remove_this_row(self.parentViewer()._table_viewer))
         self.addSeparator()
-        self.registerAction("Insert/Remove > Insert a column on the left")(lambda idx: self._insert_column_left(idx[1]))
-        self.registerAction("Insert/Remove > Insert a column on the right")(lambda idx: self._insert_column_right(idx[1]))
-        self.registerAction("Insert/Remove > Remove this column")(lambda idx: self._remove_this_column(idx[1]))
+        self.registerAction("Insert/Remove > Insert a column on the left")(lambda idx: cmds.table.insert_column_left(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Insert a column on the right")(lambda idx: cmds.table.insert_column_right(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Remove this column")(lambda idx: cmds.table.remove_this_column(self.parentViewer()._table_viewer))
         self.addSeparator()
 
         super()._install_actions()

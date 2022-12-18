@@ -128,6 +128,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         row, col = index.row(), index.column()
         sel_model = self._qtable_view._selection_model
+        sel_model.current_index = (row, col)
         highlight_model = self._qtable_view._highlight_model
 
         if sel_model._ctrl_on:
