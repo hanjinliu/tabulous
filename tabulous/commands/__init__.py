@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterator, NamedTuple
+from typing import Iterator
 
 from . import file, plot, selection, tab, table, view, analysis, window
 from types import FunctionType, ModuleType
@@ -14,12 +14,6 @@ _SUB_MODULES: list[ModuleType] = [
     analysis,
     window,
 ]
-
-
-class CommandInfo(NamedTuple):
-    module: str
-    desc: str
-    command: FunctionType
 
 
 def iter_commands() -> Iterator[tuple[str, FunctionType]]:

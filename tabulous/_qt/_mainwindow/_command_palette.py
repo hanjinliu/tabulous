@@ -1,20 +1,24 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Callable
+import logging
 from qt_command_palette import get_palette
 from tabulous import commands as cmds
-from tabulous._utils import load_setting_json
+from tabulous._utils import get_config
 from ._mainwidgets import QMainWindow, QMainWidget
 
 if TYPE_CHECKING:
     from ._base import _QtMainWidgetBase
     from tabulous.widgets import TableViewerBase
 
+logger = logging.getLogger("tabulous")
+
 
 def _command_to_function(
     f: Callable[[TableViewerBase], Any]
 ) -> Callable[[_QtMainWidgetBase], Any]:
     def wrapper(self: _QtMainWidgetBase):
+        logger.debug(f"Command: {f.__module__.split('.')[-1]}.{f.__name__}")
         return f(self._table_viewer)
 
     wrapper.__doc__ = f.__doc__
@@ -45,7 +49,7 @@ def load_all_commands():
         "selection": selection_group,
     }
 
-    kb = load_setting_json().keybindings.copy()
+    kb = get_config().keybindings.copy()
 
     for mod, cmd in cmds.iter_commands():
         group = _groups[mod]

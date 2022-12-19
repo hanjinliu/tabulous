@@ -88,30 +88,15 @@ def load_cell_namespace() -> MappingProxyType:
     return MappingProxyType(ns)
 
 
-@dataclass
-class Settings:
-    keybindings: dict[str, str | list[str]] = field(default_factory=dict)
+def prep_default_keybindings() -> dict[str, str | list[str]]:
+    from tabulous.commands import DEFAULT_KEYBINDING_SETTING
 
-
-def load_setting_json() -> Settings:
-    import json
-
-    if not SETTINGS_JSON.exists():
-        SETTINGS_JSON.parent.mkdir(parents=True, exist_ok=True)
-        from tabulous.commands import DEFAULT_KEYBINDING_SETTING
-
-        kb = {}
-        for cmd, seq in DEFAULT_KEYBINDING_SETTING:
-            mod = cmd.__module__.split(".")[-1]
-            name = cmd.__name__
-            kb[f"{mod}.{name}"] = seq
-        js = {"keybindings": kb}
-        with open(SETTINGS_JSON, "w") as f:
-            json.dump(js, f, indent=2)
-
-    with open(SETTINGS_JSON) as f:
-        js = json.load(f)
-    return Settings(**js)
+    kb = {}
+    for cmd, seq in DEFAULT_KEYBINDING_SETTING:
+        mod = cmd.__module__.split(".")[-1]
+        name = cmd.__name__
+        kb[f"{mod}.{name}"] = seq
+    return kb
 
 
 @dataclass
@@ -161,6 +146,9 @@ class TabulousConfig:
     table: Table = field(default_factory=Table)
     cell: Cell = field(default_factory=Cell)
     window: Window = field(default_factory=Window)
+    keybindings: dict[str, str | list[str]] = field(
+        default_factory=prep_default_keybindings
+    )
 
     @classmethod
     def from_toml(cls, path: Path = CONFIG_PATH) -> TabulousConfig:
@@ -177,11 +165,14 @@ class TabulousConfig:
         table = tm.get("table", {})
         cell = tm.get("cell", {})
         window = tm.get("window", {})
+        if not (kb := tm.get("keybindings", {})):
+            kb = prep_default_keybindings()
         return cls(
             ConsoleNamespace(**_as_fields(console_namespace, ConsoleNamespace)),
             Table(**_as_fields(table, Table)),
             Cell(**_as_fields(cell, Cell)),
             Window(**_as_fields(window, Window)),
+            kb,
         )
 
     def as_toml(self):
