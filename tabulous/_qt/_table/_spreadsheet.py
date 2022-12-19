@@ -776,7 +776,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.registerAction("Cell widget > CheckBox")(lambda idx: cmds.selection.add_checkbox(self.parentViewer()._table_viewer))
         self.registerAction("Cell widget > RadioButton")(lambda idx: cmds.selection.add_radio_button(self.parentViewer()._table_viewer))
         self.registerAction("Cell widget > LineEdit")(lambda idx: cmds.selection.add_line_edit(self.parentViewer()._table_viewer))
-        self.addSeparator("Cell widget")
+        self.addSeparator("Cell widget ")
         self.registerAction("Cell widget > Remove")(lambda idx: cmds.selection.remove_cell_widgets(self.parentViewer()._table_viewer))
 
         # fmt: on

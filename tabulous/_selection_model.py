@@ -251,6 +251,7 @@ class SelectionModel(RangesModel):
         return None
 
     def iter_all_indices(self) -> Iterator[tuple[int, int]]:
+        """Iterate all the indices (int, int) in all the selection ranges."""
         nr = self._row_count_getter()
         nc = self._col_count_getter()
         for rng in self.ranges:
