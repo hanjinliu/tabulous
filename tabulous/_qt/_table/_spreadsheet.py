@@ -15,11 +15,11 @@ from collections_undo import arguments
 
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
-from ._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
-from ._base._text_formatter import DefaultFormatter
+from tabulous._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 from tabulous.color import normalize_color
 from tabulous.types import ItemInfo
 from tabulous import commands as cmds
+from tabulous._text_formatter import DefaultFormatter
 
 if TYPE_CHECKING:
     from magicgui.widgets._bases import ValueWidget

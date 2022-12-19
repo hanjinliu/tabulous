@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Callable, Hashable, Sequence, TYPE_CHECKING, TypeVar
 import numpy as np
 import pandas as pd
-from .._dtype import isna
+from tabulous._dtype import isna
 
 if TYPE_CHECKING:
     from pandas.core.dtypes.dtypes import CategoricalDtype

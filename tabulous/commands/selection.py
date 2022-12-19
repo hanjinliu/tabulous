@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from . import _dialogs, _utils
+from . import _utils
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase
@@ -115,7 +115,7 @@ def notify_editability(viewer: TableViewerBase):
 
 def set_column_dtype(viewer: TableViewerBase):
     """Set column specific dtype for data conversion and validation."""
-    from tabulous._qt._table._dtype import QDtypeWidget
+    from tabulous._dtype import QDtypeWidget
 
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     col = _utils.get_selected_column(viewer)
@@ -214,7 +214,7 @@ def remove_selected_columns(viewer: TableViewerBase):
 
 def set_foreground_colormap(viewer: TableViewerBase) -> None:
     """Set foreground colormap"""
-    from tabulous._qt._table._base._colormap import exec_colormap_dialog
+    from ._colormap import exec_colormap_dialog
 
     sheet = _utils.get_table(viewer)._qwidget
     index = _utils.get_selected_column(viewer)
@@ -235,7 +235,7 @@ def reset_foreground_colormap(viewer: TableViewerBase) -> None:
 
 def set_background_colormap(viewer: TableViewerBase) -> None:
     """Set background colormap"""
-    from tabulous._qt._table._base._colormap import exec_colormap_dialog
+    from ._colormap import exec_colormap_dialog
 
     sheet = _utils.get_table(viewer)._qwidget
     index = _utils.get_selected_column(viewer)
@@ -255,7 +255,7 @@ def reset_background_colormap(viewer: TableViewerBase) -> None:
 
 def set_text_formatter(viewer: TableViewerBase) -> None:
     """Set text formatter"""
-    from tabulous._qt._table._base._text_formatter import exec_formatter_dialog
+    from tabulous._text_formatter import exec_formatter_dialog
 
     sheet = _utils.get_table(viewer)._qwidget
     index = _utils.get_selected_column(viewer)
@@ -363,7 +363,7 @@ def write_slice_in_console(viewer: TableViewerBase) -> None:
 
 
 def write_data_reference_in_console(viewer: TableViewerBase) -> None:
-    """Write data reference object to console"""
+    """Write data reference to console"""
     from qtpy import QtCore
 
     table = _utils.get_table(viewer)

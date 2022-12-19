@@ -18,7 +18,7 @@ from ._line_edit import (
     QVerticalHeaderLineEdit,
     QCellLiteralEdit,
 )
-from tabulous._qt._table._dtype import isna
+from tabulous._dtype import isna
 from tabulous._qt._undo import QtUndoManager, fmt_slice
 from tabulous._qt._svg import QColoredSVGIcon
 from tabulous._qt._keymap import QtKeys, QtKeyMap

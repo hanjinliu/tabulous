@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from magicgui.widgets import RadioButtons
 
-from tabulous._qt._table._dtype import get_dtype, isna
+from tabulous._dtype import get_dtype, isna
 from tabulous.widgets import Table
 
 __all__ = ["exec_formatter_dialog"]
