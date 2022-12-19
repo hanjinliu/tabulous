@@ -146,18 +146,6 @@ def _(self: QMainWindow, key: str):
     self._toolbar.currentToolBar().clickButton((index - 1) % 10, ignore_index_error=True)
 
 
-@QMainWindow._keymap.bind("Ctrl+Tab")
-def _(self: QMainWindow):
-    """Activate the new tab."""
-    num = self._tablestack.count()
-    if num == 0:
-        return None
-    idx = self._tablestack.currentIndex() + 1
-    if idx >= num:
-        idx = 0
-    return self._tablestack.setCurrentIndex(idx)
-
-
 @QMainWidget._keymap.bind("Ctrl+K, Shift+?")
 @QMainWindow._keymap.bind("Ctrl+K, Shift+?")
 def _(self: _QtMainWidgetBase):
