@@ -29,18 +29,3 @@ def reset_view_mode(viewer: TableViewerBase):
     """Change current table to the normal mode."""
     table = _utils.get_table(viewer)
     table.view_mode = "normal"
-
-
-def tile_tables(viewer: TableViewerBase):
-    """Open a dialog to choose tables to be tiled."""
-    choices = [(table.name, idx) for idx, table in enumerate(viewer.tables)]
-    out = _dialogs.choose_multiple(
-        choices={"choices": choices, "widget_type": "Select"}
-    )
-    if out:
-        viewer.tables.tile(out)
-
-
-def untile_table(viewer: TableViewerBase):
-    """Untile currently selected table."""
-    viewer.tables.untile(viewer.current_index)

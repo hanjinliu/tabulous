@@ -382,3 +382,14 @@ def delete_table(viewer: TableViewerBase) -> None:
     """Delete current table."""
     idx = viewer.current_index
     del viewer.tables[idx]
+
+
+def toggle_editability(viewer: TableViewerBase):
+    """Toggle table editability."""
+    table = viewer.current_table
+    try:
+        table.editable = not table.editable
+        viewer.native._tablestack._notifier.setVisible(False)
+    except Exception:
+        pass
+    viewer.native.setCellFocus()

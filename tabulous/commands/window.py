@@ -27,6 +27,11 @@ def toggle_toolbar(viewer: TableViewerBase):
     viewer._qwidget.toggleToolBarVisibility()
 
 
+def toggle_console(viewer: TableViewerBase):
+    """Toggle embedded console."""
+    return viewer._qwidget.toggleConsoleVisibility()
+
+
 def toggle_fullscreen(viewer: TableViewerBase):
     """Enable or disable fullscreen mode."""
     if viewer._qwidget.isFullScreen():
@@ -38,3 +43,8 @@ def toggle_fullscreen(viewer: TableViewerBase):
 def show_command_palette(viewer: TableViewerBase):
     """Show the command palette."""
     viewer._qwidget.showCommandPalette()
+
+
+def focus_table(viewer: TableViewerBase):
+    """Move focus to the table."""
+    viewer.native.setCellFocus()

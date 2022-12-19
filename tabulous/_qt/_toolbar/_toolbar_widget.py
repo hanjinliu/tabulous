@@ -152,7 +152,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.addSeparatorToChild("Home")
         self.registerAction("Home", cmds.io.open_sample, ICON_DIR / "open_sample.svg")
         self.addSeparatorToChild("Home")
-        self.registerAction("Home", cmds.analysis.toggle_console, ICON_DIR / "toggle_console.svg")
+        self.registerAction("Home", cmds.window.toggle_console, ICON_DIR / "toggle_console.svg")
         self.registerAction("Home", cmds.window.show_command_palette, ICON_DIR / "palette.svg")
 
         self.registerAction("Table", cmds.table.copy_as_table, ICON_DIR / "copy_as_table.svg")
@@ -182,8 +182,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("View", cmds.view.set_dual_v_mode, ICON_DIR / "view_dual_v.svg")
         self.registerAction("View", cmds.view.reset_view_mode, ICON_DIR / "view_reset.svg")
         self.addSeparatorToChild("View")
-        self.registerAction("View", cmds.view.tile_tables, ICON_DIR / "tile.svg")
-        self.registerAction("View", cmds.view.untile_table, ICON_DIR / "untile.svg")
+        self.registerAction("View", cmds.tab.tile_tables, ICON_DIR / "tile.svg")
+        self.registerAction("View", cmds.tab.untile_table, ICON_DIR / "untile.svg")
 
         self.registerAction("Plot", cmds.plot.plot, ICON_DIR / "plot.svg")
         self.registerAction("Plot", cmds.plot.scatter, ICON_DIR / "scatter.svg")

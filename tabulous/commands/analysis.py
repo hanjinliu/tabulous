@@ -27,11 +27,6 @@ def summarize_table(viewer: TableViewerBase):
             table.add_side_widget(qtable, name="summary")
 
 
-def toggle_console(viewer: TableViewerBase):
-    """Toggle embedded console."""
-    return viewer._qwidget.toggleConsoleVisibility()
-
-
 def show_filter_widget(viewer: TableViewerBase):
     """Apply filter to the current table."""
     return viewer._qwidget._tablestack.openFilterDialog()

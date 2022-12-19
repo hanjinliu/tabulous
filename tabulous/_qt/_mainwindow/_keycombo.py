@@ -15,28 +15,14 @@ def _(self: _QtMainWidgetBase):
 @QMainWindow._keymap.bind("Ctrl+K, Ctrl+T")
 def _(self: _QtMainWidgetBase):
     """Toggle toolbar visibility."""
-    return self.toggleToolBarVisibility()
+    cmds.window.toggle_toolbar(self._table_viewer)
 
 @QMainWidget._keymap.bind("Ctrl+K, E")
 @QMainWindow._keymap.bind("Ctrl+K, E")
 def _(self: _QtMainWidgetBase):
     """Toggle table editability."""
-    table = self._table_viewer.current_table
-    try:
-        table.editable = not table.editable
-        self._tablestack._notifier.setVisible(False)
-    except Exception:
-        pass
-    self.setCellFocus()
+    cmds.table.toggle_editability(self._table_viewer)
 
-@QMainWidget._keymap.bind("Ctrl+K, Delete")
-@QMainWindow._keymap.bind("Ctrl+K, Delete")
-def _(self: _QtMainWidgetBase):
-    """Delete current table."""
-    table = self._table_viewer.current_table
-    if table is not None:
-        idx = self._table_viewer.tables.index(table)
-        del self._table_viewer.tables[idx]
 
 @QMainWidget._keymap.bind("Ctrl+K, V", mode="vertical", desc="Vertical dual view mode.")
 @QMainWindow._keymap.bind("Ctrl+K, V", mode="vertical", desc="Vertical dual view mode.")
@@ -53,7 +39,7 @@ def _(self: _QtMainWidgetBase, mode):
 @QMainWindow._keymap.bind("Ctrl+Shift+C")
 def _(self: _QtMainWidgetBase):
     """Toggle embeded console visibility."""
-    return self.toggleConsoleVisibility()
+    cmds.window.toggle_console(self._table_viewer)
 
 
 @QMainWidget._keymap.bind("Ctrl+Shift+P")
@@ -62,13 +48,13 @@ def _(self: _QtMainWidgetBase):
 @QMainWindow._keymap.bind("F1")
 def _(self: _QtMainWidgetBase):
     """Show command palette."""
-    return self.showCommandPalette()
+    cmds.window.show_command_palette(self._table_viewer)
 
 @QMainWidget._keymap.bind("Ctrl+0")
 @QMainWindow._keymap.bind("Ctrl+0")
 def _(self: _QtMainWidgetBase):
     """Focus on a cell in the current table."""
-    return self.setCellFocus()
+    cmds.window.focus_table(self._table_viewer)
 
 
 @QMainWidget._keymap.bind("Ctrl+Shift+F")
@@ -176,57 +162,32 @@ def _(self: QMainWindow):
 @QMainWindow._keymap.bind("Ctrl+K, Shift+?")
 def _(self: _QtMainWidgetBase):
     """Open a keymap viewer."""
-    return self.showKeyMap()
+    cmds.window.show_keymap(self._table_viewer)
 
 @QMainWidget._keymap.bind("Alt+Left")
 @QMainWindow._keymap.bind("Alt+Left")
 def _(self: _QtMainWidgetBase):
     """Activate the previous table."""
-    num = self._tablestack.count()
-    if num == 0:
-        return None
-    src = self._tablestack.currentIndex()
-    if src == 0:
-        return
-    self._tablestack.setCurrentIndex(src - 1)
-    return self.setCellFocus()
+    cmds.tab.activate_left(self._table_viewer)
 
 @QMainWidget._keymap.bind("Alt+Right")
 @QMainWindow._keymap.bind("Alt+Right")
 def _(self: _QtMainWidgetBase):
     """Activate the next table."""
-    num = self._tablestack.count()
-    if num == 0:
-        return None
-    src = self._tablestack.currentIndex()
-    if src == num - 1:
-        return
-    self._tablestack.setCurrentIndex(src + 1)
-    return self.setCellFocus()
+    cmds.tab.activate_right(self._table_viewer)
 
 @QMainWidget._keymap.bind("Alt+Shift+Left")
 @QMainWindow._keymap.bind("Alt+Shift+Left")
 def _(self: _QtMainWidgetBase):
     """Swap the current table with the previous one."""
-    num = self._tablestack.count()
-    if num == 0:
-        return None
-    src = self._tablestack.currentIndex()
-    if src == 0:
-        return
-    self._table_viewer.tables.move(src, src - 1)
+    cmds.tab.swap_tab_with_left(self._table_viewer)
+
 
 @QMainWidget._keymap.bind("Alt+Shift+Right")
 @QMainWindow._keymap.bind("Alt+Shift+Right")
 def _(self: _QtMainWidgetBase):
     """Swap the current table with the next one."""
-    num = self._tablestack.count()
-    if num == 0:
-        return None
-    src = self._tablestack.currentIndex()
-    if src == num - 1:
-        return
-    self._table_viewer.tables.move(src + 1, src)
+    cmds.tab.swap_tab_with_right(self._table_viewer)
 
 @QMainWidget._keymap.bind("Ctrl+F")
 @QMainWindow._keymap.bind("Ctrl+F")
@@ -238,30 +199,13 @@ def _(self: _QtMainWidgetBase):
 @QMainWindow._keymap.bind("Ctrl+K, ^")
 def _(self: _QtMainWidgetBase):
     """Tile tables."""
-    num = self._tablestack.count()
-    if num < 2:
-        return None
-    idx = self._tablestack.currentIndex()
-    if idx < num - 1:
-        indices = [idx, idx + 1]
-    else:
-        indices = [idx - 1, idx]
-    all_indices = []
-    for i in indices:
-        all_indices.extend(self._tablestack.tiledIndices(i))
-
-    all_indices = list(set(all_indices))
-    return self._tablestack.tileTables(all_indices, orientation="horizontal")
+    cmds.tab.tile_with_adjacent_table(self._table_viewer)
 
 @QMainWidget._keymap.bind("Ctrl+K, \\")
 @QMainWindow._keymap.bind("Ctrl+K, \\")
 def _(self: _QtMainWidgetBase):
     """Untile tables."""
-    num = self._tablestack.count()
-    if num < 2:
-        return None
-    idx = self._tablestack.currentIndex()
-    self._tablestack.untileTable(idx)
+    cmds.tab.untile_table(self._table_viewer)
 
 @QMainWindow._keymap.bind("F11")
 def _(self: QMainWindow):

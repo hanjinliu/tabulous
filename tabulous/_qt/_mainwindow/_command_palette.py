@@ -14,6 +14,7 @@ palette = get_palette("tabulous")
 default_group = palette.add_group("")
 file_group = palette.add_group("File")
 table_group = palette.add_group("Table")
+tab_group = palette.add_group("Tab")
 analysis_group = palette.add_group("Analysis")
 view_group = palette.add_group("View")
 plot_group = palette.add_group("Plot")
@@ -39,9 +40,7 @@ for cmd, desc in [
     (cmds.window.new_window, "New window"),
     (cmds.window.toggle_toolbar, "Toggle toolbar visibility"),
     (cmds.window.toggle_fullscreen, "Toggle fullscreen"),
-    (cmds.table.undo_table, "Undo table"),
-    (cmds.table.redo_table, "Redo table"),
-]:
+    (cmds.window.toggle_console, "Toggle QtConsole"),]:
     default_group.register(_command_to_function(cmd), desc=desc)
 
 
@@ -66,6 +65,8 @@ for cmd, desc in [
     (cmds.table.show_finder_widget, "Find item"),
     (cmds.table.sort_table, "Sort table"),
     (cmds.table.random, "Generate random values"),
+    (cmds.table.undo_table, "Undo table"),
+    (cmds.table.redo_table, "Redo table"),
 ]:
     table_group.register(_command_to_function(cmd), desc=desc)
 
@@ -77,7 +78,6 @@ for cmd, desc in [
     (cmds.analysis.show_optimizer_widget, "Open optimizer widget"),
     (cmds.analysis.show_stats_widget, "Open statistics test widget"),
     (cmds.analysis.show_sklearn_widget, "Open scikit-learn widget"),
-    (cmds.analysis.toggle_console, "Toggle QtConsole"),
 ]:
     analysis_group.register(_command_to_function(cmd), desc=desc)
 
@@ -86,10 +86,19 @@ for cmd, desc in [
     (cmds.view.set_dual_h_mode, "Dual-view table horizontally"),
     (cmds.view.set_dual_v_mode, "Dual-view table vertically"),
     (cmds.view.reset_view_mode, "Reset table view mode"),
-    (cmds.view.tile_tables, "Tile tables"),
-    (cmds.view.untile_table, "Untile tables"),
 ]:
     view_group.register(_command_to_function(cmd), desc=desc)
+
+for cmd, desc in [
+    (cmds.tab.tile_tables, "Tile tables"),
+    (cmds.tab.tile_with_adjacent_table, "Tile current table with the adjacent one"),
+    (cmds.tab.untile_table, "Untile tables"),
+    (cmds.tab.swap_tab_with_left, "Swap current table with the left one"),
+    (cmds.tab.swap_tab_with_right, "Swap current table with the right one"),
+    (cmds.tab.activate_left, "Activate left tab"),
+    (cmds.tab.activate_right, "Activate right tab"),
+]:
+    tab_group.register(_command_to_function(cmd), desc=desc)
 
 for cmd, desc in [
     (cmds.plot.plot, "Run plt.plot"),
