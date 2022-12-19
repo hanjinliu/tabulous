@@ -13,11 +13,15 @@ from qtpy.QtCore import Qt
 from magicgui import widgets as mWdg
 from collections_undo import arguments
 
+from tabulous.commands.selection import add_float_slider
+
+
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
-from ._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
-from ._base._text_formatter import DefaultFormatter
+from tabulous._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 from tabulous.color import normalize_color
 from tabulous.types import ItemInfo
+from tabulous import commands as cmds
+from tabulous._text_formatter import DefaultFormatter
 
 if TYPE_CHECKING:
     from magicgui.widgets._bases import ValueWidget
@@ -633,11 +637,20 @@ class QSpreadSheet(QMutableSimpleTable):
             # equivalent to delete the widget
             return None
 
+        if widget.widget_type in ("CheckBox", "RadioButton"):
+            converter = lambda x: x != "False"
+        elif widget.widget_type in ("SpinBox", "Slider"):
+            converter = int
+        elif widget.widget_type in ("FloatSpinBox", "FloatSlider"):
+            converter = float
+        else:
+            converter = str
+
         def _sig():
             with widget.changed.blocked():
                 val = self.model().df.iat[r, c]
                 try:
-                    widget.value = val
+                    widget.value = converter(val)
                 except Exception:
                     self.setDataFrameValue(r, c, str(widget.value))
                     raise
@@ -715,75 +728,6 @@ class QSpreadSheet(QMutableSimpleTable):
     def setColumnDtype(self, label: Hashable, dtype: Any):
         return arguments(label, self._columns_dtype.get(label, None))
 
-    def _insert_row_above(self, row: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.insertRows(row, 1)
-
-    def _insert_row_below(self, row: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.insertRows(row + 1, 1)
-
-    def _insert_column_left(self, col: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.insertColumns(col, 1)
-
-    def _insert_column_right(self, col: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.insertColumns(col + 1, 1)
-
-    def _remove_this_row(self, row: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.removeRows(row, 1)
-
-    def _remove_selected_rows(self, row: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        _, rng = self._qtable_view._selection_model.range_under_index(row, 0)
-        if rng is not None:
-            row_range = rng[0]
-            self.removeRows(row_range.start, row_range.stop - row_range.start)
-        return None
-
-    def _remove_this_column(self, col: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        return self.removeColumns(col, 1)
-
-    def _remove_selected_columns(self, col: int):
-        if not self.isEditable():
-            return self.tableStack().notifyEditability()
-        _, rng = self._qtable_view._selection_model.range_under_index(0, col)
-        if rng is not None:
-            col_range = rng[1]
-            self.removeColumns(col_range.start, col_range.stop - col_range.start)
-        return None
-
-    def _set_column_dtype_with_dialog(self, col: int):
-        """
-        Set column specific dtype for data conversion and validation.
-
-        If a column in a spreadsheet is tagged with a dtype, table data will be
-        parsed according to the specified data type.
-        """
-        from ._dtype import QDtypeWidget
-
-        if out := QDtypeWidget.requestValue(self):
-            dtype_str, validation, formatting = out
-            if dtype_str == "unset":
-                dtype_str = None
-            colname = self._data_raw.columns[col]
-            self.setColumnDtype(colname, dtype_str)
-            if validation:
-                self._set_default_data_validator(colname)
-            if formatting:
-                self._set_default_text_formatter(colname)
-        return None
-
     def _set_default_data_validator(self, name: Hashable):
         """Set default data validator based on the dtype."""
         dtype = self._columns_dtype[name]
@@ -799,66 +743,43 @@ class QSpreadSheet(QMutableSimpleTable):
     def _install_actions(self):
         # fmt: off
         vheader = self._qtable_view.verticalHeader()
-        vheader.registerAction("Insert/Remove > Insert row above")(self._insert_row_above)
-        vheader.registerAction("Insert/Remove > Insert row below")(self._insert_row_below)
-        vheader.registerAction("Insert/Remove > Remove this row")(self._remove_this_row)
-        vheader.registerAction("Insert/Remove > Remove selected rows")(self._remove_selected_rows)
+        vheader.registerAction("Insert/Remove > Insert row above")(lambda idx: cmds.selection.insert_row_above(self.parentViewer()._table_viewer))
+        vheader.registerAction("Insert/Remove > Insert row below")(lambda idx: cmds.selection.insert_row_below(self.parentViewer()._table_viewer))
+        vheader.registerAction("Insert/Remove > Remove this row")(lambda idx: cmds.selection.remove_this_row(self.parentViewer()._table_viewer))
+        vheader.registerAction("Insert/Remove > Remove selected rows")(lambda idx: cmds.selection.remove_selected_rows(self.parentViewer()._table_viewer))
         vheader.addSeparator()
 
         hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Insert/Remove > Insert column left")(self._insert_column_left)
-        hheader.registerAction("Insert/Remove > Insert column right")(self._insert_column_right)
-        hheader.registerAction("Insert/Remove > Remove this column")(self._remove_this_column)
-        hheader.registerAction("Insert/Remove > Remove selected columns")(self._remove_selected_columns)
+        hheader.registerAction("Insert/Remove > Insert column left")(lambda idx: cmds.selection.insert_column_left(self.parentViewer()._table_viewer))
+        hheader.registerAction("Insert/Remove > Insert column right")(lambda idx: cmds.selection.insert_column_right(self.parentViewer()._table_viewer))
+        hheader.registerAction("Insert/Remove > Remove this column")(lambda idx: cmds.selection.remove_this_column(self.parentViewer()._table_viewer))
+        hheader.registerAction("Insert/Remove > Remove selected columns")(lambda idx: cmds.selection.remove_selected_columns(self.parentViewer()._table_viewer))
         hheader.addSeparator()
-        hheader.registerAction("Column dtype")(self._set_column_dtype_with_dialog)
+        hheader.registerAction("Column dtype")(lambda idx: cmds.selection.set_column_dtype(self.parentViewer()._table_viewer))
         hheader.addSeparator()
 
-        self.registerAction("Insert/Remove > Insert a row above")(lambda idx: self._insert_row_above(idx[0]))
-        self.registerAction("Insert/Remove > Insert a row below")(lambda idx: self._insert_row_below(idx[0]))
-        self.registerAction("Insert/Remove > Remove this row")(lambda idx: self._remove_this_row(idx[0]))
+        self.registerAction("Insert/Remove > Insert a row above")(lambda idx: cmds.selection.insert_row_above(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Insert a row below")(lambda idx: cmds.selection.insert_row_below(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Remove this row")(lambda idx: cmds.selection.remove_this_row(self.parentViewer()._table_viewer))
         self.addSeparator()
-        self.registerAction("Insert/Remove > Insert a column on the left")(lambda idx: self._insert_column_left(idx[1]))
-        self.registerAction("Insert/Remove > Insert a column on the right")(lambda idx: self._insert_column_right(idx[1]))
-        self.registerAction("Insert/Remove > Remove this column")(lambda idx: self._remove_this_column(idx[1]))
+        self.registerAction("Insert/Remove > Insert a column on the left")(lambda idx: cmds.selection.insert_column_left(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Insert a column on the right")(lambda idx: cmds.selection.insert_column_right(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Remove this column")(lambda idx: cmds.selection.remove_this_column(self.parentViewer()._table_viewer))
         self.addSeparator()
 
         super()._install_actions()
 
-        self.registerAction("Add widget > SpinBox")(lambda idx: self._set_widget_at_index(*idx, mWdg.SpinBox()))
-        self.registerAction("Add widget > Slider")(lambda idx: self._set_widget_at_index(*idx, mWdg.Slider()))
-        self.registerAction("Add widget > FloatSpinBox")(lambda idx: self._set_widget_at_index(*idx, mWdg.FloatSpinBox()))
-        self.registerAction("Add widget > FloatSlider")(lambda idx: self._set_widget_at_index(*idx, mWdg.FloatSlider()))
-        self.registerAction("Add widget > CheckBox")(lambda idx: self._set_widget_at_index(*idx, mWdg.CheckBox()))
-        self.registerAction("Add widget > LineEdit")(lambda idx: self._set_widget_at_index(*idx, mWdg.LineEdit()))
+        self.registerAction("Cell widget > SpinBox")(lambda idx: cmds.selection.add_spinbox(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > Slider")(lambda idx: cmds.selection.add_slider(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > FloatSpinBox")(lambda idx: cmds.selection.add_float_spinbox(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > FloatSlider")(lambda idx: cmds.selection.add_float_slider(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > CheckBox")(lambda idx: cmds.selection.add_checkbox(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > RadioButton")(lambda idx: cmds.selection.add_radio_button(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > LineEdit")(lambda idx: cmds.selection.add_line_edit(self.parentViewer()._table_viewer))
+        self.addSeparator("Cell widget ")
+        self.registerAction("Cell widget > Remove")(lambda idx: cmds.selection.remove_cell_widgets(self.parentViewer()._table_viewer))
+
         # fmt: on
-        return None
-
-    def _set_foreground_colormap_with_dialog(self, index: int):
-        return self._set_colormap(index, self.model()._foreground_colormap)
-
-    def _set_background_colormap_with_dialog(self, index: int):
-        return self._set_colormap(index, self.model()._background_colormap)
-
-    def _set_colormap(self, index, colormap_dict: dict):
-        from ._base._colormap import exec_colormap_dialog
-
-        column_name = self._filtered_columns[index]
-        df = self.getDataFrame()
-        dtype: np.dtype = df.dtypes[column_name]
-        _converter = get_converter(dtype.kind)
-        if cmap := exec_colormap_dialog(df[column_name], self):
-
-            def _cmap(val):
-                try:
-                    _val = _converter(val)
-                except Exception:
-                    return None
-                else:
-                    return cmap(_val)
-
-            colormap_dict[column_name] = _cmap
-            self.refresh()
         return None
 
 

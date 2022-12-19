@@ -111,7 +111,7 @@ class _HeaderInterface(Component["TableBase"]):
         table = self.parent
         if not table.editable:
             raise TableImmutableError("Table is not editable.")
-        qtable = table._qwidget
+
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self._get_axis()))
             for i, idx in enumerate(range(start, stop, step)):
@@ -188,6 +188,13 @@ class VerticalHeaderInterface(_HeaderInterface):
     def _get_header(self) -> QDataFrameHeaderView:
         return self.parent._qwidget._qtable_view.verticalHeader()
 
+    @property
+    def selected(self) -> list[slice]:
+        """Return the selected row ranges."""
+        smodel = self.parent._qwidget._qtable_view._selection_model
+        out = [smodel.ranges[i][0] for i in smodel._row_selection_indices]
+        return out
+
 
 class HorizontalHeaderInterface(_HeaderInterface):
     """The interface for the horizontal header of the tablelist."""
@@ -200,6 +207,13 @@ class HorizontalHeaderInterface(_HeaderInterface):
 
     def _get_header(self) -> QDataFrameHeaderView:
         return self.parent._qwidget._qtable_view.horizontalHeader()
+
+    @property
+    def selected(self) -> list[slice]:
+        """Return the selected row ranges."""
+        smodel = self.parent._qwidget._qtable_view._selection_model
+        out = [smodel.ranges[i][1] for i in smodel._col_selection_indices]
+        return out
 
 
 class CellInterface(Component["TableBase"]):

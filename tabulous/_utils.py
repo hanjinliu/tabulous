@@ -11,6 +11,7 @@ from appdirs import user_state_dir, user_config_dir
 TXT_PATH = Path(user_state_dir("tabulous", "tabulous", "history.txt"))
 CONFIG_PATH = Path(user_config_dir("tabulous", "tabulous", "config.toml"))
 CELL_NAMESPACE_PATH = Path(user_state_dir("tabulous", "tabulous", "cell_namespace.py"))
+SETTINGS_JSON = Path(user_state_dir("tabulous", "tabulous", "settings.json"))
 
 
 def warn_on_exc(default=None):
@@ -87,6 +88,17 @@ def load_cell_namespace() -> MappingProxyType:
     return MappingProxyType(ns)
 
 
+def prep_default_keybindings() -> dict[str, str | list[str]]:
+    from tabulous.commands import DEFAULT_KEYBINDING_SETTING
+
+    kb = {}
+    for cmd, seq in DEFAULT_KEYBINDING_SETTING:
+        mod = cmd.__module__.split(".")[-1]
+        name = cmd.__name__
+        kb[f"{mod}.{name}"] = seq
+    return kb
+
+
 @dataclass
 class ConsoleNamespace:
     """Default namespace of the console."""
@@ -134,6 +146,9 @@ class TabulousConfig:
     table: Table = field(default_factory=Table)
     cell: Cell = field(default_factory=Cell)
     window: Window = field(default_factory=Window)
+    keybindings: dict[str, str | list[str]] = field(
+        default_factory=prep_default_keybindings
+    )
 
     @classmethod
     def from_toml(cls, path: Path = CONFIG_PATH) -> TabulousConfig:
@@ -150,11 +165,14 @@ class TabulousConfig:
         table = tm.get("table", {})
         cell = tm.get("cell", {})
         window = tm.get("window", {})
+        if not (kb := tm.get("keybindings", {})):
+            kb = prep_default_keybindings()
         return cls(
             ConsoleNamespace(**_as_fields(console_namespace, ConsoleNamespace)),
             Table(**_as_fields(table, Table)),
             Cell(**_as_fields(cell, Cell)),
             Window(**_as_fields(window, Window)),
+            kb,
         )
 
     def as_toml(self):

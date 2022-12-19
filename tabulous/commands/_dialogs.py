@@ -1,6 +1,7 @@
 from functools import partial
 from typing import List, Union
 from typing_extensions import Annotated
+
 import logging
 import numpy as np
 import pandas as pd
@@ -11,7 +12,7 @@ from tabulous.types import TableData
 from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
 
-from ._plot_models import PlotModel, ScatterModel, HistModel
+from ._plot_models import PlotModel, BarModel, ScatterModel, HistModel
 
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,21 @@ def plot(
     ref: bool = False,
 ):
     model = PlotModel(ax, x, y, table=table, alpha=alpha, ref=ref)
+    model.add_data()
+    table.plt.draw()
+    return True
+
+
+@dialog_factory_mpl
+def bar(
+    ax: Axes,
+    x: SelectionOperator,
+    y: SelectionOperator,
+    table: TableBase,
+    alpha: float = 1.0,
+    ref: bool = False,
+):
+    model = BarModel(ax, x, y, table=table, alpha=alpha, ref=ref)
     model.add_data()
     table.plt.draw()
     return True
@@ -254,6 +270,53 @@ def boxenplot(
 @dialog_factory
 def choose_one(choice: str):
     return choice
+
+
+@dialog_factory
+def choose_multiple(choices: List):
+    return choices
+
+
+@dialog_factory
+def spinbox(min: str = "0", max: str = "1000", step: str = "") -> dict:
+    min = int(min)
+    max = int(max)
+    step = int(step) if step != "" else None
+    return dict(min=min, max=max, step=step)
+
+
+@dialog_factory
+def float_spinbox(min: str = "0.0", max: str = "1000.0", step: str = "") -> dict:
+    min = float(min)
+    max = float(max)
+    step = float(step) if step != "" else None
+    return dict(min=min, max=max, step=step)
+
+
+@dialog_factory
+def slider(min: str = "0", max: str = "1000", step: str = "") -> dict:
+    min = int(min)
+    max = int(max)
+    step = int(step) if step != "" else None
+    return dict(min=min, max=max, step=step)
+
+
+@dialog_factory
+def float_slider(min: str = "0.0", max: str = "1000.0", step: str = "") -> dict:
+    min = float(min)
+    max = float(max)
+    step = float(step) if step != "" else None
+    return dict(min=min, max=max, step=step)
+
+
+@dialog_factory
+def checkbox(text: str, checked: bool = True) -> dict:
+    return dict(text=text, value=checked)
+
+
+@dialog_factory
+def radio_button(text: str, checked: bool = True) -> dict:
+    return dict(text=text, value=checked)
 
 
 __void = object()

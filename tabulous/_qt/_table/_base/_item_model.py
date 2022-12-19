@@ -3,13 +3,12 @@ from typing import Any, Callable, Hashable, TYPE_CHECKING
 import warnings
 from qtpy import QtCore, QtGui, QtWidgets as QtW
 from qtpy.QtCore import Qt, Signal
-import numpy as np
 import pandas as pd
 
-from ._text_formatter import DefaultFormatter
 from ._line_edit import QCellLiteralEdit
-from .._dtype import isna
+from tabulous._dtype import isna
 from tabulous.color import normalize_color, ColorType
+from tabulous._text_formatter import DefaultFormatter
 from tabulous._map_model import TableMapping
 
 if TYPE_CHECKING:

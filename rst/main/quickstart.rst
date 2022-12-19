@@ -251,4 +251,5 @@ to register custom key combo.
 Command palette
 ===============
 
-``Ctrl+Shift+P`` opens a command palette widget. You can search for a variety of registered commands.
+``Ctrl+Shift+P`` or ``F1`` opens a command palette widget. You can search for a variety of
+registered commands.

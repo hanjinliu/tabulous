@@ -593,8 +593,12 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                 # Don't lose the combo if only a modifier is pressed
                 last = self.last_pressed
                 if key.key != ExtKey.No:
+                    repress = self._current_map is not None
                     current.deactivate()
                     self.initialize()
+                    if repress:
+                        # if key combo is initialized half-way, repress the last key
+                        return self._press_one_key(key)
 
                 if last is not None and last.key == ExtKey.No and key.key != ExtKey.No:
                     return self._press_one_key(key)
@@ -626,7 +630,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
         key = QtKeys(key)
 
         old = self.current_map
-        current = self.current_map[QtKeys(key)]
+        current = self.current_map[key]
         if not isinstance(current, QtKeyMap):
             self.initialize()
             raise KeyError(f"Key {key} is not a child")

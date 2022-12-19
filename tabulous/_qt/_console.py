@@ -154,7 +154,11 @@ class QtConsole(RichJupyterWidget):
         cursor.insertText(lines[-1])
         return None
 
-    @_keymap.bind("Ctrl+I")
+    def insertText(self, text: str) -> None:
+        cursor = self._control.textCursor()
+        cursor.insertText(text)
+        return None
+
     def setTempText(self, text: str | None = None) -> None:
         if text is None:
             text = f"viewer.data.loc[...]"

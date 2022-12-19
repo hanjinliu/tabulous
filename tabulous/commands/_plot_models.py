@@ -155,15 +155,20 @@ class XYDataModel(AbstractDataModel[_T]):
 
     def add_data(self):
         _mpl_widget = weakref.ref(self.table.plt.gcw())
-        _artist_refs: list[weakref.ReferenceType[_T]] = []
+        _artists: list[_T] = []
         for x, y in self._iter_data():
             label_name = y.name
             artist = self.update_ax(x, y, label=label_name)
-            _artist_refs.append(weakref.ref(artist))
+            _artists.append(artist)
 
         if not self.ref:
             # if plot does not refer the table data, there's nothing to be done
             return
+
+        _artist_refs: list[weakref.ReferenceType[_T]] = []
+        for artist in _artists:
+            _artist_refs.append(weakref.ref(artist))
+
         plot_ref = PlotRef(_mpl_widget, _artist_refs)
 
         def _on_data_updated():
@@ -201,7 +206,7 @@ class XYDataModel(AbstractDataModel[_T]):
 
         yslice = self.y_selection.as_iloc_slices(data)
         ydata_all = data.iloc[yslice]
-
+        # TODO: support row vector
         if self.x_selection is None:
             xdata = pd.Series(np.arange(len(ydata_all)), name="X")
         else:
@@ -235,6 +240,26 @@ class PlotModel(XYDataModel["Line2D"]):
 
     def update_artist(self, artist: Line2D, x: pd.Series, y: pd.Series):
         return artist.set_data(x, y)
+
+
+@dataclass
+class BarModel(XYDataModel["BarContainer"]):
+    ax: Axes
+    x_selection: SelectionOperator | None
+    y_selection: SelectionOperator
+    table: TableBase
+    alpha: float = 1.0
+    ref: bool = False
+
+    def update_ax(self, x, y, label=None) -> BarContainer:
+        return self.ax.bar(x, y, alpha=self.alpha, label=label, picker=True)
+
+    def update_artist(self, artist: BarContainer, x: pd.Series, y: pd.Series):
+        for patch in artist.patches:
+            width = patch.get_width()
+            patch.set_x(x - width / 2)
+            patch.set_height(y)
+        return None
 
 
 @dataclass

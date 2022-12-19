@@ -1,9 +1,4 @@
-from ._table_base import QBaseTable, QMutableTable
-
-QBaseTable._keymap.bind("Ctrl+C", QBaseTable.copyToClipboard, headers=False)
-QBaseTable._keymap.bind("Ctrl+C, Ctrl+H", QBaseTable.copyToClipboard, headers=True)
-QBaseTable._keymap.bind("Ctrl+H", QBaseTable.undoStackView)
-QBaseTable._keymap.bind("Ctrl+Shift+X", QBaseTable._copy_as_new_table)
+from ._table_base import QBaseTable
 
 
 @QBaseTable._keymap.bind("Up", dr=-1, dc=0)
@@ -43,11 +38,6 @@ def _(self: QBaseTable, row, column):
     return self.moveToItem(row, column, clear_selection=False)
 
 
-@QBaseTable._keymap.bind("Ctrl+A")
-def _(self: QBaseTable):
-    return self._qtable_view.selectAll()
-
-
 @QBaseTable._keymap.bind("Ctrl+Alt+Up", dr=-1, dc=0)
 @QBaseTable._keymap.bind("Ctrl+Alt+Down", dr=1, dc=0)
 @QBaseTable._keymap.bind("Ctrl+Alt+Left", dr=0, dc=-1)
@@ -64,46 +54,3 @@ def _(self: QBaseTable, dr, dc):
     dh = dc * 75 * self._qtable_view._zoom
     vbar.setValue(max(vbar.minimum(), min(vbar.maximum(), vbar.value() + dv)))
     hbar.setValue(max(hbar.minimum(), min(hbar.maximum(), hbar.value() + dh)))
-
-
-@QMutableTable._keymap.bind("Ctrl+X")
-def _(self: QMutableTable):
-    self.copyToClipboard(headers=False)
-    return self.deleteValues()
-
-
-QMutableTable._keymap.bind("Ctrl+V", QMutableTable.pasteFromClipBoard)
-QMutableTable._keymap.bind("Delete", QMutableTable.deleteValues)
-QMutableTable._keymap.bind("Backspace", QMutableTable.deleteValues)
-QMutableTable._keymap.bind("Ctrl+Z", QMutableTable.undo)
-QMutableTable._keymap.bind("Ctrl+Y", QMutableTable.redo)
-
-
-@QMutableTable._keymap.bind("F6")
-def _(self: QMutableTable):
-    """Show the traceback dialog."""
-    qtable_view = self._qtable_view
-    idx = qtable_view._selection_model.current_index
-    if slot := qtable_view._table_map.get_by_dest(idx, None):
-        if slot._current_error is not None:
-            slot.raise_in_msgbox()
-
-
-@QBaseTable._keymap.bind("Menu")
-def _(self: QBaseTable):
-    """Show context menu at the current index."""
-    r, c = self._qtable_view._selection_model.current_index
-    if r >= 0 and c >= 0:
-        index = self._qtable_view.model().index(r, c)
-        rect = self._qtable_view.visualRect(index)
-        self.showContextMenu(rect.center())
-    elif r < 0:
-        header = self._qtable_view.horizontalHeader()
-        rect = header.visualRectAtIndex(c)
-        header._show_context_menu(rect.center())
-    elif c < 0:
-        header = self._qtable_view.verticalHeader()
-        rect = header.visualRectAtIndex(r)
-        header._show_context_menu(rect.center())
-    else:
-        raise RuntimeError("Invalid index")

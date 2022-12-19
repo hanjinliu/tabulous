@@ -250,6 +250,15 @@ class SelectionModel(RangesModel):
             return self._ranges[-1]
         return None
 
+    def iter_all_indices(self) -> Iterator[tuple[int, int]]:
+        """Iterate all the indices (int, int) in all the selection ranges."""
+        nr = self._row_count_getter()
+        nc = self._col_count_getter()
+        for rng in self.ranges:
+            for r in range(*rng[0].indices(nr)):
+                for c in range(*rng[1].indices(nc)):
+                    yield r, c
+
     @property
     def start(self) -> Index | None:
         """The selection starting index."""

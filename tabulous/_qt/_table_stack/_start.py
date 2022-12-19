@@ -4,8 +4,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, Signal
-from .._clickable_label import QClickableLabel
-from ..._utils import load_file_open_path
+from tabulous._qt._clickable_label import QClickableLabel
+from tabulous._utils import load_file_open_path
+from tabulous import commands as cmds
 
 if TYPE_CHECKING:
     from .._mainwindow._base import _QtMainWidgetBase
@@ -29,9 +30,9 @@ class QStartupWidget(QtW.QWidget):
         self._open_new_btn = QClickableLabel("New Spreadsheet (Ctrl+N)")
         self._path_list = QPathList()
 
-        self._open_table_btn.clicked.connect(lambda: self.mainWidget().openFromDialog(type="table"))
-        self._open_spreadsheet_btn.clicked.connect(lambda: self.mainWidget().openFromDialog(type="spreadsheet"))
-        self._open_new_btn.clicked.connect(lambda: self.mainWidget().newSpreadSheet())
+        self._open_table_btn.clicked.connect(lambda: cmds.file.open_table(self.mainWidget()._table_viewer))
+        self._open_spreadsheet_btn.clicked.connect(lambda: cmds.file.open_spreadsheet(self.mainWidget()._table_viewer))
+        self._open_new_btn.clicked.connect(lambda: cmds.table.new_spreadsheet(self.mainWidget()._table_viewer))
         self._path_list.pathClicked.connect(lambda path: self.mainWidget()._table_viewer.open(path))
         # fmt: on
         _layout.addWidget(self._open_table_btn)
