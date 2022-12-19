@@ -380,11 +380,12 @@ class TableViewerBase:
         selections: SelectionType | _SingleSelection | None = None,
         *,
         headers: bool = False,
+        sep: str = "\t",
     ) -> None:
         """Copy selected cells to clipboard."""
         if selections is not None:
             self.current_table.selections = selections
-        return self.current_table._qwidget.copyToClipboard(headers=headers)
+        return self.current_table._qwidget.copyToClipboard(headers=headers, sep=sep)
 
     def paste_data(
         self,

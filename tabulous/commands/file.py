@@ -17,22 +17,22 @@ SAMPLE_CHOICES = [
 
 
 def open_table(viewer: TableViewerBase):
-    """Open a file as a table."""
+    """Open a file as a table"""
     return viewer._qwidget.openFromDialog(type="table")
 
 
 def open_spreadsheet(viewer: TableViewerBase):
-    """Open a file as a spreadsheet."""
+    """Open a file as a spreadsheet"""
     return viewer._qwidget.openFromDialog(type="spreadsheet")
 
 
 def save_table(viewer: TableViewerBase):
-    """Save current table."""
+    """Save current table data"""
     return viewer._qwidget.saveFromDialog()
 
 
 def open_sample(viewer: TableViewerBase):
-    """Open a seaborn sample data."""
+    """Open sample data"""
     out = choose_one(choice={"choices": SAMPLE_CHOICES, "nullable": False})
     if out is not None:
         viewer.open_sample(out)

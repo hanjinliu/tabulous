@@ -9,17 +9,17 @@ if TYPE_CHECKING:
 
 
 def plot(viewer: TableViewerBase):
-    """Plot curve."""
+    """Run plt.plot"""
     return _plot_xy(viewer, _dialogs.plot)
 
 
 def scatter(viewer: TableViewerBase):
-    """Scatter plot."""
+    """Run plt.scatter"""
     return _plot_xy(viewer, _dialogs.scatter)
 
 
 def errorbar(viewer: TableViewerBase):
-    """Errorbar plot."""
+    """Run plt.errorbar"""
     table = viewer.current_table
     if table is None:
         return
@@ -33,7 +33,7 @@ def errorbar(viewer: TableViewerBase):
 
 
 def hist(viewer: TableViewerBase):
-    """Histogram."""
+    """Run plt.hist"""
     table = viewer.current_table
     if table is None:
         return
@@ -51,27 +51,27 @@ def hist(viewer: TableViewerBase):
 
 
 def swarmplot(viewer: TableViewerBase):
-    """Swarm plot."""
+    """Run sns.swarmplot"""
     return _plot_sns(viewer, _dialogs.swarmplot)
 
 
 def barplot(viewer: TableViewerBase):
-    """Bar plot."""
+    """Run sns.barplot"""
     return _plot_sns(viewer, _dialogs.barplot)
 
 
 def boxplot(viewer: TableViewerBase):
-    """Box plot."""
+    """Run sns.boxplot"""
     return _plot_sns(viewer, _dialogs.boxplot)
 
 
 def boxenplot(viewer: TableViewerBase):
-    """Boxen plot."""
+    """Run sns.boxenplot"""
     return _plot_sns(viewer, _dialogs.boxenplot)
 
 
 def new_figure(viewer: TableViewerBase):
-    """Add a new figure."""
+    """New figure canvas"""
     return viewer.current_table.plt.new_widget()
 
 

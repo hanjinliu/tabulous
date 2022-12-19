@@ -7,33 +7,33 @@ if TYPE_CHECKING:
 
 
 def show_keymap(viewer: TableViewerBase):
-    """Show the widget to search for key bindings."""
+    """Show key map widget"""
     viewer._qwidget.showKeyMap()
 
 
 def close_window(viewer: TableViewerBase):
-    """Close this window."""
+    """Close window"""
     viewer._qwidget.close()
 
 
 def new_window(viewer: TableViewerBase):
-    """Create a new window."""
+    """Create a new window"""
     new = viewer.__class__()
     return new._qwidget.activateWindow()
 
 
 def toggle_toolbar(viewer: TableViewerBase):
-    """Show or collapse the toolbar."""
+    """Toggle toolbar visibility"""
     viewer._qwidget.toggleToolBarVisibility()
 
 
 def toggle_console(viewer: TableViewerBase):
-    """Toggle embedded console."""
+    """Toggle QtConsole visibility"""
     return viewer._qwidget.toggleConsoleVisibility()
 
 
 def toggle_fullscreen(viewer: TableViewerBase):
-    """Enable or disable fullscreen mode."""
+    """Toggle fullscreen"""
     if viewer._qwidget.isFullScreen():
         viewer._qwidget.showNormal()
     else:
@@ -48,3 +48,18 @@ def show_command_palette(viewer: TableViewerBase):
 def focus_table(viewer: TableViewerBase):
     """Move focus to the table."""
     viewer.native.setCellFocus()
+
+
+def toggle_focus(viewer: TableViewerBase):
+    """Toggle focus between table and command palette."""
+    table = viewer.current_table
+    qviewer = viewer._qwidget
+    if table is None:
+        return
+    if table._qwidget._qtable_view.hasFocus():
+        console = qviewer._console_widget
+        if console is not None and console.isActive():
+            console.setFocus()
+    else:
+        qviewer.setCellFocus()
+    return

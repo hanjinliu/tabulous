@@ -11,6 +11,7 @@ from appdirs import user_state_dir, user_config_dir
 TXT_PATH = Path(user_state_dir("tabulous", "tabulous", "history.txt"))
 CONFIG_PATH = Path(user_config_dir("tabulous", "tabulous", "config.toml"))
 CELL_NAMESPACE_PATH = Path(user_state_dir("tabulous", "tabulous", "cell_namespace.py"))
+SETTINGS_JSON = Path(user_state_dir("tabulous", "tabulous", "settings.json"))
 
 
 def warn_on_exc(default=None):
@@ -85,6 +86,32 @@ def load_cell_namespace() -> MappingProxyType:
     for k in to_be_deleted:
         ns.pop(k, None)
     return MappingProxyType(ns)
+
+
+@dataclass
+class Settings:
+    keybindings: dict[str, str | list[str]] = field(default_factory=dict)
+
+
+def load_setting_json() -> Settings:
+    import json
+
+    if not SETTINGS_JSON.exists():
+        SETTINGS_JSON.parent.mkdir(parents=True, exist_ok=True)
+        from tabulous.commands import DEFAULT_KEYBINDING_SETTING
+
+        kb = {}
+        for cmd, seq in DEFAULT_KEYBINDING_SETTING:
+            mod = cmd.__module__.split(".")[-1]
+            name = cmd.__name__
+            kb[f"{mod}.{name}"] = seq
+        js = {"keybindings": kb}
+        with open(SETTINGS_JSON, "w") as f:
+            json.dump(js, f, indent=2)
+
+    with open(SETTINGS_JSON) as f:
+        js = json.load(f)
+    return Settings(**js)
 
 
 @dataclass

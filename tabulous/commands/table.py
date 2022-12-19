@@ -12,19 +12,19 @@ def new_spreadsheet(viewer: TableViewerBase):
 
 
 def copy_as_table(viewer: TableViewerBase):
-    """Make a copy of the current table."""
+    """Copy current table as a new table"""
     table = _utils.get_table(viewer)
     viewer.add_table(table.data, name=f"{table.name}-copy")
 
 
 def copy_as_spreadsheet(viewer: TableViewerBase):
-    """Make a copy of the current table."""
+    """Copy current table as a new spreadsheet"""
     table = _utils.get_table(viewer)
     viewer.add_spreadsheet(table.data, name=f"{table.name}-copy")
 
 
 def groupby(viewer: TableViewerBase):
-    """Group table data by its column value."""
+    """Group table data by its column(s)"""
     table = _utils.get_table(viewer)
     out = _dialogs.groupby(
         df={"bind": table.data},
@@ -36,13 +36,13 @@ def groupby(viewer: TableViewerBase):
 
 
 def switch_header(viewer: TableViewerBase):
-    """Switch header and the first row."""
+    """Switch header and the top row"""
     table = _utils.get_mutable_table(viewer)
     table._qwidget._switch_head_and_index(axis=1)
 
 
 def concat(viewer: TableViewerBase):
-    """Concatenate tables."""
+    """Concatenate table data"""
     out = _dialogs.concat(
         viewer={"bind": viewer},
         names={
@@ -58,7 +58,7 @@ def concat(viewer: TableViewerBase):
 
 
 def pivot(viewer: TableViewerBase):
-    """Pivot a table."""
+    """Pivot current table data"""
     table = _utils.get_table(viewer)
     col = list(table.data.columns)
     if len(col) < 3:
@@ -75,7 +75,7 @@ def pivot(viewer: TableViewerBase):
 
 
 def melt(viewer: TableViewerBase):
-    """Unpivot a table."""
+    """Melt (unpivot) current table data"""
     table = _utils.get_table(viewer)
     out = _dialogs.melt(
         df={"bind": table.data},
@@ -87,12 +87,12 @@ def melt(viewer: TableViewerBase):
 
 
 def show_finder_widget(viewer: TableViewerBase):
-    """Toggle finder"""
+    """Toggle finder widget"""
     return viewer._qwidget._tablestack.openFinderDialog()
 
 
 def sort_table(viewer: TableViewerBase):
-    """Add sorted table."""
+    """Sort table data"""
     table = _utils.get_table(viewer)
     out = _dialogs.sort(
         df={"bind": table.data},
@@ -105,7 +105,7 @@ def sort_table(viewer: TableViewerBase):
 
 
 def random(viewer: TableViewerBase):
-    """Add random data to the specified data range."""
+    """Generate random values"""
     table = viewer.current_table
     if table is None:
         return
@@ -141,12 +141,15 @@ def toggle_editability(viewer: TableViewerBase):
 
 
 def show_undo_stack_view(viewer: TableViewerBase):
+    """Show undo stack view"""
     _utils.get_table(viewer)._qwidget.undoStackView()
 
 
 def undo_table(viewer: TableViewerBase):
+    """Undo table operation"""
     _utils.get_mutable_table(viewer)._qwidget.undo()
 
 
 def redo_table(viewer: TableViewerBase):
+    """Redo table operation"""
     _utils.get_mutable_table(viewer)._qwidget.redo()

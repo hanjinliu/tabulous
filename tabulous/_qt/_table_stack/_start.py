@@ -30,8 +30,8 @@ class QStartupWidget(QtW.QWidget):
         self._open_new_btn = QClickableLabel("New Spreadsheet (Ctrl+N)")
         self._path_list = QPathList()
 
-        self._open_table_btn.clicked.connect(lambda: cmds.io.open_table(self.mainWidget()._table_viewer))
-        self._open_spreadsheet_btn.clicked.connect(lambda: cmds.io.open_spreadsheet(self.mainWidget()._table_viewer))
+        self._open_table_btn.clicked.connect(lambda: cmds.file.open_table(self.mainWidget()._table_viewer))
+        self._open_spreadsheet_btn.clicked.connect(lambda: cmds.file.open_spreadsheet(self.mainWidget()._table_viewer))
         self._open_new_btn.clicked.connect(lambda: cmds.table.new_spreadsheet(self.mainWidget()._table_viewer))
         self._path_list.pathClicked.connect(lambda path: self.mainWidget()._table_viewer.open(path))
         # fmt: on

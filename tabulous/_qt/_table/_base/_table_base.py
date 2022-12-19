@@ -25,7 +25,7 @@ from tabulous._qt._keymap import QtKeys, QtKeyMap
 from tabulous._qt._action_registry import QActionRegistry
 from tabulous.types import FilterType, ItemInfo, HeaderInfo, EvalInfo
 from tabulous.exceptions import SelectionRangeError, TableImmutableError
-from tabulous._selection_op import LocSelOp
+from tabulous._selection_op import ILocSelOp
 from tabulous import commands as cmds
 
 if TYPE_CHECKING:
@@ -159,12 +159,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _install_actions(self) -> None:
         # fmt: off
         hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Color>Set foreground colormap")(lambda idx: cmds.table.set_foreground_colormap(self.parentViewer()._table_viewer))
-        hheader.registerAction("Color>Reset foreground colormap")(lambda idx: cmds.table.reset_foreground_colormap(self.parentViewer()._table_viewer))
-        hheader.registerAction("Color>Set background colormap")(lambda idx: cmds.table.set_background_colormap(self.parentViewer()._table_viewer))
-        hheader.registerAction("Color>Reset background colormap")(lambda idx: cmds.table.reset_background_colormap(self.parentViewer()._table_viewer))
-        hheader.registerAction("Formatter>Set text formatter")(lambda idx: cmds.table.set_text_formatter(self.parentViewer()._table_viewer))
-        hheader.registerAction("Formatter>Reset text formatter")(lambda idx: cmds.table.reset_text_formatter(self.parentViewer()._table_viewer))
+        hheader.registerAction("Color>Set foreground colormap")(lambda idx: cmds.selection.set_foreground_colormap(self.parentViewer()._table_viewer))
+        hheader.registerAction("Color>Reset foreground colormap")(lambda idx: cmds.selection.reset_foreground_colormap(self.parentViewer()._table_viewer))
+        hheader.registerAction("Color>Set background colormap")(lambda idx: cmds.selection.set_background_colormap(self.parentViewer()._table_viewer))
+        hheader.registerAction("Color>Reset background colormap")(lambda idx: cmds.selection.reset_background_colormap(self.parentViewer()._table_viewer))
+        hheader.registerAction("Formatter>Set text formatter")(lambda idx: cmds.selection.set_text_formatter(self.parentViewer()._table_viewer))
+        hheader.registerAction("Formatter>Reset text formatter")(lambda idx: cmds.selection.reset_text_formatter(self.parentViewer()._table_viewer))
         hheader.addSeparator()
 
         self.registerAction("Copy")(lambda index: self.copyToClipboard(headers=False))
@@ -178,15 +178,15 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.registerAction("Copy as ... > HTML")(lambda index: self._copy_as_formated(format="html"))
         self.registerAction("Copy as ... > Literal")(lambda index: self._copy_as_literal())
         self.addSeparator("Copy as ... ")
-        self.registerAction("Copy as ... > New table")(lambda idx: cmds.table.copy_as_new_table(self.parentViewer()._table_viewer))
-        self.registerAction("Copy as ... > New spreadsheet")(lambda idx: cmds.table.copy_as_new_spreadsheet(self.parentViewer()._table_viewer))
-        self.registerAction("Paste")(lambda idx: cmds.table.paste_data_tab_separated(self.parentViewer()._table_viewer))
-        self.registerAction("Paste from ... > Comma separated text")(lambda idx: cmds.table.paste_data_comma_separated(self.parentViewer()._table_viewer))
-        self.registerAction("Paste from ... > numpy-style text")(lambda idx: cmds.table.paste_data_from_numpy_string(self.parentViewer()._table_viewer))
+        self.registerAction("Copy as ... > New table")(lambda idx: cmds.selection.copy_as_new_table(self.parentViewer()._table_viewer))
+        self.registerAction("Copy as ... > New spreadsheet")(lambda idx: cmds.selection.copy_as_new_spreadsheet(self.parentViewer()._table_viewer))
+        self.registerAction("Paste")(lambda idx: cmds.selection.paste_data_tab_separated(self.parentViewer()._table_viewer))
+        self.registerAction("Paste from ... > Comma separated text")(lambda idx: cmds.selection.paste_data_comma_separated(self.parentViewer()._table_viewer))
+        self.registerAction("Paste from ... > numpy-style text")(lambda idx: cmds.selection.paste_data_from_numpy_string(self.parentViewer()._table_viewer))
         self.addSeparator()
-        self.registerAction("Code ... > Data-changed signal")(lambda index: self._write_data_changed_signal())
+        self.registerAction("Code ... > Data-changed signal")(lambda index: cmds.selection.write_data_signal_in_console(self.parentViewer()._table_viewer))
         self.registerAction("Code ... > Get slice")(lambda index: self._write_slice())
-        self.registerAction("Add highlight")(lambda index: self.setHighlights(self.highlights() + self.selections()))
+        self.registerAction("Add highlight")(lambda idx: cmds.selection.add_highlight(self.parentViewer()._table_viewer))
         self.registerAction("Delete highlight")(lambda index: self._delete_selected_highlights())
         self.addSeparator()
         # fmt: on
@@ -826,92 +826,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         if console is None or not console.isActive():
             return
         selected = console.selectedText()
-        if selected.startswith(f"viewer.data.loc["):
+        if selected.startswith(f"viewer.data.iloc["):
             sels = self.selections()
             if len(sels) != 1:
                 return
-            op = LocSelOp.from_iloc(*sels[0], self.model().df)
+            op = ILocSelOp.from_iloc(*sels[0], self.model().df)
             console.setTempText(op.fmt("viewer.data"))
-        return None
-
-    def _write_data_changed_signal(self) -> None:
-        sels = self.selections()
-        if len(sels) != 1:
-            return
-        viewer = self._qtable_view.parentViewer()
-        console = viewer._console_widget
-        if console is None or not console.isActive():
-            delay = 500  # need delay to wait for the console to be activated
-        else:
-            delay = 0
-        viewer.setConsoleVisible(True)
-
-        def _update_console():
-            console = viewer._console_widget
-            df = self.model().df
-            rsl, csl = sels[0]
-            if rsl == slice(None) and csl == slice(None):
-                _getitem = ""
-            else:
-                r0 = str(rsl.start) if rsl.start is not None else ""
-                r1 = str(rsl.stop) if rsl.stop is not None else ""
-                c0 = str(csl.start) if csl.start is not None else ""
-                c1 = str(csl.stop) if csl.stop is not None else ""
-                _getitem = f"[{r0}:{r1}, {c0}:{c1}]"
-            text = (
-                f"@viewer.current_table.events.data{_getitem}.connect\n"
-                "def _on_data_changed(info: 'ItemInfo'):\n"
-                "    "
-            )
-            if buf := console.buffer():
-                if not buf.endswith("\n"):
-                    buf += "\n"
-                text = buf + text
-            console.setBuffer(text)
-            console.setFocus()
-            console.setTempText("...")
-
-        QtCore.QTimer.singleShot(delay, _update_console)
-        return None
-
-    def _write_slice(self) -> None:
-        sels = self.selections()
-        if len(sels) != 1:
-            return
-        viewer = self._qtable_view.parentViewer()
-        console = viewer._console_widget
-        if console is None or not console.isActive():
-            delay = 500  # need delay to wait for the console to be activated
-        else:
-            delay = 0
-        viewer.setConsoleVisible(True)
-
-        def _update_console():
-            console = viewer._console_widget
-            df = self.model().df
-            rsl, csl = sels[0]
-            if rsl.start is None:
-                rsl_str = f"slice({rsl.stop})"
-            elif rsl.stop is None:
-                rsl_str = f"slice({rsl.start}, None)"
-            else:
-                rsl_str = f"slice({rsl.start}, {rsl.stop})"
-            if csl.start is None:
-                csl_str = f"slice({csl.stop})"
-            elif csl.stop is None:
-                csl_str = f"slice({csl.start}, None)"
-            else:
-                csl_str = f"slice({csl.start}, {csl.stop})"
-
-            text = f"sl = ({rsl_str}, {csl_str})\n"
-            if buf := console.buffer():
-                if not buf.endswith("\n"):
-                    buf += "\n"
-                text = buf + text
-            console.setBuffer(text)
-            console.setFocus()
-
-        QtCore.QTimer.singleShot(delay, _update_console)
         return None
 
 

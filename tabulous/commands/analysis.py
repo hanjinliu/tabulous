@@ -9,7 +9,7 @@ SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
 
 
 def summarize_table(viewer: TableViewerBase):
-    """Summarize current table."""
+    """Summarize table data"""
     table = _utils.get_table(viewer)
     out = _dialogs.summarize_table(
         df={"bind": table.data},
@@ -28,17 +28,17 @@ def summarize_table(viewer: TableViewerBase):
 
 
 def show_filter_widget(viewer: TableViewerBase):
-    """Apply filter to the current table."""
+    """Apply filter to the table data"""
     return viewer._qwidget._tablestack.openFilterDialog()
 
 
 def show_eval_widget(viewer: TableViewerBase):
-    """Evaluate a Python expression."""
+    """Evaluate a Python expression"""
     return viewer._qwidget._tablestack.openEvalDialog()
 
 
 def show_optimizer_widget(viewer: TableViewerBase):
-    """Open the optimizer widget."""
+    """Open optimizer widget"""
     from ._optimizer import OptimizerWidget
 
     tablestack = viewer._qwidget._tablestack
@@ -50,6 +50,7 @@ def show_optimizer_widget(viewer: TableViewerBase):
 
 
 def show_stats_widget(viewer: TableViewerBase):
+    """Open scipy.stats widget"""
     from ._statistics import StatsTestDialog
 
     dlg = StatsTestDialog()
@@ -58,6 +59,7 @@ def show_stats_widget(viewer: TableViewerBase):
 
 
 def show_sklearn_widget(viewer: TableViewerBase):
+    """Open scikit-learn widget"""
     from ._sklearn import SkLearnContainer
 
     tablestack = viewer._qwidget._tablestack

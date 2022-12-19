@@ -6,48 +6,54 @@ if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase
 
 
-def _get_src(viewer: TableViewerBase) -> int | None:
+def activate_left(viewer: TableViewerBase):
+    """Activate left table."""
+    num = len(viewer.tables)
+    if num == 0:
+        return None
+    src = viewer.current_index
+    if src == 0:
+        return None
+    viewer.current_index = src - 1
+    return viewer.native.setCellFocus()
+
+
+def activate_right(viewer: TableViewerBase):
+    """Activate right table."""
     num = len(viewer.tables)
     if num == 0:
         return None
     src = viewer.current_index
     if src == num - 1:
         return None
-    return src
-
-
-def activate_left(viewer: TableViewerBase):
-    """Activate the left table."""
-    src = _get_src(viewer)
-    if src is not None:
-        viewer.current_index = src - 1
-        return viewer.native.setCellFocus()
-
-
-def activate_right(viewer: TableViewerBase):
-    """Activate the next table."""
-    src = _get_src(viewer)
-    if src is not None:
-        viewer.current_index = src + 1
-        return viewer.native.setCellFocus()
+    viewer.current_index = src + 1
+    return viewer.native.setCellFocus()
 
 
 def swap_tab_with_left(viewer: TableViewerBase):
-    """Swap the current table with the left one."""
-    src = _get_src(viewer)
-    if src is not None:
-        viewer.tables.move(src, src - 1)
+    """Swap the current tab with the left one"""
+    num = len(viewer.tables)
+    if num == 0:
+        return None
+    src = viewer.current_index
+    if src == 0:
+        return None
+    viewer.tables.move(src, src - 1)
 
 
 def swap_tab_with_right(viewer: TableViewerBase):
-    """Swap the current table with the right one."""
-    src = _get_src(viewer)
-    if src is not None:
-        viewer.tables.move(src + 1, src)
+    """Swap the current tab with the right one"""
+    num = len(viewer.tables)
+    if num == 0:
+        return None
+    src = viewer.current_index
+    if src == num - 1:
+        return None
+    viewer.tables.move(src + 1, src)
 
 
 def tile_tables(viewer: TableViewerBase):
-    """Open a dialog to choose tables to be tiled."""
+    """Tile tabs"""
     choices = [(table.name, idx) for idx, table in enumerate(viewer.tables)]
     out = _dialogs.choose_multiple(
         choices={"choices": choices, "widget_type": "Select"}
@@ -57,7 +63,7 @@ def tile_tables(viewer: TableViewerBase):
 
 
 def tile_with_adjacent_table(viewer: TableViewerBase):
-    """Tile current table with next (or previous) one."""
+    """Tile adjacent tabs"""
     num = len(viewer.tables)
     if num < 2:
         return None
@@ -75,5 +81,5 @@ def tile_with_adjacent_table(viewer: TableViewerBase):
 
 
 def untile_table(viewer: TableViewerBase):
-    """Untile currently selected table."""
+    """Untile current tab"""
     viewer.tables.untile(viewer.current_index)

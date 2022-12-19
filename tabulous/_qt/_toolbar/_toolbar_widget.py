@@ -146,11 +146,11 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def initToolbar(self):
         """Add tool buttons"""
 
-        self.registerAction("Home", cmds.io.open_table, ICON_DIR / "open_table.svg")
-        self.registerAction("Home", cmds.io.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")
-        self.registerAction("Home", cmds.io.save_table, ICON_DIR / "save_table.svg")
+        self.registerAction("Home", cmds.file.open_table, ICON_DIR / "open_table.svg")
+        self.registerAction("Home", cmds.file.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")
+        self.registerAction("Home", cmds.file.save_table, ICON_DIR / "save_table.svg")
         self.addSeparatorToChild("Home")
-        self.registerAction("Home", cmds.io.open_sample, ICON_DIR / "open_sample.svg")
+        self.registerAction("Home", cmds.file.open_sample, ICON_DIR / "open_sample.svg")
         self.addSeparatorToChild("Home")
         self.registerAction("Home", cmds.window.toggle_console, ICON_DIR / "toggle_console.svg")
         self.registerAction("Home", cmds.window.show_command_palette, ICON_DIR / "palette.svg")

@@ -7,73 +7,80 @@ if TYPE_CHECKING:
 
 
 def copy_data_tab_separated(viewer: TableViewerBase):
-    _utils.get_table(viewer)._qwidget.copyToClipboard(headers=False, sep="\t")
+    """Copy cells (tab separated)"""
+    viewer.copy_data(headers=False, sep="\t")
 
 
 def copy_data_with_header_tab_separated(viewer: TableViewerBase):
-    _utils.get_table(viewer)._qwidget.copyToClipboard(headers=True, sep="\t")
+    """Copy cells with headers (tab separated)"""
+    viewer.copy_data(headers=True, sep="\t")
 
 
 def copy_data_comma_separated(viewer: TableViewerBase):
-    _utils.get_table(viewer)._qwidget.copyToClipboard(headers=False, sep=",")
+    """Copy cells (comma separated)"""
+    viewer.copy_data(headers=False, sep=",")
 
 
 def copy_data_with_header_comma_separated(viewer: TableViewerBase):
-    _utils.get_table(viewer)._qwidget.copyToClipboard(headers=True, sep=",")
+    """Copy cells with headers (comma separated)"""
+    viewer.copy_data(headers=True, sep=",")
 
 
 def copy_as_literal(viewer: TableViewerBase):
+    """Copy as literal"""
     _utils.get_table(viewer)._qwidget._copy_as_literal()
 
 
 def copy_as_new_table(viewer: TableViewerBase):
+    """Copy as new table"""
     _utils.get_table(viewer)._qwidget._copy_as_new_table(type_="table")
 
 
 def copy_as_new_spreadsheet(viewer: TableViewerBase):
+    """Copy as new spreadsheet"""
     _utils.get_table(viewer)._qwidget._copy_as_new_table(type_="spreadsheet")
 
 
 def select_all(viewer: TableViewerBase):
+    """Select all the cells"""
     _utils.get_table(viewer)._qwidget._qtable_view.selectAll()
 
 
 def cut_data(viewer: TableViewerBase):
+    """Cut selected cells"""
     qtable = _utils.get_mutable_table(viewer)._qwidget
     qtable.copyToClipboard(headers=False)
     qtable.deleteValues()
 
 
 def paste_data_tab_separated(viewer: TableViewerBase):
+    """Paste from tab separated text"""
     _utils.get_mutable_table(viewer)._qwidget.pasteFromClipBoard(sep="\t")
 
 
 def paste_data_comma_separated(viewer: TableViewerBase):
+    """Paste from comma separated text"""
     _utils.get_mutable_table(viewer)._qwidget.pasteFromClipBoard(sep=",")
 
 
 def paste_data_from_numpy_string(viewer: TableViewerBase):
+    """Paste from numpy-style text"""
     _utils.get_mutable_table(viewer)._qwidget._paste_numpy_str()
 
 
 def delete_values(viewer: TableViewerBase):
+    """Delete selected cells"""
     _utils.get_mutable_table(viewer)._qwidget.deleteValues()
 
 
 def add_highlight(viewer: TableViewerBase):
+    """Add highlight to cells"""
     qwidget = _utils.get_table(viewer)._qwidget
     qwidget.setHighlights(qwidget.highlights() + qwidget.selections())
 
 
-def show_traceback_at_error(viewer: TableViewerBase):
-    qtable_view = _utils.get_mutable_table(viewer)._qwidget._qtable_view
-    idx = qtable_view._selection_model.current_index
-    if slot := qtable_view._table_map.get_by_dest(idx, None):
-        if slot._current_error is not None:
-            slot.raise_in_msgbox()
-
-
 def show_context_menu(viewer: TableViewerBase):
+    """Execute context menu"""
     qtable = _utils.get_table(viewer)._qwidget
     r, c = qtable._qtable_view._selection_model.current_index
     if r >= 0 and c >= 0:
@@ -92,7 +99,17 @@ def show_context_menu(viewer: TableViewerBase):
         raise RuntimeError("Invalid index")
 
 
+def raise_slot_error(viewer: TableViewerBase):
+    """Show traceback at the cell"""
+    qtable_view = _utils.get_table(viewer)._qwidget._qtable_view
+    idx = qtable_view._selection_model.current_index
+    if slot := qtable_view._table_map.get_by_dest(idx, None):
+        if slot._current_error is not None:
+            slot.raise_in_msgbox()
+
+
 def notify_editability(viewer: TableViewerBase):
+    """Notify that current table is not editable."""
     viewer._qwidget._tablestack.notifyEditability()
 
 
@@ -116,6 +133,7 @@ def set_column_dtype(viewer: TableViewerBase):
 
 
 def insert_row_above(viewer: TableViewerBase):
+    """Insert a row above"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
         return notify_editability()
@@ -124,6 +142,7 @@ def insert_row_above(viewer: TableViewerBase):
 
 
 def insert_row_below(viewer: TableViewerBase):
+    """Insert a row below"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
         return notify_editability()
@@ -132,6 +151,7 @@ def insert_row_below(viewer: TableViewerBase):
 
 
 def insert_column_left(viewer: TableViewerBase):
+    """Insert a column left"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
         return notify_editability()
@@ -140,6 +160,7 @@ def insert_column_left(viewer: TableViewerBase):
 
 
 def insert_column_right(viewer: TableViewerBase):
+    """Insert a column right"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
         return notify_editability()
@@ -148,6 +169,7 @@ def insert_column_right(viewer: TableViewerBase):
 
 
 def remove_this_row(viewer: TableViewerBase):
+    """Remove this row"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
         return notify_editability()
@@ -156,6 +178,7 @@ def remove_this_row(viewer: TableViewerBase):
 
 
 def remove_this_column(viewer: TableViewerBase):
+    """Remove this column"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
         return notify_editability()
@@ -164,6 +187,7 @@ def remove_this_column(viewer: TableViewerBase):
 
 
 def remove_selected_rows(viewer: TableViewerBase):
+    """Remove selected rows"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
         return notify_editability()
@@ -176,6 +200,7 @@ def remove_selected_rows(viewer: TableViewerBase):
 
 
 def remove_selected_columns(viewer: TableViewerBase):
+    """Remove selected columns"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
         return notify_editability()
@@ -188,7 +213,7 @@ def remove_selected_columns(viewer: TableViewerBase):
 
 
 def set_foreground_colormap(viewer: TableViewerBase) -> None:
-    """Set the foreground colormap from a GUI dialog."""
+    """Set foreground colormap"""
     from tabulous._qt._table._base._colormap import exec_colormap_dialog
 
     sheet = _utils.get_table(viewer)._qwidget
@@ -201,7 +226,7 @@ def set_foreground_colormap(viewer: TableViewerBase) -> None:
 
 
 def reset_foreground_colormap(viewer: TableViewerBase) -> None:
-    """Reset the foreground colormap at given index."""
+    """Reset foreground colormap"""
     sheet = _utils.get_table(viewer)._qwidget
     index = _utils.get_selected_column(viewer)
     column_name = sheet._filtered_columns[index]
@@ -209,7 +234,7 @@ def reset_foreground_colormap(viewer: TableViewerBase) -> None:
 
 
 def set_background_colormap(viewer: TableViewerBase) -> None:
-    """Set the background colormap from a GUI dialog."""
+    """Set background colormap"""
     from tabulous._qt._table._base._colormap import exec_colormap_dialog
 
     sheet = _utils.get_table(viewer)._qwidget
@@ -221,7 +246,7 @@ def set_background_colormap(viewer: TableViewerBase) -> None:
 
 
 def reset_background_colormap(viewer: TableViewerBase) -> None:
-    """Reset the background colormap at given index."""
+    """Reset background colormap"""
     sheet = _utils.get_table(viewer)._qwidget
     index = _utils.get_selected_column(viewer)
     column_name = sheet._filtered_columns[index]
@@ -229,7 +254,7 @@ def reset_background_colormap(viewer: TableViewerBase) -> None:
 
 
 def set_text_formatter(viewer: TableViewerBase) -> None:
-    """Set the text formatter at given index."""
+    """Set text formatter"""
     from tabulous._qt._table._base._text_formatter import exec_formatter_dialog
 
     sheet = _utils.get_table(viewer)._qwidget
@@ -242,8 +267,96 @@ def set_text_formatter(viewer: TableViewerBase) -> None:
 
 
 def reset_text_formatter(viewer: TableViewerBase) -> None:
-    """Reset the text formatter at given index."""
+    """Reset text formatter"""
     sheet = _utils.get_table(viewer)._qwidget
     index = _utils.get_selected_column(viewer)
     column_name = sheet._filtered_columns[index]
     return sheet.setTextFormatter(column_name, None)
+
+
+def write_data_signal_in_console(viewer: TableViewerBase):
+    """Write data signal connection to console"""
+    from qtpy import QtCore
+
+    table = _utils.get_table(viewer)
+    sels = table.selections
+    if len(sels) != 1:
+        return
+    qviewer = viewer.native
+    console = qviewer._console_widget
+    if console is None or not console.isActive():
+        delay = 500  # need delay to wait for the console to be activated
+    else:
+        delay = 0
+    qviewer.setConsoleVisible(True)
+
+    def _update_console():
+        console = qviewer._console_widget
+        rsl, csl = sels[0]
+        if rsl == slice(None) and csl == slice(None):
+            _getitem = ""
+        else:
+            r0 = str(rsl.start) if rsl.start is not None else ""
+            r1 = str(rsl.stop) if rsl.stop is not None else ""
+            c0 = str(csl.start) if csl.start is not None else ""
+            c1 = str(csl.stop) if csl.stop is not None else ""
+            _getitem = f"[{r0}:{r1}, {c0}:{c1}]"
+        text = (
+            f"@viewer.current_table.events.data{_getitem}.connect\n"
+            "def _on_data_changed(info: 'ItemInfo'):\n"
+            "    "
+        )
+        if buf := console.buffer():
+            if not buf.endswith("\n"):
+                buf += "\n"
+            text = buf + text
+        console.setBuffer(text)
+        console.setFocus()
+        console.setTempText("...")
+
+    QtCore.QTimer.singleShot(delay, _update_console)
+    return None
+
+
+def write_slice_in_console(viewer: TableViewerBase) -> None:
+    """Write data slice to console"""
+    from qtpy import QtCore
+
+    table = _utils.get_table(viewer)
+    sels = table.selections
+    if len(sels) != 1:
+        return
+    qviewer = viewer.native
+    console = qviewer._console_widget
+    if console is None or not console.isActive():
+        delay = 500  # need delay to wait for the console to be activated
+    else:
+        delay = 0
+    qviewer.setConsoleVisible(True)
+
+    def _update_console():
+        console = qviewer._console_widget
+        rsl, csl = sels[0]
+        if rsl.start is None:
+            rsl_str = f"slice({rsl.stop})"
+        elif rsl.stop is None:
+            rsl_str = f"slice({rsl.start}, None)"
+        else:
+            rsl_str = f"slice({rsl.start}, {rsl.stop})"
+        if csl.start is None:
+            csl_str = f"slice({csl.stop})"
+        elif csl.stop is None:
+            csl_str = f"slice({csl.start}, None)"
+        else:
+            csl_str = f"slice({csl.start}, {csl.stop})"
+
+        text = f"sl = ({rsl_str}, {csl_str})\n"
+        if buf := console.buffer():
+            if not buf.endswith("\n"):
+                buf += "\n"
+            text = buf + text
+        console.setBuffer(text)
+        console.setFocus()
+
+    QtCore.QTimer.singleShot(delay, _update_console)
+    return None
