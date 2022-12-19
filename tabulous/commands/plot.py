@@ -13,6 +13,11 @@ def plot(viewer: TableViewerBase):
     return _plot_xy(viewer, _dialogs.plot)
 
 
+def bar(viewer: TableViewerBase):
+    """Run plt.bar"""
+    return _plot_xy(viewer, _dialogs.bar)
+
+
 def scatter(viewer: TableViewerBase):
     """Run plt.scatter"""
     return _plot_xy(viewer, _dialogs.scatter)

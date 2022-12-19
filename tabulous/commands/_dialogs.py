@@ -12,7 +12,7 @@ from tabulous.types import TableData
 from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
 
-from ._plot_models import PlotModel, ScatterModel, HistModel
+from ._plot_models import PlotModel, BarModel, ScatterModel, HistModel
 
 
 logger = logging.getLogger(__name__)
@@ -64,6 +64,21 @@ def plot(
     ref: bool = False,
 ):
     model = PlotModel(ax, x, y, table=table, alpha=alpha, ref=ref)
+    model.add_data()
+    table.plt.draw()
+    return True
+
+
+@dialog_factory_mpl
+def bar(
+    ax: Axes,
+    x: SelectionOperator,
+    y: SelectionOperator,
+    table: TableBase,
+    alpha: float = 1.0,
+    ref: bool = False,
+):
+    model = BarModel(ax, x, y, table=table, alpha=alpha, ref=ref)
     model.add_data()
     table.plt.draw()
     return True
