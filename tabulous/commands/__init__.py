@@ -26,7 +26,7 @@ def iter_commands() -> Iterator[tuple[str, FunctionType]]:
 DEFAULT_KEYBINDING_SETTING: list[tuple[FunctionType, str]] = [
     (window.toggle_toolbar, "Ctrl+K, Ctrl+T"),
     (window.toggle_console, "Ctrl+Shift+C"),
-    (window.show_command_palette, "Ctrl+Shift+P"),
+    (window.show_command_palette, ["F1", "Ctrl+Shift+P"]),
     (window.focus_table, "Ctrl+0"),
     (window.new_window, "Ctrl+Shift+N"),
     (window.toggle_fullscreen, "F11"),
