@@ -7,7 +7,7 @@ A table data viewer for Python.
 
 [&rarr;📖 Documentation](https://hanjinliu.github.io/tabulous/)
 
-![](https://github.com/hanjinliu/tabulous/blob/main/image/viewer_iris.png)
+![](https://github.com/hanjinliu/tabulous/blob/main/image/viewer.png)
 
 `tabulous` is highly inspired by [napari](https://github.com/napari/napari) in its design and API.
 
@@ -59,29 +59,6 @@ pip install tabulous[pyqt6]  # Use PyQt6
 |![](https://github.com/hanjinliu/tabulous/blob/main/image/validation.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/validation_custom.gif)|
 |Columns tagged with dtype will validate the input string and raise an error on entering invalid string.|You can also define custom validators for each column, such as confirming non-negative.|
 
-### How it works.
+### Command palette
 
-```python
-from tabulous import open_sample
-
-viewer = open_sample("iris")  # open a sample data from seaborn
-
-df = pd.read_csv("data.csv")
-viewer.add_table(df)  # add table data to viewer
-viewer.tables  # table list
-table = viewer.tables[0]  # get table
-table.data  # get pd.DataFrame object (or other similar one)
-
-# Connect data changed signal
-# See examples/03-0_data_changed_signal.py
-@table.events.data.connect
-def _on_data_change(info):
-    """data-changed callback"""
-
-# Connect selection changed signal
-# See examples/03-1_selection_changed.py
-@table.events.selections.connect
-def _on_selection_change(selections):
-    """selection-changed callback"""
-
-```
+(https://github.com/hanjinliu/tabulous/blob/main/image/command_palette.gif)
