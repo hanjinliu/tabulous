@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from . import _utils
+from magicgui import widgets as mwdg
+from . import _utils, _dialogs
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase
@@ -29,6 +30,21 @@ def copy_data_with_header_comma_separated(viewer: TableViewerBase):
 def copy_as_literal(viewer: TableViewerBase):
     """Copy as literal"""
     _utils.get_table(viewer)._qwidget._copy_as_literal()
+
+
+def copy_as_markdown(viewer: TableViewerBase):
+    """Copy as markdown text"""
+    _utils.get_table(viewer)._qwidget._copy_as_formated("markdown")
+
+
+def copy_as_latex(viewer: TableViewerBase):
+    """Copy as LaTeX text"""
+    _utils.get_table(viewer)._qwidget._copy_as_formated("latex")
+
+
+def copy_as_html(viewer: TableViewerBase):
+    """Copy as HTML text"""
+    _utils.get_table(viewer)._qwidget._copy_as_formated("html")
 
 
 def copy_as_new_table(viewer: TableViewerBase):
@@ -77,6 +93,13 @@ def add_highlight(viewer: TableViewerBase):
     """Add highlight to cells"""
     qwidget = _utils.get_table(viewer)._qwidget
     qwidget.setHighlights(qwidget.highlights() + qwidget.selections())
+
+
+def delete_selected_highlight(viewer: TableViewerBase):
+    """Delete selected highlight"""
+    table = _utils.get_table(viewer)._qwidget
+    table._qtable_view._highlight_model.delete_selected()
+    table._qtable_view._selection_model.set_ctrl(False)
 
 
 def show_context_menu(viewer: TableViewerBase):
@@ -391,4 +414,82 @@ def write_data_reference_in_console(viewer: TableViewerBase) -> None:
         console.setFocus()
 
     QtCore.QTimer.singleShot(delay, _update_console)
+    return None
+
+
+def add_spinbox(viewer: TableViewerBase) -> None:
+    """Add Spinbox"""
+    sheet = _utils.get_spreadsheet(viewer)._qwidget
+    kwargs = _dialogs.spinbox()
+    with sheet._mgr.merging():
+        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
+            sheet._set_widget_at_index(r, c, mwdg.SpinBox(**kwargs))
+    return None
+
+
+def add_float_spinbox(viewer: TableViewerBase) -> None:
+    """Add FloatSpinBox"""
+    sheet = _utils.get_spreadsheet(viewer)._qwidget
+    kwargs = _dialogs.float_spinbox()
+    with sheet._mgr.merging():
+        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
+            sheet._set_widget_at_index(r, c, mwdg.FloatSpinBox(**kwargs))
+    return None
+
+
+def add_slider(viewer: TableViewerBase) -> None:
+    """Add Slider"""
+    sheet = _utils.get_spreadsheet(viewer)._qwidget
+    kwargs = _dialogs.slider()
+    with sheet._mgr.merging():
+        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
+            sheet._set_widget_at_index(r, c, mwdg.Slider(**kwargs))
+    return None
+
+
+def add_float_slider(viewer: TableViewerBase) -> None:
+    """Add FloatSlider"""
+    sheet = _utils.get_spreadsheet(viewer)._qwidget
+    kwargs = _dialogs.float_slider()
+    with sheet._mgr.merging():
+        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
+            sheet._set_widget_at_index(r, c, mwdg.FloatSlider(**kwargs))
+    return None
+
+
+def add_checkbox(viewer: TableViewerBase) -> None:
+    """Add CheckBox"""
+    sheet = _utils.get_spreadsheet(viewer)._qwidget
+    kwargs = _dialogs.checkbox()
+    with sheet._mgr.merging():
+        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
+            sheet._set_widget_at_index(r, c, mwdg.CheckBox(**kwargs))
+    return None
+
+
+def add_radio_button(viewer: TableViewerBase) -> None:
+    """Add RadioButton"""
+    sheet = _utils.get_spreadsheet(viewer)._qwidget
+    kwargs = _dialogs.radio_button()
+    with sheet._mgr.merging():
+        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
+            sheet._set_widget_at_index(r, c, mwdg.RadioButton(**kwargs))
+    return None
+
+
+def add_line_edit(viewer: TableViewerBase) -> None:
+    """Add LineEdit"""
+    sheet = _utils.get_spreadsheet(viewer)._qwidget
+    with sheet._mgr.merging():
+        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
+            sheet._set_widget_at_index(r, c, mwdg.LineEdit())
+    return None
+
+
+def remove_cell_widgets(viewer: TableViewerBase) -> None:
+    """Remove cell widgets"""
+    sheet = _utils.get_spreadsheet(viewer)._qwidget
+    with sheet._mgr.merging():
+        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
+            sheet._set_widget_at_index(r, c, None)
     return None

@@ -1,6 +1,7 @@
 from functools import partial
 from typing import List, Union
 from typing_extensions import Annotated
+
 import logging
 import numpy as np
 import pandas as pd
@@ -259,6 +260,48 @@ def choose_one(choice: str):
 @dialog_factory
 def choose_multiple(choices: List):
     return choices
+
+
+@dialog_factory
+def spinbox(min: str = "0", max: str = "1000", step: str = "") -> dict:
+    min = int(min)
+    max = int(max)
+    step = int(step) if step != "" else None
+    return dict(min=min, max=max, step=step)
+
+
+@dialog_factory
+def float_spinbox(min: str = "0.0", max: str = "1000.0", step: str = "") -> dict:
+    min = float(min)
+    max = float(max)
+    step = float(step) if step != "" else None
+    return dict(min=min, max=max, step=step)
+
+
+@dialog_factory
+def slider(min: str = "0", max: str = "1000", step: str = "") -> dict:
+    min = int(min)
+    max = int(max)
+    step = int(step) if step != "" else None
+    return dict(min=min, max=max, step=step)
+
+
+@dialog_factory
+def float_slider(min: str = "0.0", max: str = "1000.0", step: str = "") -> dict:
+    min = float(min)
+    max = float(max)
+    step = float(step) if step != "" else None
+    return dict(min=min, max=max, step=step)
+
+
+@dialog_factory
+def checkbox(text: str, checked: bool = True) -> dict:
+    return dict(text=text, value=checked)
+
+
+@dialog_factory
+def radio_button(text: str, checked: bool = True) -> dict:
+    return dict(text=text, value=checked)
 
 
 __void = object()

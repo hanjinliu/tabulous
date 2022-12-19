@@ -13,6 +13,8 @@ from qtpy.QtCore import Qt
 from magicgui import widgets as mWdg
 from collections_undo import arguments
 
+from tabulous.commands.selection import add_float_slider
+
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from tabulous._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
@@ -635,11 +637,20 @@ class QSpreadSheet(QMutableSimpleTable):
             # equivalent to delete the widget
             return None
 
+        if widget.widget_type in ("CheckBox", "RadioButton"):
+            converter = lambda x: x != "False"
+        elif widget.widget_type in ("SpinBox", "Slider"):
+            converter = int
+        elif widget.widget_type in ("FloatSpinBox", "FloatSlider"):
+            converter = float
+        else:
+            converter = str
+
         def _sig():
             with widget.changed.blocked():
                 val = self.model().df.iat[r, c]
                 try:
-                    widget.value = val
+                    widget.value = converter(val)
                 except Exception:
                     self.setDataFrameValue(r, c, str(widget.value))
                     raise
@@ -732,38 +743,42 @@ class QSpreadSheet(QMutableSimpleTable):
     def _install_actions(self):
         # fmt: off
         vheader = self._qtable_view.verticalHeader()
-        vheader.registerAction("Insert/Remove > Insert row above")(lambda idx: cmds.table.insert_row_above(self.parentViewer()._table_viewer))
-        vheader.registerAction("Insert/Remove > Insert row below")(lambda idx: cmds.table.insert_row_below(self.parentViewer()._table_viewer))
-        vheader.registerAction("Insert/Remove > Remove this row")(lambda idx: cmds.table.remove_this_row(self.parentViewer()._table_viewer))
-        vheader.registerAction("Insert/Remove > Remove selected rows")(lambda idx: cmds.table.remove_selected_rows(self.parentViewer()._table_viewer))
+        vheader.registerAction("Insert/Remove > Insert row above")(lambda idx: cmds.selection.insert_row_above(self.parentViewer()._table_viewer))
+        vheader.registerAction("Insert/Remove > Insert row below")(lambda idx: cmds.selection.insert_row_below(self.parentViewer()._table_viewer))
+        vheader.registerAction("Insert/Remove > Remove this row")(lambda idx: cmds.selection.remove_this_row(self.parentViewer()._table_viewer))
+        vheader.registerAction("Insert/Remove > Remove selected rows")(lambda idx: cmds.selection.remove_selected_rows(self.parentViewer()._table_viewer))
         vheader.addSeparator()
 
         hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Insert/Remove > Insert column left")(lambda idx: cmds.table.insert_column_left(self.parentViewer()._table_viewer))
-        hheader.registerAction("Insert/Remove > Insert column right")(lambda idx: cmds.table.insert_column_right(self.parentViewer()._table_viewer))
-        hheader.registerAction("Insert/Remove > Remove this column")(lambda idx: cmds.table.remove_this_column(self.parentViewer()._table_viewer))
-        hheader.registerAction("Insert/Remove > Remove selected columns")(lambda idx: cmds.table.remove_selected_columns(self.parentViewer()._table_viewer))
+        hheader.registerAction("Insert/Remove > Insert column left")(lambda idx: cmds.selection.insert_column_left(self.parentViewer()._table_viewer))
+        hheader.registerAction("Insert/Remove > Insert column right")(lambda idx: cmds.selection.insert_column_right(self.parentViewer()._table_viewer))
+        hheader.registerAction("Insert/Remove > Remove this column")(lambda idx: cmds.selection.remove_this_column(self.parentViewer()._table_viewer))
+        hheader.registerAction("Insert/Remove > Remove selected columns")(lambda idx: cmds.selection.remove_selected_columns(self.parentViewer()._table_viewer))
         hheader.addSeparator()
-        hheader.registerAction("Column dtype")(lambda idx: cmds.table.set_column_dtype(self.parentViewer()._table_viewer))
+        hheader.registerAction("Column dtype")(lambda idx: cmds.selection.set_column_dtype(self.parentViewer()._table_viewer))
         hheader.addSeparator()
 
-        self.registerAction("Insert/Remove > Insert a row above")(lambda idx: cmds.table.insert_row_above(self.parentViewer()._table_viewer))
-        self.registerAction("Insert/Remove > Insert a row below")(lambda idx: cmds.table.insert_row_below(self.parentViewer()._table_viewer))
-        self.registerAction("Insert/Remove > Remove this row")(lambda idx: cmds.table.remove_this_row(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Insert a row above")(lambda idx: cmds.selection.insert_row_above(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Insert a row below")(lambda idx: cmds.selection.insert_row_below(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Remove this row")(lambda idx: cmds.selection.remove_this_row(self.parentViewer()._table_viewer))
         self.addSeparator()
-        self.registerAction("Insert/Remove > Insert a column on the left")(lambda idx: cmds.table.insert_column_left(self.parentViewer()._table_viewer))
-        self.registerAction("Insert/Remove > Insert a column on the right")(lambda idx: cmds.table.insert_column_right(self.parentViewer()._table_viewer))
-        self.registerAction("Insert/Remove > Remove this column")(lambda idx: cmds.table.remove_this_column(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Insert a column on the left")(lambda idx: cmds.selection.insert_column_left(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Insert a column on the right")(lambda idx: cmds.selection.insert_column_right(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Remove this column")(lambda idx: cmds.selection.remove_this_column(self.parentViewer()._table_viewer))
         self.addSeparator()
 
         super()._install_actions()
 
-        self.registerAction("Add widget > SpinBox")(lambda idx: self._set_widget_at_index(*idx, mWdg.SpinBox()))
-        self.registerAction("Add widget > Slider")(lambda idx: self._set_widget_at_index(*idx, mWdg.Slider()))
-        self.registerAction("Add widget > FloatSpinBox")(lambda idx: self._set_widget_at_index(*idx, mWdg.FloatSpinBox()))
-        self.registerAction("Add widget > FloatSlider")(lambda idx: self._set_widget_at_index(*idx, mWdg.FloatSlider()))
-        self.registerAction("Add widget > CheckBox")(lambda idx: self._set_widget_at_index(*idx, mWdg.CheckBox()))
-        self.registerAction("Add widget > LineEdit")(lambda idx: self._set_widget_at_index(*idx, mWdg.LineEdit()))
+        self.registerAction("Cell widget > SpinBox")(lambda idx: cmds.selection.add_spinbox(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > Slider")(lambda idx: cmds.selection.add_slider(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > FloatSpinBox")(lambda idx: cmds.selection.add_float_spinbox(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > FloatSlider")(lambda idx: cmds.selection.add_float_slider(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > CheckBox")(lambda idx: cmds.selection.add_checkbox(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > RadioButton")(lambda idx: cmds.selection.add_radio_button(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > LineEdit")(lambda idx: cmds.selection.add_line_edit(self.parentViewer()._table_viewer))
+        self.addSeparator("Cell widget")
+        self.registerAction("Cell widget > Remove")(lambda idx: cmds.selection.remove_cell_widgets(self.parentViewer()._table_viewer))
+
         # fmt: on
         return None
 
