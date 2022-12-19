@@ -61,4 +61,4 @@ pip install tabulous[pyqt6]  # Use PyQt6
 
 ### Command palette
 
-(https://github.com/hanjinliu/tabulous/blob/main/image/command_palette.gif)
+![](https://github.com/hanjinliu/tabulous/blob/main/image/command_palette.gif)
