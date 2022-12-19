@@ -164,3 +164,6 @@ def _get_selected_ranges_and_column_names(
 
 def _selection_area(sel: tuple[slice, slice]) -> int:
     return (sel[0].stop - sel[0].start) * (sel[1].stop - sel[1].start)
+
+
+del NamedTuple

@@ -1,8 +1,14 @@
 from __future__ import annotations
-from typing import Iterator
+
+from typing import Any, Callable, Iterator, TYPE_CHECKING
 
 from . import file, plot, selection, tab, table, view, analysis, window
 from types import FunctionType, ModuleType
+from qt_command_palette import get_palette
+
+if TYPE_CHECKING:
+    from tabulous._qt._mainwindow import _QtMainWidgetBase
+    from tabulous.widgets import TableViewerBase
 
 _SUB_MODULES: list[ModuleType] = [
     file,
@@ -15,12 +21,45 @@ _SUB_MODULES: list[ModuleType] = [
     window,
 ]
 
+__all__ = [mod.__name__.split(".")[-1] for mod in _SUB_MODULES] + [
+    "iter_commands",
+    "register_command",
+]
+
 
 def iter_commands() -> Iterator[tuple[str, FunctionType]]:
     for mod in _SUB_MODULES:
         for obj in vars(mod).values():
             if isinstance(obj, FunctionType) and not obj.__name__.startswith("_"):
                 yield mod.__name__.split(".")[-1], obj
+
+
+def register_command(
+    title: str = "User defined",
+    desc: str = None,
+) -> Callable[[Callable[[TableViewerBase], Any]], Callable[[TableViewerBase], Any]]:
+    def wrapper(f):
+        palette = get_palette("tabulous")
+        if desc is None:
+            fname = getattr(f, "__name__", None)
+            if not isinstance(fname, str):
+                raise TypeError(
+                    f"Expected str for the function name, got {type(fname).__name__}"
+                )
+            _desc = fname.title().replace("_", " ")
+        else:
+            _desc = desc
+
+        def fn(self: _QtMainWidgetBase):
+            return f(self._table_viewer)
+
+        fn.__doc__ = f.__doc__
+        fn.__name__ = f.__name__
+        palette.register(fn, title=title, desc=_desc)
+        palette.update()
+        return f
+
+    return wrapper
 
 
 DEFAULT_KEYBINDING_SETTING: list[tuple[FunctionType, str]] = [

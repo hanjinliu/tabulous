@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Callable
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Qt, Signal
 
@@ -20,8 +19,6 @@ class QClickableLabel(QtW.QLabel):
         self.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.setStyleSheet("QClickableLabel { color: #319DFF; }")
         self.setText(text)
-        self._tooltip_func = lambda: ""
-        self.setToolTipDuration(200)
         return None
 
     def setText(self, text: str):
@@ -53,18 +50,3 @@ class QClickableLabel(QtW.QLabel):
         self.setFont(font)
         self.unsetCursor()
         return super().leaveEvent(a0)
-
-    def setTooltipFunction(self, f: Callable[[], str]) -> None:
-        """Set the function that returns the tooltip text."""
-        self._tooltip_func = f
-        return None
-
-    def event(self, event: QtCore.QEvent):
-        """Show dynamic tooltip."""
-        tp = event.type()
-        if tp == QtCore.QEvent.Type.ToolTip:
-            tooltip = self._tooltip_func()
-            QtW.QToolTip.showText(QtGui.QCursor.pos(), tooltip, self)
-            return True
-        else:
-            return super().event(event)

@@ -247,7 +247,7 @@ Toolbar contains many functions that help you with analyzing the table data.
     in Mac)  to change focus to the toolbar, and follow the tooltip labels to find the
     appropriate key combo to get to the button you want (similar to Microsoft Office).
 
-File menu
+Home menu
 ---------
 
 .. |open_table| image:: ../../tabulous/_qt/_icons/open_table.svg
@@ -258,6 +258,10 @@ File menu
   :width: 20em
 .. |open_sample| image:: ../../tabulous/_qt/_icons/open_sample.svg
   :width: 20em
+.. |toggle_console| image:: ../../tabulous/_qt/_icons/toggle_console.svg
+  :width: 20em
+.. |palette| image:: ../../tabulous/_qt/_icons/palette.svg
+  :width: 20em
 
 - |open_table| ... Open a table data as a :class:`Table` from a file using a
   file dialog.
@@ -265,6 +269,8 @@ File menu
   file using a file dialog.
 - |save_table| ... Save the currently active table data using a file dialog.
 - |open_sample| ... Open a sample data from ``seaborn``.
+- |toggle_console| ... Toggle the console widget visibility.
+- |palette| ... Open the command palette.
 
 Table menu
 ----------
@@ -312,8 +318,6 @@ Analyze menu
   :width: 20em
 .. |sklearn| image:: ../../tabulous/_qt/_icons/sklearn_analysis.svg
   :width: 20em
-.. |toggle_console| image:: ../../tabulous/_qt/_icons/toggle_console.svg
-  :width: 20em
 
 - |summarize_table| ... Summarize table data by mean, standard deviation etc.
 - |eval| ... Evaluate a string expression on the table data. Essentially equivalent
@@ -321,7 +325,6 @@ Analyze menu
 - |filter| ... Filter table data by a string expression.
 - |stats| ... Perform statistical tests on the table data using :mod:`scipy.stats`.
 - |sklearn| ... Perform clustering, regression or decomposition on the table data using :mod:`scikit-learn`.
-- |toggle_console| ... Toggle the console widget visibility.
 
 View menu
 ---------
@@ -334,11 +337,17 @@ View menu
   :width: 20em
 .. |view_reset| image:: ../../tabulous/_qt/_icons/view_reset.svg
   :width: 20em
+.. |tile| image:: ../../tabulous/_qt/_icons/tile.svg
+  :width: 20em
+.. |untile| image:: ../../tabulous/_qt/_icons/untile.svg
+  :width: 20em
 
 - |view_popup| ... Popup current active table.
 - |view_dual_h| ... Activate dual view mode (horizontal).
 - |view_dual_v| ... Activate dual view mode (vertical).
 - |view_reset| ... Reset view mode.
+- |tile| ... Tile tabs.
+- |untile| ... Untile tabs.
 
 Plot menu
 ---------

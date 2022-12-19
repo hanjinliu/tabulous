@@ -1,6 +1,4 @@
 from __future__ import annotations
-from functools import partial
-from pathlib import Path
 from typing import TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, Signal
@@ -73,7 +71,6 @@ class QPathList(QtW.QGroupBox):
                 continue
             btn = QClickableLabel(path)
             btn.clicked.connect(lambda path=path: self.pathClicked.emit(path))
-            btn.setTooltipFunction(lambda path=path: self.previewString(path))
             _layout.addWidget(btn)
             self._buttons.append(btn)
         return None
@@ -90,44 +87,3 @@ class QPathList(QtW.QGroupBox):
         for i in range(n, n_wdt):
             self._buttons[i].hide()
         return None
-
-    def previewString(self, path: str) -> str:
-        """Preview the path."""
-        _path = Path(path)
-        if not _path.exists():
-            return "Path does not exist"
-
-        suf = _path.suffix
-        import pandas as pd
-
-        if suf in (".csv", ".txt", ".dat"):
-            reader = pd.read_csv
-
-        elif suf in (".xlsx", ".xls", ".xlsb", ".xlsm", ".xltm", "xltx", ".xml"):
-            reader = partial(pd.read_excel, sheet_name=0)
-
-        else:
-            return "Preview not available."
-
-        try:
-            columns = reader(path, nrows=0).columns.tolist()
-            if len(columns) > 5:
-                columns = columns[:5]
-                large_col = True
-            else:
-                large_col = False
-
-            df = reader(path, nrows=12, usecols=columns)
-            if large_col:
-                df[" ... "] = [" ... "] * len(df)
-
-        except Exception:
-            return "Preview not available."
-
-        out = df.to_html(float_format="%.4g")
-        if len(df) == 12:
-            s0, s1 = out.rsplit("</tr>", maxsplit=1)
-            foot = "<td align='center'>:</td>" * df.shape[1]
-            out = f"{s0}</tr><tr><th align='center'>:</th>{foot}</tr>{s1}"
-
-        return out
