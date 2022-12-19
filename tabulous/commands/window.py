@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from . import _dialogs, _utils
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase

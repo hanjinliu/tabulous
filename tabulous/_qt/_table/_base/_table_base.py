@@ -115,8 +115,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
         self._install_actions()
 
-        self.selectionChangedSignal.connect(self._try_update_console)
-
     def createHandle(self) -> QTableHandle:
         """Create custom handle."""
         return QTableHandle(Qt.Orientation.Horizontal, self)
@@ -817,21 +815,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Delete the selected highlight."""
         self._qtable_view._highlight_model.delete_selected()
         self._qtable_view._selection_model.set_ctrl(False)
-        return None
-
-    def _try_update_console(self) -> None:
-        """Update the console if it is active."""
-        viewer = self._qtable_view.parentViewer()
-        console = viewer._console_widget
-        if console is None or not console.isActive():
-            return
-        selected = console.selectedText()
-        if selected.startswith(f"viewer.data.iloc["):
-            sels = self.selections()
-            if len(sels) != 1:
-                return
-            op = ILocSelOp.from_iloc(*sels[0], self.model().df)
-            console.setTempText(op.fmt("viewer.data"))
         return None
 
 

@@ -360,3 +360,35 @@ def write_slice_in_console(viewer: TableViewerBase) -> None:
 
     QtCore.QTimer.singleShot(delay, _update_console)
     return None
+
+
+def write_data_reference_in_console(viewer: TableViewerBase) -> None:
+    """Write data reference object to console"""
+    from qtpy import QtCore
+
+    table = _utils.get_table(viewer)
+    sels = table.selections
+    if len(sels) != 1:
+        return
+    qviewer = viewer.native
+    console = qviewer._console_widget
+    if console is None or not console.isActive():
+        delay = 500  # need delay to wait for the console to be activated
+    else:
+        delay = 0
+    qviewer.setConsoleVisible(True)
+
+    def _update_console():
+        console = qviewer._console_widget
+        rsl, csl = sels[0]
+        r0 = rsl.start if rsl.start is not None else ""
+        r1 = rsl.stop if rsl.stop is not None else ""
+        c0 = csl.start if csl.start is not None else ""
+        c1 = csl.stop if csl.stop is not None else ""
+
+        text = f"viewer.data.iloc[{r0}:{r1}, {c0}:{c1}]"
+        console.insertText(text)
+        console.setFocus()
+
+    QtCore.QTimer.singleShot(delay, _update_console)
+    return None
