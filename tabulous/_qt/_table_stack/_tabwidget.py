@@ -81,6 +81,8 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         # temporal QLineEdit for editing tabs
         self._line: QtW.QLineEdit | None = None
 
+        self._entering_tab_index: int | None = None
+
         # "new tab" button
         tb = QtW.QToolButton()
         tb.setText("+")
@@ -123,6 +125,8 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         self.removeTab(index)
         if self.count() == 0:
             self.addEmptyWidget()
+        else:
+            self.parentWidget().setCellFocus()
         return table
 
     def renameTable(self, index: int, name: str):
@@ -199,7 +203,8 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         tab_id = source_widget._entering_tab_index
         if source_widget is self:
             return super().dropEvent(e)
-
+        if tab_id is None:
+            return None
         # Tab from other stack is dropped.
         e.setDropAction(Qt.DropAction.MoveAction)
         e.accept()

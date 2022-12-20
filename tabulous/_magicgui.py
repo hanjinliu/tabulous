@@ -134,14 +134,13 @@ def find_table_viewer_ancestor(widget: Widget | QtW.QWidget) -> TableViewerBase 
     else:
         raise TypeError(f"Cannot use {type(widget)} as an input.")
     qwidget: QtW.QWidget
-    parent = qwidget.parent()
-    while (parent := qwidget.parent()) is not None:
-        qwidget = parent
+    while True:
         if isinstance(qwidget, _QtMainWidgetBase):
             qwidget = cast(_QtMainWidgetBase, qwidget)
             return qwidget._table_viewer
-
-    return None
+        qwidget = qwidget.parent()
+        if qwidget is None:
+            return None
 
 
 def find_current_table(widget: Widget | QtW.QWidget) -> TableBase | None:
@@ -419,9 +418,20 @@ def dialog_factory_mpl(function: _F) -> _F:
     def _runner(parent=None, **param_options):
         dlg = magicgui(function, **param_options)
 
-        from ._qt._plot import QtMplPlotCanvas
+        from tabulous._qt._plot import QtMplPlotCanvas
 
-        plt = QtMplPlotCanvas()
+        style = None
+        bg = None
+        if parent is not None:
+            if viewer := find_table_viewer_ancestor(parent):
+                if not viewer._qwidget._white_background:
+                    style = "dark_background"
+                bg = viewer._qwidget.backgroundColor().name()
+
+        plt = QtMplPlotCanvas(style=style)
+        if bg:
+            plt.set_background_color(bg)
+
         dlg.native.layout().addWidget(plt)
         dlg.height = 400
         dlg.width = 280

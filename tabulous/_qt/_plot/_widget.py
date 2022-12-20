@@ -37,10 +37,10 @@ class QtMplPlotCanvas(QtW.QWidget):
         try:
             mpl.use("Agg")
             if style is None:
-                fig, _ = plt.subplots(nrows, ncols)
+                fig, _ = plt.subplots(nrows, ncols, linewidth=2)
             else:
                 with plt.style.context(style):
-                    fig, _ = plt.subplots(nrows, ncols)
+                    fig, _ = plt.subplots(nrows, ncols, linewidth=2)
         finally:
             mpl.use(backend)
 
@@ -64,9 +64,15 @@ class QtMplPlotCanvas(QtW.QWidget):
         canvas.clicked.connect(self.as_current_widget)
         canvas.doubleClicked.connect(self._editor.clear)
 
+        self._style = style
+
     def cla(self) -> None:
         """Clear the current axis."""
-        self.ax.cla()
+        if self._style:
+            with plt.style.context(self._style):
+                self.ax.cla()
+        else:
+            self.ax.cla()
         return None
 
     def draw(self) -> None:
@@ -114,6 +120,12 @@ class QtMplPlotCanvas(QtW.QWidget):
 
     def as_current_widget(self):
         self.__class__._current_widget = self
+
+    def set_background_color(self, color: str):
+        self.figure.set_facecolor(color)
+        for ax in self.axes:
+            ax.set_facecolor(color)
+        self.canvas.draw()
 
 
 def _use_seaborn_grid(f):

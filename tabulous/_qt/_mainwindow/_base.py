@@ -82,8 +82,11 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._command_palette.show_widget(self)
         return None
 
+    def backgroundColor(self):
+        return self.palette().color(self.backgroundRole())
+
     def updateWidgetStyle(self):
-        bg = self.palette().color(self.backgroundRole())
+        bg = self.backgroundColor()
         whiteness = bg.red() + bg.green() + bg.blue()
         self._white_background = whiteness > 128 * 3
         if self._white_background:

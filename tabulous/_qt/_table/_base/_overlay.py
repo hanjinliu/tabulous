@@ -112,11 +112,8 @@ class QOverlayFrame(QtW.QDialog):
     def show(self):
         """Show the overlay widget."""
         super().show()
-        if self.tableStack().parent()._white_background:
-            bgcolor = "white"
-        else:
-            bgcolor = "black"
-        self.setStyleSheet(self._Style.format(backgroundcolor=bgcolor))
+        bgqcolor = self.tableStack().parent().backgroundColor()
+        self.setStyleSheet(self._Style.format(backgroundcolor=bgqcolor.name()))
         return None
 
     def _add_header(self):

@@ -392,11 +392,14 @@ class PlotInterface(Component["TableBase"]):
         from tabulous._qt._plot import QtMplPlotCanvas
 
         table = self.parent
-        if table._qwidget._qtable_view.parentViewer()._white_background:
+        qviewer = table._qwidget._qtable_view.parentViewer()
+        if qviewer._white_background:
             style = None
         else:
             style = "dark_background"
+
         wdt = QtMplPlotCanvas(nrows=nrows, ncols=ncols, style=style)
+        wdt.set_background_color(qviewer.backgroundColor().name())
         wdt.canvas.deleteRequested.connect(self.delete_widget)
         table.add_side_widget(wdt, name="Plot")
         self._current_widget = wdt
@@ -478,6 +481,14 @@ class PlotInterface(Component["TableBase"]):
     def draw(self):
         """Update the current side figure."""
         return self._current_widget.draw()
+
+    @property
+    def background_color(self):
+        return self.gcf().get_facecolor()
+
+    @background_color.setter
+    def background_color(self, color):
+        return self.gcw().set_background_color(color)
 
 
 _Range = Tuple[slice, slice]
