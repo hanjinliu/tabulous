@@ -99,7 +99,8 @@ class QtConsole(RichJupyterWidget):
             from IPython.paths import get_ipython_dir
             from tabulous._utils import get_config
 
-            _ns = get_config().console_namespace
+            config = get_config()
+            _ns = config.console_namespace
 
             # run IPython startup files
             profile_dir = Path(get_ipython_dir()) / "profile_default" / "startup"

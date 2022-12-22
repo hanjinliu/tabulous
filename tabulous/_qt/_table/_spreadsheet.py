@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Hashable
 import re
 from functools import cached_property
 from io import StringIO
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -229,7 +230,7 @@ class QSpreadSheet(QMutableSimpleTable):
         # NOTE: It seems very weird but the string array of pandas does not
         # support setting (N, 1) string array.
         if isinstance(val, pd.DataFrame) and isinstance(c, slice) and c.stop == 1:
-            val = list(val.iloc[:, 0])
+            val = pd.Series(val.iloc[:, 0], dtype="string")
 
         return super().updateValue(r, c, val)
 
@@ -361,10 +362,12 @@ class QSpreadSheet(QMutableSimpleTable):
             else:
                 # NOTE: It seems weird but setitem of pandas string array fails in
                 # certain cases that the value is of shape (N, 1).
-                try:
-                    out[:] = _value.astype(_STRING_DTYPE).values
-                except Exception:
-                    out.values[:] = _value.astype(_STRING_DTYPE).values
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    try:
+                        out[:] = _value.astype(_STRING_DTYPE).values
+                    except Exception:
+                        out.values[:] = _value.astype(_STRING_DTYPE).values
             return out
         return super()._pre_set_array(r, c, _value)
 
@@ -816,7 +819,7 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
         # find unique index
         if df.index.size == 0:
             index = range(nr)
-        elif isinstance(df.index, (pd.Int64Index, pd.RangeIndex)):
+        elif df.index.dtype.kind in "ui":
             x0 = int(df.index.max(skipna=True)) + 1
             index = range(x0, x0 + nr)
         else:
@@ -830,7 +833,7 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
         # find unique columns
         if df.columns.size == 0:
             columns = range(nc)
-        elif isinstance(df.columns, (pd.Int64Index, pd.RangeIndex)):
+        elif df.columns.dtype.kind in "ui":
             x0 = int(df.columns.max(skipna=True)) + 1
             columns = range(x0, x0 + nc)
         else:
