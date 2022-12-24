@@ -14,13 +14,19 @@ class QInnerSplitter(QtW.QSplitter):
         super().__init__(Qt.Orientation.Vertical, parent)
 
     def sizeHint(self):
-        h = 0
-        w = self.width()
         nwidgets = self.count()
-        for i in range(nwidgets):
-            child = self.widget(i)
-            h += child.minimumHeight()
-            w = min(w, child.minimumWidth())
+        if self.orientation() == Qt.Orientation.Vertical:
+            w, h = self.width(), 0
+            for i in range(nwidgets):
+                child = self.widget(i)
+                h += child.minimumHeight()
+                w = min(w, child.minimumWidth())
+        else:
+            w, h = 0, self.height()
+            for i in range(nwidgets):
+                child = self.widget(i)
+                h = max(h, child.minimumHeight())
+                w += child.minimumWidth()
         return QtCore.QSize(w, h)
 
 
@@ -34,6 +40,7 @@ class QTableSideArea(QtW.QScrollArea):
         self.setWidgetResizable(True)
         widget_inside = QInnerSplitter(self)
         self.setMinimumWidth(180)
+        self.setMinimumHeight(180)
         self.setWidget(widget_inside)
         self._widgets: list[QtW.QWidget] = []
         # add empty widget
@@ -45,6 +52,15 @@ class QTableSideArea(QtW.QScrollArea):
         def widget(self) -> QInnerSplitter: ...
         def parentWidget(self) -> QtW.QSplitter: ...
     # fmt: on
+
+    def setOrientation(self, orientation: Qt.Orientation) -> None:
+        self.widget().setOrientation(orientation)
+        if orientation == Qt.Orientation.Vertical:
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        else:
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
     def addWidget(self, widget: QtW.QWidget, name: str = "") -> None:
         if widget in self._widgets:
@@ -86,6 +102,8 @@ class QTableSideArea(QtW.QScrollArea):
 
 
 class QSplitterDockWidget(QtW.QWidget):
+    """The dock widget for QTableSideArea"""
+
     def __init__(self, widget: QtW.QWidget, name: str = "") -> None:
         super().__init__()
         _layout = QtW.QVBoxLayout()

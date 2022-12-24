@@ -41,13 +41,14 @@ logger = logging.getLogger("tabulous")
 ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
 
 _SplitterStyle = """
-QSplitter::handle:horizontal {
+QSplitter::handle {
     background-color: gray;
     border: 0px;
-    width: 4px;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    border-radius: 2px;}
+    height: 2px;
+    margin-left: 5px;
+    margin-right: 5px;
+    border-radius: 1px;
+}
 """
 
 
@@ -114,6 +115,14 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
         self._install_actions()
+
+    def setOrientation(self, a0: Qt.Orientation) -> None:
+        """Set table orientation and the side area orientation."""
+        a1 = 1 - a0  # opposite orientation
+        super().setOrientation(a0)
+        if self._side_area is not None:
+            self._side_area.setOrientation(a1)
+        return None
 
     def createHandle(self) -> QTableHandle:
         """Create custom handle."""
@@ -607,6 +616,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             area = QTableSideArea()
             self.addWidget(area)
             self._side_area = area
+            self.setOrientation(self.orientation())
 
         self._side_area.addWidget(widget, name=name)
         self.setSizes([500, 200])

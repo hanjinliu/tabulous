@@ -77,7 +77,10 @@ def boxenplot(viewer: TableViewerBase):
 
 def new_figure(viewer: TableViewerBase):
     """New figure canvas"""
-    return viewer.current_table.plt.new_widget()
+    table = viewer.current_table
+    if table is None:
+        return
+    return table.plt.new_widget()
 
 
 def _plot_xy(viewer: TableViewerBase, dialog):

@@ -39,6 +39,7 @@ class QTitleBar(QtW.QWidget):
         self._close_button.clicked.connect(self.closeSignal.emit)
 
         self.setTitle(title)
+        self.setFixedHeight(18)
 
     def title(self) -> str:
         """The title text."""
