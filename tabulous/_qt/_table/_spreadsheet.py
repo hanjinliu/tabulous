@@ -11,11 +11,7 @@ import pandas as pd
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import Qt
 
-from magicgui import widgets as mWdg
 from collections_undo import arguments
-
-from tabulous.commands.selection import add_float_slider
-
 
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from tabulous._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
@@ -540,10 +536,13 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.undoable
     def _remove_rows(self, row: int, count: int, old_values: pd.DataFrame):
+        _r_ranged = isinstance(self._data_raw.index, pd.RangeIndex)
         self._data_raw = pd.concat(
             [self._data_raw.iloc[:row, :], self._data_raw.iloc[row + count :, :]],
             axis=0,
         )
+        if _r_ranged:
+            self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
         self.model().removeRows(row, count, QtCore.QModelIndex())
         self.setFilter(self._filter_slice)
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
@@ -586,6 +585,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.undoable
     def _remove_columns(self, col: int, count: int, old_values: pd.DataFrame):
+        _c_ranged = isinstance(self._data_raw.columns, pd.RangeIndex)
         model = self.model()
         for index in range(col, col + count):
             colname = model.df.columns[index]
@@ -596,6 +596,8 @@ class QSpreadSheet(QMutableSimpleTable):
             [self._data_raw.iloc[:, :col], self._data_raw.iloc[:, col + count :]],
             axis=1,
         )
+        if _c_ranged:
+            self._data_raw.columns = pd.RangeIndex(0, self._data_raw.columns.size)
         self.model().removeColumns(col, count, QtCore.QModelIndex())
         self.setFilter(self._filter_slice)
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
@@ -814,17 +816,18 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
 
     # pad rows
     _nr, _nc = df.shape
+    _r_ranged = isinstance(df.index, pd.RangeIndex)
+    _c_ranged = isinstance(df.columns, pd.RangeIndex)
     if nr > 0:
         # find unique index
         if df.index.size == 0:
             index = range(nr)
-        elif df.index.dtype.kind in "ui":
-            x0 = int(df.index.max(skipna=True)) + 1
-            index = range(x0, x0 + nr)
         else:
             index = range(_nr, _nr + nr)
         ext = _df_full(nr, _nc, value, index=index, columns=df.columns)
         df = pd.concat([df, ext], axis=0)
+        if _r_ranged:
+            df.index = pd.RangeIndex(0, df.index.size)
 
     # pad columns
     _nr, _nc = df.shape  # NOTE: shape may have changed
@@ -832,12 +835,11 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
         # find unique columns
         if df.columns.size == 0:
             columns = range(nc)
-        elif df.columns.dtype.kind in "ui":
-            x0 = int(df.columns.max(skipna=True)) + 1
-            columns = range(x0, x0 + nc)
         else:
             columns = range(_nc, _nc + nc)
         ext = _df_full(_nr, nc, value, index=df.index, columns=columns)
         df = pd.concat([df, ext], axis=1)
+        if _c_ranged:
+            df.columns = pd.RangeIndex(0, df.columns.size)
 
     return df
