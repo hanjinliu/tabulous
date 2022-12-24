@@ -227,7 +227,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         model = self.model()
         index_src = model.index(*src.as_uint())
         index_dst = model.index(*dst.as_uint())
-        if dst >= (0, 0):
+        if dst >= (0, 0) and self.hasFocus():
             self.scrollTo(index_dst)
 
         # rect is the region that needs to be updated
