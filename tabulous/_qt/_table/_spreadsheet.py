@@ -231,7 +231,12 @@ class QSpreadSheet(QMutableSimpleTable):
         if isinstance(val, pd.DataFrame) and isinstance(c, slice) and c.stop == 1:
             val = pd.Series(val.iloc[:, 0], dtype="string")
 
-        return super().updateValue(r, c, val)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self._data_raw.loc[self._data_raw.index[r], self._data_raw.columns[c]] = val
+        if self._filter_slice is not None:
+            self.setFilter(self._filter_slice)
+        return self.refreshTable()
 
     @setDataFrame.server
     def setDataFrame(self, data):
