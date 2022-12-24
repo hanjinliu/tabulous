@@ -49,7 +49,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
     def _out_of_bound_color(self) -> QtGui.QColor:
         color = self.parent()._qtable_view.parentViewer().backgroundColor()
         r, g, b = color.red(), color.green(), color.blue()
-        return QtGui.QColor(max(r - 7, 0), max(g - 7, 0), b)
+        return QtGui.QColor(max(r - 4, 0), max(g - 4, 0), b)
 
     @property
     def df(self) -> pd.DataFrame:  # NOTE: this returns a string data frame
@@ -231,7 +231,12 @@ class QSpreadSheet(QMutableSimpleTable):
         if isinstance(val, pd.DataFrame) and isinstance(c, slice) and c.stop == 1:
             val = pd.Series(val.iloc[:, 0], dtype="string")
 
-        return super().updateValue(r, c, val)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self._data_raw.loc[self._data_raw.index[r], self._data_raw.columns[c]] = val
+        if self._filter_slice is not None:
+            self.setFilter(self._filter_slice)
+        return self.refreshTable()
 
     @setDataFrame.server
     def setDataFrame(self, data):
@@ -356,17 +361,12 @@ class QSpreadSheet(QMutableSimpleTable):
         if len(self.model()._validator) == 0:
             # use faster method if no validator is set
             out = self._data_raw.iloc[r, c].copy()
-            if _value.size == 1:
-                out[:] = str(_value.values[0, 0])
-            else:
-                # NOTE: It seems weird but setitem of pandas string array fails in
-                # certain cases that the value is of shape (N, 1).
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    try:
-                        out[:] = _value.astype(_STRING_DTYPE).values
-                    except Exception:
-                        out.values[:] = _value.astype(_STRING_DTYPE).values
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                if _value.size == 1:
+                    out.loc[:, :] = str(_value.values[0, 0])
+                else:
+                    out.loc[:, :] = _value.astype(_STRING_DTYPE).values
             return out
         return super()._pre_set_array(r, c, _value)
 

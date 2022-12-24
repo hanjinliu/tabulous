@@ -273,7 +273,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Convert value before updating DataFrame."""
         return value
 
-    def _get_converter(self, c: int) -> Callable[[Any], Any]:
+    def _get_converter(self, c: int) -> Callable[[Any, Any], Any]:
         if 0 <= c < len(self._filtered_columns):
             colname = self._filtered_columns[c]
             if validator := self.model()._validator.get(colname, None):
@@ -1046,7 +1046,7 @@ class QMutableTable(QBaseTable):
 
         if self._filter_slice is not None:
             self.setFilter(self._filter_slice)
-        self.refreshTable()
+        return self.refreshTable()
 
     def isEditable(self) -> bool:
         """Return the editability of the table."""
