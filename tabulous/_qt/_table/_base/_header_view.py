@@ -50,7 +50,12 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
 
     def _show_context_menu(self, pos: QtCore.QPoint) -> None:
         index = self.logicalIndexAt(pos)
-        self._on_section_pressed(index)
+        # press header if it is not selected.
+        for sel in self._iter_selections():
+            if sel.start <= index <= sel.stop:
+                break
+        else:
+            self._on_section_pressed(index)
         return self.execContextMenu(self.viewport().mapToGlobal(pos), index)
 
     def _iter_selections(self) -> Iterator[slice]:

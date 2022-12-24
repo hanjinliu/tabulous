@@ -191,24 +191,6 @@ def insert_column_right(viewer: TableViewerBase):
     return sheet.insertColumns(col + 1, 1)
 
 
-def remove_this_row(viewer: TableViewerBase):
-    """Remove this row"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    if not sheet.isEditable():
-        return notify_editability()
-    row, _ = sheet._qtable_view._selection_model.current_index
-    return sheet.removeRows(row, 1)
-
-
-def remove_this_column(viewer: TableViewerBase):
-    """Remove this column"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    if not sheet.isEditable():
-        return notify_editability()
-    _, col = sheet._qtable_view._selection_model.current_index
-    return sheet.removeColumns(col, 1)
-
-
 def remove_selected_rows(viewer: TableViewerBase):
     """Remove selected rows"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget

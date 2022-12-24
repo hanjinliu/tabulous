@@ -47,6 +47,7 @@ class QActionRegistry(QtCore.QObject, Generic[_T]):
         return wrapper
 
     def addSeparator(self, location: str | None = None):
+        """Add separator at the given location."""
         menu = self._qt_context_menu
         if location is None:
             locs = []

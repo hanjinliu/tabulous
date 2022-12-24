@@ -745,43 +745,44 @@ class QSpreadSheet(QMutableSimpleTable):
         return self.setTextFormatter(name, formatter)
 
     def _install_actions(self):
+        def _wrap(cmd):
+            return lambda idx: cmd(self.parentViewer()._table_viewer)
+
         # fmt: off
         vheader = self._qtable_view.verticalHeader()
-        vheader.registerAction("Insert/Remove > Insert row above")(lambda idx: cmds.selection.insert_row_above(self.parentViewer()._table_viewer))
-        vheader.registerAction("Insert/Remove > Insert row below")(lambda idx: cmds.selection.insert_row_below(self.parentViewer()._table_viewer))
-        vheader.registerAction("Insert/Remove > Remove this row")(lambda idx: cmds.selection.remove_this_row(self.parentViewer()._table_viewer))
-        vheader.registerAction("Insert/Remove > Remove selected rows")(lambda idx: cmds.selection.remove_selected_rows(self.parentViewer()._table_viewer))
+        vheader.registerAction("Insert/Remove > Insert row above")(_wrap(cmds.selection.insert_row_above))
+        vheader.registerAction("Insert/Remove > Insert row below")(_wrap(cmds.selection.insert_row_below))
+        vheader.registerAction("Insert/Remove > Remove selected rows")(_wrap(cmds.selection.remove_selected_rows))
         vheader.addSeparator()
 
         hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Insert/Remove > Insert column left")(lambda idx: cmds.selection.insert_column_left(self.parentViewer()._table_viewer))
-        hheader.registerAction("Insert/Remove > Insert column right")(lambda idx: cmds.selection.insert_column_right(self.parentViewer()._table_viewer))
-        hheader.registerAction("Insert/Remove > Remove this column")(lambda idx: cmds.selection.remove_this_column(self.parentViewer()._table_viewer))
-        hheader.registerAction("Insert/Remove > Remove selected columns")(lambda idx: cmds.selection.remove_selected_columns(self.parentViewer()._table_viewer))
+        hheader.registerAction("Insert/Remove > Insert column left")(_wrap(cmds.selection.insert_column_left))
+        hheader.registerAction("Insert/Remove > Insert column right")(_wrap(cmds.selection.insert_column_right))
+        hheader.registerAction("Insert/Remove > Remove selected columns")(_wrap(cmds.selection.remove_selected_columns))
         hheader.addSeparator()
-        hheader.registerAction("Column dtype")(lambda idx: cmds.selection.set_column_dtype(self.parentViewer()._table_viewer))
+        hheader.registerAction("Column dtype")(_wrap(cmds.selection.set_column_dtype))
         hheader.addSeparator()
 
-        self.registerAction("Insert/Remove > Insert a row above")(lambda idx: cmds.selection.insert_row_above(self.parentViewer()._table_viewer))
-        self.registerAction("Insert/Remove > Insert a row below")(lambda idx: cmds.selection.insert_row_below(self.parentViewer()._table_viewer))
-        self.registerAction("Insert/Remove > Remove this row")(lambda idx: cmds.selection.remove_this_row(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Insert a row above")(_wrap(cmds.selection.insert_row_above))
+        self.registerAction("Insert/Remove > Insert a row below")(_wrap(cmds.selection.insert_row_below))
+        self.registerAction("Insert/Remove > Remove rows")(_wrap(cmds.selection.remove_selected_rows))
         self.addSeparator()
-        self.registerAction("Insert/Remove > Insert a column on the left")(lambda idx: cmds.selection.insert_column_left(self.parentViewer()._table_viewer))
-        self.registerAction("Insert/Remove > Insert a column on the right")(lambda idx: cmds.selection.insert_column_right(self.parentViewer()._table_viewer))
-        self.registerAction("Insert/Remove > Remove this column")(lambda idx: cmds.selection.remove_this_column(self.parentViewer()._table_viewer))
+        self.registerAction("Insert/Remove > Insert a column on the left")(_wrap(cmds.selection.insert_column_left))
+        self.registerAction("Insert/Remove > Insert a column on the right")(_wrap(cmds.selection.insert_column_right))
+        self.registerAction("Insert/Remove > Remove columns")(_wrap(cmds.selection.remove_selected_columns))
         self.addSeparator()
 
         super()._install_actions()
 
-        self.registerAction("Cell widget > SpinBox")(lambda idx: cmds.selection.add_spinbox(self.parentViewer()._table_viewer))
-        self.registerAction("Cell widget > Slider")(lambda idx: cmds.selection.add_slider(self.parentViewer()._table_viewer))
-        self.registerAction("Cell widget > FloatSpinBox")(lambda idx: cmds.selection.add_float_spinbox(self.parentViewer()._table_viewer))
-        self.registerAction("Cell widget > FloatSlider")(lambda idx: cmds.selection.add_float_slider(self.parentViewer()._table_viewer))
-        self.registerAction("Cell widget > CheckBox")(lambda idx: cmds.selection.add_checkbox(self.parentViewer()._table_viewer))
-        self.registerAction("Cell widget > RadioButton")(lambda idx: cmds.selection.add_radio_button(self.parentViewer()._table_viewer))
-        self.registerAction("Cell widget > LineEdit")(lambda idx: cmds.selection.add_line_edit(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > SpinBox")(_wrap(cmds.selection.add_spinbox))
+        self.registerAction("Cell widget > Slider")(_wrap(cmds.selection.add_slider))
+        self.registerAction("Cell widget > FloatSpinBox")(_wrap(cmds.selection.add_float_spinbox))
+        self.registerAction("Cell widget > FloatSlider")(_wrap(cmds.selection.add_float_slider))
+        self.registerAction("Cell widget > CheckBox")(_wrap(cmds.selection.add_checkbox))
+        self.registerAction("Cell widget > RadioButton")(_wrap(cmds.selection.add_radio_button))
+        self.registerAction("Cell widget > LineEdit")(_wrap(cmds.selection.add_line_edit))
         self.addSeparator("Cell widget ")
-        self.registerAction("Cell widget > Remove")(lambda idx: cmds.selection.remove_cell_widgets(self.parentViewer()._table_viewer))
+        self.registerAction("Cell widget > Remove")(_wrap(cmds.selection.remove_cell_widgets))
 
         # fmt: on
         return None

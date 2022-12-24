@@ -126,7 +126,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         row, col = index.row(), index.column()
         sel_model = self._qtable_view._selection_model
-        sel_model.current_index = (row, col)
         highlight_model = self._qtable_view._highlight_model
 
         if sel_model._ctrl_on:
@@ -147,6 +146,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
                 sel_model.reorder_to_last(idx)
                 self.update()
             else:
+                sel_model.current_index = (row, col)
                 self.setSelections([(row, col)])
             highlight_model.select([])
 
@@ -980,9 +980,6 @@ class QMutableTable(QBaseTable):
 
     def _pre_set_array(self, r: slice, c: slice, _value: pd.DataFrame):
         """Convert input dataframe for setting to data[r, c]."""
-        # TODO: To speed up, this function should be overriden in QSpreadSheet.
-        # However, simply parsing to string is incompatible with the type
-        # validator.
         if _value.size == 1:
             v = _value.values[0, 0]
             _value = self._data_raw.iloc[r, c].copy()
