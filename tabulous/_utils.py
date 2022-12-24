@@ -11,7 +11,6 @@ from appdirs import user_state_dir, user_config_dir
 TXT_PATH = Path(user_state_dir("tabulous", "tabulous", "history.txt"))
 CONFIG_PATH = Path(user_config_dir("tabulous", "tabulous", "config.toml"))
 CELL_NAMESPACE_PATH = Path(user_state_dir("tabulous", "tabulous", "cell_namespace.py"))
-SETTINGS_JSON = Path(user_state_dir("tabulous", "tabulous", "settings.json"))
 
 
 def warn_on_exc(default=None):

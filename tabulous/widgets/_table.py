@@ -20,7 +20,7 @@ from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
 from tabulous._psygnal import SignalArray, InCellRangedSlot
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
+    from typing_extensions import Self, Literal
     import pandas as pd
     from collections_undo import UndoManager
     from qtpy import QtWidgets as QtW
@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     ColorMapping = Union[Callable[[Any], ColorType], Mapping[Hashable, ColorType]]
     Formatter = Union[Callable[[Any], str], str, None]
     Validator = Callable[[Any], None]
+    LayoutString = Literal["horizontal", "vertical"]
 
 _Void = object()
 
@@ -252,8 +253,6 @@ class TableBase(ABC):
         """The backend widget."""
         return self._qwidget
 
-    # TODO: def drop(self, labels: list[str]) -> Self:
-
     def refresh(self) -> None:
         """Refresh the table view and force table to update."""
         return self._qwidget.refreshTable(process=True)
@@ -419,6 +418,26 @@ class TableBase(ABC):
 
         self._view_mode = mode
         return None
+
+    @property
+    def layout(self) -> LayoutString:
+        """Table layout."""
+        if self._qwidget.orientation() == 0:
+            return "vertical"
+        elif self._qwidget.orientation() == 1:
+            return "horizontal"
+        else:
+            raise ValueError("Unknown layout.")
+
+    @layout.setter
+    def layout(self, layout: LayoutString) -> None:
+        """Set table layout."""
+        if layout == "vertical":
+            self._qwidget.setOrientation(0)
+        elif layout == "horizontal":
+            self._qwidget.setOrientation(1)
+        else:
+            raise ValueError(f"Unknown layout: {layout!r}.")
 
     @property
     def undo_manager(self) -> UndoManager:
