@@ -47,10 +47,9 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
     @cached_property
     def _out_of_bound_color(self) -> QtGui.QColor:
-        if self.parent()._qtable_view.parentViewer()._white_background:
-            return QtGui.QColor(248, 248, 255)
-        else:
-            return QtGui.QColor(7, 7, 0)
+        color = self.parent()._qtable_view.parentViewer().backgroundColor()
+        r, g, b = color.red(), color.green(), color.blue()
+        return QtGui.QColor(max(r - 7, 0), max(g - 7, 0), b)
 
     @property
     def df(self) -> pd.DataFrame:  # NOTE: this returns a string data frame
