@@ -184,6 +184,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.addSeparatorToChild("View")
         self.registerAction("View", cmds.tab.tile_tables, ICON_DIR / "tile.svg")
         self.registerAction("View", cmds.tab.untile_table, ICON_DIR / "untile.svg")
+        self.addSeparatorToChild("View")
+        self.registerAction("View", cmds.table.switch_layout, ICON_DIR / "switch_layout.svg")
 
         self.registerAction("Plot", cmds.plot.plot, ICON_DIR / "plot.svg")
         self.registerAction("Plot", cmds.plot.scatter, ICON_DIR / "scatter.svg")

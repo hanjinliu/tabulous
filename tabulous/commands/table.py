@@ -153,3 +153,12 @@ def undo_table(viewer: TableViewerBase):
 def redo_table(viewer: TableViewerBase):
     """Redo table operation"""
     _utils.get_mutable_table(viewer)._qwidget.redo()
+
+
+def switch_layout(viewer: TableViewerBase):
+    """Switch table layout"""
+    table = _utils.get_table(viewer)
+    if table.layout == "vertical":
+        table.layout = "horizontal"
+    else:
+        table.layout = "vertical"

@@ -518,7 +518,7 @@ class TableBase(ABC):
 
         slot = InCellRangedSlot.from_table(self, info.expr, pos)
 
-        def _raise(e):
+        def _raise(e: Exception):
             # the common exception handling
             if not isinstance(e, (SyntaxError, AttributeError)):
                 # Update cell text with the exception object.
