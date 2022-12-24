@@ -26,7 +26,7 @@ setup(
         "magicgui>=0.5.1",
         "psygnal>=0.6.1",
         "qtpy>=1.10.0",
-        "pandas>=1.0.0",
+        "pandas>=1.5.2",
         "collections-undo>=0.0.7",
         "appdirs>=1.4.4",
         "qtconsole",
