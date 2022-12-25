@@ -196,8 +196,8 @@ def remove_selected_rows(viewer: TableViewerBase):
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
         return notify_editability()
-    row, _ = sheet._qtable_view._selection_model.current_index
-    _, rng = sheet._qtable_view._selection_model.range_under_index(row, 0)
+    row, col = sheet._qtable_view._selection_model.current_index
+    _, rng = sheet._qtable_view._selection_model.range_under_index(row, col)
     if rng is not None:
         row_range = rng[0]
         sheet.removeRows(row_range.start, row_range.stop - row_range.start)
@@ -209,8 +209,8 @@ def remove_selected_columns(viewer: TableViewerBase):
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
         return notify_editability()
-    _, col = sheet._qtable_view._selection_model.current_index
-    _, rng = sheet._qtable_view._selection_model.range_under_index(0, col)
+    row, col = sheet._qtable_view._selection_model.current_index
+    _, rng = sheet._qtable_view._selection_model.range_under_index(row, col)
     if rng is not None:
         col_range = rng[1]
         sheet.removeColumns(col_range.start, col_range.stop - col_range.start)
@@ -474,4 +474,11 @@ def remove_cell_widgets(viewer: TableViewerBase) -> None:
     with sheet._mgr.merging():
         for r, c in sheet._qtable_view._selection_model.iter_all_indices():
             sheet._set_widget_at_index(r, c, None)
+    return None
+
+
+def edit_current(viewer: TableViewerBase) -> None:
+    """Edit current cell"""
+    table = _utils.get_table(viewer)._qwidget
+    table._qtable_view._edit_current()
     return None

@@ -352,3 +352,31 @@ class SelectionModel(RangesModel):
             c = max(idx_min, c)
 
         return self.move_to(r, c)
+
+    def insert_rows(self, row: int, count: int) -> None:
+        super().insert_rows(row, count)
+        _r, _c = self._current_index
+        if row <= _r:
+            self.current_index = (_r + count, _c)
+
+    def insert_columns(self, col: int, count: int) -> None:
+        super().insert_columns(col, count)
+        _r, _c = self._current_index
+        if col <= _c:
+            self.current_index = (_r, _c + count)
+
+    def remove_rows(self, row: int, count: int) -> None:
+        super().remove_rows(row, count)
+        _r, _c = self._current_index
+        if row + count <= _r:
+            self.current_index = (_r - count, _c)
+        elif row <= _r:
+            self.current_index = (row, _c)
+
+    def remove_columns(self, col: int, count: int) -> None:
+        super().remove_columns(col, count)
+        _r, _c = self._current_index
+        if col + count <= _c:
+            self.current_index = (_r, _c - count)
+        elif col <= _c:
+            self.current_index = (_r, col)
