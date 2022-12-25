@@ -1102,7 +1102,9 @@ class QMutableTable(QBaseTable):
         if n_selections == 0:
             return
         elif not self.isEditable():
-            return self.tableStack().notifyEditability()
+            if stack := self.tableStack():
+                stack.notifyEditability()
+            return None
         elif n_selections > 1:
             raise SelectionRangeError("Cannot paste to multiple selections.")
 

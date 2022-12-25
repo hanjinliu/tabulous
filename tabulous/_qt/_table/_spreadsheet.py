@@ -360,9 +360,12 @@ class QSpreadSheet(QMutableSimpleTable):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 if _value.size == 1:
-                    out.loc[:, :] = str(_value.values[0, 0])
+                    val = _value.values[0, 0]
+                    if val == "NA":
+                        val = ""
+                    out.loc[:, :] = val
                 else:
-                    out.loc[:, :] = _value.astype(_STRING_DTYPE).values
+                    out.loc[:, :] = _value.astype(_STRING_DTYPE).fillna("").values
             return out
         return super()._pre_set_array(r, c, _value)
 

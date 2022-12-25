@@ -374,7 +374,8 @@ class _QTableViewEnhanced(QtW.QTableView):
                 self.edit(index)
                 self._selection_model.set_shift(False)
             else:
-                table.tableStack().notifyEditability()
+                if stack := table.tableStack():
+                    stack.notifyEditability()
         return None
 
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
@@ -419,7 +420,9 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         elif keys == "F2":
             if not parent.isEditable():
-                return parent.tableStack().notifyEditability()
+                if stack := parent.tableStack():
+                    stack.notifyEditability()
+                return None
             parent = cast(QMutableTable, parent)
 
             if sel_mod.current_index.row < 0:

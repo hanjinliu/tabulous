@@ -218,7 +218,7 @@ def remove_selected_columns(viewer: TableViewerBase):
 
 
 def set_foreground_colormap(viewer: TableViewerBase) -> None:
-    """Set foreground colormap"""
+    """Set foreground colormap to a column"""
     from ._colormap import exec_colormap_dialog
 
     sheet = _utils.get_table(viewer)._qwidget
@@ -239,7 +239,7 @@ def reset_foreground_colormap(viewer: TableViewerBase) -> None:
 
 
 def set_background_colormap(viewer: TableViewerBase) -> None:
-    """Set background colormap"""
+    """Set background colormap to a column"""
     from ._colormap import exec_colormap_dialog
 
     sheet = _utils.get_table(viewer)._qwidget
