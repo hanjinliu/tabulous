@@ -24,7 +24,7 @@ import numpy as np
 from qtpy.sip import isdeleted
 from magicgui.widgets import Widget
 from tabulous.exceptions import TableImmutableError
-from tabulous.types import _SingleSelection, SelectionType, EvalInfo
+from tabulous.types import _SingleSelection, SelectionType, EvalInfo, ProxyType
 from tabulous._psygnal import InCellRangedSlot
 
 if TYPE_CHECKING:
@@ -723,6 +723,18 @@ class ProxyInterface(Component["TableBase"]):
 
         _filter.__name__ = f"filter<{expr!r}>"
         self.parent._qwidget.setProxy(_filter)
+
+    def reset(self) -> None:
+        self._set_value(None)
+
+    def set(self, proxy: ProxyType) -> None:
+        self._set_value(proxy)
+
+    def _set_value(self, value: Any):
+        self.parent._qwidget.setProxy(value)
+
+    def __set__(self, obj: TableBase, value: ProxyType):
+        return super().__set__(obj, value)
 
 
 def _fmt_slice(sl: slice) -> str:

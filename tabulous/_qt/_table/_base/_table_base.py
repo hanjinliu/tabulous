@@ -424,22 +424,22 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def filter(self) -> ProxyType | None:
         """Return the current filter."""
-        return self._proxy._obj  # TODO: fix
+        return self._proxy._obj
 
     def proxy(self) -> SortFilterProxy:
         """The sort/filter proxy object."""
         return self._proxy
 
     @_mgr.interface
-    def setProxy(self, sl: ProxyType):
+    def setProxy(self, proxy: ProxyType):
         """Set filter to the table view."""
         # NOTE: This method is also called when table needs initialization.
 
-        self._proxy = SortFilterProxy(sl)
-        data_sliced = self.tableSlice()
+        self._proxy = SortFilterProxy(proxy)
         try:
-            df_filt = self._proxy.apply(data_sliced)
+            df_filt = self._apply_proxy()
         except Exception as e:
+            # To avoid continuous error, set proxy to None.
             self.setProxy(None)
             raise e
 
@@ -471,9 +471,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         return self.refreshTable()
 
+    def _apply_proxy(self):
+        data_sliced = self.tableSlice()
+        return self._proxy.apply(data_sliced)
+
     @setProxy.server
     def setProxy(self, sl: ProxyType):
-        return arguments(self.filter())
+        return arguments(self.proxy())
 
     @setProxy.set_formatter
     def _setFilter_fmt(self, sl):
@@ -899,8 +903,8 @@ class QMutableTable(QBaseTable):
                 _value = _convert_value(c, value)
                 _is_scalar = True
 
-            # if table has filter, indices must be adjusted
-            r0 = self._proxy.get_source_index(r, data)
+            # if table has proxy, indices must be adjusted
+            r0 = self._get_proxy_source_index(r)
 
             _old_value = data.iloc[r0, c]
             if not _is_scalar:
@@ -948,12 +952,10 @@ class QMutableTable(QBaseTable):
 
             _value = self._pre_set_array(r, c, pd.DataFrame(value))
 
-            # if table has filter, indices must be adjusted
-            r0 = self._proxy.get_source_index(r, data)
+            # if table has proxy, indices must be adjusted
+            r0 = self._get_proxy_source_index(r)
 
-            _old_value = data.iloc[r0, c]
-            _old_value: pd.DataFrame
-            _old_value = _old_value.copy()  # this is needed for undo
+            _old_value = data.iloc[r0, c].copy()  # this is needed for undo
 
             if self._proxy is not None:
                 # If table is filtered, the dataframe to be displayed is a different object
@@ -972,6 +974,9 @@ class QMutableTable(QBaseTable):
                 for _i, _r in enumerate(_iter):
                     self.setItemLabel(_r, c.start, value.index[_i])
         return None
+
+    def _get_proxy_source_index(self, r: int):
+        return self._proxy.get_source_index(r, self.tableSlice())
 
     def _pre_set_array(self, r: slice, c: slice, _value: pd.DataFrame):
         """Convert input dataframe for setting to data[r, c]."""

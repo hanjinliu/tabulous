@@ -1,10 +1,23 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 import numpy as np
+from enum import Enum
 from tabulous.types import ProxyType
 
 if TYPE_CHECKING:
     import pandas as pd
+
+
+class ProxyTypes(Enum):
+    none = "none"
+    unknown = "unknown"
+    filter = "filter"
+    sort = "sort"
+
+    def __eq__(self, other: ProxyTypes | str) -> bool:
+        if isinstance(other, str):
+            return self.value == other
+        return super().__eq__(other)
 
 
 class SortFilterProxy:
@@ -14,12 +27,17 @@ class SortFilterProxy:
         if isinstance(obj, SortFilterProxy):
             obj = obj._obj
         self._obj = obj
-        self._is_filter = False
-        self._is_sort = False
-        self._proxy_type = "none"
+        if self._obj is None:
+            self._proxy_type = ProxyTypes.none
+        else:
+            self._proxy_type = ProxyTypes.unknown
+
+    def __repr__(self) -> str:
+        cname = type(self).__name__
+        return f"{cname}<proxy_type={self.proxy_type}, obj={self._obj!r}>"
 
     @property
-    def proxy_type(self) -> str:
+    def proxy_type(self) -> ProxyTypes:
         return self._proxy_type
 
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -33,10 +51,10 @@ class SortFilterProxy:
             sl_filt = sl
         if sl_filt.dtype.kind == "b":
             df_filt = df[sl_filt]
-            self._proxy_type = "filter"
+            self._proxy_type = ProxyTypes.filter
         elif sl_filt.dtype.kind in "ui":
             df_filt = df.iloc[sl_filt]
-            self._proxy_type = "sort"
+            self._proxy_type = ProxyTypes.sort
         else:
             raise TypeError(f"Invalid filter type: {sl_filt.dtype}")
         return df_filt
@@ -54,6 +72,10 @@ class SortFilterProxy:
 
             if sl.dtype.kind == "b":
                 r0 = np.where(sl)[0][r]
+                self._proxy_type = ProxyTypes.filter
             elif sl.dtype.kind in "ui":
                 r0 = sl[r]
+                self._proxy_type = ProxyTypes.sort
+            else:
+                raise TypeError(f"Invalid filter type: {sl.dtype}")
         return r0

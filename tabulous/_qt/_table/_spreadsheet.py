@@ -190,6 +190,31 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = out
         return out
 
+    def _get_sub_frame(self, columns: list[str]) -> pd.DataFrame:
+        """Parse and return a sub-frame of the table."""
+        if self._data_cache is not None:
+            return self._data_cache[columns]
+        _sep = "\t"
+        data_raw = self._data_raw[columns]
+        pd_kwargs_all = self._columns_dtype.as_pandas_kwargs()
+        pd_kwargs = {}
+        for col in columns:
+            if dtype := pd_kwargs_all.get(col, None):
+                pd_kwargs[col] = dtype
+
+        val = data_raw.to_csv(sep=_sep, index=False)
+        buf = StringIO(val)
+        out: pd.DataFrame = pd.read_csv(
+            buf,
+            sep=_sep,
+            header=0,
+            na_values=["#ERROR"],
+            names=data_raw.columns,
+            **pd_kwargs,
+        )
+        out.index = data_raw.index
+        return out
+
     def dataShape(self) -> tuple[int, int]:
         """Shape of data."""
         return self._data_raw.shape
@@ -235,6 +260,16 @@ class QSpreadSheet(QMutableSimpleTable):
     @setDataFrame.set_formatter
     def _setDataFrame_fmt(self, data: pd.DataFrame):
         return f"set new data of shape {data.shape}"
+
+    def _apply_proxy(self):
+        if self._proxy.proxy_type == "none":
+            return self.tableSlice()
+        return self._proxy.apply(self.getDataFrame())
+
+    def _get_proxy_source_index(self, r: int):
+        if self._proxy.proxy_type == "none":
+            return self._proxy.get_source_index(r, self.tableSlice())
+        return self._proxy.get_source_index(r, self.getDataFrame())
 
     __delete = object()
 

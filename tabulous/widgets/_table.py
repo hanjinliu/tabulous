@@ -174,7 +174,7 @@ class TableBase(ABC):
         return self._qwidget.getDataFrame()
 
     @data.setter
-    def data(self, value):
+    def data(self, value: Any):
         """Set table data."""
         _data = self._normalize_data(value)
         self._qwidget.setDataFrame(_data)
