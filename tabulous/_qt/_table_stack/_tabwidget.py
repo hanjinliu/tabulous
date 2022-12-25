@@ -285,6 +285,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
                 # do not rename if text is empty
                 self.setTabText(index, text)
                 self.tableRenamed.emit(index, text)
+            self.parentWidget().setCellFocus()
 
         return None
 

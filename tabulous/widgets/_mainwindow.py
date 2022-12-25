@@ -141,9 +141,12 @@ class TableViewerBase:
         return None
 
     @property
-    def current_index(self) -> int:
+    def current_index(self) -> int | None:
         """Return the index of currently visible table."""
-        return self._qwidget._tablestack.currentIndex()
+        stack = self._qwidget._tablestack
+        if stack.isEmpty():
+            return None
+        return stack.currentIndex()
 
     @current_index.setter
     def current_index(self, index: int | str):
@@ -180,7 +183,7 @@ class TableViewerBase:
         """Show the widget."""
         self._qwidget.show()
         if run:
-            from .._qt._app import run_app
+            from tabulous._qt._app import run_app
 
             run_app()
         return None

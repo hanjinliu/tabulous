@@ -57,7 +57,7 @@ def get_app():
 def run_app():
     """Start the event loop."""
     if not gui_qt_is_active():
-        from ..exceptions import ExceptionHandler
+        from tabulous.exceptions import ExceptionHandler
 
         with ExceptionHandler(hook=_excepthook) as exc_handler:
             get_app().exec_()

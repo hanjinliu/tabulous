@@ -62,3 +62,11 @@ def toggle_focus(viewer: TableViewerBase):
     else:
         qviewer.setCellFocus()
     return
+
+
+def rename_tab(viewer: TableViewerBase):
+    """Rename tab."""
+    idx = viewer.current_index
+    if idx is None:
+        raise ValueError("No tab found.")
+    viewer.native._tablestack.enterEditingMode(idx)
