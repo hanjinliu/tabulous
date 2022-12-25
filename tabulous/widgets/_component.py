@@ -698,6 +698,33 @@ class CellReferenceInterface(
         return f"{cname}(\n\t{s}\n)"
 
 
+class ProxyInterface(Component["TableBase"]):
+    """Interface to the table sorting/filtering."""
+
+    def sort(self, by: int | str, ascending: bool = True):
+        if ascending:
+
+            def _sort(df: pd.DataFrame) -> np.ndarray:
+                return np.asarray(df[by].argsort())
+
+        else:
+
+            def _sort(df: pd.DataFrame) -> np.ndarray:
+                arr = np.asarray(df[by].argsort())
+                return arr[::-1]
+
+        _sort.__name__ = f"sort<by={by!r}, ascending={ascending}>"
+        self.parent._qwidget.setProxy(_sort)
+
+    def filter(self, expr: str):
+        def _filter(df: pd.DataFrame) -> np.ndarray:
+            ns = dict(df.items())
+            return eval(expr, ns, {})
+
+        _filter.__name__ = f"filter<{expr!r}>"
+        self.parent._qwidget.setProxy(_filter)
+
+
 def _fmt_slice(sl: slice) -> str:
     s0 = sl.start if sl.start is not None else ""
     s1 = sl.stop if sl.stop is not None else ""

@@ -82,7 +82,7 @@ class TableInfoInstance(Tuple["pd.DataFrame", List[str]]):
         raise TypeError(f"Type {cls.__name__} cannot be instantiated.")
 
 
-FilterType = Union[Callable[["pd.DataFrame"], np.ndarray], np.ndarray]
+ProxyType = Union[Callable[["pd.DataFrame"], np.ndarray], np.ndarray]
 
 
 class TabPosition(Enum):
@@ -190,3 +190,15 @@ class EvalInfo(NamedTuple):
 _Sliceable = Union[SupportsIndex, slice]
 _SingleSelection = Tuple[_Sliceable, _Sliceable]
 SelectionType = List[_SingleSelection]
+
+
+def __getattr__(name: str) -> Any:
+    if name == "FilterType":
+        import warnings
+
+        warnings.warn(
+            "'FilterType 'is deprecated. Please use 'ProxyType' instead.",
+            DeprecationWarning,
+        )
+        return ProxyType
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

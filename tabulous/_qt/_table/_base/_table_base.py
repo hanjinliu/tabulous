@@ -18,14 +18,14 @@ from ._line_edit import (
     QVerticalHeaderLineEdit,
     QCellLiteralEdit,
 )
+from ...._sort_filter_proxy import SortFilterProxy
 from tabulous._dtype import isna
 from tabulous._qt._undo import QtUndoManager, fmt_slice
 from tabulous._qt._svg import QColoredSVGIcon
 from tabulous._qt._keymap import QtKeys, QtKeyMap
 from tabulous._qt._action_registry import QActionRegistry
-from tabulous.types import FilterType, ItemInfo, HeaderInfo, EvalInfo
+from tabulous.types import ProxyType, ItemInfo, HeaderInfo, EvalInfo
 from tabulous.exceptions import SelectionRangeError, TableImmutableError
-from tabulous._selection_op import ILocSelOp
 from tabulous import commands as cmds
 
 if TYPE_CHECKING:
@@ -96,7 +96,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         QtW.QSplitter.__init__(self, parent)
         QActionRegistry.__init__(self)
 
-        self._filter_slice: FilterType | None = None
+        self._filter_slice = SortFilterProxy()
         self._filtered_index: pd.Index | None = None
         self._filtered_columns: pd.Index | None = None
         self.setContentsMargins(0, 0, 0, 0)
@@ -422,33 +422,30 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             return
         return super().keyPressEvent(e)
 
-    def filter(self) -> FilterType | None:
+    def filter(self) -> ProxyType | None:
         """Return the current filter."""
-        return self._filter_slice
+        return self._filter_slice._obj  # TODO: fix
 
     @_mgr.interface
-    def setFilter(self, sl: FilterType):
+    def setProxy(self, sl: ProxyType):
         """Set filter to the table view."""
         # NOTE: This method is also called when table needs initialization.
 
-        self._filter_slice = sl
+        self._filter_slice = SortFilterProxy(sl)
         data_sliced = self.tableSlice()
+        try:
+            df_filt = self._filter_slice.apply(data_sliced)
+        except Exception as e:
+            self.setProxy(None)
+            raise ValueError("Error in filter. Filter is reset.") from e
 
-        if sl is None:
-            df_filt = data_sliced
+        proxy_type = self._filter_slice.proxy_type
+        if proxy_type == "none":
             icon = QtGui.QIcon()
-        else:
-            try:
-                if callable(sl):
-                    sl_filt = sl(data_sliced)
-                else:
-                    sl_filt = sl
-                df_filt = data_sliced[sl_filt]
-
-            except Exception as e:
-                self.setFilter(None)
-                raise ValueError("Error in filter. Filter is reset.") from e
+        elif proxy_type == "filter":
             icon = QColoredSVGIcon.fromfile(ICON_DIR / "filter.svg")
+        elif proxy_type == "sort":
+            icon = QColoredSVGIcon.fromfile(ICON_DIR / "sort_table.svg")
 
         # update data
         self.model().df = df_filt
@@ -468,11 +465,11 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         return self.refreshTable()
 
-    @setFilter.server
-    def setFilter(self, sl: FilterType):
+    @setProxy.server
+    def setProxy(self, sl: ProxyType):
         return arguments(self.filter())
 
-    @setFilter.set_formatter
+    @setProxy.set_formatter
     def _setFilter_fmt(self, sl):
         from ....widgets.filtering import ColumnFilter
 
@@ -779,7 +776,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def _switch_head_and_index(self, axis: int = 1) -> None:
         """Switch the first row/column data and the index object."""
-        self.setFilter(None)  # reset filter to avoid unexpected errors
+        self.setProxy(None)  # reset filter to avoid unexpected errors
         df = self.model().df
         if axis == 0:
             was_range = isinstance(df.columns, pd.RangeIndex)
@@ -897,23 +894,14 @@ class QMutableTable(QBaseTable):
                 _is_scalar = True
 
             # if table has filter, indices must be adjusted
-            if self._filter_slice is None:
-                r0 = r
-            else:
-                if callable(self._filter_slice):
-                    sl = self._filter_slice(data)
-                else:
-                    sl = self._filter_slice
-
-                spec = np.where(sl)[0].tolist()
-                r0 = spec[r]
+            r0 = self._filter_slice.get_source_index(r, data)
 
             _old_value = data.iloc[r0, c]
             if not _is_scalar:
                 _old_value: pd.DataFrame
                 _old_value = _old_value.copy()  # this is needed for undo
 
-            if self._filter_slice is not None:
+            if self._filter_slice.proxy_type != "none":
                 # If table is filtered, the dataframe to be displayed is a different object
                 # so we have to update it as well.
                 self.model().updateValue(r, c, _value)
@@ -955,16 +943,7 @@ class QMutableTable(QBaseTable):
             _value = self._pre_set_array(r, c, pd.DataFrame(value))
 
             # if table has filter, indices must be adjusted
-            if self._filter_slice is None:
-                r0 = r
-            else:
-                if callable(self._filter_slice):
-                    sl = self._filter_slice(data)
-                else:
-                    sl = self._filter_slice
-
-                spec = np.where(sl)[0].tolist()
-                r0 = spec[r]
+            r0 = self._filter_slice.get_source_index(r, data)
 
             _old_value = data.iloc[r0, c]
             _old_value: pd.DataFrame
@@ -1051,8 +1030,8 @@ class QMutableTable(QBaseTable):
             warnings.simplefilter("ignore")
             self._data_raw.iloc[r, c] = value
 
-        if self._filter_slice is not None:
-            self.setFilter(self._filter_slice)
+        if self._filter_slice.proxy_type != "none":
+            self.setProxy(self._filter_slice)
         return self.refreshTable()
 
     def isEditable(self) -> bool:
