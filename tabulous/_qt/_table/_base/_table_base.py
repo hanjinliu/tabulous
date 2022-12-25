@@ -96,7 +96,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         QtW.QSplitter.__init__(self, parent)
         QActionRegistry.__init__(self)
 
-        self._filter_slice = SortFilterProxy()
+        self._proxy = SortFilterProxy()
         self._filtered_index: pd.Index | None = None
         self._filtered_columns: pd.Index | None = None
         self.setContentsMargins(0, 0, 0, 0)
@@ -424,28 +424,34 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def filter(self) -> ProxyType | None:
         """Return the current filter."""
-        return self._filter_slice._obj  # TODO: fix
+        return self._proxy._obj  # TODO: fix
+
+    def proxy(self) -> SortFilterProxy:
+        """The sort/filter proxy object."""
+        return self._proxy
 
     @_mgr.interface
     def setProxy(self, sl: ProxyType):
         """Set filter to the table view."""
         # NOTE: This method is also called when table needs initialization.
 
-        self._filter_slice = SortFilterProxy(sl)
+        self._proxy = SortFilterProxy(sl)
         data_sliced = self.tableSlice()
         try:
-            df_filt = self._filter_slice.apply(data_sliced)
+            df_filt = self._proxy.apply(data_sliced)
         except Exception as e:
             self.setProxy(None)
-            raise ValueError("Error in filter. Filter is reset.") from e
+            raise e
 
-        proxy_type = self._filter_slice.proxy_type
+        proxy_type = self._proxy.proxy_type
         if proxy_type == "none":
             icon = QtGui.QIcon()
         elif proxy_type == "filter":
             icon = QColoredSVGIcon.fromfile(ICON_DIR / "filter.svg")
         elif proxy_type == "sort":
             icon = QColoredSVGIcon.fromfile(ICON_DIR / "sort_table.svg")
+        else:
+            raise RuntimeError(f"Unknown proxy type: {proxy_type!r}")
 
         # update data
         self.model().df = df_filt
@@ -471,7 +477,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     @setProxy.set_formatter
     def _setFilter_fmt(self, sl):
-        from ....widgets.filtering import ColumnFilter
+        from tabulous.widgets.filtering import ColumnFilter
 
         if isinstance(sl, ColumnFilter):
             return f"table.filter{sl._repr[2:]}"
@@ -894,14 +900,14 @@ class QMutableTable(QBaseTable):
                 _is_scalar = True
 
             # if table has filter, indices must be adjusted
-            r0 = self._filter_slice.get_source_index(r, data)
+            r0 = self._proxy.get_source_index(r, data)
 
             _old_value = data.iloc[r0, c]
             if not _is_scalar:
                 _old_value: pd.DataFrame
                 _old_value = _old_value.copy()  # this is needed for undo
 
-            if self._filter_slice.proxy_type != "none":
+            if self._proxy.proxy_type != "none":
                 # If table is filtered, the dataframe to be displayed is a different object
                 # so we have to update it as well.
                 self.model().updateValue(r, c, _value)
@@ -943,13 +949,13 @@ class QMutableTable(QBaseTable):
             _value = self._pre_set_array(r, c, pd.DataFrame(value))
 
             # if table has filter, indices must be adjusted
-            r0 = self._filter_slice.get_source_index(r, data)
+            r0 = self._proxy.get_source_index(r, data)
 
             _old_value = data.iloc[r0, c]
             _old_value: pd.DataFrame
             _old_value = _old_value.copy()  # this is needed for undo
 
-            if self._filter_slice is not None:
+            if self._proxy is not None:
                 # If table is filtered, the dataframe to be displayed is a different object
                 # so we have to update it as well.
                 self.model().updateValue(r, c, _value)
@@ -1030,8 +1036,8 @@ class QMutableTable(QBaseTable):
             warnings.simplefilter("ignore")
             self._data_raw.iloc[r, c] = value
 
-        if self._filter_slice.proxy_type != "none":
-            self.setProxy(self._filter_slice)
+        if self._proxy.proxy_type != "none":
+            self.setProxy(self._proxy)
         return self.refreshTable()
 
     def isEditable(self) -> bool:

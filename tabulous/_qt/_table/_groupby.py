@@ -141,7 +141,7 @@ class QTableGroupBy(QBaseTable):
         self.addWidget(wdt)
 
     def _on_cbox_changed(self):
-        return self.setProxy(self._filter_slice)
+        return self.setProxy(self._proxy)
 
     def getDataFrame(self) -> DataFrameGroupBy:
         return self._data_raw

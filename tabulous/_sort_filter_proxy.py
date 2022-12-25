@@ -16,17 +16,14 @@ class SortFilterProxy:
         self._obj = obj
         self._is_filter = False
         self._is_sort = False
+        self._proxy_type = "none"
 
     @property
     def proxy_type(self) -> str:
-        if self._is_filter:
-            return "filter"
-        elif self._is_sort:
-            return "sort"
-        else:
-            return "none"
+        return self._proxy_type
 
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Apply the proxy rule to the dataframe."""
         sl = self._obj
         if sl is None:
             return df
@@ -36,17 +33,16 @@ class SortFilterProxy:
             sl_filt = sl
         if sl_filt.dtype.kind == "b":
             df_filt = df[sl_filt]
-            self._is_filter = True
-            self._is_sort = False
+            self._proxy_type = "filter"
         elif sl_filt.dtype.kind in "ui":
             df_filt = df.iloc[sl_filt]
-            self._is_filter = False
-            self._is_sort = True
+            self._proxy_type = "sort"
         else:
             raise TypeError(f"Invalid filter type: {sl_filt.dtype}")
         return df_filt
 
     def get_source_index(self, r: int, df: pd.DataFrame) -> int:
+        """Get the source index of the row in the dataframe."""
         sl = self._obj
         if sl is None:
             r0 = r

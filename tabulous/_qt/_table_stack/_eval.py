@@ -72,18 +72,5 @@ class QLiteralFilterWidget(QAbstractEval):
         if text == "":
             return
         table = self._line.currentPyTable()
-        sl = table.data.eval(text, inplace=False)
-        if isinstance(sl, pd.Series):
-            table.filter = EvalArray(sl, literal=text)
-        else:
-            table.filter = sl
+        table.proxy.filter(text)
         self._line.toHistory()
-
-
-class EvalArray(pd.Series):
-    def __init__(self, data=None, literal: str = ""):
-        super().__init__(data)
-        self._literal = literal
-
-    def __repr__(self):
-        return f"lambda df: df.eval({self._literal!r})"
