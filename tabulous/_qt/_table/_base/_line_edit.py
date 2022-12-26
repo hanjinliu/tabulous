@@ -3,6 +3,7 @@ from enum import Enum, auto
 
 import re
 import ast
+import sys
 from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
@@ -35,6 +36,7 @@ _RIGHT_LIKE = frozenset(
     {"Right", "Ctrl+Right", "Shift+Right", "Ctrl+Shift+Right", "End", "Shift+End"}
 )
 
+MAC = sys.platform == "darwin"
 
 class _QTableLineEdit(QtW.QLineEdit):
     """LineEdit widget with dtype checker and custom defocusing."""
@@ -484,64 +486,6 @@ class QCellLiteralEdit(_QTableLineEdit):
         qtable = self.parentTableView()
         qtable.scrollTo(qtable.model().index(row, col), qtable.ScrollHint.EnsureVisible)
 
-    def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
-        keys = QtKeys(a0)
-        qtable = self.parentTableView()
-        keys_str = str(keys)
-
-        if keys.is_moving() or keys.is_moving_func():
-            # cursor movements
-            pos = self.cursorPosition()
-            nchar = len(self.text())
-            if not self._self_focused:
-                # move in the parent table
-                self._table._keymap.press_key(keys)
-                self.setFocus()
-                return None
-
-            if keys_str in _LEFT_LIKE:
-                # exit the editor if the cursor is at the beginning
-                if pos == 0:
-                    qtable._selection_model.move(0, -1)
-                    self._self_focused = False
-                    return None
-                else:
-                    self._self_focused = True
-            elif keys_str in _RIGHT_LIKE:
-                # exit the editor if the cursor is at the end
-                if pos == nchar and self.selectedText() == "":
-                    qtable._selection_model.move(0, 1)
-                    self._self_focused = False
-                    return None
-                else:
-                    self._self_focused = True
-
-            else:
-                self._self_focused = False
-
-        elif keys == "Return":
-            return self.eval_and_close()
-        elif keys == "Esc":
-            qtable._selection_model.move_to(*self._pos)
-            self.close()
-            return None
-        elif keys == "F2":  # editing fails
-            return None
-        elif keys == "F3":
-            self.eval_and_close()
-            editor = QCellLabelEdit.from_table(qtable)
-            editor.show()
-            return
-
-        if keys.is_typing() or keys_str in ("Backspace", "Delete"):
-            if keys_str in ("Backspace", "Delete"):
-                self._completion_module = None
-            with qtable._selection_model.blocked():
-                qtable._selection_model.move_to(*self._pos)
-            self._self_focused = True
-        self.setFocus()
-        return QtW.QLineEdit.keyPressEvent(self, a0)
-
     def _on_selection_changed(self) -> None:
         """Update text based on the current selection."""
         qtable = self.parentTableView()
@@ -633,6 +577,70 @@ class QCellLiteralEdit(_QTableLineEdit):
                     self.blockSignals(False)
                 break
         return None
+    
+
+    def event(self, a0: QtCore.QEvent) -> bool:
+        # NOTE: On MacOS, up/down causes text cursor to move to the beginning/end.
+        _type = a0.type()
+        if _type != QtCore.QEvent.Type.KeyPress:
+            return super().event(a0)
+        keys = QtKeys(QtGui.QKeyEvent(a0))
+        qtable = self.parentTableView()
+        keys_str = str(keys)
+
+        if keys.is_moving() or keys.is_moving_func():
+            # cursor movements
+            pos = self.cursorPosition()
+            nchar = len(self.text())
+            if not self._self_focused:
+                # move in the parent table
+                self._table._keymap.press_key(keys)
+                self.setFocus()
+                return True
+
+            if keys_str in _LEFT_LIKE:
+                # exit the editor if the cursor is at the beginning
+                if pos == 0:
+                    qtable._selection_model.move(0, -1)
+                    self._self_focused = False
+                    return True
+                else:
+                    self._self_focused = True
+            elif keys_str in _RIGHT_LIKE:
+                # exit the editor if the cursor is at the end
+                if pos == nchar and self.selectedText() == "":
+                    qtable._selection_model.move(0, 1)
+                    self._self_focused = False
+                    return True
+                else:
+                    self._self_focused = True
+
+            else:
+                self._self_focused = False
+
+        elif keys == "Return":
+            self.eval_and_close()
+            return True
+        elif keys == "Esc":
+            qtable._selection_model.move_to(*self._pos)
+            self.close()
+            return True
+        elif keys == "F2":  # editing fails
+            return True
+        elif keys == "F3":
+            self.eval_and_close()
+            editor = QCellLabelEdit.from_table(qtable)
+            editor.show()
+            return True
+
+        if keys.is_typing() or keys_str in ("Backspace", "Delete"):
+            if keys_str in ("Backspace", "Delete"):
+                self._completion_module = None
+            with qtable._selection_model.blocked():
+                qtable._selection_model.move_to(*self._pos)
+            self._self_focused = True
+        self.setFocus()
+        return super().event(a0)
 
 
 _PATTERN_IDENTIFIERS = re.compile(r"[\w\d_]+")
