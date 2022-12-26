@@ -38,6 +38,7 @@ _RIGHT_LIKE = frozenset(
 
 MAC = sys.platform == "darwin"
 
+
 class _QTableLineEdit(QtW.QLineEdit):
     """LineEdit widget with dtype checker and custom defocusing."""
 
@@ -520,7 +521,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         if selop.area(_df) > 1:
             to_be_added = selop.fmt("df")
         else:
-            to_be_added = selop.fmt_scalar("df")
+            to_be_added = selop.resolve_indices(_df, (1, 1)).fmt_scalar("df")
 
         # add the representation to the text at the proper position
         if cursor_pos == 0:
@@ -577,14 +578,9 @@ class QCellLiteralEdit(_QTableLineEdit):
                     self.blockSignals(False)
                 break
         return None
-    
 
-    def event(self, a0: QtCore.QEvent) -> bool:
-        # NOTE: On MacOS, up/down causes text cursor to move to the beginning/end.
-        _type = a0.type()
-        if _type != QtCore.QEvent.Type.KeyPress:
-            return super().event(a0)
-        keys = QtKeys(QtGui.QKeyEvent(a0))
+    def _key_press_event(self, event: QtGui.QKeyEvent) -> None:
+        keys = QtKeys(event)
         qtable = self.parentTableView()
         keys_str = str(keys)
 
@@ -603,17 +599,21 @@ class QCellLiteralEdit(_QTableLineEdit):
                 if pos == 0:
                     qtable._selection_model.move(0, -1)
                     self._self_focused = False
+                    self.setFocus()
                     return True
                 else:
                     self._self_focused = True
+                    self.setFocus()
             elif keys_str in _RIGHT_LIKE:
                 # exit the editor if the cursor is at the end
                 if pos == nchar and self.selectedText() == "":
                     qtable._selection_model.move(0, 1)
                     self._self_focused = False
+                    self.setFocus()
                     return True
                 else:
                     self._self_focused = True
+                    self.setFocus()
 
             else:
                 self._self_focused = False
@@ -640,7 +640,26 @@ class QCellLiteralEdit(_QTableLineEdit):
                 qtable._selection_model.move_to(*self._pos)
             self._self_focused = True
         self.setFocus()
-        return super().event(a0)
+        return False
+
+    if MAC:
+
+        def event(self, a0: QtCore.QEvent) -> bool:
+            # NOTE: On MacOS, up/down causes text cursor to move to the beginning/end.
+            _type = a0.type()
+            if _type != QtCore.QEvent.Type.KeyPress:
+                return super().event(a0)
+            event = QtGui.QKeyEvent(a0)
+            if not self._key_press_event(event):
+                super().event(a0)
+            self.setFocus()
+            return True
+
+    else:
+
+        def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
+            if not self._key_press_event(event):
+                return QtW.QLineEdit.keyPressEvent(self, event)
 
 
 _PATTERN_IDENTIFIERS = re.compile(r"[\w\d_]+")
