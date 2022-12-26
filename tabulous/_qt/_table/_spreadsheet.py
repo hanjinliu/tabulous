@@ -241,14 +241,21 @@ class QSpreadSheet(QMutableSimpleTable):
         return
 
     def updateValue(self, r, c, val):
+        index = self._data_raw.index[r]
+        columns = self._data_raw.columns[c]
         # NOTE: It seems very weird but the string array of pandas does not
         # support setting (N, 1) string array.
-        if isinstance(val, pd.DataFrame) and isinstance(c, slice) and c.stop == 1:
-            val = pd.Series(val.iloc[:, 0], dtype="string")
+        if isinstance(val, pd.DataFrame):
+            # NOTE loc-indexer takes axes into consideration. Here, input data
+            # frame needs to be updated.
+            val.index = index
+            val.columns = columns
+            if isinstance(c, slice) and c.stop == 1:
+                val = pd.Series(val.iloc[:, 0], dtype="string")
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self._data_raw.loc[self._data_raw.index[r], self._data_raw.columns[c]] = val
+            self._data_raw.loc[index, columns] = val
         if self._proxy.proxy_type != "none":
             self.setProxy(self._proxy)
         return self.refreshTable()
