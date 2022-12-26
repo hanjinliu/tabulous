@@ -170,39 +170,26 @@ class TableList(EventedList[TableBase]):
     def _install_contextmenu(self):
         """Install the default contextmenu."""
 
-        def view_mode_setter(mode: str):
-            def _fset(index: int):
-                self[index].view_mode = mode
+        from tabulous import commands as cmds
 
-            return _fset
+        def _wrap(cmd):
+            return lambda idx: cmd(self._parent)
 
         tablestack = self._parent._qwidget._tablestack
 
         # fmt: off
-        self.register_action("Copy all")(tablestack.copyData)
-        self.register_action("Rename")(tablestack.enterEditingMode)
-        self.register_action("Delete")(self.__delitem__)
+        self.register_action("Copy all")(_wrap(cmds.table.copy_to_clipboard))
+        self.register_action("Rename")(_wrap(cmds.tab.rename_tab))
+        self.register_action("Delete")(_wrap(cmds.tab.delete_tab))
         tablestack.addSeparator()
-        self.register_action("Find")(tablestack.openFinderDialog)
-        self.register_action("Filter")(tablestack.openFilterDialog)
-        self.register_action("Evaluate")(tablestack.openEvalDialog)
+        self.register_action("Find")(_wrap(cmds.table.show_finder_widget))
+        self.register_action("Filter")(_wrap(cmds.analysis.show_filter_widget))
+        self.register_action("Evaluate")(_wrap(cmds.analysis.show_eval_widget))
         tablestack.addSeparator()
-        self.register_action("View>Horizontal dual view")(view_mode_setter("horizontal"))
-        self.register_action("View>Vertical dual view")(view_mode_setter("vertical"))
-        self.register_action("View>Popup view")(view_mode_setter("popup"))
-        self.register_action("View>Reset view")(view_mode_setter("normal"))
-
-        @self.register_action("Tile>Horizontal tiling")
-        def _tile_h(index: int):
-            if index == len(self) - 1:
-                index -= 1
-            self.tile([index, index + 1])
-
-        @self.register_action("Tile>Vertical tiling")
-        def _tile_v(index: int):
-            if index == len(self) - 1:
-                index -= 1
-            self.tile([index, index + 1], orientation="vertical")
-
-        self.register_action("Tile>Untile")(self.untile)
+        self.register_action("View>Horizontal dual view")(_wrap(cmds.view.set_dual_h_mode))
+        self.register_action("View>Vertical dual view")(_wrap(cmds.view.set_dual_v_mode))
+        self.register_action("View>Popup view")(_wrap(cmds.view.set_popup_mode))
+        self.register_action("View>Reset view")(_wrap(cmds.view.reset_view_mode))
+        self.register_action("Tile")(_wrap(cmds.tab.tile_tables))
+        self.register_action("Untile")(_wrap(cmds.tab.untile_table))
         # fmt: on

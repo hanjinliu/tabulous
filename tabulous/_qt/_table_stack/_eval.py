@@ -27,6 +27,9 @@ class QAbstractEval(QtW.QWidget):
     def callback(self):
         raise NotImplementedError()
 
+    def lineEdit(self) -> QtW.QLineEdit:
+        return self._line
+
 
 class QLiteralEvalWidget(QAbstractEval):
     """

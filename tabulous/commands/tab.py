@@ -84,3 +84,17 @@ def tile_with_adjacent_table(viewer: TableViewerBase):
 def untile_table(viewer: TableViewerBase):
     """Untile current tab"""
     viewer.tables.untile(viewer.current_index)
+
+
+def rename_tab(viewer: TableViewerBase):
+    """Rename tab."""
+    idx = viewer.current_index
+    if idx is None:
+        raise ValueError("No tab found.")
+    viewer.native._tablestack.enterEditingMode(idx)
+
+
+def delete_tab(viewer: TableViewerBase) -> None:
+    """Delete current tab."""
+    idx = viewer.current_index
+    del viewer.tables[idx]

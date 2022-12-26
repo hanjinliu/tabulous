@@ -482,3 +482,36 @@ def edit_current(viewer: TableViewerBase) -> None:
     table = _utils.get_table(viewer)._qwidget
     table._qtable_view._edit_current()
     return None
+
+
+def sort_by_column_ascending(viewer: TableViewerBase) -> None:
+    """Sort by a column in ascending order"""
+    table = _utils.get_table(viewer)
+    index = _utils.get_selected_column(viewer)
+    name = table.columns[index]
+    table.proxy.sort(by=name, ascending=True)
+    return None
+
+
+def sort_by_column_descending(viewer: TableViewerBase) -> None:
+    """Sort by a column in decending order"""
+    table = _utils.get_table(viewer)
+    index = _utils.get_selected_column(viewer)
+    name = table.columns[index]
+    table.proxy.sort(by=name, ascending=False)
+    return None
+
+
+def filter_by_column(viewer: TableViewerBase) -> None:
+    table = _utils.get_table(viewer)
+    index = _utils.get_selected_column(viewer)
+    widget = viewer._qwidget._tablestack.openFilterDialog()
+    widget.lineEdit().setText(table.columns[index])
+    return None
+
+
+def reset_proxy(viewer: TableViewerBase) -> None:
+    """Reset proxy (sort/filter)"""
+    table = _utils.get_table(viewer)
+    table.proxy.reset()
+    return None

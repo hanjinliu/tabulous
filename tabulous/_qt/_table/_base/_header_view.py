@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Iterator
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
 
-from ..._action_registry import QActionRegistry
+from tabulous._qt._action_registry import QActionRegistry
 
 if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced

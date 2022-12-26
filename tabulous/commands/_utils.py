@@ -49,6 +49,23 @@ def get_selected_column(viewer: TableViewerBase) -> int:
     if len(selected) == 0:
         raise ValueError("No columns selected")
     if len(selected) > 1:
-        raise ValueError("Multiple columns selected")
+        raise ValueError("Multiple ranges are selected")
+    first = selected[0]
+    if first.stop != first.start + 1:
+        raise ValueError("Multiple columns are selected")
 
-    return selected[0].start
+    return first.start
+
+
+def get_selected_columns(
+    viewer: TableViewerBase, assert_exists: bool = True
+) -> list[int]:
+    table = get_table(viewer)
+    selected = table.columns.selected
+    if assert_exists and len(selected) == 0:
+        raise ValueError("No columns selected")
+
+    out: list[int] = []
+    for sl in selected:
+        out.extend(range(sl.start, sl.stop))
+    return out
