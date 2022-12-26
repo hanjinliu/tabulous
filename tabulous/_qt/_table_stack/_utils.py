@@ -1,11 +1,12 @@
 from __future__ import annotations
 import re
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Literal, cast, overload
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Signal, Qt
 
 if TYPE_CHECKING:
     from .._mainwindow import _QtMainWidgetBase
+    from tabulous.widgets import TableBase, Table, SpreadSheet
 
 
 def create_temporal_line_edit(
@@ -78,8 +79,21 @@ class QCompletableLineEdit(QtW.QLineEdit):
         idx = tablestack.currentIndex()
         return tablestack.tableAtIndex(idx)
 
-    def currentPyTable(self):
+    @overload
+    def currentPyTable(self, assert_mutable: Literal[False] = False) -> TableBase:
+        ...
+
+    @overload
+    def currentPyTable(
+        self, assert_mutable: Literal[True] = False
+    ) -> Table | SpreadSheet:
+        ...
+
+    def currentPyTable(self, assert_mutable: bool = False):
         viewer = self._qtable_viewer._table_viewer
+        table = viewer.current_table
+        if assert_mutable and table.table_type not in ("Table", "SpreadSheet"):
+            raise TypeError(f"Table {table.name} is immutable.")
         return viewer.current_table
 
     def keyPressEvent(self, event: QtGui.QKeyEvent):

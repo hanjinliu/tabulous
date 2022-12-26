@@ -783,6 +783,14 @@ class ProxyInterface(Component["TableBase"]):
         """Set filter or sort."""
         return self._set_value(proxy)
 
+    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Apply the current proxy to the DataFrame."""
+        return self.parent._qwidget._proxy.apply(df)
+
+    def as_indexer(self) -> np.ndarray:
+        """Return the indexer that represents the current proxy."""
+        return self.parent._qwidget._proxy.as_indexer(self.parent.data)
+
     @property
     def proxy_type(self):
         return self.parent._qwidget._proxy.proxy_type

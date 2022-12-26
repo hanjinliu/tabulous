@@ -79,3 +79,13 @@ class SortFilterProxy:
             else:
                 raise TypeError(f"Invalid filter type: {sl.dtype}")
         return r0
+
+    def as_indexer(self, df: pd.DataFrame) -> np.ndarray | slice:
+        sl = self._obj
+        if sl is None:
+            return slice(None)
+        if callable(sl):
+            sl_filt = sl(df)
+        else:
+            sl_filt = sl
+        return sl_filt
