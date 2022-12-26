@@ -29,6 +29,7 @@ from tabulous._psygnal import InCellRangedSlot
 
 if TYPE_CHECKING:
     from typing_extensions import Self
+    from numpy.typing import NDArray
     import pandas as pd
     from pandas.core.dtypes.dtypes import ExtensionDtype
     from tabulous.widgets._table import TableBase, SpreadSheet
@@ -698,43 +699,105 @@ class CellReferenceInterface(
         return f"{cname}(\n\t{s}\n)"
 
 
+_SortArray = NDArray[np.integer]
+_FilterArray = NDArray[np.bool_]
+
+
 class ProxyInterface(Component["TableBase"]):
     """Interface to the table sorting/filtering."""
 
-    def sort(self, by: int | str, ascending: bool = True):
-        if ascending:
+    @overload
+    def sort(self, by: int | str, ascending: bool = True) -> None:
+        ...
 
-            def _sort(df: pd.DataFrame) -> np.ndarray:
-                return np.asarray(df[by].argsort())
+    @overload
+    def sort(self, func: Callable[[pd.DataFrame], _SortArray]) -> None:
+        ...
+
+    def sort(self, by: int | str, ascending: bool = True) -> None:
+        """Apply sort proxy to the table."""
+        if callable(by):
+            if not ascending:
+                raise TypeError("Cannot sort by a callable in descending order.")
+
+            def _sort(df: pd.DataFrame) -> _SortArray:
+                arr = np.asarray(by(df))
+                if arr.ndim != 1:
+                    raise TypeError("The callable must return a 1D array.")
+                elif arr.dtype.kind not in "ui":
+                    raise TypeError("The callable must return an integer array.")
+                return arr
+
+        else:
+            if ascending:
+
+                def _sort(df: pd.DataFrame) -> _SortArray:
+                    return np.asarray(df[by].argsort())
+
+            else:
+
+                def _sort(df: pd.DataFrame) -> _SortArray:
+                    arr = np.asarray(df[by].argsort())
+                    return arr[::-1]
+
+            _sort.__name__ = f"sort<by={by!r}, ascending={ascending}>"
+        self.parent._qwidget.setProxy(_sort)
+        return None
+
+    @overload
+    def filter(self, expr: str, namespace: dict = {}) -> None:
+        ...
+
+    @overload
+    def filter(self, func: Callable[[pd.DataFrame], _FilterArray]) -> None:
+        ...
+
+    def filter(self, expr: str, namespace: dict = {}) -> None:
+        """Apply filter proxy to the table."""
+        if callable(expr):
+            if namespace:
+                raise TypeError("Cannot use a namespace with a callable.")
+
+            def _filter(df: pd.DataFrame) -> _FilterArray:
+                arr = np.asarray(expr(df))
+                if arr.ndim != 1:
+                    raise TypeError("The callable must return a 1D array.")
+                elif arr.dtype.kind != "b":
+                    raise TypeError("The callable must return a boolean array.")
+                return arr
 
         else:
 
-            def _sort(df: pd.DataFrame) -> np.ndarray:
-                arr = np.asarray(df[by].argsort())
-                return arr[::-1]
+            def _filter(df: pd.DataFrame) -> np.ndarray:
+                ns = dict(**dict(df.items()), **namespace)
+                return eval(expr, ns, {})
 
-        _sort.__name__ = f"sort<by={by!r}, ascending={ascending}>"
-        self.parent._qwidget.setProxy(_sort)
+            _filter.__name__ = f"filter<{expr!r}>"
 
-    def filter(self, expr: str):
-        def _filter(df: pd.DataFrame) -> np.ndarray:
-            ns = dict(df.items())
-            return eval(expr, ns, {})
-
-        _filter.__name__ = f"filter<{expr!r}>"
         self.parent._qwidget.setProxy(_filter)
+        return None
 
     def reset(self) -> None:
-        self._set_value(None)
+        """Reset filter or sort."""
+        return self._set_value(None)
 
     def set(self, proxy: ProxyType) -> None:
-        self._set_value(proxy)
+        """Set filter or sort."""
+        return self._set_value(proxy)
+
+    @property
+    def proxy_type(self):
+        return self.parent._qwidget._proxy.proxy_type
 
     def _set_value(self, value: Any):
-        self.parent._qwidget.setProxy(value)
+        return self.parent._qwidget.setProxy(value)
 
     def __set__(self, obj: TableBase, value: ProxyType):
         return super().__set__(obj, value)
+
+    def _get_proxy_object(self):
+        """Return the current proxy function."""
+        return self.parent._qwidget._proxy
 
 
 def _fmt_slice(sl: slice) -> str:
