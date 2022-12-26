@@ -38,6 +38,7 @@ _RIGHT_LIKE = frozenset(
 
 MAC = sys.platform == "darwin"
 
+
 class _QTableLineEdit(QtW.QLineEdit):
     """LineEdit widget with dtype checker and custom defocusing."""
 
@@ -577,14 +578,9 @@ class QCellLiteralEdit(_QTableLineEdit):
                     self.blockSignals(False)
                 break
         return None
-    
 
-    def event(self, a0: QtCore.QEvent) -> bool:
-        # NOTE: On MacOS, up/down causes text cursor to move to the beginning/end.
-        _type = a0.type()
-        if _type != QtCore.QEvent.Type.KeyPress:
-            return super().event(a0)
-        keys = QtKeys(QtGui.QKeyEvent(a0))
+    def _key_press_event(self, event: QtGui.QKeyEvent) -> None:
+        keys = QtKeys(event)
         qtable = self.parentTableView()
         keys_str = str(keys)
 
@@ -640,7 +636,24 @@ class QCellLiteralEdit(_QTableLineEdit):
                 qtable._selection_model.move_to(*self._pos)
             self._self_focused = True
         self.setFocus()
-        return super().event(a0)
+        return False
+
+    if MAC:
+
+        def event(self, a0: QtCore.QEvent) -> bool:
+            # NOTE: On MacOS, up/down causes text cursor to move to the beginning/end.
+            _type = a0.type()
+            if _type != QtCore.QEvent.Type.KeyPress:
+                return super().event(a0)
+            event = QtGui.QKeyEvent(a0)
+            if not self._key_press_event(event):
+                return super().event(a0)
+
+    else:
+
+        def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
+            if not self._key_press_event(event):
+                return QtW.QLineEdit.keyPressEvent(self, event)
 
 
 _PATTERN_IDENTIFIERS = re.compile(r"[\w\d_]+")
