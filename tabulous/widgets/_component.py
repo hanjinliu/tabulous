@@ -705,14 +705,14 @@ class ProxyInterface(Component["TableBase"]):
     """Interface to the table sorting/filtering."""
 
     @overload
-    def sort(self, by: int | str, ascending: bool = True) -> None:
+    def sort(self, by: str | Sequence[str], ascending: bool = True) -> None:
         ...
 
     @overload
     def sort(self, func: Callable[[pd.DataFrame], _SortArray]) -> None:
         ...
 
-    def sort(self, by: int | str, ascending: bool = True) -> None:
+    def sort(self, by: str | Sequence[str], ascending: bool = True) -> None:
         """Apply sort proxy to the table."""
         if callable(by):
             if not ascending:
@@ -727,16 +727,31 @@ class ProxyInterface(Component["TableBase"]):
                 return arr
 
         else:
-            if ascending:
+            if not isinstance(by, (int, str)) and len(by) == 1:
+                by = [0]
+
+            if isinstance(by, (int, str)):
 
                 def _sort(df: pd.DataFrame) -> _SortArray:
-                    return np.asarray(df[by].argsort())
+                    out = np.asarray(df[by].argsort())
+                    if not ascending:
+                        out = out[::-1]
+                    return out
+
+            elif isinstance(by, Sequence):
+                by = list(by)
+
+                def _sort(df: pd.DataFrame) -> _SortArray:
+                    df_sub = df[by]
+                    nr = len(df_sub)
+                    df_sub.index = range(nr)
+                    df_sub.sort_values(by=by, ascending=ascending, inplace=True)
+                    return np.asarray(df_sub.index)
 
             else:
-
-                def _sort(df: pd.DataFrame) -> _SortArray:
-                    arr = np.asarray(df[by].argsort())
-                    return arr[::-1]
+                raise TypeError(
+                    "The `by` argument must be a column name or a sequence of it."
+                )
 
             _sort.__name__ = f"sort<by={by!r}, ascending={ascending}>"
         self.parent._qwidget.setProxy(_sort)
@@ -785,15 +800,16 @@ class ProxyInterface(Component["TableBase"]):
 
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         """Apply the current proxy to the DataFrame."""
-        return self.parent._qwidget._proxy.apply(df)
+        return self._get_proxy_object().apply(df)
 
     def as_indexer(self) -> np.ndarray:
         """Return the indexer that represents the current proxy."""
-        return self.parent._qwidget._proxy.as_indexer(self.parent.data)
+        return self._get_proxy_object().as_indexer(self.parent.data)
 
     @property
     def proxy_type(self):
-        return self.parent._qwidget._proxy.proxy_type
+        """Return the current proxy type."""
+        return self._get_proxy_object().proxy_type
 
     def _set_value(self, value: Any):
         return self.parent._qwidget.setProxy(value)

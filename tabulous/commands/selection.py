@@ -487,18 +487,18 @@ def edit_current(viewer: TableViewerBase) -> None:
 def sort_by_column_ascending(viewer: TableViewerBase) -> None:
     """Sort by a column in ascending order"""
     table = _utils.get_table(viewer)
-    index = _utils.get_selected_column(viewer)
-    name = table.columns[index]
-    table.proxy.sort(by=name, ascending=True)
+    indices = _utils.get_selected_columns(viewer)
+    by = [table.columns[index] for index in indices]
+    table.proxy.sort(by=by, ascending=True)
     return None
 
 
 def sort_by_column_descending(viewer: TableViewerBase) -> None:
     """Sort by a column in decending order"""
     table = _utils.get_table(viewer)
-    index = _utils.get_selected_column(viewer)
-    name = table.columns[index]
-    table.proxy.sort(by=name, ascending=False)
+    indices = _utils.get_selected_columns(viewer)
+    by = [table.columns[index] for index in indices]
+    table.proxy.sort(by=by, ascending=False)
     return None
 
 
