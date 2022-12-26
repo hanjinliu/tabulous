@@ -36,6 +36,8 @@ if TYPE_CHECKING:
     from tabulous._qt._table._base._header_view import QDataFrameHeaderView
 
     _DtypeLike = Union[np.dtype, ExtensionDtype]
+    _SortArray = NDArray[np.integer]
+    _FilterArray = NDArray[np.bool_]
 
 T = TypeVar("T")
 _F = TypeVar("_F", bound=Callable)
@@ -697,10 +699,6 @@ class CellReferenceInterface(
             return f"{cname}()"
         s = ",\n\t".join(f"{k}: {slot!r}" for k, slot in slots.items())
         return f"{cname}(\n\t{s}\n)"
-
-
-_SortArray = NDArray[np.integer]
-_FilterArray = NDArray[np.bool_]
 
 
 class ProxyInterface(Component["TableBase"]):
