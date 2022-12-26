@@ -521,7 +521,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         if selop.area(_df) > 1:
             to_be_added = selop.fmt("df")
         else:
-            to_be_added = selop.fmt_scalar("df")
+            to_be_added = selop.resolce_indices(_df, (1, 1)).fmt_scalar("df")
 
         # add the representation to the text at the proper position
         if cursor_pos == 0:
@@ -599,17 +599,21 @@ class QCellLiteralEdit(_QTableLineEdit):
                 if pos == 0:
                     qtable._selection_model.move(0, -1)
                     self._self_focused = False
+                    self.setFocus()
                     return True
                 else:
                     self._self_focused = True
+                    self.setFocus()
             elif keys_str in _RIGHT_LIKE:
                 # exit the editor if the cursor is at the end
                 if pos == nchar and self.selectedText() == "":
                     qtable._selection_model.move(0, 1)
                     self._self_focused = False
+                    self.setFocus()
                     return True
                 else:
                     self._self_focused = True
+                    self.setFocus()
 
             else:
                 self._self_focused = False
@@ -647,7 +651,9 @@ class QCellLiteralEdit(_QTableLineEdit):
                 return super().event(a0)
             event = QtGui.QKeyEvent(a0)
             if not self._key_press_event(event):
-                return super().event(a0)
+                super().event(a0)
+            self.setFocus()
+            return True
 
     else:
 
