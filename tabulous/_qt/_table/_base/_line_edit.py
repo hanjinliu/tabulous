@@ -3,6 +3,7 @@ from enum import Enum, auto
 
 import re
 import ast
+import sys
 from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
@@ -34,6 +35,7 @@ _LEFT_LIKE = frozenset(
 _RIGHT_LIKE = frozenset(
     {"Right", "Ctrl+Right", "Shift+Right", "Ctrl+Shift+Right", "End", "Shift+End"}
 )
+MAC = sys.platform == "darwin"
 
 
 class _QTableLineEdit(QtW.QLineEdit):
@@ -633,6 +635,17 @@ class QCellLiteralEdit(_QTableLineEdit):
                     self.blockSignals(False)
                 break
         return None
+
+    if MAC:
+        # NOTE: On MacOS, up/down causes text cursor to move to the beginning/end.
+        def event(self, a0: QtCore.QEvent) -> bool:
+            _type = a0.type()
+            if _type == QtCore.QEvent.Type.KeyPress:
+                key_event = QtGui.QKeyEvent(a0)
+                if key_event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+                    a0.ignore()
+                    return False
+            return super().event(a0)
 
 
 _PATTERN_IDENTIFIERS = re.compile(r"[\w\d_]+")
