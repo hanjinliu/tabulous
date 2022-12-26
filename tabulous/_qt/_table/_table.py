@@ -15,7 +15,7 @@ class QTableLayer(QMutableSimpleTable):
     def setDataFrame(self, data: pd.DataFrame) -> None:
         self._data_raw = data
         self.model().df = data
-        self.setFilter(None)
+        self.setProxy(None)
         self._qtable_view.viewport().update()
         return
 
@@ -47,7 +47,7 @@ class QTableLayer(QMutableSimpleTable):
         nr, nc = self._data_raw.shape
         self.model().df = self._data_raw
         self.model().setShape(nr, nc)
-        self.setFilter(None)
+        self.setProxy(None)
         self.refreshTable()
         return None
 

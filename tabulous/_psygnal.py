@@ -1381,6 +1381,9 @@ class _SignalSubArrayRef:
 def _parse_a_key(k):
     if isinstance(k, slice):
         return k
+    elif isinstance(k, (list, np.ndarray)):
+        # fancy slicing, which occurs when the table is filtered/sorted.
+        return slice(np.min(k), np.max(k) + 1)
     else:
         k = k.__index__()
         return slice(k, k + 1)

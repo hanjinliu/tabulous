@@ -63,13 +63,27 @@ def test_copy_array_and_paste_single():
     table.undo_manager.undo()
     assert_equal(table.data.iloc[sl_dst], old_value)
 
-# def test_paste_with_column_selected():
-#     viewer = TableViewerWidget(show=False)
-#     table = viewer.add_spreadsheet({
-#         "a": [0, 1, 2, 3, 4],
-#         "b": [2, 4, 6, 8, 10],
-#         "c": [-1, -1, -1, -1, -1],
-#     })
+def test_paste_with_column_selected():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_spreadsheet({
+        "a": [0, 1, 2, 3, 4],
+        "b": [2, 4, 6, 8, 10],
+        "c": [-1, -1, -1, -1, -1],
+    })
 
-#     viewer.copy_data([(slice(0, 5), slice(2, 3))])
-#     table.move_iloc
+    viewer.copy_data([(slice(0, 5), slice(2, 3))])
+    table._qwidget._qtable_view._selection_model.move_to(-1, 0)
+    viewer.paste_data()
+    assert_equal(table.data.iloc[:, 0], np.full(5, -1))
+
+def test_paste_with_filter():
+    viewer = TableViewerWidget(show=False)
+    sheet = viewer.add_spreadsheet({
+        "a": [0, 1, 2, 3, 4],
+        "b": ["a", "b", "c", "d", "e"],
+        "c": ["x"] * 5,
+    })
+    viewer.copy_data([(slice(0, 3), slice(2, 3))])
+    sheet.proxy.filter("a % 2 == 0")
+    viewer.paste_data([(slice(0, 3), slice(1, 2))])
+    assert_equal(sheet.data.iloc[:, 1], ["x", "b", "x", "d", "x"])

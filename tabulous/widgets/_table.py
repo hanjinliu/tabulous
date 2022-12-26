@@ -14,6 +14,7 @@ from tabulous.widgets._component import (
     CellReferenceInterface,
     SelectionRanges,
     HighlightRanges,
+    ProxyInterface,
 )
 from tabulous.widgets import _doc
 from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
@@ -84,6 +85,7 @@ class TableBase(ABC):
     plt = PlotInterface()
     cellref = CellReferenceInterface()
     filter = FilterProxy()
+    proxy = ProxyInterface()
     selections = SelectionRanges()
     highlights = HighlightRanges()
 
@@ -172,7 +174,7 @@ class TableBase(ABC):
         return self._qwidget.getDataFrame()
 
     @data.setter
-    def data(self, value):
+    def data(self, value: Any):
         """Set table data."""
         _data = self._normalize_data(value)
         self._qwidget.setDataFrame(_data)

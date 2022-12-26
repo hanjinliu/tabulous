@@ -24,7 +24,7 @@ import numpy as np
 from qtpy.sip import isdeleted
 from magicgui.widgets import Widget
 from tabulous.exceptions import TableImmutableError
-from tabulous.types import _SingleSelection, SelectionType, EvalInfo
+from tabulous.types import _SingleSelection, SelectionType, EvalInfo, ProxyType
 from tabulous._psygnal import InCellRangedSlot
 
 if TYPE_CHECKING:
@@ -696,6 +696,45 @@ class CellReferenceInterface(
             return f"{cname}()"
         s = ",\n\t".join(f"{k}: {slot!r}" for k, slot in slots.items())
         return f"{cname}(\n\t{s}\n)"
+
+
+class ProxyInterface(Component["TableBase"]):
+    """Interface to the table sorting/filtering."""
+
+    def sort(self, by: int | str, ascending: bool = True):
+        if ascending:
+
+            def _sort(df: pd.DataFrame) -> np.ndarray:
+                return np.asarray(df[by].argsort())
+
+        else:
+
+            def _sort(df: pd.DataFrame) -> np.ndarray:
+                arr = np.asarray(df[by].argsort())
+                return arr[::-1]
+
+        _sort.__name__ = f"sort<by={by!r}, ascending={ascending}>"
+        self.parent._qwidget.setProxy(_sort)
+
+    def filter(self, expr: str):
+        def _filter(df: pd.DataFrame) -> np.ndarray:
+            ns = dict(df.items())
+            return eval(expr, ns, {})
+
+        _filter.__name__ = f"filter<{expr!r}>"
+        self.parent._qwidget.setProxy(_filter)
+
+    def reset(self) -> None:
+        self._set_value(None)
+
+    def set(self, proxy: ProxyType) -> None:
+        self._set_value(proxy)
+
+    def _set_value(self, value: Any):
+        self.parent._qwidget.setProxy(value)
+
+    def __set__(self, obj: TableBase, value: ProxyType):
+        return super().__set__(obj, value)
 
 
 def _fmt_slice(sl: slice) -> str:

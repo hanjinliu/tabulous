@@ -190,6 +190,31 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = out
         return out
 
+    def _get_sub_frame(self, columns: list[str]) -> pd.DataFrame:
+        """Parse and return a sub-frame of the table."""
+        if self._data_cache is not None:
+            return self._data_cache[columns]
+        _sep = "\t"
+        data_raw = self._data_raw[columns]
+        pd_kwargs_all = self._columns_dtype.as_pandas_kwargs()
+        pd_kwargs = {}
+        for col in columns:
+            if dtype := pd_kwargs_all.get(col, None):
+                pd_kwargs[col] = dtype
+
+        val = data_raw.to_csv(sep=_sep, index=False)
+        buf = StringIO(val)
+        out: pd.DataFrame = pd.read_csv(
+            buf,
+            sep=_sep,
+            header=0,
+            na_values=["#ERROR"],
+            names=data_raw.columns,
+            **pd_kwargs,
+        )
+        out.index = data_raw.index
+        return out
+
     def dataShape(self) -> tuple[int, int]:
         """Shape of data."""
         return self._data_raw.shape
@@ -198,13 +223,7 @@ class QSpreadSheet(QMutableSimpleTable):
         """Return the shown dataframe (consider filter)."""
         if parse:
             df = self.getDataFrame()
-            if self._filter_slice is not None:
-                if callable(self._filter_slice):
-                    sl = self._filter_slice(df)
-                else:
-                    sl = self._filter_slice
-                return df[sl]
-            return df
+            return self._proxy.apply(df)
         else:
             return self.model().df
 
@@ -217,21 +236,28 @@ class QSpreadSheet(QMutableSimpleTable):
             data.columns.size + _OUT_OF_BOUND_C,
         )
         self._data_cache = None
-        self.setFilter(None)
+        self.setProxy(None)
         self.refreshTable()
         return
 
     def updateValue(self, r, c, val):
+        index = self._data_raw.index[r]
+        columns = self._data_raw.columns[c]
         # NOTE: It seems very weird but the string array of pandas does not
         # support setting (N, 1) string array.
-        if isinstance(val, pd.DataFrame) and isinstance(c, slice) and c.stop == 1:
-            val = pd.Series(val.iloc[:, 0], dtype="string")
+        if isinstance(val, pd.DataFrame):
+            # NOTE loc-indexer takes axes into consideration. Here, input data
+            # frame needs to be updated.
+            val.index = index
+            val.columns = columns
+            if isinstance(c, slice) and c.stop == 1:
+                val = pd.Series(val.iloc[:, 0], dtype="string")
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self._data_raw.loc[self._data_raw.index[r], self._data_raw.columns[c]] = val
-        if self._filter_slice is not None:
-            self.setFilter(self._filter_slice)
+            self._data_raw.loc[index, columns] = val
+        if self._proxy.proxy_type != "none":
+            self.setProxy(self._proxy)
         return self.refreshTable()
 
     @setDataFrame.server
@@ -241,6 +267,16 @@ class QSpreadSheet(QMutableSimpleTable):
     @setDataFrame.set_formatter
     def _setDataFrame_fmt(self, data: pd.DataFrame):
         return f"set new data of shape {data.shape}"
+
+    def _apply_proxy(self):
+        if self._proxy.proxy_type == "none":
+            return self.tableSlice()
+        return self._proxy.apply(self.getDataFrame())
+
+    def _get_proxy_source_index(self, r: int):
+        if self._proxy.proxy_type == "none":
+            return self._proxy.get_source_index(r, self.tableSlice())
+        return self._proxy.get_source_index(r, self.getDataFrame())
 
     __delete = object()
 
@@ -262,7 +298,7 @@ class QSpreadSheet(QMutableSimpleTable):
             nr + _OUT_OF_BOUND_R,
             nc + _OUT_OF_BOUND_C,
         )
-        self.setFilter(None)
+        self.setProxy(None)
         self.refreshTable()
         self._data_cache = None
         return None
@@ -325,7 +361,7 @@ class QSpreadSheet(QMutableSimpleTable):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
             super().setDataFrameValue(r, c, value)
-            self.setFilter(self._filter_slice)
+            self.setProxy(self._proxy)
 
         self._qtable_view.verticalHeader().resize(
             self._qtable_view.verticalHeader().sizeHint()
@@ -345,7 +381,7 @@ class QSpreadSheet(QMutableSimpleTable):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
             super().setLabeledData(r, c, value)
-            self.setFilter(self._filter_slice)
+            self.setProxy(self._proxy)
 
         self._qtable_view.verticalHeader().resize(
             self._qtable_view.verticalHeader().sizeHint()
@@ -391,15 +427,15 @@ class QSpreadSheet(QMutableSimpleTable):
             self._data_raw.shape[0] + _OUT_OF_BOUND_R,
             self._data_raw.shape[1] + _OUT_OF_BOUND_C,
         )
-        self.setFilter(self._filter_slice)
+        self.setProxy(self._proxy)
         self._data_cache = None
         return None
 
     @QMutableSimpleTable._mgr.undoable
     def insertRows(self, row: int, count: int, value: Any = _EMPTY):
         """Insert rows at the given row number and count."""
-        if self._filter_slice is not None:
-            raise NotImplementedError("Cannot insert rows during filtering.")
+        if self._proxy.proxy_type != "none":
+            raise NotImplementedError("Cannot insert rows during filtering/sorting.")
 
         index_existing = self._data_raw.index
 
@@ -433,7 +469,7 @@ class QSpreadSheet(QMutableSimpleTable):
         if isinstance(index_existing, pd.RangeIndex):
             self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
         self.model().insertRows(row, count, QtCore.QModelIndex())
-        self.setFilter(self._filter_slice)
+        self.setProxy(self._proxy)
         self._data_cache = None
 
         # update indices
@@ -463,7 +499,7 @@ class QSpreadSheet(QMutableSimpleTable):
     @QMutableSimpleTable._mgr.undoable
     def insertColumns(self, col: int, count: int, value: Any = _EMPTY):
         """Insert columns at the given column number and count."""
-        if self._filter_slice is not None:
+        if self._proxy.proxy_type != "none":
             raise NotImplementedError("Cannot insert during filtering.")
 
         columns_existing = self._data_raw.columns
@@ -498,7 +534,7 @@ class QSpreadSheet(QMutableSimpleTable):
         if isinstance(columns_existing, pd.RangeIndex):
             self._data_raw.columns = pd.RangeIndex(0, self._data_raw.columns.size)
         self.model().insertColumns(col, count, QtCore.QModelIndex())
-        self.setFilter(self._filter_slice)
+        self.setProxy(self._proxy)
         self._data_cache = None
 
         # update indices
@@ -547,7 +583,7 @@ class QSpreadSheet(QMutableSimpleTable):
         if _r_ranged:
             self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
         self.model().removeRows(row, count, QtCore.QModelIndex())
-        self.setFilter(self._filter_slice)
+        self.setProxy(self._proxy)
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         self._data_cache = None
 
@@ -602,7 +638,7 @@ class QSpreadSheet(QMutableSimpleTable):
         if _c_ranged:
             self._data_raw.columns = pd.RangeIndex(0, self._data_raw.columns.size)
         self.model().removeColumns(col, count, QtCore.QModelIndex())
-        self.setFilter(self._filter_slice)
+        self.setProxy(self._proxy)
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         self._data_cache = None
 
@@ -684,7 +720,7 @@ class QSpreadSheet(QMutableSimpleTable):
         with self._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
             if index >= nrows:
                 self.expandDataFrame(index - nrows + 1, 0)
-            self.setFilter(self._filter_slice)
+            self.setProxy(self._proxy)
             super().setVerticalHeaderValue(index, value)
             self._data_cache = None
 
@@ -700,7 +736,7 @@ class QSpreadSheet(QMutableSimpleTable):
             if index >= ncols:
                 self.expandDataFrame(0, index - ncols + 1)
             old_name = self._data_raw.columns[index]
-            self.setFilter(self._filter_slice)
+            self.setProxy(self._proxy)
             super().setHorizontalHeaderValue(index, value)
             if old_name in self._columns_dtype.keys():
                 self.setColumnDtype(value, self._columns_dtype.pop(old_name))

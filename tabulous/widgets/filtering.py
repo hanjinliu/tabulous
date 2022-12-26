@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Callable
 import operator as op
 
-from tabulous.types import FilterType
+from tabulous.types import ProxyType
 
 if TYPE_CHECKING:
     from ._table import TableBase
@@ -32,7 +32,7 @@ class FilterProxy:
     def __get__(self, obj: TableBase | None, type=None):
         return self.__class__(obj)
 
-    def __set__(self, obj: TableBase | None, value: FilterType):
+    def __set__(self, obj: TableBase | None, value: ProxyType):
         if obj is None:
             return None
         data = obj.data
@@ -53,7 +53,7 @@ class FilterProxy:
             raise ValueError(
                 f"Shape mismatch between data {data.shape} and input slice {len(value)}."
             )
-        obj._qwidget.setFilter(value)
+        obj._qwidget.setProxy(value)
 
     def __delete__(self, obj: TableBase):
         """Disable filter."""
@@ -63,7 +63,7 @@ class FilterProxy:
         return FilterIndexer(self._table, key)
 
     @property
-    def func(self) -> FilterType:
+    def func(self) -> ProxyType:
         """Get the filter function."""
         return self._table._qwidget.filter()
 
@@ -100,7 +100,7 @@ class FilterIndexer:
         self._key = key
         self._filter = current_filter
         if current_filter is not _void:
-            self._table._qwidget.setFilter(current_filter)
+            self._table._qwidget.setProxy(current_filter)
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} of {self._table!r} at column {self._key!r}>"
