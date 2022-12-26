@@ -76,7 +76,7 @@ Filter in GUI
   :width: 20em
 
 You can open a overlay dialog to filter the table data from the |filter| button in the toolbar,
-push key combo starting with ``Alt``, or right click on the tab.
+push key combo starting with ``Alt``, or right click on the selected column(s).
 
 The line edit for filter expression supports auto-completion (Tab) and history browsing
 (↑, ↓).
@@ -95,14 +95,42 @@ should map a :class:`DataFrame` to a 1-D interger array, just like :meth:`argsor
 .. code-block:: python
 
     def sort_func(df):
-        return df["A"].argsort()
+        return df["x"].argsort()
 
     table.proxy.sort(sort_func)
 
     # or equivalently, use decorator
     @table.proxy.sort
     def sort_func(df):
-        return df["A"].argsort()
+        return df["x"].argsort()
+
+If the table is
+
++---+---+----+
+|   | x |  y |
++---+---+----+
+| 0 | 2 | a0 |
++---+---+----+
+| 1 | 3 | a1 |
++---+---+----+
+| 2 | 1 | a2 |
++---+---+----+
+| 3 | 0 | a3 |
++---+---+----+
+
+then it looks like following after sorting.
+
++---+---+----+
+|   | x |  y |
++---+---+----+
+| 3 | 0 | a3 |
++---+---+----+
+| 2 | 1 | a2 |
++---+---+----+
+| 0 | 2 | a0 |
++---+---+----+
+| 1 | 3 | a1 |
++---+---+----+
 
 Sorting function doesn't always have to be surjective, i.e. it can return only a subset of
 the source indices.
@@ -112,7 +140,7 @@ the source indices.
     @table.proxy.sort
     def sort_func(df):
         # return the top 10 rows
-        return df["A"].argsort()[:10]
+        return df["x"].argsort()[:10]
 
 Sort by a column
 ----------------
@@ -124,3 +152,18 @@ The :meth:`sort` method also supports this use case, by passing ``by`` argument.
 
     table.proxy.sort(by="x")  # ascending order by default
     table.proxy.sort(by="x", ascending=False)  # descending order
+
+Multi-column sorting is also supported.
+
+.. code-block:: python
+
+    table.proxy.sort(by=["x", "y"])
+
+Sort in GUI
+-----------
+
+.. |sort| image:: ../../tabulous/_qt/_icons/sort_table.svg
+  :width: 20em
+
+You can sort selected column(s) by clicking |sort| button in the toolbar,
+push key combo starting with ``Alt``, or right click on the selected column(s).

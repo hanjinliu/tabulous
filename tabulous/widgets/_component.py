@@ -728,7 +728,7 @@ class ProxyInterface(Component["TableBase"]):
 
         else:
             if not isinstance(by, (int, str)) and len(by) == 1:
-                by = [0]
+                by = by[0]
 
             if isinstance(by, (int, str)):
 
