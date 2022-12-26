@@ -30,17 +30,13 @@ class SelectionOperator:
         """Format 1x1 selection literal as a scalar reference."""
         raise NotImplementedError()
 
-    def resolce_indices(self, df: pd.DataFrame, shape: tuple[int, int]):
+    def resolve_indices(self, df: pd.DataFrame, shape: tuple[int, int]):
         rsel, csel = self.as_iloc(df)
         nr, nc = shape
-        if isinstance(rsel, slice):
-            start, stop, step = rsel.indices(nr)
-            assert step == 1
-            rsel = slice(start, stop)
-        if isinstance(csel, slice):
-            start, stop, step = csel.indices(nr)
-            assert step == 1
-            csel = slice(start, stop)
+        if rsel == slice(None):
+            rsel = slice(nr)
+        if csel == slice(None):
+            csel = slice(nc)
         return self.from_iloc(rsel, csel, df)
 
     def __format__(self, spec: str) -> str:

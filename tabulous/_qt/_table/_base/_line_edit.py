@@ -521,7 +521,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         if selop.area(_df) > 1:
             to_be_added = selop.fmt("df")
         else:
-            to_be_added = selop.resolce_indices(_df, (1, 1)).fmt_scalar("df")
+            to_be_added = selop.resolve_indices(_df, (1, 1)).fmt_scalar("df")
 
         # add the representation to the text at the proper position
         if cursor_pos == 0:
