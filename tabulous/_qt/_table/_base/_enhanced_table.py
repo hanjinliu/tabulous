@@ -135,6 +135,11 @@ class _QTableViewEnhanced(QtW.QTableView):
         # the source ranges of in-cell slot are drawed or not
         self._current_drawing_slot_ranges = None
 
+        # initialize with dummy mapping
+        from tabulous._map_model import DummySlotRefMapping
+
+        self._table_map = DummySlotRefMapping()
+
     # fmt: off
     if TYPE_CHECKING:
         def model(self) -> AbstractDataFrameModel: ...
