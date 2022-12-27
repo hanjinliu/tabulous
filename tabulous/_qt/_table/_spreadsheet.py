@@ -271,7 +271,7 @@ class QSpreadSheet(QMutableSimpleTable):
     def _apply_proxy(self):
         if self._proxy.proxy_type == "none":
             return self.tableSlice()
-        return self._proxy.apply(self.getDataFrame())
+        return self._proxy.apply(self.tableSlice(), ref=self.getDataFrame)
 
     def _get_proxy_source_index(self, r: int):
         if self._proxy.proxy_type == "none":
