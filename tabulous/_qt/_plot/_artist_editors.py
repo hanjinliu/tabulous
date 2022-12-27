@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Generic, Sequence, TypeVar
 import weakref
-from matplotlib.collections import PathCollection, LineCollection
+from matplotlib.collections import PathCollection, LineCollection, PolyCollection
 from matplotlib.container import BarContainer
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
@@ -322,6 +322,55 @@ class LineCollectionEdit(ArtistEditor[LineCollection]):
 
     def set_linewidth(self, width: float):
         self.artist.set_linewidth(width)
+
+
+@_register(PolyCollection)
+class PolyCollectionEdit(ArtistEditor[PolyCollection]):
+    def _create_widgets(self) -> list[Widget]:
+        from tabulous._qt._color_edit import ColorEdit
+
+        poly = self.artist
+
+        ec = poly.get_edgecolors()
+        if ec.shape[0] == 0:
+            ec = (0, 0, 0, 0)
+        else:
+            ec = ec[0]
+
+        _face_color = ColorEdit(
+            name="facecolor", value=fix_color(poly.get_facecolors()[0])
+        )
+        _face_color.changed.connect(self.set_facecolor)
+        _edge_color = ColorEdit(name="edgecolor", value=fix_color(ec))
+        _edge_color.changed.connect(self.set_edgecolor)
+        _hatch = ComboBox(choices=HatchStyle, name="hatch", value=HatchStyle.none)
+        _hatch.changed.connect(self.set_hatch)
+        _ls = ComboBox(choices=LineStyle, name="linestyle", value=LineStyle.solid)
+        _ls.changed.connect(self.set_linestyle)
+
+        # line width
+        _lw_edit = FloatSpinBox(
+            min=0.0, max=10.0, step=0.5, value=poly.get_linewidth(), name="linewidth"
+        )
+        _lw_edit.changed.connect(self.artist.set_linewidth)
+
+        return [_face_color, _edge_color, _ls, _lw_edit]
+
+    def set_facecolor(self, rgba):
+        self.artist.set_facecolor(_to_float_rgba(rgba))
+
+    def set_edgecolor(self, rgba):
+        self.artist.set_edgecolor(_to_float_rgba(rgba))
+
+    def set_hatch(self, hatch: HatchStyle):
+        if hatch == HatchStyle.none:
+            v = None
+        else:
+            v = hatch.value
+        self.artist.set_hatch(v)
+
+    def set_linestyle(self, ls: LineStyle):
+        self.artist.set_linestyle(ls.value)
 
 
 @_register(Polygon)

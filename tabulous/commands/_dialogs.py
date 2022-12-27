@@ -1,10 +1,9 @@
 from functools import partial
-from typing import List, Union
+from typing import List, Union, TYPE_CHECKING
 from typing_extensions import Annotated
 
 import logging
 import numpy as np
-import pandas as pd
 
 # NOTE: Axes should be imported here!
 from tabulous.widgets import TableBase, TableViewerBase
@@ -12,8 +11,8 @@ from tabulous.types import TableData
 from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
 
-from ._plot_models import PlotModel, BarModel, ScatterModel, HistModel
-
+if TYPE_CHECKING:
+    import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +34,8 @@ def concat(
     axis: int,
     ignore_index: bool = False,
 ) -> TableData:
+    import pandas as pd
+
     dfs = [viewer.tables[name].data for name in names]
     return pd.concat(dfs, axis=axis, ignore_index=ignore_index)
 
@@ -46,7 +47,7 @@ def pivot(df: TableData, index: str, columns: str, values: str) -> TableData:
 
 @dialog_factory
 def melt(df: TableData, id_vars: List[str]) -> TableData:
-    return pd.melt(df, id_vars)
+    return df.melt(id_vars=id_vars)
 
 
 @dialog_factory
@@ -63,6 +64,8 @@ def plot(
     alpha: float = 1.0,
     ref: bool = False,
 ):
+    from ._plot_models import PlotModel
+
     model = PlotModel(ax, x, y, table=table, alpha=alpha, ref=ref)
     model.add_data()
     table.plt.draw()
@@ -78,6 +81,8 @@ def bar(
     alpha: float = 1.0,
     ref: bool = False,
 ):
+    from ._plot_models import BarModel
+
     model = BarModel(ax, x, y, table=table, alpha=alpha, ref=ref)
     model.add_data()
     table.plt.draw()
@@ -94,6 +99,8 @@ def scatter(
     alpha: float = 1.0,
     ref: bool = False,
 ):
+    from ._plot_models import ScatterModel
+
     model = ScatterModel(
         ax, x, y, table=table, label_selection=label, alpha=alpha, ref=ref
     )
@@ -123,6 +130,8 @@ def errorbar(
 
     labeldata = _operate_column(label, data, default=None)
     if x is None:
+        import pandas as pd
+
         xdata = pd.Series(np.arange(len(ydata)), name="X")
     else:
         xdata = _operate_column(x, data)
@@ -155,6 +164,42 @@ def errorbar(
 
 
 @dialog_factory_mpl
+def fill_between(
+    ax: Axes,
+    x: SelectionOperator,
+    y0: SelectionOperator,
+    y1: SelectionOperator,
+    table: TableBase,
+    alpha: float = 1.0,
+    ref: bool = False,
+):
+    from ._plot_models import FillBetweenModel
+
+    model = FillBetweenModel(ax, x, y0, y1, table=table, alpha=alpha, ref=ref)
+    model.add_data()
+    table.plt.draw()
+    return True
+
+
+@dialog_factory_mpl
+def fill_betweenx(
+    ax: Axes,
+    y: SelectionOperator,
+    x0: SelectionOperator,
+    x1: SelectionOperator,
+    table: TableBase,
+    alpha: float = 1.0,
+    ref: bool = False,
+):
+    from ._plot_models import FillBetweenXModel
+
+    model = FillBetweenXModel(ax, y, x0, x1, table=table, alpha=alpha, ref=ref)
+    model.add_data()
+    table.plt.draw()
+    return True
+
+
+@dialog_factory_mpl
 def hist(
     ax: Axes,
     y: SelectionOperator,
@@ -166,6 +211,8 @@ def hist(
     density: bool = False,
     histtype: str = "bar",
 ):
+    from ._plot_models import HistModel
+
     r0, r1 = range
     if r0 or r1:
         _range = float(r0), float(r1)
@@ -324,13 +371,15 @@ __void = object()
 
 def _operate_column(
     op: Union[SelectionOperator, None],
-    data: pd.DataFrame,
+    data: "pd.DataFrame",
     default=__void,
-) -> Union[pd.Series, None]:
+) -> Union["pd.Series", None]:
     if op is None:
         if default is __void:
             raise ValueError("Wrong selection.")
         return default
+    import pandas as pd
+
     ds = op.operate(data)
     if isinstance(ds, pd.DataFrame):
         if len(ds.columns) != 1:

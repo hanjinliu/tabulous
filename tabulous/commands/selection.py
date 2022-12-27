@@ -73,6 +73,7 @@ def paste_data_tab_separated(viewer: TableViewerBase):
     """Paste from tab separated text"""
     if table := _utils.get_mutable_table(viewer, None):
         table._qwidget.pasteFromClipBoard(sep="\t")
+        return None
 
     import pandas as pd
 
