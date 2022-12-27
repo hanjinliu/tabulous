@@ -510,9 +510,20 @@ def sort_by_column_descending(viewer: TableViewerBase) -> None:
 
 
 def filter_by_column(viewer: TableViewerBase) -> None:
-    """Filter by a column."""
+    """Filter by a column"""
     table = _utils.get_table(viewer)
     index = _utils.get_selected_column(viewer)
     widget = viewer._qwidget._tablestack.openFilterDialog()
     widget.lineEdit().setText(table.columns[index])
+    return None
+
+
+def shuffle_data_column_wise(viewer: TableViewerBase) -> None:
+    """Shuffle table data columnwise"""
+    table = _utils.get_mutable_table(viewer)
+    for sel in table.selections:
+        selected_data = table._qwidget.dataShown(parse=False).iloc[sel]
+        shuffled = selected_data.sample(frac=1)
+        shuffled.reset_index()
+        table.cell[sel] = shuffled
     return None
