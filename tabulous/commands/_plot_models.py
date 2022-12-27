@@ -14,7 +14,8 @@ from tabulous._magicgui import Axes
 
 if TYPE_CHECKING:
     from matplotlib.artist import Artist
-    from matplotlib.collections import PathCollection
+    from matplotlib import path as mpath
+    from matplotlib.collections import PathCollection, PolyCollection
     from matplotlib.lines import Line2D
     from matplotlib.patches import Polygon
     from matplotlib.container import BarContainer
@@ -226,6 +227,89 @@ class XYDataModel(AbstractDataModel[_T]):
                     yield xdata_subset, ydata
 
 
+class XYYDataModel(AbstractDataModel[_T]):
+    ax: Axes
+    x_selection: SelectionOperator | None
+    y0_selection: SelectionOperator
+    y1_selection: SelectionOperator
+    table: TableBase
+
+    label_selection = None  # default
+    ref = False
+
+    def add_data(self):
+        _mpl_widget = weakref.ref(self.table.plt.gcw())
+        _artists: list[_T] = []
+        for x, y0, y1 in self._iter_data():
+            label_name = y0.name
+            artist = self.update_ax(x, y0, y1, label=label_name)
+            _artists.append(artist)
+
+        if not self.ref:
+            # if plot does not refer the table data, there's nothing to be done
+            return
+
+        _artist_refs: list[weakref.ReferenceType[_T]] = []
+        for artist in _artists:
+            _artist_refs.append(weakref.ref(artist))
+
+        plot_ref = PlotRef(_mpl_widget, _artist_refs)
+
+        def _on_data_updated():
+            # when any of the data is updated, reset the scatter offsets
+            try:
+                _plt, _artists = plot_ref.deref()
+            except RuntimeError:
+                updated = False
+            else:
+                updated = self.update_data(_artists, _plt)
+            if not updated:
+                self.table.events.data.disconnect(_on_data_updated)
+                logger.debug("Disconnecting scatter plot.")
+
+        reactive_ranges = self._get_reactive_ranges()
+        self.table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
+        return None
+
+    def _get_reactive_ranges(self) -> list[tuple[slice, slice]]:
+        data = self.table.data
+        y0slice = self.y0_selection.as_iloc_slices(data)
+        y1slice = self.y1_selection.as_iloc_slices(data)
+        reactive_ranges = [y0slice, y1slice]
+
+        if self.x_selection is not None:
+            xslice = self.x_selection.as_iloc_slices(data)
+            reactive_ranges.append(xslice)
+
+        return reactive_ranges
+
+    def _iter_data(self) -> Iterator[tuple[pd.Series, pd.Series, pd.Series]]:
+        """Iterate over the data to be plotted."""
+        data = self.table.data
+        if self.y0_selection is None or self.y1_selection is None:
+            raise ValueError("Y0 and Y1 must be set.")
+
+        y0data = get_column(self.y0_selection, data)
+        y1data = get_column(self.y1_selection, data)
+        if len(y0data) != len(y1data):
+            raise ValueError("Y0 and Y1 must have the same length.")
+        if self.x_selection is None:
+            xdata = pd.Series(np.arange(len(y0data)), name="X")
+        else:
+            xdata = get_column(self.x_selection, data)
+
+        if self.label_selection is None:
+            yield xdata, y0data, y1data
+        else:
+            ldata = get_column(self.label_selection, data)
+            lable_unique = ldata.unique()
+
+            for l in lable_unique:
+                spec = ldata == l
+                xdata_subset = xdata[spec]
+                yield xdata_subset, y0data[spec], y1data[spec]
+
+
 @dataclass
 class PlotModel(XYDataModel["Line2D"]):
     ax: Axes
@@ -259,6 +343,33 @@ class BarModel(XYDataModel["BarContainer"]):
             width = patch.get_width()
             patch.set_x(x - width / 2)
             patch.set_height(y)
+        return None
+
+
+@dataclass
+class FillBetweenModel(XYYDataModel["PolyCollection"]):
+    ax: Axes
+    x_selection: SelectionOperator | None
+    y0_selection: SelectionOperator
+    y1_selection: SelectionOperator
+    table: TableBase
+    alpha: float = 1.0
+    ref: bool = False
+
+    def update_ax(self, x, y0, y1, label=None) -> PolyCollection:
+        return self.ax.fill_between(
+            x, y0, y1, alpha=self.alpha, label=label, picker=True
+        )
+
+    def update_artist(
+        self, artist: PolyCollection, x: pd.Series, y0: pd.Series, y1: pd.Series
+    ):
+        path: mpath.Path = artist.get_paths()[0]
+        np.concatenate(
+            [np.stack([x, y0], axis=1), np.stack([x, y1], axis=1)[::-1]],
+            axis=0,
+        )
+        artist.set_paths(mpath.Path(path))
         return None
 
 

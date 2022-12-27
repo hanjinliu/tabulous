@@ -12,7 +12,7 @@ from tabulous.types import TableData
 from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
 
-from ._plot_models import PlotModel, BarModel, ScatterModel, HistModel
+from . import _plot_models as _pmodel
 
 
 logger = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ def plot(
     alpha: float = 1.0,
     ref: bool = False,
 ):
-    model = PlotModel(ax, x, y, table=table, alpha=alpha, ref=ref)
+    model = _pmodel.PlotModel(ax, x, y, table=table, alpha=alpha, ref=ref)
     model.add_data()
     table.plt.draw()
     return True
@@ -78,7 +78,7 @@ def bar(
     alpha: float = 1.0,
     ref: bool = False,
 ):
-    model = BarModel(ax, x, y, table=table, alpha=alpha, ref=ref)
+    model = _pmodel.BarModel(ax, x, y, table=table, alpha=alpha, ref=ref)
     model.add_data()
     table.plt.draw()
     return True
@@ -94,7 +94,7 @@ def scatter(
     alpha: float = 1.0,
     ref: bool = False,
 ):
-    model = ScatterModel(
+    model = _pmodel.ScatterModel(
         ax, x, y, table=table, label_selection=label, alpha=alpha, ref=ref
     )
     model.add_data()
@@ -155,6 +155,22 @@ def errorbar(
 
 
 @dialog_factory_mpl
+def fill_between(
+    ax: Axes,
+    x: SelectionOperator,
+    y0: SelectionOperator,
+    y1: SelectionOperator,
+    table: TableBase,
+    alpha: float = 1.0,
+    ref: bool = False,
+):
+    model = _pmodel.FillBetweenModel(ax, x, y0, y1, table=table, alpha=alpha, ref=ref)
+    model.add_data()
+    table.plt.draw()
+    return True
+
+
+@dialog_factory_mpl
 def hist(
     ax: Axes,
     y: SelectionOperator,
@@ -171,7 +187,7 @@ def hist(
         _range = float(r0), float(r1)
     else:
         _range = None
-    model = HistModel(
+    model = _pmodel.HistModel(
         ax,
         y,
         bins=bins,

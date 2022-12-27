@@ -451,6 +451,16 @@ class PlotInterface(Component["TableBase"]):
         self.draw()
         return out
 
+    def fill_between(self, *args, **kwargs):
+        out = self.gca().fill_between(*args, picker=True, **kwargs)
+        self.draw()
+        return out
+
+    def fill_betweenx(self, *args, **kwargs):
+        out = self.gca().fill_betweenx(*args, picker=True, **kwargs)
+        self.draw()
+        return out
+
     def xlabel(self, *args, **kwargs):
         """Call ``plt.xlabel`` on the current side figure."""
         out = self.gca().set_xlabel(*args, **kwargs)
