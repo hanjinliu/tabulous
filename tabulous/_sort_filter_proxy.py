@@ -38,6 +38,7 @@ class SortFilterProxy:
 
     @property
     def proxy_type(self) -> ProxyTypes:
+        """The proxy type."""
         return self._proxy_type
 
     def apply(

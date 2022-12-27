@@ -97,17 +97,11 @@ def show_finder_widget(viewer: TableViewerBase):
     return viewer._qwidget._tablestack.openFinderDialog()
 
 
-def sort_table(viewer: TableViewerBase):
-    """Sort table data"""
+def reset_proxy(viewer: TableViewerBase) -> None:
+    """Reset proxy (sort/filter)"""
     table = _utils.get_table(viewer)
-    out = _dialogs.sort(
-        df={"bind": table.data},
-        by={"choices": list(table.data.columns), "widget_type": "Select"},
-        ascending={"text": "Sort in ascending order."},
-        parent=viewer._qwidget,
-    )
-    if out is not None:
-        viewer.add_table(out, name=f"{table.name}-sorted")
+    table.proxy.reset()
+    return None
 
 
 def random(viewer: TableViewerBase):

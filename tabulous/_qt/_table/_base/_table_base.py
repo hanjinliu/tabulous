@@ -206,11 +206,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         # fmt: on
         return None
 
-    # fmt: off
-    if TYPE_CHECKING:
-        def handle(self, pos: int) -> QTableHandle: ...
-    # fmt: on
-
     @property
     def _qtable_view(self) -> _QTableViewEnhanced:
         raise NotImplementedError()
