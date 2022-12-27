@@ -5,30 +5,49 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from tabulous.widgets import TableBase, TableViewerBase, Table, SpreadSheet
 
+__void = object()
 
-def get_table(viewer: TableViewerBase) -> TableBase:
+
+def get_table(viewer: TableViewerBase, default=__void) -> TableBase:
     """Safely get the current table of the given viewer."""
     if table := viewer.current_table:
         return table
+    if default is not __void:
+        return default
     raise ValueError("No table found in the viewer.")
 
 
-def get_mutable_table(viewer: TableViewerBase) -> Table | SpreadSheet:
+def get_mutable_table(viewer: TableViewerBase, default=__void) -> Table | SpreadSheet:
     """Safely get the current mutable-type table of the given viewer."""
-    table = get_table(viewer)
+    try:
+        table = get_table(viewer)
+    except ValueError as e:
+        if default is not __void:
+            return default
+        raise e
+
     if table.table_type in ("Table", "SpreadSheet"):
         return table
+
+    if default is not __void:
+        return default
     from tabulous.exceptions import TableImmutableError
 
     raise TableImmutableError(f"Table {table.name!r} is immutable.")
 
 
-def get_spreadsheet(viewer: TableViewerBase) -> SpreadSheet:
+def get_spreadsheet(viewer: TableViewerBase, default=__void) -> SpreadSheet:
     """Safely get the current mutable-type table of the given viewer."""
-    table = get_table(viewer)
+    try:
+        table = get_table(viewer)
+    except ValueError as e:
+        if default is not __void:
+            return default
+        raise e
     if table.table_type == "SpreadSheet":
         return table
-
+    if default is not __void:
+        return default
     raise TypeError(f"Table {table.name!r} is not a spreadsheet.")
 
 

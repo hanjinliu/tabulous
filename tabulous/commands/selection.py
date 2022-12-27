@@ -71,7 +71,13 @@ def cut_data(viewer: TableViewerBase):
 
 def paste_data_tab_separated(viewer: TableViewerBase):
     """Paste from tab separated text"""
-    _utils.get_mutable_table(viewer)._qwidget.pasteFromClipBoard(sep="\t")
+    if table := _utils.get_mutable_table(viewer, None):
+        table._qwidget.pasteFromClipBoard(sep="\t")
+
+    import pandas as pd
+
+    viewer.add_table(pd.read_clipboard(header=None, sep="\t"))
+    return None
 
 
 def paste_data_comma_separated(viewer: TableViewerBase):
