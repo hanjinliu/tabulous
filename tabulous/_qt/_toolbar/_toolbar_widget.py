@@ -155,6 +155,13 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Home", cmds.window.toggle_console, ICON_DIR / "toggle_console.svg")
         self.registerAction("Home", cmds.window.show_command_palette, ICON_DIR / "palette.svg")
 
+        self.registerAction("Edit", cmds.selection.copy_data_tab_separated, ICON_DIR / "copy.svg")
+        self.registerAction("Edit", cmds.selection.paste_data_tab_separated, ICON_DIR / "paste.svg")
+        self.registerAction("Edit", cmds.selection.cut_data, ICON_DIR / "cut.svg")
+        self.addSeparatorToChild("Edit")
+        self.registerAction("Edit", cmds.table.undo_table, ICON_DIR / "undo.svg")
+        self.registerAction("Edit", cmds.table.redo_table, ICON_DIR / "redo.svg")
+
         self.registerAction("Table", cmds.table.copy_as_table, ICON_DIR / "copy_as_table.svg")
         self.registerAction("Table", cmds.table.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")
         self.addSeparatorToChild("Table")
