@@ -364,12 +364,11 @@ class FillBetweenModel(XYYDataModel["PolyCollection"]):
     def update_artist(
         self, artist: PolyCollection, x: pd.Series, y0: pd.Series, y1: pd.Series
     ):
-        path: mpath.Path = artist.get_paths()[0]
-        np.concatenate(
+        new_verts = np.concatenate(
             [np.stack([x, y0], axis=1), np.stack([x, y1], axis=1)[::-1]],
             axis=0,
         )
-        artist.set_paths(mpath.Path(path))
+        artist.set_verts(new_verts[np.newaxis])
         return None
 
 
