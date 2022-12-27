@@ -379,6 +379,16 @@ class FillBetweenXModel(FillBetweenModel):
             x, y0, y1, alpha=self.alpha, label=label, picker=True
         )
 
+    def update_artist(
+        self, artist: PolyCollection, x: pd.Series, y0: pd.Series, y1: pd.Series
+    ):
+        new_verts = np.concatenate(
+            [np.stack([y0, x], axis=1), np.stack([y1, x], axis=1)[::-1]],
+            axis=0,
+        )
+        artist.set_verts(new_verts[np.newaxis])
+        return None
+
 
 @dataclass
 class ScatterModel(XYDataModel["PathCollection"]):
