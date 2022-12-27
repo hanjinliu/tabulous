@@ -1,11 +1,12 @@
 from __future__ import annotations
 import re
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Literal, cast, overload
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Signal, Qt
 
 if TYPE_CHECKING:
     from .._mainwindow import _QtMainWidgetBase
+    from tabulous.widgets import TableBase, Table, SpreadSheet
 
 
 def create_temporal_line_edit(
@@ -60,7 +61,7 @@ class QCompletableLineEdit(QtW.QLineEdit):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        from ..._utils import get_config
+        from tabulous._utils import get_config
 
         table_config = get_config().table
         font = QtGui.QFont(table_config.font, table_config.font_size)
@@ -71,14 +72,28 @@ class QCompletableLineEdit(QtW.QLineEdit):
         self._history_pos: int = -1
         self._event_filter = _EventFilter(self)
         self.installEventFilter(self._event_filter)
+        self._last_key = None
 
     def currentQTable(self):
         tablestack = self._qtable_viewer._tablestack
         idx = tablestack.currentIndex()
         return tablestack.tableAtIndex(idx)
 
-    def currentPyTable(self):
+    @overload
+    def currentPyTable(self, assert_mutable: Literal[False] = False) -> TableBase:
+        ...
+
+    @overload
+    def currentPyTable(
+        self, assert_mutable: Literal[True] = False
+    ) -> Table | SpreadSheet:
+        ...
+
+    def currentPyTable(self, assert_mutable: bool = False):
         viewer = self._qtable_viewer._table_viewer
+        table = viewer.current_table
+        if assert_mutable and table.table_type not in ("Table", "SpreadSheet"):
+            raise TypeError(f"Table {table.name} is immutable.")
         return viewer.current_table
 
     def keyPressEvent(self, event: QtGui.QKeyEvent):

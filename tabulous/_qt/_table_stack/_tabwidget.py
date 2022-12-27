@@ -467,6 +467,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         ol.addWidget(_evaluator)
         ol.setTitle("Filter")
         _evaluator._line.setFocus()
+        return _evaluator
 
     def openEvalDialog(self, index: int | None = None):
         if index is not None:
@@ -485,6 +486,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         ol.addWidget(_evaluator)
         ol.setTitle("Evaluation")
         _evaluator._line.setFocus()
+        return _evaluator
 
     def _group_index_to_tab_index(self, group: QTableGroup, index: int) -> int:
         # return the global in index of `index`-th table in `group`

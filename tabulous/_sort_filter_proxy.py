@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 import numpy as np
 from enum import Enum
 from tabulous.types import ProxyType
@@ -38,15 +38,35 @@ class SortFilterProxy:
 
     @property
     def proxy_type(self) -> ProxyTypes:
+        """The proxy type."""
         return self._proxy_type
 
-    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Apply the proxy rule to the dataframe."""
+    def apply(
+        self,
+        df: pd.DataFrame,
+        ref: pd.DataFrame | Callable[[], pd.DataFrame] | None = None,
+    ) -> pd.DataFrame:
+        """
+        Apply the proxy rule to the dataframe.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The dataframe to be sliced.
+        ref : pd.DataFrame, optional
+            The reference dataframe to be used to determine the slice, if proxy is
+            callable. If not given, ``df`` will be used. If a callable is given,
+            it will be called to supply the reference dataframe.
+        """
         sl = self._obj
         if sl is None:
             return df
         if callable(sl):
-            sl_filt = sl(df)
+            if ref is None:
+                ref_input = df
+            elif callable(ref):
+                ref_input = ref()
+            sl_filt = sl(ref_input)
         else:
             sl_filt = sl
         if sl_filt.dtype.kind == "b":
@@ -79,3 +99,13 @@ class SortFilterProxy:
             else:
                 raise TypeError(f"Invalid filter type: {sl.dtype}")
         return r0
+
+    def as_indexer(self, df: pd.DataFrame) -> np.ndarray | slice:
+        sl = self._obj
+        if sl is None:
+            return slice(None)
+        if callable(sl):
+            sl_filt = sl(df)
+        else:
+            sl_filt = sl
+        return sl_filt

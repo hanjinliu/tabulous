@@ -165,7 +165,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Table", cmds.table.melt, ICON_DIR / "melt.svg")
         self.addSeparatorToChild("Table")
         self.registerAction("Table", cmds.table.show_finder_widget, ICON_DIR / "find_item.svg")
-        self.registerAction("Table", cmds.table.sort_table, ICON_DIR / "sort_table.svg")
+        self.registerAction("Table", cmds.selection.sort_by_column_ascending, ICON_DIR / "sort_table.svg")
         self.addSeparatorToChild("Table")
         self.registerAction("Table", cmds.table.random, ICON_DIR / "random.svg")
 

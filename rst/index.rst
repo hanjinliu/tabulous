@@ -23,7 +23,7 @@ Tables
    :maxdepth: 2
 
    ./main/selections
-   ./main/filter
+   ./main/sort_filter
    ./main/columnwise_settings
    ./main/table_advanced
 

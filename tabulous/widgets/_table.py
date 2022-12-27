@@ -2,9 +2,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
+import warnings
 from psygnal import SignalGroup, Signal
 
-from tabulous.widgets.filtering import FilterProxy
 from tabulous.widgets._component import (
     CellInterface,
     HorizontalHeaderInterface,
@@ -84,7 +84,6 @@ class TableBase(ABC):
     columns = HorizontalHeaderInterface()
     plt = PlotInterface()
     cellref = CellReferenceInterface()
-    filter = FilterProxy()
     proxy = ProxyInterface()
     selections = SelectionRanges()
     highlights = HighlightRanges()
@@ -254,6 +253,26 @@ class TableBase(ABC):
     def native(self) -> QBaseTable:
         """The backend widget."""
         return self._qwidget
+
+    @property
+    def filter(self):
+        """Filter applied to the table."""
+        warnings.warn(
+            "'filter' is deprecated. Please use `table.proxy.filter` API instead",
+            DeprecationWarning,
+        )
+        prx = self.proxy._get_proxy_object()
+        if prx.proxy_type == "filter":
+            return prx._obj
+        return None
+
+    @filter.setter
+    def filter(self, val):
+        warnings.warn(
+            "'filter' is deprecated. Please use `table.proxy.filter` API instead",
+            DeprecationWarning,
+        )
+        return self.proxy.filter(val)
 
     def refresh(self) -> None:
         """Refresh the table view and force table to update."""

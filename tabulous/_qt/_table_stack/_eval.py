@@ -7,6 +7,7 @@ from . import _utils
 
 class QAbstractEval(QtW.QWidget):
     _BUTTON_TEXT = ""
+    _PLACEHOLDER_TEXT = ""
 
     def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
@@ -15,6 +16,7 @@ class QAbstractEval(QtW.QWidget):
         self._btn = QtW.QPushButton(self._BUTTON_TEXT)
         self._btn.clicked.connect(self.callback)
         self._line.enterClicked.connect(self.callback)
+        self._line.setPlaceholderText(self._PLACEHOLDER_TEXT)
 
         _layout = QtW.QHBoxLayout()
         _layout.addWidget(self._label)
@@ -27,6 +29,9 @@ class QAbstractEval(QtW.QWidget):
     def callback(self):
         raise NotImplementedError()
 
+    def lineEdit(self) -> QtW.QLineEdit:
+        return self._line
+
 
 class QLiteralEvalWidget(QAbstractEval):
     """
@@ -37,19 +42,22 @@ class QLiteralEvalWidget(QAbstractEval):
     """
 
     _BUTTON_TEXT = "Eval"
+    _PLACEHOLDER_TEXT = "e.g. result = val * 3"
 
     def callback(self):
         """Evaluate the current text as a Python expression."""
         text = self._line.text()
         if text == "":
             return
-        table = self._line.currentPyTable()
+        table = self._line.currentPyTable(assert_mutable=True)
         df = table.data.eval(text, inplace=False, global_dict={"df": table.data})
-        if type(ast.parse(text.replace("@", "")).body[0]) is not ast.Assign:
+        parsed = ast.parse(text.replace("@", "")).body[0]
+        if type(parsed) is not ast.Assign:
             self._line._qtable_viewer._table_viewer.add_table(df, name=table.name)
         else:
-            table.data = df  # TODO: this is massive. Should use assignColumn().
-            table.move_iloc(None, -1)
+            name = parsed.targets[0].id
+            new_ds = df[name]
+            table.assign({name: new_ds})
         self._line.toHistory()
 
 
@@ -65,6 +73,7 @@ class QLiteralFilterWidget(QAbstractEval):
     """
 
     _BUTTON_TEXT = "Filter"
+    _PLACEHOLDER_TEXT = "e.g. length < 3.5"
 
     def callback(self):
         """Update the filter of the current table using the expression."""

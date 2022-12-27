@@ -50,11 +50,15 @@ class _EventFilter(QtCore.QObject):
     """An event filter for text completion by tab."""
 
     def eventFilter(self, o: _QTableViewEnhanced, e: QtCore.QEvent):
-        if e.type() == QtCore.QEvent.Type.KeyPress:
+        _type = e.type()
+        if _type == QtCore.QEvent.Type.KeyPress:
             e = cast(QtGui.QKeyEvent, e)
             if e.key() == Qt.Key.Key_Tab:
-                o._tab_clicked()
-                return True
+                if e.modifiers() == Qt.KeyboardModifier.NoModifier:
+                    o._tab_clicked()
+                    return True
+        elif _type == QtCore.QEvent.Type.StyleChange:
+            pass  # TODO: do something in the future
         return False
 
 

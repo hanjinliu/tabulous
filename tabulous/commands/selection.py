@@ -71,7 +71,13 @@ def cut_data(viewer: TableViewerBase):
 
 def paste_data_tab_separated(viewer: TableViewerBase):
     """Paste from tab separated text"""
-    _utils.get_mutable_table(viewer)._qwidget.pasteFromClipBoard(sep="\t")
+    if table := _utils.get_mutable_table(viewer, None):
+        table._qwidget.pasteFromClipBoard(sep="\t")
+
+    import pandas as pd
+
+    viewer.add_table(pd.read_clipboard(header=None, sep="\t"))
+    return None
 
 
 def paste_data_comma_separated(viewer: TableViewerBase):
@@ -481,4 +487,31 @@ def edit_current(viewer: TableViewerBase) -> None:
     """Edit current cell"""
     table = _utils.get_table(viewer)._qwidget
     table._qtable_view._edit_current()
+    return None
+
+
+def sort_by_column_ascending(viewer: TableViewerBase) -> None:
+    """Sort by column(s) in ascending order"""
+    table = _utils.get_table(viewer)
+    indices = _utils.get_selected_columns(viewer)
+    by = [table.columns[index] for index in indices]
+    table.proxy.sort(by=by, ascending=True)
+    return None
+
+
+def sort_by_column_descending(viewer: TableViewerBase) -> None:
+    """Sort by column(s) in decending order"""
+    table = _utils.get_table(viewer)
+    indices = _utils.get_selected_columns(viewer)
+    by = [table.columns[index] for index in indices]
+    table.proxy.sort(by=by, ascending=False)
+    return None
+
+
+def filter_by_column(viewer: TableViewerBase) -> None:
+    """Filter by a column."""
+    table = _utils.get_table(viewer)
+    index = _utils.get_selected_column(viewer)
+    widget = viewer._qwidget._tablestack.openFilterDialog()
+    widget.lineEdit().setText(table.columns[index])
     return None

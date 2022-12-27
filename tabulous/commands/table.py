@@ -23,6 +23,12 @@ def copy_as_spreadsheet(viewer: TableViewerBase):
     viewer.add_spreadsheet(table.data, name=f"{table.name}-copy")
 
 
+def copy_to_clipboard(viewer: TableViewerBase):
+    table = _utils.get_table(viewer)
+    table._qwidget.dataShown().to_clipboard()
+    return None
+
+
 def groupby(viewer: TableViewerBase):
     """Group table data by its column(s)"""
     table = _utils.get_table(viewer)
@@ -91,17 +97,11 @@ def show_finder_widget(viewer: TableViewerBase):
     return viewer._qwidget._tablestack.openFinderDialog()
 
 
-def sort_table(viewer: TableViewerBase):
-    """Sort table data"""
+def reset_proxy(viewer: TableViewerBase) -> None:
+    """Reset proxy (sort/filter)"""
     table = _utils.get_table(viewer)
-    out = _dialogs.sort(
-        df={"bind": table.data},
-        by={"choices": list(table.data.columns), "widget_type": "Select"},
-        ascending={"text": "Sort in ascending order."},
-        parent=viewer._qwidget,
-    )
-    if out is not None:
-        viewer.add_table(out, name=f"{table.name}-sorted")
+    table.proxy.reset()
+    return None
 
 
 def random(viewer: TableViewerBase):
@@ -121,12 +121,6 @@ def random(viewer: TableViewerBase):
         val = dlg.get_value(table._qwidget.model().df)
         rsl, csl, data = val
         table.cell[rsl, csl] = data
-
-
-def delete_table(viewer: TableViewerBase) -> None:
-    """Delete current table."""
-    idx = viewer.current_index
-    del viewer.tables[idx]
 
 
 def toggle_editability(viewer: TableViewerBase):
