@@ -374,6 +374,14 @@ class FillBetweenModel(XYYDataModel["PolyCollection"]):
 
 
 @dataclass
+class FillBetweenXModel(FillBetweenModel):
+    def update_ax(self, x, y0, y1, label=None) -> PolyCollection:
+        return self.ax.fill_betweenx(
+            x, y0, y1, alpha=self.alpha, label=label, picker=True
+        )
+
+
+@dataclass
 class ScatterModel(XYDataModel["PathCollection"]):
     ax: Axes
     x_selection: SelectionOperator | None

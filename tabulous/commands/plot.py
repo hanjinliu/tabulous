@@ -37,6 +37,20 @@ def fill_between(viewer: TableViewerBase):
     )
 
 
+def fill_betweenx(viewer: TableViewerBase):
+    """Run plt.fill_betweenx"""
+    table = viewer.current_table
+    if table is None:
+        return
+
+    _dialogs.fill_betweenx(
+        ax={"bind": table.plt.gca()},
+        table={"bind": table},
+        alpha={"min": 0, "max": 1, "step": 0.05},
+        parent=viewer._qwidget,
+    )
+
+
 def errorbar(viewer: TableViewerBase):
     """Run plt.errorbar"""
     table = viewer.current_table
