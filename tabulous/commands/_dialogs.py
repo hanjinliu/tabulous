@@ -314,6 +314,42 @@ def boxenplot(
     return True
 
 
+@dialog_factory_mpl
+def violinplot(
+    ax: Axes,
+    x: str,
+    y: str,
+    table: TableBase,
+    csel,
+    hue: str = None,
+    dodge: bool = False,
+):
+    import seaborn as sns
+
+    data = table.data[csel]
+    sns.violinplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax, picker=True)
+    table.plt.draw()
+    return True
+
+
+@dialog_factory_mpl
+def stripplot(
+    ax: Axes,
+    x: str,
+    y: str,
+    table: TableBase,
+    csel,
+    hue: str = None,
+    dodge: bool = False,
+):
+    import seaborn as sns
+
+    data = table.data[csel]
+    sns.stripplot(x=x, y=y, data=data, hue=hue, dodge=dodge, ax=ax, picker=True)
+    table.plt.draw()
+    return True
+
+
 @dialog_factory
 def choose_one(choice: str):
     return choice

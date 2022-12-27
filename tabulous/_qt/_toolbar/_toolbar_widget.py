@@ -18,6 +18,16 @@ if TYPE_CHECKING:
 ICON_DIR = Path(__file__).parent.parent / "_icons"
 
 
+class QMoreToolButton(QtW.QToolButton):
+    """The tool button that shows the menu when clicked."""
+
+    def __init__(self, parent: QtW.QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setStyleSheet("QToolButton::menu-indicator { image: none; }")
+        self.setIcon(QColoredSVGIcon.fromfile(ICON_DIR / "more.svg"))
+        self.setPopupMode(QtW.QToolButton.ToolButtonPopupMode.InstantPopup)
+
+
 class QSubToolBar(QtW.QToolBar, QHasToolTip):
     """The child toolbar widget."""
 
@@ -31,6 +41,7 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
             button.setIcon(icon.colored(color))
 
     def appendAction(self, f: Callable, qicon: QColoredSVGIcon):
+        """Add function ``f`` to the toolbar with the given icon."""
         action = self.addAction(qicon, "")
         action.triggered.connect(f)
         if isinstance(f, partial):
@@ -40,6 +51,28 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
         action.setToolTip(doc)
         btn = self.widgetForAction(action)
         self._button_and_icon.append((btn, qicon))
+        return
+
+    def appendMenuAction(self, f: Callable, name: str):
+        btn, _ = self._button_and_icon[-1]
+        if not isinstance(btn, QMoreToolButton):
+            btn = QMoreToolButton()
+
+            self.addWidget(btn)
+            self._button_and_icon.append((btn, btn.icon()))
+
+        menu = btn.menu()
+        if menu is None:
+            menu = QtW.QMenu(self)
+            btn.setMenu(menu)
+
+        action = menu.addAction(name)
+        action.triggered.connect(f)
+        if isinstance(f, partial):
+            doc = f.func.__doc__
+        else:
+            doc = f.__doc__
+        action.setToolTip(doc)
         return
 
     def toolTipPosition(self, index: int) -> QtCore.QPoint:
@@ -137,6 +170,17 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         toolbar = self._child_widgets[tabname]
         return toolbar.addSeparator()
 
+    def registerMenuAction(self, tabname: str, f: Callable, name: str | None = None):
+        """Register a menu in tab `tabname`."""
+        toolbar = self._child_widgets[tabname]
+        if name is None:
+            name = f.__name__.replace("_", " ").capitalize()
+
+        fn = lambda: f(self.viewer)
+        fn.__doc__ = f.__doc__
+        toolbar.appendMenuAction(fn, name)
+        return None
+
     def setToolButtonColor(self, color: str):
         """Update all the tool button colors."""
         for toolbar in self._child_widgets.values():
@@ -196,13 +240,18 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
         self.registerAction("Plot", cmds.plot.plot, ICON_DIR / "plot.svg")
         self.registerAction("Plot", cmds.plot.scatter, ICON_DIR / "scatter.svg")
-        self.registerAction("Plot", cmds.plot.errorbar, ICON_DIR / "errorbar.svg")
         self.registerAction("Plot", cmds.plot.hist, ICON_DIR / "hist.svg")
+        self.registerMenuAction("Plot", cmds.plot.bar, name="Run plt.bar")
+        self.registerMenuAction("Plot", cmds.plot.errorbar, name="Run plt.errorbar")
+        self.registerMenuAction("Plot", cmds.plot.fill_between, name="Run plt.fill_between")
+        self.registerMenuAction("Plot", cmds.plot.fill_betweenx, name="Run plt.fill_betweenx")
         self.addSeparatorToChild("Plot")
         self.registerAction("Plot", cmds.plot.swarmplot, ICON_DIR / "swarmplot.svg")
         self.registerAction("Plot", cmds.plot.barplot, ICON_DIR / "barplot.svg")
         self.registerAction("Plot", cmds.plot.boxplot, ICON_DIR / "boxplot.svg")
-        self.registerAction("Plot", cmds.plot.boxenplot, ICON_DIR / "boxenplot.svg")
+        self.registerMenuAction("Plot", cmds.plot.boxenplot, name="Run sns.boxenplot")
+        self.registerMenuAction("Plot", cmds.plot.stripplot, name="Run sns.stripplot")
+        self.registerMenuAction("Plot", cmds.plot.violinplot, name="Run sns.violinplot")
         self.addSeparatorToChild("Plot")
         self.registerAction("Plot", cmds.plot.new_figure, ICON_DIR / "new_figure.svg")
 
