@@ -14,7 +14,6 @@ from tabulous._magicgui import Axes
 
 if TYPE_CHECKING:
     from matplotlib.artist import Artist
-    from matplotlib import path as mpath
     from matplotlib.collections import PathCollection, PolyCollection
     from matplotlib.lines import Line2D
     from matplotlib.patches import Polygon

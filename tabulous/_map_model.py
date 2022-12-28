@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from typing import (
+    Any,
     Iterable,
     Iterator,
     MutableMapping,
@@ -204,15 +205,9 @@ class SlotRefMapping(MutableMapping[Index, InCellRangedSlot], TableAnchorBase):
 
     def insert_rows(self, row: int, count: int):
         """Insert rows and update indices."""
-        # for idx, slot in self.items():
-        #     slot.insert_rows(row, count)
-        # return None
 
     def insert_columns(self, col: int, count: int):
         """Insert columns and update indices."""
-        # for idx, slot in self.items():
-        #     slot.insert_columns(col, count)
-        # return None
 
     def remove_rows(self, row: int, count: int):
         """Remove items that are in the given row range."""
@@ -235,3 +230,42 @@ class SlotRefMapping(MutableMapping[Index, InCellRangedSlot], TableAnchorBase):
                 rem.append(slot)
         self._remove_multiple(rem)
         return None
+
+
+class DummySlotRefMapping(MutableMapping[Index, Any], TableAnchorBase):
+    def table(self) -> TableBase:
+        raise RuntimeError("This is dummy mapping")
+
+    def __getitem__(self, key: Index) -> InCellRangedSlot:
+        raise KeyError(key)
+
+    def get_by_dest(self, key: Index, default=None) -> InCellRangedSlot:
+        return default
+
+    def __setitem__(self, key: Index, slot: InCellRangedSlot) -> None:
+        raise KeyError(key)
+
+    def __delitem__(self, key: Index) -> None:
+        raise KeyError(key)
+
+    def __iter__(self) -> Iterator[Index]:
+        raise StopIteration
+
+    def __len__(self) -> int:
+        return 0
+
+    @contextmanager
+    def lock_pos(self, pos: Index):
+        yield
+
+    def insert_rows(self, row: int, count: int):
+        """Insert rows and update indices."""
+
+    def insert_columns(self, col: int, count: int):
+        """Insert columns and update indices."""
+
+    def remove_rows(self, row: int, count: int):
+        """Remove items that are in the given row range."""
+
+    def remove_columns(self, col: int, count: int):
+        """Remove items that are in the given column range."""

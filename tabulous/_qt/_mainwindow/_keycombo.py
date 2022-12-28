@@ -19,16 +19,18 @@ def _(self: _QtMainWidgetBase):
 
 
 @QMainWindow._keymap.bind("Alt, H", index=0, desc="Move focus to `Home` menu tab.")
-@QMainWindow._keymap.bind("Alt, T", index=1, desc="Move focus to `Table` menu tab.")
-@QMainWindow._keymap.bind("Alt, A", index=2, desc="Move focus to `Analyze` menu tab.")
-@QMainWindow._keymap.bind("Alt, V", index=3, desc="Move focus to `View` menu tab.")
-@QMainWindow._keymap.bind("Alt, P", index=4, desc="Move focus to `Plot` menu tab.")
+@QMainWindow._keymap.bind("Alt, E", index=1, desc="Move focus to `Edit` menu tab.")
+@QMainWindow._keymap.bind("Alt, T", index=2, desc="Move focus to `Table` menu tab.")
+@QMainWindow._keymap.bind("Alt, A", index=3, desc="Move focus to `Analyze` menu tab.")
+@QMainWindow._keymap.bind("Alt, V", index=4, desc="Move focus to `View` menu tab.")
+@QMainWindow._keymap.bind("Alt, P", index=5, desc="Move focus to `Plot` menu tab.")
 def _(self: QMainWindow, index: int):
     self._toolbar.setCurrentIndex(index)
     self._toolbar.currentToolBar().showTabTooltips()
 
 
 @QMainWindow._keymap.bind("Alt, H, {}")
+@QMainWindow._keymap.bind("Alt, E, {}")
 @QMainWindow._keymap.bind("Alt, T, {}")
 @QMainWindow._keymap.bind("Alt, A, {}")
 @QMainWindow._keymap.bind("Alt, V, {}")

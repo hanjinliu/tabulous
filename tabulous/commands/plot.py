@@ -103,6 +103,16 @@ def boxenplot(viewer: TableViewerBase):
     return _plot_sns(viewer, _dialogs.boxenplot)
 
 
+def violinplot(viewer: TableViewerBase):
+    """Run sns.violinplot"""
+    return _plot_sns(viewer, _dialogs.violinplot)
+
+
+def stripplot(viewer: TableViewerBase):
+    """Run sns.stripplot"""
+    return _plot_sns(viewer, _dialogs.stripplot)
+
+
 def new_figure(viewer: TableViewerBase):
     """New figure canvas"""
     table = viewer.current_table
