@@ -128,7 +128,7 @@ def round(viewer: TableViewerBase):
     table = _utils.get_mutable_table(viewer)
     from magicgui.widgets import request_values
 
-    out = request_values({"decimals": int})
+    out = request_values({"decimals": int}, parent=viewer._qwidget)
     if out is None:
         return
     decimals: int = out["decimals"]

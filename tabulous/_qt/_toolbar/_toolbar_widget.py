@@ -10,6 +10,7 @@ from tabulous._qt._svg import QColoredSVGIcon
 from tabulous._qt._multitips import QHasToolTip
 from tabulous import commands as cmds
 
+from ._toolbutton import QColoredToolButton, QMoreToolButton
 
 if TYPE_CHECKING:
     from tabulous._qt._mainwindow import _QtMainWidgetBase
@@ -18,49 +19,39 @@ if TYPE_CHECKING:
 ICON_DIR = Path(__file__).parent.parent / "_icons"
 
 
-class QMoreToolButton(QtW.QToolButton):
-    """The tool button that shows the menu when clicked."""
-
-    def __init__(self, parent: QtW.QWidget | None = None) -> None:
-        super().__init__(parent)
-        self.setStyleSheet("QToolButton::menu-indicator { image: none; }")
-        self.setIcon(QColoredSVGIcon.fromfile(ICON_DIR / "more.svg"))
-        self.setPopupMode(QtW.QToolButton.ToolButtonPopupMode.InstantPopup)
-        self.setToolTip("More ...")
-
-
 class QSubToolBar(QtW.QToolBar, QHasToolTip):
     """The child toolbar widget."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._button_and_icon: list[tuple[QtW.QToolButton, QColoredSVGIcon]] = []
+        self._buttons: list[QColoredToolButton] = []
 
     def updateIconColor(self, color):
         """Update all the icons with the given color."""
-        for button, icon in self._button_and_icon:
-            button.setIcon(icon.colored(color))
+        for button in self._buttons:
+            button.updateColor(color)
 
     def appendAction(self, f: Callable, qicon: QColoredSVGIcon):
         """Add function ``f`` to the toolbar with the given icon."""
-        action = self.addAction(qicon, "")
-        action.triggered.connect(f)
+        btn = QColoredToolButton()
+        self.addWidget(btn)
+        btn.setIcon(qicon)
+        btn.clicked.connect(f)
         if isinstance(f, partial):
             doc = f.func.__doc__
         else:
             doc = f.__doc__
-        action.setToolTip(doc)
-        btn = self.widgetForAction(action)
-        self._button_and_icon.append((btn, qicon))
+        btn.setToolTip(doc)
+        self._buttons.append(btn)
         return
 
     def appendMenuAction(self, f: Callable, name: str):
-        btn, _ = self._button_and_icon[-1]
+        btn = self._buttons[-1]
         if not isinstance(btn, QMoreToolButton):
             btn = QMoreToolButton()
 
             self.addWidget(btn)
-            self._button_and_icon.append((btn, btn.icon()))
+            self._buttons.append(btn)
 
         menu = btn.menu()
         if menu is None:
@@ -77,22 +68,22 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
         return
 
     def toolTipPosition(self, index: int) -> QtCore.QPoint:
-        btn, _ = self._button_and_icon[index]
+        btn = self._buttons[index]
         pos = btn.pos()
         pos.setY(pos.y() + btn.height() // 2)
         return pos
 
     def toolTipCount(self) -> int:
-        return len(self._button_and_icon)
+        return len(self._buttons)
 
     def clickButton(self, index: int, *, ignore_index_error: bool = True):
         """Emulate a click on the button at the given index."""
-        if index < 0 or index >= len(self._button_and_icon):
+        if index < 0 or index >= len(self._buttons):
             if ignore_index_error:
                 return
             else:
                 raise IndexError("Index out of range")
-        btn, _ = self._button_and_icon[index]
+        btn = self._buttons[index]
         return btn.click()
 
 
