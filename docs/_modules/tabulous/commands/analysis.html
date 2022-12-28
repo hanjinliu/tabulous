@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tabulous.commands.analysis &mdash; tabulous 0.4.0rc0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> tabulous
+          </a>
+              <div class="version">
+                0.4.0rc0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/user_interface.html">User Interface</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/selections.html">Table Selections and Highlights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/sort_filter.html">Sort/Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/columnwise_settings.html">Column-wise Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/table_advanced.html">Working with Tables</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidoc/modules.html">tabulous</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">tabulous</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../commands.html">tabulous.commands</a> &raquo;</li>
+      <li>tabulous.commands.analysis</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for tabulous.commands.analysis</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_dialogs</span><span class="p">,</span> <span class="n">_utils</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tabulous.widgets._mainwindow</span> <span class="kn">import</span> <span class="n">TableViewerBase</span>
+
+<span class="n">SUMMARY_CHOICES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="s2">&quot;sem&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="summarize_table"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.analysis.summarize_table">[docs]</a><span class="k">def</span> <span class="nf">summarize_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summarize table data&quot;&quot;&quot;</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">summarize_table</span><span class="p">(</span>
+        <span class="n">df</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;bind&quot;</span><span class="p">:</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">},</span>
+        <span class="n">methods</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;choices&quot;</span><span class="p">:</span> <span class="n">SUMMARY_CHOICES</span><span class="p">,</span> <span class="s2">&quot;widget_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Select&quot;</span><span class="p">},</span>
+        <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">df</span><span class="p">,</span> <span class="n">new</span> <span class="o">=</span> <span class="n">out</span>
+        <span class="k">if</span> <span class="n">new</span><span class="p">:</span>
+            <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-summary&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">tabulous._qt._table</span> <span class="kn">import</span> <span class="n">QTableLayer</span>
+
+            <span class="n">qtable</span> <span class="o">=</span> <span class="n">QTableLayer</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">)</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">add_side_widget</span><span class="p">(</span><span class="n">qtable</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;summary&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="show_filter_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.analysis.show_filter_widget">[docs]</a><span class="k">def</span> <span class="nf">show_filter_widget</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply filter to the table data&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_tablestack</span><span class="o">.</span><span class="n">openFilterDialog</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="show_eval_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.analysis.show_eval_widget">[docs]</a><span class="k">def</span> <span class="nf">show_eval_widget</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Evaluate a Python expression&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_tablestack</span><span class="o">.</span><span class="n">openEvalDialog</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="show_optimizer_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.analysis.show_optimizer_widget">[docs]</a><span class="k">def</span> <span class="nf">show_optimizer_widget</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Open optimizer widget&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">._optimizer</span> <span class="kn">import</span> <span class="n">OptimizerWidget</span>
+
+    <span class="n">tablestack</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_tablestack</span>
+    <span class="n">ol</span> <span class="o">=</span> <span class="n">tablestack</span><span class="o">.</span><span class="n">_overlay</span>
+    <span class="n">ol</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="n">ol</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">OptimizerWidget</span><span class="o">.</span><span class="n">new</span><span class="p">()</span><span class="o">.</span><span class="n">native</span><span class="p">)</span>
+    <span class="n">ol</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="s2">&quot;Optimization&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="show_stats_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.analysis.show_stats_widget">[docs]</a><span class="k">def</span> <span class="nf">show_stats_widget</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Open scipy.stats widget&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">._statistics</span> <span class="kn">import</span> <span class="n">StatsTestDialog</span>
+
+    <span class="n">dlg</span> <span class="o">=</span> <span class="n">StatsTestDialog</span><span class="p">()</span>
+    <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setParent</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">,</span> <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">windowFlags</span><span class="p">())</span>
+    <span class="n">dlg</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="show_sklearn_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.analysis.show_sklearn_widget">[docs]</a><span class="k">def</span> <span class="nf">show_sklearn_widget</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Open scikit-learn widget&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">._sklearn</span> <span class="kn">import</span> <span class="n">SkLearnContainer</span>
+
+    <span class="n">tablestack</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_tablestack</span>
+    <span class="n">ol</span> <span class="o">=</span> <span class="n">tablestack</span><span class="o">.</span><span class="n">_overlay</span>
+    <span class="n">ol</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="n">ol</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">SkLearnContainer</span><span class="o">.</span><span class="n">new</span><span class="p">()</span><span class="o">.</span><span class="n">native</span><span class="p">)</span>
+    <span class="n">ol</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="s2">&quot;scikit-learn analysis&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Hanjin Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

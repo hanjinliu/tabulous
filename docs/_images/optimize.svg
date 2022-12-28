@@ -1,0 +1,13 @@
+<svg width="94" height="83"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden">
+    <defs>
+        <clipPath id="clip0">
+            <rect x="452" y="368" width="94" height="83"/>
+        </clipPath>
+    </defs>
+    <g clip-path="url(#clip0)" transform="translate(-452 -368)">
+        <path d="M456 384.503C463.182 376.228 470.365 367.953 477.14 374.176 483.916 380.399 489.065 419.191 496.654 421.839 504.243 424.486 514.949 393.771 522.673 390.064 530.397 386.356 536.699 392.976 543 399.596" stroke="#000000" stroke-width="8" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+        <path d="M490.5 450.5 497 431.5 503.5 450.5Z" stroke="#000000" stroke-width="1.33333" stroke-miterlimit="8" fill="#000000" fill-rule="evenodd"/>
+    </g>
+</svg>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous._magicgui &mdash; tabulous 0.3.1 documentation</title>
+  <title>tabulous._magicgui &mdash; tabulous 0.4.0rc0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -27,7 +27,7 @@
             <a href="../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.3.1
+                0.4.0rc0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -43,7 +43,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../main/selections.html">Table Selections and Highlights</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../main/filter.html">Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/sort_filter.html">Sort/Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../main/columnwise_settings.html">Column-wise Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../main/table_advanced.html">Working with Tables</a></li>
 </ul>
@@ -218,14 +218,13 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot use </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span><span class="si">}</span><span class="s2"> as an input.&quot;</span><span class="p">)</span>
     <span class="n">qwidget</span><span class="p">:</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span>
-    <span class="n">parent</span> <span class="o">=</span> <span class="n">qwidget</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
-    <span class="k">while</span> <span class="p">(</span><span class="n">parent</span> <span class="o">:=</span> <span class="n">qwidget</span><span class="o">.</span><span class="n">parent</span><span class="p">())</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">qwidget</span> <span class="o">=</span> <span class="n">parent</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qwidget</span><span class="p">,</span> <span class="n">_QtMainWidgetBase</span><span class="p">):</span>
             <span class="n">qwidget</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">_QtMainWidgetBase</span><span class="p">,</span> <span class="n">qwidget</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">qwidget</span><span class="o">.</span><span class="n">_table_viewer</span>
-
-    <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">qwidget</span> <span class="o">=</span> <span class="n">qwidget</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">qwidget</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
 
 <span class="k">def</span> <span class="nf">find_current_table</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span> <span class="o">|</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableBase</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -503,9 +502,20 @@
     <span class="k">def</span> <span class="nf">_runner</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">param_options</span><span class="p">):</span>
         <span class="n">dlg</span> <span class="o">=</span> <span class="n">magicgui</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="o">**</span><span class="n">param_options</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">._qt._plot</span> <span class="kn">import</span> <span class="n">QtMplPlotCanvas</span>
+        <span class="kn">from</span> <span class="nn">tabulous._qt._plot</span> <span class="kn">import</span> <span class="n">QtMplPlotCanvas</span>
 
-        <span class="n">plt</span> <span class="o">=</span> <span class="n">QtMplPlotCanvas</span><span class="p">()</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">bg</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">viewer</span> <span class="o">:=</span> <span class="n">find_table_viewer_ancestor</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_white_background</span><span class="p">:</span>
+                    <span class="n">style</span> <span class="o">=</span> <span class="s2">&quot;dark_background&quot;</span>
+                <span class="n">bg</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">backgroundColor</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+
+        <span class="n">plt</span> <span class="o">=</span> <span class="n">QtMplPlotCanvas</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bg</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">set_background_color</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+
         <span class="n">dlg</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">layout</span><span class="p">()</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">plt</span><span class="p">)</span>
         <span class="n">dlg</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">400</span>
         <span class="n">dlg</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">280</span>

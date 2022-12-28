@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Interface &mdash; tabulous 0.3.1 documentation</title>
+  <title>User Interface &mdash; tabulous 0.4.0rc0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.3.1
+                0.4.0rc0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -58,7 +58,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#toolbar">Toolbar</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#file-menu">File menu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#home-menu">Home menu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#edit-menu">Edit menu</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#table-menu">Table menu</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#analyze-menu">Analyze menu</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#view-menu">View menu</a></li>
@@ -70,7 +71,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections and Highlights</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sort_filter.html">Sort/Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="columnwise_settings.html">Column-wise Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Working with Tables</a></li>
 </ul>
@@ -123,11 +124,12 @@
 </li>
 <li><p><a class="reference internal" href="#toolbar" id="id6">Toolbar</a></p>
 <ul>
-<li><p><a class="reference internal" href="#file-menu" id="id7">File menu</a></p></li>
-<li><p><a class="reference internal" href="#table-menu" id="id8">Table menu</a></p></li>
-<li><p><a class="reference internal" href="#analyze-menu" id="id9">Analyze menu</a></p></li>
-<li><p><a class="reference internal" href="#view-menu" id="id10">View menu</a></p></li>
-<li><p><a class="reference internal" href="#plot-menu" id="id11">Plot menu</a></p></li>
+<li><p><a class="reference internal" href="#home-menu" id="id7">Home menu</a></p></li>
+<li><p><a class="reference internal" href="#edit-menu" id="id8">Edit menu</a></p></li>
+<li><p><a class="reference internal" href="#table-menu" id="id9">Table menu</a></p></li>
+<li><p><a class="reference internal" href="#analyze-menu" id="id10">Analyze menu</a></p></li>
+<li><p><a class="reference internal" href="#view-menu" id="id11">View menu</a></p></li>
+<li><p><a class="reference internal" href="#plot-menu" id="id12">Plot menu</a></p></li>
 </ul>
 </li>
 </ul>
@@ -487,8 +489,8 @@ changed. This is the fastest way to obtain the values in the table.</p>
 in Mac)  to change focus to the toolbar, and follow the tooltip labels to find the
 appropriate key combo to get to the button you want (similar to Microsoft Office).</p>
 </div>
-<section id="file-menu">
-<h3><a class="toc-backref" href="#id7">File menu</a><a class="headerlink" href="#file-menu" title="Permalink to this headline">¶</a></h3>
+<section id="home-menu">
+<h3><a class="toc-backref" href="#id7">Home menu</a><a class="headerlink" href="#home-menu" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/open_table.svg"><img alt="open_table" src="../_images/open_table.svg" width="20em" /></a> … Open a table data as a <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> from a file using a
 file dialog.</p></li>
@@ -496,46 +498,60 @@ file dialog.</p></li>
 file using a file dialog.</p></li>
 <li><p><a class="reference internal" href="../_images/save_table.svg"><img alt="save_table" src="../_images/save_table.svg" width="20em" /></a> … Save the currently active table data using a file dialog.</p></li>
 <li><p><a class="reference internal" href="../_images/open_sample.svg"><img alt="open_sample" src="../_images/open_sample.svg" width="20em" /></a> … Open a sample data from <code class="docutils literal notranslate"><span class="pre">seaborn</span></code>.</p></li>
+<li><p><a class="reference internal" href="../_images/toggle_console.svg"><img alt="toggle_console" src="../_images/toggle_console.svg" width="20em" /></a> … Toggle the console widget visibility.</p></li>
+<li><p><a class="reference internal" href="../_images/palette.svg"><img alt="palette" src="../_images/palette.svg" width="20em" /></a> … Open the command palette.</p></li>
+</ul>
+</section>
+<section id="edit-menu">
+<h3><a class="toc-backref" href="#id8">Edit menu</a><a class="headerlink" href="#edit-menu" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../_images/copy.svg"><img alt="copy" src="../_images/copy.svg" width="20em" /></a> … Copy the selected cells to the clipboard.</p></li>
+<li><p><a class="reference internal" href="../_images/paste.svg"><img alt="paste" src="../_images/paste.svg" width="20em" /></a> … Paste the clipboard data to the selected cells.</p></li>
+<li><p><a class="reference internal" href="../_images/cut.svg"><img alt="cut" src="../_images/cut.svg" width="20em" /></a> … Cut the selected cells to the clipboard.</p></li>
+<li><p><a class="reference internal" href="../_images/undo.svg"><img alt="undo" src="../_images/undo.svg" width="20em" /></a> … Undo the last table action.</p></li>
+<li><p><a class="reference internal" href="../_images/redo.svg"><img alt="redo" src="../_images/redo.svg" width="20em" /></a> … Redo the last table action.</p></li>
 </ul>
 </section>
 <section id="table-menu">
-<h3><a class="toc-backref" href="#id8">Table menu</a><a class="headerlink" href="#table-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id9">Table menu</a><a class="headerlink" href="#table-menu" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/copy_as_table.svg"><img alt="copy_as_table" src="../_images/copy_as_table.svg" width="20em" /></a> … Make a copy of the active table as a <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code>.</p></li>
 <li><p><a class="reference internal" href="../_images/copy_as_spreadsheet.svg"><img alt="copy_as_spreadsheet" src="../_images/copy_as_spreadsheet.svg" width="20em" /></a> … Make a copy of the active table as a <code class="xref py py-class docutils literal notranslate"><span class="pre">SpreadSheet</span></code>.</p></li>
 <li><p><a class="reference internal" href="../_images/groupby.svg"><img alt="groupby" src="../_images/groupby.svg" width="20em" /></a> … Call <code class="xref py py-meth docutils literal notranslate"><span class="pre">pd.groupby()</span></code> on the active table.</p></li>
 <li><p><a class="reference internal" href="../_images/switch_header.svg"><img alt="switch_header" src="../_images/switch_header.svg" width="20em" /></a> … Switch the column header and the first row.</p></li>
-<li><p><a class="reference internal" href="../_images/concat.svg"><img alt="concat" src="../_images/concat.svg" width="20em" /></a> … Call <code class="xref py py-meth docutils literal notranslate"><span class="pre">pd.concat()</span></code> on the active table.</p></li>
 <li><p><a class="reference internal" href="../_images/pivot.svg"><img alt="pivot" src="../_images/pivot.svg" width="20em" /></a> … Call <code class="xref py py-meth docutils literal notranslate"><span class="pre">pd.pivot()</span></code> on the active table.</p></li>
 <li><p><a class="reference internal" href="../_images/melt.svg"><img alt="melt" src="../_images/melt.svg" width="20em" /></a> … Call <code class="xref py py-meth docutils literal notranslate"><span class="pre">pd.melt()</span></code> on the active table.</p></li>
-<li><p><a class="reference internal" href="../_images/find_item.svg"><img alt="find_item" src="../_images/find_item.svg" width="20em" /></a> … Open the finder widget. Several item matching mode (match by text,
-match by value, partial match and regular expression) are available.</p></li>
-<li><p><a class="reference internal" href="../_images/sort_table.svg"><img alt="sort_table" src="../_images/sort_table.svg" width="20em" /></a> … Sort table by a column.</p></li>
 </ul>
 </section>
 <section id="analyze-menu">
-<h3><a class="toc-backref" href="#id9">Analyze menu</a><a class="headerlink" href="#analyze-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id10">Analyze menu</a><a class="headerlink" href="#analyze-menu" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/summarize_table.svg"><img alt="summarize_table" src="../_images/summarize_table.svg" width="20em" /></a> … Summarize table data by mean, standard deviation etc.</p></li>
 <li><p><a class="reference internal" href="../_images/eval.svg"><img alt="eval" src="../_images/eval.svg" width="20em" /></a> … Evaluate a string expression on the table data. Essentially equivalent
 to call <code class="xref py py-meth docutils literal notranslate"><span class="pre">pd.eval()</span></code>.</p></li>
+<li><p><a class="reference internal" href="../_images/find_item.svg"><img alt="find_item" src="../_images/find_item.svg" width="20em" /></a> … Open the finder widget. Several item matching mode (match by text,
+match by value, partial match and regular expression) are available.</p></li>
+<li><p><a class="reference internal" href="../_images/sort_table.svg"><img alt="sort_table" src="../_images/sort_table.svg" width="20em" /></a> … Sort table by a column.</p></li>
 <li><p><a class="reference internal" href="../_images/filter.svg"><img alt="filter" src="../_images/filter.svg" width="20em" /></a> … Filter table data by a string expression.</p></li>
+<li><p><a class="reference internal" href="../_images/optimize.svg"><img alt="optimize" src="../_images/optimize.svg" width="20em" /></a> … Minimize a loss using <code class="xref py py-mod docutils literal notranslate"><span class="pre">scipy.optimize</span></code>.</p></li>
 <li><p><a class="reference internal" href="../_images/stats_test.svg"><img alt="stats" src="../_images/stats_test.svg" width="20em" /></a> … Perform statistical tests on the table data using <code class="xref py py-mod docutils literal notranslate"><span class="pre">scipy.stats</span></code>.</p></li>
 <li><p><a class="reference internal" href="../_images/sklearn_analysis.svg"><img alt="sklearn" src="../_images/sklearn_analysis.svg" width="20em" /></a> … Perform clustering, regression or decomposition on the table data using <code class="xref py py-mod docutils literal notranslate"><span class="pre">scikit-learn</span></code>.</p></li>
-<li><p><a class="reference internal" href="../_images/toggle_console.svg"><img alt="toggle_console" src="../_images/toggle_console.svg" width="20em" /></a> … Toggle the console widget visibility.</p></li>
 </ul>
 </section>
 <section id="view-menu">
-<h3><a class="toc-backref" href="#id10">View menu</a><a class="headerlink" href="#view-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id11">View menu</a><a class="headerlink" href="#view-menu" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/view_popup.svg"><img alt="view_popup" src="../_images/view_popup.svg" width="20em" /></a> … Popup current active table.</p></li>
 <li><p><a class="reference internal" href="../_images/view_dual_h.svg"><img alt="view_dual_h" src="../_images/view_dual_h.svg" width="20em" /></a> … Activate dual view mode (horizontal).</p></li>
 <li><p><a class="reference internal" href="../_images/view_dual_v.svg"><img alt="view_dual_v" src="../_images/view_dual_v.svg" width="20em" /></a> … Activate dual view mode (vertical).</p></li>
 <li><p><a class="reference internal" href="../_images/view_reset.svg"><img alt="view_reset" src="../_images/view_reset.svg" width="20em" /></a> … Reset view mode.</p></li>
+<li><p><a class="reference internal" href="../_images/tile.svg"><img alt="tile" src="../_images/tile.svg" width="20em" /></a> … Tile tabs.</p></li>
+<li><p><a class="reference internal" href="../_images/untile.svg"><img alt="untile" src="../_images/untile.svg" width="20em" /></a> … Untile tabs.</p></li>
+<li><p><a class="reference internal" href="../_images/switch_layout.svg"><img alt="switch_layout" src="../_images/switch_layout.svg" width="20em" /></a> … Switch the layout of the side area.</p></li>
 </ul>
 </section>
 <section id="plot-menu">
-<h3><a class="toc-backref" href="#id11">Plot menu</a><a class="headerlink" href="#plot-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id12">Plot menu</a><a class="headerlink" href="#plot-menu" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/plot.svg"><img alt="plot" src="../_images/plot.svg" width="20em" /></a> … Plot table data by <code class="xref py py-meth docutils literal notranslate"><span class="pre">plt.plot()</span></code>.</p></li>
 <li><p><a class="reference internal" href="../_images/scatter.svg"><img alt="scatter" src="../_images/scatter.svg" width="20em" /></a> … Plot table data by <code class="xref py py-meth docutils literal notranslate"><span class="pre">plt.scatter()</span></code>.</p></li>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.types &mdash; tabulous 0.3.1 documentation</title>
+  <title>tabulous.types &mdash; tabulous 0.4.0rc0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -27,7 +27,7 @@
             <a href="../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.3.1
+                0.4.0rc0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -43,7 +43,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../main/selections.html">Table Selections and Highlights</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../main/filter.html">Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/sort_filter.html">Sort/Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../main/columnwise_settings.html">Column-wise Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../main/table_advanced.html">Working with Tables</a></li>
 </ul>
@@ -166,7 +166,7 @@
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> cannot be instantiated.&quot;</span><span class="p">)</span>
 
 
-<span class="n">FilterType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="s2">&quot;pd.DataFrame&quot;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+<span class="n">ProxyType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="s2">&quot;pd.DataFrame&quot;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
 
 
 <span class="k">class</span> <span class="nc">TabPosition</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
@@ -274,6 +274,18 @@
 <span class="n">_Sliceable</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">SupportsIndex</span><span class="p">,</span> <span class="nb">slice</span><span class="p">]</span>
 <span class="n">_SingleSelection</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">_Sliceable</span><span class="p">,</span> <span class="n">_Sliceable</span><span class="p">]</span>
 <span class="n">SelectionType</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="n">_SingleSelection</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;FilterType&quot;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">warnings</span>
+
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;&#39;FilterType &#39;is deprecated. Please use &#39;ProxyType&#39; instead.&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ProxyType</span>
+    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 
            </div>

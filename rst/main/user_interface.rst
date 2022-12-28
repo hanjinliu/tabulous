@@ -272,6 +272,26 @@ Home menu
 - |toggle_console| ... Toggle the console widget visibility.
 - |palette| ... Open the command palette.
 
+Edit menu
+---------
+
+.. |copy| image:: ../../tabulous/_qt/_icons/copy.svg
+  :width: 20em
+.. |paste| image:: ../../tabulous/_qt/_icons/paste.svg
+  :width: 20em
+.. |cut| image:: ../../tabulous/_qt/_icons/cut.svg
+  :width: 20em
+.. |undo| image:: ../../tabulous/_qt/_icons/undo.svg
+  :width: 20em
+.. |redo| image:: ../../tabulous/_qt/_icons/redo.svg
+  :width: 20em
+
+- |copy| ... Copy the selected cells to the clipboard.
+- |paste| ... Paste the clipboard data to the selected cells.
+- |cut| ... Cut the selected cells to the clipboard.
+- |undo| ... Undo the last table action.
+- |redo| ... Redo the last table action.
+
 Table menu
 ----------
 
@@ -283,27 +303,17 @@ Table menu
   :width: 20em
 .. |switch_header| image:: ../../tabulous/_qt/_icons/switch_header.svg
   :width: 20em
-.. |concat| image:: ../../tabulous/_qt/_icons/concat.svg
-  :width: 20em
 .. |pivot| image:: ../../tabulous/_qt/_icons/pivot.svg
   :width: 20em
 .. |melt| image:: ../../tabulous/_qt/_icons/melt.svg
-  :width: 20em
-.. |find_item| image:: ../../tabulous/_qt/_icons/find_item.svg
-  :width: 20em
-.. |sort_table| image:: ../../tabulous/_qt/_icons/sort_table.svg
   :width: 20em
 
 - |copy_as_table| ... Make a copy of the active table as a :class:`Table`.
 - |copy_as_spreadsheet| ... Make a copy of the active table as a :class:`SpreadSheet`.
 - |groupby| ... Call :meth:`pd.groupby` on the active table.
 - |switch_header| ... Switch the column header and the first row.
-- |concat| ... Call :meth:`pd.concat` on the active table.
 - |pivot| ... Call :meth:`pd.pivot` on the active table.
 - |melt| ... Call :meth:`pd.melt` on the active table.
-- |find_item| ... Open the finder widget. Several item matching mode (match by text,
-  match by value, partial match and regular expression) are available.
-- |sort_table| ... Sort table by a column.
 
 Analyze menu
 ------------
@@ -312,7 +322,13 @@ Analyze menu
   :width: 20em
 .. |eval| image:: ../../tabulous/_qt/_icons/eval.svg
   :width: 20em
+.. |find_item| image:: ../../tabulous/_qt/_icons/find_item.svg
+  :width: 20em
+.. |sort_table| image:: ../../tabulous/_qt/_icons/sort_table.svg
+  :width: 20em
 .. |filter| image:: ../../tabulous/_qt/_icons/filter.svg
+  :width: 20em
+.. |optimize| image:: ../../tabulous/_qt/_icons/optimize.svg
   :width: 20em
 .. |stats| image:: ../../tabulous/_qt/_icons/stats_test.svg
   :width: 20em
@@ -322,7 +338,11 @@ Analyze menu
 - |summarize_table| ... Summarize table data by mean, standard deviation etc.
 - |eval| ... Evaluate a string expression on the table data. Essentially equivalent
   to call :meth:`pd.eval`.
+- |find_item| ... Open the finder widget. Several item matching mode (match by text,
+  match by value, partial match and regular expression) are available.
+- |sort_table| ... Sort table by a column.
 - |filter| ... Filter table data by a string expression.
+- |optimize| ... Minimize a loss using :mod:`scipy.optimize`.
 - |stats| ... Perform statistical tests on the table data using :mod:`scipy.stats`.
 - |sklearn| ... Perform clustering, regression or decomposition on the table data using :mod:`scikit-learn`.
 
@@ -341,6 +361,8 @@ View menu
   :width: 20em
 .. |untile| image:: ../../tabulous/_qt/_icons/untile.svg
   :width: 20em
+.. |switch_layout| image:: ../../tabulous/_qt/_icons/switch_layout.svg
+  :width: 20em
 
 - |view_popup| ... Popup current active table.
 - |view_dual_h| ... Activate dual view mode (horizontal).
@@ -348,6 +370,7 @@ View menu
 - |view_reset| ... Reset view mode.
 - |tile| ... Tile tabs.
 - |untile| ... Untile tabs.
+- |switch_layout| ... Switch the layout of the side area.
 
 Plot menu
 ---------

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous package &mdash; tabulous 0.3.1 documentation</title>
+  <title>tabulous package &mdash; tabulous 0.4.0rc0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,7 +18,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="tabulous.widgets package" href="tabulous.widgets.html" />
+    <link rel="next" title="tabulous.commands package" href="tabulous.commands.html" />
     <link rel="prev" title="tabulous" href="modules.html" />
 </head>
 
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.3.1
+                0.4.0rc0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -46,7 +46,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../main/selections.html">Table Selections and Highlights</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../main/filter.html">Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/sort_filter.html">Sort/Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/columnwise_settings.html">Column-wise Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/table_advanced.html">Working with Tables</a></li>
 </ul>
@@ -60,6 +60,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">tabulous</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">tabulous package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tabulous.commands.html">tabulous.commands package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="tabulous.widgets.html">tabulous.widgets package</a></li>
 </ul>
 </li>
@@ -106,6 +107,19 @@
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="tabulous.commands.html">tabulous.commands package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.commands.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.commands.html#module-tabulous.commands.analysis">tabulous.commands.analysis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.commands.html#module-tabulous.commands.file">tabulous.commands.file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.commands.html#module-tabulous.commands.plot">tabulous.commands.plot module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.commands.html#module-tabulous.commands.selection">tabulous.commands.selection module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.commands.html#module-tabulous.commands.tab">tabulous.commands.tab module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.commands.html#module-tabulous.commands.table">tabulous.commands.table module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.commands.html#module-tabulous.commands.view">tabulous.commands.view module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.commands.html#module-tabulous.commands.window">tabulous.commands.window module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.commands.html#module-tabulous.commands">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="tabulous.widgets.html">tabulous.widgets package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="tabulous.widgets.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tabulous.widgets.html#module-tabulous.widgets.filtering">tabulous.widgets.filtering module</a></li>
@@ -348,12 +362,14 @@ in a compatible way with magicgui and napari.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="tabulous.TableViewer.remove_dock_widget">
 <span class="sig-name descname"><span class="pre">remove_dock_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_or_widget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Widget</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">QWidget</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/_mainwindow.html#TableViewer.remove_dock_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.TableViewer.remove_dock_widget" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Remove dock widget from the table viewer.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tabulous.TableViewer.reset_choices">
 <span class="sig-name descname"><span class="pre">reset_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/_mainwindow.html#TableViewer.reset_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.TableViewer.reset_choices" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Reset all the magicgui combo boxes.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="tabulous.TableViewer.status">
@@ -424,7 +440,7 @@ in a compatible way with magicgui and napari.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="modules.html" class="btn btn-neutral float-left" title="tabulous" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="tabulous.widgets.html" class="btn btn-neutral float-right" title="tabulous.widgets package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tabulous.commands.html" class="btn btn-neutral float-right" title="tabulous.commands package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sort/Filter Table Data &mdash; tabulous 0.4.0rc0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Column-wise Settings" href="columnwise_settings.html" />
+    <link rel="prev" title="Table Selections and Highlights" href="selections.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> tabulous
+          </a>
+              <div class="version">
+                0.4.0rc0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_interface.html">User Interface</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections and Highlights</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Sort/Filter Table Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#filtering">Filtering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#use-filter-functions">Use filter functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-query-style-expression">Use query-style expression</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#filter-in-gui">Filter in GUI</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sorting">Sorting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#use-sorting-functions">Use sorting functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sort-by-a-column">Sort by a column</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sort-in-gui">Sort in GUI</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="columnwise_settings.html">Column-wise Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Working with Tables</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidoc/modules.html">tabulous</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tabulous</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Sort/Filter Table Data</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/main/sort_filter.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <section id="sort-filter-table-data">
+<h1>Sort/Filter Table Data<a class="headerlink" href="#sort-filter-table-data" title="Permalink to this headline">¶</a></h1>
+<p>Sorting and filtering is a common way to manage and inspect table data. These operations
+are collectively called “proxy” because both of them intermediary map the original data to
+new indices.</p>
+<div class="contents local topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#filtering" id="id1">Filtering</a></p></li>
+<li><p><a class="reference internal" href="#sorting" id="id2">Sorting</a></p></li>
+</ul>
+</div>
+<section id="filtering">
+<h2><a class="toc-backref" href="#id1">Filtering</a><a class="headerlink" href="#filtering" title="Permalink to this headline">¶</a></h2>
+<section id="use-filter-functions">
+<h3>Use filter functions<a class="headerlink" href="#use-filter-functions" title="Permalink to this headline">¶</a></h3>
+<p>You can set a function that maps a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> to a 1-D boolean array as a filter
+function. This is a most straightforward way.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">filter_func</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;A&quot;</span>
+
+<span class="n">table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filter_func</span><span class="p">)</span>
+
+<span class="c1"># or equivalently, use decorator</span>
+<span class="nd">@table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">filter</span>
+<span class="k">def</span> <span class="nf">filter_func</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;A&quot;</span>
+</pre></div>
+</div>
+<p>This example is essentially equivalent to slicing a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> by <code class="docutils literal notranslate"><span class="pre">df[df[&quot;label&quot;]</span> <span class="pre">==</span> <span class="pre">&quot;A&quot;]</span></code>.</p>
+<p>If the table is</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 54%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td></td>
+<td><p>A</p></td>
+<td><p>label</p></td>
+</tr>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>A</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>3</p></td>
+<td><p>B</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>6</p></td>
+<td><p>B</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>4</p></td>
+<td><p>A</p></td>
+</tr>
+</tbody>
+</table>
+<p>then it looks like following after applying the filter.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 54%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td></td>
+<td><p>A</p></td>
+<td><p>label</p></td>
+</tr>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>A</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>4</p></td>
+<td><p>A</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="use-query-style-expression">
+<h3>Use query-style expression<a class="headerlink" href="#use-query-style-expression" title="Permalink to this headline">¶</a></h3>
+<p>Instead of a function, you can also set a query-style expression as a filter.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;label == &#39;A&#39;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See <a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.eval.html">the API reference of pandas.eval</a>
+for details of the syntax.</p>
+</section>
+<section id="filter-in-gui">
+<h3>Filter in GUI<a class="headerlink" href="#filter-in-gui" title="Permalink to this headline">¶</a></h3>
+<p>You can open a overlay dialog to filter the table data from the <a class="reference internal" href="../_images/filter.svg"><img alt="filter" src="../_images/filter.svg" width="20em" /></a> button in the toolbar,
+push key combo starting with <code class="docutils literal notranslate"><span class="pre">Alt</span></code>, or right click on the selected column(s).</p>
+<p>The line edit for filter expression supports auto-completion (Tab) and history browsing
+(↑, ↓).</p>
+<img alt="../_images/filter.gif" src="../_images/filter.gif" />
+</section>
+</section>
+<section id="sorting">
+<h2><a class="toc-backref" href="#id2">Sorting</a><a class="headerlink" href="#sorting" title="Permalink to this headline">¶</a></h2>
+<section id="use-sorting-functions">
+<h3>Use sorting functions<a class="headerlink" href="#use-sorting-functions" title="Permalink to this headline">¶</a></h3>
+<p>Similar to filtering, you can also set a function for sorting. In this case, the function
+should map a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> to a 1-D interger array, just like <code class="xref py py-meth docutils literal notranslate"><span class="pre">argsort()</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sort_func</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+
+<span class="n">table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">sort_func</span><span class="p">)</span>
+
+<span class="c1"># or equivalently, use decorator</span>
+<span class="nd">@table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">sort</span>
+<span class="k">def</span> <span class="nf">sort_func</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If the table is</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 30%" />
+<col style="width: 40%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td></td>
+<td><p>x</p></td>
+<td><p>y</p></td>
+</tr>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>a0</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>3</p></td>
+<td><p>a1</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>a2</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>0</p></td>
+<td><p>a3</p></td>
+</tr>
+</tbody>
+</table>
+<p>then it looks like following after sorting.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 30%" />
+<col style="width: 40%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td></td>
+<td><p>x</p></td>
+<td><p>y</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>0</p></td>
+<td><p>a3</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>a2</p></td>
+</tr>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>a0</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>3</p></td>
+<td><p>a1</p></td>
+</tr>
+</tbody>
+</table>
+<p>Sorting function doesn’t always have to be surjective, i.e. it can return only a subset of
+the source indices.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">sort</span>
+<span class="k">def</span> <span class="nf">sort_func</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="c1"># return the top 10 rows</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="sort-by-a-column">
+<h3>Sort by a column<a class="headerlink" href="#sort-by-a-column" title="Permalink to this headline">¶</a></h3>
+<p>In most cases, you’d like to sort a table by a column, in ascending or descending order.
+The <code class="xref py py-meth docutils literal notranslate"><span class="pre">sort()</span></code> method also supports this use case, by passing <code class="docutils literal notranslate"><span class="pre">by</span></code> argument.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>  <span class="c1"># ascending order by default</span>
+<span class="n">table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># descending order</span>
+</pre></div>
+</div>
+<p>Multi-column sorting is also supported.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="sort-in-gui">
+<h3>Sort in GUI<a class="headerlink" href="#sort-in-gui" title="Permalink to this headline">¶</a></h3>
+<p>You can sort selected column(s) by clicking <a class="reference internal" href="../_images/sort_table.svg"><img alt="sort" src="../_images/sort_table.svg" width="20em" /></a> button in the toolbar,
+push key combo starting with <code class="docutils literal notranslate"><span class="pre">Alt</span></code>, or right click on the selected column(s).</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="selections.html" class="btn btn-neutral float-left" title="Table Selections and Highlights" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="columnwise_settings.html" class="btn btn-neutral float-right" title="Column-wise Settings" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Hanjin Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

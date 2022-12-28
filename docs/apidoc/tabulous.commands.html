@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tabulous.commands package &mdash; tabulous 0.4.0rc0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tabulous.widgets package" href="tabulous.widgets.html" />
+    <link rel="prev" title="tabulous package" href="tabulous.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> tabulous
+          </a>
+              <div class="version">
+                0.4.0rc0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main/quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/user_interface.html">User Interface</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../main/selections.html">Table Selections and Highlights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/sort_filter.html">Sort/Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/columnwise_settings.html">Column-wise Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/table_advanced.html">Working with Tables</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../main/dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../main/register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">tabulous</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="tabulous.html">tabulous package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="tabulous.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">tabulous.commands package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tabulous.widgets.html">tabulous.widgets package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tabulous.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.color">tabulous.color module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.core">tabulous.core module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.exceptions">tabulous.exceptions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.types">tabulous.types module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tabulous</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">tabulous</a> &raquo;</li>
+          <li><a href="tabulous.html">tabulous package</a> &raquo;</li>
+      <li>tabulous.commands package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/apidoc/tabulous.commands.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <section id="tabulous-commands-package">
+<h1>tabulous.commands package<a class="headerlink" href="#tabulous-commands-package" title="Permalink to this headline">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-tabulous.commands.analysis">
+<span id="tabulous-commands-analysis-module"></span><h2>tabulous.commands.analysis module<a class="headerlink" href="#module-tabulous.commands.analysis" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.analysis.show_eval_widget">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.analysis.</span></span><span class="sig-name descname"><span class="pre">show_eval_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/analysis.html#show_eval_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.analysis.show_eval_widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate a Python expression</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.analysis.show_filter_widget">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.analysis.</span></span><span class="sig-name descname"><span class="pre">show_filter_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/analysis.html#show_filter_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.analysis.show_filter_widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply filter to the table data</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.analysis.show_optimizer_widget">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.analysis.</span></span><span class="sig-name descname"><span class="pre">show_optimizer_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/analysis.html#show_optimizer_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.analysis.show_optimizer_widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open optimizer widget</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.analysis.show_sklearn_widget">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.analysis.</span></span><span class="sig-name descname"><span class="pre">show_sklearn_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/analysis.html#show_sklearn_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.analysis.show_sklearn_widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open scikit-learn widget</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.analysis.show_stats_widget">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.analysis.</span></span><span class="sig-name descname"><span class="pre">show_stats_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/analysis.html#show_stats_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.analysis.show_stats_widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open scipy.stats widget</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.analysis.summarize_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.analysis.</span></span><span class="sig-name descname"><span class="pre">summarize_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/analysis.html#summarize_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.analysis.summarize_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Summarize table data</p>
+</dd></dl>
+
+</section>
+<section id="module-tabulous.commands.file">
+<span id="tabulous-commands-file-module"></span><h2>tabulous.commands.file module<a class="headerlink" href="#module-tabulous.commands.file" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.file.open_sample">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.file.</span></span><span class="sig-name descname"><span class="pre">open_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/file.html#open_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.file.open_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open sample data</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.file.open_spreadsheet">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.file.</span></span><span class="sig-name descname"><span class="pre">open_spreadsheet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/file.html#open_spreadsheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.file.open_spreadsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open a file as a spreadsheet</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.file.open_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.file.</span></span><span class="sig-name descname"><span class="pre">open_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/file.html#open_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.file.open_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open a file as a table</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.file.save_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.file.</span></span><span class="sig-name descname"><span class="pre">save_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/file.html#save_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.file.save_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save current table data</p>
+</dd></dl>
+
+</section>
+<section id="module-tabulous.commands.plot">
+<span id="tabulous-commands-plot-module"></span><h2>tabulous.commands.plot module<a class="headerlink" href="#module-tabulous.commands.plot" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tabulous.commands.plot.PlotInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">PlotInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#PlotInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.PlotInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.commands.plot.PlotInfo.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">slice</span></em><a class="headerlink" href="#tabulous.commands.plot.PlotInfo.columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tabulous.commands.plot.PlotInfo.names">
+<span class="sig-name descname"><span class="pre">names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Hashable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tabulous.commands.plot.PlotInfo.names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.bar">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.bar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run plt.bar</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.barplot">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">barplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#barplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.barplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run sns.barplot</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.boxenplot">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">boxenplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#boxenplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.boxenplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run sns.boxenplot</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.boxplot">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">boxplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#boxplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.boxplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run sns.boxplot</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.errorbar">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">errorbar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#errorbar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.errorbar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run plt.errorbar</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.fill_between">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">fill_between</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#fill_between"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.fill_between" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run plt.fill_between</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.fill_betweenx">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">fill_betweenx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#fill_betweenx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.fill_betweenx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run plt.fill_betweenx</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.hist">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">hist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#hist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.hist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run plt.hist</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.new_figure">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">new_figure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#new_figure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.new_figure" title="Permalink to this definition">¶</a></dt>
+<dd><p>New figure canvas</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.plot">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run plt.plot</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.scatter">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">scatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#scatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.scatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run plt.scatter</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.stripplot">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">stripplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#stripplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.stripplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run sns.stripplot</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.swarmplot">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">swarmplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#swarmplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.swarmplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run sns.swarmplot</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.plot.violinplot">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.plot.</span></span><span class="sig-name descname"><span class="pre">violinplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/plot.html#violinplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.plot.violinplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run sns.violinplot</p>
+</dd></dl>
+
+</section>
+<section id="module-tabulous.commands.selection">
+<span id="tabulous-commands-selection-module"></span><h2>tabulous.commands.selection module<a class="headerlink" href="#module-tabulous.commands.selection" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.add_checkbox">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">add_checkbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#add_checkbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.add_checkbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add CheckBox</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.add_float_slider">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">add_float_slider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#add_float_slider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.add_float_slider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add FloatSlider</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.add_float_spinbox">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">add_float_spinbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#add_float_spinbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.add_float_spinbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add FloatSpinBox</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.add_highlight">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">add_highlight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#add_highlight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.add_highlight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add highlight to cells</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.add_line_edit">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">add_line_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#add_line_edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.add_line_edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add LineEdit</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.add_radio_button">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">add_radio_button</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#add_radio_button"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.add_radio_button" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add RadioButton</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.add_slider">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">add_slider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#add_slider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.add_slider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add Slider</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.add_spinbox">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">add_spinbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#add_spinbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.add_spinbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add Spinbox</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.copy_as_html">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">copy_as_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#copy_as_html"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.copy_as_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy as HTML text</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.copy_as_latex">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">copy_as_latex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#copy_as_latex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.copy_as_latex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy as LaTeX text</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.copy_as_literal">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">copy_as_literal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#copy_as_literal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.copy_as_literal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy as literal</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.copy_as_markdown">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">copy_as_markdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#copy_as_markdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.copy_as_markdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy as markdown text</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.copy_as_new_spreadsheet">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">copy_as_new_spreadsheet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#copy_as_new_spreadsheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.copy_as_new_spreadsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy as new spreadsheet</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.copy_as_new_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">copy_as_new_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#copy_as_new_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.copy_as_new_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy as new table</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.copy_data_comma_separated">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">copy_data_comma_separated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#copy_data_comma_separated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.copy_data_comma_separated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy cells (comma separated)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.copy_data_tab_separated">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">copy_data_tab_separated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#copy_data_tab_separated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.copy_data_tab_separated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy cells (tab separated)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.copy_data_with_header_comma_separated">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">copy_data_with_header_comma_separated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#copy_data_with_header_comma_separated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.copy_data_with_header_comma_separated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy cells with headers (comma separated)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.copy_data_with_header_tab_separated">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">copy_data_with_header_tab_separated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#copy_data_with_header_tab_separated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.copy_data_with_header_tab_separated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy cells with headers (tab separated)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.cut_data">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">cut_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#cut_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.cut_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut selected cells</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.delete_selected_highlight">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">delete_selected_highlight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#delete_selected_highlight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.delete_selected_highlight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete selected highlight</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.delete_values">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">delete_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#delete_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.delete_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete selected cells</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.edit_current">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">edit_current</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#edit_current"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.edit_current" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edit current cell</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.filter_by_column">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">filter_by_column</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#filter_by_column"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.filter_by_column" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter by a column</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.insert_column_left">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">insert_column_left</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#insert_column_left"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.insert_column_left" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert a column left</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.insert_column_right">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">insert_column_right</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#insert_column_right"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.insert_column_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert a column right</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.insert_row_above">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">insert_row_above</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#insert_row_above"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.insert_row_above" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert a row above</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.insert_row_below">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">insert_row_below</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#insert_row_below"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.insert_row_below" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert a row below</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.notify_editability">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">notify_editability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#notify_editability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.notify_editability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Notify that current table is not editable.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.paste_data_comma_separated">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">paste_data_comma_separated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#paste_data_comma_separated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.paste_data_comma_separated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Paste from comma separated text</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.paste_data_from_numpy_string">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">paste_data_from_numpy_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#paste_data_from_numpy_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.paste_data_from_numpy_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Paste from numpy-style text</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.paste_data_tab_separated">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">paste_data_tab_separated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#paste_data_tab_separated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.paste_data_tab_separated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Paste from tab separated text</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.raise_slot_error">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">raise_slot_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#raise_slot_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.raise_slot_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show traceback at the cell</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.remove_cell_widgets">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">remove_cell_widgets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#remove_cell_widgets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.remove_cell_widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove cell widgets</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.remove_selected_columns">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">remove_selected_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#remove_selected_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.remove_selected_columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove selected columns</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.remove_selected_rows">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">remove_selected_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#remove_selected_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.remove_selected_rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove selected rows</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.reset_background_colormap">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">reset_background_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#reset_background_colormap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.reset_background_colormap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset background colormap</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.reset_foreground_colormap">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">reset_foreground_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#reset_foreground_colormap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.reset_foreground_colormap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset foreground colormap</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.reset_text_formatter">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">reset_text_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#reset_text_formatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.reset_text_formatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset text formatter</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.select_all">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">select_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#select_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.select_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select all the cells</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.set_background_colormap">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">set_background_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#set_background_colormap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.set_background_colormap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set background colormap to a column</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.set_column_dtype">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">set_column_dtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#set_column_dtype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.set_column_dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set column specific dtype for data conversion and validation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.set_foreground_colormap">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">set_foreground_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#set_foreground_colormap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.set_foreground_colormap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set foreground colormap to a column</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.set_text_formatter">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">set_text_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#set_text_formatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.set_text_formatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set text formatter</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.show_context_menu">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">show_context_menu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#show_context_menu"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.show_context_menu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute context menu</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.shuffle_data_column_wise">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">shuffle_data_column_wise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#shuffle_data_column_wise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.shuffle_data_column_wise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shuffle table data columnwise</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.sort_by_column_ascending">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">sort_by_column_ascending</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#sort_by_column_ascending"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.sort_by_column_ascending" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort by column(s) in ascending order</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.sort_by_column_descending">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">sort_by_column_descending</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#sort_by_column_descending"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.sort_by_column_descending" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort by column(s) in decending order</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.write_data_reference_in_console">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">write_data_reference_in_console</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#write_data_reference_in_console"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.write_data_reference_in_console" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write data reference to console</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.write_data_signal_in_console">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">write_data_signal_in_console</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#write_data_signal_in_console"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.write_data_signal_in_console" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write data signal connection to console</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.selection.write_slice_in_console">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.selection.</span></span><span class="sig-name descname"><span class="pre">write_slice_in_console</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/selection.html#write_slice_in_console"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.selection.write_slice_in_console" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write data slice to console</p>
+</dd></dl>
+
+</section>
+<section id="module-tabulous.commands.tab">
+<span id="tabulous-commands-tab-module"></span><h2>tabulous.commands.tab module<a class="headerlink" href="#module-tabulous.commands.tab" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.tab.activate_left">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.tab.</span></span><span class="sig-name descname"><span class="pre">activate_left</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/tab.html#activate_left"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.tab.activate_left" title="Permalink to this definition">¶</a></dt>
+<dd><p>Activate left table.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.tab.activate_right">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.tab.</span></span><span class="sig-name descname"><span class="pre">activate_right</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/tab.html#activate_right"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.tab.activate_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>Activate right table.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.tab.delete_tab">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.tab.</span></span><span class="sig-name descname"><span class="pre">delete_tab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/tab.html#delete_tab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.tab.delete_tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete current tab.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.tab.rename_tab">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.tab.</span></span><span class="sig-name descname"><span class="pre">rename_tab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/tab.html#rename_tab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.tab.rename_tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rename tab.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.tab.swap_tab_with_left">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.tab.</span></span><span class="sig-name descname"><span class="pre">swap_tab_with_left</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/tab.html#swap_tab_with_left"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.tab.swap_tab_with_left" title="Permalink to this definition">¶</a></dt>
+<dd><p>Swap the current tab with the left one</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.tab.swap_tab_with_right">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.tab.</span></span><span class="sig-name descname"><span class="pre">swap_tab_with_right</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/tab.html#swap_tab_with_right"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.tab.swap_tab_with_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>Swap the current tab with the right one</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.tab.tile_tables">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.tab.</span></span><span class="sig-name descname"><span class="pre">tile_tables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/tab.html#tile_tables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.tab.tile_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tile tabs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.tab.tile_with_adjacent_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.tab.</span></span><span class="sig-name descname"><span class="pre">tile_with_adjacent_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/tab.html#tile_with_adjacent_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.tab.tile_with_adjacent_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tile adjacent tabs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.tab.untile_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.tab.</span></span><span class="sig-name descname"><span class="pre">untile_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/tab.html#untile_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.tab.untile_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Untile current tab</p>
+</dd></dl>
+
+</section>
+<section id="module-tabulous.commands.table">
+<span id="tabulous-commands-table-module"></span><h2>tabulous.commands.table module<a class="headerlink" href="#module-tabulous.commands.table" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.concat">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#concat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.concat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenate table data</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.copy_as_spreadsheet">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">copy_as_spreadsheet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#copy_as_spreadsheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.copy_as_spreadsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy current table as a new spreadsheet</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.copy_as_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">copy_as_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#copy_as_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.copy_as_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy current table as a new table</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.copy_to_clipboard">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">copy_to_clipboard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#copy_to_clipboard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.copy_to_clipboard" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.groupby">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">groupby</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#groupby"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.groupby" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group table data by its column(s)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.melt">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">melt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#melt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.melt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Melt (unpivot) current table data</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.new_spreadsheet">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">new_spreadsheet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#new_spreadsheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.new_spreadsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an empty spreadsheet.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.pivot">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">pivot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#pivot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.pivot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pivot current table data</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.random">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#random"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.random" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate random values</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.redo_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">redo_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#redo_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.redo_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redo table operation</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.reset_proxy">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">reset_proxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tabulous/commands/table.html#reset_proxy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.reset_proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset proxy (sort/filter)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.round">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">round</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#round"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.round" title="Permalink to this definition">¶</a></dt>
+<dd><p>Round table data</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.show_finder_widget">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">show_finder_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#show_finder_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.show_finder_widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggle finder widget</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.show_undo_stack_view">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">show_undo_stack_view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#show_undo_stack_view"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.show_undo_stack_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show undo stack view</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.switch_header">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">switch_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#switch_header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.switch_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Switch header and the top row</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.switch_layout">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">switch_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#switch_layout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.switch_layout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Switch table layout</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.toggle_editability">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">toggle_editability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#toggle_editability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.toggle_editability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggle table editability</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.undo_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">undo_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#undo_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.undo_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Undo table operation</p>
+</dd></dl>
+
+</section>
+<section id="module-tabulous.commands.view">
+<span id="tabulous-commands-view-module"></span><h2>tabulous.commands.view module<a class="headerlink" href="#module-tabulous.commands.view" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.view.reset_view_mode">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.view.</span></span><span class="sig-name descname"><span class="pre">reset_view_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/view.html#reset_view_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.view.reset_view_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset view mode</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.view.set_dual_h_mode">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.view.</span></span><span class="sig-name descname"><span class="pre">set_dual_h_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/view.html#set_dual_h_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.view.set_dual_h_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Horizontal dual-view</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.view.set_dual_v_mode">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.view.</span></span><span class="sig-name descname"><span class="pre">set_dual_v_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/view.html#set_dual_v_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.view.set_dual_v_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vertical dual-view</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.view.set_popup_mode">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.view.</span></span><span class="sig-name descname"><span class="pre">set_popup_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/view.html#set_popup_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.view.set_popup_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Popup table.</p>
+</dd></dl>
+
+</section>
+<section id="module-tabulous.commands.window">
+<span id="tabulous-commands-window-module"></span><h2>tabulous.commands.window module<a class="headerlink" href="#module-tabulous.commands.window" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.window.close_window">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">close_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#close_window"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.close_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close window</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.window.focus_table">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">focus_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#focus_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.focus_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move focus to the table.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.window.new_window">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">new_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#new_window"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.new_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new window</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.window.show_command_palette">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">show_command_palette</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#show_command_palette"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.show_command_palette" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show the command palette.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.window.show_keymap">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">show_keymap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#show_keymap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.show_keymap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show key map widget</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.window.toggle_console">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">toggle_console</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#toggle_console"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.toggle_console" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggle QtConsole visibility</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.window.toggle_focus">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">toggle_focus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#toggle_focus"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.toggle_focus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggle focus between table and command palette.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.window.toggle_fullscreen">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">toggle_fullscreen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#toggle_fullscreen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.toggle_fullscreen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggle fullscreen</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.window.toggle_toolbar">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">toggle_toolbar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableViewerBase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#toggle_toolbar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.toggle_toolbar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggle toolbar visibility</p>
+</dd></dl>
+
+</section>
+<section id="module-tabulous.commands">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tabulous.commands" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.iter_commands">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.</span></span><span class="sig-name descname"><span class="pre">iter_commands</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">function</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/tabulous/commands.html#iter_commands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.iter_commands" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.register_command">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.</span></span><span class="sig-name descname"><span class="pre">register_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'User</span> <span class="pre">defined'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">TableViewerBase</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">TableViewerBase</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/tabulous/commands.html#register_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.register_command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tabulous.html" class="btn btn-neutral float-left" title="tabulous package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tabulous.widgets.html" class="btn btn-neutral float-right" title="tabulous.widgets package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Hanjin Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>
