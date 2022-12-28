@@ -123,8 +123,23 @@ def random(viewer: TableViewerBase):
         table.cell[rsl, csl] = data
 
 
+def round(viewer: TableViewerBase):
+    """Round table data"""
+    table = _utils.get_mutable_table(viewer)
+    from magicgui.widgets import request_values
+
+    out = request_values({"decimals": int})
+    if out is None:
+        return
+    decimals: int = out["decimals"]
+    for sel in table.selections:
+        selected_data = table.data_shown.iloc[sel]
+        table.cell[sel] = selected_data.round(decimals)
+    return None
+
+
 def toggle_editability(viewer: TableViewerBase):
-    """Toggle table editability."""
+    """Toggle table editability"""
     table = viewer.current_table
     try:
         table.editable = not table.editable

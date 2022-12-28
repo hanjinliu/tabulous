@@ -26,6 +26,7 @@ class QMoreToolButton(QtW.QToolButton):
         self.setStyleSheet("QToolButton::menu-indicator { image: none; }")
         self.setIcon(QColoredSVGIcon.fromfile(ICON_DIR / "more.svg"))
         self.setPopupMode(QtW.QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.setToolTip("More ...")
 
 
 class QSubToolBar(QtW.QToolBar, QHasToolTip):
@@ -211,11 +212,11 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.addSeparatorToChild("Table")
         self.registerAction("Table", cmds.table.groupby, ICON_DIR / "groupby.svg")
         self.registerAction("Table", cmds.table.switch_header, ICON_DIR / "switch_header.svg")
-        self.registerAction("Table", cmds.table.concat, ICON_DIR / "concat.svg")
         self.registerAction("Table", cmds.table.pivot, ICON_DIR / "pivot.svg")
         self.registerAction("Table", cmds.table.melt, ICON_DIR / "melt.svg")
         self.addSeparatorToChild("Table")
         self.registerAction("Table", cmds.table.random, ICON_DIR / "random.svg")
+        self.registerAction("Table", cmds.table.round, ICON_DIR / "round.svg")
 
         self.registerAction("Analyze", cmds.analysis.summarize_table, ICON_DIR / "summarize_table.svg")
         self.registerAction("Analyze", cmds.analysis.show_eval_widget, ICON_DIR / "eval.svg")
