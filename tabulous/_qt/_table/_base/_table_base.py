@@ -772,15 +772,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def tableStack(self) -> QTabbedTableStack | None:
         """Return the table stack."""
-        try:
-            stack = self.parentWidget().parentWidget()
-        except AttributeError:
-            stack = None
-        if isinstance(stack, QtW.QTabWidget):
-            # if a table is used in other widgets, it does not have a table stack
-            # as a parent.
-            return stack
-        return None
+        parent = self
+        while True:
+            parent = parent.parentWidget()
+            if isinstance(parent, QtW.QTabWidget):
+                return parent
+            elif parent is None:
+                return None
 
     def parentViewer(self) -> _QtMainWidgetBase:
         """Return the parent table viewer."""
