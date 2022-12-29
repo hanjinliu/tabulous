@@ -107,6 +107,9 @@ class _HeaderInterface(Component["TableBase"]):
     def _get_header(self) -> QDataFrameHeaderView:
         raise NotImplementedError()
 
+    def __repr__(self) -> str:
+        return f"<{type(self).__name__}({self._get_axis()!r}) of {self.parent!r}>"
+
     def __getitem__(self, key: int | slice):
         return self._get_axis()[key]
 
@@ -369,6 +372,23 @@ class CellInterface(Component["TableBase"]):
         return None
 
 
+def _plt_function(name: str, method_name: str | None = None):
+    """Make a function that calls ``plt.<name>`` on the current figure."""
+    if method_name is None:
+        method_name = name
+
+    def func(self: PlotInterface, *args, **kwargs):
+        ax = self.gca()
+        out = getattr(ax, method_name)(*args, picker=True, **kwargs)
+        self.draw()
+        return out
+
+    func.__name__ = name
+    func.__qualname__ = f"PlotInterface.{name}"
+    func.__doc__ = f"Call ``plt.{name}`` on the current figure."
+    return func
+
+
 class PlotInterface(Component["TableBase"]):
     """The interface of plotting."""
 
@@ -427,66 +447,53 @@ class PlotInterface(Component["TableBase"]):
         wdt = self.new_widget(nrows=nrows, ncols=ncols, style=style)
         return wdt.figure, wdt.axes
 
-    def plot(self, *args, **kwargs):
-        """Call ``plt.plot`` on the current side figure."""
-        out = self.gca().plot(*args, picker=True, **kwargs)
-        self.draw()
-        return out
-
-    def scatter(self, *args, **kwargs):
-        """Call ``plt.scatter`` on the current side figure."""
-        out = self.gca().scatter(*args, picker=True, **kwargs)
-        self.draw()
-        return out
-
-    def hist(self, *args, **kwargs):
-        """Call ``plt.hist`` on the current side figure."""
-        out = self.gca().hist(*args, picker=True, **kwargs)
-        self.draw()
-        return out
-
-    def text(self, *args, **kwargs):
-        """Call ``plt.text`` on the current side figure."""
-        out = self.gca().text(*args, picker=True, **kwargs)
-        self.draw()
-        return out
-
-    def fill_between(self, *args, **kwargs):
-        out = self.gca().fill_between(*args, picker=True, **kwargs)
-        self.draw()
-        return out
-
-    def fill_betweenx(self, *args, **kwargs):
-        out = self.gca().fill_betweenx(*args, picker=True, **kwargs)
-        self.draw()
-        return out
+    plot = _plt_function("plot")
+    plot_date = _plt_function("plot_date")
+    quiver = _plt_function("quiver")
+    scatter = _plt_function("scatter")
+    bar = _plt_function("bar")
+    errorbar = _plt_function("errorbar")
+    hist = _plt_function("hist")
+    text = _plt_function("text")
+    fill_between = _plt_function("fill_between")
+    fill_betweenx = _plt_function("fill_betweenx")
 
     def xlabel(self, *args, **kwargs):
         """Call ``plt.xlabel`` on the current side figure."""
+        if not args and not kwargs:
+            return self.gca().get_xlabel()
         out = self.gca().set_xlabel(*args, **kwargs)
         self.draw()
         return out
 
     def ylabel(self, *args, **kwargs):
         """Call ``plt.ylabel`` on the current side figure."""
+        if not args and not kwargs:
+            return self.gca().get_ylabel()
         out = self.gca().set_ylabel(*args, **kwargs)
         self.draw()
         return out
 
     def xlim(self, *args, **kwargs):
         """Call ``plt.xlim`` on the current side figure."""
+        if not args and not kwargs:
+            return self.gca().get_xlim()
         out = self.gca().set_xlim(*args, **kwargs)
         self.draw()
         return out
 
     def ylim(self, *args, **kwargs):
         """Call ``plt.ylim`` on the current side figure."""
+        if not args and not kwargs:
+            return self.gca().get_ylim()
         out = self.gca().set_ylim(*args, **kwargs)
         self.draw()
         return out
 
     def title(self, *args, **kwargs):
         """Call ``plt.title`` on the current side figure."""
+        if not args and not kwargs:
+            return self.gca().get_title()
         out = self.gca().set_title(*args, **kwargs)
         self.draw()
         return out
@@ -497,10 +504,12 @@ class PlotInterface(Component["TableBase"]):
 
     @property
     def background_color(self):
+        """Background color of the current figure."""
         return self.gcf().get_facecolor()
 
     @background_color.setter
     def background_color(self, color):
+        """Set background color of the current figure."""
         return self.gcw().set_background_color(color)
 
 

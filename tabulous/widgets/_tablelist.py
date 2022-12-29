@@ -179,8 +179,8 @@ class TableList(EventedList[TableBase]):
 
         # fmt: off
         self.register_action("Copy all")(_wrap(cmds.table.copy_to_clipboard))
-        self.register_action("Rename")(_wrap(cmds.tab.rename_tab))
-        self.register_action("Delete")(_wrap(cmds.tab.delete_tab))
+        self.register_action("Rename tab")(_wrap(cmds.tab.rename_tab))
+        self.register_action("Delete tab")(_wrap(cmds.tab.delete_tab))
         tablestack.addSeparator()
         self.register_action("Reset filter/sort")(_wrap(cmds.table.reset_proxy))
         tablestack.addSeparator()

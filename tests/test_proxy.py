@@ -107,3 +107,20 @@ def test_sort_function():
     assert np.all(table.data_shown["a"] == np.arange(20))
     table.proxy.sort("b")
     assert np.all(table.data_shown["b"] == np.arange(20)**2)
+
+def test_header_update():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_table({"a": np.arange(10), "b": np.zeros(10)}, editable=True)
+    table.proxy.filter("a % 2 == 0")
+    table.index[2] = "x"
+    assert list(table.index)== [0, 2, "x", 6, 8]
+    assert list(table.data.index)== [0, 1, 2, 3, "x", 5, 6, 7, 8, 9]
+    table.undo_manager.undo()
+    assert list(table.index)== [0, 2, 4, 6, 8]
+    assert list(table.data.index)== [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    table.undo_manager.redo()
+    assert list(table.index)== [0, 2, "x", 6, 8]
+    assert list(table.data.index)== [0, 1, 2, 3, "x", 5, 6, 7, 8, 9]
+    table.proxy.reset()
+    assert list(table.index)== [0, 1, 2, 3, "x", 5, 6, 7, 8, 9]
+    assert list(table.data.index)== [0, 1, 2, 3, "x", 5, 6, 7, 8, 9]

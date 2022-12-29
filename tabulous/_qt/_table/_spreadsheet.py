@@ -17,8 +17,8 @@ from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from tabulous._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 from tabulous.color import normalize_color
 from tabulous.types import ItemInfo
-from tabulous import commands as cmds
 from tabulous._text_formatter import DefaultFormatter
+from tabulous._pd_index import char_range_index, is_ranged, char_arange
 
 if TYPE_CHECKING:
     from magicgui.widgets._bases import ValueWidget
@@ -231,6 +231,13 @@ class QSpreadSheet(QMutableSimpleTable):
     def setDataFrame(self, data: pd.DataFrame) -> None:
         """Set data frame as a string table."""
         self._data_raw = data.astype(_STRING_DTYPE)
+
+        # SpreadSheet columns should be str if possible. Convert it.
+        if isinstance(self._data_raw.columns, pd.RangeIndex):
+            self._data_raw.columns = char_arange(self._data_raw.columns.size)
+        elif self._data_raw.columns.dtype.kind in "iuf":
+            self._data_raw.columns = self._data_raw.columns.astype(str)
+
         self.model().setShape(
             data.index.size + _OUT_OF_BOUND_R,
             data.columns.size + _OUT_OF_BOUND_C,
@@ -466,7 +473,7 @@ class QSpreadSheet(QMutableSimpleTable):
             ],
             axis=0,
         )
-        if isinstance(index_existing, pd.RangeIndex):
+        if is_ranged(index_existing):
             self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
         self.model().insertRows(row, count, QtCore.QModelIndex())
         self.setProxy(self._proxy)
@@ -531,8 +538,8 @@ class QSpreadSheet(QMutableSimpleTable):
             ],
             axis=1,
         )
-        if isinstance(columns_existing, pd.RangeIndex):
-            self._data_raw.columns = pd.RangeIndex(0, self._data_raw.columns.size)
+        if is_ranged(columns_existing):
+            self._data_raw.columns = char_range_index(self._data_raw.columns.size)
         self.model().insertColumns(col, count, QtCore.QModelIndex())
         self.setProxy(self._proxy)
         self._data_cache = None
@@ -624,7 +631,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.undoable
     def _remove_columns(self, col: int, count: int, old_values: pd.DataFrame):
-        _c_ranged = isinstance(self._data_raw.columns, pd.RangeIndex)
+        _c_ranged = is_ranged(self._data_raw.columns)
         model = self.model()
         for index in range(col, col + count):
             colname = model.df.columns[index]
@@ -636,7 +643,7 @@ class QSpreadSheet(QMutableSimpleTable):
             axis=1,
         )
         if _c_ranged:
-            self._data_raw.columns = pd.RangeIndex(0, self._data_raw.columns.size)
+            self._data_raw.columns = char_range_index(self._data_raw.columns.size)
         self.model().removeColumns(col, count, QtCore.QModelIndex())
         self.setProxy(self._proxy)
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
@@ -784,6 +791,52 @@ class QSpreadSheet(QMutableSimpleTable):
         return self.setTextFormatter(name, formatter)
 
 
+def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.DataFrame:
+    """Pad a dataframe by nr rows and nr columns with the given value."""
+    if df.shape == (0, 0):
+        return _df_full(nr, nc, value, columns=char_range_index(nc))
+
+    # pad rows
+    _nr, _nc = df.shape
+    _r_ranged = isinstance(df.index, pd.RangeIndex)
+    _c_ranged = is_ranged(df.columns)
+    if nr > 0:
+        # find unique index
+        if df.index.size == 0:
+            index = range(nr)
+        else:
+            index = range(_nr, _nr + nr)
+        ext = _df_full(nr, _nc, value, index=index, columns=df.columns)
+        df = pd.concat([df, ext], axis=0)
+        if _r_ranged:
+            df.index = pd.RangeIndex(0, df.index.size)
+
+    # pad columns
+    _nr, _nc = df.shape  # NOTE: shape may have changed
+    if nc > 0:
+        # find unique columns
+        if df.columns.size == 0:
+            columns = char_arange(nc)
+        else:
+            columns = char_arange(_nc, _nc + nc)
+        # check duplication
+        if not _c_ranged:
+            _old_columns = df.columns
+            for ic, c in enumerate(columns):
+                if c in _old_columns:
+                    i = 0
+                    c0 = f"{c}_{i}"
+                    while c0 in _old_columns:
+                        i += 1
+                        c0 = f"{c}_{i}"
+                    columns[ic] = c0
+        ext = _df_full(_nr, nc, value, index=df.index, columns=columns)
+        df = pd.concat([df, ext], axis=1)
+        if _c_ranged:
+            df.columns = char_range_index(df.columns.size)
+    return df
+
+
 def _get_limit(a) -> int:
     if isinstance(a, int):
         amax = a
@@ -804,39 +857,3 @@ def _df_full(
         columns=columns,
         dtype="string",
     )
-
-
-def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.DataFrame:
-    """Pad a dataframe by nr rows and nr columns with the given value."""
-    if df.shape == (0, 0):
-        return _df_full(nr, nc, value, index=range(nr), columns=range(nc))
-
-    # pad rows
-    _nr, _nc = df.shape
-    _r_ranged = isinstance(df.index, pd.RangeIndex)
-    _c_ranged = isinstance(df.columns, pd.RangeIndex)
-    if nr > 0:
-        # find unique index
-        if df.index.size == 0:
-            index = range(nr)
-        else:
-            index = range(_nr, _nr + nr)
-        ext = _df_full(nr, _nc, value, index=index, columns=df.columns)
-        df = pd.concat([df, ext], axis=0)
-        if _r_ranged:
-            df.index = pd.RangeIndex(0, df.index.size)
-
-    # pad columns
-    _nr, _nc = df.shape  # NOTE: shape may have changed
-    if nc > 0:
-        # find unique columns
-        if df.columns.size == 0:
-            columns = range(nc)
-        else:
-            columns = range(_nc, _nc + nc)
-        ext = _df_full(_nr, nc, value, index=df.index, columns=columns)
-        df = pd.concat([df, ext], axis=1)
-        if _c_ranged:
-            df.columns = pd.RangeIndex(0, df.columns.size)
-
-    return df

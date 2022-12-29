@@ -155,7 +155,7 @@ def test_ref_after_insert():
     # 0 0 0 0 0
     viewer = TableViewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
-    sheet.cell[1, 3] = "&=np.sum(df.loc[0:2, 0:1]) + 1"
+    sheet.cell[1, 3] = "&=np.sum(df.iloc[0:2, 0:1]) + 1"
     assert sheet.cell[1, 3] == "1.0"
     sheet._qwidget.insertColumns(2, 1)  # insert a column
     assert sheet.cell[1, 3] == "0.0"
@@ -175,7 +175,7 @@ def test_ref_after_removal():
     # 0 0 0 0 0
     viewer = TableViewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
-    sheet.cell[1, 3] = "&=np.sum(df.loc[0:2, 0:1]) + 1"
+    sheet.cell[1, 3] = "&=np.sum(df.iloc[0:2, 0:1]) + 1"
     assert sheet.cell[1, 3] == "1.0"
     sheet._qwidget.removeColumns(2, 1)  # insert a column
     assert sheet.cell[1, 3] == "0.0"
@@ -196,12 +196,11 @@ def test_ref_after_removal_of_column():
     # 0 0 0 0 0
     viewer = TableViewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
-    sheet.cell[1, 3] = "&=np.sum(df.loc[0:2, 0:1]) + 1"
+    sheet.cell[1, 3] = "&=np.sum(df.iloc[0:2, 0:1]) + 1"
     assert sheet.cell[1, 3] == "1.0"
     sheet._qwidget.removeColumns(3, 1)  # remove a column
     assert sheet.cell[1, 3] == "0.0"
     assert len(sheet.cellref) == 0
-    # TODO: undo is not working now
     sheet.undo_manager.undo()
     assert sheet.cell[1, 3] == "1.0"
     assert sheet.cell[1, 2] == "0.0"

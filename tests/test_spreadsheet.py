@@ -83,20 +83,20 @@ def test_setting_header_out_of_bound():
 
     qtable.setHorizontalHeaderValue(1, "col1")
     assert sheet.data.shape == (0, 2)
-    assert list(sheet.data.columns) == [0, "col1"]
+    assert list(sheet.data.columns) == ["A", "col1"]
     qtable.setHorizontalHeaderValue(2, "col2")
     assert sheet.data.shape == (0, 3)
-    assert list(sheet.data.columns) == [0, "col1", "col2"]
+    assert list(sheet.data.columns) == ["A", "col1", "col2"]
     qtable.setVerticalHeaderValue(2, "row2")
     assert sheet.data.shape == (3, 3)
     assert list(sheet.data.index) == [0, 1, "row2"]
 
     qtable.undo()
     assert sheet.data.shape == (0, 3)
-    assert list(sheet.data.columns) == [0, "col1", "col2"]
+    assert list(sheet.data.columns) == ["A", "col1", "col2"]
     qtable.undo()
     assert sheet.data.shape == (0, 2)
-    assert list(sheet.data.columns) == [0, "col1"]
+    assert list(sheet.data.columns) == ["A", "col1"]
     qtable.undo()
     assert sheet.data.shape == (0, 0)
 
@@ -152,3 +152,16 @@ def test_table_signal():
     mock.call_args.args[0].row == slice(None)
     mock.call_args.args[0].column == slice(2, 3)
     mock.call_args.args[0].old_value == ItemInfo.INSERTED
+
+def test_ranged_index_extension():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((3, 3)))
+    assert list(sheet.columns) == ["A", "B", "C"]
+    sheet.cell[0, 3] = "0"
+    assert list(sheet.columns) == ["A", "B", "C", "D"]
+    sheet.columns[1] = "E"
+    assert list(sheet.columns) == ["A", "E", "C", "D"]
+    sheet.cell[0, 4] = "0"
+    assert list(sheet.columns) == ["A", "E", "C", "D", "E_0"]
+    sheet.cell[0, 6] = "0"
+    assert list(sheet.columns) == ["A", "E", "C", "D", "E_0", "F", "G"]
