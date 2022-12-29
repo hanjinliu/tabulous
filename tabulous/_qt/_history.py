@@ -126,6 +126,16 @@ class QtFileHistoryManager(QtCore.QObject):
             out = None
         return out
 
+    @classmethod
+    def requestPath(
+        cls,
+        mode=FileDialogMode.EXISTING_FILE,
+        caption=None,
+        filter=None,
+    ):
+        self = cls()
+        return self.openFileDialog(mode, caption, filter)
+
     def clearHistory(self):
         """Clear the history of visited directories."""
         return self._hist.clear()

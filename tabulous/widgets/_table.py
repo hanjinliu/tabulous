@@ -30,8 +30,8 @@ if TYPE_CHECKING:
     from tabulous._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from tabulous._qt._table import QBaseTable
     from tabulous._qt._table._base._overlay import QOverlayFrame
-    from tabulous._qt._keymap import QtKeyMap
 
+    from tabulous._keymap import QtKeyMap
     from tabulous.color import ColorType
 
     ColorMapping = Union[Callable[[Any], ColorType], Mapping[Hashable, ColorType]]

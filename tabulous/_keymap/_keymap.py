@@ -19,6 +19,8 @@ from qtpy.QtCore import Qt
 from functools import reduce
 from operator import or_
 
+from tabulous.exceptions import TriggerParent
+
 from ._callback import BoundCallback
 
 if TYPE_CHECKING:
@@ -608,16 +610,22 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
 
         if isinstance(callback, QtKeyMap):
             callback._obj = self._obj
-            self.activate(key)
+            try:
+                self.activate(key)
+            except TriggerParent:
+                return False
         else:
             current.deactivate()
             self.initialize()
             if self._obj is not None:
                 callback = callback.__get__(self._obj)
-            if _is_parametric:
-                callback(key.key_string())
-            else:
-                callback()
+            try:
+                if _is_parametric:
+                    callback(key.key_string())
+                else:
+                    callback()
+            except TriggerParent:
+                return False
 
         last = self.last_pressed
         if last is not None and last.key == ExtKey.No and last.modifier == key.modifier:

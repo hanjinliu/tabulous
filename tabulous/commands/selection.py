@@ -112,30 +112,13 @@ def delete_selected_highlight(viewer: TableViewerBase):
 def show_context_menu(viewer: TableViewerBase):
     """Execute context menu"""
     qtable = _utils.get_table(viewer)._qwidget
-    r, c = qtable._qtable_view._selection_model.current_index
-    if r >= 0 and c >= 0:
-        index = qtable._qtable_view.model().index(r, c)
-        rect = qtable._qtable_view.visualRect(index)
-        qtable.showContextMenu(rect.center())
-    elif r < 0:
-        header = qtable._qtable_view.horizontalHeader()
-        rect = header.visualRectAtIndex(c)
-        header._show_context_menu(rect.center())
-    elif c < 0:
-        header = qtable._qtable_view.verticalHeader()
-        rect = header.visualRectAtIndex(r)
-        header._show_context_menu(rect.center())
-    else:
-        raise RuntimeError("Invalid index")
+    qtable.showContextMenuAtIndex()
 
 
 def raise_slot_error(viewer: TableViewerBase):
     """Show traceback at the cell"""
-    qtable_view = _utils.get_table(viewer)._qwidget._qtable_view
-    idx = qtable_view._selection_model.current_index
-    if slot := qtable_view._table_map.get_by_dest(idx, None):
-        if slot._current_error is not None:
-            slot.raise_in_msgbox()
+    qtable = _utils.get_table(viewer)._qwidget
+    qtable.raiseSlotError()
 
 
 def _notify_editability(viewer: TableViewerBase):

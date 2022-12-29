@@ -1,4 +1,4 @@
-from tabulous._qt._keymap import QtKeyMap
+from tabulous._keymap import QtKeyMap
 from unittest.mock import MagicMock
 import pytest
 

@@ -1,4 +1,5 @@
-from ._table_base import QBaseTable
+from ._table_base import QBaseTable, QMutableTable
+from tabulous.exceptions import TriggerParent
 
 
 @QBaseTable._keymap.bind("Up", dr=-1, dc=0)
@@ -54,3 +55,66 @@ def _(self: QBaseTable, dr, dc):
     dh = dc * 75 * self._qtable_view._zoom
     vbar.setValue(max(vbar.minimum(), min(vbar.maximum(), vbar.value() + dv)))
     hbar.setValue(max(hbar.minimum(), min(hbar.maximum(), hbar.value() + dh)))
+
+
+# Following key combos are only available when the table is not in a viewer
+def _check_no_viewer(func):
+    def _wrapped(self: QBaseTable, **kwargs):
+        if self.parentViewer() is None:
+            func(self, **kwargs)
+        else:
+            raise TriggerParent
+
+    return _wrapped
+
+
+QBaseTable._keymap.bind("Ctrl+C", headers=False)(
+    _check_no_viewer(QBaseTable.copyToClipboard)
+)
+QBaseTable._keymap.bind("Ctrl+C, Ctrl+H", headers=True)(
+    _check_no_viewer(QBaseTable.copyToClipboard)
+)
+QBaseTable._keymap.bind("Ctrl+V")(_check_no_viewer(QBaseTable.pasteFromClipBoard))
+QBaseTable._keymap.bind("Delete")(_check_no_viewer(QBaseTable.deleteValues))
+QBaseTable._keymap.bind("Backspace")(_check_no_viewer(QBaseTable.deleteValues))
+QBaseTable._keymap.bind("Ctrl+K, P")(_check_no_viewer(QBaseTable.setPopupView))
+QBaseTable._keymap.bind("Ctrl+K, V", orientation="vertical")(
+    _check_no_viewer(QBaseTable.setDualView)
+)
+QBaseTable._keymap.bind("Ctrl+K, H", orientation="horizontal")(
+    _check_no_viewer(QBaseTable.setDualView)
+)
+QBaseTable._keymap.bind("Ctrl+K, N")(_check_no_viewer(QBaseTable.resetViewMode))
+QBaseTable._keymap.bind("Ctrl+H")(_check_no_viewer(QBaseTable.undoStackView))
+QBaseTable._keymap.bind("Menu")(_check_no_viewer(QBaseTable.showContextMenuAtIndex))
+QBaseTable._keymap.bind("F6")(_check_no_viewer(QBaseTable.raiseSlotError))
+QMutableTable._keymap.bind("Ctrl+Z")(_check_no_viewer(QMutableTable.undo))
+QMutableTable._keymap.bind("Ctrl+Y")(_check_no_viewer(QMutableTable.redo))
+
+
+@QBaseTable._keymap.bind("Ctrl+K, E")
+@_check_no_viewer
+def _(self: QBaseTable):
+    try:
+        self.setEditable(not self.isEditable())
+    except Exception:
+        pass
+
+
+@QBaseTable._keymap.bind("Ctrl+X")
+@_check_no_viewer
+def _(self: QBaseTable):
+    self.copyToClipboard(headers=False)
+    self.deleteValues()
+
+
+@QBaseTable._keymap.bind("Ctrl+S")
+@_check_no_viewer
+def _(self: QBaseTable):
+    from tabulous import _io
+    from tabulous._qt._history import QtFileHistoryManager
+
+    if path := QtFileHistoryManager.requestPath("w", "Save table"):
+        _io.save_file(path, self.getDataFrame())
+
+    # (table.show_finder_widget, "Ctrl+F"),

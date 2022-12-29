@@ -18,15 +18,15 @@ from ._line_edit import (
     QVerticalHeaderLineEdit,
     QCellLiteralEdit,
 )
-from ...._sort_filter_proxy import SortFilterProxy
+from tabulous._sort_filter_proxy import SortFilterProxy
 from tabulous._dtype import isna
 from tabulous._qt._undo import QtUndoManager, fmt_slice
 from tabulous._qt._svg import QColoredSVGIcon
-from tabulous._qt._keymap import QtKeys, QtKeyMap
+from tabulous._keymap import QtKeys, QtKeyMap
 from tabulous._qt._action_registry import QActionRegistry
 from tabulous.types import ProxyType, ItemInfo, HeaderInfo, EvalInfo
 from tabulous.exceptions import SelectionRangeError, TableImmutableError
-from tabulous import commands as cmds
+from tabulous.widgets._mainwindow import DummyViewer
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
@@ -381,12 +381,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
         if self._keymap.press_key(e):
-            return
+            return None
         return super().keyPressEvent(e)
-
-    def filter(self) -> ProxyType | None:
-        """Return the current filter."""
-        return self._proxy._obj
 
     def proxy(self) -> SortFilterProxy:
         """The sort/filter proxy object."""
@@ -442,12 +438,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return arguments(self.proxy())
 
     @setProxy.set_formatter
-    def _setFilter_fmt(self, sl):
-        from tabulous.widgets.filtering import ColumnFilter
-
-        if isinstance(sl, ColumnFilter):
-            return f"table.filter{sl._repr[2:]}"
-        return f"table.filter = {sl!r}"
+    def _setProxy_fmt(self, sl):
+        return f"table.proxy = {sl!r}"
 
     @_mgr.interface
     def setForegroundColormap(self, name: str, colormap: Callable | None):
@@ -729,6 +721,31 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
         selection_model.move_to(row, column)
         return None
+
+    def showContextMenuAtIndex(self):
+        """Programmatically show context menu at index (r, c)."""
+        r, c = self._qtable_view._selection_model.current_index
+        if r >= 0 and c >= 0:
+            index = self._qtable_view.model().index(r, c)
+            rect = self._qtable_view.visualRect(index)
+            self.showContextMenu(rect.center())
+        elif r < 0:
+            header = self._qtable_view.horizontalHeader()
+            rect = header.visualRectAtIndex(c)
+            header._show_context_menu(rect.center())
+        elif c < 0:
+            header = self._qtable_view.verticalHeader()
+            rect = header.visualRectAtIndex(r)
+            header._show_context_menu(rect.center())
+        else:
+            raise RuntimeError("Invalid index")
+
+    def raiseSlotError(self):
+        qtable_view = self._qtable_view
+        idx = qtable_view._selection_model.current_index
+        if slot := qtable_view._table_map.get_by_dest(idx, None):
+            if slot._current_error is not None:
+                slot.raise_in_msgbox()
 
     def tableStack(self) -> QTabbedTableStack | None:
         """Return the table stack."""

@@ -10,7 +10,7 @@ from qtpy.QtCore import Qt
 import pandas as pd
 
 from tabulous._qt._qt_const import MonospaceFontFamily
-from tabulous._qt._keymap import QtKeys
+from tabulous._keymap import QtKeys
 from tabulous.types import HeaderInfo, EvalInfo
 from tabulous._range import RectRange, MultiRectRange
 from tabulous._utils import get_config

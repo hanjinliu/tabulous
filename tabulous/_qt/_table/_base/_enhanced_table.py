@@ -15,7 +15,7 @@ from tabulous._qt._table._base._header_view import (
 from tabulous._qt._table._base._table_base import QBaseTable, QMutableTable
 from tabulous._qt._table._base._line_edit import QCellLiteralEdit, QCellLabelEdit
 
-from tabulous._qt._keymap import QtKeys
+from tabulous._keymap import QtKeys
 from tabulous._selection_model import RangesModel, SelectionModel, Index
 
 if TYPE_CHECKING:

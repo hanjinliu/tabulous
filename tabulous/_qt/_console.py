@@ -9,7 +9,7 @@ from qtpy.QtCore import Signal
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
-from tabulous._qt._keymap import QtKeys, QtKeyMap
+from tabulous._keymap import QtKeys, QtKeyMap
 
 if TYPE_CHECKING:
     from tabulous._qt._dockwidget import QtDockWidget

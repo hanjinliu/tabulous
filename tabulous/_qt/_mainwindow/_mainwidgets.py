@@ -6,7 +6,7 @@ from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, QEvent, QTimer
 
 from ._base import _QtMainWidgetBase
-from tabulous._qt._keymap import QtKeyMap
+from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
 from tabulous._utils import get_config
 

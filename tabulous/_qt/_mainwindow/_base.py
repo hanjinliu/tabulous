@@ -8,8 +8,8 @@ from qt_command_palette import get_palette
 from ._namespace import Namespace
 
 from tabulous._qt._table_stack import QTabbedTableStack
-from tabulous._qt._keymap import QtKeyMap
 from tabulous._qt._history import QtFileHistoryManager
+from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
 from tabulous._utils import load_cell_namespace
 
@@ -111,9 +111,9 @@ class _QtMainWidgetBase(QtW.QWidget):
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
         """Activate keymap object."""
-        if not self._keymap.press_key(a0):
-            return super().keyPressEvent(a0)
-        return None
+        if self._keymap.press_key(a0):
+            return None
+        return super().keyPressEvent(a0)
 
     def showKeyMap(self) -> None:
         """Show keymap viewer widget."""
