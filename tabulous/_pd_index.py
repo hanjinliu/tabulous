@@ -4,20 +4,21 @@ import numpy as np
 import pandas as pd
 
 ORD_A = ord("A")
+CHARS = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ") + [""]
+CHARS_SET = set(CHARS)
+LONGEST = np.array(CHARS[:-1], dtype=object)
 
 
 def str_to_num(s: str):
     out = 0
     for i, c in enumerate(reversed(s)):
+        if c not in CHARS_SET:
+            raise ValueError(f"Character {c} is not allowed.")
         out += (ord(c) - ORD_A) ** (i + 1)
     return out
 
 
-CHARS = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ") + [""]
-LONGEST = np.array(CHARS[:-1])
-
-
-def iter_char(start: int, stop: int):
+def _iter_char(start: int, stop: int):
     if stop >= 26**4:
         raise ValueError("Stop must be less than 26**4 - 1")
     base_repr = np.base_repr(start, 26)
@@ -37,13 +38,23 @@ def iter_char(start: int, stop: int):
                 current[i - 1] += over
 
 
-def char_arange(stop: int) -> np.ndarray:
+def char_arange(start: int, stop: int = None) -> np.ndarray:
+    """
+    A char version of np.arange.
+
+    Examples
+    --------
+    >>> char_arange(3)  # array(["A", "B", "C"])
+    >>> char_arange(25, 28)  # array(["Z", "AA", "AB"])
+    """
     global LONGEST
+    if stop is None:
+        start, stop = 0, start
     nmax = len(LONGEST)
     if stop <= nmax:
-        return np.array(LONGEST[:stop])
-    LONGEST = np.append(LONGEST, np.fromiter(iter_char(nmax, stop), dtype=object))
-    return LONGEST.copy()
+        return np.array(LONGEST[start:stop], dtype=object)
+    LONGEST = np.append(LONGEST, np.fromiter(_iter_char(nmax, stop), dtype=object))
+    return LONGEST[start:].copy()
 
 
 class UniqueName:
@@ -54,7 +65,7 @@ class UniqueName:
         return self.name
 
     def __repr__(self) -> str:
-        return repr(self.name)
+        return f"UniqueName({self.name!r})"
 
     def __hash__(self) -> int:
         return hash(self.name)
@@ -71,6 +82,7 @@ def char_range_index(stop: int) -> pd.Index:
 
 
 def is_ranged(index: pd.Index) -> bool:
+    """Check if given index is range-like."""
     return isinstance(index, pd.RangeIndex) or index.name is CHAR_RANGE_INDEX
 
 

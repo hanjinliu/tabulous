@@ -1290,9 +1290,7 @@ class QMutableTable(QBaseTable):
         )
 
     @_set_horizontal_header_value.set_formatter
-    def _set_horizontal_header_value_fmt(
-        self, index: int, value: Any, constructor
-    ) -> Any:
+    def _set_horizontal_header_value_fmt(self, index: int, value, constructor):
         return f"columns[{index}] = {value!r}"
 
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
@@ -1322,7 +1320,7 @@ class QMutableTable(QBaseTable):
         return None
 
     @_set_vertical_header_value.server
-    def _set_vertical_header_value(self, index: int, value: Any, constructor) -> Any:
+    def _set_vertical_header_value(self, index: int, value: Any, constructor):
         return arguments(
             index,
             self.model().df.index[index],
@@ -1330,9 +1328,7 @@ class QMutableTable(QBaseTable):
         )
 
     @_set_vertical_header_value.set_formatter
-    def _set_vertical_header_value_fmt(
-        self, index: int, value: Any, constructor
-    ) -> Any:
+    def _set_vertical_header_value_fmt(self, index: int, value, constructor):
         return f"index[{index}] = {value!r}"
 
     def undo(self) -> Any:

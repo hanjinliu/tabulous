@@ -18,7 +18,7 @@ from tabulous._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 from tabulous.color import normalize_color
 from tabulous.types import ItemInfo
 from tabulous._text_formatter import DefaultFormatter
-from tabulous._pd_index import char_range_index, is_ranged
+from tabulous._pd_index import char_range_index, is_ranged, char_arange
 
 if TYPE_CHECKING:
     from magicgui.widgets._bases import ValueWidget
@@ -231,6 +231,11 @@ class QSpreadSheet(QMutableSimpleTable):
     def setDataFrame(self, data: pd.DataFrame) -> None:
         """Set data frame as a string table."""
         self._data_raw = data.astype(_STRING_DTYPE)
+        # SpreadSheet columns should be str if possible. Convert it.
+        if isinstance(self._data_raw.columns, pd.RangeIndex):
+            self._data_raw.columns = char_arange(self._data_raw.columns.size)
+        elif self._data_raw.columns.dtype.kind in "iuf":
+            self._data_raw.columns = self._data_raw.columns.astype(str)
         self.model().setShape(
             data.index.size + _OUT_OF_BOUND_R,
             data.columns.size + _OUT_OF_BOUND_C,
@@ -809,14 +814,24 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
     if nc > 0:
         # find unique columns
         if df.columns.size == 0:
-            columns = range(nc)
+            columns = char_arange(nc)
         else:
-            columns = range(_nc, _nc + nc)
+            columns = char_arange(_nc, _nc + nc)
+        # check duplication
+        if not _c_ranged:
+            _old_columns = df.columns
+            for ic, c in enumerate(columns):
+                if c in _old_columns:
+                    i = 0
+                    c0 = f"{c}_{i}"
+                    while c0 in _old_columns:
+                        i += 1
+                        c0 = f"{c}_{i}"
+                    columns[ic] = c0
         ext = _df_full(_nr, nc, value, index=df.index, columns=columns)
         df = pd.concat([df, ext], axis=1)
         if _c_ranged:
             df.columns = char_range_index(df.columns.size)
-
     return df
 
 

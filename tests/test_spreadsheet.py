@@ -152,3 +152,16 @@ def test_table_signal():
     mock.call_args.args[0].row == slice(None)
     mock.call_args.args[0].column == slice(2, 3)
     mock.call_args.args[0].old_value == ItemInfo.INSERTED
+
+def test_ranged_index_extension():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((3, 3)))
+    assert list(sheet.columns) == ["A", "B", "C"]
+    sheet.cell[0, 3] = "0"
+    assert list(sheet.columns) == ["A", "B", "C", "D"]
+    sheet.columns[1] = "E"
+    assert list(sheet.columns) == ["A", "E", "C", "D"]
+    sheet.cell[0, 4] = "0"
+    assert list(sheet.columns) == ["A", "E", "C", "D", "E_0"]
+    sheet.cell[0, 6] = "0"
+    assert list(sheet.columns) == ["A", "E", "C", "D", "E_0", "F", "G"]
