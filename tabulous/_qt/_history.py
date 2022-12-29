@@ -93,10 +93,13 @@ class QtFileHistoryManager(QtCore.QObject):
     ):
         if not isinstance(parent := self.parent(), QtW.QWidget):
             parent = None
+
+        directory = str(self.recentlyVisitedDirectory().parent)
+
         out = QFILE_DIALOG_MODES[FileDialogMode(mode)](
             parent=parent,
             caption=caption,
-            directory=str(self.recentlyVisitedDirectory()),
+            directory=directory,
             filter=filter,
         )
         if out is None:

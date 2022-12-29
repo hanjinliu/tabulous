@@ -1,3 +1,4 @@
+from typing import Callable
 from ._table_base import QBaseTable, QMutableTable
 from tabulous.exceptions import TriggerParent
 
@@ -58,7 +59,7 @@ def _(self: QBaseTable, dr, dc):
 
 
 # Following key combos are only available when the table is not in a viewer
-def _check_no_viewer(func):
+def _check_no_viewer(func: Callable[[QBaseTable], None]):
     def _wrapped(self: QBaseTable, **kwargs):
         if self.parentViewer() is None:
             func(self, **kwargs)
@@ -75,6 +76,9 @@ QBaseTable._keymap.bind("Ctrl+C, Ctrl+H", headers=True)(
     _check_no_viewer(QBaseTable.copyToClipboard)
 )
 QBaseTable._keymap.bind("Ctrl+V")(_check_no_viewer(QBaseTable.pasteFromClipBoard))
+QBaseTable._keymap.bind("Ctrl+A")(
+    _check_no_viewer(lambda self: self._qtable_view.selectAll)
+)
 QBaseTable._keymap.bind("Delete")(_check_no_viewer(QBaseTable.deleteValues))
 QBaseTable._keymap.bind("Backspace")(_check_no_viewer(QBaseTable.deleteValues))
 QBaseTable._keymap.bind("Ctrl+K, P")(_check_no_viewer(QBaseTable.setPopupView))
