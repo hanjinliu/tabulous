@@ -26,7 +26,7 @@ from tabulous._keymap import QtKeys, QtKeyMap
 from tabulous._qt._action_registry import QActionRegistry
 from tabulous.types import ProxyType, ItemInfo, HeaderInfo, EvalInfo
 from tabulous.exceptions import SelectionRangeError, TableImmutableError
-from tabulous.widgets._mainwindow import DummyViewer
+from tabulous._pd_index import as_not_ranged, as_constructor, is_ranged
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
@@ -768,19 +768,18 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.setProxy(None)  # reset filter to avoid unexpected errors
         df = self.model().df
         if axis == 0:
-            was_range = isinstance(df.columns, pd.RangeIndex)
-            if isinstance(df.index, pd.RangeIndex):  # df[0] to index
+            was_range = is_ranged(df.columns)
+            if is_ranged(df.index):  # df[0] to index
                 df_new = df.set_index(df.columns[0])
             else:  # index to df[0]
                 df_new = df.reset_index()
             if was_range:
-                df_new.set_axis(
-                    pd.RangeIndex(len(df_new.columns)), axis=1, inplace=True
-                )
+                _index = as_constructor(df.columns)(df.columns.size)
+                df_new.set_axis(_index, axis=1, inplace=True)
 
         elif axis == 1:
-            was_range = isinstance(df.index, pd.RangeIndex)
-            if isinstance(df.columns, pd.RangeIndex):  # df[0] to column
+            was_range = is_ranged(df.index)
+            if is_ranged(df.columns):  # df[0] to column
                 top_row = df.iloc[0, :].astype(str)
                 df_new = df.iloc[1:, :]
                 df_new.set_axis(top_row, axis=1, inplace=True)
@@ -1248,8 +1247,13 @@ class QMutableTable(QBaseTable):
         _header = qtable.verticalHeader()
         return QVerticalHeaderLineEdit(parent=_header, table=self, pos=(index, -1))
 
-    @QBaseTable._mgr.interface
     def setHorizontalHeaderValue(self, index: int, value: Any) -> None:
+        return self._set_horizontal_header_value(index, value, constructor=None)
+
+    @QBaseTable._mgr.interface
+    def _set_horizontal_header_value(
+        self, index: int, value: Any, constructor=None
+    ) -> None:
         qtable = self._qtable_view
         _header = qtable.horizontalHeader()
 
@@ -1258,9 +1262,12 @@ class QMutableTable(QBaseTable):
         colname = model.df.columns[index]
         model.rename_column(colname, value)
 
-        _rename_column(self._data_raw, index, value)
         _rename_column(model.df, index, value)
         self._filtered_columns = _rename_index(self._filtered_columns, index, value)
+        if constructor is None:
+            _rename_column(self._data_raw, index, value)
+        else:
+            self._data_raw.columns = constructor(self._data_raw.columns.size)
 
         # adjust header size
         size_hint = _header.sectionSizeHint(index)
@@ -1274,22 +1281,34 @@ class QMutableTable(QBaseTable):
         self.refreshTable()
         return None
 
-    @setHorizontalHeaderValue.server
-    def setHorizontalHeaderValue(self, index: int, value: Any) -> Any:
-        return arguments(index, self.model().df.columns[index])
+    @_set_horizontal_header_value.server
+    def _set_horizontal_header_value(self, index: int, value: Any, constructor) -> Any:
+        return arguments(
+            index,
+            self.model().df.columns[index],
+            constructor=as_constructor(self._data_raw.columns),
+        )
 
-    @setHorizontalHeaderValue.set_formatter
-    def _setHorizontalHeaderValue_fmt(self, index: int, value: Any) -> Any:
+    @_set_horizontal_header_value.set_formatter
+    def _set_horizontal_header_value_fmt(
+        self, index: int, value: Any, constructor
+    ) -> Any:
         return f"columns[{index}] = {value!r}"
 
-    @QBaseTable._mgr.interface
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
+        return self._set_vertical_header_value(index, value, constructor=None)
+
+    @QBaseTable._mgr.interface
+    def _set_vertical_header_value(self, index: int, value: Any, constructor=None):
         qtable = self._qtable_view
         _header = qtable.verticalHeader()
 
-        _rename_row(self._data_raw, index, value)  # TODO: incompatible with filter
         _rename_row(self.model().df, index, value)
         self._filtered_index = _rename_index(self._filtered_index, index, value)
+        if constructor is None:
+            _rename_row(self._data_raw, index, value)  # TODO: incompatible with filter
+        else:
+            self._data_raw.index = constructor(self._data_raw.index.size)
 
         # adjust size
         _width_hint = _header.sizeHint().width()
@@ -1302,12 +1321,18 @@ class QMutableTable(QBaseTable):
         self.refreshTable()
         return None
 
-    @setVerticalHeaderValue.server
-    def setVerticalHeaderValue(self, index: int, value: Any) -> Any:
-        return arguments(index, self.model().df.index[index])
+    @_set_vertical_header_value.server
+    def _set_vertical_header_value(self, index: int, value: Any, constructor) -> Any:
+        return arguments(
+            index,
+            self.model().df.index[index],
+            constructor=as_constructor(self._data_raw.index),
+        )
 
-    @setVerticalHeaderValue.set_formatter
-    def _setVerticalHeaderValue_fmt(self, index: int, value: Any) -> Any:
+    @_set_vertical_header_value.set_formatter
+    def _set_vertical_header_value_fmt(
+        self, index: int, value: Any, constructor
+    ) -> Any:
         return f"index[{index}] = {value!r}"
 
     def undo(self) -> Any:
@@ -1387,6 +1412,7 @@ def _rename_column(df: pd.DataFrame, idx: int, new_name: str) -> None:
     """Rename column label at the given index."""
     colname = df.columns[idx]
     df.rename(columns={colname: new_name}, inplace=True)
+    as_not_ranged(df.columns)
     return None
 
 

@@ -17,8 +17,8 @@ from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from tabulous._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 from tabulous.color import normalize_color
 from tabulous.types import ItemInfo
-from tabulous import commands as cmds
 from tabulous._text_formatter import DefaultFormatter
+from tabulous._pd_index import char_range_index, is_ranged
 
 if TYPE_CHECKING:
     from magicgui.widgets._bases import ValueWidget
@@ -466,7 +466,7 @@ class QSpreadSheet(QMutableSimpleTable):
             ],
             axis=0,
         )
-        if isinstance(index_existing, pd.RangeIndex):
+        if is_ranged(index_existing):
             self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
         self.model().insertRows(row, count, QtCore.QModelIndex())
         self.setProxy(self._proxy)
@@ -531,8 +531,8 @@ class QSpreadSheet(QMutableSimpleTable):
             ],
             axis=1,
         )
-        if isinstance(columns_existing, pd.RangeIndex):
-            self._data_raw.columns = pd.RangeIndex(0, self._data_raw.columns.size)
+        if is_ranged(columns_existing):
+            self._data_raw.columns = char_range_index(self._data_raw.columns.size)
         self.model().insertColumns(col, count, QtCore.QModelIndex())
         self.setProxy(self._proxy)
         self._data_cache = None
@@ -624,7 +624,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.undoable
     def _remove_columns(self, col: int, count: int, old_values: pd.DataFrame):
-        _c_ranged = isinstance(self._data_raw.columns, pd.RangeIndex)
+        _c_ranged = is_ranged(self._data_raw.columns)
         model = self.model()
         for index in range(col, col + count):
             colname = model.df.columns[index]
@@ -636,7 +636,7 @@ class QSpreadSheet(QMutableSimpleTable):
             axis=1,
         )
         if _c_ranged:
-            self._data_raw.columns = pd.RangeIndex(0, self._data_raw.columns.size)
+            self._data_raw.columns = char_range_index(self._data_raw.columns.size)
         self.model().removeColumns(col, count, QtCore.QModelIndex())
         self.setProxy(self._proxy)
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
@@ -784,37 +784,15 @@ class QSpreadSheet(QMutableSimpleTable):
         return self.setTextFormatter(name, formatter)
 
 
-def _get_limit(a) -> int:
-    if isinstance(a, int):
-        amax = a
-    elif isinstance(a, slice):
-        amax = a.stop - 1
-    else:
-        raise TypeError(f"Cannot infer limit of type {type(a)}")
-    return amax
-
-
-def _df_full(
-    nrows: int, ncols: int, value="", index=None, columns=None
-) -> pd.DataFrame:
-    """A DataFrame filled with the given value."""
-    return pd.DataFrame(
-        np.full((nrows, ncols), value),
-        index=index,
-        columns=columns,
-        dtype="string",
-    )
-
-
 def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.DataFrame:
     """Pad a dataframe by nr rows and nr columns with the given value."""
     if df.shape == (0, 0):
-        return _df_full(nr, nc, value, index=range(nr), columns=range(nc))
+        return _df_full(nr, nc, value, columns=char_range_index(nc))
 
     # pad rows
     _nr, _nc = df.shape
     _r_ranged = isinstance(df.index, pd.RangeIndex)
-    _c_ranged = isinstance(df.columns, pd.RangeIndex)
+    _c_ranged = is_ranged(df.columns)
     if nr > 0:
         # find unique index
         if df.index.size == 0:
@@ -837,6 +815,28 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
         ext = _df_full(_nr, nc, value, index=df.index, columns=columns)
         df = pd.concat([df, ext], axis=1)
         if _c_ranged:
-            df.columns = pd.RangeIndex(0, df.columns.size)
+            df.columns = char_range_index(df.columns.size)
 
     return df
+
+
+def _get_limit(a) -> int:
+    if isinstance(a, int):
+        amax = a
+    elif isinstance(a, slice):
+        amax = a.stop - 1
+    else:
+        raise TypeError(f"Cannot infer limit of type {type(a)}")
+    return amax
+
+
+def _df_full(
+    nrows: int, ncols: int, value="", index=None, columns=None
+) -> pd.DataFrame:
+    """A DataFrame filled with the given value."""
+    return pd.DataFrame(
+        np.full((nrows, ncols), value),
+        index=index,
+        columns=columns,
+        dtype="string",
+    )
