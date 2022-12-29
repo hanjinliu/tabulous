@@ -56,7 +56,7 @@ class Toolbar(Component["TableViewerBase"]):
     @property
     def history_manager(self):
         """The file I/O history manager."""
-        return self.parent._qwidget._toolbar._hist_mgr
+        return self.parent._qwidget._hist_mgr
 
     def register_action(self, f: Callable):
         raise NotImplementedError()
@@ -559,6 +559,48 @@ class TableViewer(TableViewerBase):
             widget = dock.widget
             if hasattr(widget, "reset_choices"):
                 widget.reset_choices()
+
+
+class DummyViewer:
+    _namespace: Namespace | None = None
+
+    def __init__(self, table: TableBase):
+        self._table = table
+
+    @classmethod
+    def load_cell_namespace(cls):
+        from tabulous._qt._mainwindow._namespace import Namespace
+        from tabulous._utils import load_cell_namespace
+
+        cls._namespace = Namespace()
+
+        # update with user namespace
+        cls._namespace.update_safely(load_cell_namespace())
+
+    @property
+    def current_table(self) -> TableBase:
+        return self._table
+
+    @property
+    def current_index(self) -> int:
+        return 0
+
+    @property
+    def data(self):
+        return self.current_table.data
+
+    @property
+    def config(self) -> MappingProxyType:
+        """Return the config info."""
+        return _utils.get_config().as_immutable()
+
+    @property
+    def cell_namespace(self) -> Namespace:
+        """Return the namespace of the cell editor."""
+        cls = self.__class__
+        if cls._namespace is None:
+            cls.load_cell_namespace()
+        return cls._namespace
 
 
 def _normalize_widget(widget: Widget | QWidget, name: str) -> tuple[QWidget, str]:

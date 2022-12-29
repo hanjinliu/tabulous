@@ -526,12 +526,20 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.resizedSignal.emit()
         return super().resizeEvent(e)
 
+    @lru_cache(maxsize=1)
     def _get_selection_color(self):
-        white_bg = self.parentViewer()._white_background
+        if _viewer := self.parentViewer():
+            white_bg = _viewer._white_background
+        else:
+            white_bg = True
         return S_COLOR_W if white_bg else S_COLOR_B
 
+    @lru_cache(maxsize=1)
     def _get_highlight_color(self):
-        white_bg = self.parentViewer()._white_background
+        if _viewer := self.parentViewer():
+            white_bg = _viewer._white_background
+        else:
+            white_bg = True
         return H_COLOR_W if white_bg else H_COLOR_B
 
     def _get_current_index_color(self):
@@ -593,13 +601,15 @@ class _QTableViewEnhanced(QtW.QTableView):
             parent = None
         return parent
 
-    @lru_cache(maxsize=1)
-    def parentViewer(self) -> _QtMainWidgetBase:
+    def parentViewer(self) -> _QtMainWidgetBase | None:
         """The parent table viewer widget."""
-        parent = self.parentTable().parent()
-        while not hasattr(parent, "_table_viewer"):
+        parent = self.parentTable()
+        while True:
             parent = parent.parent()
-        return parent
+            if hasattr(parent, "_table_viewer"):
+                return parent
+            elif parent is None:
+                return None
 
     def _rect_from_ranges(
         self, ranges: Iterable[tuple[slice, slice]]

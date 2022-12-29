@@ -311,7 +311,7 @@ class CellInterface(Component["TableBase"]):
 
     def register_action(self, val: str | Callable[[tuple[int, int]], Any]):
         """Register an contextmenu action to the tablelist."""
-        table = self.parent._qwidget
+        table = self.parent.native
         if isinstance(val, str):
             return table.registerAction(val)
         elif callable(val):
@@ -322,11 +322,11 @@ class CellInterface(Component["TableBase"]):
 
     def get_label(self, r: int, c: int) -> str | None:
         """Get the label of a cell."""
-        return self.parent._qwidget.itemLabel(r, c)
+        return self.parent.native.itemLabel(r, c)
 
     def set_label(self, r: int, c: int, text: str):
         """Set the label of a cell."""
-        return self.parent._qwidget.setItemLabel(r, c, text)
+        return self.parent.native.setItemLabel(r, c, text)
 
     def set_labeled_data(
         self,

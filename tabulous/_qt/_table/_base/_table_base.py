@@ -165,7 +165,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def _install_actions(self) -> None:
         def _wrap(cmd):
-            return lambda idx: cmd(self.parentViewer()._table_viewer)
+            def _f(idx):
+                if _viewer := self.parentViewer():
+                    return cmd(_viewer._table_viewer)
+                else:
+                    raise RuntimeError("No parent viewer found.")
+
+            return _f
 
         # fmt: off
         hheader = self._qtable_view.horizontalHeader()
@@ -368,6 +374,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         if len(sels) == 0:
             raise SelectionRangeError("No selection found.")
         table_stack = self.tableStack()
+        if table_stack is None:
+            raise ValueError("Table is not in a table stack.")
         i = table_stack.currentIndex()
         viewer = table_stack.parentWidget()._table_viewer
         name = viewer.tables[i].name
@@ -395,6 +403,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             raise SelectionRangeError("Inappropriate selection range.")
 
         table_stack = self.tableStack()
+        if table_stack is None:
+            raise ValueError("Table is not in a table stack.")
         i = table_stack.currentIndex()
         viewer = table_stack.parentWidget()._table_viewer
         name = viewer.tables[i].name
@@ -772,13 +782,15 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def tableStack(self) -> QTabbedTableStack | None:
         """Return the table stack."""
-        parent = self
-        while True:
-            parent = parent.parentWidget()
-            if isinstance(parent, QtW.QTabWidget):
-                return parent
-            elif parent is None:
-                return None
+        try:
+            stack = self.parentWidget().parentWidget()
+        except AttributeError:
+            stack = None
+        if isinstance(stack, QtW.QTabWidget):
+            # if a table is used in other widgets, it does not have a table stack
+            # as a parent.
+            return stack
+        return None
 
     def parentViewer(self) -> _QtMainWidgetBase:
         """Return the parent table viewer."""
@@ -1250,7 +1262,9 @@ class QMutableTable(QBaseTable):
     def editHorizontalHeader(self, index: int) -> QHorizontalHeaderLineEdit:
         """Edit the horizontal header."""
         if not self.isEditable():
-            return self.tableStack().notifyEditability()
+            if stack := self.tableStack():
+                stack.notifyEditability()
+            return None
 
         qtable = self._qtable_view
         _header = qtable.horizontalHeader()
@@ -1259,7 +1273,9 @@ class QMutableTable(QBaseTable):
     def editVerticalHeader(self, index: int) -> QVerticalHeaderLineEdit:
         """Edit the vertical header."""
         if not self.isEditable():
-            return self.tableStack().notifyEditability()
+            if stack := self.tableStack():
+                stack.notifyEditability()
+            return None
 
         qtable = self._qtable_view
         _header = qtable.verticalHeader()

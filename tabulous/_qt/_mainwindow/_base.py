@@ -60,10 +60,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._namespace = Namespace()
 
         # update with user namespace
-        _user_ns = dict(load_cell_namespace())
-        for k in self._namespace._static:
-            _user_ns.pop(k, None)
-        self._namespace.update(_user_ns)
+        self._namespace.update_safely(load_cell_namespace())
 
         # install command palette
         self._command_palette = get_palette("tabulous")
