@@ -1,7 +1,7 @@
 from __future__ import annotations
 from functools import wraps
 from typing import TYPE_CHECKING
-from qtpy import QtWidgets as QtW
+from qtpy import QtWidgets as QtW, QtGui
 
 try:
     import matplotlib as mpl
