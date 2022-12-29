@@ -1251,23 +1251,24 @@ class QMutableTable(QBaseTable):
         return self._set_horizontal_header_value(index, value, constructor=None)
 
     @QBaseTable._mgr.interface
-    def _set_horizontal_header_value(
-        self, index: int, value: Any, constructor=None
-    ) -> None:
+    def _set_horizontal_header_value(self, index: int, value, constructor=None):
         qtable = self._qtable_view
         _header = qtable.horizontalHeader()
 
         model = self.model()
 
         colname = model.df.columns[index]
-        model.rename_column(colname, value)
 
-        _rename_column(model.df, index, value)
-        self._filtered_columns = _rename_index(self._filtered_columns, index, value)
-        if constructor is None:
-            _rename_column(self._data_raw, index, value)
-        else:
-            self._data_raw.columns = constructor(self._data_raw.columns.size)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            model.rename_column(colname, value)
+
+            _rename_column(model.df, index, value)
+            self._filtered_columns = _rename_index(self._filtered_columns, index, value)
+            if constructor is None:
+                _rename_column(self._data_raw, index, value)
+            else:
+                self._data_raw.columns = constructor(self._data_raw.columns.size)
 
         # adjust header size
         size_hint = _header.sectionSizeHint(index)
@@ -1291,22 +1292,25 @@ class QMutableTable(QBaseTable):
 
     @_set_horizontal_header_value.set_formatter
     def _set_horizontal_header_value_fmt(self, index: int, value, constructor):
-        return f"columns[{index}] = {value!r}"
+        return f"table.columns[{index}] = {value!r}"
 
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         return self._set_vertical_header_value(index, value, constructor=None)
 
     @QBaseTable._mgr.interface
-    def _set_vertical_header_value(self, index: int, value: Any, constructor=None):
+    def _set_vertical_header_value(self, index: int, value, constructor=None):
         qtable = self._qtable_view
         _header = qtable.verticalHeader()
 
-        _rename_row(self.model().df, index, value)
-        self._filtered_index = _rename_index(self._filtered_index, index, value)
-        if constructor is None:
-            _rename_row(self._data_raw, index, value)  # TODO: incompatible with filter
-        else:
-            self._data_raw.index = constructor(self._data_raw.index.size)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            _rename_row(self.model().df, index, value)
+            r0 = self._get_proxy_source_index(index)
+            self._filtered_index = _rename_index(self._filtered_index, r0, value)
+            if constructor is None:
+                _rename_row(self._data_raw, r0, value)
+            else:
+                self._data_raw.index = constructor(self._data_raw.index.size)
 
         # adjust size
         _width_hint = _header.sizeHint().width()
@@ -1329,7 +1333,7 @@ class QMutableTable(QBaseTable):
 
     @_set_vertical_header_value.set_formatter
     def _set_vertical_header_value_fmt(self, index: int, value, constructor):
-        return f"index[{index}] = {value!r}"
+        return f"table.index[{index}] = {value!r}"
 
     def undo(self) -> Any:
         """Undo last operation."""

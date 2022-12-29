@@ -231,11 +231,13 @@ class QSpreadSheet(QMutableSimpleTable):
     def setDataFrame(self, data: pd.DataFrame) -> None:
         """Set data frame as a string table."""
         self._data_raw = data.astype(_STRING_DTYPE)
+
         # SpreadSheet columns should be str if possible. Convert it.
         if isinstance(self._data_raw.columns, pd.RangeIndex):
             self._data_raw.columns = char_arange(self._data_raw.columns.size)
         elif self._data_raw.columns.dtype.kind in "iuf":
             self._data_raw.columns = self._data_raw.columns.astype(str)
+
         self.model().setShape(
             data.index.size + _OUT_OF_BOUND_R,
             data.columns.size + _OUT_OF_BOUND_C,
