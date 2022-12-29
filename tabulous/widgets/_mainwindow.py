@@ -2,6 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractproperty
 from pathlib import Path
 from types import MappingProxyType
+import warnings
 import weakref
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Union
@@ -63,11 +64,6 @@ class Toolbar(_VisibilityMixin):
     @visible.setter
     def visible(self, val) -> None:
         return self.parent._qwidget.setToolBarVisible(val)
-
-    @property
-    def history_manager(self):
-        """The file I/O history manager."""
-        return self.parent._qwidget._hist_mgr
 
     def register_action(self, f: Callable):
         raise NotImplementedError()
@@ -235,6 +231,11 @@ class TableViewerBase(_AbstractViewer):
         """Return the namespace of the cell editor."""
         return self._qwidget._namespace
 
+    @property
+    def history_manager(self):
+        """The file I/O history manager."""
+        return self._qwidget._hist_mgr
+
     def show(self, *, run: bool = True) -> None:
         """Show the widget."""
         self._qwidget.show()
@@ -396,7 +397,7 @@ class TableViewerBase(_AbstractViewer):
             raise RuntimeError
 
         out = _io.open_file(path)
-        if isinstance(df, dict):
+        if isinstance(out, dict):
             for sheet_name, df in out.items():
                 fopen(df, name=sheet_name)
         else:
@@ -407,7 +408,29 @@ class TableViewerBase(_AbstractViewer):
 
     def save(self, path: PathLike) -> None:
         """Save current table."""
+        warnings.warn(
+            "viewer.save() is deprecated. Use table.save() instead.",
+            DeprecationWarning,
+        )
         _io.save_file(path, self.current_table.data)
+        return None
+
+    def save_all(self, path: PathLike) -> None:
+        """Save all tables."""
+        path = Path(path)
+        if path.is_dir():
+            paths = [path / f"{table.name}.csv" for table in self.tables]
+        elif path.name.count("*") == 1:
+            paths = [path.replace("*", table.name) for table in self.tables]
+        elif path.suffix in (".xlsx", ".xls"):
+            for table in self.tables:
+                table.data.to_excel(path, sheet_name=table.name)
+            return None
+        else:
+            raise ValueError("Invalid path.")
+
+        for table, fp in zip(self.tables, paths):
+            _io.save_file(fp, table.data)
         return None
 
     def open_sample(self, sample_name: str, plugin: str = "seaborn") -> Table:

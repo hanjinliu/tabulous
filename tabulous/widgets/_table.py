@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
+from pathlib import Path
 from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
 import warnings
 from psygnal import SignalGroup, Signal
@@ -523,6 +524,13 @@ class TableBase(ABC):
             size=size,
             grip=grip,
         )
+
+    def save(self, path: str | Path) -> None:
+        """Save table data to the given path."""
+        from tabulous._io import save_file
+
+        save_file(path, self.data)
+        return None
 
     def _emit_selections(self):
         with self.selections.blocked():

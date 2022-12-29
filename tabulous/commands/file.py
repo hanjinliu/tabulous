@@ -18,17 +18,27 @@ SAMPLE_CHOICES = [
 
 def open_table(viewer: TableViewerBase):
     """Open a file as a table"""
-    return viewer._qwidget.openFromDialog(type="table")
+    paths = viewer.history_manager.openFileDialog(mode="rm", caption="Open file(s)")
+    for path in paths:
+        viewer.open(path, type="table")
+    return None
 
 
 def open_spreadsheet(viewer: TableViewerBase):
     """Open a file as a spreadsheet"""
-    return viewer._qwidget.openFromDialog(type="spreadsheet")
+    paths = viewer.history_manager.openFileDialog(mode="rm", caption="Open file(s)")
+    for path in paths:
+        viewer.open(path, type="spreadsheet")
+    return None
 
 
 def save_table(viewer: TableViewerBase):
     """Save current table data"""
-    return viewer._qwidget.saveFromDialog()
+    if table := viewer.current_table:
+        path = viewer.history_manager.openFileDialog(mode="w", caption="Save table")
+        if path:
+            table.save(path)
+    return None
 
 
 def open_sample(viewer: TableViewerBase):
@@ -36,3 +46,13 @@ def open_sample(viewer: TableViewerBase):
     out = choose_one(choice={"choices": SAMPLE_CHOICES, "nullable": False})
     if out is not None:
         viewer.open_sample(out)
+
+
+def save_as_xlsx(viewer: TableViewerBase):
+    """Save all tables as xlsx"""
+    path = viewer.history_manager.openFileDialog(
+        mode="w", caption="Save table", filter="*.xlsx;;*.xls"
+    )
+    if path:
+        viewer.save_all(path)
+    return None

@@ -174,19 +174,3 @@ class _QtMainWidgetBase(QtW.QWidget):
     def toggleConsoleVisibility(self) -> None:
         """Toggle visibility of embeded console widget."""
         return self.setConsoleVisible(not self.consoleVisible())
-
-    def openFromDialog(self, type="table") -> None:
-        paths = self._hist_mgr.openFileDialog(mode="rm", caption="Open file(s)")
-        for path in paths:
-            self._table_viewer.open(path, type=type)
-        return None
-
-    def saveFromDialog(self) -> None:
-        path = self._hist_mgr.openFileDialog(mode="w", caption="Save table")
-        if path:
-            self._table_viewer.save(path)
-        return None
-
-    def newSpreadSheet(self) -> None:
-        self._table_viewer.add_spreadsheet()
-        return None

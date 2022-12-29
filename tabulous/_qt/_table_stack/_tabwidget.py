@@ -88,7 +88,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         tb.setText("+")
         tb.setFont(QtGui.QFont("Arial", 12, weight=15))
         tb.setToolTip("New spreadsheet")
-        tb.clicked.connect(lambda: self.parent().newSpreadSheet())
+        tb.clicked.connect(lambda: self.parent()._table_viewer.add_spreadsheet())
         self.setCornerWidget(tb)
         self.addEmptyWidget()
 
