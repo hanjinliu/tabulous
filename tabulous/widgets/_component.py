@@ -318,7 +318,7 @@ class CellInterface(Component["TableBase"]):
             location = val.__name__.replace("_", " ")
             return table.registerAction(location)(val)
         else:
-            raise ValueError("input must be a string or callable.")
+            raise TypeError("input must be a string or callable.")
 
     def get_label(self, r: int, c: int) -> str | None:
         """Get the label of a cell."""

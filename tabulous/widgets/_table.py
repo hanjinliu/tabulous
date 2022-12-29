@@ -102,6 +102,7 @@ class TableBase(ABC):
         self.events = TableSignals()
         self._name = str(name)
         self._qwidget = self._create_backend(_data)
+        self._install_actions()
         self._qwidget.connectSelectionChangedSignal(self._emit_selections)
         from tabulous._map_model import SlotRefMapping
 
@@ -575,6 +576,62 @@ class TableBase(ABC):
         del qtable_view._focused_widget
         return None
 
+    def _wrap_command(self, cmd):
+        def _f(idx):
+            if _qviewer := self._qwidget.parentViewer():
+                _viewer = _qviewer._table_viewer
+            else:
+                from tabulous.widgets._mainwindow import DummyViewer
+
+                _viewer = DummyViewer(self)
+            return cmd(_viewer)
+
+        return _f
+
+    def _install_actions(self):
+        from tabulous import commands as cmds
+
+        _wrap = self._wrap_command
+
+        # fmt: off
+        _hheader_register = self.columns.register_action
+        _hheader_register("Color > Set foreground colormap")(_wrap(cmds.selection.set_foreground_colormap))
+        _hheader_register("Color > Reset foreground colormap")(_wrap(cmds.selection.reset_foreground_colormap))
+        _hheader_register("Color > Set background colormap")(_wrap(cmds.selection.set_background_colormap))
+        _hheader_register("Color > Reset background colormap")(_wrap(cmds.selection.reset_background_colormap))
+        _hheader_register("Formatter > Set text formatter")(_wrap(cmds.selection.set_text_formatter))
+        _hheader_register("Formatter > Reset text formatter")(_wrap(cmds.selection.reset_text_formatter))
+        self._qwidget._qtable_view.horizontalHeader().addSeparator()
+        _hheader_register("Sort in ascending order")(_wrap(cmds.selection.sort_by_column_ascending))
+        _hheader_register("Sort in descending order")(_wrap(cmds.selection.sort_by_column_descending))
+        _hheader_register("Filter")(_wrap(cmds.selection.filter_by_column))
+        self._qwidget._qtable_view.horizontalHeader().addSeparator()
+
+        _cell_register = self.cell.register_action
+        _cell_register("Copy")(_wrap(cmds.selection.copy_data_tab_separated))
+        _cell_register("Copy as ... > Tab separated text")(_wrap(cmds.selection.copy_data_tab_separated))
+        _cell_register("Copy as ... > Tab separated text with headers")(_wrap(cmds.selection.copy_data_with_header_tab_separated))
+        _cell_register("Copy as ... > Comma separated text")(_wrap(cmds.selection.copy_data_comma_separated))
+        _cell_register("Copy as ... > Comma separated text with headers")(_wrap(cmds.selection.copy_data_with_header_comma_separated))
+        self._qwidget.addSeparator("Copy as ... ")
+        _cell_register("Copy as ... > Markdown")(_wrap(cmds.selection.copy_as_markdown))
+        _cell_register("Copy as ... > Latex")(_wrap(cmds.selection.copy_as_latex))
+        _cell_register("Copy as ... > HTML")(_wrap(cmds.selection.copy_as_html))
+        _cell_register("Copy as ... > Literal")(_wrap(cmds.selection.copy_as_literal))
+        self._qwidget.addSeparator("Copy as ... ")
+        _cell_register("Copy as ... > New table")(_wrap(cmds.selection.copy_as_new_table))
+        _cell_register("Copy as ... > New spreadsheet")(_wrap(cmds.selection.copy_as_new_spreadsheet))
+        _cell_register("Paste")(_wrap(cmds.selection.paste_data_tab_separated))
+        _cell_register("Paste from ... > Comma separated text")(_wrap(cmds.selection.paste_data_comma_separated))
+        _cell_register("Paste from ... > numpy-style text")(_wrap(cmds.selection.paste_data_from_numpy_string))
+        self._qwidget.addSeparator()
+        _cell_register("Code ... > Data-changed signal")(_wrap(cmds.selection.write_data_signal_in_console))
+        _cell_register("Code ... > Get slice")(_wrap(cmds.selection.write_slice_in_console))
+        _cell_register("Add highlight")(_wrap(cmds.selection.add_highlight))
+        _cell_register("Delete highlight")(_wrap(cmds.selection.delete_selected_highlight))
+        self._qwidget.addSeparator()
+        # fmt: on
+
 
 # #############################################################################
 #   Concrete table widgets
@@ -667,6 +724,50 @@ class SpreadSheet(_DataFrameTableLayer):
     def add_item_widget(self, row: int, column: int, widget):
         """Add a widget to a cell."""
         return self._qwidget._set_widget_at_index(row, column, widget)
+
+    def _install_actions(self):
+        from tabulous import commands as cmds
+
+        _wrap = self._wrap_command
+        # fmt: off
+        _vheader_register = self.index.register_action
+        _vheader_register("Insert/Remove > Insert row above")(_wrap(cmds.selection.insert_row_above))
+        _vheader_register("Insert/Remove > Insert row below")(_wrap(cmds.selection.insert_row_below))
+        _vheader_register("Insert/Remove > Remove selected rows")(_wrap(cmds.selection.remove_selected_rows))
+        self._qwidget._qtable_view.verticalHeader().addSeparator()
+
+        _hheader_register = self.columns.register_action
+        _hheader_register("Insert/Remove > Insert column left")(_wrap(cmds.selection.insert_column_left))
+        _hheader_register("Insert/Remove > Insert column right")(_wrap(cmds.selection.insert_column_right))
+        _hheader_register("Insert/Remove > Remove selected columns")(_wrap(cmds.selection.remove_selected_columns))
+        self._qwidget._qtable_view.horizontalHeader().addSeparator()
+        _hheader_register("Column dtype")(_wrap(cmds.selection.set_column_dtype))
+        self._qwidget._qtable_view.horizontalHeader().addSeparator()
+
+        _cell_register = self._qwidget.registerAction
+        _cell_register("Insert/Remove > Insert a row above")(_wrap(cmds.selection.insert_row_above))
+        _cell_register("Insert/Remove > Insert a row below")(_wrap(cmds.selection.insert_row_below))
+        _cell_register("Insert/Remove > Remove rows")(_wrap(cmds.selection.remove_selected_rows))
+        self._qwidget.addSeparator()
+        _cell_register("Insert/Remove > Insert a column on the left")(_wrap(cmds.selection.insert_column_left))
+        _cell_register("Insert/Remove > Insert a column on the right")(_wrap(cmds.selection.insert_column_right))
+        _cell_register("Insert/Remove > Remove columns")(_wrap(cmds.selection.remove_selected_columns))
+        self._qwidget.addSeparator()
+
+        super()._install_actions()
+
+        _cell_register("Cell widget > SpinBox")(_wrap(cmds.selection.add_spinbox))
+        _cell_register("Cell widget > Slider")(_wrap(cmds.selection.add_slider))
+        _cell_register("Cell widget > FloatSpinBox")(_wrap(cmds.selection.add_float_spinbox))
+        _cell_register("Cell widget > FloatSlider")(_wrap(cmds.selection.add_float_slider))
+        _cell_register("Cell widget > CheckBox")(_wrap(cmds.selection.add_checkbox))
+        _cell_register("Cell widget > RadioButton")(_wrap(cmds.selection.add_radio_button))
+        _cell_register("Cell widget > LineEdit")(_wrap(cmds.selection.add_line_edit))
+        self._qwidget.addSeparator("Cell widget ")
+        _cell_register("Cell widget > Remove")(_wrap(cmds.selection.remove_cell_widgets))
+
+        # fmt: on
+        return None
 
 
 @_doc.update_doc

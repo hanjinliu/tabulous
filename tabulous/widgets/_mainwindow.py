@@ -602,6 +602,27 @@ class DummyViewer:
             cls.load_cell_namespace()
         return cls._namespace
 
+    def copy_data(
+        self,
+        selections: SelectionType | _SingleSelection | None = None,
+        *,
+        headers: bool = False,
+        sep: str = "\t",
+    ) -> None:
+        """Copy selected cells to clipboard."""
+        if selections is not None:
+            self.current_table.selections = selections
+        return self.current_table._qwidget.copyToClipboard(headers=headers, sep=sep)
+
+    def paste_data(
+        self,
+        selections: SelectionType | _SingleSelection | None = None,
+    ) -> None:
+        """Paste from clipboard."""
+        if selections is not None:
+            self.current_table.selections = selections
+        return self.current_table._qwidget.pasteFromClipBoard()
+
 
 def _normalize_widget(widget: Widget | QWidget, name: str) -> tuple[QWidget, str]:
     if hasattr(widget, "native"):

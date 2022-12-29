@@ -25,6 +25,7 @@ class QActionRegistry(QtCore.QObject, Generic[_T]):
         self._qt_context_menu = QContextMenu(self)
 
     def registerAction(self, location: str):
+        """Register a function to the context menu at the given location."""
         locs = location.split(">")
         menu = self._qt_context_menu
         for loc in locs[:-1]:

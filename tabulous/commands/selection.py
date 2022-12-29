@@ -138,7 +138,7 @@ def raise_slot_error(viewer: TableViewerBase):
             slot.raise_in_msgbox()
 
 
-def notify_editability(viewer: TableViewerBase):
+def _notify_editability(viewer: TableViewerBase):
     """Notify that current table is not editable."""
     viewer._qwidget._tablestack.notifyEditability()
 
@@ -149,7 +149,7 @@ def set_column_dtype(viewer: TableViewerBase):
 
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     col = _utils.get_selected_column(viewer)
-    if out := QDtypeWidget.requestValue(viewer._qwidget):
+    if out := QDtypeWidget.requestValue(sheet):
         dtype_str, validation, formatting = out
         if dtype_str == "unset":
             dtype_str = None
@@ -166,7 +166,7 @@ def insert_row_above(viewer: TableViewerBase):
     """Insert a row above"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     row, _ = sheet._qtable_view._selection_model.current_index
     return sheet.insertRows(row, 1)
 
@@ -175,7 +175,7 @@ def insert_row_below(viewer: TableViewerBase):
     """Insert a row below"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     row, _ = sheet._qtable_view._selection_model.current_index
     return sheet.insertRows(row + 1, 1)
 
@@ -184,7 +184,7 @@ def insert_column_left(viewer: TableViewerBase):
     """Insert a column left"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     _, col = sheet._qtable_view._selection_model.current_index
     return sheet.insertColumns(col, 1)
 
@@ -193,7 +193,7 @@ def insert_column_right(viewer: TableViewerBase):
     """Insert a column right"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     _, col = sheet._qtable_view._selection_model.current_index
     return sheet.insertColumns(col + 1, 1)
 
@@ -202,7 +202,7 @@ def remove_selected_rows(viewer: TableViewerBase):
     """Remove selected rows"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     row, col = sheet._qtable_view._selection_model.current_index
     _, rng = sheet._qtable_view._selection_model.range_under_index(row, col)
     if rng is not None:
@@ -215,7 +215,7 @@ def remove_selected_columns(viewer: TableViewerBase):
     """Remove selected columns"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     row, col = sheet._qtable_view._selection_model.current_index
     _, rng = sheet._qtable_view._selection_model.range_under_index(row, col)
     if rng is not None:

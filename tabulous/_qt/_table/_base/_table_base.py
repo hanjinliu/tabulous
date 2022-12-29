@@ -114,7 +114,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.setStyleSheet(_SplitterStyle)
 
         self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
-        self._install_actions()
 
     def setOrientation(self, a0: Qt.Orientation) -> None:
         """Set table orientation and the side area orientation."""
@@ -162,55 +161,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return self.execContextMenu(
             self._qtable_view.viewport().mapToGlobal(pos), (row, col)
         )
-
-    def _install_actions(self) -> None:
-        def _wrap(cmd):
-            def _f(idx):
-                if _viewer := self.parentViewer():
-                    return cmd(_viewer._table_viewer)
-                else:
-                    raise RuntimeError("No parent viewer found.")
-
-            return _f
-
-        # fmt: off
-        hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Color > Set foreground colormap")(_wrap(cmds.selection.set_foreground_colormap))
-        hheader.registerAction("Color > Reset foreground colormap")(_wrap(cmds.selection.reset_foreground_colormap))
-        hheader.registerAction("Color > Set background colormap")(_wrap(cmds.selection.set_background_colormap))
-        hheader.registerAction("Color > Reset background colormap")(_wrap(cmds.selection.reset_background_colormap))
-        hheader.registerAction("Formatter > Set text formatter")(_wrap(cmds.selection.set_text_formatter))
-        hheader.registerAction("Formatter > Reset text formatter")(_wrap(cmds.selection.reset_text_formatter))
-        hheader.addSeparator()
-        hheader.registerAction("Sort in ascending order")(_wrap(cmds.selection.sort_by_column_ascending))
-        hheader.registerAction("Sort in descending order")(_wrap(cmds.selection.sort_by_column_descending))
-        hheader.registerAction("Filter")(_wrap(cmds.selection.filter_by_column))
-        hheader.addSeparator()
-
-        self.registerAction("Copy")(_wrap(cmds.selection.copy_data_tab_separated))
-        self.registerAction("Copy as ... > Tab separated text")(_wrap(cmds.selection.copy_data_tab_separated))
-        self.registerAction("Copy as ... > Tab separated text with headers")(_wrap(cmds.selection.copy_data_with_header_tab_separated))
-        self.registerAction("Copy as ... > Comma separated text")(_wrap(cmds.selection.copy_data_comma_separated))
-        self.registerAction("Copy as ... > Comma separated text with headers")(_wrap(cmds.selection.copy_data_with_header_comma_separated))
-        self.addSeparator("Copy as ... ")
-        self.registerAction("Copy as ... > Markdown")(_wrap(cmds.selection.copy_as_markdown))
-        self.registerAction("Copy as ... > Latex")(_wrap(cmds.selection.copy_as_latex))
-        self.registerAction("Copy as ... > HTML")(_wrap(cmds.selection.copy_as_html))
-        self.registerAction("Copy as ... > Literal")(_wrap(cmds.selection.copy_as_literal))
-        self.addSeparator("Copy as ... ")
-        self.registerAction("Copy as ... > New table")(_wrap(cmds.selection.copy_as_new_table))
-        self.registerAction("Copy as ... > New spreadsheet")(_wrap(cmds.selection.copy_as_new_spreadsheet))
-        self.registerAction("Paste")(_wrap(cmds.selection.paste_data_tab_separated))
-        self.registerAction("Paste from ... > Comma separated text")(_wrap(cmds.selection.paste_data_comma_separated))
-        self.registerAction("Paste from ... > numpy-style text")(_wrap(cmds.selection.paste_data_from_numpy_string))
-        self.addSeparator()
-        self.registerAction("Code ... > Data-changed signal")(_wrap(cmds.selection.write_data_signal_in_console))
-        self.registerAction("Code ... > Get slice")(_wrap(cmds.selection.write_slice_in_console))
-        self.registerAction("Add highlight")(_wrap(cmds.selection.add_highlight))
-        self.registerAction("Delete highlight")(_wrap(cmds.selection.delete_selected_highlight))
-        self.addSeparator()
-        # fmt: on
-        return None
 
     @property
     def _qtable_view(self) -> _QTableViewEnhanced:
