@@ -112,33 +112,16 @@ def delete_selected_highlight(viewer: TableViewerBase):
 def show_context_menu(viewer: TableViewerBase):
     """Execute context menu"""
     qtable = _utils.get_table(viewer)._qwidget
-    r, c = qtable._qtable_view._selection_model.current_index
-    if r >= 0 and c >= 0:
-        index = qtable._qtable_view.model().index(r, c)
-        rect = qtable._qtable_view.visualRect(index)
-        qtable.showContextMenu(rect.center())
-    elif r < 0:
-        header = qtable._qtable_view.horizontalHeader()
-        rect = header.visualRectAtIndex(c)
-        header._show_context_menu(rect.center())
-    elif c < 0:
-        header = qtable._qtable_view.verticalHeader()
-        rect = header.visualRectAtIndex(r)
-        header._show_context_menu(rect.center())
-    else:
-        raise RuntimeError("Invalid index")
+    qtable.showContextMenuAtIndex()
 
 
 def raise_slot_error(viewer: TableViewerBase):
     """Show traceback at the cell"""
-    qtable_view = _utils.get_table(viewer)._qwidget._qtable_view
-    idx = qtable_view._selection_model.current_index
-    if slot := qtable_view._table_map.get_by_dest(idx, None):
-        if slot._current_error is not None:
-            slot.raise_in_msgbox()
+    qtable = _utils.get_table(viewer)._qwidget
+    qtable.raiseSlotError()
 
 
-def notify_editability(viewer: TableViewerBase):
+def _notify_editability(viewer: TableViewerBase):
     """Notify that current table is not editable."""
     viewer._qwidget._tablestack.notifyEditability()
 
@@ -149,7 +132,7 @@ def set_column_dtype(viewer: TableViewerBase):
 
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     col = _utils.get_selected_column(viewer)
-    if out := QDtypeWidget.requestValue(viewer._qwidget):
+    if out := QDtypeWidget.requestValue(sheet):
         dtype_str, validation, formatting = out
         if dtype_str == "unset":
             dtype_str = None
@@ -166,7 +149,7 @@ def insert_row_above(viewer: TableViewerBase):
     """Insert a row above"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     row, _ = sheet._qtable_view._selection_model.current_index
     return sheet.insertRows(row, 1)
 
@@ -175,7 +158,7 @@ def insert_row_below(viewer: TableViewerBase):
     """Insert a row below"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     row, _ = sheet._qtable_view._selection_model.current_index
     return sheet.insertRows(row + 1, 1)
 
@@ -184,7 +167,7 @@ def insert_column_left(viewer: TableViewerBase):
     """Insert a column left"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     _, col = sheet._qtable_view._selection_model.current_index
     return sheet.insertColumns(col, 1)
 
@@ -193,7 +176,7 @@ def insert_column_right(viewer: TableViewerBase):
     """Insert a column right"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     _, col = sheet._qtable_view._selection_model.current_index
     return sheet.insertColumns(col + 1, 1)
 
@@ -202,7 +185,7 @@ def remove_selected_rows(viewer: TableViewerBase):
     """Remove selected rows"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     row, col = sheet._qtable_view._selection_model.current_index
     _, rng = sheet._qtable_view._selection_model.range_under_index(row, col)
     if rng is not None:
@@ -215,7 +198,7 @@ def remove_selected_columns(viewer: TableViewerBase):
     """Remove selected columns"""
     sheet = _utils.get_spreadsheet(viewer)._qwidget
     if not sheet.isEditable():
-        return notify_editability()
+        return _notify_editability()
     row, col = sheet._qtable_view._selection_model.current_index
     _, rng = sheet._qtable_view._selection_model.range_under_index(row, col)
     if rng is not None:

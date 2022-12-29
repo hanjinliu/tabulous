@@ -2,9 +2,10 @@ from __future__ import annotations
 import re
 from typing import Callable, Generator
 
-from qtpy import QtWidgets as QtW
+from qtpy import QtWidgets as QtW, QtGui
 from psygnal import EmitLoopError
 from ._qt_const import MonospaceFontFamily
+from tabulous._keymap import QtKeys
 
 
 class QtTracebackDialog(QtW.QDialog):
@@ -28,6 +29,12 @@ class QtTracebackDialog(QtW.QDialog):
     def setText(self, text: str):
         """Always set text as a HTML text."""
         self._text.setHtml(text)
+
+    def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
+        if QtKeys(a0) == "Ctrl+W":
+            self.close()
+        else:
+            return super().keyPressEvent(a0)
 
 
 class QtErrorMessageBox(QtW.QMessageBox):

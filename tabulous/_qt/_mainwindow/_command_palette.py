@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger("tabulous")
 
 
-def _command_to_function(
+def _command_to_viewer_function(
     f: Callable[[TableViewerBase], Any]
 ) -> Callable[[_QtMainWidgetBase], Any]:
     def wrapper(self: _QtMainWidgetBase):
@@ -53,9 +53,10 @@ def load_all_commands():
 
     for mod, cmd in cmds.iter_commands():
         group = _groups[mod]
-        group.register(_command_to_function(cmd), desc=cmd.__doc__)
+        group.register(_command_to_viewer_function(cmd), desc=cmd.__doc__)
         if seq := kb.pop(f"{mod}.{cmd.__name__}", None):
-            f = _command_to_function(cmd)
+            # register to main widgets
+            f = _command_to_viewer_function(cmd)
             if isinstance(seq, str):
                 QMainWidget._keymap.bind(seq)(f)
                 QMainWindow._keymap.bind(seq)(f)

@@ -783,49 +783,6 @@ class QSpreadSheet(QMutableSimpleTable):
         formatter = DefaultFormatter(dtype)
         return self.setTextFormatter(name, formatter)
 
-    def _install_actions(self):
-        def _wrap(cmd):
-            return lambda idx: cmd(self.parentViewer()._table_viewer)
-
-        # fmt: off
-        vheader = self._qtable_view.verticalHeader()
-        vheader.registerAction("Insert/Remove > Insert row above")(_wrap(cmds.selection.insert_row_above))
-        vheader.registerAction("Insert/Remove > Insert row below")(_wrap(cmds.selection.insert_row_below))
-        vheader.registerAction("Insert/Remove > Remove selected rows")(_wrap(cmds.selection.remove_selected_rows))
-        vheader.addSeparator()
-
-        hheader = self._qtable_view.horizontalHeader()
-        hheader.registerAction("Insert/Remove > Insert column left")(_wrap(cmds.selection.insert_column_left))
-        hheader.registerAction("Insert/Remove > Insert column right")(_wrap(cmds.selection.insert_column_right))
-        hheader.registerAction("Insert/Remove > Remove selected columns")(_wrap(cmds.selection.remove_selected_columns))
-        hheader.addSeparator()
-        hheader.registerAction("Column dtype")(_wrap(cmds.selection.set_column_dtype))
-        hheader.addSeparator()
-
-        self.registerAction("Insert/Remove > Insert a row above")(_wrap(cmds.selection.insert_row_above))
-        self.registerAction("Insert/Remove > Insert a row below")(_wrap(cmds.selection.insert_row_below))
-        self.registerAction("Insert/Remove > Remove rows")(_wrap(cmds.selection.remove_selected_rows))
-        self.addSeparator()
-        self.registerAction("Insert/Remove > Insert a column on the left")(_wrap(cmds.selection.insert_column_left))
-        self.registerAction("Insert/Remove > Insert a column on the right")(_wrap(cmds.selection.insert_column_right))
-        self.registerAction("Insert/Remove > Remove columns")(_wrap(cmds.selection.remove_selected_columns))
-        self.addSeparator()
-
-        super()._install_actions()
-
-        self.registerAction("Cell widget > SpinBox")(_wrap(cmds.selection.add_spinbox))
-        self.registerAction("Cell widget > Slider")(_wrap(cmds.selection.add_slider))
-        self.registerAction("Cell widget > FloatSpinBox")(_wrap(cmds.selection.add_float_spinbox))
-        self.registerAction("Cell widget > FloatSlider")(_wrap(cmds.selection.add_float_slider))
-        self.registerAction("Cell widget > CheckBox")(_wrap(cmds.selection.add_checkbox))
-        self.registerAction("Cell widget > RadioButton")(_wrap(cmds.selection.add_radio_button))
-        self.registerAction("Cell widget > LineEdit")(_wrap(cmds.selection.add_line_edit))
-        self.addSeparator("Cell widget ")
-        self.registerAction("Cell widget > Remove")(_wrap(cmds.selection.remove_cell_widgets))
-
-        # fmt: on
-        return None
-
 
 def _get_limit(a) -> int:
     if isinstance(a, int):

@@ -10,7 +10,7 @@ from qtpy.QtCore import Qt
 import pandas as pd
 
 from tabulous._qt._qt_const import MonospaceFontFamily
-from tabulous._qt._keymap import QtKeys
+from tabulous._keymap import QtKeys
 from tabulous.types import HeaderInfo, EvalInfo
 from tabulous._range import RectRange, MultiRectRange
 from tabulous._utils import get_config
@@ -550,11 +550,12 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         if text.endswith("."):
             mod_str = _find_last_module_name(text[:-1])
-            mod = self._table.parentViewer()._namespace.get(mod_str, None)
-            if mod is None:
-                self._completion_module = None
-                return None
-            self._completion_module = mod
+            if _viewer := self._table.parentViewer():
+                mod = _viewer._namespace.get(mod_str, None)
+                if mod is None:
+                    self._completion_module = None
+                    return None
+                self._completion_module = mod
             return None
 
         elif self._completion_module is None:
@@ -685,6 +686,7 @@ class QCellLabelEdit(QtW.QLineEdit):
         font = QtGui.QFont(table_config.font, table_config.font_size)
         font.setBold(True)
         self.setFont(font)
+        self.setStyleSheet("QCellLabelEdit{ color: gray; }")
         self.editingFinished.connect(self._on_editing_finished)
 
     def _on_editing_finished(self):

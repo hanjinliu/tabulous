@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import ABC, abstractproperty
 from pathlib import Path
 from types import MappingProxyType
 import weakref
@@ -13,7 +14,8 @@ from ._component import Component
 from . import _doc
 
 from tabulous.types import SelectionType, TabPosition, _TableLike, _SingleSelection
-from tabulous import _utils
+from tabulous import _utils, _io
+from tabulous._keymap import QtKeyMap
 
 if TYPE_CHECKING:
     from tabulous.widgets._table import TableBase
@@ -21,7 +23,6 @@ if TYPE_CHECKING:
     from tabulous._qt._dockwidget import QtDockWidget
     from tabulous._qt._mainwindow import _QtMainWidgetBase
     from tabulous._qt._mainwindow._namespace import Namespace
-    from tabulous._qt._keymap import QtKeyMap
     from qtpy.QtWidgets import QWidget
     from magicgui.widgets import Widget
     import numpy as np
@@ -41,7 +42,17 @@ class TableViewerSignal(SignalGroup):
     current_index = Signal(int)
 
 
-class Toolbar(Component["TableViewerBase"]):
+class _VisibilityMixin(Component["TableViewerBase"]):
+    def show(self):
+        """Show the toolbar."""
+        self.visible = True
+
+    def hide(self):
+        """Hide the toolbar."""
+        self.visible = False
+
+
+class Toolbar(_VisibilityMixin):
     """The toolbar proxy."""
 
     @property
@@ -56,13 +67,13 @@ class Toolbar(Component["TableViewerBase"]):
     @property
     def history_manager(self):
         """The file I/O history manager."""
-        return self.parent._qwidget._toolbar._hist_mgr
+        return self.parent._qwidget._hist_mgr
 
     def register_action(self, f: Callable):
         raise NotImplementedError()
 
 
-class Console(Component["TableViewerBase"]):
+class Console(_VisibilityMixin):
     """The QtConsole proxy."""
 
     @property
@@ -92,7 +103,62 @@ class Console(Component["TableViewerBase"]):
         return self.parent._qwidget._console_widget.update_console(ns)
 
 
-class TableViewerBase:
+class _AbstractViewer(ABC):
+    @abstractproperty
+    def current_table(self) -> TableBase | None:
+        """Return the currently visible table."""
+
+    @abstractproperty
+    def current_index(self) -> int | None:
+        """Return the index of currently visible table."""
+
+    @abstractproperty
+    def cell_namespace(self) -> Namespace:
+        """Return the namespace of the cell editor."""
+
+    @abstractproperty
+    def keymap(self) -> QtKeyMap:
+        """Return the keymap object."""
+
+    @property
+    def data(self) -> pd.DataFrame | None:
+        """The data of the current table if exists."""
+        table = self.current_table
+        if table is None:
+            return None
+        return table.data
+
+    @property
+    def config(self) -> MappingProxyType:
+        """Return the config info."""
+        return _utils.get_config().as_immutable()
+
+    def reset_choices(self, *_):
+        pass
+
+    def copy_data(
+        self,
+        selections: SelectionType | _SingleSelection | None = None,
+        *,
+        headers: bool = False,
+        sep: str = "\t",
+    ) -> None:
+        """Copy selected cells to clipboard."""
+        if selections is not None:
+            self.current_table.selections = selections
+        return self.current_table._qwidget.copyToClipboard(headers=headers, sep=sep)
+
+    def paste_data(
+        self,
+        selections: SelectionType | _SingleSelection | None = None,
+    ) -> None:
+        """Paste from clipboard."""
+        if selections is not None:
+            self.current_table.selections = selections
+        return self.current_table._qwidget.pasteFromClipBoard()
+
+
+class TableViewerBase(_AbstractViewer):
     """The base class of a table viewer widget."""
 
     events: TableViewerSignal
@@ -102,7 +168,10 @@ class TableViewerBase:
     console = Console()
 
     def __init__(
-        self, *, tab_position: TabPosition | str = TabPosition.top, show: bool = True
+        self,
+        *,
+        tab_position: TabPosition | str = TabPosition.top,
+        show: bool = True,
     ):
         from tabulous._qt import get_app
 
@@ -160,19 +229,6 @@ class TableViewerBase:
     def native(self) -> _QtMainWidgetBase:
         """Return the native widget."""
         return self._qwidget
-
-    @property
-    def data(self) -> pd.DataFrame | None:
-        """Data of the current table."""
-        table = self.current_table
-        if table is None:
-            return None
-        return table.data
-
-    @property
-    def config(self) -> MappingProxyType:
-        """Return the config info."""
-        return _utils.get_config().as_immutable()
 
     @property
     def cell_namespace(self) -> Namespace:
@@ -331,7 +387,6 @@ class TableViewerBase:
             File path.
         """
         path = Path(path)
-        suf = path.suffix
         type = TableType(type)
         if type == TableType.table:
             fopen = self.add_table
@@ -340,38 +395,20 @@ class TableViewerBase:
         else:
             raise RuntimeError
 
-        import pandas as pd
-
-        if suf in (".csv", ".txt", ".dat"):
-            df = pd.read_csv(path, index_col=_get_index_col(path))
-            fopen(df, name=path.stem)
-        elif suf in (".xlsx", ".xls", ".xlsb", ".xlsm", ".xltm", "xltx", ".xml"):
-            df_dict: dict[str, pd.DataFrame] = pd.read_excel(path, sheet_name=None)
-            for sheet_name, df in df_dict.items():
+        out = _io.open_file(path)
+        if isinstance(df, dict):
+            for sheet_name, df in out.items():
                 fopen(df, name=sheet_name)
-        elif suf in (".parquet", ".pq"):
-            df = pd.read_parquet(path)
-            fopen(df)
         else:
-            raise ValueError(f"Extension {suf!r} not supported.")
+            fopen(out, name=path.stem)
+
         _utils.dump_file_open_path(path)
         return None
 
     def save(self, path: PathLike) -> None:
         """Save current table."""
-        path = Path(path)
-        suf = path.suffix
-        df = self.current_table.data
-        if suf in (".csv", ".txt", ".dat"):
-            df.to_csv(path)
-        elif suf in (".xlsx", ".xls", "xml"):
-            df.to_excel(path)
-        elif suf in (".html",):
-            df.to_html(path)
-        elif suf in (".parquet", ".pq"):
-            df.to_parquet(path)
-        else:
-            raise ValueError(f"Extension {suf} not supported.")
+        _io.save_file(path, self.current_table.data)
+        return None
 
     def open_sample(self, sample_name: str, plugin: str = "seaborn") -> Table:
         """Open a sample table."""
@@ -469,7 +506,7 @@ class TableViewerWidget(TableViewerBase):
 
     @property
     def _qwidget_class(self) -> QMainWidget:
-        from .._qt import QMainWidget
+        from tabulous._qt import QMainWidget
 
         return QMainWidget
 
@@ -561,6 +598,47 @@ class TableViewer(TableViewerBase):
                 widget.reset_choices()
 
 
+class DummyViewer(_AbstractViewer):
+    """
+    The dummy object that emulates the table viewer.
+
+    This is used when a table is used without a viewer, while make many commands
+    still available from the table.
+    """
+
+    _namespace: Namespace | None = None
+    _keymap: QtKeyMap = QtKeyMap()
+
+    def __init__(self, table: TableBase):
+        self._table = table
+
+    @property
+    def current_table(self) -> TableBase:
+        return self._table
+
+    @property
+    def current_index(self) -> int:
+        return 0
+
+    @property
+    def cell_namespace(self) -> Namespace:
+        """Return the namespace of the cell editor."""
+        cls = self.__class__
+        if cls._namespace is None:
+            from tabulous._qt._mainwindow._namespace import Namespace
+            from tabulous._utils import load_cell_namespace
+
+            cls._namespace = Namespace()
+
+            # update with user namespace
+            cls._namespace.update_safely(load_cell_namespace())
+        return cls._namespace
+
+    @property
+    def keymap(self) -> QtKeyMap:
+        return self._keymap
+
+
 def _normalize_widget(widget: Widget | QWidget, name: str) -> tuple[QWidget, str]:
     if hasattr(widget, "native"):
         backend_widget = widget.native
@@ -587,11 +665,3 @@ def _find_parent_table(qwidget: _QtMainWidgetBase) -> TableViewerBase:
         if hasattr(x, "_table_viewer"):
             return x._table_viewer
     raise RuntimeError
-
-
-def _get_index_col(path, sep=",") -> int | None:
-    with open(path) as f:
-        first_char = f.read(1)
-    if first_char == sep:
-        return 0
-    return None

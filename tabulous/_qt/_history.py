@@ -93,10 +93,13 @@ class QtFileHistoryManager(QtCore.QObject):
     ):
         if not isinstance(parent := self.parent(), QtW.QWidget):
             parent = None
+
+        directory = str(self.recentlyVisitedDirectory().parent)
+
         out = QFILE_DIALOG_MODES[FileDialogMode(mode)](
             parent=parent,
             caption=caption,
-            directory=str(self.recentlyVisitedDirectory()),
+            directory=directory,
             filter=filter,
         )
         if out is None:
@@ -125,6 +128,16 @@ class QtFileHistoryManager(QtCore.QObject):
         else:
             out = None
         return out
+
+    @classmethod
+    def requestPath(
+        cls,
+        mode=FileDialogMode.EXISTING_FILE,
+        caption=None,
+        filter=None,
+    ):
+        self = cls()
+        return self.openFileDialog(mode, caption, filter)
 
     def clearHistory(self):
         """Clear the history of visited directories."""

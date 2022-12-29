@@ -14,6 +14,10 @@ class TableImmutableError(ValueError):
     """Raised when immutable table was being tried to edit."""
 
 
+class TriggerParent(RuntimeError):
+    """Should try to trigger parent's keybinding instead of the current one"""
+
+
 class ExceptionHandler:
     """Handle exceptions in the GUI thread."""
 

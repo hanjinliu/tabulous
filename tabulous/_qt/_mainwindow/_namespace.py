@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from types import FunctionType
-from typing import MutableMapping, Any, TypeVar
+from typing import MutableMapping, Any, TypeVar, Mapping
 
 _T = TypeVar("_T", FunctionType, type)
 
@@ -39,10 +39,16 @@ class Namespace(MutableMapping[str, Any]):
         self._check_static(key)
         del self._ns[key]
 
-    def update(self, ns: dict[str, Any] = {}, /, **kwargs) -> None:
+    def update(self, ns: Mapping[str, Any] = {}, /, **kwargs) -> None:
         ns = dict(**ns, **kwargs)
         if collision := set(ns.keys()) & self._static:
             raise ValueError(f"Cannot update {collision!r}")
+        return self._ns.update(ns)
+
+    def update_safely(self, ns: Mapping[str, Any] = {}, /, **kwargs) -> None:
+        ns = dict(**ns, **kwargs)
+        for k in self._static:
+            ns.pop(k, None)
         return self._ns.update(ns)
 
     def add(self, obj: _T) -> _T:
