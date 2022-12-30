@@ -195,13 +195,18 @@ class QSpreadSheet(QMutableSimpleTable):
         """Parse and return a sub-frame of the table."""
         if self._data_cache is not None:
             return self._data_cache[columns]
+        is_series = not isinstance(columns, list)
+        if is_series:
+            columns = [columns]
         _sep = "\t"
         data_raw = self._data_raw[columns]
-        pd_kwargs_all = self._columns_dtype.as_pandas_kwargs()
-        pd_kwargs = {}
-        for col in columns:
-            if dtype := pd_kwargs_all.get(col, None):
-                pd_kwargs[col] = dtype
+        _dtype_map = self._columns_dtype.copy()
+        _to_be_deleted = []
+        for key in _dtype_map:
+            if key not in columns:
+                _to_be_deleted.append(key)
+        for key in _to_be_deleted:
+            del _dtype_map[key]
 
         val = data_raw.to_csv(sep=_sep, index=False)
         buf = StringIO(val)
@@ -211,9 +216,11 @@ class QSpreadSheet(QMutableSimpleTable):
             header=0,
             na_values=["#ERROR"],
             names=data_raw.columns,
-            **pd_kwargs,
+            **_dtype_map.as_pandas_kwargs(),
         )
         out.index = data_raw.index
+        if is_series:
+            out = out.iloc[:, 0]
         return out
 
     def dataShape(self) -> tuple[int, int]:
@@ -756,8 +763,9 @@ class QSpreadSheet(QMutableSimpleTable):
     def setColumnDtype(self, label: Hashable, dtype: Any | None) -> None:
         """Set the dtype of the column with the given label."""
         if dtype is None:
-            self._columns_dtype.pop(label, None)
-
+            # delete cache if dtype used to be set
+            if self._columns_dtype.pop(label, None):
+                self._data_cache = None
         else:
             if label not in self._data_raw.columns:
                 raise ValueError(f"Column {label!r} not found.")

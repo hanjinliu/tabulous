@@ -177,6 +177,9 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def getDataFrame(self) -> pd.DataFrame:
         raise NotImplementedError()
 
+    def _get_sub_frame(self, columns: list[str]):
+        return self.getDataFrame()[columns]
+
     def setDataFrame(self, df: pd.DataFrame) -> None:
         raise NotImplementedError()
 

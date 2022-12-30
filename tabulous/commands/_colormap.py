@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Callable, Hashable, Sequence, TYPE_CHECKING, TypeVar
 import numpy as np
 import pandas as pd
-from tabulous._dtype import isna
+from tabulous._dtype import isna, get_converter
 
 if TYPE_CHECKING:
     from pandas.core.dtypes.dtypes import CategoricalDtype
@@ -29,7 +29,9 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
             return _define_categorical_colormap(
-                dtype.categories, [w.value for w in widgets]
+                dtype.categories,
+                [w.value for w in widgets],
+                dtype.kind,
             )
 
     elif dtype.kind in "uif":  # unsigned int, int, float
@@ -59,7 +61,7 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
             return _define_categorical_colormap(
-                [False, True], [false_.value, true_.value]
+                [False, True], [false_.value, true_.value], dtype.kind
             )
 
     elif dtype.kind in "mM":  # time stamp or time delta
@@ -68,7 +70,9 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
         dlg = Dialog(widgets=[min_, max_])
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
-            return _define_time_colormap(ds.min(), ds.max(), min_.value, max_.value)
+            return _define_time_colormap(
+                ds.min(), ds.max(), min_.value, max_.value, dtype.kind
+            )
 
     else:
         raise NotImplementedError(
@@ -81,11 +85,14 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
 def _define_continuous_colormap(
     min: float, max: float, min_color: _ColorType, max_color: _ColorType
 ):
+    converter = get_converter("f")
+
     def _colormap(value: float) -> _ColorType:
         nonlocal min_color, max_color
         if isna(value):
             return None
-        elif value < min:
+        value = converter(value)
+        if value < min:
             return min_color
         elif value > max:
             return max_color
@@ -98,12 +105,15 @@ def _define_continuous_colormap(
 
 
 def _define_categorical_colormap(
-    values: Sequence[Hashable], colors: Sequence[_ColorType]
+    values: Sequence[Hashable],
+    colors: Sequence[_ColorType],
+    kind: str,
 ):
     map = dict(zip(values, colors))
+    converter = get_converter(kind)
 
     def _colormap(value: Hashable) -> _ColorType:
-        return map.get(value, None)
+        return map.get(converter(value), None)
 
     return _colormap
 
@@ -112,16 +122,21 @@ _T = TypeVar("_T", pd.Timestamp, pd.Timedelta)
 
 
 def _define_time_colormap(
-    min: _T, max: _T, min_color: _ColorType, max_color: _ColorType
+    min: _T,
+    max: _T,
+    min_color: _ColorType,
+    max_color: _ColorType,
+    kind: str,
 ):
     min_t = min.value
     max_t = max.value
+    converter = get_converter(kind)
 
     def _colormap(value: _T) -> _ColorType:
         nonlocal min_color, max_color
         if isna(value):
             return None
-        value = value.value
+        value = converter(value).value
         if value < min_t:
             return min_color
         elif value > max_t:
@@ -138,12 +153,3 @@ def _define_time_colormap(
 
 def _random_color() -> list[int]:
     return list(np.random.randint(256, size=3)) + [255]
-
-
-def _make_color_edit(color: str, label: str, widget: Widget):
-    from tabulous._qt._color_edit import ColorEdit
-    from magicgui.widgets import Container
-
-    col = ColorEdit(value=color, label=label)
-
-    return Container(widgets=[col, widget], labels=False, layout="horizontal")

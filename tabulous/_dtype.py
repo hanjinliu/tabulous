@@ -267,6 +267,13 @@ class DTypeMap(MutableMapping[_K, _V]):
             return convert_value(dtype.kind, value)
         return value
 
+    def copy(self) -> DTypeMap:
+        new = DTypeMap()
+        new._dict = self._dict.copy()
+        new._datetime_dict = self._datetime_dict.copy()
+        new._need_parsing_dict = self._need_parsing_dict.copy()
+        return new
+
 
 _NANS = {np.nan, pd.NA}
 

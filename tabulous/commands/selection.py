@@ -217,7 +217,7 @@ def set_foreground_colormap(viewer: TableViewerBase) -> None:
     index = _utils.get_selected_column(viewer)
 
     column_name = sheet._filtered_columns[index]
-    if cmap := exec_colormap_dialog(sheet.getDataFrame()[column_name], sheet):
+    if cmap := exec_colormap_dialog(sheet._get_sub_frame(column_name), sheet):
         sheet.setForegroundColormap(column_name, cmap)
     return None
 
@@ -237,7 +237,7 @@ def set_background_colormap(viewer: TableViewerBase) -> None:
     sheet = _utils.get_table(viewer)._qwidget
     index = _utils.get_selected_column(viewer)
     column_name = sheet._filtered_columns[index]
-    if cmap := exec_colormap_dialog(sheet.getDataFrame()[column_name], sheet):
+    if cmap := exec_colormap_dialog(sheet._get_sub_frame(column_name), sheet):
         sheet.setBackgroundColormap(column_name, cmap)
     return None
 

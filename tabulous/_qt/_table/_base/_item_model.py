@@ -78,7 +78,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 text = "NA"
             elif mapper := self._text_formatter.get(colname, None):
                 try:
-                    text = str(mapper(val))
+                    text = str(mapper(self.parent().convertValue(c, val)))
                 except Exception:
                     text = self._FORMAT_ERROR
             else:
