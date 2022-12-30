@@ -52,7 +52,7 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         index = self.logicalIndexAt(pos)
         # press header if it is not selected.
         for sel in self._iter_selections():
-            if sel.start <= index <= sel.stop:
+            if sel.start <= index < sel.stop:
                 break
         else:
             self._on_section_pressed(index)
