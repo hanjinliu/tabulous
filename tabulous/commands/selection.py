@@ -476,22 +476,14 @@ def edit_current(viewer: TableViewerBase) -> None:
     return None
 
 
-def sort_by_column_ascending(viewer: TableViewerBase) -> None:
-    """Sort by column(s) in ascending order"""
+def sort_by_columns(viewer: TableViewerBase) -> None:
+    """Sort by column(s)"""
+    from tabulous._qt._cell_anchor import QHeaderSortButton
+
     table = _utils.get_table(viewer)
     indices = _utils.get_selected_columns(viewer)
-    by = [table.columns[index] for index in indices]
-    table.proxy.sort(by=by, ascending=True)
-    return None
-
-
-def sort_by_column_descending(viewer: TableViewerBase) -> None:
-    """Sort by column(s) in decending order"""
-    table = _utils.get_table(viewer)
-    indices = _utils.get_selected_columns(viewer)
-    by = [table.columns[index] for index in indices]
-    table.proxy.sort(by=by, ascending=False)
-    return None
+    with table.undo_manager.merging():
+        QHeaderSortButton.from_table(table, indices)
 
 
 def filter_by_column(viewer: TableViewerBase) -> None:

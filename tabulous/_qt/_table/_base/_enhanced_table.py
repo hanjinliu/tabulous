@@ -7,19 +7,16 @@ from typing import TYPE_CHECKING, Iterable, Iterator, cast, Literal
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
 
-from tabulous._qt._table._base._item_model import AbstractDataFrameModel
-from tabulous._qt._table._base._header_view import (
-    QHorizontalHeaderView,
-    QVerticalHeaderView,
-)
-from tabulous._qt._table._base._table_base import QBaseTable, QMutableTable
-from tabulous._qt._table._base._line_edit import QCellLiteralEdit, QCellLabelEdit
+from ._item_model import AbstractDataFrameModel
+from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
+from ._table_base import QBaseTable, QMutableTable
+from ._line_edit import QCellLiteralEdit, QCellLabelEdit
 
 from tabulous._keymap import QtKeys
 from tabulous._selection_model import RangesModel, SelectionModel, Index
 
 if TYPE_CHECKING:
-    from tabulous._qt._table._base._delegate import TableItemDelegate
+    from ._delegate import TableItemDelegate
     from tabulous._qt._mainwindow import _QtMainWidgetBase
     from tabulous._map_model import SlotRefMapping
 

@@ -614,8 +614,7 @@ class TableBase(ABC):
         _hheader_register("Formatter > Set text formatter")(_wrap(cmds.selection.set_text_formatter))
         _hheader_register("Formatter > Reset text formatter")(_wrap(cmds.selection.reset_text_formatter))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
-        _hheader_register("Sort in ascending order")(_wrap(cmds.selection.sort_by_column_ascending))
-        _hheader_register("Sort in descending order")(_wrap(cmds.selection.sort_by_column_descending))
+        _hheader_register("Sort")(_wrap(cmds.selection.sort_by_columns))
         _hheader_register("Filter")(_wrap(cmds.selection.filter_by_column))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
 

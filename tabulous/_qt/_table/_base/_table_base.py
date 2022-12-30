@@ -445,6 +445,19 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return f"table.proxy = {sl!r}"
 
     @_mgr.interface
+    def setHorizontalHeaderWidget(self, idx: int, widget: QtW.QWidget | None):
+        hheader = self._qtable_view.horizontalHeader()
+        if widget is None:
+            hheader.removeSectionWidget(idx)
+        else:
+            hheader.setSectionWidget(idx, widget)
+
+    @setHorizontalHeaderWidget.server
+    def setHorizontalHeaderWidget(self, idx: int, widget: QtW.QWidget | None):
+        hheader = self._qtable_view.horizontalHeader()
+        return arguments(idx, hheader.sectionWidget(idx))
+
+    @_mgr.interface
     def setForegroundColormap(self, name: str, colormap: Callable | None):
         """Set the colormap for the foreground."""
         if colormap is None:

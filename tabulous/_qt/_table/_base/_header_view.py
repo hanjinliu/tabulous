@@ -23,9 +23,12 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         self.sectionPressed.connect(self._on_section_pressed)  # pressed
         self.sectionClicked.connect(self._on_section_clicked)  # released
         self.sectionEntered.connect(self._on_section_entered)  # dragged
+        self.sectionResized.connect(self._on_section_resized)
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
+
+        self._header_widgets: dict[int, QtW.QWidget] = {}
 
     # fmt: off
     if TYPE_CHECKING:
@@ -47,6 +50,14 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
 
     def _on_section_clicked(self, logicalIndex) -> None:
         self.selection_model.set_shift(False)
+
+    def _on_section_resized(
+        self, logicalIndex: int, oldSize: int, newSize: int
+    ) -> None:
+        for idx, widget in self._header_widgets.items():
+            if idx < logicalIndex:
+                continue
+            widget.move(widget.x() + newSize - oldSize, widget.y())
 
     def _show_context_menu(self, pos: QtCore.QPoint) -> None:
         index = self.logicalIndexAt(pos)
@@ -100,6 +111,35 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         if editor := self.parentWidget()._focused_widget:
             editor.setFocus()
         return super().mouseReleaseEvent(e)
+
+    def sectionWidget(self, idx: int) -> QtW.QWidget | None:
+        """The widget anchored at the given section."""
+        return self._header_widgets.get(idx, None)
+
+    def setSectionWidget(self, idx: int, widget: QtW.QWidget) -> None:
+        """Set the widget anchored at the given section."""
+        if not isinstance(widget, QtW.QWidget):
+            raise TypeError(f"Expected a QWidget, got {type(widget)}")
+        self._header_widgets[idx] = widget
+        widget.setParent(self)
+        w, h = widget.width(), widget.height()
+        rect = self.visualRectAtIndex(idx)
+        rect.adjust(2, 2, -2, -2)
+        rect.setLeft(rect.left() + rect.width() - w)
+        rect.setTop(rect.top() + rect.height() - h)
+        widget.setGeometry(rect)
+        widget.show()
+        return None
+
+    def removeSectionWidget(self, idx: int | None = None):
+        if idx is None:
+            for idx in self._header_widgets:
+                self.removeSectionWidget(idx)
+        else:
+            widget = self._header_widgets.pop(idx)
+            widget.hide()
+            widget.setParent(None)
+        return None
 
 
 class QHorizontalHeaderView(QDataFrameHeaderView):

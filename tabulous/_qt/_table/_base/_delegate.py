@@ -22,7 +22,6 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
     ) -> QtW.QWidget:
         """Create different type of editors for different dtypes."""
         qtable_view: _QTableViewEnhanced = parent.parent()
-        table: QBaseTable = qtable_view.parentTable()
         if qtable_view.model()._editable:
             model = qtable_view.model()
             df = model.df

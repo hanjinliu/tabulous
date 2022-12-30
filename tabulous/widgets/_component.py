@@ -764,7 +764,7 @@ class ProxyInterface(Component["TableBase"]):
                     df_sub = df[by]
                     nr = len(df_sub)
                     df_sub.index = range(nr)
-                    df_sub.sort_values(by=by, ascending=ascending, inplace=True)
+                    df_sub = df_sub.sort_values(by=by, ascending=ascending)
                     return np.asarray(df_sub.index)
 
             else:
