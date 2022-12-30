@@ -185,6 +185,7 @@ class QSpreadSheet(QMutableSimpleTable):
                 **self._columns_dtype.as_pandas_kwargs(),
             )
             out.index = data_raw.index
+            out.columns = data_raw.columns
         else:
             out = pd.DataFrame(index=data_raw.index, columns=[])
         self._data_cache = out
