@@ -553,6 +553,16 @@ class TableViewerWidget(TableViewerBase):
         backend_widget.setParent(self._qwidget, backend_widget.windowFlags())
         return backend_widget
 
+    @property
+    def status(self) -> str:
+        """Return the statup tip"""
+        return self._qwidget.statusTip()
+
+    @status.setter
+    def status(self, tip: str) -> None:
+        """Set the status tip"""
+        return self._qwidget.setStatusTip(tip)
+
 
 class TableViewer(TableViewerBase):
     """The main table viewer widget."""
@@ -587,7 +597,7 @@ class TableViewer(TableViewerBase):
     @status.setter
     def status(self, tip: str) -> None:
         """Set the status tip"""
-        return self._qwidget.setStatusTip(tip)
+        return self._qwidget.statusBar().showMessage(tip)
 
     def add_dock_widget(
         self,

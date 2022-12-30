@@ -149,9 +149,16 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         expr = self.as_literal()
         return f"{type(self).__name__}<{expr!r}>"
 
-    def as_literal(self) -> str:
+    def as_literal(self, dest: bool = False) -> str:
         """As a literal string that represents this slot."""
-        return self._expr.as_literal(self.range)
+        _expr = self._expr.as_literal(self.range)
+        if dest:
+            if sl := self.last_destination:
+                rsl, csl = sl
+                _expr = f"df.iloc[{_fmt_slice(rsl)}, {_fmt_slice(csl)}] = {_expr}"
+            else:
+                _expr = f"out = {_expr}"
+        return _expr
 
     def format_error(self) -> str:
         """Format current exception as a string."""
@@ -1401,6 +1408,12 @@ def _parse_key(key):
     else:
         key = RectRange(_parse_a_key(key), slice(None))
     return key
+
+
+def _fmt_slice(sl: slice) -> str:
+    s0 = sl.start if sl.start is not None else ""
+    s1 = sl.stop if sl.stop is not None else ""
+    return f"{s0}:{s1}"
 
 
 _T = TypeVar("_T")

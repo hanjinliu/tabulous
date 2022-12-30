@@ -45,7 +45,7 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
     def setToolBarVisible(self, visible: bool):
         """Set visibility of toolbar"""
         if visible and self._toolbar is None:
-            from .._toolbar import QTableStackToolBar
+            from tabulous._qt._toolbar import QTableStackToolBar
 
             self._toolbar = QTableStackToolBar(self)
             self.insertWidget(0, self._toolbar)
@@ -63,7 +63,7 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
     def setConsoleVisible(self, visible: bool) -> None:
         """Set visibility of embeded console widget."""
         if visible and self._console_widget is None:
-            from .._console import QtConsole
+            from tabulous._qt._console import QtConsole
 
             qtconsole = QtConsole()
             qtconsole.connect_parent(self._table_viewer)
@@ -89,6 +89,7 @@ _HIDE_TOOLTIPS = frozenset(
         QEvent.Type.Resize,
         QEvent.Type.Show,
         QEvent.Type.Hide,
+        QEvent.Type.Close,
         QEvent.Type.WindowStateChange,
         QEvent.Type.WindowDeactivate,
         QEvent.Type.FocusOut,
@@ -128,7 +129,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self._toolbar.setMovable(False)  # nested toolbar causes layout problems
         self._tablestack.setMinimumSize(400, 250)
         self.resize(800, 600)
-        self.statusBar()
+        self.setStatusBar(QRichStatusBar(self))
         QMainWindow._instances.append(self)
 
         if _config.window.show_console:
@@ -246,3 +247,19 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     def setToolBarVisible(self, visible: bool):
         """Set visibility of toolbar"""
         return self._toolbar.setVisible(visible)
+
+
+class QRichStatusBar(QtW.QStatusBar):
+    """Custom status bar with rich text support."""
+
+    def __init__(self, parent: QtW.QWidget | None = None) -> None:
+        super().__init__(parent)
+        self._label = QtW.QLabel("")
+        self._label.setSizePolicy(
+            QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Expanding
+        )
+        self._label.setFrameStyle(QtW.QFrame.Shape.NoFrame)
+        self.addWidget(self._label)
+
+    def showMessage(self, msg: str, timeout: int = 0) -> None:
+        return self._label.setText(msg)
