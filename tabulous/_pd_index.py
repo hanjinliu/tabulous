@@ -74,27 +74,27 @@ class UniqueName:
         return self.name == other
 
 
-CHAR_RANGE_INDEX = UniqueName("column_range")
+HEADER = UniqueName("header")
 
 
 def char_range_index(stop: int) -> pd.Index:
-    return pd.Index(char_arange(stop), name=CHAR_RANGE_INDEX)
+    return pd.Index(char_arange(stop), name=HEADER)
 
 
 def is_ranged(index: pd.Index) -> bool:
     """Check if given index is range-like."""
-    return isinstance(index, pd.RangeIndex) or index.name is CHAR_RANGE_INDEX
+    return isinstance(index, pd.RangeIndex) or index.name is HEADER
 
 
 def as_not_ranged(index: pd.Index) -> None:
-    if index.name is CHAR_RANGE_INDEX:
+    if index.name is HEADER:
         index.name = None
 
 
 def as_constructor(index: pd.Index) -> Callable[[int], pd.Index] | None:
     if isinstance(index, pd.RangeIndex):
         return pd.RangeIndex
-    elif index.name is CHAR_RANGE_INDEX:
+    elif index.name is HEADER:
         return char_range_index
     else:
         return None

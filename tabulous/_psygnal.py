@@ -272,7 +272,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             else:
                 raise NotImplementedError("Cannot assign a DataFrame now.")
 
-        elif isinstance(out, pd.Series):
+        elif isinstance(out, (pd.Series, pd.Index)):
             if out.shape == (1,):  # scalar
                 _out = out.values[0]
                 _row, _col = self._infer_indices()
