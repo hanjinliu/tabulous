@@ -14,8 +14,8 @@ from ._sample import open_sample
 from ._component import Component
 from . import _doc
 
-from tabulous.types import SelectionType, TabPosition, _TableLike, _SingleSelection
 from tabulous import _utils, _io
+from tabulous.types import SelectionType, TabPosition, _TableLike, _SingleSelection
 from tabulous._keymap import QtKeyMap
 
 if TYPE_CHECKING:
@@ -423,8 +423,18 @@ class TableViewerBase(_AbstractViewer):
         elif path.name.count("*") == 1:
             paths = [path.replace("*", table.name) for table in self.tables]
         elif path.suffix in (".xlsx", ".xls"):
-            for table in self.tables:
-                table.data.to_excel(path, sheet_name=table.name)
+            import pandas as pd
+            from tabulous._pd_index import is_ranged
+
+            with pd.ExcelWriter(path, mode="w") as writer:
+                for table in self.tables:
+                    df = table.data
+                    df.to_excel(
+                        writer,
+                        sheet_name=table.name,
+                        index=not is_ranged(df.index),
+                        header=not is_ranged(df.columns),
+                    )
             return None
         else:
             raise ValueError("Invalid path.")

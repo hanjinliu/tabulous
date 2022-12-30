@@ -49,9 +49,9 @@ def open_sample(viewer: TableViewerBase):
 
 
 def save_as_xlsx(viewer: TableViewerBase):
-    """Save all tables as xlsx"""
+    """Save all tables to an Excel book"""
     path = viewer.history_manager.openFileDialog(
-        mode="w", caption="Save table", filter="*.xlsx;;*.xls"
+        mode="w", caption="Save table", filter="Excel book (*.xlsx; *.xls)"
     )
     if path:
         viewer.save_all(path)

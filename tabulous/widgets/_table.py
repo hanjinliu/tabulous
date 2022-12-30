@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import logging
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
@@ -40,6 +42,7 @@ if TYPE_CHECKING:
     Validator = Callable[[Any], None]
     LayoutString = Literal["horizontal", "vertical"]
 
+logger = logging.getLogger("tabulous")
 _Void = object()
 
 
@@ -584,8 +587,9 @@ class TableBase(ABC):
         del qtable_view._focused_widget
         return None
 
-    def _wrap_command(self, cmd):
+    def _wrap_command(self, cmd: Callable):
         def _f(idx):
+            logger.debug(f"Command: {cmd.__module__.split('.')[-1]}.{cmd.__name__}")
             if _qviewer := self._qwidget.parentViewer():
                 _viewer = _qviewer._table_viewer
             else:
