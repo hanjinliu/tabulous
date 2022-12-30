@@ -208,6 +208,15 @@ class _QHeaderLineEdit(_QTableLineEdit):
         self.selectAll()
         self.setFocus()
 
+    def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
+        if event.key() == Qt.Key.Key_Escape:
+            self.editingFinished.disconnect()
+            self.hide()
+            self.deleteLater()
+            self._table._qtable_view.setFocus()
+            return None
+        return super().keyPressEvent(event)
+
     def _is_text_valid(self) -> bool:
         """True if text is valid for this cell."""
         text = self.text()
