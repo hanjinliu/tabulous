@@ -191,7 +191,8 @@ def remove_selected_rows(viewer: TableViewerBase):
     if rng is not None:
         row_range = rng[0]
         sheet.removeRows(row_range.start, row_range.stop - row_range.start)
-    return None
+        return None
+    raise ValueError("No selection under cursor.")
 
 
 def remove_selected_columns(viewer: TableViewerBase):
@@ -204,7 +205,8 @@ def remove_selected_columns(viewer: TableViewerBase):
     if rng is not None:
         col_range = rng[1]
         sheet.removeColumns(col_range.start, col_range.stop - col_range.start)
-    return None
+        return None
+    raise ValueError("No selection under cursor.")
 
 
 def set_foreground_colormap(viewer: TableViewerBase) -> None:

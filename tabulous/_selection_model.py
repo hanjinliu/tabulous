@@ -171,6 +171,12 @@ class RangesModel(TableAnchorBase):
         reverse: bool = True,
     ) -> Iterator[tuple[int, Range]]:
         """Iterate over all the ranges that are under the specified position."""
+        # If current index is on the headers, simply check using the adjacent cell
+        if row == -1:
+            row = 0
+        if col == -1:
+            col = 0
+
         if reverse:
             rmax = len(self._ranges) - 1
             for i, (rr, cc) in enumerate(reversed(self._ranges)):
