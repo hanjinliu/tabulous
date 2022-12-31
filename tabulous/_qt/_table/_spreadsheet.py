@@ -801,7 +801,6 @@ class QSpreadSheet(QMutableSimpleTable):
         for k in to_increment:
             header_widgets[k + count] = header_widgets.pop(k)
         self.updateHorizontalHeaderWidget(header_widgets)
-
         return None
 
     def _process_header_widgets_on_remove(self, column: int, count: int):

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Callable, Any, Callable, NamedTuple
 import numpy as np
 from enum import Enum
@@ -181,27 +182,77 @@ class FilterInfo(NamedTuple):
 
 
 class ComposableFilter:
-    def __init__(self):
-        self._dict: dict[str, FilterInfo] = {}
+    def __init__(self, d=None):
+        if d is not None:
+            assert isinstance(d, dict)
+            self._dict: dict[int, FilterInfo] = d
+        else:
+            self._dict = {}
+        self.__name__ = "filter"
+        self.__annotations__ = {"df": "pd.DataFrame", "return": np.ndarray}
 
-    def __call__(self, df: pd.DataFrame) -> pd.Series:
-        series = []
-        for column, (type, arg) in self._dict.items():
+    def __call__(self, df: pd.DataFrame) -> np.ndarray:
+        series: list[pd.Series] = []
+        if len(self._dict) == 0:
+            return np.ones(len(df), dtype=bool)
+        for index, (type, arg) in self._dict.items():
             fn = _FUNCTION_MAP[type]
-            series.append(fn(df[column], arg))
+            series.append(np.asarray(fn(df.iloc[:, index], arg)))
         return reduce(lambda x, y: x & y, series)
 
     def copy(self) -> ComposableFilter:
-        new = self.__class__()
-        new._dict = self._dict.copy()
-        return new
+        """Copy the filter object."""
+        return self.__class__(self._dict.copy())
 
-    def compose(self, type: FilterType, column: str, arg: Any) -> ComposableFilter:
+    def compose(self, type: FilterType, column: int, arg: Any) -> ComposableFilter:
+        """Compose with an additional column filter."""
         new = self.copy()
         new._dict[column] = FilterInfo(FilterType(type), arg)
         return new
 
-    def decompose(self, column: str) -> ComposableFilter:
+    def decompose(self, column: int) -> ComposableFilter:
+        """Decompose the filter at column."""
         new = self.copy()
-        new._dict.pop(column)
+        new._dict.pop(column, None)
         return new
+
+
+class ComposableSorter:
+    def __init__(self, columns=None, ascending: bool = True):
+        if columns is None:
+            self._columns: set[int] = set()
+        else:
+            assert isinstance(columns, set)
+            self._columns = columns
+        self._ascending = ascending
+
+    def __call__(self, df: pd.DataFrame) -> pd.Series:
+        by: list[str] = [df.columns[i] for i in self._columns]
+        if len(by) == 1:
+            out = np.asarray(df[by[0]].argsort())
+            if not self._ascending:
+                out = out[::-1]
+        else:
+            df_sub = df[by]
+            nr = len(df_sub)
+            df_sub.index = range(nr)
+            df_sub = df_sub.sort_values(by=by, ascending=self._ascending)
+            out = np.asarray(df_sub.index)
+        return out
+
+    def copy(self) -> ComposableSorter:
+        return self.__class__(self._columns.copy(), self._ascending)
+
+    def compose(self, column: int):
+        new = self.copy()
+        new._columns.add(column)
+        return new
+
+    def decompose(self, column: int):
+        new = self.copy()
+        new._columns.remove(column)
+        return new
+
+    def switch(self) -> ComposableSorter:
+        """New sorter with the reverse order."""
+        return self.__class__(self._columns, not self._ascending)

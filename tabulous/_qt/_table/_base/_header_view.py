@@ -130,6 +130,8 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         rect.setLeft(rect.left() + rect.width() - w)
         rect.setTop(rect.top() + rect.height() - h)
         widget.setGeometry(rect)
+        if hasattr(widget, "on_installed"):
+            widget.on_installed(self.parentWidget().parentTable(), idx)
         widget.show()
         return None
 
@@ -138,11 +140,15 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
             for idx in self._header_widgets:
                 widget = self._header_widgets[idx]
                 widget.hide()
+                if hasattr(widget, "on_uninstalled"):
+                    widget.on_uninstalled(self.parentWidget().parentTable(), idx)
                 widget.setParent(None)
             self._header_widgets.clear()
         else:
             widget = self._header_widgets.pop(idx)
             widget.hide()
+            if hasattr(widget, "on_uninstalled"):
+                widget.on_uninstalled(self.parentWidget().parentTable(), idx)
             widget.setParent(None)
         return None
 

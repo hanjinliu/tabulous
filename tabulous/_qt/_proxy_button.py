@@ -1,21 +1,27 @@
 from __future__ import annotations
-from pathlib import Path
 
+from pathlib import Path
+import logging
 from typing import TYPE_CHECKING, Sequence
-import numpy as np
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
 
 from tabulous._sort_filter_proxy import ComposableFilter
 from tabulous._qt._toolbar._toolbutton import QColoredToolButton
-from tabulous._sort_filter_proxy import FilterType, FilterInfo
+from tabulous._sort_filter_proxy import (
+    FilterType,
+    FilterInfo,
+    ComposableFilter,
+    ComposableSorter,
+)
 from magicgui.widgets import ComboBox
 
 if TYPE_CHECKING:
-    from tabulous.widgets import TableBase
+    from tabulous._qt._table import QBaseTable
     import pandas as pd
 
 ICON_DIR = Path(__file__).parent / "_icons"
+logger = logging.getLogger("tabulous")
 
 
 class _QHeaderSectionButton(QColoredToolButton):
@@ -46,11 +52,11 @@ class _QHeaderSectionButton(QColoredToolButton):
 class QHeaderSortButton(_QHeaderSectionButton):
     sortSignal = Signal(bool)
 
-    def __init__(self, parent: QtW.QWidget = None):
+    def __init__(self, parent: QtW.QWidget = None, ascending: bool = True):
         super().__init__(parent)
 
         self.setIcon(ICON_DIR / "sort_table.svg")
-        self._ascending = True
+        self._ascending = ascending
         self.clicked.connect(self._toggle)
 
     def _toggle(self):
@@ -61,22 +67,37 @@ class QHeaderSortButton(_QHeaderSectionButton):
         return self._ascending
 
     @classmethod
-    def from_table(cls, table: TableBase, by: list[str], ascending: bool = True):
-        def _sort(ascending: bool):
-            sort_func = table.proxy._get_sort_function(by, ascending=ascending)
-            table._qwidget._set_proxy(sort_func)
+    def install_to_table(cls, table: QBaseTable, index: int, ascending: bool = True):
+        with table._mgr.merging():
+            self = cls(ascending=ascending)
+            table.setHorizontalHeaderWidget(index, self)
+        return self
 
-        with table.undo_manager.merging():
-            table.proxy.reset()
-            for name in by:
-                index = table.columns.get_loc(name)
-                btn = cls()
-                btn.sortSignal.connect(_sort)
-                table.native.setHorizontalHeaderWidget(index, btn)
-                if _viewer := table.native.parentViewer():
-                    btn.updateColorByBackground(_viewer.backgroundColor())
+    def on_installed(self, table: QBaseTable, index: int):
+        logger.debug(f"Installing sort button at index {index}")
 
-            _sort(ascending)
+        def _sort():
+            f = table._proxy._obj
+            if isinstance(f, ComposableSorter):
+                table._set_proxy(f.switch())
+            else:
+                raise RuntimeError("Sort function is not a ComposableSorter.")
+
+        f = table._proxy._obj
+        if not isinstance(f, ComposableSorter):
+            f = ComposableSorter({index}, self.ascending())
+        table._set_proxy(f.compose(index))
+        self.sortSignal.connect(_sort)
+        if _viewer := table.parentViewer():
+            self.updateColorByBackground(_viewer.backgroundColor())
+        return None
+
+    def on_uninstalled(self, table: QBaseTable, index: int):
+        logger.debug(f"Uninstalling sort button at index {index}")
+        self.sortSignal.disconnect()
+        f = table._proxy._obj
+        if isinstance(f, ComposableSorter):
+            table._set_proxy(f.decompose(index))
         return None
 
 
@@ -87,31 +108,40 @@ class QHeaderFilterButton(_QHeaderSectionButton):
         self.setIcon(ICON_DIR / "filter.svg")
 
     @classmethod
-    def from_table(cls, table: TableBase, by: list[str], show_menu: bool = True):
-        def _filter(index, info: FilterInfo):
-            if (cfil := table.proxy._get_proxy_object()._obj) is None:
-                cfil = ComposableFilter()
-            by = table.columns[index]
-            table._qwidget._set_proxy(cfil.compose(info.type, by, info.arg))
+    def install_to_table(cls, table: QBaseTable, index: int):
+        with table._mgr.merging():
+            self = cls()
+            table.setHorizontalHeaderWidget(index, self)
+        return self
+
+    def on_installed(self, table: QBaseTable, index: int):
+        logger.debug(f"Installing filter at index {index}")
+
+        def _filter(info: FilterInfo):
+            f = table._proxy._obj
+            if isinstance(f, ComposableFilter):
+                table._set_proxy(f.compose(info.type, index, info.arg))
+            else:
+                raise RuntimeError("Sort function is not a ComposableFilter.")
             return None
 
-        with table.undo_manager.merging():
-            table.proxy.reset()
-            df = table.data
-            for name in reversed(by):
-                btn = cls()
-                menu = _QFilterMenu(df[name])
-                btn.setMenu(menu)
-                index = table.columns.get_loc(name)
-                menu._filter_widget.called.connect(
-                    lambda info, index=index: _filter(index, info)
-                )
-                table.native.setHorizontalHeaderWidget(index, btn)
-                if _viewer := table.native.parentViewer():
-                    btn.updateColorByBackground(_viewer.backgroundColor())
+        f = table._proxy._obj
+        if not isinstance(f, ComposableFilter):
+            table._set_proxy(ComposableFilter())
+        column = table.model().df.columns[index]
+        menu = _QFilterMenu(table._get_sub_frame(column))
+        self.setMenu(menu)
+        menu._filter_widget.called.connect(_filter)
+        if _viewer := table.parentViewer():
+            self.updateColorByBackground(_viewer.backgroundColor())
+        return None
 
-        if show_menu:
-            btn.click()
+    def on_uninstalled(self, table: QBaseTable, index: int):
+        logger.debug(f"Uninstalling filter at index {index}")
+        f = table._proxy._obj
+        if isinstance(f, ComposableFilter):
+            table._set_proxy(f.decompose(index))
+
         return None
 
 

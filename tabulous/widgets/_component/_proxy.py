@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import wraps
 from typing import (
     TYPE_CHECKING,
     Sequence,
@@ -10,6 +11,7 @@ from typing import (
 import numpy as np
 from tabulous.types import ProxyType
 from ._base import TableComponent
+from tabulous._sort_filter_proxy import ComposableFilter, ComposableSorter
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -37,26 +39,13 @@ class ProxyInterface(TableComponent):
 
         If column names are given, sort button(s) will be added to the header.
         """
-        if callable(by):
-            sort_func = self._get_sort_function(by, ascending)
-            return self.parent.proxy.set(sort_func)
+        table = self.parent
 
-        from tabulous._qt._proxy_button import QHeaderSortButton
-
-        if isinstance(by, str):
-            by = [by]
-        QHeaderSortButton.from_table(self.parent, by, ascending=ascending)
-        return None
-
-    def _get_sort_function(
-        self,
-        by: str | Sequence[str] | Callable[[pd.DataFrame], _SortArray],
-        ascending: bool = True,
-    ) -> Callable[[pd.DataFrame], _SortArray]:
         if callable(by):
             if not ascending:
                 raise TypeError("Cannot sort by a callable in descending order.")
 
+            @wraps(by)
             def _sort(df: pd.DataFrame) -> _SortArray:
                 arr = np.asarray(by(df))
                 if arr.ndim != 1:
@@ -65,35 +54,24 @@ class ProxyInterface(TableComponent):
                     raise TypeError("The callable must return an integer array.")
                 return arr
 
-        else:
-            if not isinstance(by, str) and len(by) == 1:
-                by = by[0]
+            return table.proxy.set(_sort)
 
-            if isinstance(by, str):
+        from tabulous._qt._proxy_button import QHeaderSortButton
 
-                def _sort(df: pd.DataFrame) -> _SortArray:
-                    out = np.asarray(df[by].argsort())
-                    if not ascending:
-                        out = out[::-1]
-                    return out
+        if isinstance(by, str):
+            by = [by]
 
-            elif isinstance(by, Sequence):
-                by = list(by)
-
-                def _sort(df: pd.DataFrame) -> _SortArray:
-                    df_sub = df[by]
-                    nr = len(df_sub)
-                    df_sub.index = range(nr)
-                    df_sub = df_sub.sort_values(by=by, ascending=ascending)
-                    return np.asarray(df_sub.index)
-
-            else:
-                raise TypeError(
-                    "The `by` argument must be a column name or a sequence of it."
+        with table.undo_manager.merging(
+            lambda cmds: f"table.proxy.sort(by={by!r}, ascending={ascending!r})"
+        ):
+            if not isinstance(table.proxy.func, ComposableSorter):
+                table.proxy.reset()
+            for x in by:
+                index = table.columns.get_loc(x)
+                QHeaderSortButton.install_to_table(
+                    table.native, index, ascending=ascending
                 )
-
-            _sort.__name__ = f"sort<by={by!r}, ascending={ascending}>"
-        return _sort
+        return None
 
     @overload
     def filter(self, expr: str, namespace: dict = {}) -> None:
@@ -129,13 +107,28 @@ class ProxyInterface(TableComponent):
         self.parent._qwidget.setProxy(_filter)
         return None
 
-    def show_filter_button(self, columns: str | list[str]):
+    def show_filter_button(
+        self,
+        columns: str | list[str],
+        *,
+        show_menu: bool = False,
+    ) -> None:
         from tabulous._qt._proxy_button import QHeaderFilterButton
 
         table = self.parent
         if isinstance(columns, str):
             columns = [columns]
-        QHeaderFilterButton.from_table(table, columns, show_menu=False)
+
+        with table.undo_manager.merging(
+            lambda cmds: f"table.proxy.show_filter_button({columns!r})"
+        ):
+            if not isinstance(table.proxy.func, ComposableFilter):
+                table.proxy.reset()
+            for x in reversed(columns):
+                index = table.columns.get_loc(x)
+                btn = QHeaderFilterButton.install_to_table(table.native, index)
+        if show_menu:
+            btn.click()
         return None
 
     def reset(self) -> None:
@@ -158,6 +151,11 @@ class ProxyInterface(TableComponent):
     def proxy_type(self):
         """Return the current proxy type."""
         return self._get_proxy_object().proxy_type
+
+    @property
+    def func(self) -> ProxyType | None:
+        """The proxy function."""
+        return self._get_proxy_object()._obj
 
     def _set_value(self, value: Any):
         return self.parent._qwidget.setProxy(value)

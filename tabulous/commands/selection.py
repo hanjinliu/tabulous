@@ -486,12 +486,10 @@ def sort_by_columns(viewer: TableViewerBase) -> None:
 
 def filter_by_columns(viewer: TableViewerBase) -> None:
     """Filter by a column"""
-    from tabulous._qt._proxy_button import QHeaderFilterButton
-
     table = _utils.get_table(viewer)
     indices = _utils.get_selected_columns(viewer)
     by = [table.columns[index] for index in indices]
-    QHeaderFilterButton.from_table(table, by)
+    table.proxy.show_filter_button(by, show_menu=True)
     return None
 
 
