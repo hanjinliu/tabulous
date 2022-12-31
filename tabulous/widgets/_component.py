@@ -97,7 +97,18 @@ class Component(Generic[T]):
         raise AttributeError("Cannot set attribute.")
 
 
-class _HeaderInterface(Component["TableBase"]):
+class _TableComponent(Component["TableBase"]):
+    def _assert_spreadsheet(self) -> SpreadSheet:
+        sheet = self.parent
+        if sheet.table_type != "SpreadSheet":
+            raise TypeError(
+                f"{sheet.table_type!r} does not support insert. Use "
+                "SpreadSheet instead."
+            )
+        return sheet
+
+
+class _HeaderInterface(_TableComponent):
     def _get_axis(self) -> pd.Index:
         raise NotImplementedError()
 
@@ -201,6 +212,16 @@ class VerticalHeaderInterface(_HeaderInterface):
         out = [smodel.ranges[i][0] for i in smodel._row_selection_indices]
         return out
 
+    def insert(self, at: int, count: int):
+        """Insert `count` rows at the given position."""
+        sheet = self._assert_spreadsheet()
+        sheet._qwidget.insertRows(at, count)
+
+    def remove(self, at: int, count: int):
+        """Remove `count` rows at the given position."""
+        sheet = self._assert_spreadsheet()
+        sheet._qwidget.removeRows(at, count)
+
 
 class HorizontalHeaderInterface(_HeaderInterface):
     """The interface for the horizontal header of the tablelist."""
@@ -221,8 +242,18 @@ class HorizontalHeaderInterface(_HeaderInterface):
         out = [smodel.ranges[i][1] for i in smodel._col_selection_indices]
         return out
 
+    def insert(self, at: int, count: int):
+        """Insert `count` columns at the given position."""
+        sheet = self._assert_spreadsheet()
+        sheet._qwidget.insertColumns(at, count)
 
-class CellInterface(Component["TableBase"]):
+    def remove(self, at: int, count: int):
+        """Remove `count` columns at the given position."""
+        sheet = self._assert_spreadsheet()
+        sheet._qwidget.removeColumns(at, count)
+
+
+class CellInterface(_TableComponent):
     """The interface for editing cell as if it was manually edited."""
 
     def __getitem__(self, key: tuple[int | slice, int | slice]):
@@ -237,7 +268,8 @@ class CellInterface(Component["TableBase"]):
             # add item widget
             r, c = key
             if isinstance(r, int) and isinstance(c, int):
-                return table._qwidget._set_widget_at_index(*key, value)
+                sheet = self._assert_spreadsheet()
+                return sheet._qwidget._set_widget_at_index(*key, value)
             raise TypeError("Cannot set widget at slices.")
 
         import pandas as pd
@@ -389,7 +421,7 @@ def _plt_function(name: str, method_name: str | None = None):
     return func
 
 
-class PlotInterface(Component["TableBase"]):
+class PlotInterface(_TableComponent):
     """The interface of plotting."""
 
     def __init__(self, parent=Component._no_ref):
@@ -516,7 +548,7 @@ class PlotInterface(Component["TableBase"]):
 _Range = Tuple[slice, slice]
 
 
-class _TableRanges(Component["TableBase"], MutableSequence[_Range]):
+class _TableRanges(_TableComponent, MutableSequence[_Range]):
     def __init__(self, parent: T | _NoRef = Component._no_ref):
         super().__init__(parent)
         self._is_blocked = False
@@ -695,7 +727,7 @@ class ColumnDtypeInterface(
 
 
 class CellReferenceInterface(
-    Component["TableBase"], Mapping["tuple[int, int]", InCellRangedSlot]
+    _TableComponent, Mapping["tuple[int, int]", InCellRangedSlot]
 ):
     """Interface to the cell references of a table."""
 
@@ -720,7 +752,7 @@ class CellReferenceInterface(
         return f"{cname}(\n\t{s}\n)"
 
 
-class ProxyInterface(Component["TableBase"]):
+class ProxyInterface(_TableComponent):
     """Interface to the table sorting/filtering."""
 
     @overload

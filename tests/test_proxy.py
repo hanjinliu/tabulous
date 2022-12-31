@@ -141,21 +141,49 @@ def test_header_buttons():
     table.undo_manager.redo()
     assert [1] == list(table._qwidget._header_widgets().keys())
 
-# def test_header_buttons_with_insert():
-#     viewer = TableViewerWidget(show=False)
-#     table = viewer.add_spreadsheet(
-#         {"a": shuffled_arange(10), "b": np.arange(10), "c": np.arange(10), "d": np.arange(10)},
-#     )
-#     table.proxy.sort(by="b")
+def test_header_buttons_with_insert():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_spreadsheet(
+        {"a": np.arange(10), "b": shuffled_arange(10), "c": np.arange(10), "d": np.arange(10)},
+    )
+    table.proxy.sort(by=["b", "c"])
+    sorted_index = list(table.index)
 
-#     assert [1] == list(table._qwidget._header_widgets().keys())
+    assert [1, 2] == list(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.columns.insert(at=3, count=2)
+    assert [1, 2] == list(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.columns.insert(at=1, count=2)
+    assert [3, 4] == list(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.undo_manager.undo()
+    assert [1, 2] == list(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.undo_manager.redo()
+    assert [3, 4] == list(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
 
 
-# def test_header_buttons_with_remove():
-#     viewer = TableViewerWidget(show=False)
-#     table = viewer.add_spreadsheet(
-#         {"a": shuffled_arange(10), "b": np.arange(10), "c": np.arange(10), "d": np.arange(10)},
-#     )
-#     table.proxy.sort(by="b")
+def test_header_buttons_with_remove():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_spreadsheet(
+        {"a": shuffled_arange(10), "b": np.arange(10), "c": np.arange(10), "d": np.arange(10)},
+    )
+    table.proxy.sort(by=["b", "c"])
+    sorted_index = list(table.index)
 
-#     assert [0] == list(table._qwidget._header_widgets().keys())
+    assert [1, 2] == list(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.columns.remove(at=3, count=1)
+    assert [1, 2] == list(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.columns.remove(at=0, count=2)
+    assert [0] == list(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.undo_manager.undo()
+    assert [1, 2] == list(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.undo_manager.redo()
+    assert [0] == list(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)

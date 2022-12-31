@@ -508,15 +508,17 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @insertRows.set_formatter
     def _insertRows_fmt(self, row: int, count: int, value: Any = _EMPTY):
-        s = "s" if count > 1 else ""
-        return f"insert {count} row{s} at row={row}"
+        return f"table.index.insert(at={row}, count={count})"
 
-    @QMutableSimpleTable._mgr.undoable
     def insertColumns(self, col: int, count: int, value: Any = _EMPTY):
         """Insert columns at the given column number and count."""
-        if self._proxy.proxy_type != "none":
-            raise NotImplementedError("Cannot insert during filtering.")
+        with self._mgr.merging(lambda cmds: cmds[-1]):
+            self._process_header_widgets_on_insert(col, count)
+            self._insert_columns(col, count, value)
+        return None
 
+    @QMutableSimpleTable._mgr.undoable
+    def _insert_columns(self, col: int, count: int, value: Any = _EMPTY):
         columns_existing = self._data_raw.columns
 
         if value is _EMPTY:
@@ -556,7 +558,6 @@ class QSpreadSheet(QMutableSimpleTable):
         self._qtable_view._table_map.insert_columns(col, count)
         self._qtable_view._selection_model.insert_columns(col, count)
         self._qtable_view._highlight_model.insert_columns(col, count)
-        self._process_header_widgets_on_insert(col, count)
 
         info = ItemInfo(
             slice(None),
@@ -567,15 +568,14 @@ class QSpreadSheet(QMutableSimpleTable):
         self.itemChangedSignal.emit(info)
         return None
 
-    @insertColumns.undo_def
-    def insertColumns(self, col: int, count: int, value: Any = _EMPTY):
+    @_insert_columns.undo_def
+    def _insert_columns(self, col: int, count: int, value: Any = _EMPTY):
         """Insert columns at the given column number and count."""
         return self.removeColumns(col, count)
 
-    @insertColumns.set_formatter
-    def _insertColumns_fmt(self, col: int, count: int, value: Any = _EMPTY):
-        s = "s" if count > 1 else ""
-        return f"insert {count} column{s} at column={col}"
+    @_insert_columns.set_formatter
+    def _insert_columns_fmt(self, col: int, count: int, value: Any = _EMPTY):
+        return f"table.columns.insert(at={col}, count={count})"
 
     def removeRows(self, row: int, count: int):
         """Remove rows at the given row number and count."""
@@ -620,12 +620,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @_remove_rows.set_formatter
     def _remove_rows_fmt(self, row, count, old_values):
-        s = "s" if count > 1 else ""
-        if count == 1:
-            sl = row
-        else:
-            sl = f"{row}:{row + count}"
-        return f"Remove row{s} at position {sl}"
+        return f"table.index.remove(at={row}, count={count})"
 
     def removeColumns(self, column: int, count: int):
         """Remove columns at the given column number and count."""
@@ -635,8 +630,8 @@ class QSpreadSheet(QMutableSimpleTable):
                 slice(0, self._data_raw.shape[0]),
                 slice(column, column + count),
             )
-            self._remove_columns(column, count, df)
             self._process_header_widgets_on_remove(column, count)
+            self._remove_columns(column, count, df)
         return None
 
     @QMutableSimpleTable._mgr.undoable
@@ -676,12 +671,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @_remove_columns.set_formatter
     def _remove_columns_fmt(self, col, count, old_values):
-        s = "s" if count > 1 else ""
-        if count == 1:
-            sl = col
-        else:
-            sl = f"{col}:{col + count}"
-        return f"Remove column{s} at position {sl}"
+        return f"table.columns.remove(at={col}, count={count})"
 
     @QMutableSimpleTable._mgr.interface
     def _set_widget_at_index(self, r: int, c: int, widget: ValueWidget | None) -> None:
@@ -803,15 +793,15 @@ class QSpreadSheet(QMutableSimpleTable):
 
     def _process_header_widgets_on_insert(self, column: int, count: int):
         to_increment: list[int] = []
-        header_widgets = self._header_widgets()
-        # header_widgets = self._header_widgets().copy()
+        header_widgets = self._header_widgets().copy()
         for k in header_widgets.keys():
             if k >= column:
                 to_increment.append(k)
         to_increment.sort(reverse=True)
         for k in to_increment:
             header_widgets[k + count] = header_widgets.pop(k)
-        # self.updateHorizontalHeaderWidget(header_widgets)
+        self.updateHorizontalHeaderWidget(header_widgets)
+
         return None
 
     def _process_header_widgets_on_remove(self, column: int, count: int):

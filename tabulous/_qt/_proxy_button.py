@@ -88,9 +88,10 @@ class QHeaderFilterButton(_QHeaderSectionButton):
 
     @classmethod
     def from_table(cls, table: TableBase, by: list[str], show_menu: bool = True):
-        def _filter(by, info: FilterInfo):
+        def _filter(index, info: FilterInfo):
             if (cfil := table.proxy._get_proxy_object()._obj) is None:
                 cfil = ComposableFilter()
+            by = table.columns[index]
             table._qwidget._set_proxy(cfil.compose(info.type, by, info.arg))
             return None
 
@@ -101,11 +102,10 @@ class QHeaderFilterButton(_QHeaderSectionButton):
                 btn = cls()
                 menu = _QFilterMenu(df[name])
                 btn.setMenu(menu)
-                menu._filter_widget.called.connect(
-                    lambda info, by=by: _filter(by, info)
-                )
-
                 index = table.columns.get_loc(name)
+                menu._filter_widget.called.connect(
+                    lambda info, index=index: _filter(index, info)
+                )
                 table.native.setHorizontalHeaderWidget(index, btn)
                 if _viewer := table.native.parentViewer():
                     btn.updateColorByBackground(_viewer.backgroundColor())
