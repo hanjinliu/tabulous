@@ -809,6 +809,14 @@ class ProxyInterface(Component["TableBase"]):
         self.parent._qwidget.setProxy(_filter)
         return None
 
+    def compose_column_filter(self, by: str, filter_type, arg):
+        from tabulous._sort_filter_proxy import ComposableFilter
+
+        if (cfil := self._get_proxy_object()._obj) is None:
+            cfil = ComposableFilter()
+        self.parent._qwidget.setProxy(cfil.compose(filter_type, by, arg))
+        return None
+
     def reset(self) -> None:
         """Reset filter or sort."""
         return self._set_value(None)

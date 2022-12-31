@@ -11,6 +11,10 @@ ICON_DIR = Path(__file__).parent.parent / "_icons"
 class QColoredToolButton(QtW.QToolButton):
     """Tool button with colored icon."""
 
+    def __init__(self, parent: QtW.QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setStyleSheet("QToolButton::menu-indicator { image: none; }")
+
     def icon(self) -> QColoredSVGIcon:
         """Get colored svg icon."""
         return self._icon
@@ -32,7 +36,6 @@ class QMoreToolButton(QColoredToolButton):
 
     def __init__(self, parent: QtW.QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setStyleSheet("QToolButton::menu-indicator { image: none; }")
         self.setIcon(ICON_DIR / "more.svg")
         self.setPopupMode(QtW.QToolButton.ToolButtonPopupMode.InstantPopup)
         self.setToolTip("More ...")

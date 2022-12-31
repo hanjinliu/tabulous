@@ -615,7 +615,7 @@ class TableBase(ABC):
         _hheader_register("Formatter > Reset text formatter")(_wrap(cmds.selection.reset_text_formatter))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
         _hheader_register("Sort")(_wrap(cmds.selection.sort_by_columns))
-        _hheader_register("Filter")(_wrap(cmds.selection.filter_by_column))
+        _hheader_register("Filter")(_wrap(cmds.selection.filter_by_columns))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
 
         _cell_register = self.cell.register_action
