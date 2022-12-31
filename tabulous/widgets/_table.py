@@ -742,15 +742,15 @@ class SpreadSheet(_DataFrameTableLayer):
         _wrap = self._wrap_command
         # fmt: off
         _vheader_register = self.index.register_action
-        _vheader_register("Insert/Remove > Insert row above")(_wrap(cmds.selection.insert_row_above))
-        _vheader_register("Insert/Remove > Insert row below")(_wrap(cmds.selection.insert_row_below))
-        _vheader_register("Insert/Remove > Remove selected rows")(_wrap(cmds.selection.remove_selected_rows))
+        _vheader_register("Insert row above")(_wrap(cmds.selection.insert_row_above))
+        _vheader_register("Insert row below")(_wrap(cmds.selection.insert_row_below))
+        _vheader_register("Remove selected rows")(_wrap(cmds.selection.remove_selected_rows))
         self._qwidget._qtable_view.verticalHeader().addSeparator()
 
         _hheader_register = self.columns.register_action
-        _hheader_register("Insert/Remove > Insert column left")(_wrap(cmds.selection.insert_column_left))
-        _hheader_register("Insert/Remove > Insert column right")(_wrap(cmds.selection.insert_column_right))
-        _hheader_register("Insert/Remove > Remove selected columns")(_wrap(cmds.selection.remove_selected_columns))
+        _hheader_register("Insert column left")(_wrap(cmds.selection.insert_column_left))
+        _hheader_register("Insert column right")(_wrap(cmds.selection.insert_column_right))
+        _hheader_register("Remove selected columns")(_wrap(cmds.selection.remove_selected_columns))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
         _hheader_register("Column dtype")(_wrap(cmds.selection.set_column_dtype))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()

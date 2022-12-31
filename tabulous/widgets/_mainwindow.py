@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from abc import ABC, abstractproperty
 from pathlib import Path
 from types import MappingProxyType
@@ -11,7 +12,7 @@ from psygnal import Signal, SignalGroup
 from ._table import Table, SpreadSheet, GroupBy, TableDisplay
 from ._tablelist import TableList
 from ._sample import open_sample
-from ._component import Component
+from ._component import ViewerComponent
 from . import _doc
 
 from tabulous import _utils, _io
@@ -43,17 +44,7 @@ class TableViewerSignal(SignalGroup):
     current_index = Signal(int)
 
 
-class _VisibilityMixin(Component["TableViewerBase"]):
-    def show(self):
-        """Show the toolbar."""
-        self.visible = True
-
-    def hide(self):
-        """Hide the toolbar."""
-        self.visible = False
-
-
-class Toolbar(_VisibilityMixin):
+class Toolbar(ViewerComponent):
     """The toolbar proxy."""
 
     @property
@@ -69,7 +60,7 @@ class Toolbar(_VisibilityMixin):
         raise NotImplementedError()
 
 
-class Console(_VisibilityMixin):
+class Console(ViewerComponent):
     """The QtConsole proxy."""
 
     @property
