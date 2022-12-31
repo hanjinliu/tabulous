@@ -2,15 +2,21 @@ from __future__ import annotations
 
 from typing import (
     TYPE_CHECKING,
+    Mapping,
+    SupportsIndex,
+    Tuple,
     TypeVar,
     overload,
     Any,
     Callable,
+    Iterator,
 )
+import warnings
 
 from magicgui.widgets import Widget
 from tabulous.exceptions import TableImmutableError
 from tabulous.types import EvalInfo
+from tabulous._psygnal import InCellRangedSlot
 from ._base import TableComponent
 
 if TYPE_CHECKING:
@@ -20,7 +26,28 @@ _F = TypeVar("_F", bound=Callable)
 
 
 class CellInterface(TableComponent):
-    """The interface for editing cell as if it was manually edited."""
+    """
+    Interface with table cells.
+
+    This object can be used to emulate editing cells in the table.
+
+    >>> table.cell[i, j]  # get the (i, j) cell value shown in the table
+    >>> table.cell[i, j] = value  # set the (i, j) cell value
+    >>> table.cell[i, j] = "&=np.mean(df.iloc[:, 0]"  # in-cell evaluation
+    >>> del table.cell[i, j]  # delete the (i, j) cell value
+
+    Label texts in the cell can be accessed by the ``label`` attribute.
+
+    >>> table.cell.label[i, j]  # get the (i, j) cell label text
+    >>> table.cell.label[i, j] = value  # set the (i, j) cell label text
+    >>> del table.cell.label[i, j]  # delete the (i, j) cell label text
+
+    Use ``register_action`` to register a contextmenu function.
+
+    >>> @table.cell.register_action("My Action")
+    >>> def my_action(index):
+    ...     # do something
+    """
 
     def __getitem__(self, key: tuple[int | slice, int | slice]):
         return self.parent._qwidget.model().df.iloc[key]
@@ -121,13 +148,32 @@ class CellInterface(TableComponent):
         else:
             raise TypeError("input must be a string or callable.")
 
+    @property
+    def label(self) -> CellLabelInterface:
+        """Interface to the cell labels."""
+        return CellLabelInterface(self.parent)
+
+    @property
+    def ref(self) -> CellReferenceInterface:
+        """Interface to the cell references."""
+        return CellReferenceInterface(self.parent)
+
     def get_label(self, r: int, c: int) -> str | None:
         """Get the label of a cell."""
-        return self.parent.native.itemLabel(r, c)
+        warnings.warn(
+            "get_label is deprecated. Use `table.cell.label[r, c]` instead.",
+            DeprecationWarning,
+        )
+        return self.label[r, c]
 
     def set_label(self, r: int, c: int, text: str):
         """Set the label of a cell."""
-        return self.parent.native.setItemLabel(r, c, text)
+        warnings.warn(
+            f"set_label is deprecated. Use `table.cell.label[r, c] = {text!r}` "
+            "instead.",
+            DeprecationWarning,
+        )
+        self.label[r, c] = text
 
     def set_labeled_data(
         self,
@@ -168,6 +214,54 @@ class CellInterface(TableComponent):
 
         self.parent._qwidget.setLabeledData(slice(r, r + ndata), slice(c, c + 1), _data)
         return None
+
+
+class CellLabelInterface(TableComponent):
+    def __getitem__(self, key: tuple[int, int]) -> str | None:
+        """Get the label of a cell."""
+        self._assert_integers(key)
+        return self.parent.native.itemLabel(*key)
+
+    def __setitem__(self, key: tuple[int, int], value: str):
+        """Set the label of a cell."""
+        self._assert_integers(key)
+        return self.parent.native.setItemLabel(*key, value)
+
+    def __delitem__(self, key: tuple[int, int]):
+        """Delete the label of a cell."""
+        self._assert_integers(key)
+        return self.parent.native.setItemLabel(*key, None)
+
+    def _assert_integers(self, key: tuple[int, int]):
+        r, c = key
+        if not (isinstance(r, SupportsIndex) and isinstance(c, SupportsIndex)):
+            raise TypeError("Cell label must be accessed by integer indices.")
+
+
+class CellReferenceInterface(
+    TableComponent, Mapping[Tuple[int, int], InCellRangedSlot]
+):
+    """Interface to the cell references of a table."""
+
+    def _table_map(self):
+        return self.parent._qwidget._qtable_view._table_map
+
+    def __getitem__(self, key: tuple[int, int]):
+        return self._table_map()[key]
+
+    def __iter__(self) -> Iterator[InCellRangedSlot]:
+        return iter(self._table_map())
+
+    def __len__(self) -> int:
+        return len(self._table_map())
+
+    def __repr__(self) -> str:
+        slots = self._table_map()
+        cname = type(self).__name__
+        if len(slots) == 0:
+            return f"{cname}()"
+        s = ",\n\t".join(f"{k}: {slot!r}" for k, slot in slots.items())
+        return f"{cname}(\n\t{s}\n)"
 
 
 def _normalize_slice(sl: slice, size: int) -> slice:

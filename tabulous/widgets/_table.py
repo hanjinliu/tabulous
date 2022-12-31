@@ -14,7 +14,6 @@ from tabulous.widgets._component import (
     VerticalHeaderInterface,
     PlotInterface,
     ColumnDtypeInterface,
-    CellReferenceInterface,
     SelectionRanges,
     HighlightRanges,
     ProxyInterface,
@@ -87,7 +86,6 @@ class TableBase(ABC):
     index = VerticalHeaderInterface()
     columns = HorizontalHeaderInterface()
     plt = PlotInterface()
-    cellref = CellReferenceInterface()
     proxy = ProxyInterface()
     selections = SelectionRanges()
     highlights = HighlightRanges()
@@ -128,6 +126,14 @@ class TableBase(ABC):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}<{self.name!r}>"
+
+    @property
+    def cellref(self):
+        warnings.warn(
+            "table.cellref is deprecated. Use table.cell.ref instead.",
+            DeprecationWarning,
+        )
+        return self.cell.ref
 
     def _emit_data_changed_signal(self, info: ItemInfo) -> None:
         r, c = info.row, info.column
