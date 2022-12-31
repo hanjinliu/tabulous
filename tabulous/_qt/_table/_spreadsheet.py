@@ -376,7 +376,7 @@ class QSpreadSheet(QMutableSimpleTable):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
             super().setDataFrameValue(r, c, value)
-            self.setProxy(self._proxy)
+            self._set_proxy(self._proxy)
 
         self._qtable_view.verticalHeader().resize(
             self._qtable_view.verticalHeader().sizeHint()
@@ -396,7 +396,7 @@ class QSpreadSheet(QMutableSimpleTable):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
             super().setLabeledData(r, c, value)
-            self.setProxy(self._proxy)
+            self._set_proxy(self._proxy)
 
         self._qtable_view.verticalHeader().resize(
             self._qtable_view.verticalHeader().sizeHint()
@@ -442,7 +442,7 @@ class QSpreadSheet(QMutableSimpleTable):
             self._data_raw.shape[0] + _OUT_OF_BOUND_R,
             self._data_raw.shape[1] + _OUT_OF_BOUND_C,
         )
-        self.setProxy(self._proxy)
+        self._set_proxy(self._proxy)
         self._data_cache = None
         return None
 
@@ -484,7 +484,7 @@ class QSpreadSheet(QMutableSimpleTable):
         if is_ranged(index_existing):
             self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
         self.model().insertRows(row, count, QtCore.QModelIndex())
-        self.setProxy(self._proxy)
+        self._set_proxy(self._proxy)
         self._data_cache = None
 
         # update indices
@@ -549,13 +549,14 @@ class QSpreadSheet(QMutableSimpleTable):
         if is_ranged(columns_existing):
             self._data_raw.columns = char_range_index(self._data_raw.columns.size)
         self.model().insertColumns(col, count, QtCore.QModelIndex())
-        self.setProxy(self._proxy)
+        self._set_proxy(self._proxy)
         self._data_cache = None
 
         # update indices
         self._qtable_view._table_map.insert_columns(col, count)
         self._qtable_view._selection_model.insert_columns(col, count)
         self._qtable_view._highlight_model.insert_columns(col, count)
+        self._process_header_widgets_on_insert(col, count)
 
         info = ItemInfo(
             slice(None),
@@ -598,7 +599,7 @@ class QSpreadSheet(QMutableSimpleTable):
         if _r_ranged:
             self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
         self.model().removeRows(row, count, QtCore.QModelIndex())
-        self.setProxy(self._proxy)
+        self._set_proxy(self._proxy)
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         self._data_cache = None
 
@@ -635,6 +636,7 @@ class QSpreadSheet(QMutableSimpleTable):
                 slice(column, column + count),
             )
             self._remove_columns(column, count, df)
+            self._process_header_widgets_on_remove(column, count)
         return None
 
     @QMutableSimpleTable._mgr.undoable
@@ -653,7 +655,7 @@ class QSpreadSheet(QMutableSimpleTable):
         if _c_ranged:
             self._data_raw.columns = char_range_index(self._data_raw.columns.size)
         self.model().removeColumns(col, count, QtCore.QModelIndex())
-        self.setProxy(self._proxy)
+        self._set_proxy(self._proxy)
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         self._data_cache = None
 
@@ -735,7 +737,7 @@ class QSpreadSheet(QMutableSimpleTable):
         with self._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
             if index >= nrows:
                 self.expandDataFrame(index - nrows + 1, 0)
-            self.setProxy(self._proxy)
+            self._set_proxy(self._proxy)
             super().setVerticalHeaderValue(index, value)
             self._data_cache = None
 
@@ -751,7 +753,7 @@ class QSpreadSheet(QMutableSimpleTable):
             if index >= ncols:
                 self.expandDataFrame(0, index - ncols + 1)
             old_name = self._data_raw.columns[index]
-            self.setProxy(self._proxy)
+            self._set_proxy(self._proxy)
             super().setHorizontalHeaderValue(index, value)
             if old_name in self._columns_dtype.keys():
                 self.setColumnDtype(value, self._columns_dtype.pop(old_name))
@@ -798,6 +800,37 @@ class QSpreadSheet(QMutableSimpleTable):
         dtype = self._columns_dtype[name]
         formatter = DefaultFormatter(dtype)
         return self.setTextFormatter(name, formatter)
+
+    def _process_header_widgets_on_insert(self, column: int, count: int):
+        to_increment: list[int] = []
+        header_widgets = self._header_widgets()
+        # header_widgets = self._header_widgets().copy()
+        for k in header_widgets.keys():
+            if k >= column:
+                to_increment.append(k)
+        to_increment.sort(reverse=True)
+        for k in to_increment:
+            header_widgets[k + count] = header_widgets.pop(k)
+        # self.updateHorizontalHeaderWidget(header_widgets)
+        return None
+
+    def _process_header_widgets_on_remove(self, column: int, count: int):
+        to_remove: list[int] = []
+        to_decrement: list[int] = []
+        header_widgets = self._header_widgets().copy()
+        for k in header_widgets.keys():
+            if k >= column:
+                if k < column + count:
+                    to_remove.append(k)
+                else:
+                    to_decrement.append(k)
+        for k in to_remove:
+            header_widgets.pop(k)
+        to_decrement.sort()
+        for k in to_decrement:
+            header_widgets[k - count] = header_widgets.pop(k)
+        self.updateHorizontalHeaderWidget(header_widgets)
+        return None
 
 
 def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.DataFrame:

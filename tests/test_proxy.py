@@ -140,3 +140,22 @@ def test_header_buttons():
     assert [0] == list(table._qwidget._header_widgets().keys())
     table.undo_manager.redo()
     assert [1] == list(table._qwidget._header_widgets().keys())
+
+# def test_header_buttons_with_insert():
+#     viewer = TableViewerWidget(show=False)
+#     table = viewer.add_spreadsheet(
+#         {"a": shuffled_arange(10), "b": np.arange(10), "c": np.arange(10), "d": np.arange(10)},
+#     )
+#     table.proxy.sort(by="b")
+
+#     assert [1] == list(table._qwidget._header_widgets().keys())
+
+
+# def test_header_buttons_with_remove():
+#     viewer = TableViewerWidget(show=False)
+#     table = viewer.add_spreadsheet(
+#         {"a": shuffled_arange(10), "b": np.arange(10), "c": np.arange(10), "d": np.arange(10)},
+#     )
+#     table.proxy.sort(by="b")
+
+#     assert [0] == list(table._qwidget._header_widgets().keys())

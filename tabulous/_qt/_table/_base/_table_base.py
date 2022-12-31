@@ -470,7 +470,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     @updateHorizontalHeaderWidget.server
     def updateHorizontalHeaderWidget(self, d: dict[int, QtW.QWidget]):
         hheader = self._qtable_view.horizontalHeader()
-        return arguments(hheader._header_widgets)
+        return arguments(hheader._header_widgets.copy())
 
     @_mgr.interface
     def setForegroundColormap(self, name: str, colormap: Callable | None):
