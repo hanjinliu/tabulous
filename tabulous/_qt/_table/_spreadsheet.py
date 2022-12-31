@@ -272,7 +272,7 @@ class QSpreadSheet(QMutableSimpleTable):
             warnings.simplefilter("ignore")
             self._data_raw.loc[index, columns] = val
         if self._proxy.proxy_type != "none":
-            self.setProxy(self._proxy)
+            self._set_proxy(self._proxy)
         return self.refreshTable()
 
     @setDataFrame.server

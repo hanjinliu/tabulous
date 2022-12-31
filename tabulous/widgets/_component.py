@@ -731,8 +731,28 @@ class ProxyInterface(Component["TableBase"]):
     def sort(self, func: Callable[[pd.DataFrame], _SortArray]) -> None:
         ...
 
-    def sort(self, by: str | Sequence[str], ascending: bool = True) -> None:
-        """Apply sort proxy to the table."""
+    def sort(self, by, ascending: bool = True) -> None:
+        """
+        Apply sort proxy to the table.
+
+        If column names are given, sort button(s) will be added to the header.
+        """
+        if callable(by):
+            sort_func = self._get_sort_function(by, ascending)
+            return self.parent.proxy.set(sort_func)
+
+        from tabulous._qt._proxy_button import QHeaderSortButton
+
+        if isinstance(by, str):
+            by = [by]
+        QHeaderSortButton.from_table(self.parent, by, ascending=ascending)
+        return None
+
+    def _get_sort_function(
+        self,
+        by: str | Sequence[str] | Callable[[pd.DataFrame], _SortArray],
+        ascending: bool = True,
+    ) -> Callable[[pd.DataFrame], _SortArray]:
         if callable(by):
             if not ascending:
                 raise TypeError("Cannot sort by a callable in descending order.")
@@ -746,10 +766,10 @@ class ProxyInterface(Component["TableBase"]):
                 return arr
 
         else:
-            if not isinstance(by, (int, str)) and len(by) == 1:
+            if not isinstance(by, str) and len(by) == 1:
                 by = by[0]
 
-            if isinstance(by, (int, str)):
+            if isinstance(by, str):
 
                 def _sort(df: pd.DataFrame) -> _SortArray:
                     out = np.asarray(df[by].argsort())
@@ -773,8 +793,7 @@ class ProxyInterface(Component["TableBase"]):
                 )
 
             _sort.__name__ = f"sort<by={by!r}, ascending={ascending}>"
-        self.parent._qwidget.setProxy(_sort)
-        return None
+        return _sort
 
     @overload
     def filter(self, expr: str, namespace: dict = {}) -> None:
@@ -787,11 +806,12 @@ class ProxyInterface(Component["TableBase"]):
     def filter(self, expr: str, namespace: dict = {}) -> None:
         """Apply filter proxy to the table."""
         if callable(expr):
+            func = expr
             if namespace:
                 raise TypeError("Cannot use a namespace with a callable.")
 
             def _filter(df: pd.DataFrame) -> _FilterArray:
-                arr = np.asarray(expr(df))
+                arr = np.asarray(func(df))
                 if arr.ndim != 1:
                     raise TypeError("The callable must return a 1D array.")
                 elif arr.dtype.kind != "b":
@@ -809,12 +829,13 @@ class ProxyInterface(Component["TableBase"]):
         self.parent._qwidget.setProxy(_filter)
         return None
 
-    def compose_column_filter(self, by: str, filter_type, arg):
-        from tabulous._sort_filter_proxy import ComposableFilter
+    def show_filter_button(self, columns: str | list[str]):
+        from tabulous._qt._proxy_button import QHeaderFilterButton
 
-        if (cfil := self._get_proxy_object()._obj) is None:
-            cfil = ComposableFilter()
-        self.parent._qwidget.setProxy(cfil.compose(filter_type, by, arg))
+        table = self.parent
+        if isinstance(columns, str):
+            columns = [columns]
+        QHeaderFilterButton.from_table(table, columns, show_menu=False)
         return None
 
     def reset(self) -> None:

@@ -47,7 +47,7 @@ class QTableLayer(QMutableSimpleTable):
         nr, nc = self._data_raw.shape
         self.model().df = self._data_raw
         self.model().setShape(nr, nc)
-        self.setProxy(None)
+        self._set_proxy(None)
         self.refreshTable()
         return None
 

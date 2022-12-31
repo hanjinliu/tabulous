@@ -124,3 +124,19 @@ def test_header_update():
     table.proxy.reset()
     assert list(table.index)== [0, 1, 2, 3, "x", 5, 6, 7, 8, 9]
     assert list(table.data.index)== [0, 1, 2, 3, "x", 5, 6, 7, 8, 9]
+
+def test_header_buttons():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_table({"a": shuffled_arange(10), "b": np.arange(10)}, editable=True)
+    table.proxy.sort(by="a")
+    assert [0] == list(table._qwidget._header_widgets().keys())
+    table.undo_manager.undo()
+    assert [] == list(table._qwidget._header_widgets().keys())
+    table.undo_manager.redo()
+    assert [0] == list(table._qwidget._header_widgets().keys())
+    table.proxy.show_filter_button(columns="b")
+    assert [1] == list(table._qwidget._header_widgets().keys())
+    table.undo_manager.undo()
+    assert [0] == list(table._qwidget._header_widgets().keys())
+    table.undo_manager.redo()
+    assert [1] == list(table._qwidget._header_widgets().keys())

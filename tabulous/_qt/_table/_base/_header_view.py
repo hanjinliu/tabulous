@@ -136,7 +136,10 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
     def removeSectionWidget(self, idx: int | None = None):
         if idx is None:
             for idx in self._header_widgets:
-                self.removeSectionWidget(idx)
+                widget = self._header_widgets[idx]
+                widget.hide()
+                widget.setParent(None)
+            self._header_widgets.clear()
         else:
             widget = self._header_widgets.pop(idx)
             widget.hide()

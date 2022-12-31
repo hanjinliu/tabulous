@@ -6,6 +6,7 @@ import numpy as np
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
 
+from tabulous._sort_filter_proxy import ComposableFilter
 from tabulous._qt._toolbar._toolbutton import QColoredToolButton
 from tabulous._sort_filter_proxy import FilterType, FilterInfo
 from magicgui.widgets import ComboBox
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
 ICON_DIR = Path(__file__).parent / "_icons"
 
 
-class QHeaderSectionButton(QColoredToolButton):
+class _QHeaderSectionButton(QColoredToolButton):
     def __init__(self, parent: QtW.QWidget = None):
         super().__init__(parent)
         self.setFixedSize(16, 16)
@@ -42,7 +43,7 @@ class QHeaderSectionButton(QColoredToolButton):
             self.updateColor("#CCCCCC")
 
 
-class QHeaderSortButton(QHeaderSectionButton):
+class QHeaderSortButton(_QHeaderSectionButton):
     sortSignal = Signal(bool)
 
     def __init__(self, parent: QtW.QWidget = None):
@@ -53,60 +54,64 @@ class QHeaderSortButton(QHeaderSectionButton):
         self.clicked.connect(self._toggle)
 
     def _toggle(self):
-        if self._ascending:
-            self._ascending = False
-        else:
-            self._ascending = True
+        self._ascending = not self._ascending
         self.sortSignal.emit(self._ascending)
 
     def ascending(self) -> bool:
         return self._ascending
 
     @classmethod
-    def from_table(cls, table: TableBase, indices: list[int]):
-        by = [table.columns[index] for index in indices]
-
+    def from_table(cls, table: TableBase, by: list[str], ascending: bool = True):
         def _sort(ascending: bool):
-            table.proxy.sort(by=by, ascending=ascending)
+            sort_func = table.proxy._get_sort_function(by, ascending=ascending)
+            table._qwidget._set_proxy(sort_func)
 
-        for index in indices:
-            btn = cls()
-            btn.sortSignal.connect(_sort)
-            table.native.setHorizontalHeaderWidget(index, btn)
-            if _viewer := table.native.parentViewer():
-                btn.updateColorByBackground(_viewer.backgroundColor())
+        with table.undo_manager.merging():
+            table.proxy.reset()
+            for name in by:
+                index = table.columns.get_loc(name)
+                btn = cls()
+                btn.sortSignal.connect(_sort)
+                table.native.setHorizontalHeaderWidget(index, btn)
+                if _viewer := table.native.parentViewer():
+                    btn.updateColorByBackground(_viewer.backgroundColor())
 
-        _sort(True)
+            _sort(ascending)
         return None
 
 
-class QHeaderFilterButton(QHeaderSectionButton):
+class QHeaderFilterButton(_QHeaderSectionButton):
     def __init__(self, parent: QtW.QWidget = None):
         super().__init__(parent)
         self.setPopupMode(QtW.QToolButton.ToolButtonPopupMode.InstantPopup)
         self.setIcon(ICON_DIR / "filter.svg")
 
     @classmethod
-    def from_table(cls, table: TableBase, indices: list[int]):
-        table.proxy.reset()
-
+    def from_table(cls, table: TableBase, by: list[str], show_menu: bool = True):
         def _filter(by, info: FilterInfo):
-            table.proxy.compose_column_filter(
-                by=by, filter_type=info.type, arg=info.arg
-            )
+            if (cfil := table.proxy._get_proxy_object()._obj) is None:
+                cfil = ComposableFilter()
+            table._qwidget._set_proxy(cfil.compose(info.type, by, info.arg))
+            return None
 
-        for index in reversed(indices):
-            btn = cls()
-            by = table.columns[index]
-            menu = _QFilterMenu(table.data[by])
-            btn.setMenu(menu)
-            menu._filter_widget.called.connect(lambda info, by=by: _filter(by, info))
+        with table.undo_manager.merging():
+            table.proxy.reset()
+            df = table.data
+            for name in reversed(by):
+                btn = cls()
+                menu = _QFilterMenu(df[name])
+                btn.setMenu(menu)
+                menu._filter_widget.called.connect(
+                    lambda info, by=by: _filter(by, info)
+                )
 
-            table.native.setHorizontalHeaderWidget(index, btn)
-            if _viewer := table.native.parentViewer():
-                btn.updateColorByBackground(_viewer.backgroundColor())
+                index = table.columns.get_loc(name)
+                table.native.setHorizontalHeaderWidget(index, btn)
+                if _viewer := table.native.parentViewer():
+                    btn.updateColorByBackground(_viewer.backgroundColor())
 
-        btn.click()
+        if show_menu:
+            btn.click()
         return None
 
 

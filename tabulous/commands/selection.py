@@ -478,12 +478,10 @@ def edit_current(viewer: TableViewerBase) -> None:
 
 def sort_by_columns(viewer: TableViewerBase) -> None:
     """Sort by column(s)"""
-    from tabulous._qt._proxy_button import QHeaderSortButton
-
     table = _utils.get_table(viewer)
     indices = _utils.get_selected_columns(viewer)
-    with table.undo_manager.merging():
-        QHeaderSortButton.from_table(table, indices)
+    by = [table.columns[index] for index in indices]
+    return table.proxy.sort(by=by)
 
 
 def filter_by_columns(viewer: TableViewerBase) -> None:
@@ -492,8 +490,8 @@ def filter_by_columns(viewer: TableViewerBase) -> None:
 
     table = _utils.get_table(viewer)
     indices = _utils.get_selected_columns(viewer)
-    with table.undo_manager.merging():
-        QHeaderFilterButton.from_table(table, indices)
+    by = [table.columns[index] for index in indices]
+    QHeaderFilterButton.from_table(table, by)
     return None
 
 
