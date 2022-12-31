@@ -120,8 +120,10 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         """Set the widget anchored at the given section."""
         if not isinstance(widget, QtW.QWidget):
             raise TypeError(f"Expected a QWidget, got {type(widget)}")
+        if idx in self._header_widgets:
+            self.removeSectionWidget(idx)
         self._header_widgets[idx] = widget
-        widget.setParent(self)
+        widget.setParent(self.viewport())
         w, h = widget.width(), widget.height()
         rect = self.visualRectAtIndex(idx)
         rect.adjust(2, 2, -2, -2)

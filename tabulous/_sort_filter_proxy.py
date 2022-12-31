@@ -161,7 +161,7 @@ _FUNCTION_MAP: dict[FilterType, Callable[[pd.Series, Any], pd.Series]] = {
 }
 
 _REPR_MAP: dict[FilterType, str] = {
-    FilterType.none: "choose a filter type",
+    FilterType.none: "Select ...",
     FilterType.eq: "=",
     FilterType.ne: "≠",
     FilterType.gt: ">",

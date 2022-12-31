@@ -6,7 +6,6 @@ import numpy as np
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
 
-from tabulous import commands as cmds
 from tabulous._qt._toolbar._toolbutton import QColoredToolButton
 from tabulous._sort_filter_proxy import FilterType, FilterInfo
 from magicgui.widgets import ComboBox
@@ -120,10 +119,12 @@ class _QFilterMenu(QtW.QMenu):
         self._filter_widget.called.connect(self.hide)
         action.setDefaultWidget(self._filter_widget)
         self.addAction(action)
+        self._filter_widget.requireResize.connect(self.resize)
 
 
 class _QFilterWidget(QtW.QWidget):
     called = Signal(FilterInfo)
+    requireResize = Signal(QtCore.QSize)
 
     def __init__(self, ds: pd.Series, parent: QtW.QWidget = None):
         super().__init__(parent)
@@ -132,23 +133,31 @@ class _QFilterWidget(QtW.QWidget):
         self._cbox = ComboBox(
             value=FilterType.none, choices=[(a.repr, a) for a in FilterType]
         )
+        self._cbox.min_width = 100
+        self._cbox.native.setFont(QtGui.QFont("Arial", 10))
         self._value_edit = QtW.QLineEdit()
         self._string_edit = QtW.QLineEdit()
+        self._value_edit.setFixedWidth(84)
+        self._string_edit.setFixedWidth(84)
         self._unique_select = QMultiCheckBoxes()
         self._call_button = QtW.QPushButton("Apply")
         self._setup_ui()
 
         self._cbox.changed.connect(self._type_changed)
-        self._call_button.clicked.connect(
-            lambda: self.called.emit(self.get_filter_info())
-        )
+        self._call_button.clicked.connect(self._button_clicked)
         self._type_changed(FilterType.none)
 
     def _type_changed(self, val: FilterType):
         self._value_edit.setVisible(val.requires_number)
         self._string_edit.setVisible(val.requires_text)
         self._unique_select.setVisible(val.requires_list)
-        self._unique_select.setChoices(self.fetch_unique())
+        if val.requires_list:
+            self._unique_select.setChoices(self.fetch_unique())
+
+        self.requireResize.emit(self.sizeHint())
+
+    def _button_clicked(self):
+        return self.called.emit(self.get_filter_info())
 
     def get_filter_info(self) -> FilterInfo:
         ftype: FilterType = self._cbox.value
@@ -168,7 +177,7 @@ class _QFilterWidget(QtW.QWidget):
 
     def _setup_ui(self):
         _layout = QtW.QVBoxLayout()
-        _layout.setContentsMargins(0, 0, 0, 0)
+        _layout.setContentsMargins(2, 2, 2, 2)
 
         _layout.addWidget(QtW.QLabel("Filter by:"))
 
@@ -204,7 +213,7 @@ class QMultiCheckBoxes(QtW.QListWidget):
         self.clear()
         self._choices = choices
         for c in choices:
-            text = str(c)
+            text = repr(c)
             item = QtW.QListWidgetItem(text)
             self.addItem(item)
             checkbox = QtW.QCheckBox(text)
