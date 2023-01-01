@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Callable, Any, Callable, NamedTuple
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple
 import numpy as np
 from enum import Enum
 from tabulous.types import ProxyType
@@ -193,7 +193,7 @@ class Composable:
         """Copy the instance."""
 
     @abstractmethod
-    def compose(self, type: FilterType, column: int, arg: Any) -> Self:
+    def compose(self, column: int) -> Self:
         """Compose with an additional mapping at the column."""
 
     @abstractmethod
@@ -272,11 +272,13 @@ class ComposableSorter(Composable):
         return self.__class__(self._columns.copy(), self._ascending)
 
     def compose(self, column: int):
+        """Compose the sorter object."""
         new = self.copy()
         new._columns.add(column)
         return new
 
     def decompose(self, column: int):
+        """Decompose the filter object."""
         new = self.copy()
         new._columns.remove(column)
         return new
