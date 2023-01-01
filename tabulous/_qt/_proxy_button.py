@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Sequence
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
 
-from tabulous._sort_filter_proxy import ComposableFilter
 from tabulous._qt._toolbar._toolbutton import QColoredToolButton
 from tabulous._sort_filter_proxy import (
     FilterType,
@@ -79,6 +78,7 @@ class QHeaderSortButton(_QHeaderSectionButton):
         self.clicked.connect(self._toggle)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_menu)
+        self.setToolTip("Sort by this column (right click to reset)")
 
     def _toggle(self):
         self._ascending = not self._ascending
@@ -143,6 +143,7 @@ class QHeaderFilterButton(_QHeaderSectionButton):
         super().__init__(parent)
         self.setPopupMode(QtW.QToolButton.ToolButtonPopupMode.InstantPopup)
         self.setIcon(ICON_DIR / "filter.svg")
+        self.setToolTip("Filter by this column")
 
     def on_installed(self, table: QBaseTable, index: int):
         logger.debug(f"Installing filter at index {index}")
