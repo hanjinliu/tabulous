@@ -430,8 +430,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             idx = stack.tableIndex(self)
             bg = self.palette().color(self.backgroundRole())
             whiteness = bg.red() + bg.green() + bg.blue()
-            if not icon.isNull() and whiteness <= 128 * 3:
-                icon = icon.colored("#FFFFFF")
+            if not icon.isNull():
+                if whiteness <= 128 * 3:
+                    icon = icon.colored("#CCCCCC")
+                else:
+                    icon = icon.colored("#1E1E1E")
+
             stack.setTabIcon(idx, icon)
             if not icon.isNull():
                 stack.setIconSize(QtCore.QSize(12, 12))
@@ -584,7 +588,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     @_set_incell_slot.set_formatter
     def _set_incell_slot_fmt(self, pos, slot):
-        return repr(slot)
+        return f"table.cell[{pos[0]}, {pos[1]}] = {slot}"
 
     def refreshTable(self, process: bool = False) -> None:
         """Refresh table view."""

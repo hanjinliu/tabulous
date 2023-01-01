@@ -517,30 +517,19 @@ class QSpreadSheet(QMutableSimpleTable):
         ):
             self._insert_columns(col, count, value)
             self._process_header_widgets_on_insert(col, count)
-            self._set_proxy(self._proxy)
         return None
 
     @QMutableSimpleTable._mgr.undoable
     def _insert_columns(self, col: int, count: int, value: Any = _EMPTY):
         columns_existing = self._data_raw.columns
+        _c_ranged = is_ranged(columns_existing)
 
         if value is _EMPTY:
-            # determine column labels
-            columns: list[int] = []
-            i = 0
-            while True:
-                if i not in columns_existing:
-                    columns.append(i)
-                    if len(columns) >= count:
-                        break
-                else:
-                    i += 1
-
             value = _df_full(
                 nrows=self._data_raw.shape[0],
                 ncols=count,
                 index=self._data_raw.index,
-                columns=columns,
+                columns=range(count),
             )
 
         self._data_raw = pd.concat(
@@ -551,8 +540,18 @@ class QSpreadSheet(QMutableSimpleTable):
             ],
             axis=1,
         )
-        if is_ranged(columns_existing):
+        if _c_ranged:
             self._data_raw.columns = char_range_index(self._data_raw.columns.size)
+        else:
+            columns = char_arange(col, col + count)
+            columns = _remove_duplicate(columns, existing=columns_existing)
+            self._data_raw.columns = np.concatenate(
+                [
+                    columns_existing[:col],
+                    columns,
+                    columns_existing[col:],
+                ]
+            )
         self.model().insertColumns(col, count, QtCore.QModelIndex())
         self._data_cache = None
 
@@ -573,13 +572,17 @@ class QSpreadSheet(QMutableSimpleTable):
     @_insert_columns.undo_def
     def _insert_columns(self, col: int, count: int, value: Any = _EMPTY):
         """Insert columns at the given column number and count."""
-        return self.removeColumns(col, count)
+        self._remove_columns(col, count, self._data_raw.iloc[:, col : col + count])
+        self._set_proxy(self._proxy)
+        return None
 
     def removeRows(self, row: int, count: int):
         """Remove rows at the given row number and count."""
         df = self.model().df.iloc[row : row + count, :]
 
-        with self._mgr.merging():
+        with self._mgr.merging(
+            lambda cmds: f"table.index.remove(at={row}, count={count})"
+        ):
             self._clear_incell_slots(
                 slice(row, row + count),
                 slice(0, self._data_raw.shape[1]),
@@ -615,10 +618,6 @@ class QSpreadSheet(QMutableSimpleTable):
         self.insertRows(row, count, old_values)
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         return None
-
-    @_remove_rows.set_formatter
-    def _remove_rows_fmt(self, row, count, old_values):
-        return f"table.index.remove(at={row}, count={count})"
 
     def removeColumns(self, column: int, count: int):
         """Remove columns at the given column number and count."""
@@ -797,6 +796,7 @@ class QSpreadSheet(QMutableSimpleTable):
         for k in to_increment:
             header_widgets[k + count] = header_widgets.pop(k)
         self.updateHorizontalHeaderWidget(header_widgets)
+        self._set_proxy(self._proxy)
         return None
 
     def _process_header_widgets_on_remove(self, column: int, count: int):
@@ -841,22 +841,10 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
     # pad columns
     _nr, _nc = df.shape  # NOTE: shape may have changed
     if nc > 0:
-        # find unique columns
-        if df.columns.size == 0:
-            columns = char_arange(nc)
-        else:
-            columns = char_arange(_nc, _nc + nc)
+        columns = char_arange(df.columns.size, df.columns.size + nc)
         # check duplication
         if not _c_ranged:
-            _old_columns = df.columns
-            for ic, c in enumerate(columns):
-                if c in _old_columns:
-                    i = 0
-                    c0 = f"{c}_{i}"
-                    while c0 in _old_columns:
-                        i += 1
-                        c0 = f"{c}_{i}"
-                    columns[ic] = c0
+            columns = _remove_duplicate(columns, existing=df.columns)
         ext = _df_full(_nr, nc, value, index=df.index, columns=columns)
         df = pd.concat([df, ext], axis=1)
         if _c_ranged:
@@ -884,3 +872,21 @@ def _df_full(
         columns=columns,
         dtype="string",
     )
+
+
+def _remove_duplicate(
+    columns: np.ndarray,
+    existing: pd.Index,
+    copy: bool = False,
+) -> np.ndarray:
+    if copy:
+        columns = columns.copy()
+    for ic, c in enumerate(columns):
+        if c in existing:
+            i = 0
+            c0 = f"{c}_{i}"
+            while c0 in existing:
+                i += 1
+                c0 = f"{c}_{i}"
+            columns[ic] = c0
+    return columns
