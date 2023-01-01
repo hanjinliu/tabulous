@@ -512,9 +512,12 @@ class QSpreadSheet(QMutableSimpleTable):
 
     def insertColumns(self, col: int, count: int, value: Any = _EMPTY):
         """Insert columns at the given column number and count."""
-        with self._mgr.merging(lambda cmds: cmds[-1]):
-            self._process_header_widgets_on_insert(col, count)
+        with self._mgr.merging(
+            lambda cmds: f"table.columns.insert(at={col}, count={count})"
+        ):
             self._insert_columns(col, count, value)
+            self._process_header_widgets_on_insert(col, count)
+            self._set_proxy(self._proxy)
         return None
 
     @QMutableSimpleTable._mgr.undoable
@@ -551,7 +554,6 @@ class QSpreadSheet(QMutableSimpleTable):
         if is_ranged(columns_existing):
             self._data_raw.columns = char_range_index(self._data_raw.columns.size)
         self.model().insertColumns(col, count, QtCore.QModelIndex())
-        self._set_proxy(self._proxy)
         self._data_cache = None
 
         # update indices
@@ -572,10 +574,6 @@ class QSpreadSheet(QMutableSimpleTable):
     def _insert_columns(self, col: int, count: int, value: Any = _EMPTY):
         """Insert columns at the given column number and count."""
         return self.removeColumns(col, count)
-
-    @_insert_columns.set_formatter
-    def _insert_columns_fmt(self, col: int, count: int, value: Any = _EMPTY):
-        return f"table.columns.insert(at={col}, count={count})"
 
     def removeRows(self, row: int, count: int):
         """Remove rows at the given row number and count."""
@@ -625,13 +623,16 @@ class QSpreadSheet(QMutableSimpleTable):
     def removeColumns(self, column: int, count: int):
         """Remove columns at the given column number and count."""
         df = self.model().df.iloc[:, column : column + count]
-        with self._mgr.merging():
+        with self._mgr.merging(
+            lambda cmds: f"table.columns.remove(at={column}, count={count})"
+        ):
             self._clear_incell_slots(
                 slice(0, self._data_raw.shape[0]),
                 slice(column, column + count),
             )
             self._process_header_widgets_on_remove(column, count)
             self._remove_columns(column, count, df)
+            self._set_proxy(self._proxy)
         return None
 
     @QMutableSimpleTable._mgr.undoable
@@ -650,7 +651,6 @@ class QSpreadSheet(QMutableSimpleTable):
         if _c_ranged:
             self._data_raw.columns = char_range_index(self._data_raw.columns.size)
         self.model().removeColumns(col, count, QtCore.QModelIndex())
-        self._set_proxy(self._proxy)
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         self._data_cache = None
 
@@ -668,10 +668,6 @@ class QSpreadSheet(QMutableSimpleTable):
         self.insertColumns(col, count, old_values)
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         return None
-
-    @_remove_columns.set_formatter
-    def _remove_columns_fmt(self, col, count, old_values):
-        return f"table.columns.remove(at={col}, count={count})"
 
     @QMutableSimpleTable._mgr.interface
     def _set_widget_at_index(self, r: int, c: int, widget: ValueWidget | None) -> None:

@@ -25,15 +25,14 @@ if TYPE_CHECKING:
 class ProxyInterface(TableComponent):
     """Interface to the table sorting/filtering."""
 
+    # fmt: off
     @overload
-    def sort(self, by: str | Sequence[str], ascending: bool = True) -> None:
-        ...
-
+    def sort(self, by: str | Sequence[str], ascending: bool = True, compose: bool = False) -> None: ...
     @overload
-    def sort(self, func: Callable[[pd.DataFrame], _SortArray]) -> None:
-        ...
+    def sort(self, func: Callable[[pd.DataFrame], _SortArray]) -> None: ...
+    # fmt: on
 
-    def sort(self, by, ascending: bool = True) -> None:
+    def sort(self, by, ascending: bool = True, compose: bool = False) -> None:
         """
         Apply sort proxy to the table.
 
@@ -42,8 +41,11 @@ class ProxyInterface(TableComponent):
         table = self.parent
 
         if callable(by):
-            if not ascending:
-                raise TypeError("Cannot sort by a callable in descending order.")
+            if not ascending or compose:
+                raise TypeError(
+                    "Arguments 'ascending' and 'compose' are not supported to be "
+                    "used with a callable input."
+                )
 
             @wraps(by)
             def _sort(df: pd.DataFrame) -> _SortArray:
@@ -64,7 +66,7 @@ class ProxyInterface(TableComponent):
         with table.undo_manager.merging(
             lambda cmds: f"table.proxy.sort(by={by!r}, ascending={ascending!r})"
         ):
-            if not isinstance(table.proxy.func, ComposableSorter):
+            if not (compose and isinstance(table.proxy.func, ComposableSorter)):
                 table.proxy.reset()
             for x in by:
                 index = table.columns.get_loc(x)
