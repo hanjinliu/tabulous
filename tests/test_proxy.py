@@ -187,3 +187,17 @@ def test_header_buttons_with_remove():
     table.undo_manager.redo()
     assert {0} == set(table._qwidget._header_widgets().keys())
     assert list(range(10))[::-1] == list(table.index)
+
+def test_sort_and_filter_switched():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_spreadsheet(
+        {"a": shuffled_arange(10), "b": np.arange(10), "c": np.arange(10)[::-1], "d": np.arange(10)},
+    )
+    table.proxy.sort(by="b")
+    assert {1} == set(table._qwidget._header_widgets().keys())
+    table.proxy.show_filter_button(columns="c")
+    assert {2} == set(table._qwidget._header_widgets().keys())
+    table.undo_manager.undo()
+    assert {1} == set(table._qwidget._header_widgets().keys())
+    table.undo_manager.redo()
+    assert {2} == set(table._qwidget._header_widgets().keys())
