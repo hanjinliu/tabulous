@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import TYPE_CHECKING, Callable, Any, Callable, NamedTuple
 import numpy as np
 from enum import Enum
@@ -8,6 +9,7 @@ from functools import reduce
 
 if TYPE_CHECKING:
     import pandas as pd
+    from typing_extensions import Self
 
 
 class ProxyTypes(Enum):
@@ -28,7 +30,7 @@ class SortFilterProxy:
     def __init__(self, obj: ProxyType | None = None):
         if isinstance(obj, SortFilterProxy):
             obj = obj._obj
-        self._obj = obj
+        self._obj: ProxyType | None = obj
         if self._obj is None:
             self._proxy_type = ProxyTypes.none
         else:
@@ -181,8 +183,30 @@ class FilterInfo(NamedTuple):
     arg: Any
 
 
-class ComposableFilter:
-    def __init__(self, d=None):
+class Composable:
+    @abstractmethod
+    def __call__(self, df: pd.DataFrame) -> np.ndarray:
+        """Apply the mapping to the dataframe."""
+
+    @abstractmethod
+    def copy(self) -> Self:
+        """Copy the instance."""
+
+    @abstractmethod
+    def compose(self, type: FilterType, column: int, arg: Any) -> Self:
+        """Compose with an additional mapping at the column."""
+
+    @abstractmethod
+    def decompose(self, column: int) -> Self:
+        """Decompose the mapping at column."""
+
+    @abstractmethod
+    def is_identity(self) -> bool:
+        """True if this instance is the identity mapping."""
+
+
+class ComposableFilter(Composable):
+    def __init__(self, d: dict[int, FilterInfo] | None = None):
         if d is not None:
             assert isinstance(d, dict)
             self._dict: dict[int, FilterInfo] = d
@@ -216,9 +240,13 @@ class ComposableFilter:
         new._dict.pop(column, None)
         return new
 
+    def is_identity(self) -> bool:
+        """True if the filter is the identity filter."""
+        return len(self._dict) == 0
 
-class ComposableSorter:
-    def __init__(self, columns=None, ascending: bool = True):
+
+class ComposableSorter(Composable):
+    def __init__(self, columns: set[int] | None = None, ascending: bool = True):
         if columns is None:
             self._columns: set[int] = set()
         else:
@@ -256,3 +284,7 @@ class ComposableSorter:
     def switch(self) -> ComposableSorter:
         """New sorter with the reverse order."""
         return self.__class__(self._columns, not self._ascending)
+
+    def is_identity(self) -> bool:
+        """True if the sorter is the identity sorter."""
+        return len(self._columns) == 0

@@ -1,9 +1,10 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, Iterator, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
 
 from tabulous._qt._action_registry import QActionRegistry
+from tabulous._qt._proxy_button import HeaderAnchorMixin
 
 if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
@@ -130,25 +131,29 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         rect.setLeft(rect.left() + rect.width() - w)
         rect.setTop(rect.top() + rect.height() - h)
         widget.setGeometry(rect)
-        if hasattr(widget, "on_installed"):
-            widget.on_installed(self.parentWidget().parentTable(), idx)
+        if isinstance(widget, HeaderAnchorMixin):
+            _widget = cast(HeaderAnchorMixin, widget)
+            _widget.on_installed(self.parentWidget().parentTable(), idx)
         widget.show()
         return None
 
     def removeSectionWidget(self, idx: int | None = None):
+        table = self.parentWidget().parentTable()
         if idx is None:
             for idx in self._header_widgets:
                 widget = self._header_widgets[idx]
                 widget.hide()
-                if hasattr(widget, "on_uninstalled"):
-                    widget.on_uninstalled(self.parentWidget().parentTable(), idx)
+                if isinstance(widget, HeaderAnchorMixin):
+                    _widget = cast(HeaderAnchorMixin, widget)
+                    _widget.on_uninstalled(table, idx)
                 widget.setParent(None)
             self._header_widgets.clear()
         else:
             widget = self._header_widgets.pop(idx)
             widget.hide()
-            if hasattr(widget, "on_uninstalled"):
-                widget.on_uninstalled(self.parentWidget().parentTable(), idx)
+            if isinstance(widget, HeaderAnchorMixin):
+                _widget = cast(HeaderAnchorMixin, widget)
+                _widget.on_uninstalled(table, idx)
             widget.setParent(None)
         return None
 

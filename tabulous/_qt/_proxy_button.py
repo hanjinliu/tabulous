@@ -17,6 +17,7 @@ from tabulous._sort_filter_proxy import (
 from magicgui.widgets import ComboBox
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
     from tabulous._qt._table import QBaseTable
     import pandas as pd
 
@@ -24,13 +25,30 @@ ICON_DIR = Path(__file__).parent / "_icons"
 logger = logging.getLogger("tabulous")
 
 
-class _QHeaderSectionButton(QColoredToolButton):
+class HeaderAnchorMixin:
+    @classmethod
+    def install_to_table(cls, table: QBaseTable, index: int, *args, **kwargs) -> Self:
+        """Install this widget to table at index."""
+        with table._mgr.merging():
+            self = cls(*args, **kwargs)
+            table.setHorizontalHeaderWidget(index, self)
+        return self
+
+    def on_installed(self, table: QBaseTable, index: int):
+        pass
+
+    def on_uninstalled(self, table: QBaseTable, index: int):
+        pass
+
+
+class _QHeaderSectionButton(QColoredToolButton, HeaderAnchorMixin):
     def __init__(self, parent: QtW.QWidget = None):
         super().__init__(parent)
         self.setFixedSize(16, 16)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         eff = QtW.QGraphicsOpacityEffect()
-        eff.setOpacity(0.3)
+        self._opacity = 0.3
+        eff.setOpacity(self._opacity)
         self.setGraphicsEffect(eff)
         self._effect = eff
 
@@ -38,7 +56,7 @@ class _QHeaderSectionButton(QColoredToolButton):
         self._effect.setOpacity(1.0)
 
     def leaveEvent(self, event: QtCore.QEvent) -> None:
-        self._effect.setOpacity(0.3)
+        self._effect.setOpacity(self._opacity)
 
     def updateColorByBackground(self, bg: QtGui.QColor):
         whiteness = bg.red() + bg.green() + bg.blue()
@@ -51,6 +69,7 @@ class _QHeaderSectionButton(QColoredToolButton):
 
 class QHeaderSortButton(_QHeaderSectionButton):
     sortSignal = Signal(bool)
+    resetSignal = Signal()
 
     def __init__(self, parent: QtW.QWidget = None, ascending: bool = True):
         super().__init__(parent)
@@ -58,10 +77,17 @@ class QHeaderSortButton(_QHeaderSectionButton):
         self.setIcon(ICON_DIR / "sort_table.svg")
         self._ascending = ascending
         self.clicked.connect(self._toggle)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._show_menu)
 
     def _toggle(self):
         self._ascending = not self._ascending
         self.sortSignal.emit(self._ascending)
+
+    def _show_menu(self, pos):
+        menu = QtW.QMenu(self)
+        menu.addAction("Reset", lambda: self.resetSignal.emit())
+        menu.exec_(self.mapToGlobal(pos))
 
     def ascending(self) -> bool:
         return self._ascending
@@ -83,11 +109,22 @@ class QHeaderSortButton(_QHeaderSectionButton):
             else:
                 raise RuntimeError("Sort function is not a ComposableSorter.")
 
+        def _reset():
+            if isinstance(f, ComposableSorter):
+                with table._mgr.merging(
+                    lambda cmds: f"Remove filter button at index {index}"
+                ):
+                    table.setHorizontalHeaderWidget(index, None)
+                    table._set_proxy(f.decompose(index))
+            else:
+                raise RuntimeError("Sort function is not a ComposableSorter.")
+
         f = table._proxy._obj
         if not isinstance(f, ComposableSorter):
             f = ComposableSorter({index}, self.ascending())
         table._set_proxy(f.compose(index))
         self.sortSignal.connect(_sort)
+        self.resetSignal.connect(_reset)
         if _viewer := table.parentViewer():
             self.updateColorByBackground(_viewer.backgroundColor())
         return None
@@ -102,17 +139,10 @@ class QHeaderSortButton(_QHeaderSectionButton):
 
 
 class QHeaderFilterButton(_QHeaderSectionButton):
-    def __init__(self, parent: QtW.QWidget = None):
+    def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
         self.setPopupMode(QtW.QToolButton.ToolButtonPopupMode.InstantPopup)
         self.setIcon(ICON_DIR / "filter.svg")
-
-    @classmethod
-    def install_to_table(cls, table: QBaseTable, index: int):
-        with table._mgr.merging():
-            self = cls()
-            table.setHorizontalHeaderWidget(index, self)
-        return self
 
     def on_installed(self, table: QBaseTable, index: int):
         logger.debug(f"Installing filter at index {index}")
@@ -122,8 +152,25 @@ class QHeaderFilterButton(_QHeaderSectionButton):
             if isinstance(f, ComposableFilter):
                 table._set_proxy(f.compose(info.type, index, info.arg))
             else:
-                raise RuntimeError("Sort function is not a ComposableFilter.")
+                raise RuntimeError("Current proxy is not a ComposableFilter.")
+            # TODO: this is incompatible with undo/redo
+            # if info.type is FilterType.none:
+            #     self._opacity = 0.3
+            # else:
+            #     self._opacity = 0.7
+            # self._effect.setOpacity(self._opacity)
             return None
+
+        def _reset():
+            f = table._proxy._obj
+            if isinstance(f, ComposableFilter):
+                with table._mgr.merging(
+                    lambda cmds: f"Remove filter button at index {index}"
+                ):
+                    table.setHorizontalHeaderWidget(index, None)
+                    table._set_proxy(f.decompose(index))
+            else:
+                raise RuntimeError("Sort function is not a ComposableFilter.")
 
         f = table._proxy._obj
         if not isinstance(f, ComposableFilter):
@@ -132,6 +179,7 @@ class QHeaderFilterButton(_QHeaderSectionButton):
         menu = _QFilterMenu(table._get_sub_frame(column))
         self.setMenu(menu)
         menu._filter_widget.called.connect(_filter)
+        menu._filter_widget.reset.connect(_reset)
         if _viewer := table.parentViewer():
             self.updateColorByBackground(_viewer.backgroundColor())
         return None
@@ -152,6 +200,7 @@ class _QFilterMenu(QtW.QMenu):
         action = QtW.QWidgetAction(self)
         self._filter_widget = _QFilterWidget(ds)
         self._filter_widget.called.connect(self.hide)
+        self._filter_widget.reset.connect(self.hide)
         action.setDefaultWidget(self._filter_widget)
         self.addAction(action)
         self._filter_widget.requireResize.connect(self.resize)
@@ -159,6 +208,7 @@ class _QFilterMenu(QtW.QMenu):
 
 class _QFilterWidget(QtW.QWidget):
     called = Signal(FilterInfo)
+    reset = Signal()
     requireResize = Signal(QtCore.QSize)
 
     def __init__(self, ds: pd.Series, parent: QtW.QWidget = None):
@@ -176,10 +226,14 @@ class _QFilterWidget(QtW.QWidget):
         self._string_edit.setFixedWidth(84)
         self._unique_select = QMultiCheckBoxes()
         self._call_button = QtW.QPushButton("Apply")
+        self._call_button.setToolTip("Apply filter to the column")
+        self._reset_button = QtW.QPushButton("Reset")
+        self._reset_button.setToolTip("Reset the filter of the column")
         self._setup_ui()
 
         self._cbox.changed.connect(self._type_changed)
-        self._call_button.clicked.connect(self._button_clicked)
+        self._call_button.clicked.connect(self._call_button_clicked)
+        self._reset_button.clicked.connect(lambda: self.reset.emit())
         self._type_changed(FilterType.none)
 
     def _type_changed(self, val: FilterType):
@@ -191,7 +245,7 @@ class _QFilterWidget(QtW.QWidget):
 
         self.requireResize.emit(self.sizeHint())
 
-    def _button_clicked(self):
+    def _call_button_clicked(self):
         return self.called.emit(self.get_filter_info())
 
     def get_filter_info(self) -> FilterInfo:
@@ -232,7 +286,14 @@ class _QFilterWidget(QtW.QWidget):
 
         _layout.addWidget(_middle)
         _layout.addWidget(self._unique_select)
-        _layout.addWidget(self._call_button)
+
+        _bottom = QtW.QWidget()
+        _bottom_layout = QtW.QHBoxLayout()
+        _bottom_layout.setContentsMargins(0, 0, 0, 0)
+        _bottom_layout.addWidget(self._call_button)
+        _bottom_layout.addWidget(self._reset_button)
+        _bottom.setLayout(_bottom_layout)
+        _layout.addWidget(_bottom)
         self.setLayout(_layout)
 
 
