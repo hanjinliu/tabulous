@@ -476,30 +476,20 @@ def edit_current(viewer: TableViewerBase) -> None:
     return None
 
 
-def sort_by_column_ascending(viewer: TableViewerBase) -> None:
-    """Sort by column(s) in ascending order"""
+def sort_by_columns(viewer: TableViewerBase) -> None:
+    """Sort by column(s)"""
     table = _utils.get_table(viewer)
     indices = _utils.get_selected_columns(viewer)
     by = [table.columns[index] for index in indices]
-    table.proxy.sort(by=by, ascending=True)
-    return None
+    return table.proxy.sort(by=by)
 
 
-def sort_by_column_descending(viewer: TableViewerBase) -> None:
-    """Sort by column(s) in decending order"""
-    table = _utils.get_table(viewer)
-    indices = _utils.get_selected_columns(viewer)
-    by = [table.columns[index] for index in indices]
-    table.proxy.sort(by=by, ascending=False)
-    return None
-
-
-def filter_by_column(viewer: TableViewerBase) -> None:
+def filter_by_columns(viewer: TableViewerBase) -> None:
     """Filter by a column"""
     table = _utils.get_table(viewer)
-    index = _utils.get_selected_column(viewer)
-    widget = viewer._qwidget._tablestack.openFilterDialog()
-    widget.lineEdit().setText(table.columns[index])
+    indices = _utils.get_selected_columns(viewer)
+    by = [table.columns[index] for index in indices]
+    table.proxy.show_filter_button(by, show_menu=True)
     return None
 
 

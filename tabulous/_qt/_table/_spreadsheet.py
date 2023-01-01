@@ -272,7 +272,7 @@ class QSpreadSheet(QMutableSimpleTable):
             warnings.simplefilter("ignore")
             self._data_raw.loc[index, columns] = val
         if self._proxy.proxy_type != "none":
-            self.setProxy(self._proxy)
+            self._set_proxy(self._proxy)
         return self.refreshTable()
 
     @setDataFrame.server
@@ -376,7 +376,7 @@ class QSpreadSheet(QMutableSimpleTable):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
             super().setDataFrameValue(r, c, value)
-            self.setProxy(self._proxy)
+            self._set_proxy(self._proxy)
 
         self._qtable_view.verticalHeader().resize(
             self._qtable_view.verticalHeader().sizeHint()
@@ -396,7 +396,7 @@ class QSpreadSheet(QMutableSimpleTable):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
             super().setLabeledData(r, c, value)
-            self.setProxy(self._proxy)
+            self._set_proxy(self._proxy)
 
         self._qtable_view.verticalHeader().resize(
             self._qtable_view.verticalHeader().sizeHint()
@@ -442,7 +442,7 @@ class QSpreadSheet(QMutableSimpleTable):
             self._data_raw.shape[0] + _OUT_OF_BOUND_R,
             self._data_raw.shape[1] + _OUT_OF_BOUND_C,
         )
-        self.setProxy(self._proxy)
+        self._set_proxy(self._proxy)
         self._data_cache = None
         return None
 
@@ -484,7 +484,7 @@ class QSpreadSheet(QMutableSimpleTable):
         if is_ranged(index_existing):
             self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
         self.model().insertRows(row, count, QtCore.QModelIndex())
-        self.setProxy(self._proxy)
+        self._set_proxy(self._proxy)
         self._data_cache = None
 
         # update indices
@@ -508,34 +508,28 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @insertRows.set_formatter
     def _insertRows_fmt(self, row: int, count: int, value: Any = _EMPTY):
-        s = "s" if count > 1 else ""
-        return f"insert {count} row{s} at row={row}"
+        return f"table.index.insert(at={row}, count={count})"
 
-    @QMutableSimpleTable._mgr.undoable
     def insertColumns(self, col: int, count: int, value: Any = _EMPTY):
         """Insert columns at the given column number and count."""
-        if self._proxy.proxy_type != "none":
-            raise NotImplementedError("Cannot insert during filtering.")
+        with self._mgr.merging(
+            lambda cmds: f"table.columns.insert(at={col}, count={count})"
+        ):
+            self._insert_columns(col, count, value)
+            self._process_header_widgets_on_insert(col, count)
+        return None
 
+    @QMutableSimpleTable._mgr.undoable
+    def _insert_columns(self, col: int, count: int, value: Any = _EMPTY):
         columns_existing = self._data_raw.columns
+        _c_ranged = is_ranged(columns_existing)
 
         if value is _EMPTY:
-            # determine column labels
-            columns: list[int] = []
-            i = 0
-            while True:
-                if i not in columns_existing:
-                    columns.append(i)
-                    if len(columns) >= count:
-                        break
-                else:
-                    i += 1
-
             value = _df_full(
                 nrows=self._data_raw.shape[0],
                 ncols=count,
                 index=self._data_raw.index,
-                columns=columns,
+                columns=range(count),
             )
 
         self._data_raw = pd.concat(
@@ -546,10 +540,19 @@ class QSpreadSheet(QMutableSimpleTable):
             ],
             axis=1,
         )
-        if is_ranged(columns_existing):
+        if _c_ranged:
             self._data_raw.columns = char_range_index(self._data_raw.columns.size)
+        else:
+            columns = char_arange(col, col + count)
+            columns = _remove_duplicate(columns, existing=columns_existing)
+            self._data_raw.columns = np.concatenate(
+                [
+                    columns_existing[:col],
+                    columns,
+                    columns_existing[col:],
+                ]
+            )
         self.model().insertColumns(col, count, QtCore.QModelIndex())
-        self.setProxy(self._proxy)
         self._data_cache = None
 
         # update indices
@@ -566,21 +569,20 @@ class QSpreadSheet(QMutableSimpleTable):
         self.itemChangedSignal.emit(info)
         return None
 
-    @insertColumns.undo_def
-    def insertColumns(self, col: int, count: int, value: Any = _EMPTY):
+    @_insert_columns.undo_def
+    def _insert_columns(self, col: int, count: int, value: Any = _EMPTY):
         """Insert columns at the given column number and count."""
-        return self.removeColumns(col, count)
-
-    @insertColumns.set_formatter
-    def _insertColumns_fmt(self, col: int, count: int, value: Any = _EMPTY):
-        s = "s" if count > 1 else ""
-        return f"insert {count} column{s} at column={col}"
+        self._remove_columns(col, count, self._data_raw.iloc[:, col : col + count])
+        self._set_proxy(self._proxy)
+        return None
 
     def removeRows(self, row: int, count: int):
         """Remove rows at the given row number and count."""
         df = self.model().df.iloc[row : row + count, :]
 
-        with self._mgr.merging():
+        with self._mgr.merging(
+            lambda cmds: f"table.index.remove(at={row}, count={count})"
+        ):
             self._clear_incell_slots(
                 slice(row, row + count),
                 slice(0, self._data_raw.shape[1]),
@@ -598,7 +600,7 @@ class QSpreadSheet(QMutableSimpleTable):
         if _r_ranged:
             self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
         self.model().removeRows(row, count, QtCore.QModelIndex())
-        self.setProxy(self._proxy)
+        self._set_proxy(self._proxy)
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         self._data_cache = None
 
@@ -617,24 +619,19 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         return None
 
-    @_remove_rows.set_formatter
-    def _remove_rows_fmt(self, row, count, old_values):
-        s = "s" if count > 1 else ""
-        if count == 1:
-            sl = row
-        else:
-            sl = f"{row}:{row + count}"
-        return f"Remove row{s} at position {sl}"
-
     def removeColumns(self, column: int, count: int):
         """Remove columns at the given column number and count."""
         df = self.model().df.iloc[:, column : column + count]
-        with self._mgr.merging():
+        with self._mgr.merging(
+            lambda cmds: f"table.columns.remove(at={column}, count={count})"
+        ):
             self._clear_incell_slots(
                 slice(0, self._data_raw.shape[0]),
                 slice(column, column + count),
             )
+            self._process_header_widgets_on_remove(column, count)
             self._remove_columns(column, count, df)
+            self._set_proxy(self._proxy)
         return None
 
     @QMutableSimpleTable._mgr.undoable
@@ -653,7 +650,6 @@ class QSpreadSheet(QMutableSimpleTable):
         if _c_ranged:
             self._data_raw.columns = char_range_index(self._data_raw.columns.size)
         self.model().removeColumns(col, count, QtCore.QModelIndex())
-        self.setProxy(self._proxy)
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         self._data_cache = None
 
@@ -671,15 +667,6 @@ class QSpreadSheet(QMutableSimpleTable):
         self.insertColumns(col, count, old_values)
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         return None
-
-    @_remove_columns.set_formatter
-    def _remove_columns_fmt(self, col, count, old_values):
-        s = "s" if count > 1 else ""
-        if count == 1:
-            sl = col
-        else:
-            sl = f"{col}:{col + count}"
-        return f"Remove column{s} at position {sl}"
 
     @QMutableSimpleTable._mgr.interface
     def _set_widget_at_index(self, r: int, c: int, widget: ValueWidget | None) -> None:
@@ -735,7 +722,7 @@ class QSpreadSheet(QMutableSimpleTable):
         with self._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
             if index >= nrows:
                 self.expandDataFrame(index - nrows + 1, 0)
-            self.setProxy(self._proxy)
+            self._set_proxy(self._proxy)
             super().setVerticalHeaderValue(index, value)
             self._data_cache = None
 
@@ -751,7 +738,7 @@ class QSpreadSheet(QMutableSimpleTable):
             if index >= ncols:
                 self.expandDataFrame(0, index - ncols + 1)
             old_name = self._data_raw.columns[index]
-            self.setProxy(self._proxy)
+            self._set_proxy(self._proxy)
             super().setHorizontalHeaderValue(index, value)
             if old_name in self._columns_dtype.keys():
                 self.setColumnDtype(value, self._columns_dtype.pop(old_name))
@@ -799,6 +786,37 @@ class QSpreadSheet(QMutableSimpleTable):
         formatter = DefaultFormatter(dtype)
         return self.setTextFormatter(name, formatter)
 
+    def _process_header_widgets_on_insert(self, column: int, count: int):
+        to_increment: list[int] = []
+        header_widgets = self._header_widgets().copy()
+        for k in header_widgets.keys():
+            if k >= column:
+                to_increment.append(k)
+        to_increment.sort(reverse=True)
+        for k in to_increment:
+            header_widgets[k + count] = header_widgets.pop(k)
+        self.updateHorizontalHeaderWidget(header_widgets)
+        self._set_proxy(self._proxy)
+        return None
+
+    def _process_header_widgets_on_remove(self, column: int, count: int):
+        to_remove: list[int] = []
+        to_decrement: list[int] = []
+        header_widgets = self._header_widgets().copy()
+        for k in header_widgets.keys():
+            if k >= column:
+                if k < column + count:
+                    to_remove.append(k)
+                else:
+                    to_decrement.append(k)
+        for k in to_remove:
+            header_widgets.pop(k)
+        to_decrement.sort()
+        for k in to_decrement:
+            header_widgets[k - count] = header_widgets.pop(k)
+        self.updateHorizontalHeaderWidget(header_widgets)
+        return None
+
 
 def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.DataFrame:
     """Pad a dataframe by nr rows and nr columns with the given value."""
@@ -823,22 +841,10 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
     # pad columns
     _nr, _nc = df.shape  # NOTE: shape may have changed
     if nc > 0:
-        # find unique columns
-        if df.columns.size == 0:
-            columns = char_arange(nc)
-        else:
-            columns = char_arange(_nc, _nc + nc)
+        columns = char_arange(df.columns.size, df.columns.size + nc)
         # check duplication
         if not _c_ranged:
-            _old_columns = df.columns
-            for ic, c in enumerate(columns):
-                if c in _old_columns:
-                    i = 0
-                    c0 = f"{c}_{i}"
-                    while c0 in _old_columns:
-                        i += 1
-                        c0 = f"{c}_{i}"
-                    columns[ic] = c0
+            columns = _remove_duplicate(columns, existing=df.columns)
         ext = _df_full(_nr, nc, value, index=df.index, columns=columns)
         df = pd.concat([df, ext], axis=1)
         if _c_ranged:
@@ -866,3 +872,21 @@ def _df_full(
         columns=columns,
         dtype="string",
     )
+
+
+def _remove_duplicate(
+    columns: np.ndarray,
+    existing: pd.Index,
+    copy: bool = False,
+) -> np.ndarray:
+    if copy:
+        columns = columns.copy()
+    for ic, c in enumerate(columns):
+        if c in existing:
+            i = 0
+            c0 = f"{c}_{i}"
+            while c0 in existing:
+                i += 1
+                c0 = f"{c}_{i}"
+            columns[ic] = c0
+    return columns

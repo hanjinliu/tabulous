@@ -212,7 +212,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Analyze", cmds.analysis.summarize_table, ICON_DIR / "summarize_table.svg")
         self.registerAction("Analyze", cmds.analysis.show_eval_widget, ICON_DIR / "eval.svg")
         self.registerAction("Analyze", cmds.table.show_finder_widget, ICON_DIR / "find_item.svg")
-        self.registerAction("Analyze", cmds.selection.sort_by_column_ascending, ICON_DIR / "sort_table.svg")
+        self.registerAction("Analyze", cmds.selection.sort_by_columns, ICON_DIR / "sort_table.svg")
         self.registerAction("Analyze", cmds.analysis.show_filter_widget, ICON_DIR / "filter.svg")
         self.addSeparatorToChild("Analyze")
         self.registerAction("Analyze", cmds.analysis.show_optimizer_widget, ICON_DIR / "optimize.svg")

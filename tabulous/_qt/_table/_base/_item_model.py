@@ -175,7 +175,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return QtCore.QVariant()
 
     def set_cell_label(self, index: QtCore.QModelIndex, text: str | None):
-        if text is None:
+        if text is None or text == "":
             self._decorations.pop((index.row(), index.column()), None)
         else:
             qlabel = QtW.QLabel(text, self.parent())

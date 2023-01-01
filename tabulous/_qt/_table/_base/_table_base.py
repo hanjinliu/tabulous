@@ -18,7 +18,7 @@ from ._line_edit import (
     QVerticalHeaderLineEdit,
     QCellLiteralEdit,
 )
-from tabulous._sort_filter_proxy import SortFilterProxy
+from tabulous._sort_filter_proxy import SortFilterProxy, Composable
 from tabulous._dtype import isna
 from tabulous._qt._undo import QtUndoManager, fmt_slice
 from tabulous._qt._svg import QColoredSVGIcon
@@ -391,21 +391,30 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """The sort/filter proxy object."""
         return self._proxy
 
-    @_mgr.interface
-    def setProxy(self, proxy: ProxyType):
-        """Set filter to the table view."""
-        # NOTE: This method is also called when table needs initialization.
+    def setProxy(self, proxy: ProxyType, clear_header_widgets: bool = True):
+        """Set sort/filter to the table view."""
+        with self._mgr.merging(lambda cmds: f"table.proxy = {proxy!r}"):
+            if clear_header_widgets:
+                self.updateHorizontalHeaderWidget({})
+            self._set_proxy(proxy)
+        return None
 
+    @_mgr.interface
+    def _set_proxy(self, proxy: ProxyType):
+        # NOTE: This method is also called when table needs initialization.
         self._proxy = SortFilterProxy(proxy)
         try:
             df_filt = self._apply_proxy()
         except Exception as e:
             # To avoid continuous error, set proxy to None.
-            self.setProxy(None)
+            self._set_proxy(None)
             raise e
 
-        proxy_type = self._proxy.proxy_type
+        prx = self._proxy
+        proxy_type = prx.proxy_type
         if proxy_type == "none":
+            icon = QtGui.QIcon()
+        elif isinstance(prx._obj, Composable) and prx._obj.is_identity():
             icon = QtGui.QIcon()
         elif proxy_type == "filter":
             icon = QColoredSVGIcon.fromfile(ICON_DIR / "filter.svg")
@@ -424,8 +433,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             idx = stack.tableIndex(self)
             bg = self.palette().color(self.backgroundRole())
             whiteness = bg.red() + bg.green() + bg.blue()
-            if not icon.isNull() and whiteness <= 128 * 3:
-                icon = icon.colored("#FFFFFF")
+            if not icon.isNull():
+                if whiteness <= 128 * 3:
+                    icon = icon.colored("#CCCCCC")
+                else:
+                    icon = icon.colored("#1E1E1E")
+
             stack.setTabIcon(idx, icon)
             if not icon.isNull():
                 stack.setIconSize(QtCore.QSize(12, 12))
@@ -436,13 +449,35 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         data_sliced = self.tableSlice()
         return self._proxy.apply(data_sliced)
 
-    @setProxy.server
-    def setProxy(self, sl: ProxyType):
+    @_set_proxy.server
+    def _set_proxy(self, proxy: ProxyType):
         return arguments(self.proxy())
 
-    @setProxy.set_formatter
-    def _setProxy_fmt(self, sl):
-        return f"table.proxy = {sl!r}"
+    @_mgr.interface
+    def setHorizontalHeaderWidget(self, idx: int, widget: QtW.QWidget | None):
+        hheader = self._qtable_view.horizontalHeader()
+        if widget is None:
+            hheader.removeSectionWidget(idx)
+        else:
+            hheader.setSectionWidget(idx, widget)
+
+    @setHorizontalHeaderWidget.server
+    def setHorizontalHeaderWidget(self, idx: int, widget: QtW.QWidget | None):
+        hheader = self._qtable_view.horizontalHeader()
+        return arguments(idx, hheader.sectionWidget(idx))
+
+    @_mgr.interface
+    def updateHorizontalHeaderWidget(self, d: dict[int, QtW.QWidget] = {}):
+        """Update horizontal header widgets."""
+        hheader = self._qtable_view.horizontalHeader()
+        hheader.removeSectionWidget()
+        for idx, widget in d.items():
+            hheader.setSectionWidget(idx, widget)
+
+    @updateHorizontalHeaderWidget.server
+    def updateHorizontalHeaderWidget(self, d: dict[int, QtW.QWidget]):
+        hheader = self._qtable_view.horizontalHeader()
+        return arguments(hheader._header_widgets.copy())
 
     @_mgr.interface
     def setForegroundColormap(self, name: str, colormap: Callable | None):
@@ -556,7 +591,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     @_set_incell_slot.set_formatter
     def _set_incell_slot_fmt(self, pos, slot):
-        return repr(slot)
+        return f"table.cell[{pos[0]}, {pos[1]}] = {slot}"
 
     def refreshTable(self, process: bool = False) -> None:
         """Refresh table view."""
@@ -815,6 +850,10 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self._qtable_view._selection_model.set_ctrl(False)
         return None
 
+    def _header_widgets(self) -> dict[int, QtW.QWidget]:
+        """Return the header widgets."""
+        return self._qtable_view.horizontalHeader()._header_widgets
+
 
 class QMutableTable(QBaseTable):
     """A mutable table widget."""
@@ -1023,7 +1062,7 @@ class QMutableTable(QBaseTable):
             self._data_raw.iloc[r, c] = value
 
         if self._proxy.proxy_type != "none":
-            self.setProxy(self._proxy)
+            self._set_proxy(self._proxy)
         return self.refreshTable()
 
     def isEditable(self) -> bool:

@@ -51,16 +51,16 @@ def test_eval_with_no_ref():
     viewer = TableViewer(show=False)
     sheet = viewer.add_spreadsheet()
     sheet.cell[0, 0] = "&=np.arange(5)"
-    assert len(sheet.cellref) == 0
+    assert len(sheet.cell.ref) == 0
 
 def test_1x1_ref_overwritten_by_Nx1_eval():
     viewer = TableViewer(show=False)
     sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
     sheet.cell[0, 1] = "&=np.mean(df['a'][0:3])"
-    assert (0, 1) in sheet.cellref
+    assert (0, 1) in sheet.cell.ref
     sheet.cell[1, 1] = "&=np.cumsum(df['a'][0:3])"
-    assert (0, 1) not in sheet.cellref
-    assert (1, 1) in sheet.cellref
+    assert (0, 1) not in sheet.cell.ref
+    assert (1, 1) in sheet.cell.ref
 
 def test_eval_undo():
     viewer = TableViewer(show=False)
@@ -160,13 +160,13 @@ def test_ref_after_insert():
     sheet._qwidget.insertColumns(2, 1)  # insert a column
     assert sheet.cell[1, 3] == "0.0"
     assert sheet.cell[1, 4] == "1.0"
-    assert (1, 3) not in sheet.cellref
-    assert (1, 4) in sheet.cellref
+    assert (1, 3) not in sheet.cell.ref
+    assert (1, 4) in sheet.cell.ref
     sheet.undo_manager.undo()
     assert sheet.cell[1, 3] == "1.0"
     assert sheet.cell[1, 4] == "0.0"
-    assert (1, 3) in sheet.cellref
-    assert (1, 4) not in sheet.cellref
+    assert (1, 3) in sheet.cell.ref
+    assert (1, 4) not in sheet.cell.ref
 
 
 def test_ref_after_removal():
@@ -180,13 +180,13 @@ def test_ref_after_removal():
     sheet._qwidget.removeColumns(2, 1)  # insert a column
     assert sheet.cell[1, 3] == "0.0"
     assert sheet.cell[1, 2] == "1.0"
-    assert (1, 3) not in sheet.cellref
-    assert (1, 2) in sheet.cellref
+    assert (1, 3) not in sheet.cell.ref
+    assert (1, 2) in sheet.cell.ref
     sheet.undo_manager.undo()
     assert sheet.cell[1, 3] == "1.0"
     assert sheet.cell[1, 2] == "0.0"
-    assert (1, 3) in sheet.cellref
-    assert (1, 2) not in sheet.cellref
+    assert (1, 3) in sheet.cell.ref
+    assert (1, 2) not in sheet.cell.ref
 
 
 def test_ref_after_removal_of_column():
@@ -200,32 +200,32 @@ def test_ref_after_removal_of_column():
     assert sheet.cell[1, 3] == "1.0"
     sheet._qwidget.removeColumns(3, 1)  # remove a column
     assert sheet.cell[1, 3] == "0.0"
-    assert len(sheet.cellref) == 0
+    assert len(sheet.cell.ref) == 0
     sheet.undo_manager.undo()
     assert sheet.cell[1, 3] == "1.0"
     assert sheet.cell[1, 2] == "0.0"
-    assert (1, 3) in sheet.cellref
-    assert (1, 2) not in sheet.cellref
+    assert (1, 3) in sheet.cell.ref
+    assert (1, 2) not in sheet.cell.ref
 
 
 def test_removing_source():
     viewer = TableViewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((3, 1), dtype=np.float32))
     sheet.cell[0, 1] = "&=np.sum(df.iloc[:, 0])"
-    assert len(sheet.cellref) == 1
+    assert len(sheet.cell.ref) == 1
     sheet._qwidget.removeColumns(0, 1)  # remove a column
     assert sheet.data.shape == (3, 1), "wrong shape"
-    assert len(sheet.cellref) == 0, "slot not removed"
+    assert len(sheet.cell.ref) == 0, "slot not removed"
 
 
 def test_removing_one_of_two_sources():
     viewer = TableViewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((3, 2), dtype=np.float32))
     sheet.cell[0, 2] = "&=np.sum(df.iloc[:, 0]) + np.sum(df.iloc[:, 1])"
-    assert len(sheet.cellref) == 1
+    assert len(sheet.cell.ref) == 1
     sheet._qwidget.removeColumns(0, 1)  # remove a column
     assert sheet.data.shape == (3, 2), "wrong shape"
-    assert len(sheet.cellref) == 0, "slot not removed"
+    assert len(sheet.cell.ref) == 0, "slot not removed"
 
 def test_removing_or_inserting_left_column():
     # --- table ---

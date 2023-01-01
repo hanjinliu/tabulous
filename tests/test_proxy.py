@@ -124,3 +124,80 @@ def test_header_update():
     table.proxy.reset()
     assert list(table.index)== [0, 1, 2, 3, "x", 5, 6, 7, 8, 9]
     assert list(table.data.index)== [0, 1, 2, 3, "x", 5, 6, 7, 8, 9]
+
+def test_header_buttons():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_table({"a": shuffled_arange(10), "b": np.arange(10)}, editable=True)
+    table.proxy.sort(by="a")
+    assert {0} == set(table._qwidget._header_widgets().keys())
+    table.undo_manager.undo()
+    assert set() == set(table._qwidget._header_widgets().keys())
+    table.undo_manager.redo()
+    assert {0} == set(table._qwidget._header_widgets().keys())
+    table.proxy.show_filter_button(columns="b")
+    assert {1} == set(table._qwidget._header_widgets().keys())
+    table.undo_manager.undo()
+    assert {0} == set(table._qwidget._header_widgets().keys())
+    table.undo_manager.redo()
+    assert {1} == set(table._qwidget._header_widgets().keys())
+
+def test_header_buttons_with_insert():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_spreadsheet(
+        {"a": np.arange(10), "b": shuffled_arange(10), "c": np.arange(10), "d": np.arange(10)},
+    )
+    table.proxy.sort(by=["b", "c"])
+    sorted_index = list(table.index)
+
+    assert {1, 2} == set(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.columns.insert(at=3, count=2)
+    assert {1, 2} == set(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.columns.insert(at=1, count=2)
+    assert {3, 4} == set(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.undo_manager.undo()
+    assert {1, 2} == set(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.undo_manager.redo()
+    assert {3, 4} == set(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+
+
+def test_header_buttons_with_remove():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_spreadsheet(
+        {"a": shuffled_arange(10), "b": np.arange(10), "c": np.arange(10)[::-1], "d": np.arange(10)},
+    )
+    table.proxy.sort(by=["b", "c"])
+    sorted_index = list(table.index)
+
+    assert {1, 2} == set(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.columns.remove(at=3, count=1)
+    assert {1, 2} == set(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.columns.remove(at=0, count=2)
+    assert {0} == set(table._qwidget._header_widgets().keys())
+    assert list(range(10))[::-1] == list(table.index)
+    table.undo_manager.undo()
+    assert {1, 2} == set(table._qwidget._header_widgets().keys())
+    assert sorted_index == list(table.index)
+    table.undo_manager.redo()
+    assert {0} == set(table._qwidget._header_widgets().keys())
+    assert list(range(10))[::-1] == list(table.index)
+
+def test_sort_and_filter_switched():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_spreadsheet(
+        {"a": shuffled_arange(10), "b": np.arange(10), "c": np.arange(10)[::-1], "d": np.arange(10)},
+    )
+    table.proxy.sort(by="b")
+    assert {1} == set(table._qwidget._header_widgets().keys())
+    table.proxy.show_filter_button(columns="c")
+    assert {2} == set(table._qwidget._header_widgets().keys())
+    table.undo_manager.undo()
+    assert {1} == set(table._qwidget._header_widgets().keys())
+    table.undo_manager.redo()
+    assert {2} == set(table._qwidget._header_widgets().keys())

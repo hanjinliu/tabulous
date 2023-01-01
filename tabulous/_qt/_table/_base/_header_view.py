@@ -1,9 +1,10 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, Iterator, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
 
 from tabulous._qt._action_registry import QActionRegistry
+from tabulous._qt._proxy_button import HeaderAnchorMixin
 
 if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
@@ -23,9 +24,12 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         self.sectionPressed.connect(self._on_section_pressed)  # pressed
         self.sectionClicked.connect(self._on_section_clicked)  # released
         self.sectionEntered.connect(self._on_section_entered)  # dragged
+        self.sectionResized.connect(self._on_section_resized)
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
+
+        self._header_widgets: dict[int, QtW.QWidget] = {}
 
     # fmt: off
     if TYPE_CHECKING:
@@ -47,6 +51,14 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
 
     def _on_section_clicked(self, logicalIndex) -> None:
         self.selection_model.set_shift(False)
+
+    def _on_section_resized(
+        self, logicalIndex: int, oldSize: int, newSize: int
+    ) -> None:
+        for idx, widget in self._header_widgets.items():
+            if idx < logicalIndex:
+                continue
+            widget.move(widget.x() + newSize - oldSize, widget.y())
 
     def _show_context_menu(self, pos: QtCore.QPoint) -> None:
         index = self.logicalIndexAt(pos)
@@ -100,6 +112,50 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         if editor := self.parentWidget()._focused_widget:
             editor.setFocus()
         return super().mouseReleaseEvent(e)
+
+    def sectionWidget(self, idx: int) -> QtW.QWidget | None:
+        """The widget anchored at the given section."""
+        return self._header_widgets.get(idx, None)
+
+    def setSectionWidget(self, idx: int, widget: QtW.QWidget) -> None:
+        """Set the widget anchored at the given section."""
+        if not isinstance(widget, QtW.QWidget):
+            raise TypeError(f"Expected a QWidget, got {type(widget)}")
+        if idx in self._header_widgets:
+            self.removeSectionWidget(idx)
+        self._header_widgets[idx] = widget
+        widget.setParent(self.viewport())
+        w, h = widget.width(), widget.height()
+        rect = self.visualRectAtIndex(idx)
+        rect.adjust(2, 2, -2, -2)
+        rect.setLeft(rect.left() + rect.width() - w)
+        rect.setTop(rect.top() + rect.height() - h)
+        widget.setGeometry(rect)
+        if isinstance(widget, HeaderAnchorMixin):
+            _widget = cast(HeaderAnchorMixin, widget)
+            _widget.on_installed(self.parentWidget().parentTable(), idx)
+        widget.show()
+        return None
+
+    def removeSectionWidget(self, idx: int | None = None):
+        table = self.parentWidget().parentTable()
+        if idx is None:
+            for idx in self._header_widgets:
+                widget = self._header_widgets[idx]
+                widget.hide()
+                if isinstance(widget, HeaderAnchorMixin):
+                    _widget = cast(HeaderAnchorMixin, widget)
+                    _widget.on_uninstalled(table, idx)
+                widget.setParent(None)
+            self._header_widgets.clear()
+        else:
+            widget = self._header_widgets.pop(idx)
+            widget.hide()
+            if isinstance(widget, HeaderAnchorMixin):
+                _widget = cast(HeaderAnchorMixin, widget)
+                _widget.on_uninstalled(table, idx)
+            widget.setParent(None)
+        return None
 
 
 class QHorizontalHeaderView(QDataFrameHeaderView):

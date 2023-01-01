@@ -14,7 +14,6 @@ from tabulous.widgets._component import (
     VerticalHeaderInterface,
     PlotInterface,
     ColumnDtypeInterface,
-    CellReferenceInterface,
     SelectionRanges,
     HighlightRanges,
     ProxyInterface,
@@ -87,7 +86,6 @@ class TableBase(ABC):
     index = VerticalHeaderInterface()
     columns = HorizontalHeaderInterface()
     plt = PlotInterface()
-    cellref = CellReferenceInterface()
     proxy = ProxyInterface()
     selections = SelectionRanges()
     highlights = HighlightRanges()
@@ -128,6 +126,14 @@ class TableBase(ABC):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}<{self.name!r}>"
+
+    @property
+    def cellref(self):
+        warnings.warn(
+            "table.cellref is deprecated. Use table.cell.ref instead.",
+            DeprecationWarning,
+        )
+        return self.cell.ref
 
     def _emit_data_changed_signal(self, info: ItemInfo) -> None:
         r, c = info.row, info.column
@@ -614,9 +620,8 @@ class TableBase(ABC):
         _hheader_register("Formatter > Set text formatter")(_wrap(cmds.selection.set_text_formatter))
         _hheader_register("Formatter > Reset text formatter")(_wrap(cmds.selection.reset_text_formatter))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
-        _hheader_register("Sort in ascending order")(_wrap(cmds.selection.sort_by_column_ascending))
-        _hheader_register("Sort in descending order")(_wrap(cmds.selection.sort_by_column_descending))
-        _hheader_register("Filter")(_wrap(cmds.selection.filter_by_column))
+        _hheader_register("Sort")(_wrap(cmds.selection.sort_by_columns))
+        _hheader_register("Filter")(_wrap(cmds.selection.filter_by_columns))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
 
         _cell_register = self.cell.register_action
@@ -743,15 +748,15 @@ class SpreadSheet(_DataFrameTableLayer):
         _wrap = self._wrap_command
         # fmt: off
         _vheader_register = self.index.register_action
-        _vheader_register("Insert/Remove > Insert row above")(_wrap(cmds.selection.insert_row_above))
-        _vheader_register("Insert/Remove > Insert row below")(_wrap(cmds.selection.insert_row_below))
-        _vheader_register("Insert/Remove > Remove selected rows")(_wrap(cmds.selection.remove_selected_rows))
+        _vheader_register("Insert row above")(_wrap(cmds.selection.insert_row_above))
+        _vheader_register("Insert row below")(_wrap(cmds.selection.insert_row_below))
+        _vheader_register("Remove selected rows")(_wrap(cmds.selection.remove_selected_rows))
         self._qwidget._qtable_view.verticalHeader().addSeparator()
 
         _hheader_register = self.columns.register_action
-        _hheader_register("Insert/Remove > Insert column left")(_wrap(cmds.selection.insert_column_left))
-        _hheader_register("Insert/Remove > Insert column right")(_wrap(cmds.selection.insert_column_right))
-        _hheader_register("Insert/Remove > Remove selected columns")(_wrap(cmds.selection.remove_selected_columns))
+        _hheader_register("Insert column left")(_wrap(cmds.selection.insert_column_left))
+        _hheader_register("Insert column right")(_wrap(cmds.selection.insert_column_right))
+        _hheader_register("Remove selected columns")(_wrap(cmds.selection.remove_selected_columns))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
         _hheader_register("Column dtype")(_wrap(cmds.selection.set_column_dtype))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()

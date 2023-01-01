@@ -1,11 +1,15 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
+
+from abc import abstractmethod
+from typing import TYPE_CHECKING, Callable, Any, Callable, NamedTuple
 import numpy as np
 from enum import Enum
 from tabulous.types import ProxyType
+from functools import reduce
 
 if TYPE_CHECKING:
     import pandas as pd
+    from typing_extensions import Self
 
 
 class ProxyTypes(Enum):
@@ -26,7 +30,7 @@ class SortFilterProxy:
     def __init__(self, obj: ProxyType | None = None):
         if isinstance(obj, SortFilterProxy):
             obj = obj._obj
-        self._obj = obj
+        self._obj: ProxyType | None = obj
         if self._obj is None:
             self._proxy_type = ProxyTypes.none
         else:
@@ -109,3 +113,178 @@ class SortFilterProxy:
         else:
             sl_filt = sl
         return sl_filt
+
+
+class FilterType(Enum):
+    """Filter type enumeration."""
+
+    none = "none"
+    eq = "eq"
+    ne = "ne"
+    gt = "gt"
+    ge = "ge"
+    lt = "lt"
+    le = "le"
+    contains = "contains"
+    startswith = "startswith"
+    endswith = "endswith"
+    matches = "matches"
+
+    @property
+    def repr(self) -> str:
+        return _REPR_MAP[self]
+
+    @property
+    def requires_number(self) -> bool:
+        cls = type(self)
+        return self in {cls.eq, cls.ne, cls.gt, cls.ge, cls.lt, cls.le}
+
+    @property
+    def requires_text(self) -> bool:
+        cls = type(self)
+        return self in {cls.startswith, cls.endswith, cls.matches}
+
+    @property
+    def requires_list(self) -> bool:
+        return self is FilterType.contains
+
+
+_FUNCTION_MAP: dict[FilterType, Callable[[pd.Series, Any], pd.Series]] = {
+    FilterType.none: lambda x, a: np.ones(len(x), dtype=bool),
+    FilterType.eq: lambda x, a: x == a,
+    FilterType.ne: lambda x, a: x != a,
+    FilterType.gt: lambda x, a: x > a,
+    FilterType.ge: lambda x, a: x >= a,
+    FilterType.lt: lambda x, a: x < a,
+    FilterType.le: lambda x, a: x <= a,
+    FilterType.contains: lambda x, a: x.isin(a),
+    FilterType.startswith: lambda x, a: x.str.startswith(a),
+    FilterType.endswith: lambda x, a: x.str.endswith(a),
+    FilterType.matches: lambda x, a: x.str.contains(a, regex=True),
+}
+
+_REPR_MAP: dict[FilterType, str] = {
+    FilterType.none: "Select ...",
+    FilterType.eq: "=",
+    FilterType.ne: "≠",
+    FilterType.gt: ">",
+    FilterType.ge: "≥",
+    FilterType.lt: "<",
+    FilterType.le: "≤",
+    FilterType.contains: "contains",
+    FilterType.startswith: "starts with",
+    FilterType.endswith: "ends with",
+    FilterType.matches: ".*",
+}
+
+
+class FilterInfo(NamedTuple):
+    type: FilterType
+    arg: Any
+
+
+class Composable:
+    @abstractmethod
+    def __call__(self, df: pd.DataFrame) -> np.ndarray:
+        """Apply the mapping to the dataframe."""
+
+    @abstractmethod
+    def copy(self) -> Self:
+        """Copy the instance."""
+
+    @abstractmethod
+    def compose(self, type: FilterType, column: int, arg: Any) -> Self:
+        """Compose with an additional mapping at the column."""
+
+    @abstractmethod
+    def decompose(self, column: int) -> Self:
+        """Decompose the mapping at column."""
+
+    @abstractmethod
+    def is_identity(self) -> bool:
+        """True if this instance is the identity mapping."""
+
+
+class ComposableFilter(Composable):
+    def __init__(self, d: dict[int, FilterInfo] | None = None):
+        if d is not None:
+            assert isinstance(d, dict)
+            self._dict: dict[int, FilterInfo] = d
+        else:
+            self._dict = {}
+        self.__name__ = "filter"
+        self.__annotations__ = {"df": "pd.DataFrame", "return": np.ndarray}
+
+    def __call__(self, df: pd.DataFrame) -> np.ndarray:
+        series: list[pd.Series] = []
+        if len(self._dict) == 0:
+            return np.ones(len(df), dtype=bool)
+        for index, (type, arg) in self._dict.items():
+            fn = _FUNCTION_MAP[type]
+            series.append(np.asarray(fn(df.iloc[:, index], arg)))
+        return reduce(lambda x, y: x & y, series)
+
+    def copy(self) -> ComposableFilter:
+        """Copy the filter object."""
+        return self.__class__(self._dict.copy())
+
+    def compose(self, type: FilterType, column: int, arg: Any) -> ComposableFilter:
+        """Compose with an additional column filter."""
+        new = self.copy()
+        new._dict[column] = FilterInfo(FilterType(type), arg)
+        return new
+
+    def decompose(self, column: int) -> ComposableFilter:
+        """Decompose the filter at column."""
+        new = self.copy()
+        new._dict.pop(column, None)
+        return new
+
+    def is_identity(self) -> bool:
+        """True if the filter is the identity filter."""
+        return len(self._dict) == 0
+
+
+class ComposableSorter(Composable):
+    def __init__(self, columns: set[int] | None = None, ascending: bool = True):
+        if columns is None:
+            self._columns: set[int] = set()
+        else:
+            assert isinstance(columns, set)
+            self._columns = columns
+        self._ascending = ascending
+
+    def __call__(self, df: pd.DataFrame) -> pd.Series:
+        by: list[str] = [df.columns[i] for i in self._columns]
+        if len(by) == 1:
+            out = np.asarray(df[by[0]].argsort())
+            if not self._ascending:
+                out = out[::-1]
+        else:
+            df_sub = df[by]
+            nr = len(df_sub)
+            df_sub.index = range(nr)
+            df_sub = df_sub.sort_values(by=by, ascending=self._ascending)
+            out = np.asarray(df_sub.index)
+        return out
+
+    def copy(self) -> ComposableSorter:
+        return self.__class__(self._columns.copy(), self._ascending)
+
+    def compose(self, column: int):
+        new = self.copy()
+        new._columns.add(column)
+        return new
+
+    def decompose(self, column: int):
+        new = self.copy()
+        new._columns.remove(column)
+        return new
+
+    def switch(self) -> ComposableSorter:
+        """New sorter with the reverse order."""
+        return self.__class__(self._columns, not self._ascending)
+
+    def is_identity(self) -> bool:
+        """True if the sorter is the identity sorter."""
+        return len(self._columns) == 0
