@@ -335,7 +335,9 @@ class QCellLiteralEdit(_QTableLineEdit):
         rect = qtable.visualRect(
             qtable.model().index(*qtable._selection_model.current_index)
         )
-        line = cls(parent, table, qtable._selection_model.current_index)
+        cr, cc = qtable._selection_model.current_index
+        # cr = table._proxy.get_source_index(cr)
+        line = cls(parent, table, (cr, cc))
         line.setMinimumSize(1, 1)
         geometry = line.geometry()
         geometry.setWidth(rect.width())
@@ -387,6 +389,9 @@ class QCellLiteralEdit(_QTableLineEdit):
         """Change text color to red if invalid."""
         if self._is_eval_like(text):
             self.mode = self.Mode.EVAL
+            if not self.parentTableView().parentTable()._proxy.is_ordered:
+                # TODO: disable further editing
+                ...
         else:
             self.mode = self.Mode.TEXT
 
@@ -511,31 +516,34 @@ class QCellLiteralEdit(_QTableLineEdit):
             # update because it is before "=".
             return None
 
+        qtable = cast("QMutableTable", qtable_view.parentTable())
+        _df_filt = qtable_view.model().df
+        _df_ori = qtable._data_raw
         rsl, csl = qtable_view._selection_model.ranges[-1]
-        _df = qtable_view.model().df
-        table_range = RectRange(slice(0, _df.shape[0]), slice(0, _df.shape[1]))
+        if not qtable._proxy.is_ordered:
+            return None
+        if rsl.stop is not None and rsl.stop > _df_filt.shape[0]:
+            rsl = slice(rsl.start, _df_filt.shape[0])
+        rsl = qtable._proxy.get_source_slice(rsl)
+        table_range = RectRange.from_shape(_df_filt.shape)
 
         # out of border
         if not table_range.overlaps_with(RectRange(rsl, csl)):
             return None
 
-        qtable = cast("QMutableTable", qtable_view.parentTable())
-        if not qtable._proxy.is_ordered:
-            return None
-        rsl_source = qtable._proxy.get_source_slice(rsl, qtable._proxy.last_indexer)
         column_selected = len(qtable_view._selection_model._col_selection_indices) > 0
         selop = construct(
-            rsl_source, csl, _df, method="iloc", column_selected=column_selected
+            rsl, csl, _df_ori, method="iloc", column_selected=column_selected
         )
 
         if selop is None:  # out of bound
             return None
 
         # get string that represents the selection
-        if selop.area(_df) > 1:
+        if selop.area(_df_ori) > 1:
             to_be_added = selop.fmt("df")
         else:
-            to_be_added = selop.resolve_indices(_df, (1, 1)).fmt_scalar("df")
+            to_be_added = selop.resolve_indices(_df_ori, (1, 1)).fmt_scalar("df")
 
         # add the representation to the text at the proper position
         if cursor_pos == 0:

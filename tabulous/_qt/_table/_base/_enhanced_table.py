@@ -553,10 +553,18 @@ class _QTableViewEnhanced(QtW.QTableView):
         nsel = len(self._selection_model)
         painter = QtGui.QPainter(self.viewport())
 
+        if table := self.parentTable():
+            is_ordered = table._proxy.is_ordered
+        else:
+            is_ordered = True
+
         # draw highlights
-        h_color = self._get_highlight_color()
-        for i, rect in enumerate(self._rect_from_ranges(self._highlight_model._ranges)):
-            painter.fillRect(rect, h_color)
+        if is_ordered:
+            h_color = self._get_highlight_color()
+            for i, rect in enumerate(
+                self._rect_from_ranges(self._highlight_model._ranges, map=True)
+            ):
+                painter.fillRect(rect, h_color)
 
         # draw selections
         s_color = self._get_selection_color()
@@ -575,14 +583,14 @@ class _QTableViewEnhanced(QtW.QTableView):
             painter.setPen(pen)
             painter.drawRect(rect_cursor)
 
-            # in-cell slot source ranges of the current index
-            color_cycle = _color_cycle()
-            if rng := self._current_drawing_slot_ranges:
-                for rect in self._rect_from_ranges(rng.iter_ranges()):
-                    rect.adjust(1, 1, -1, -1)
-                    pen = QtGui.QPen(next(color_cycle), 3)
-                    painter.setPen(pen)
-                    painter.drawRect(rect)
+        # in-cell slot source ranges of the current index
+        color_cycle = _color_cycle()
+        if (rng := self._current_drawing_slot_ranges) and is_ordered:
+            for rect in self._rect_from_ranges(rng.iter_ranges(), map=True):
+                rect.adjust(1, 1, -1, -1)
+                pen = QtGui.QPen(next(color_cycle), 3)
+                painter.setPen(pen)
+                painter.drawRect(rect)
 
         # mouse hover
         mouse_idx = self.indexAt(self.viewport().mapFromGlobal(QtGui.QCursor.pos()))
@@ -613,11 +621,16 @@ class _QTableViewEnhanced(QtW.QTableView):
                 return None
 
     def _rect_from_ranges(
-        self, ranges: Iterable[tuple[slice, slice]]
+        self,
+        ranges: Iterable[tuple[slice, slice]],
+        map: bool = False,
     ) -> Iterator[QtCore.QRect]:
         """Convert range models into rectangles."""
         model = self.model()
+        prx = self.parentTable()._proxy
         for rr, cc in ranges:
+            if map:
+                rr = prx.map_slice(rr)
             top_left = model.index(rr.start, cc.start)
             bottom_right = model.index(rr.stop - 1, cc.stop - 1)
             rect = self.visualRect(top_left) | self.visualRect(bottom_right)

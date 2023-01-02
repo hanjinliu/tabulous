@@ -576,10 +576,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     @_mgr.interface
     def _set_incell_slot(self, pos: tuple[int, int], slot: InCellRangedSlot):
         """Set in-cell slot at the given position undoably."""
+        r, c = pos
+        r = self._proxy.get_source_index(r)
         if slot is None:
             self._qtable_view._table_map.pop(pos, None)
         else:
-            self._qtable_view._table_map[pos] = slot
+            self._qtable_view._table_map[(r, c)] = slot
             if dest := slot.last_destination:
                 self._qtable_view._selection_model.set_ranges([dest])
         return None
@@ -992,7 +994,7 @@ class QMutableTable(QBaseTable):
         return None
 
     def _get_proxy_source_index(self, r: int | slice):
-        return self._proxy.get_source_index(r, self.tableSlice())
+        return self._proxy.get_source_index(r)
 
     def _pre_set_array(self, r: slice, c: slice, _value: pd.DataFrame):
         """Convert input dataframe for setting to data[r, c]."""
