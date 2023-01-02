@@ -27,7 +27,7 @@ class ProxyInterface(TableComponent):
 
     # fmt: off
     @overload
-    def sort(self, by: str | Sequence[str], ascending: bool = True, compose: bool = False) -> None: ...
+    def sort(self, by: str | Sequence[str], ascending: bool = True, compose: bool = False) -> None: ...  # noqa: E501
     @overload
     def sort(self, func: Callable[[pd.DataFrame], _SortArray]) -> None: ...
     # fmt: on
@@ -75,13 +75,16 @@ class ProxyInterface(TableComponent):
                 )
         return None
 
-    @overload
-    def filter(self, expr: str, namespace: dict = {}) -> None:
-        ...
+    def add_sort_buttons(self, columns: str | list[str]) -> None:
+        """Add sort buttons to the given column header sections."""
+        return self.sort(by=columns, ascending=True, compose=False)
 
+    # fmt: off
     @overload
-    def filter(self, func: Callable[[pd.DataFrame], _FilterArray]) -> None:
-        ...
+    def filter(self, expr: str, namespace: dict = {}) -> None: ...
+    @overload
+    def filter(self, func: Callable[[pd.DataFrame], _FilterArray]) -> None: ...
+    # fmt: on
 
     def filter(self, expr: str, namespace: dict = {}) -> None:
         """Apply filter proxy to the table."""
@@ -109,20 +112,23 @@ class ProxyInterface(TableComponent):
         self.parent._qwidget.setProxy(_filter)
         return None
 
-    def show_filter_button(
+    def add_filter_buttons(
         self,
         columns: str | list[str],
         *,
         show_menu: bool = False,
     ) -> None:
+        """Add filter buttons to the given column header sections."""
         from tabulous._qt._proxy_button import QHeaderFilterButton
 
         table = self.parent
         if isinstance(columns, str):
             columns = [columns]
+        else:
+            columns = list(columns)
 
         with table.undo_manager.merging(
-            lambda cmds: f"table.proxy.show_filter_button({columns!r})"
+            lambda cmds: f"table.proxy.add_filter_buttons({columns!r})"
         ):
             if not isinstance(table.proxy.func, ComposableFilter):
                 table.proxy.reset()
@@ -130,7 +136,34 @@ class ProxyInterface(TableComponent):
                 index = table.columns.get_loc(x)
                 btn = QHeaderFilterButton.install_to_table(table.native, index)
         if show_menu:
-            btn.click()
+            btn.showMenu()
+        return None
+
+    def hide_buttons(
+        self,
+        columns: str | list[str] | None = None,
+        missing_ok: bool = False,
+    ) -> None:
+        """Hide buttons in header sections."""
+        if columns is None:
+            # hide all buttons
+            self.parent.native.updateHorizontalHeaderWidget({})
+            return None
+
+        if isinstance(columns, str):
+            indices = [self.parent.columns.get_loc(columns)]
+        else:
+            indices = [self.parent.columns.get_loc(c) for c in columns]
+        wdts = self.parent.native._header_widgets().copy()
+        popped = [wdts.pop(index, None) for index in indices]
+
+        if not missing_ok and None in popped:
+            if isinstance(columns, str):
+                raise ValueError(f"Column {columns!r} does not have a header button.")
+            else:
+                colnames = {columns[i] for i, x in popped if x is None}
+                raise ValueError(f"Columns {colnames!r} do not have header buttons.")
+
         return None
 
     def reset(self) -> None:

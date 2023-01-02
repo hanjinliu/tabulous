@@ -489,7 +489,7 @@ def filter_by_columns(viewer: TableViewerBase) -> None:
     table = _utils.get_table(viewer)
     indices = _utils.get_selected_columns(viewer)
     by = [table.columns[index] for index in indices]
-    table.proxy.show_filter_button(by, show_menu=True)
+    table.proxy.add_filter_buttons(by, show_menu=True)
     return None
 
 

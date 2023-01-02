@@ -125,9 +125,11 @@ class FilterType(Enum):
     ge = "ge"
     lt = "lt"
     le = "le"
-    contains = "contains"
+    between = "between"
+    isin = "contains"
     startswith = "startswith"
     endswith = "endswith"
+    contains = "contains"
     matches = "matches"
 
     @property
@@ -142,11 +144,40 @@ class FilterType(Enum):
     @property
     def requires_text(self) -> bool:
         cls = type(self)
-        return self in {cls.startswith, cls.endswith, cls.matches}
+        return self in {
+            cls.between,
+            cls.startswith,
+            cls.endswith,
+            cls.contains,
+            cls.matches,
+        }
 
     @property
     def requires_list(self) -> bool:
-        return self is FilterType.contains
+        return self is FilterType.isin
+
+    def __str__(self) -> str:
+        return self.repr
+
+
+def _is_between(x: pd.Series, a: str) -> pd.Series:
+    a = a.strip()
+    left = a[0]
+    right = a[-1]
+    values = [float(s.strip()) for s in a[1:-1].split(",")]
+    if left == "[" and right == "]":
+        inclusive = "both"
+    elif left == "[" and right == ")":
+        inclusive = "left"
+    elif left == "(" and right == "]":
+        inclusive = "right"
+    elif left == "(" and right == ")":
+        inclusive = "neither"
+    else:
+        raise ValueError(f"Invalid range: {a}")
+    if len(values) != 2:
+        raise ValueError(f"Invalid range: {a}")
+    return x.between(*values, inclusive=inclusive)
 
 
 _FUNCTION_MAP: dict[FilterType, Callable[[pd.Series, Any], pd.Series]] = {
@@ -157,9 +188,11 @@ _FUNCTION_MAP: dict[FilterType, Callable[[pd.Series, Any], pd.Series]] = {
     FilterType.ge: lambda x, a: x >= a,
     FilterType.lt: lambda x, a: x < a,
     FilterType.le: lambda x, a: x <= a,
-    FilterType.contains: lambda x, a: x.isin(a),
+    FilterType.between: _is_between,
+    FilterType.isin: lambda x, a: x.isin(a),
     FilterType.startswith: lambda x, a: x.str.startswith(a),
     FilterType.endswith: lambda x, a: x.str.endswith(a),
+    FilterType.contains: lambda x, a: x.str.contains(a),
     FilterType.matches: lambda x, a: x.str.contains(a, regex=True),
 }
 
@@ -171,9 +204,11 @@ _REPR_MAP: dict[FilterType, str] = {
     FilterType.ge: "≥",
     FilterType.lt: "<",
     FilterType.le: "≤",
-    FilterType.contains: "contains",
+    FilterType.isin: "is in",
     FilterType.startswith: "starts with",
+    FilterType.between: "between",
     FilterType.endswith: "ends with",
+    FilterType.contains: "contains",
     FilterType.matches: ".*",
 }
 

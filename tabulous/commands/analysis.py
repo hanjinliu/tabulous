@@ -28,7 +28,7 @@ def summarize_table(viewer: TableViewerBase):
 
 
 def show_filter_widget(viewer: TableViewerBase):
-    """Apply filter to the table data"""
+    """Show filter widget."""
     return viewer._qwidget._tablestack.openFilterDialog()
 
 
