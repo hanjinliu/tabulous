@@ -7,7 +7,6 @@ import sys
 from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
-import pandas as pd
 
 from tabulous._qt._qt_const import MonospaceFontFamily
 from tabulous._keymap import QtKeys
@@ -498,7 +497,7 @@ class QCellLiteralEdit(_QTableLineEdit):
 
     def _on_selection_changed(self) -> None:
         """Update text based on the current selection."""
-        qtable = self.parentTableView()
+        qtable_view = self.parentTableView()
         if self.mode is self.Mode.TEXT:
             return self.eval_and_close()
 
@@ -506,22 +505,28 @@ class QCellLiteralEdit(_QTableLineEdit):
         cursor_pos = self.cursorPosition()
 
         # prepare text
-        if len(qtable._selection_model.ranges) != 1 or cursor_pos == 0:
+        if len(qtable_view._selection_model.ranges) != 1 or cursor_pos == 0:
             # If multiple cells are selected, don't update because selection range
             # is not well-defined. If cursor position is at the beginning, don't
             # update because it is before "=".
             return None
 
-        rsl, csl = qtable._selection_model.ranges[-1]
-        _df = qtable.model().df
+        rsl, csl = qtable_view._selection_model.ranges[-1]
+        _df = qtable_view.model().df
         table_range = RectRange(slice(0, _df.shape[0]), slice(0, _df.shape[1]))
 
         # out of border
         if not table_range.overlaps_with(RectRange(rsl, csl)):
             return None
 
-        column_selected = len(qtable._selection_model._col_selection_indices) > 0
-        selop = construct(rsl, csl, _df, method="iloc", column_selected=column_selected)
+        qtable = cast("QMutableTable", qtable_view.parentTable())
+        if not qtable._proxy.is_ordered:
+            return None
+        rsl_source = qtable._proxy.get_source_slice(rsl, qtable._proxy.last_indexer)
+        column_selected = len(qtable_view._selection_model._col_selection_indices) > 0
+        selop = construct(
+            rsl_source, csl, _df, method="iloc", column_selected=column_selected
+        )
 
         if selop is None:  # out of bound
             return None

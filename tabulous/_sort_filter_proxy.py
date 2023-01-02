@@ -9,10 +9,13 @@ from functools import reduce
 
 if TYPE_CHECKING:
     import pandas as pd
+    from typing import Union
     from typing_extensions import Self
     from numpy.typing import NDArray
 
     _IntArray = NDArray[np.integer]
+    _BoolArray = NDArray[np.bool_]
+    _ProxyArray = Union[_IntArray, _BoolArray]
 
 
 class ProxyTypes(Enum):
@@ -40,6 +43,7 @@ class SortFilterProxy:
         else:
             self._proxy_type = ProxyTypes.unknown
             self._is_ordered = False
+        self._last_indexer = None
 
     def __repr__(self) -> str:
         cname = type(self).__name__
@@ -53,6 +57,10 @@ class SortFilterProxy:
     @property
     def is_ordered(self) -> bool:
         return self._is_ordered
+
+    @property
+    def last_indexer(self) -> _ProxyArray | None:
+        return self._last_indexer
 
     def apply(
         self,
@@ -74,6 +82,7 @@ class SortFilterProxy:
         sl = self._obj
         if sl is None:
             return df
+        # get indexer
         if callable(sl):
             if ref is None:
                 ref_input = df
@@ -82,6 +91,9 @@ class SortFilterProxy:
             sl_filt = sl(ref_input)
         else:
             sl_filt = sl
+
+        self._last_indexer = sl_filt
+
         if sl_filt.dtype.kind == "b":
             df_filt = df[sl_filt]
             self._proxy_type = ProxyTypes.filter
@@ -95,14 +107,14 @@ class SortFilterProxy:
 
     # fmt: off
     @overload
-    def get_source_index(self, r: int, df: pd.DataFrame) -> int: ...
+    def get_source_index(self, r: int, df: pd.DataFrame | None) -> int: ...
     @overload
     def get_source_index(self, r: slice, df: pd.DataFrame) -> slice | _IntArray: ...
     @overload
     def get_source_index(self, r: list[int], df: pd.DataFrame) -> _IntArray: ...
     # fmt: on
 
-    def get_source_index(self, r, df):
+    def get_source_index(self, r, df=None):
         """Get the source index of the row in the dataframe."""
         sl = self._obj
         if sl is None:
@@ -111,7 +123,10 @@ class SortFilterProxy:
             r0 = r
         else:
             if callable(sl):
-                sl = sl(df)
+                if self._last_indexer is not None:
+                    sl = self._last_indexer
+                else:
+                    sl = sl(df)
 
             if sl.dtype.kind == "b":
                 r0 = np.where(sl)[0][r]
@@ -129,11 +144,13 @@ class SortFilterProxy:
         if start is None:
             start = 0
         if stop is None:
-            stop = len(df)
+            if self._last_indexer is None:
+                raise ValueError("Cannot determine stop index")
+            stop = self._last_indexer.size
         start, stop = self.get_source_index([start, stop], df)
         return slice(start, stop)
 
-    def as_indexer(self, df: pd.DataFrame) -> np.ndarray | slice:
+    def as_indexer(self, df: pd.DataFrame) -> _ProxyArray | slice:
         sl = self._obj
         if sl is None:
             return slice(None)
@@ -155,7 +172,7 @@ class FilterType(Enum):
     lt = "lt"
     le = "le"
     between = "between"
-    isin = "contains"
+    isin = "isin"
     startswith = "startswith"
     endswith = "endswith"
     contains = "contains"

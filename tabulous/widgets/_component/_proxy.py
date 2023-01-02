@@ -19,8 +19,8 @@ if TYPE_CHECKING:
     import pandas as pd
     from tabulous.widgets._table import TableBase
 
-    _SortArray = NDArray[np.integer]
-    _FilterArray = NDArray[np.bool_]
+    _IntArray = NDArray[np.integer]
+    _BoolArray = NDArray[np.bool_]
 
 
 class ProxyInterface(TableComponent):
@@ -55,7 +55,7 @@ class ProxyInterface(TableComponent):
     @overload
     def sort(self, by: str | Sequence[str], ascending: bool = True, compose: bool = False) -> None: ...  # noqa: E501
     @overload
-    def sort(self, func: Callable[[pd.DataFrame], _SortArray]) -> None: ...
+    def sort(self, func: Callable[[pd.DataFrame], _IntArray]) -> None: ...
     # fmt: on
 
     def sort(self, by, ascending: bool = True, compose: bool = False) -> None:
@@ -74,7 +74,7 @@ class ProxyInterface(TableComponent):
                 )
 
             @wraps(by)
-            def _sort(df: pd.DataFrame) -> _SortArray:
+            def _sort(df: pd.DataFrame) -> _IntArray:
                 arr = np.asarray(by(df))
                 if arr.ndim != 1:
                     raise TypeError("The callable must return a 1D array.")
@@ -109,7 +109,7 @@ class ProxyInterface(TableComponent):
     @overload
     def filter(self, expr: str, namespace: dict = {}) -> None: ...
     @overload
-    def filter(self, func: Callable[[pd.DataFrame], _FilterArray]) -> None: ...
+    def filter(self, func: Callable[[pd.DataFrame], _BoolArray]) -> None: ...
     # fmt: on
 
     def filter(self, expr: str, namespace: dict = {}) -> None:
@@ -119,7 +119,7 @@ class ProxyInterface(TableComponent):
             if namespace:
                 raise TypeError("Cannot use a namespace with a callable.")
 
-            def _filter(df: pd.DataFrame) -> _FilterArray:
+            def _filter(df: pd.DataFrame) -> _BoolArray:
                 arr = np.asarray(func(df))
                 if arr.ndim != 1:
                     raise TypeError("The callable must return a 1D array.")
