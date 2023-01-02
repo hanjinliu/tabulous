@@ -88,3 +88,11 @@ def get_selected_columns(
     for sl in selected:
         out.extend(range(sl.start, sl.stop))
     return out
+
+
+def get_a_selection(table: TableBase) -> tuple[slice, slice]:
+    """Get a selection of the given table."""
+    sels = table.selections
+    if len(sels) != 1:
+        raise ValueError("Multiple selections are selected")
+    return sels[0]

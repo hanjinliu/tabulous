@@ -502,3 +502,27 @@ def shuffle_data_column_wise(viewer: TableViewerBase) -> None:
         shuffled.reset_index()
         table.cell[sel] = shuffled
     return None
+
+
+def sort_inplace(viewer: TableViewerBase) -> None:
+    """Sort table data inplace"""
+    table = _utils.get_mutable_table(viewer)
+    sel = _utils.get_a_selection(table)
+    df = table.data.iloc[sel]
+    if df.shape[1] == 1:
+        out = df.sort_values(by=df.columns[0])
+    else:
+        chosen = _dialogs.choose_multiple(
+            choices={
+                "choices": list(df.columns),
+                "widget_type": "Select",
+                "label": "by",
+            },
+            parent=viewer.native,
+        )
+        if chosen:
+            out = df.sort_values(by=chosen)
+        else:
+            return None
+    table.native.setDataFrameValue(*sel, out)
+    return None
