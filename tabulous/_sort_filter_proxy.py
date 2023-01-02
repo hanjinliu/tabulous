@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Callable, NamedTuple
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, overload
 import numpy as np
 from enum import Enum
 from tabulous.types import ProxyType
@@ -10,6 +10,9 @@ from functools import reduce
 if TYPE_CHECKING:
     import pandas as pd
     from typing_extensions import Self
+    from numpy.typing import NDArray
+
+    _IntArray = NDArray[np.integer]
 
 
 class ProxyTypes(Enum):
@@ -33,8 +36,10 @@ class SortFilterProxy:
         self._obj: ProxyType | None = obj
         if self._obj is None:
             self._proxy_type = ProxyTypes.none
+            self._is_ordered = True
         else:
             self._proxy_type = ProxyTypes.unknown
+            self._is_ordered = False
 
     def __repr__(self) -> str:
         cname = type(self).__name__
@@ -44,6 +49,10 @@ class SortFilterProxy:
     def proxy_type(self) -> ProxyTypes:
         """The proxy type."""
         return self._proxy_type
+
+    @property
+    def is_ordered(self) -> bool:
+        return self._is_ordered
 
     def apply(
         self,
@@ -76,6 +85,7 @@ class SortFilterProxy:
         if sl_filt.dtype.kind == "b":
             df_filt = df[sl_filt]
             self._proxy_type = ProxyTypes.filter
+            self._is_ordered = True
         elif sl_filt.dtype.kind in "ui":
             df_filt = df.iloc[sl_filt]
             self._proxy_type = ProxyTypes.sort
@@ -83,26 +93,45 @@ class SortFilterProxy:
             raise TypeError(f"Invalid filter type: {sl_filt.dtype}")
         return df_filt
 
-    def get_source_index(self, r: int, df: pd.DataFrame) -> int:
+    # fmt: off
+    @overload
+    def get_source_index(self, r: int, df: pd.DataFrame) -> int: ...
+    @overload
+    def get_source_index(self, r: slice, df: pd.DataFrame) -> slice | _IntArray: ...
+    @overload
+    def get_source_index(self, r: list[int], df: pd.DataFrame) -> _IntArray: ...
+    # fmt: on
+
+    def get_source_index(self, r, df):
         """Get the source index of the row in the dataframe."""
         sl = self._obj
         if sl is None:
+            if isinstance(r, list):
+                r = np.array(r)
             r0 = r
         else:
             if callable(sl):
                 sl = sl(df)
-            else:
-                sl = sl
 
             if sl.dtype.kind == "b":
                 r0 = np.where(sl)[0][r]
                 self._proxy_type = ProxyTypes.filter
+                self._is_ordered = True
             elif sl.dtype.kind in "ui":
                 r0 = sl[r]
                 self._proxy_type = ProxyTypes.sort
             else:
                 raise TypeError(f"Invalid filter type: {sl.dtype}")
         return r0
+
+    def get_source_slice(self, r: slice, df: pd.DataFrame) -> slice:
+        start, stop = r.start, r.stop
+        if start is None:
+            start = 0
+        if stop is None:
+            stop = len(df)
+        start, stop = self.get_source_index([start, stop], df)
+        return slice(start, stop)
 
     def as_indexer(self, df: pd.DataFrame) -> np.ndarray | slice:
         sl = self._obj

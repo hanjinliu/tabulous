@@ -908,9 +908,7 @@ class QMutableTable(QBaseTable):
             raise TableImmutableError("Table is immutable.")
         data = self._data_raw
 
-        with self._mgr.merging(
-            lambda cmds: self._set_value_fmt(r, c, None, None, value, None)
-        ):
+        with self._mgr.merging(lambda _: _set_value_fmt(r, c, value)):
             # convert values
             if isinstance(r, slice) and isinstance(c, slice):
                 # delete references
@@ -932,8 +930,8 @@ class QMutableTable(QBaseTable):
                 _old_value = _old_value.copy()  # this is needed for undo
 
             if self._proxy.proxy_type != "none":
-                # If table is filtered, the dataframe to be displayed is a different object
-                # so we have to update it as well.
+                # If table is filtered, the dataframe to be displayed is a different
+                # object so we have to update it as well.
                 self.model().updateValue(r, c, _value)
 
             # emit item changed signal if value changed
@@ -964,9 +962,7 @@ class QMutableTable(QBaseTable):
             raise ValueError("Only one column can be set at a time.")
         data = self._data_raw
 
-        with self._mgr.merging(
-            lambda cmds: self._set_value_fmt(r, c, None, None, value, None)
-        ):
+        with self._mgr.merging(lambda _: _set_value_fmt(r, c, value)):
             # delete references
             self._clear_incell_slots(r, c)
 
@@ -978,8 +974,8 @@ class QMutableTable(QBaseTable):
             _old_value = data.iloc[r0, c].copy()  # this is needed for undo
 
             if self._proxy is not None:
-                # If table is filtered, the dataframe to be displayed is a different object
-                # so we have to update it as well.
+                # If table is filtered, the dataframe to be displayed is a different
+                # object so we have to update it as well.
                 self.model().updateValue(r, c, _value)
 
             # emit item changed signal if value changed
@@ -995,7 +991,7 @@ class QMutableTable(QBaseTable):
                     self.setItemLabel(_r, c.start, value.index[_i])
         return None
 
-    def _get_proxy_source_index(self, r: int):
+    def _get_proxy_source_index(self, r: int | slice):
         return self._proxy.get_source_index(r, self.tableSlice())
 
     def _pre_set_array(self, r: slice, c: slice, _value: pd.DataFrame):
@@ -1031,19 +1027,6 @@ class QMutableTable(QBaseTable):
         self.setSelections([(r_ori, c_ori)])
         self.itemChangedSignal.emit(ItemInfo(r, c, old_value, value))
         return None
-
-    @_set_value.set_formatter
-    def _set_value_fmt(self, r, c, r_ori, c_ori, value, old_value):
-        _r = fmt_slice(r)
-        _c = fmt_slice(c)
-        if isinstance(value, pd.DataFrame):
-            if value.size < 6:
-                _val = str(value.values.tolist())
-            else:
-                _val = "..."
-        else:
-            _val = fmt.map_object(value)
-        return f"df.iloc[{_r}, {_c}] = {_val}"
 
     @_set_value.reduce_rule
     def _set_value_reduce(self, args_old, args_new):
@@ -1183,9 +1166,12 @@ class QMutableTable(QBaseTable):
 
         This function supports many types of pasting.
         1. Single selection, single data in clipboard -> just paste
-        2. Single selection, multiple data in clipboard -> paste starts from the selection position.
-        3. Multiple selection, single data in clipboard -> paste the same value for all the selection.
-        4. Multiple selection, multiple data in clipboard -> paste only if their shape is identical.
+        2. Single selection, multiple data in clipboard -> paste starts from the
+           selection position.
+        3. Multiple selection, single data in clipboard -> paste the same value for
+           all the selection.
+        4. Multiple selection, multiple data in clipboard -> paste only if their
+           shape is identical.
 
         Also, if data is filtrated, pasted data also follows the filtration.
         """
@@ -1505,3 +1491,16 @@ def _to_clipboard(s: str, excel: bool = True, **kwargs) -> None:
     from pandas.io.clipboards import to_clipboard
 
     return to_clipboard(s, excel=excel, **kwargs)
+
+
+def _set_value_fmt(r, c, value):
+    _r = fmt_slice(r)
+    _c = fmt_slice(c)
+    if isinstance(value, pd.DataFrame):
+        if value.size < 6:
+            _val = str(value.values.tolist())
+        else:
+            _val = "..."
+    else:
+        _val = fmt.map_object(value)
+    return f"df.iloc[{_r}, {_c}] = {_val}"

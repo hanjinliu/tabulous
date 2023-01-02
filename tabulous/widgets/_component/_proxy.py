@@ -92,7 +92,7 @@ class ProxyInterface(TableComponent):
         with table.undo_manager.merging(
             lambda cmds: f"table.proxy.sort(by={by!r}, ascending={ascending!r})"
         ):
-            if not (compose and isinstance(table.proxy.func, ComposableSorter)):
+            if not (compose and isinstance(table.proxy.obj, ComposableSorter)):
                 table.proxy.reset()
             for x in by:
                 index = table.columns.get_loc(x)
@@ -156,7 +156,7 @@ class ProxyInterface(TableComponent):
         with table.undo_manager.merging(
             lambda cmds: f"table.proxy.add_filter_buttons({columns!r})"
         ):
-            if not isinstance(table.proxy.func, ComposableFilter):
+            if not isinstance(table.proxy.obj, ComposableFilter):
                 table.proxy.reset()
             for x in reversed(columns):
                 index = table.columns.get_loc(x)
@@ -214,9 +214,14 @@ class ProxyInterface(TableComponent):
         return self._get_proxy_object().proxy_type
 
     @property
-    def func(self) -> ProxyType | None:
-        """The proxy function."""
+    def obj(self) -> ProxyType | None:
+        """The proxy object."""
         return self._get_proxy_object()._obj
+
+    @property
+    def is_ordered(self) -> bool:
+        """Return True if the proxy does not change the order of rows"""
+        return self._get_proxy_object().is_ordered
 
     def _set_value(self, value: Any):
         return self.parent._qwidget.setProxy(value)
