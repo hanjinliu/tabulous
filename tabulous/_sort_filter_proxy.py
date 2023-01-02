@@ -230,6 +230,8 @@ class ComposableFilter(Composable):
 
     def compose(self, type: FilterType, column: int, arg: Any) -> ComposableFilter:
         """Compose with an additional column filter."""
+        if type is FilterType.none:
+            return self
         new = self.copy()
         new._dict[column] = FilterInfo(FilterType(type), arg)
         return new

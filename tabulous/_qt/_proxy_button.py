@@ -177,7 +177,7 @@ class QHeaderFilterButton(_QHeaderSectionButton):
         if not isinstance(f, ComposableFilter):
             table._set_proxy(ComposableFilter())
         column = table.model().df.columns[index]
-        menu = _QFilterMenu(table._get_sub_frame(column))
+        menu = _QFilterMenu(table._get_sub_frame(column), parent=self)
         self.setMenu(menu)
         menu._filter_widget.called.connect(_filter)
         menu._filter_widget.reset.connect(_reset)
@@ -257,6 +257,8 @@ class _QFilterWidget(QtW.QWidget):
             arg = self._string_edit.text()
         elif ftype.requires_list:
             arg = self._unique_select.value()
+        else:
+            arg = None
         return FilterInfo(self._cbox.value, arg)
 
     def fetch_unique(self):
