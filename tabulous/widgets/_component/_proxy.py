@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from functools import wraps
 from typing import (
     TYPE_CHECKING,
@@ -23,7 +24,32 @@ if TYPE_CHECKING:
 
 
 class ProxyInterface(TableComponent):
-    """Interface to the table sorting/filtering."""
+    """
+    Interface to the table sorting/filtering.
+
+    To sort table, use ``sort`` method.
+
+    >>> table.proxy.sort('A', ascending=True)  # sort by column "A"
+    >>> table.proxy.sort(['A', 'B'], ascending=True)  # sort by columns "A" and "B"
+
+    To filter table, use ``filter`` method.
+
+    >>> table.proxy.filter('A > 0')  # filter by column "A"
+    >>> table.proxy.filter('(A > 0) & (B < 0)')  # filter by columns "A" and "B"
+
+    To use custom proxy function, use ``set`` method. A proxy function must return
+    a boolean array or an integer array of the same length as the number of rows.
+
+    >>> table.proxy.set(my_filter_func)
+    >>> @table.proxy.set
+    >>> def my_filter_func(df: pd.DataFrame):
+    ...     # do something
+
+    To initialize the proxy, use ``reset`` method.
+
+    >>> table.proxy.reset()
+
+    """
 
     # fmt: off
     @overload

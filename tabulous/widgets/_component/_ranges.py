@@ -11,14 +11,11 @@ from typing import (
     Iterator,
 )
 
-import numpy as np
 from tabulous.types import _SingleSelection, SelectionType
 from ._base import TableComponent
 
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
     import pandas as pd
-    from pandas.core.dtypes.dtypes import ExtensionDtype
 
 
 T = TypeVar("T")
