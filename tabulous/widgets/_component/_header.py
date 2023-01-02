@@ -22,6 +22,41 @@ _F = TypeVar("_F", bound=Callable)
 
 
 class _HeaderInterface(TableComponent):
+    """
+    Interface to the table {index/columns} header.
+
+    Similar to pandas.DataFrame.{index/columns}, you can get/set labels.
+
+    >>> print(table.{index/columns}[0])
+    >>> table.{index/columns}[0] = 'new_label'
+
+    Use :meth:`selected` to get/set selected ranges.
+
+    >>> table.{index/columns}.selected
+    >>> table.{index/columns}.selected = [0, 1, 2]
+    >>> table.{index/columns}.selected = [slice(0, 3), slice(6, 8)]
+
+    Use :meth:`insert` / :meth:`remove` to run insert/remove command in
+    spreadsheet.
+
+    >>> table.{index/columns}.insert(at=0, count=2)
+    >>> table.{index/columns}.remove(at=0, count=2)
+
+    Use ``register_action`` to register a contextmenu function.
+
+    >>> @table.{index/columns}.register_action("My Action")
+    >>> def my_action(index):
+    ...     # do something
+
+    Many other pandas.Index methods are also available.
+
+    >>> table.{index/columns}.str.contains('foo')
+    >>> table.{index/columns}.isin(['foo', 'bar'])
+    >>> table.{index/columns}.get_loc('foo')
+    """
+
+    _AXIS_NUMBER: int
+
     def _get_axis(self) -> pd.Index:
         raise NotImplementedError()
 
@@ -65,14 +100,15 @@ class _HeaderInterface(TableComponent):
 
     @property
     def str(self):
+        """The string accessor to the header."""
         return self._get_axis().str
 
     def get_loc(self, key: str) -> int:
-        """Get the location of a column."""
+        """Get the location of a label."""
         return self._get_axis().get_loc(key)
 
     def isin(self, values) -> np.ndarray:
-        """Return a boolean array of whether each value is found in the passed values."""
+        """Return a boolean array of whether each is found in the passed values."""
         return self._get_axis().isin(values)
 
     def coerce_name(self, name: str, start: int | None = None) -> str:
@@ -95,7 +131,7 @@ class _HeaderInterface(TableComponent):
     # fmt: on
 
     def register_action(self, val: str | Callable[[int], Any]):
-        """Register an contextmenu action to the tablelist."""
+        """Register an contextmenu action to the header."""
         header = self._get_header()
         if isinstance(val, str):
             return header.registerAction(val)
@@ -105,9 +141,19 @@ class _HeaderInterface(TableComponent):
         else:
             raise ValueError("input must be a string or callable.")
 
+    @property
+    def selected(self) -> list[slice]:
+        """Return the selected ranges."""
+        smodel = self.parent._qwidget._qtable_view._selection_model
+        out = [
+            smodel.ranges[i][self._AXIS_NUMBER] for i in smodel._col_selection_indices
+        ]
+        return out
+
 
 class VerticalHeaderInterface(_HeaderInterface):
-    """The interface for the vertical header of the tablelist."""
+    __doc__ = _HeaderInterface.__doc__.replace("{index/columns}", "index")
+    _AXIS_NUMBER = 0
 
     def _get_axis(self) -> pd.Index:
         return self.parent._qwidget.model().df.index
@@ -117,13 +163,6 @@ class VerticalHeaderInterface(_HeaderInterface):
 
     def _get_header(self) -> QDataFrameHeaderView:
         return self.parent._qwidget._qtable_view.verticalHeader()
-
-    @property
-    def selected(self) -> list[slice]:
-        """Return the selected row ranges."""
-        smodel = self.parent._qwidget._qtable_view._selection_model
-        out = [smodel.ranges[i][0] for i in smodel._row_selection_indices]
-        return out
 
     def insert(self, at: int, count: int):
         """Insert `count` rows at the given position."""
@@ -135,9 +174,22 @@ class VerticalHeaderInterface(_HeaderInterface):
         sheet = self._assert_spreadsheet()
         sheet._qwidget.removeRows(at, count)
 
+    @_HeaderInterface.selected.setter
+    def selected(self, slices: list[slice]):
+        """Set the selected ranges."""
+        smodel = self.parent._qwidget._qtable_view._selection_model
+        smodel.clear()
+        csl = slice(0, smodel._col_count_getter())
+        smodel.extend(
+            ((_as_slice(sl), csl) for sl in slices),
+            row=True,
+        )
+        self.parent.refresh()
+
 
 class HorizontalHeaderInterface(_HeaderInterface):
-    """The interface for the horizontal header of the tablelist."""
+    __doc__ = _HeaderInterface.__doc__.replace("{index/columns}", "columns")
+    _AXIS_NUMBER = 1
 
     def _get_axis(self) -> pd.Index:
         return self.parent._qwidget.model().df.columns
@@ -148,13 +200,6 @@ class HorizontalHeaderInterface(_HeaderInterface):
     def _get_header(self) -> QDataFrameHeaderView:
         return self.parent._qwidget._qtable_view.horizontalHeader()
 
-    @property
-    def selected(self) -> list[slice]:
-        """Return the selected row ranges."""
-        smodel = self.parent._qwidget._qtable_view._selection_model
-        out = [smodel.ranges[i][1] for i in smodel._col_selection_indices]
-        return out
-
     def insert(self, at: int, count: int):
         """Insert `count` columns at the given position."""
         sheet = self._assert_spreadsheet()
@@ -164,3 +209,22 @@ class HorizontalHeaderInterface(_HeaderInterface):
         """Remove `count` columns at the given position."""
         sheet = self._assert_spreadsheet()
         sheet._qwidget.removeColumns(at, count)
+
+    @_HeaderInterface.selected.setter
+    def selected(self, slices: list[slice]):
+        """Set the selected ranges."""
+        smodel = self.parent._qwidget._qtable_view._selection_model
+        smodel.clear()
+        rsl = slice(0, smodel._row_count_getter())
+        smodel.extend(
+            ((rsl, _as_slice(sl)) for sl in slices),
+            column=True,
+        )
+        self.parent.refresh()
+
+
+def _as_slice(x: int | slice) -> slice:
+    if isinstance(x, slice):
+        return x
+    else:
+        return slice(x, x + 1)

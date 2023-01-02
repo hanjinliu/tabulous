@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import logging
+import ast
 from typing import TYPE_CHECKING, Sequence
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
@@ -13,7 +14,7 @@ from tabulous._sort_filter_proxy import (
     ComposableFilter,
     ComposableSorter,
 )
-from magicgui.widgets import ComboBox
+from superqt import QEnumComboBox
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -155,10 +156,7 @@ class QHeaderFilterButton(_QHeaderSectionButton):
             else:
                 raise RuntimeError("Current proxy is not a ComposableFilter.")
             # TODO: this is incompatible with undo/redo
-            # if info.type is FilterType.none:
-            #     self._opacity = 0.3
-            # else:
-            #     self._opacity = 0.7
+            # self._opacity = 0.3 if info.type is FilterType.none else 0.7
             # self._effect.setOpacity(self._opacity)
             return None
 
@@ -177,7 +175,7 @@ class QHeaderFilterButton(_QHeaderSectionButton):
         if not isinstance(f, ComposableFilter):
             table._set_proxy(ComposableFilter())
         column = table.model().df.columns[index]
-        menu = _QFilterMenu(table._get_sub_frame(column))
+        menu = _QFilterMenu(table._get_sub_frame(column), parent=self)
         self.setMenu(menu)
         menu._filter_widget.called.connect(_filter)
         menu._filter_widget.reset.connect(_reset)
@@ -206,6 +204,10 @@ class _QFilterMenu(QtW.QMenu):
         self.addAction(action)
         self._filter_widget.requireResize.connect(self.resize)
 
+    def showEvent(self, a0: QtGui.QShowEvent) -> None:
+        self._filter_widget._cbox.setFocus()
+        return super().showEvent(a0)
+
 
 class _QFilterWidget(QtW.QWidget):
     called = Signal(FilterInfo)
@@ -216,11 +218,9 @@ class _QFilterWidget(QtW.QWidget):
         super().__init__(parent)
         self.setMinimumWidth(150)
         self._ds = ds
-        self._cbox = ComboBox(
-            value=FilterType.none, choices=[(a.repr, a) for a in FilterType]
-        )
-        self._cbox.min_width = 100
-        self._cbox.native.setFont(QtGui.QFont("Arial", 10))
+        self._cbox = QEnumComboBox(enum_class=FilterType)
+        self._cbox.setMinimumWidth(100)
+        self._cbox.setFont(QtGui.QFont("Arial", 10))
         self._value_edit = QtW.QLineEdit()
         self._string_edit = QtW.QLineEdit()
         self._value_edit.setFixedWidth(84)
@@ -232,36 +232,46 @@ class _QFilterWidget(QtW.QWidget):
         self._reset_button.setToolTip("Reset the filter of the column")
         self._setup_ui()
 
-        self._cbox.changed.connect(self._type_changed)
+        self._cbox.currentEnumChanged.connect(self._type_changed)
         self._call_button.clicked.connect(self._call_button_clicked)
         self._reset_button.clicked.connect(lambda: self.reset.emit())
         self._type_changed(FilterType.none)
 
     def _type_changed(self, val: FilterType):
-        self._value_edit.setVisible(val.requires_number)
-        self._string_edit.setVisible(val.requires_text)
-        self._unique_select.setVisible(val.requires_list)
+        self._value_edit.setVisible(False)
+        self._string_edit.setVisible(False)
+        self._unique_select.setVisible(False)
         if val.requires_list:
+            self._unique_select.setVisible(True)
             self._unique_select.setChoices(self.fetch_unique())
-
+        elif val.requires_number:
+            self._value_edit.setVisible(True)
+            self._value_edit.setFocus()
+        elif val.requires_text:
+            self._string_edit.setVisible(True)
+            self._string_edit.setFocus()
+        elif val is not FilterType.none:
+            raise RuntimeError(f"Unreachable: {val}")
         self.requireResize.emit(self.sizeHint())
 
     def _call_button_clicked(self):
         return self.called.emit(self.get_filter_info())
 
     def get_filter_info(self) -> FilterInfo:
-        ftype: FilterType = self._cbox.value
+        ftype: FilterType = self._cbox.currentEnum()
         if ftype.requires_number:
-            arg = float(self._value_edit.text())
+            arg = ast.literal_eval(self._value_edit.text())
         elif ftype.requires_text:
             arg = self._string_edit.text()
         elif ftype.requires_list:
             arg = self._unique_select.value()
-        return FilterInfo(self._cbox.value, arg)
+        else:
+            arg = None
+        return FilterInfo(ftype, arg)
 
     def fetch_unique(self):
         unique = self._ds.unique()
-        if len(unique) > 54:
+        if len(unique) > 108:
             raise ValueError("Too many unique values")
         return unique
 
@@ -274,9 +284,7 @@ class _QFilterWidget(QtW.QWidget):
         _middle = QtW.QWidget()
         _middle_layout = QtW.QHBoxLayout()
         _middle_layout.setContentsMargins(0, 0, 0, 0)
-        _middle_layout.addWidget(
-            self._cbox.native, alignment=Qt.AlignmentFlag.AlignLeft
-        )
+        _middle_layout.addWidget(self._cbox, alignment=Qt.AlignmentFlag.AlignLeft)
         _middle_layout.addWidget(
             self._value_edit, alignment=Qt.AlignmentFlag.AlignRight
         )
@@ -311,7 +319,7 @@ class QMultiCheckBoxes(QtW.QListWidget):
         self._choices = choices
         for c in choices:
             text = repr(c)
-            item = QtW.QListWidgetItem(text)
+            item = QtW.QListWidgetItem()
             self.addItem(item)
             checkbox = QtW.QCheckBox(text)
             checkbox.setChecked(False)

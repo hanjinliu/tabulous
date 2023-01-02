@@ -88,6 +88,21 @@ class RangesModel(TableAnchorBase):
             self._col_selection_indices.add(len(self._ranges) - 1)
         return None
 
+    def extend(
+        self, ranges: Iterable[Range], row: bool = False, column: bool = False
+    ) -> None:
+        """Extend the ranges with a list of ranges."""
+        if self._is_blocked:
+            return None
+        len0 = len(self._ranges)
+        self._ranges.extend(ranges)
+        len1 = len(self._ranges)
+        if row:
+            self._row_selection_indices.update(range(len0, len1))
+        elif column:
+            self._col_selection_indices.update(range(len0, len1))
+        return None
+
     def update_last(self, range: Range, row: bool = False, col: bool = False) -> None:
         """Update the last range with new one."""
         if self._is_blocked:
