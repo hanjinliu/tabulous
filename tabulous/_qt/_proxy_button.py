@@ -107,6 +107,8 @@ class QHeaderSortButton(_QHeaderSectionButton):
             f = table._proxy._obj
             if isinstance(f, ComposableSorter):
                 table._set_proxy(f.switch())
+            elif f is None:
+                table._set_proxy(ComposableSorter({index}, True))
             else:
                 raise RuntimeError("Sort function is not a ComposableSorter.")
 
@@ -152,7 +154,9 @@ class QHeaderFilterButton(_QHeaderSectionButton):
         def _filter(info: FilterInfo):
             f = table._proxy._obj
             if isinstance(f, ComposableFilter):
-                table._set_proxy(f.compose(info.type, index, info.arg))
+                table._set_proxy(f.compose(index, info))
+            elif f is None:
+                table._set_proxy(ComposableFilter({index: info}))
             else:
                 raise RuntimeError("Current proxy is not a ComposableFilter.")
             # TODO: this is incompatible with undo/redo

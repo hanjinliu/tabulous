@@ -10,17 +10,13 @@ from typing import (
 )
 
 import numpy as np
-from tabulous.types import ProxyType
+from tabulous.types import ProxyType, _IntArray, _BoolArray, _IntOrBoolArray
 from ._base import TableComponent
 from tabulous._sort_filter_proxy import ComposableFilter, ComposableSorter
 
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
     import pandas as pd
     from tabulous.widgets._table import TableBase
-
-    _SortArray = NDArray[np.integer]
-    _FilterArray = NDArray[np.bool_]
 
 
 class ProxyInterface(TableComponent):
@@ -55,7 +51,7 @@ class ProxyInterface(TableComponent):
     @overload
     def sort(self, by: str | Sequence[str], ascending: bool = True, compose: bool = False) -> None: ...  # noqa: E501
     @overload
-    def sort(self, func: Callable[[pd.DataFrame], _SortArray]) -> None: ...
+    def sort(self, func: Callable[[pd.DataFrame], _IntArray]) -> None: ...
     # fmt: on
 
     def sort(self, by, ascending: bool = True, compose: bool = False) -> None:
@@ -74,7 +70,7 @@ class ProxyInterface(TableComponent):
                 )
 
             @wraps(by)
-            def _sort(df: pd.DataFrame) -> _SortArray:
+            def _sort(df: pd.DataFrame) -> _IntArray:
                 arr = np.asarray(by(df))
                 if arr.ndim != 1:
                     raise TypeError("The callable must return a 1D array.")
@@ -92,7 +88,7 @@ class ProxyInterface(TableComponent):
         with table.undo_manager.merging(
             lambda cmds: f"table.proxy.sort(by={by!r}, ascending={ascending!r})"
         ):
-            if not (compose and isinstance(table.proxy.func, ComposableSorter)):
+            if not (compose and isinstance(table.proxy.obj, ComposableSorter)):
                 table.proxy.reset()
             for x in by:
                 index = table.columns.get_loc(x)
@@ -109,7 +105,7 @@ class ProxyInterface(TableComponent):
     @overload
     def filter(self, expr: str, namespace: dict = {}) -> None: ...
     @overload
-    def filter(self, func: Callable[[pd.DataFrame], _FilterArray]) -> None: ...
+    def filter(self, func: Callable[[pd.DataFrame], _BoolArray]) -> None: ...
     # fmt: on
 
     def filter(self, expr: str, namespace: dict = {}) -> None:
@@ -119,7 +115,7 @@ class ProxyInterface(TableComponent):
             if namespace:
                 raise TypeError("Cannot use a namespace with a callable.")
 
-            def _filter(df: pd.DataFrame) -> _FilterArray:
+            def _filter(df: pd.DataFrame) -> _BoolArray:
                 arr = np.asarray(func(df))
                 if arr.ndim != 1:
                     raise TypeError("The callable must return a 1D array.")
@@ -156,7 +152,7 @@ class ProxyInterface(TableComponent):
         with table.undo_manager.merging(
             lambda cmds: f"table.proxy.add_filter_buttons({columns!r})"
         ):
-            if not isinstance(table.proxy.func, ComposableFilter):
+            if not isinstance(table.proxy.obj, ComposableFilter):
                 table.proxy.reset()
             for x in reversed(columns):
                 index = table.columns.get_loc(x)
@@ -196,8 +192,24 @@ class ProxyInterface(TableComponent):
         """Reset filter or sort."""
         return self._set_value(None)
 
-    def set(self, proxy: ProxyType) -> None:
+    def set(self, proxy: ProxyType, check_duplicate: bool = True) -> None:
         """Set filter or sort."""
+        if isinstance(proxy, (list, tuple, set)):
+            proxy = np.asarray(proxy)
+        if check_duplicate:
+            if callable(proxy):
+
+                @wraps(proxy)
+                def _wrapped(df: pd.DataFrame) -> ProxyType:
+                    out = proxy(df)
+                    return _check_duplicate(out)
+
+                _proxy = _wrapped
+            elif proxy is None:
+                _proxy = None
+            else:
+                _proxy = _check_duplicate(np.asarray(proxy))
+            return self._set_value(_proxy)
         return self._set_value(proxy)
 
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -214,9 +226,14 @@ class ProxyInterface(TableComponent):
         return self._get_proxy_object().proxy_type
 
     @property
-    def func(self) -> ProxyType | None:
-        """The proxy function."""
+    def obj(self) -> ProxyType | None:
+        """The proxy object."""
         return self._get_proxy_object()._obj
+
+    @property
+    def is_ordered(self) -> bool:
+        """Return True if the proxy does not change the order of rows"""
+        return self._get_proxy_object().is_ordered
 
     def _set_value(self, value: Any):
         return self.parent._qwidget.setProxy(value)
@@ -227,3 +244,9 @@ class ProxyInterface(TableComponent):
     def _get_proxy_object(self):
         """Return the current proxy function."""
         return self.parent._qwidget._proxy
+
+
+def _check_duplicate(out: _IntOrBoolArray):
+    if out.dtype.kind in "ui" and np.unique(out).size != out.size:
+        raise ValueError(f"The proxy contains duplicates: {out!r}")
+    return out

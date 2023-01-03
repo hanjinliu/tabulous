@@ -1,8 +1,9 @@
-from tabulous import TableViewer
+from tabulous import TableViewer, commands as cmds
 from unittest.mock import MagicMock
-import pytest
+import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
+import pytest
 
 from ._utils import selection_equal, slice_equal
 
@@ -83,8 +84,6 @@ def test_list_like_methods():
     assert selection_equal(table.selections, [])
 
 def test_highlight_translation():
-    import numpy as np
-
     viewer = TableViewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((10, 10)))
     sheet.highlights.append((slice(2, 5), slice(2, 5)))
@@ -105,3 +104,14 @@ def test_highlight_translation():
     assert selection_equal(sheet.highlights, [(slice(2, 5), slice(2, 3))])
     sheet._qwidget.removeColumns(2, 1)
     assert selection_equal(sheet.highlights, [])
+
+def test_highlight_with_proxy():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((5, 5)))
+    sheet.proxy.set([1, 3, 2, 4, 0])  # index is in this order
+    sheet.selections = [((slice(1, 2), slice(0, 5)))]
+    cmds.selection.add_highlight(viewer)
+    assert selection_equal(sheet.highlights, [(slice(3, 4), slice(0, 5))])
+    sheet.selections = [((slice(1, 3), slice(0, 5)))]
+    with pytest.raises(Exception):
+        cmds.selection.add_highlight(viewer)

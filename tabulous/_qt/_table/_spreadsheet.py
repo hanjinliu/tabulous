@@ -103,8 +103,8 @@ class SpreadSheetModel(AbstractDataFrameModel):
                         return QtCore.QVariant()
                     rgba = normalize_color(col)
                 except Exception as e:
-                    # since this method is called many times, errorous function should be
-                    # deleted from the mapper.
+                    # since this method is called many times, errorous function should
+                    # be deleted from the mapper.
                     self._background_colormap.pop(colname)
                     raise e
                 return QtGui.QColor(*rgba)
@@ -288,11 +288,6 @@ class QSpreadSheet(QMutableSimpleTable):
             return self.tableSlice()
         return self._proxy.apply(self.tableSlice(), ref=self.getDataFrame)
 
-    def _get_proxy_source_index(self, r: int):
-        if self._proxy.proxy_type == "none":
-            return self._proxy.get_source_index(r, self.tableSlice())
-        return self._proxy.get_source_index(r, self.getDataFrame())
-
     __delete = object()
 
     @QMutableSimpleTable._mgr.interface
@@ -362,7 +357,7 @@ class QSpreadSheet(QMutableSimpleTable):
                 # do not expand the data frame.
                 return
             if isinstance(r, int) and isinstance(c, int) and value == "NA":
-                # if user start editing an empty cell and did nothing, do not set string "NA".
+                # if user start editing an empty cell and did nothing, don't set "NA".
                 model = self._qtable_view.model()
                 index = model.index(r, c, QtCore.QModelIndex())
                 text = model.data(index, Qt.ItemDataRole.DisplayRole)
@@ -426,6 +421,8 @@ class QSpreadSheet(QMutableSimpleTable):
         if not self.isEditable():
             return None
         self._data_raw = _pad_dataframe(self._data_raw, nrows, ncols)
+        if self._proxy.proxy_type != "none":
+            self._set_proxy(self._proxy)  # need update!
         new_shape = self._data_raw.shape
         self.model().setShape(
             new_shape[0] + _OUT_OF_BOUND_R,
@@ -683,7 +680,10 @@ class QSpreadSheet(QMutableSimpleTable):
             return None
 
         if widget.widget_type in ("CheckBox", "RadioButton"):
-            converter = lambda x: x != "False"
+
+            def converter(x):
+                return x != "False"
+
         elif widget.widget_type in ("SpinBox", "Slider"):
             converter = int
         elif widget.widget_type in ("FloatSpinBox", "FloatSlider"):

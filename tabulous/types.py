@@ -15,7 +15,7 @@ from typing import (
 from enum import Enum
 
 import numpy as np
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -32,7 +32,6 @@ __all__ = [
     "TableColumn",
     "TableDataTuple",
     "TableInfo",
-    "TablePosition",
     "ItemInfo",
     "HeaderInfo",
     "SelectionRanges",
@@ -82,7 +81,10 @@ class TableInfoInstance(Tuple["pd.DataFrame", List[str]]):
         raise TypeError(f"Type {cls.__name__} cannot be instantiated.")
 
 
-ProxyType = Union[Callable[["pd.DataFrame"], np.ndarray], np.ndarray]
+_IntArray = NDArray[np.integer]
+_BoolArray = NDArray[np.bool_]
+_IntOrBoolArray = Union[_IntArray, _BoolArray]
+ProxyType = Union[Callable[["pd.DataFrame"], _IntOrBoolArray], _IntOrBoolArray]
 
 
 class TabPosition(Enum):

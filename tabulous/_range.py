@@ -40,6 +40,10 @@ class RectRange(TableAnchorBase):
             c = slice(c, c + 1)
         return cls(r, c)
 
+    @classmethod
+    def from_shape(cls, shape: tuple[int, int]):
+        return cls(slice(0, shape[0]), slice(0, shape[1]))
+
     def __repr__(self):
         return f"RectRange[{_fmt_slice(self._rsl)}, {_fmt_slice(self._csl)}]"
 
@@ -116,7 +120,8 @@ class RectRange(TableAnchorBase):
         return f"{df_expr}.iloc[{_parse_slice(self._rsl)}, {_parse_slice(self._csl)}]"
 
 
-_DO_NOTHING = lambda *args, **kwargs: None
+def _DO_NOTHING(*args, **kwargs):
+    return None
 
 
 class AnyRange(RectRange):
@@ -129,7 +134,7 @@ class AnyRange(RectRange):
         return True
 
     def __repr__(self):
-        return f"AnyRange[...]"
+        return "AnyRange[...]"
 
     def includes(self, other: RectRange) -> bool:
         return True
@@ -156,7 +161,7 @@ class NoRange(RectRange):
         return False
 
     def __repr__(self):
-        return f"NoRange[...]"
+        return "NoRange[...]"
 
     def includes(self, other: RectRange) -> bool:
         return False

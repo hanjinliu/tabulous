@@ -7,7 +7,6 @@ import sys
 from typing import TYPE_CHECKING, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
-import pandas as pd
 
 from tabulous._qt._qt_const import MonospaceFontFamily
 from tabulous._keymap import QtKeys
@@ -58,6 +57,7 @@ class _QTableLineEdit(QtW.QLineEdit):
         self._pos = pos
         self._is_valid = True
         self._current_exception = ""
+        self._attached_tooltip = ""
         self.textChanged.connect(self._on_text_changed)
 
     @property
@@ -70,8 +70,10 @@ class _QTableLineEdit(QtW.QLineEdit):
         if value is None:
             value = ""
         elif isinstance(value, Exception):
+            # html colored text
             exc_type = type(value).__name__
-            value = f"{exc_type}: {value}"
+            text = str(value).replace("<", "&lt;").replace(">", "&gt;")
+            value = f"<b><font color='red'>{exc_type}</font></b>: {text}"
         self._current_exception = str(value)
         return self.setToolTip(self._current_exception)
 
@@ -80,6 +82,7 @@ class _QTableLineEdit(QtW.QLineEdit):
         return text.startswith(cls._EVAL_PREFIX) or text.startswith(cls._REF_PREFIX)
 
     def parentTableView(self) -> _QTableViewEnhanced:
+        """The parent table view."""
         return self.parent().parent()
 
     def _is_text_valid(self) -> bool:
@@ -144,6 +147,17 @@ class _QTableLineEdit(QtW.QLineEdit):
             painter.setPen(QtGui.QPen(self._INVALID, 3))
         painter.drawLine(p0, p1)
         painter.end()
+        return None
+
+    def attachToolTip(self, text: str) -> None:
+        """Attach a tooltip to the widget."""
+        if text:
+            point = self.mapToGlobal(self.rect().bottomLeft())
+            point.setX(point.x() - 2)
+            point.setY(point.y() - 10)
+            QtW.QToolTip.setFont(QtGui.QFont("Arial", 10))
+            QtW.QToolTip.showText(point, text, self)
+
         return None
 
 
@@ -336,7 +350,9 @@ class QCellLiteralEdit(_QTableLineEdit):
         rect = qtable.visualRect(
             qtable.model().index(*qtable._selection_model.current_index)
         )
-        line = cls(parent, table, qtable._selection_model.current_index)
+        cr, cc = qtable._selection_model.current_index
+        # cr = table._proxy.get_source_index(cr)
+        line = cls(parent, table, (cr, cc))
         line.setMinimumSize(1, 1)
         geometry = line.geometry()
         geometry.setWidth(rect.width())
@@ -386,6 +402,7 @@ class QCellLiteralEdit(_QTableLineEdit):
 
     def _on_text_changed(self, text: str) -> None:
         """Change text color to red if invalid."""
+        err_tip = ""
         if self._is_eval_like(text):
             self.mode = self.Mode.EVAL
         else:
@@ -396,7 +413,7 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         palette = QtGui.QPalette()
         self._is_valid = self._is_text_valid()
-        if self._is_valid:
+        if self._is_valid and err_tip == "":
             col = Qt.GlobalColor.black
         else:
             col = Qt.GlobalColor.red
@@ -405,6 +422,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         self.setPalette(palette)
 
         if self.mode is self.Mode.TEXT:
+            self.attachToolTip("")
             return None
 
         # draw ranges
@@ -412,6 +430,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         ranges: list[tuple[slice, slice]] = []
         for op in iter_extract(text):
             ranges.append(op.as_iloc_slices(_table.model().df))
+
         if ranges:
             new_range = MultiRectRange.from_slices(ranges)
         else:
@@ -419,6 +438,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         if self._old_range or new_range:
             _table._qtable_view._current_drawing_slot_ranges = new_range
             _table._qtable_view._update_all()
+        self.attachToolTip(err_tip)
         return None
 
     def close(self) -> None:
@@ -485,8 +505,11 @@ class QCellLiteralEdit(_QTableLineEdit):
                 return True
             try:
                 ast.parse(text)
-            except Exception:
+            except Exception as e:
+                self.current_exception = e
                 return False
+            else:
+                self.current_exception = None
             return True
         else:
             raise RuntimeError("Unreachable")
@@ -498,7 +521,7 @@ class QCellLiteralEdit(_QTableLineEdit):
 
     def _on_selection_changed(self) -> None:
         """Update text based on the current selection."""
-        qtable = self.parentTableView()
+        qtable_view = self.parentTableView()
         if self.mode is self.Mode.TEXT:
             return self.eval_and_close()
 
@@ -506,31 +529,44 @@ class QCellLiteralEdit(_QTableLineEdit):
         cursor_pos = self.cursorPosition()
 
         # prepare text
-        if len(qtable._selection_model.ranges) != 1 or cursor_pos == 0:
+        if len(qtable_view._selection_model.ranges) != 1 or cursor_pos == 0:
             # If multiple cells are selected, don't update because selection range
             # is not well-defined. If cursor position is at the beginning, don't
             # update because it is before "=".
             return None
 
-        rsl, csl = qtable._selection_model.ranges[-1]
-        _df = qtable.model().df
-        table_range = RectRange(slice(0, _df.shape[0]), slice(0, _df.shape[1]))
+        qtable = cast("QMutableTable", qtable_view.parentTable())
+        _df_filt = qtable_view.model().df
+        _df_ori = qtable._data_raw
+        rsl, csl = qtable_view._selection_model.ranges[-1]
+        if not qtable._proxy.is_ordered and not _is_size_one(rsl):
+            self.attachToolTip(
+                "Table proxy is not ordered.\nCannot create cell "
+                "references from table selection."
+            )
+            return None
+        if rsl.stop is not None and rsl.stop > _df_filt.shape[0]:
+            rsl = slice(rsl.start, _df_filt.shape[0])
+        rsl = qtable._proxy.get_source_slice(rsl)
+        table_range = RectRange.from_shape(_df_filt.shape)
 
         # out of border
         if not table_range.overlaps_with(RectRange(rsl, csl)):
             return None
 
-        column_selected = len(qtable._selection_model._col_selection_indices) > 0
-        selop = construct(rsl, csl, _df, method="iloc", column_selected=column_selected)
+        column_selected = len(qtable_view._selection_model._col_selection_indices) > 0
+        selop = construct(
+            rsl, csl, _df_ori, method="iloc", column_selected=column_selected
+        )
 
         if selop is None:  # out of bound
             return None
 
         # get string that represents the selection
-        if selop.area(_df) > 1:
+        if selop.area(_df_ori) > 1:
             to_be_added = selop.fmt("df")
         else:
-            to_be_added = selop.resolve_indices(_df, (1, 1)).fmt_scalar("df")
+            to_be_added = selop.resolve_indices(_df_ori, (1, 1)).fmt_scalar("df")
 
         # add the representation to the text at the proper position
         if cursor_pos == 0:
@@ -774,3 +810,9 @@ class QCellLabelEdit(QtW.QLineEdit):
         line.setFocus()
         line.selectAll()
         return line
+
+
+def _is_size_one(sl: slice) -> bool:
+    if sl.start is None or sl.stop is None:
+        return False
+    return sl.start == sl.stop - 1

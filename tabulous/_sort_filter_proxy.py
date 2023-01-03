@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Callable, NamedTuple
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, overload
 import numpy as np
 from enum import Enum
-from tabulous.types import ProxyType
 from functools import reduce
+from tabulous.types import ProxyType, _IntArray, _IntOrBoolArray
+from tabulous.exceptions import TableNotOrderedError
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -30,11 +31,16 @@ class SortFilterProxy:
     def __init__(self, obj: ProxyType | None = None):
         if isinstance(obj, SortFilterProxy):
             obj = obj._obj
+        if isinstance(obj, Composable) and obj.is_identity():
+            obj = None
         self._obj: ProxyType | None = obj
         if self._obj is None:
             self._proxy_type = ProxyTypes.none
+            self._is_ordered = True
         else:
             self._proxy_type = ProxyTypes.unknown
+            self._is_ordered = False
+        self._last_indexer = None
 
     def __repr__(self) -> str:
         cname = type(self).__name__
@@ -44,6 +50,14 @@ class SortFilterProxy:
     def proxy_type(self) -> ProxyTypes:
         """The proxy type."""
         return self._proxy_type
+
+    @property
+    def is_ordered(self) -> bool:
+        return self._is_ordered
+
+    @property
+    def last_indexer(self) -> _IntOrBoolArray | None:
+        return self._last_indexer
 
     def apply(
         self,
@@ -65,6 +79,7 @@ class SortFilterProxy:
         sl = self._obj
         if sl is None:
             return df
+        # get indexer
         if callable(sl):
             if ref is None:
                 ref_input = df
@@ -73,46 +88,109 @@ class SortFilterProxy:
             sl_filt = sl(ref_input)
         else:
             sl_filt = sl
-        if sl_filt.dtype.kind == "b":
+
+        self._last_indexer = sl_filt
+
+        if self._array_is_bool(sl_filt):
             df_filt = df[sl_filt]
-            self._proxy_type = ProxyTypes.filter
-        elif sl_filt.dtype.kind in "ui":
-            df_filt = df.iloc[sl_filt]
-            self._proxy_type = ProxyTypes.sort
         else:
-            raise TypeError(f"Invalid filter type: {sl_filt.dtype}")
+            df_filt = df.iloc[sl_filt]
         return df_filt
 
-    def get_source_index(self, r: int, df: pd.DataFrame) -> int:
+    # fmt: off
+    @overload
+    def get_source_index(self, r: int) -> int: ...
+    @overload
+    def get_source_index(self, r: slice) -> slice | _IntArray: ...
+    @overload
+    def get_source_index(self, r: list[int]) -> _IntArray: ...
+    # fmt: on
+
+    def get_source_index(self, r):
         """Get the source index of the row in the dataframe."""
         sl = self._obj
         if sl is None:
+            if isinstance(r, list):
+                r = np.array(r)
             r0 = r
         else:
             if callable(sl):
-                sl = sl(df)
-            else:
-                sl = sl
+                if self._last_indexer is not None:
+                    sl = self._last_indexer
+                else:
+                    raise RuntimeError("Call apply first!")
 
-            if sl.dtype.kind == "b":
-                r0 = np.where(sl)[0][r]
-                self._proxy_type = ProxyTypes.filter
-            elif sl.dtype.kind in "ui":
-                r0 = sl[r]
-                self._proxy_type = ProxyTypes.sort
-            else:
-                raise TypeError(f"Invalid filter type: {sl.dtype}")
+            if self._array_is_bool(sl):
+                sl = np.where(sl)[0]
+            r0 = sl[r]
         return r0
 
-    def as_indexer(self, df: pd.DataFrame) -> np.ndarray | slice:
+    def get_source_slice(self, r: slice, force_single_row: bool = False) -> slice:
+        """Get the source row slice in the dataframe."""
+        if self.proxy_type is ProxyTypes.none:
+            return r
+        start, stop = r.start, r.stop
+        if start is None:
+            start = 0
+        if stop is None:
+            if self._last_indexer is None:
+                raise ValueError("Cannot determine stop index")
+            stop = self._last_indexer.size
+        if force_single_row and start != stop - 1:
+            raise TableNotOrderedError("Only single-row selection is allowed.")
+        start, stop = self.get_source_index([start, stop - 1])
+        return slice(start, stop + 1)
+
+    def map_slice(self, r: slice) -> slice:
+        if self.proxy_type is ProxyTypes.none:
+            return r
+        start, stop = r.start, r.stop
+        if start is None:
+            start = 0
+        if stop is None:
+            if self._last_indexer is None:
+                raise ValueError("Cannot determine stop index")
+            stop = self._last_indexer.size
+        # NOTE: mapping is not defined for all sources. For example, filter slice
+        # [True, False, True] cannot map 1 because it does not exist in the
+        # filtered data.
+        if self._array_is_bool(self._last_indexer):
+            _cumsum = np.cumsum(self._last_indexer)
+            return slice(max(_cumsum[start] - 1, 0), max(_cumsum[stop - 1], 0))
+        elif start == stop - 1:
+            indices = np.where(self._last_indexer == start)[0]
+            if len(indices) > 0:
+                idx = indices[0]
+                return slice(idx, idx + 1)
+            raise ValueError(f"Cannot map slice {r} to source")
+        else:
+            raise TableNotOrderedError("Cannot map slice if proxy is not ordered.")
+
+    def as_indexer(self, df: pd.DataFrame | None) -> _IntOrBoolArray | slice:
         sl = self._obj
         if sl is None:
             return slice(None)
         if callable(sl):
-            sl_filt = sl(df)
+            if self._last_indexer is not None:
+                sl_filt = self._last_indexer
+            else:
+                if df is None:
+                    raise ValueError("Cannot determine indexer")
+                sl_filt = sl(df)
         else:
             sl_filt = sl
         return sl_filt
+
+    def _array_is_bool(self, sl: _IntOrBoolArray) -> bool:
+        if sl.dtype.kind == "b":
+            self._proxy_type = ProxyTypes.filter
+            self._is_ordered = True
+        elif sl.dtype.kind in "ui":
+            self._proxy_type = ProxyTypes.sort
+            self._is_ordered = False
+        else:
+            raise TypeError(f"Invalid filter type: {sl.dtype}")
+        return self._is_ordered
 
 
 class FilterType(Enum):
@@ -126,7 +204,7 @@ class FilterType(Enum):
     lt = "lt"
     le = "le"
     between = "between"
-    isin = "contains"
+    isin = "isin"
     startswith = "startswith"
     endswith = "endswith"
     contains = "contains"
@@ -263,12 +341,12 @@ class ComposableFilter(Composable):
         """Copy the filter object."""
         return self.__class__(self._dict.copy())
 
-    def compose(self, type: FilterType, column: int, arg: Any) -> ComposableFilter:
+    def compose(self, column: int, info: FilterInfo) -> ComposableFilter:
         """Compose with an additional column filter."""
-        if type is FilterType.none:
+        if info.type is FilterType.none:
             return self
         new = self.copy()
-        new._dict[column] = FilterInfo(FilterType(type), arg)
+        new._dict[column] = info
         return new
 
     def decompose(self, column: int) -> ComposableFilter:
