@@ -152,6 +152,12 @@ class SortFilterProxy:
         if self._array_is_bool(self._last_indexer):
             _cumsum = np.cumsum(self._last_indexer)
             return slice(max(_cumsum[start] - 1, 0), max(_cumsum[stop - 1], 0))
+        elif start == stop - 1:
+            indices = np.where(self._last_indexer == start)[0]
+            if len(indices) > 0:
+                idx = indices[0]
+                return slice(idx, idx + 1)
+            raise ValueError(f"Cannot map slice {r} to source")
         else:
             raise ValueError("Cannot map slice if proxy is not ordered.")
 

@@ -405,11 +405,6 @@ class QCellLiteralEdit(_QTableLineEdit):
         err_tip = ""
         if self._is_eval_like(text):
             self.mode = self.Mode.EVAL
-            if not self.parentTableView().parentTable()._proxy.is_ordered:
-                err_tip = (
-                    "Table proxy is not ordered.\nCannot create cell "
-                    "references from table selection."
-                )
         else:
             self.mode = self.Mode.TEXT
 
@@ -544,7 +539,11 @@ class QCellLiteralEdit(_QTableLineEdit):
         _df_filt = qtable_view.model().df
         _df_ori = qtable._data_raw
         rsl, csl = qtable_view._selection_model.ranges[-1]
-        if not qtable._proxy.is_ordered:
+        if not qtable._proxy.is_ordered and not _is_size_one(rsl):
+            self.attachToolTip(
+                "Table proxy is not ordered.\nCannot create cell "
+                "references from table selection."
+            )
             return None
         if rsl.stop is not None and rsl.stop > _df_filt.shape[0]:
             rsl = slice(rsl.start, _df_filt.shape[0])
@@ -811,3 +810,9 @@ class QCellLabelEdit(QtW.QLineEdit):
         line.setFocus()
         line.selectAll()
         return line
+
+
+def _is_size_one(sl: slice) -> bool:
+    if sl.start is None or sl.stop is None:
+        return False
+    return sl.start == sl.stop - 1

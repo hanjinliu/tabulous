@@ -585,7 +585,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # in-cell slot source ranges of the current index
         color_cycle = _color_cycle()
-        if (rng := self._current_drawing_slot_ranges) and is_ordered:
+        if rng := self._current_drawing_slot_ranges:
             for rect in self._rect_from_ranges(rng.iter_ranges(), map=True):
                 rect.adjust(1, 1, -1, -1)
                 pen = QtGui.QPen(next(color_cycle), 3)
@@ -630,7 +630,11 @@ class _QTableViewEnhanced(QtW.QTableView):
         prx = self.parentTable()._proxy
         for rr, cc in ranges:
             if map:
-                rr = prx.map_slice(rr)
+                # can only draw single-row selections during unordered state
+                if rr.start == rr.stop - 1:
+                    rr = prx.map_slice(rr)
+                else:
+                    continue
             top_left = model.index(rr.start, cc.start)
             bottom_right = model.index(rr.stop - 1, cc.stop - 1)
             rect = self.visualRect(top_left) | self.visualRect(bottom_right)
