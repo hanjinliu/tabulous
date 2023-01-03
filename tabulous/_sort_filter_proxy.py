@@ -4,8 +4,9 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Callable, NamedTuple, overload
 import numpy as np
 from enum import Enum
-from tabulous.types import ProxyType, _IntArray, _IntOrBoolArray
 from functools import reduce
+from tabulous.types import ProxyType, _IntArray, _IntOrBoolArray
+from tabulous.exceptions import TableNotOrderedError
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -124,7 +125,7 @@ class SortFilterProxy:
             r0 = sl[r]
         return r0
 
-    def get_source_slice(self, r: slice) -> slice:
+    def get_source_slice(self, r: slice, force_single_row: bool = False) -> slice:
         """Get the source row slice in the dataframe."""
         if self.proxy_type is ProxyTypes.none:
             return r
@@ -135,6 +136,8 @@ class SortFilterProxy:
             if self._last_indexer is None:
                 raise ValueError("Cannot determine stop index")
             stop = self._last_indexer.size
+        if force_single_row and start != stop - 1:
+            raise TableNotOrderedError("Only single-row selection is allowed.")
         start, stop = self.get_source_index([start, stop - 1])
         return slice(start, stop + 1)
 
@@ -161,7 +164,7 @@ class SortFilterProxy:
                 return slice(idx, idx + 1)
             raise ValueError(f"Cannot map slice {r} to source")
         else:
-            raise ValueError("Cannot map slice if proxy is not ordered.")
+            raise TableNotOrderedError("Cannot map slice if proxy is not ordered.")
 
     def as_indexer(self, df: pd.DataFrame | None) -> _IntOrBoolArray | slice:
         sl = self._obj

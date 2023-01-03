@@ -18,6 +18,10 @@ class TriggerParent(RuntimeError):
     """Should try to trigger parent's keybinding instead of the current one"""
 
 
+class TableNotOrderedError(ValueError):
+    """Raised when an operation is undefined if table is not ordered."""
+
+
 class ExceptionHandler:
     """Handle exceptions in the GUI thread."""
 

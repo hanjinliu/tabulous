@@ -99,7 +99,7 @@ def delete_values(viewer: TableViewerBase):
 def add_highlight(viewer: TableViewerBase):
     """Add highlight to cells"""
     qwidget = _utils.get_table(viewer)._qwidget
-    qwidget.setHighlights(qwidget.highlights() + qwidget.selections())
+    qwidget.setHighlights(qwidget.highlights() + qwidget.selections(map=True))
 
 
 def delete_selected_highlight(viewer: TableViewerBase):

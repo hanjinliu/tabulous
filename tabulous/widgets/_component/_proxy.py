@@ -10,17 +10,13 @@ from typing import (
 )
 
 import numpy as np
-from tabulous.types import ProxyType
+from tabulous.types import ProxyType, _IntArray, _BoolArray, _IntOrBoolArray
 from ._base import TableComponent
 from tabulous._sort_filter_proxy import ComposableFilter, ComposableSorter
 
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
     import pandas as pd
     from tabulous.widgets._table import TableBase
-
-    _IntArray = NDArray[np.integer]
-    _BoolArray = NDArray[np.bool_]
 
 
 class ProxyInterface(TableComponent):
@@ -196,8 +192,24 @@ class ProxyInterface(TableComponent):
         """Reset filter or sort."""
         return self._set_value(None)
 
-    def set(self, proxy: ProxyType) -> None:
+    def set(self, proxy: ProxyType, check_duplicate: bool = True) -> None:
         """Set filter or sort."""
+        if isinstance(proxy, (list, tuple, set)):
+            proxy = np.asarray(proxy)
+        if check_duplicate:
+            if callable(proxy):
+
+                @wraps(proxy)
+                def _wrapped(df: pd.DataFrame) -> ProxyType:
+                    out = proxy(df)
+                    return _check_duplicate(out)
+
+                _proxy = _wrapped
+            elif proxy is None:
+                _proxy = None
+            else:
+                _proxy = _check_duplicate(np.asarray(proxy))
+            return self._set_value(_proxy)
         return self._set_value(proxy)
 
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -232,3 +244,9 @@ class ProxyInterface(TableComponent):
     def _get_proxy_object(self):
         """Return the current proxy function."""
         return self.parent._qwidget._proxy
+
+
+def _check_duplicate(out: _IntOrBoolArray):
+    if out.dtype.kind in "ui" and np.unique(out).size != out.size:
+        raise ValueError(f"The proxy contains duplicates: {out!r}")
+    return out

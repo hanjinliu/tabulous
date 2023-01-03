@@ -260,9 +260,15 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.selectionChangedSignal.connect(slot)
         return slot
 
-    def selections(self) -> SelectionType:
+    def selections(self, map: bool = False) -> SelectionType:
         """Get list of selections as slicable tuples"""
-        return self._qtable_view._selection_model.as_ranges()
+        ranges = self._qtable_view._selection_model.as_ranges()
+        if not map:
+            return ranges
+        return [
+            (self._proxy.get_source_slice(r, force_single_row=True), c)
+            for r, c in ranges
+        ]
 
     def setSelections(self, selections: SelectionType):
         """Set list of selections."""
