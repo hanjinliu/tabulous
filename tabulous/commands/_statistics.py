@@ -16,6 +16,7 @@ from magicgui.widgets import (
 
 from tabulous._magicgui import find_current_table, SelectionWidget
 from tabulous._selection_op import SelectionOperator
+from tabulous.exceptions import UnreachableError
 from tabulous.widgets import Table
 
 
@@ -81,7 +82,7 @@ class MeltedDataContainer(DataContainer):
         label = np.asarray(label).ravel()
         data = np.asarray(data).ravel()
         unique_labels = np.unique(label)
-        return {l: data[label == l] for l in unique_labels}
+        return {_l: data[label == _l] for _l in unique_labels}
 
 
 class UnstructuredDataContainer(DataContainer):
@@ -148,7 +149,7 @@ class TtestRunner(TestRunner):
         elif self._test_type.value == "Related":
             return stats.ttest_rel(data[0], data[1], **kwargs)
         else:
-            raise RuntimeError("Unreachable")
+            raise UnreachableError(self._test_type)
 
 
 class MannwhitneyuRunner(TestRunner):

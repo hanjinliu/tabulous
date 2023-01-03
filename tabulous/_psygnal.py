@@ -14,19 +14,24 @@ from typing import (
     TypeVar,
     get_type_hints,
     Union,
+    Type,
+    NoReturn,
+    cast,
 )
-from typing_extensions import get_args, get_origin, ParamSpec, Self, Literal
+from typing_extensions import get_args, get_origin, ParamSpec, Self
+import warnings
 import weakref
 from contextlib import suppress, contextmanager
 from functools import wraps, partial, lru_cache, reduce
 import inspect
 from inspect import Parameter, Signature, isclass
+import threading
 
-import numpy as np
 from psygnal import EmitLoopError
 
 from tabulous._range import RectRange, AnyRange, MultiRectRange, TableAnchorBase
 from tabulous._selection_op import iter_extract_with_range
+from tabulous.exceptions import UnreachableError
 
 __all__ = ["SignalArray"]
 
@@ -140,10 +145,10 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
     ):
         self._expr = expr
         super().__init__(lambda: self.call(), range)
-        self._pos = pos
         self._table = weakref.ref(table)
         self._last_destination: tuple[slice, slice] | None = None
         self._current_error: Exception | None = None
+        self.set_pos(pos)
 
     def __repr__(self) -> str:
         expr = self.as_literal()
@@ -178,12 +183,19 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
 
     @property
     def pos(self) -> tuple[int, int]:
-        """The position of the cell that this slot is attached to."""
+        """The visual position of the cell that this slot is attached to."""
         return self._pos
+
+    @property
+    def source_pos(self) -> tuple[int, int]:
+        """The source position of the cell that this slot is attached to."""
+        return self._source_pos
 
     def set_pos(self, pos: tuple[int, int]):
         """Set the position of the cell that this slot is attached to."""
         self._pos = pos
+        prx = self.table.proxy._get_proxy_object()
+        self._source_pos = prx.get_source_index(pos[0]), pos[1]
         return self
 
     @property
@@ -237,7 +249,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         qviewer = qtable.parentViewer()
         self._current_error = None
 
-        df = qtable.dataShown(parse=True)
+        df = qtable.getDataFrame()
         ns = dict(qviewer._namespace)
         ns.update(df=df)
         try:
@@ -307,7 +319,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             _out = str(_out)
 
         else:
-            raise RuntimeError(_row, _col)  # Unreachable
+            raise UnreachableError(type(_row), type(_col))
 
         _sel_model = qtable_view._selection_model
         with _sel_model.blocked(), qtable_view._table_map.lock_pos(self.pos):
@@ -491,10 +503,6 @@ class CellEvaluationError(Exception):
         super().__init__(msg)
         self._pos = pos
 
-
-import threading
-import warnings
-from typing import NoReturn, Type, cast
 
 _NULL = object()
 
@@ -1255,7 +1263,7 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
             if isinstance(slot, RangedSlot):
                 slot.remove_rows(row, count)
                 if slot.range.is_empty():
-                    logger.debug(f"Range became empty by removing rows")
+                    logger.debug("Range became empty by removing rows")
                     to_be_disconnected.append(slot)
         for slot in to_be_disconnected:
             self.disconnect(slot, missing_ok=False)
@@ -1268,7 +1276,7 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
             if isinstance(slot, RangedSlot):
                 slot.remove_columns(col, count)
                 if slot.range.is_empty():
-                    logger.debug(f"Range became empty by removing columns")
+                    logger.debug("Range became empty by removing columns")
                     to_be_disconnected.append(slot)
         for slot in to_be_disconnected:
             self.disconnect(slot, missing_ok=False)

@@ -25,7 +25,11 @@ from tabulous._qt._svg import QColoredSVGIcon
 from tabulous._keymap import QtKeys, QtKeyMap
 from tabulous._qt._action_registry import QActionRegistry
 from tabulous.types import ProxyType, ItemInfo, HeaderInfo, EvalInfo
-from tabulous.exceptions import SelectionRangeError, TableImmutableError
+from tabulous.exceptions import (
+    SelectionRangeError,
+    TableImmutableError,
+    UnreachableError,
+)
 from tabulous._pd_index import as_not_ranged, as_constructor, is_ranged
 
 if TYPE_CHECKING:
@@ -580,12 +584,10 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     @_mgr.interface
     def _set_incell_slot(self, pos: tuple[int, int], slot: InCellRangedSlot):
         """Set in-cell slot at the given position undoably."""
-        r, c = pos
-        r = self._proxy.get_source_index(r)
         if slot is None:
             self._qtable_view._table_map.pop(pos, None)
         else:
-            self._qtable_view._table_map[(r, c)] = slot
+            self._qtable_view._table_map[pos] = slot
             if dest := slot.last_destination:
                 self._qtable_view._selection_model.set_ranges([dest])
         return None
@@ -992,7 +994,7 @@ class QMutableTable(QBaseTable):
                 elif isinstance(r0, np.ndarray):
                     _iter = r0
                 else:
-                    raise RuntimeError(f"Unreachable data type {type(r0)!r}.")
+                    raise UnreachableError(f"{type(r0)!r}.")
                 for _i, _r in enumerate(_iter):
                     self.setItemLabel(_r, c.start, value.index[_i])
         return None

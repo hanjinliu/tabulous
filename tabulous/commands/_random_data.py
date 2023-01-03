@@ -12,6 +12,7 @@ from magicgui.widgets import (
     Widget,
 )
 from tabulous._magicgui import SelectionWidget
+from tabulous.exceptions import UnreachableError
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -140,7 +141,7 @@ class RandomGeneratorDialog(Container):
         elif self._radio_buttons.value is Generator.choices:
             return self._choices_wdt
         else:
-            raise RuntimeError("Unreachable error happened.")
+            raise UnreachableError(self._radio_buttons.value)
 
     def get_value(self, df: pd.DataFrame) -> tuple[slice, slice, np.ndarray]:
         selop = self._selection_wdt.value

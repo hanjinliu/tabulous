@@ -4,6 +4,8 @@ from typing import Hashable, Iterator, TYPE_CHECKING, Literal, Union, SupportsIn
 from functools import singledispatch
 import re
 
+from tabulous.exceptions import UnreachableError
+
 if TYPE_CHECKING:
     import pandas as pd
     from typing_extensions import Self
@@ -355,7 +357,7 @@ def parse(expr: str, *, df_expr: str = "df") -> SelectionOperator:
         sel = ValueSelOp(rsl, csl)
 
     else:
-        raise ValueError(f"Unreachable expression: {expr!r}")
+        raise UnreachableError(f"{expr!r}")
 
     return sel
 

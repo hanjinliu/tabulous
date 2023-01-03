@@ -246,3 +246,14 @@ def test_removing_or_inserting_left_column():
     assert sheet.cell[0, 2] == "10.0"
     sheet.cell[1, 0] = 5
     assert sheet.cell[0, 2] == "10.0"
+
+def test_eval_during_sort():
+    viewer = TableViewer(show=False)
+    rng = np.random.default_rng(123)
+    sheet = viewer.add_spreadsheet(rng.poisson(3, size=(5, 1)))
+    sheet.proxy.set([1, 3, 2, 4, 0])
+    sheet.cell[1, 1] = "&=np.sum(df.iloc[:, 0])"
+    assert sheet.data_shown.iloc[1, 1] == np.sum(sheet.data.iloc[:, 0])
+    sheet.proxy.reset()
+    assert sheet.data_shown.iloc[3, 1] == np.sum(sheet.data.iloc[:, 0])
+    assert (3, 1) in sheet.cell.ref

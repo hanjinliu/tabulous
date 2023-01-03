@@ -551,11 +551,10 @@ class TableBase(ABC):
         if info.expr == "":
             return None
 
-        pos = (info.row, info.column)
         qtable = self.native
         qtable_view = qtable._qtable_view
 
-        slot = InCellRangedSlot.from_table(self, info.expr, pos)
+        slot = InCellRangedSlot.from_table(self, info.expr, info.pos)
 
         def _raise(e: Exception):
             # the common exception handling
@@ -566,7 +565,7 @@ class TableBase(ABC):
                 except RuntimeError:
                     pass
                 with qtable_view._selection_model.blocked():
-                    qtable.setDataFrameValue(*pos, "#ERROR")
+                    qtable.setDataFrameValue(*info.pos, "#ERROR")
                 return None
             # SyntaxError/AttributeError might be caused by mistouching. Don't close
             # the editor.
@@ -578,17 +577,19 @@ class TableBase(ABC):
             if e := result.get_err():
                 _raise(e)
             else:
-                self.move_iloc(*pos)
+                self.move_iloc(*info.pos)
         else:
             if next(iter(slot.range), None) is None:
                 # if no reference exists, evaluate the expression as "=..." form.
-                return self._emit_evaluated(EvalInfo(*pos, info.expr, False))
+                return self._emit_evaluated(
+                    EvalInfo(info.pos, info.source_pos, info.expr, False)
+                )
             with qtable._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
                 # call here to properly update undo stack
                 result = slot.evaluate()
                 if e := result.get_err():
                     _raise(e)
-                qtable.setInCellSlot(pos, slot)
+                qtable.setInCellSlot(info.source_pos, slot)
 
         del qtable_view._focused_widget
         return None
