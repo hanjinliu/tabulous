@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import wraps
+from contextlib import contextmanager
 from typing import (
     TYPE_CHECKING,
     Sequence,
@@ -211,6 +212,23 @@ class ProxyInterface(TableComponent):
                 _proxy = _check_duplicate(np.asarray(proxy))
             return self._set_value(_proxy)
         return self._set_value(proxy)
+
+    @contextmanager
+    def released(self, keep_widgets: bool = False):
+        """Release the proxy in this context."""
+        proxy = self.obj
+        qtable = self.parent.native
+        if keep_widgets:
+            widgets = qtable._header_widgets().copy()
+        else:
+            widgets = {}
+        try:
+            self._set_value(None)
+            yield
+        finally:
+            self._set_value(proxy)
+            if widgets:
+                qtable.updateHorizontalHeaderWidget(widgets)
 
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         """Apply the current proxy to the DataFrame."""

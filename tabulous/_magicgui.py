@@ -38,7 +38,6 @@ if TYPE_CHECKING:
     import pandas as pd
     from magicgui.widgets import FunctionGui
     from matplotlib.axes import Axes
-    from .widgets import TableBase
 else:
     Axes = Any
 
@@ -307,8 +306,9 @@ class ColumnNameChoice(Container):
     A container widget with a DataFrame selection and multiple column name selections.
 
     This widget is composed of two or more ComboBox widgets. The top one is to choose a
-    DataFrame and the rest are to choose column names from the DataFrame. When the DataFrame
-    selection changed, the column name selections will also changed accordingly.
+    DataFrame and the rest are to choose column names from the DataFrame. When the
+    DataFrame selection changed, the column name selections will also changed
+    accordingly.
     """
 
     def __init__(
@@ -540,11 +540,15 @@ class SelectionWidget(Container):
             raise ValueError("More than one selection is given.")
         sel = sels[0]
 
-        qwidget = table._qwidget
+        qwidget = table.native
         column_selected = qwidget._qtable_view._selection_model._col_selection_indices
+        if isinstance(table, SpreadSheet):
+            df = table.native._data_raw
+        else:
+            df = table.data_shown
         _selop = construct(
             *sel,
-            qwidget.model().df,
+            df,
             method=self.format,
             column_selected=column_selected,
             allow_out_of_bounds=self._allow_out_of_bounds,

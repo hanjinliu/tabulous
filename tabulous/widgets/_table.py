@@ -115,7 +115,7 @@ class TableBase(ABC):
         if self.mutable:
             with self._qwidget._mgr.blocked():
                 self._qwidget.setEditable(editable)
-            self._qwidget.connectItemChangedSignal(
+            self.native.connectItemChangedSignal(
                 self._emit_data_changed_signal,
                 self.events.index.emit,
                 self.events.columns.emit,
@@ -195,8 +195,8 @@ class TableBase(ABC):
         return self._qwidget.dataShown(parse=True)
 
     @property
-    def mutable(self) -> bool:
-        """Mutability of the table."""
+    def mutable(self):
+        """Mutability of the table type."""
         from tabulous._qt._table import QMutableTable
 
         return isinstance(self._qwidget, QMutableTable)
@@ -662,6 +662,7 @@ class _DataFrameTableLayer(TableBase):
     """Table layer for DataFrame."""
 
     _qwidget: QTableLayer | QSpreadSheet
+    native: QTableLayer | QSpreadSheet
 
     def _normalize_data(self, data) -> pd.DataFrame:
         import pandas as pd
@@ -713,6 +714,7 @@ class Table(_DataFrameTableLayer):
 
     _Default_Name = "table"
     _qwidget: QTableLayer
+    native: Table
 
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
         from tabulous._qt import QTableLayer
@@ -733,6 +735,7 @@ class SpreadSheet(_DataFrameTableLayer):
     """
 
     _qwidget: QSpreadSheet
+    native: QSpreadSheet
     _Default_Name = "sheet"
     dtypes = ColumnDtypeInterface()
 
@@ -804,6 +807,7 @@ class GroupBy(TableBase):
 
     _Default_Name = "groupby"
     _qwidget: QTableGroupBy
+    native: QTableGroupBy
 
     def _create_backend(self, data: pd.DataFrame) -> QTableGroupBy:
         from tabulous._qt import QTableGroupBy
@@ -857,6 +861,7 @@ class TableDisplay(TableBase):
 
     _Default_Name = "display"
     _qwidget: QTableDisplay
+    native: QTableDisplay
 
     def _create_backend(self, data: Callable[[], Any]) -> QTableDisplay:
         from tabulous._qt import QTableDisplay

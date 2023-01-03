@@ -566,7 +566,11 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         column_selected = len(qtable_view._selection_model._col_selection_indices) > 0
         selop = construct(
-            rsl, csl, _df_ori, method="iloc", column_selected=column_selected
+            rsl,
+            csl,
+            _df_ori,
+            method="iloc",
+            column_selected=column_selected,
         )
 
         if selop is None:  # out of bound

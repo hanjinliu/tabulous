@@ -225,7 +225,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     def dataShape(self) -> tuple[int, int]:
         """Shape of data."""
-        return self._data_raw.shape
+        return self.model().df.shape
 
     def dataShown(self, parse: bool = False) -> pd.DataFrame:
         """Return the shown dataframe (consider filter)."""
@@ -367,7 +367,7 @@ class QSpreadSheet(QMutableSimpleTable):
         elif isinstance(value, pd.DataFrame) and any(value.dtypes != "string"):
             value = value.astype(_STRING_DTYPE)
 
-        with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
+        with self._mgr.merging(formatter=lambda _: self._set_value_fmt(r, c, value)):
             if need_expand:
                 self.expandDataFrame(max(rmax - nr + 1, 0), max(cmax - nc + 1, 0))
             super().setDataFrameValue(r, c, value)

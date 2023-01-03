@@ -26,6 +26,7 @@ from functools import wraps, partial, lru_cache, reduce
 import inspect
 from inspect import Parameter, Signature, isclass
 import threading
+import numpy as np
 
 from psygnal import EmitLoopError
 
@@ -40,8 +41,7 @@ _P = ParamSpec("_P")
 _R = TypeVar("_R")
 
 if TYPE_CHECKING:
-    from tabulous.widgets import TableBase
-    import numpy as np
+    from tabulous.widgets._table import _DataFrameTableLayer
     import pandas as pd
 
     MethodRef = tuple[weakref.ReferenceType[object], str, Union[Callable, None]]
@@ -117,9 +117,13 @@ class InCellExpr:
         self._objs = objs
 
     def eval(self, ns: dict[str, Any], ranges: MultiRectRange):
+        return self.eval_and_format(ns, ranges)[0]
+
+    def eval_and_format(self, ns: dict[str, Any], ranges: MultiRectRange):
         expr = self.as_literal(ranges)
         logger.debug(f"About to run: {expr!r}")
-        return eval(expr, ns, {})
+        out = eval(expr, ns, {})
+        return out, expr
 
     def as_literal(self, ranges: MultiRectRange) -> str:
         out: list[str] = []
@@ -140,7 +144,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         self,
         expr: InCellExpr,
         pos: tuple[int, int],
-        table: TableBase,
+        table: _DataFrameTableLayer,
         range: RectRange = AnyRange(),
     ):
         self._expr = expr
@@ -175,7 +179,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             return f"{exc_type}: {exc_msg}"
 
     @property
-    def table(self) -> TableBase:
+    def table(self) -> _DataFrameTableLayer:
         """Get the parent table"""
         if table := self._table():
             return table
@@ -216,7 +220,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
     @classmethod
     def from_table(
         cls: type[Self],
-        table: TableBase,
+        table: _DataFrameTableLayer,
         expr: str,
         pos: tuple[int, int],
     ) -> Self:
@@ -224,10 +228,10 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         qtable = table.native
 
         # normalize expression to iloc-slicing.
-        df_ref = qtable.dataShown(parse=False)
+        df_ref = qtable._data_raw
         current_end = 0
         output: list[str] = []
-        ranges = []
+        ranges: list[tuple[slice, slice]] = []
         for (start, end), op in iter_extract_with_range(expr):
             output.append(expr[current_end:start])
             output.append(InCellExpr.SELECT)
@@ -253,20 +257,24 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         ns = dict(qviewer._namespace)
         ns.update(df=df)
         try:
-            out = self._expr.eval(ns, self.range)
+            out, _expr = self._expr.eval_and_format(ns, self.range)
             logger.debug(f"Evaluated at {self.pos!r}")
         except Exception as e:
             logger.debug(f"Evaluation failed at {self.pos!r}: {e!r}")
             self._current_error = e
-            return EvalResult(e, self.pos)
+            return EvalResult(e, self.source_pos)
 
-        _row, _col = self.pos
+        _row, _col = self.source_pos
 
         _is_named_tuple = isinstance(out, tuple) and hasattr(out, "_fields")
         _is_dict = isinstance(out, dict)
         if _is_named_tuple or _is_dict:
-            with qtable_view._selection_model.blocked(), table.events.data.blocked():
+            # fmt: off
+            with qtable_view._selection_model.blocked(), \
+                table.events.data.blocked(), \
+                table.proxy.released():
                 table.cell.set_labeled_data(_row, _col, out, sep=":")
+            # fmt: on
 
             self.last_destination = (
                 slice(_row, _row + len(out)),
@@ -295,7 +303,9 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         elif isinstance(out, np.ndarray):
             _out = np.squeeze(out)
             if _out.size == 0:
-                raise CellEvaluationError("Evaluation returned 0-sized array.")
+                raise CellEvaluationError(
+                    "Evaluation returned 0-sized array.", self.source_pos
+                )
             if _out.ndim == 0:  # scalar
                 _out = qtable.convertValue(_col, _out.item())
                 _row, _col = self._infer_indices()
@@ -305,7 +315,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
                 _row = slice(_row, _row + _out.shape[0])
                 _col = slice(_col, _col + _out.shape[1])
             else:
-                raise CellEvaluationError("Cannot assign a >3D array.", self.pos)
+                raise CellEvaluationError("Cannot assign a >3D array.", self.source_pos)
 
         else:
             _out = qtable.convertValue(_col, out)
@@ -322,9 +332,12 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             raise UnreachableError(type(_row), type(_col))
 
         _sel_model = qtable_view._selection_model
-        with _sel_model.blocked(), qtable_view._table_map.lock_pos(self.pos):
+        # fmt: off
+        with _sel_model.blocked(), \
+            qtable_view._table_map.lock_pos(self.pos), \
+            table.proxy.released(keep_widgets=True):
             qtable.setDataFrameValue(_row, _col, _out)
-
+        # fmt: on
         self.last_destination = (_row, _col)
         return EvalResult(out, (_row, _col))
 
@@ -349,10 +362,13 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
                 err_repr,
                 dtype=object,
             )
-            with qtable_view._selection_model.blocked():
-                with qtable_view._table_map.lock_pos(self.pos):
-                    with table.events.data.blocked():
-                        table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
+            # fmt: off
+            with qtable_view._selection_model.blocked(), \
+                qtable_view._table_map.lock_pos(self.pos), \
+                table.events.data.blocked(), \
+                table.proxy.released(keep_widgets=True):
+                table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
+            # fmt: on
         return None
 
     def call(self):
@@ -441,7 +457,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         return r, c
 
     def _infer_slices(self, out: pd.Series | np.ndarray) -> tuple[slice, slice]:
-        """Infer how to concatenate ``out`` to ``df``."""
+        """Infer how to concatenate ``out`` to ``df``, based on the selections"""
         #  x | x | x |     1. Self-update is not safe. Raise Error.
         #  x |(1)| x |(2)  2. Return as a column vector.
         #  x | x | x |     3. Return as a row vector.

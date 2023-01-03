@@ -200,7 +200,11 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return (nr, nc)
 
     def dataShape(self) -> tuple[int, int]:
+        """Shape of the visible data"""
         return self.tableShape()
+
+    def dataShapeRaw(self) -> tuple[int, int]:
+        return self.getDataFrame().shape
 
     def zoom(self) -> float:
         """Get current zoom factor."""
@@ -461,6 +465,10 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _set_proxy(self, proxy: ProxyType):
         return arguments(self.proxy())
 
+    @_set_proxy.set_formatter
+    def _set_proxy_fmt(self, proxy: ProxyType):
+        return f"table.proxy.set({proxy!r})"
+
     @_mgr.interface
     def setHorizontalHeaderWidget(self, idx: int, widget: QtW.QWidget | None):
         hheader = self._qtable_view.horizontalHeader()
@@ -598,8 +606,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return arguments(pos, slot)
 
     @_set_incell_slot.set_formatter
-    def _set_incell_slot_fmt(self, pos, slot):
-        return f"table.cell[{pos[0]}, {pos[1]}] = {slot}"
+    def _set_incell_slot_fmt(self, pos, slot: InCellRangedSlot):
+        return f"table.cell[{pos[0]}, {pos[1]}] = '&={slot.as_literal()}'"
 
     def refreshTable(self, process: bool = False) -> None:
         """Refresh table view."""
@@ -848,6 +856,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def _get_ref_expr(self, r: int, c: int) -> str | None:
         """Try to get a reference expression for the cell at (r, c)."""
+        r = self._proxy.get_source_index(r)
         if slot := self._qtable_view._table_map.get((r, c), None):
             return slot.as_literal()
         return None
@@ -916,7 +925,7 @@ class QMutableTable(QBaseTable):
             raise TableImmutableError("Table is immutable.")
         data = self._data_raw
 
-        with self._mgr.merging(lambda _: _set_value_fmt(r, c, value)):
+        with self._mgr.merging(lambda _: self._set_value_fmt(r, c, value)):
             # convert values
             if isinstance(r, slice) and isinstance(c, slice):
                 # delete references
@@ -970,7 +979,7 @@ class QMutableTable(QBaseTable):
             raise ValueError("Only one column can be set at a time.")
         data = self._data_raw
 
-        with self._mgr.merging(lambda _: _set_value_fmt(r, c, value)):
+        with self._mgr.merging(lambda _: self._set_value_fmt(r, c, value)):
             # delete references
             self._clear_incell_slots(r, c)
 
@@ -1379,9 +1388,25 @@ class QMutableTable(QBaseTable):
         """Redo last undo operation."""
         return self._mgr.redo()
 
+    @staticmethod
+    def _set_value_fmt(r, c, value):
+        _r = fmt_slice(r)
+        _c = fmt_slice(c)
+        if isinstance(value, pd.DataFrame):
+            if value.size < 6:
+                _val = str(value.values.tolist())
+            else:
+                _val = "..."
+        else:
+            _val = fmt.map_object(value)
+        return f"df.iloc[{_r}, {_c}] = {_val}"
+
 
 class QMutableSimpleTable(QMutableTable):
     """A mutable table with a single QTableView."""
+
+    def dataShapeRaw(self) -> tuple[int, int]:
+        return self._data_raw.shape
 
     @property
     def _qtable_view(self) -> _QTableViewEnhanced:
@@ -1499,16 +1524,3 @@ def _to_clipboard(s: str, excel: bool = True, **kwargs) -> None:
     from pandas.io.clipboards import to_clipboard
 
     return to_clipboard(s, excel=excel, **kwargs)
-
-
-def _set_value_fmt(r, c, value):
-    _r = fmt_slice(r)
-    _c = fmt_slice(c)
-    if isinstance(value, pd.DataFrame):
-        if value.size < 6:
-            _val = str(value.values.tolist())
-        else:
-            _val = "..."
-    else:
-        _val = fmt.map_object(value)
-    return f"df.iloc[{_r}, {_c}] = {_val}"
