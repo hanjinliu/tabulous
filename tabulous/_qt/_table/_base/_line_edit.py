@@ -10,6 +10,7 @@ from qtpy.QtCore import Qt
 
 from tabulous._qt._qt_const import MonospaceFontFamily
 from tabulous._keymap import QtKeys
+from tabulous.exceptions import UnreachableError
 from tabulous.types import HeaderInfo, EvalInfo
 from tabulous._range import RectRange, MultiRectRange
 from tabulous._utils import get_config
@@ -155,7 +156,6 @@ class _QTableLineEdit(QtW.QLineEdit):
             point = self.mapToGlobal(self.rect().bottomLeft())
             point.setX(point.x() - 2)
             point.setY(point.y() - 10)
-            QtW.QToolTip.setFont(QtGui.QFont("Arial", 10))
             QtW.QToolTip.showText(point, text, self)
 
         return None
@@ -320,9 +320,13 @@ class QCellLiteralEdit(_QTableLineEdit):
         self,
         parent: QtCore.QObject | None = None,
         table: QMutableTable | None = None,
-        pos: tuple[int, int] = (0, 0),
+        pos: tuple[int, int] = (0, 0),  # the "visual" position
     ):
         super().__init__(parent, table, pos)
+        if table is not None:
+            self._source_pos = table._proxy.get_source_index(pos[0]), pos[1]
+        else:
+            self._source_pos = pos
         self._old_range: RectRange | None = None
         qtable = self.parentTableView()
         qtable._selection_model.moved.connect(self._on_selection_changed)
@@ -378,7 +382,7 @@ class QCellLiteralEdit(_QTableLineEdit):
             text = raw_text.lstrip(cls._EVAL_PREFIX).strip()
             is_ref = False
         else:
-            raise RuntimeError("Unreachable")
+            raise UnreachableError(raw_text)
         return text, is_ref
 
     @property
@@ -456,12 +460,18 @@ class QCellLiteralEdit(_QTableLineEdit):
     def eval_and_close(self) -> None:
         """Evaluate the text and close this editor."""
         if self._mode is self.Mode.TEXT:
+            # setDataFrameValue itself considers proxy. Here we just need to
+            # pass "_pos".
             self._table.setDataFrameValue(*self._pos, self.text())
             self.close()
         else:
             text, is_ref = self._parse_ref(self.text())
-            row, col = self._pos
-            info = EvalInfo(row=row, column=col, expr=text, is_ref=is_ref)
+            info = EvalInfo(
+                pos=self._pos,
+                source_pos=self._source_pos,
+                expr=text,
+                is_ref=is_ref,
+            )
             self._table.evaluatedSignal.emit(info)
         return None
 
@@ -477,12 +487,12 @@ class QCellLiteralEdit(_QTableLineEdit):
             nchar = len(self.text())
             self.setSelection(nchar, nchar)
         else:
-            raise RuntimeError("Unreachable")
+            raise UnreachableError(self.mode)
 
     def _is_text_valid(self) -> bool:
         """Try to parse the text and return True if it is valid."""
         if self.mode is self.Mode.TEXT:
-            r, c = self._pos
+            _, c = self._pos
             try:
                 convert_value = self._table._get_converter(c)
                 convert_value(c, self.text())
@@ -512,7 +522,7 @@ class QCellLiteralEdit(_QTableLineEdit):
                 self.current_exception = None
             return True
         else:
-            raise RuntimeError("Unreachable")
+            raise UnreachableError(self.mode)
 
     def _ensure_visible(self, text: str) -> None:
         row, col = self._pos
@@ -556,7 +566,11 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         column_selected = len(qtable_view._selection_model._col_selection_indices) > 0
         selop = construct(
-            rsl, csl, _df_ori, method="iloc", column_selected=column_selected
+            rsl,
+            csl,
+            _df_ori,
+            method="iloc",
+            column_selected=column_selected,
         )
 
         if selop is None:  # out of bound

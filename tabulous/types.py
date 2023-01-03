@@ -168,18 +168,18 @@ class EvalInfo(NamedTuple):
 
     Value takes (row, column, expr, old_value, is_ref) where
 
-    row : int
-        Row index where item edited.
-    column : int
-        Column index where item edited.
+    pos : tuple[int, int]
+        The visual position of the cell where expression is evaluated.
+    source_pos : tuple[int, int]
+        The source position of the cell where expression is evaluated.
     expr : str
         Expression to be evaluated.
     is_ref: bool
         Whether the expression take references in the table.
     """
 
-    row: int
-    column: int
+    pos: tuple[int, int]
+    source_pos: tuple[int, int]
     expr: str
     is_ref: bool
 

@@ -73,9 +73,11 @@ class CellInterface(TableComponent):
         if isinstance(value, str) and QCellLiteralEdit._is_eval_like(value):
             if row.stop - row.start == 1 and col.stop - col.start == 1:
                 expr, is_ref = QCellLiteralEdit._parse_ref(value)
+                _r0, _c0 = row.start, col.start
+                _r1 = table.proxy._get_proxy_object().get_source_index(_r0)
                 info = EvalInfo(
-                    row=row.start,
-                    column=col.start,
+                    pos=(_r0, _c0),
+                    source_pos=(_r1, _c0),
                     expr=expr,
                     is_ref=is_ref,
                 )

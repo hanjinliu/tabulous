@@ -17,7 +17,6 @@ from tabulous._range import TableAnchorBase
 from tabulous._psygnal import InCellRangedSlot
 
 if TYPE_CHECKING:
-    from tabulous._range import RectRange
     from tabulous.widgets import TableBase
 
 
@@ -131,24 +130,24 @@ class SlotRefMapping(MutableMapping[Index, InCellRangedSlot], TableAnchorBase):
             return table
         raise RuntimeError("Table has been deleted")
 
-    def __getitem__(self, key: Index) -> InCellRangedSlot:
+    def __getitem__(self, source_key: Index) -> InCellRangedSlot:
         for slot in self.table().events.data.iter_slots():
             if not isinstance(slot, InCellRangedSlot):
                 continue
-            if slot.pos == key:
+            if slot.source_pos == source_key:
                 return slot
-        raise KeyError(key)
+        raise KeyError(source_key)
 
-    def get_by_dest(self, key: Index, default=None) -> InCellRangedSlot:
+    def get_by_dest(self, source_key: Index, default=None) -> InCellRangedSlot:
         for slot in self.table().events.data.iter_slots():
             if not isinstance(slot, InCellRangedSlot):
                 continue
-            if slot.pos == key:
+            if slot.source_pos == source_key:
                 return slot
             dest = slot.last_destination
             if dest is not None:
                 rsl, csl = dest
-                r, c = key
+                r, c = source_key
                 if rsl.start <= r < rsl.stop and csl.start <= c < csl.stop:
                     return slot
         return default
@@ -161,12 +160,12 @@ class SlotRefMapping(MutableMapping[Index, InCellRangedSlot], TableAnchorBase):
         self.table().events.data.connect_cell_slot(slot)
         logger.debug(f"Connecting slot at {key}")
 
-    def __delitem__(self, key: Index) -> None:
-        if self._locked_pos == key:
+    def __delitem__(self, source_key: Index) -> None:
+        if self._locked_pos == source_key:
             return
-        slot = self[key]
+        slot = self[source_key]
         self.table().events.data.disconnect(slot)
-        logger.debug(f"Deleting slot at {key}")
+        logger.debug(f"Deleting slot at {source_key}")
 
     def _remove_multiple(self, slots: Iterable[InCellRangedSlot]):
         data = self.table().events.data
@@ -177,7 +176,7 @@ class SlotRefMapping(MutableMapping[Index, InCellRangedSlot], TableAnchorBase):
         for slot in self.table().events.data.iter_slots():
             if not isinstance(slot, InCellRangedSlot):
                 continue
-            yield Index(*slot.pos)
+            yield Index(*slot.source_pos)
 
     def values(self):
         for slot in self.table().events.data.iter_slots():
@@ -189,7 +188,7 @@ class SlotRefMapping(MutableMapping[Index, InCellRangedSlot], TableAnchorBase):
         for slot in self.table().events.data.iter_slots():
             if not isinstance(slot, InCellRangedSlot):
                 continue
-            yield Index(*slot.pos), slot
+            yield Index(*slot.source_pos), slot
 
     def __len__(self) -> int:
         return len([i for i in self])

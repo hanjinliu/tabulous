@@ -22,6 +22,10 @@ class TableNotOrderedError(ValueError):
     """Raised when an operation is undefined if table is not ordered."""
 
 
+class UnreachableError(RuntimeError):
+    """Raised when an unreachable code is reached."""
+
+
 class ExceptionHandler:
     """Handle exceptions in the GUI thread."""
 

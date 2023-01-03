@@ -115,7 +115,7 @@ class TableBase(ABC):
         if self.mutable:
             with self._qwidget._mgr.blocked():
                 self._qwidget.setEditable(editable)
-            self._qwidget.connectItemChangedSignal(
+            self.native.connectItemChangedSignal(
                 self._emit_data_changed_signal,
                 self.events.index.emit,
                 self.events.columns.emit,
@@ -195,8 +195,8 @@ class TableBase(ABC):
         return self._qwidget.dataShown(parse=True)
 
     @property
-    def mutable(self) -> bool:
-        """Mutability of the table."""
+    def mutable(self):
+        """Mutability of the table type."""
         from tabulous._qt._table import QMutableTable
 
         return isinstance(self._qwidget, QMutableTable)
@@ -551,11 +551,10 @@ class TableBase(ABC):
         if info.expr == "":
             return None
 
-        pos = (info.row, info.column)
         qtable = self.native
         qtable_view = qtable._qtable_view
 
-        slot = InCellRangedSlot.from_table(self, info.expr, pos)
+        slot = InCellRangedSlot.from_table(self, info.expr, info.pos)
 
         def _raise(e: Exception):
             # the common exception handling
@@ -566,7 +565,7 @@ class TableBase(ABC):
                 except RuntimeError:
                     pass
                 with qtable_view._selection_model.blocked():
-                    qtable.setDataFrameValue(*pos, "#ERROR")
+                    qtable.setDataFrameValue(*info.pos, "#ERROR")
                 return None
             # SyntaxError/AttributeError might be caused by mistouching. Don't close
             # the editor.
@@ -578,17 +577,19 @@ class TableBase(ABC):
             if e := result.get_err():
                 _raise(e)
             else:
-                self.move_iloc(*pos)
+                self.move_iloc(*info.pos)
         else:
             if next(iter(slot.range), None) is None:
                 # if no reference exists, evaluate the expression as "=..." form.
-                return self._emit_evaluated(EvalInfo(*pos, info.expr, False))
+                return self._emit_evaluated(
+                    EvalInfo(info.pos, info.source_pos, info.expr, False)
+                )
             with qtable._mgr.merging(formatter=lambda cmds: cmds[-1].format()):
                 # call here to properly update undo stack
                 result = slot.evaluate()
                 if e := result.get_err():
                     _raise(e)
-                qtable.setInCellSlot(pos, slot)
+                qtable.setInCellSlot(info.source_pos, slot)
 
         del qtable_view._focused_widget
         return None
@@ -661,6 +662,7 @@ class _DataFrameTableLayer(TableBase):
     """Table layer for DataFrame."""
 
     _qwidget: QTableLayer | QSpreadSheet
+    native: QTableLayer | QSpreadSheet
 
     def _normalize_data(self, data) -> pd.DataFrame:
         import pandas as pd
@@ -712,6 +714,7 @@ class Table(_DataFrameTableLayer):
 
     _Default_Name = "table"
     _qwidget: QTableLayer
+    native: Table
 
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
         from tabulous._qt import QTableLayer
@@ -732,6 +735,7 @@ class SpreadSheet(_DataFrameTableLayer):
     """
 
     _qwidget: QSpreadSheet
+    native: QSpreadSheet
     _Default_Name = "sheet"
     dtypes = ColumnDtypeInterface()
 
@@ -803,6 +807,7 @@ class GroupBy(TableBase):
 
     _Default_Name = "groupby"
     _qwidget: QTableGroupBy
+    native: QTableGroupBy
 
     def _create_backend(self, data: pd.DataFrame) -> QTableGroupBy:
         from tabulous._qt import QTableGroupBy
@@ -856,6 +861,7 @@ class TableDisplay(TableBase):
 
     _Default_Name = "display"
     _qwidget: QTableDisplay
+    native: QTableDisplay
 
     def _create_backend(self, data: Callable[[], Any]) -> QTableDisplay:
         from tabulous._qt import QTableDisplay

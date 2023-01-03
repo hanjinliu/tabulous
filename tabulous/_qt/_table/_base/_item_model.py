@@ -122,8 +122,8 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                         return QtCore.QVariant()
                     rgba = normalize_color(col)
                 except Exception as e:
-                    # since this method is called many times, errorous function should be
-                    # deleted from the mapper.
+                    # since this method is called many times, errorous function should
+                    # be deleted from the mapper.
                     self._foreground_colormap.pop(colname)
                     raise e
                 return QtGui.QColor(*rgba)
@@ -136,7 +136,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         if r < self.df.shape[0] and c < self.df.shape[1]:
             val = self.df.iat[r, c]
             dtype = self.df.dtypes.values[c]
-            if ref_expr := self.parent()._get_ref_expr(r, c):
+            if ref_expr := self.parent()._get_ref_expr_by_dest(r, c):
                 ref = f"\nExpr: {ref_expr}"
             else:
                 ref = ""
@@ -161,8 +161,8 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                         return QtCore.QVariant()
                     rgba = normalize_color(col)
                 except Exception as e:
-                    # since this method is called many times, errorous function should be
-                    # deleted from the mapper.
+                    # since this method is called many times, errorous function should
+                    # be deleted from the mapper.
                     self._background_colormap.pop(colname)
                     raise e
                 return QtGui.QColor(*rgba)

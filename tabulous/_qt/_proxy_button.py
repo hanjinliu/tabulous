@@ -16,6 +16,8 @@ from tabulous._sort_filter_proxy import (
 )
 from superqt import QEnumComboBox
 
+from tabulous.exceptions import UnreachableError
+
 if TYPE_CHECKING:
     from typing_extensions import Self
     from tabulous._qt._table import QBaseTable
@@ -255,7 +257,7 @@ class _QFilterWidget(QtW.QWidget):
             self._string_edit.setVisible(True)
             self._string_edit.setFocus()
         elif val is not FilterType.none:
-            raise RuntimeError(f"Unreachable: {val}")
+            raise UnreachableError(f"Unreachable: {val}")
         self.requireResize.emit(self.sizeHint())
 
     def _call_button_clicked(self):

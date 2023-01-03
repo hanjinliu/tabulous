@@ -123,6 +123,8 @@ class SortFilterProxy:
             if self._array_is_bool(sl):
                 sl = np.where(sl)[0]
             r0 = sl[r]
+            if isinstance(r0, np.integer):
+                r0 = int(r0)
         return r0
 
     def get_source_slice(self, r: slice, force_single_row: bool = False) -> slice:

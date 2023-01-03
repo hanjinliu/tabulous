@@ -1,7 +1,7 @@
 import numpy as np
 from tabulous import TableViewer
 import pandas as pd
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 import pytest
 
 def test_scalar():
@@ -246,3 +246,91 @@ def test_removing_or_inserting_left_column():
     assert sheet.cell[0, 2] == "10.0"
     sheet.cell[1, 0] = 5
     assert sheet.cell[0, 2] == "10.0"
+
+def test_eval_during_sort():
+    viewer = TableViewer(show=False)
+    rng = np.random.default_rng(123)
+    sheet = viewer.add_spreadsheet(rng.poisson(3, size=(5, 1)))
+    sheet.proxy.set([1, 3, 2, 4, 0])
+    sheet.cell[1, 1] = "&=np.sum(df.iloc[:, 0])"
+    assert sheet.data_shown.iloc[1, 1] == np.sum(sheet.data.iloc[:, 0])
+    sheet.proxy.reset()
+    assert sheet.data_shown.iloc[3, 1] == np.sum(sheet.data.iloc[:, 0])
+    assert (3, 1) in sheet.cell.ref
+
+def test_eval_during_filter():
+    viewer = TableViewer(show=False)
+    rng = np.random.default_rng(123)
+    sheet = viewer.add_spreadsheet({"a": [0, 1, 1, 0, 1], "b": rng.poisson(3, size=5)})
+    sheet.proxy.filter("a == 1")
+    sheet.cell[0, 2] = "&=np.sum(df.iloc[:, 1])"
+    assert sheet.data_shown.iloc[0, 2] == np.sum(sheet.data.iloc[:, 1])
+    sheet.proxy.reset()
+    assert sheet.data_shown.iloc[1, 2] == np.sum(sheet.data.iloc[:, 1])
+    assert (1, 2) in sheet.cell.ref
+
+def test_broadcasting_during_sort():
+    viewer = TableViewer(show=False)
+    rng = np.random.default_rng(123)
+    sheet = viewer.add_spreadsheet(rng.poisson(3, size=(5, 1)))
+    order = [1, 3, 2, 4, 0]
+    sheet.proxy.set(order)
+    sheet.cell[1, 1] = "&=np.cumsum(df.iloc[:, 0])"
+    assert_equal(sheet.data_shown.iloc[:, 1].values, np.cumsum(sheet.data.iloc[:, 0])[order].values)
+    sheet.proxy.reset()
+    assert_equal(sheet.data_shown.iloc[:, 1].values, np.cumsum(sheet.data.iloc[:, 0]).values)
+    assert (3, 1) in sheet.cell.ref
+
+def test_broadcasting_during_filter():
+    viewer = TableViewer(show=False)
+    rng = np.random.default_rng(123)
+    sheet = viewer.add_spreadsheet({"a": [0, 1, 1, 0, 1], "b": rng.poisson(3, size=5)})
+    sheet.proxy.filter("a == 1")
+    idx = sheet.proxy.as_indexer()
+    sheet.cell[0, 2] = "&=np.cumsum(df.iloc[:, 1])"
+    assert_equal(sheet.data_shown.iloc[:, 2].values, np.cumsum(sheet.data.iloc[:, 1])[idx].values)
+    sheet.proxy.reset()
+    assert_equal(sheet.data_shown.iloc[:, 2].values, np.cumsum(sheet.data.iloc[:, 1]).values)
+    assert (1, 2) in sheet.cell.ref
+
+def _assert_status_equal(s: str, ref: str):
+    l = len("<b><code>")
+    r = len("</code></b>")
+    assert s[l:-r] == ref
+
+def test_status_tip():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((3, 2)))
+    sheet.cell[0, 1] = "&=np.sum(df.iloc[:, 0])"
+    sheet.cell[0, 2] = "&=np.sin(df.iloc[:, 0])"
+    sheet.move_iloc(0, 0)
+    _assert_status_equal(viewer.status, "")
+    sheet.move_iloc(0, 1)
+    _assert_status_equal(viewer.status, "df.iloc[0:1, 1:2] = np.sum(df.iloc[0:3, 0])")
+    sheet.move_iloc(1, 1)
+    _assert_status_equal(viewer.status, "")
+    sheet.move_iloc(0, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:3, 2:3] = np.sin(df.iloc[0:3, 0])")
+    sheet.move_iloc(1, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:3, 2:3] = np.sin(df.iloc[0:3, 0])")
+    sheet.move_iloc(2, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:3, 2:3] = np.sin(df.iloc[0:3, 0])")
+
+def test_status_tip_with_proxy():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((5, 2)))
+    sheet.cell[1, 1] = "&=np.sum(df.iloc[:, 0])"
+    sheet.cell[0, 2] = "&=np.sin(df.iloc[:, 0])"
+    sheet.proxy.set([False, True, True, False, True])
+    sheet.move_iloc(0, 0)
+    _assert_status_equal(viewer.status, "")
+    sheet.move_iloc(0, 1)
+    _assert_status_equal(viewer.status, "df.iloc[1:2, 1:2] = np.sum(df.iloc[0:5, 0])")
+    sheet.move_iloc(1, 1)
+    _assert_status_equal(viewer.status, "")
+    sheet.move_iloc(0, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:5, 2:3] = np.sin(df.iloc[0:5, 0])")
+    sheet.move_iloc(1, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:5, 2:3] = np.sin(df.iloc[0:5, 0])")
+    sheet.move_iloc(2, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:5, 2:3] = np.sin(df.iloc[0:5, 0])")

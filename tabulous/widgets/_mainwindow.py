@@ -162,7 +162,7 @@ class TableViewerBase(_AbstractViewer):
     ):
         from tabulous._qt import get_app
 
-        app = get_app()
+        app = get_app()  # noqa: F841
         self._qwidget = self._qwidget_class(tab_position=tab_position)
         self._qwidget._table_viewer = self
         self._tablist = TableList(parent=self)
@@ -575,6 +575,7 @@ class TableViewer(TableViewerBase):
         show: bool = True,
     ):
         self._dock_widgets = weakref.WeakValueDictionary()
+        self._status = ""
         super().__init__(
             tab_position=tab_position,
             show=show,
@@ -583,11 +584,12 @@ class TableViewer(TableViewerBase):
     @property
     def status(self) -> str:
         """Return the statup tip"""
-        return self._qwidget.statusTip()
+        return self._status
 
     @status.setter
     def status(self, tip: str) -> None:
         """Set the status tip"""
+        self._status = tip
         return self._qwidget.statusBar().showMessage(tip)
 
     def add_dock_widget(
