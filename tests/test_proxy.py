@@ -1,6 +1,7 @@
 from tabulous import TableViewerWidget
 from tabulous.widgets import Table
 import numpy as np
+from numpy.testing import assert_equal
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import pytest
@@ -201,3 +202,15 @@ def test_sort_and_filter_switched():
     assert {1} == set(table._qwidget._header_widgets().keys())
     table.undo_manager.redo()
     assert {2} == set(table._qwidget._header_widgets().keys())
+
+def test_composing_sort():
+    viewer = TableViewerWidget(show=False)
+    table = viewer.add_spreadsheet(
+        {"a": [3, 2, 1, 3, 2, 1], "b": [2, 2, 2, 1, 1, 1]},
+    )
+    table.proxy.sort(by="a")
+    assert_equal(table.data_shown["a"].values, [1, 1, 2, 2, 3, 3])
+    assert_equal(table.data_shown["b"].values, [2, 1, 2, 1, 2, 1])
+    table.proxy.sort(by="b", compose=True)
+    assert_equal(table.data_shown["a"].values, [1, 1, 2, 2, 3, 3])
+    assert_equal(table.data_shown["b"].values, [1, 2, 1, 2, 1, 2])

@@ -553,18 +553,12 @@ class _QTableViewEnhanced(QtW.QTableView):
         nsel = len(self._selection_model)
         painter = QtGui.QPainter(self.viewport())
 
-        if table := self.parentTable():
-            is_ordered = table._proxy.is_ordered
-        else:
-            is_ordered = True
-
         # draw highlights
-        if is_ordered:
-            h_color = self._get_highlight_color()
-            for i, rect in enumerate(
-                self._rect_from_ranges(self._highlight_model._ranges, map=True)
-            ):
-                painter.fillRect(rect, h_color)
+        h_color = self._get_highlight_color()
+        for i, rect in enumerate(
+            self._rect_from_ranges(self._highlight_model._ranges, map=True)
+        ):
+            painter.fillRect(rect, h_color)
 
         # draw selections
         s_color = self._get_selection_color()
@@ -631,9 +625,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         for rr, cc in ranges:
             if map:
                 # can only draw single-row selections during unordered state
-                if rr.start == rr.stop - 1:
+                try:
                     rr = prx.map_slice(rr)
-                else:
+                except Exception:
                     continue
             top_left = model.index(rr.start, cc.start)
             bottom_right = model.index(rr.stop - 1, cc.stop - 1)

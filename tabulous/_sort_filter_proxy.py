@@ -30,6 +30,8 @@ class SortFilterProxy:
     def __init__(self, obj: ProxyType | None = None):
         if isinstance(obj, SortFilterProxy):
             obj = obj._obj
+        if isinstance(obj, Composable) and obj.is_identity():
+            obj = None
         self._obj: ProxyType | None = obj
         if self._obj is None:
             self._proxy_type = ProxyTypes.none
@@ -336,12 +338,12 @@ class ComposableFilter(Composable):
         """Copy the filter object."""
         return self.__class__(self._dict.copy())
 
-    def compose(self, type: FilterType, column: int, arg: Any) -> ComposableFilter:
+    def compose(self, column: int, info: FilterInfo) -> ComposableFilter:
         """Compose with an additional column filter."""
-        if type is FilterType.none:
+        if info.type is FilterType.none:
             return self
         new = self.copy()
-        new._dict[column] = FilterInfo(FilterType(type), arg)
+        new._dict[column] = info
         return new
 
     def decompose(self, column: int) -> ComposableFilter:

@@ -18,7 +18,7 @@ from ._line_edit import (
     QVerticalHeaderLineEdit,
     QCellLiteralEdit,
 )
-from tabulous._sort_filter_proxy import SortFilterProxy, Composable
+from tabulous._sort_filter_proxy import SortFilterProxy
 from tabulous._dtype import isna
 from tabulous._qt._undo import QtUndoManager, fmt_slice
 from tabulous._qt._svg import QColoredSVGIcon
@@ -413,8 +413,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         prx = self._proxy
         proxy_type = prx.proxy_type
         if proxy_type == "none":
-            icon = QtGui.QIcon()
-        elif isinstance(prx._obj, Composable) and prx._obj.is_identity():
             icon = QtGui.QIcon()
         elif proxy_type == "filter":
             icon = QColoredSVGIcon.fromfile(ICON_DIR / "filter.svg")
