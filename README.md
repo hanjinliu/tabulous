@@ -7,7 +7,7 @@ A table data viewer for Python.
 
 [&rarr;📖 Documentation](https://hanjinliu.github.io/tabulous/)
 
-![](https://github.com/hanjinliu/tabulous/blob/main/image/viewer.png)
+![](https://github.com/hanjinliu/tabulous/blob/main/image/viewer_example.png)
 
 `tabulous` is highly inspired by [napari](https://github.com/napari/napari) in its design and API.
 
@@ -26,39 +26,37 @@ pip install tabulous[pyqt5]  # Use PyQt5
 pip install tabulous[pyqt6]  # Use PyQt6
 ```
 
-### A Wide Variety of Tables are Supported
+## Examples of Supported Functionalities
 
-|**Table**|**SpreadSheet**|
+#### Table sorting and table filtering
+
+|**Sort**|**Filter**|
 |:-:|:-:|
-|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_table.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_sheet.gif)|
-|A dtype-tagged table view with fixed size, aimed at viewing and editing `pd.DataFrame`. This table is the most basic one.|A string based table editor. Table is converted into `pd.DataFrame` object with proper dtypes consistent with reading CSV file using `pd.read_csv`.|
+|![](https://github.com/hanjinliu/tabulous/blob/main/image/sort_example.png)|![](https://github.com/hanjinliu/tabulous/blob/main/image/filter_example.png))|
 
-|**GroupBy**|**TableDisplay**|
-|:-:|:-:|
-|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_groupby.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/tab_display.gif)|
-|A table group that corresponds to the returned object of the `groupby` method of `pd.DataFrame`.|A table viewer that hotly reloads data using provided loader function. Useful for streaming data from other softwares.|
+You can apply pre-defined or custom sorting/filtering functions to tables.
+Data edition during sorting/filtering is also supported.
 
-### In-cell Evaluation
+#### Command palette
 
-|**Simple Evaluation**|**Referenced Evaluation**|
-|:-:|:-:|
-|![](https://github.com/hanjinliu/tabulous/blob/main/image/eval.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/ref_eval.gif)|
-|Text starts with "=" is evaluated in-place.|Text starts with "&=" is evaluated with cell references and is updated every time table data is updated.|
+![](https://github.com/hanjinliu/tabulous/blob/main/image/command_palette_example.png))
 
-### Rich Visualization
+Couldn't find how to do it? Open the command palette and search for it!
 
-|**Cell colors**|**Highlighting**|
-|:-:|:-:|
-|![](https://github.com/hanjinliu/tabulous/blob/main/image/colormap.png)|![](https://github.com/hanjinliu/tabulous/blob/main/image/highlight.png)|
-|Colormap defines text or background color based on the value.|Highlight is colored overlays.|
+#### Excel-like referenced in-cell evaluation
 
-### Data Validation
+![](https://github.com/hanjinliu/tabulous/blob/main/image/eval_example.png))
 
-|**Data type validation**|**Custom validation**|
-|:-:|:-:|
-|![](https://github.com/hanjinliu/tabulous/blob/main/image/validation.gif)|![](https://github.com/hanjinliu/tabulous/blob/main/image/validation_custom.gif)|
-|Columns tagged with dtype will validate the input string and raise an error on entering invalid string.|You can also define custom validators for each column, such as confirming non-negative.|
+Call `numpy` and `pandas` functions that you are familiar with directly in cells.
 
-### Command palette
+#### Rich visualization
 
-![](https://github.com/hanjinliu/tabulous/blob/main/image/command_palette.gif)
+![](https://github.com/hanjinliu/tabulous/blob/main/image/colormap_example.png))
+
+Set colormaps that will help you.
+
+#### Custom widget integration
+
+![](https://github.com/hanjinliu/tabulous/blob/main/image/custom_widget_example.png))
+
+Add your own `PyQt`/`magicgui` widgets to the application.

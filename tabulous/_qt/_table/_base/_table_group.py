@@ -22,7 +22,7 @@ class QTableGroup(QtW.QSplitter):
 
         self._tables: list[QBaseTable] = []
         for i, table in enumerate(tables):
-            view_copy = table._qtable_view.copy(link=True)
+            view_copy = table._central_widget.copy(link=True)
             view_copy.focusedSignal.connect(
                 lambda: self.focusChanged.emit(self.focusedIndex())
             )

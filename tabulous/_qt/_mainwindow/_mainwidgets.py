@@ -260,6 +260,8 @@ class QRichStatusBar(QtW.QStatusBar):
         )
         self._label.setFrameStyle(QtW.QFrame.Shape.NoFrame)
         self.addWidget(self._label)
+        self.setContentsMargins(0, 0, 0, 0)
 
     def showMessage(self, msg: str, timeout: int = 0) -> None:
+        self._label.setFixedWidth(self.width() - 32)
         return self._label.setText(msg)

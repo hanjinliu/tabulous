@@ -17,6 +17,7 @@ from . import _doc
 
 from tabulous import _utils, _io
 from tabulous.types import SelectionType, TabPosition, _TableLike, _SingleSelection
+from tabulous.exceptions import UnreachableError
 from tabulous._keymap import QtKeyMap
 
 if TYPE_CHECKING:
@@ -55,6 +56,14 @@ class Toolbar(ViewerComponent):
     @visible.setter
     def visible(self, val) -> None:
         return self.parent._qwidget.setToolBarVisible(val)
+
+    @property
+    def current_index(self) -> int:
+        return self.parent._qwidget._toolbar.currentIndex()
+
+    @current_index.setter
+    def current_index(self, val: int) -> None:
+        return self.parent._qwidget._toolbar.setCurrentIndex(val)
 
     def register_action(self, f: Callable):
         raise NotImplementedError()
@@ -240,6 +249,14 @@ class TableViewerBase(_AbstractViewer):
         """Get screenshot of the widget."""
         return self._qwidget.screenshot()
 
+    def save_screenshot(self, path: str):
+        """Save screenshot of the widget."""
+        from PIL import Image
+
+        arr = self.screenshot()
+        Image.fromarray(arr).save(path)
+        return None
+
     @_doc.update_doc
     def add_table(
         self,
@@ -380,12 +397,12 @@ class TableViewerBase(_AbstractViewer):
         """
         path = Path(path)
         type = TableType(type)
-        if type == TableType.table:
+        if type is TableType.table:
             fopen = self.add_table
-        elif type == TableType.spreadsheet:
+        elif type is TableType.spreadsheet:
             fopen = self.add_spreadsheet
         else:
-            raise RuntimeError
+            raise UnreachableError(type)
 
         out = _io.open_file(path)
         if isinstance(out, dict):
@@ -434,10 +451,23 @@ class TableViewerBase(_AbstractViewer):
             _io.save_file(fp, table.data)
         return None
 
-    def open_sample(self, sample_name: str, plugin: str = "seaborn") -> Table:
+    def open_sample(
+        self,
+        sample_name: str,
+        *,
+        plugin: str = "seaborn",
+        type: TableType | str = TableType.table,
+    ) -> Table:
         """Open a sample table."""
         df = open_sample(sample_name, plugin)
-        return self.add_table(df, name=sample_name)
+        type = TableType(type)
+        if type is TableType.table:
+            fopen = self.add_table
+        elif type is TableType.spreadsheet:
+            fopen = self.add_spreadsheet
+        else:
+            raise UnreachableError(type)
+        return fopen(df, name=sample_name)
 
     def copy_data(
         self,
@@ -590,7 +620,8 @@ class TableViewer(TableViewerBase):
     def status(self, tip: str) -> None:
         """Set the status tip"""
         self._status = tip
-        return self._qwidget.statusBar().showMessage(tip)
+        statusbar = self._qwidget.statusBar()
+        return statusbar.showMessage(tip)
 
     def add_dock_widget(
         self,
@@ -632,6 +663,10 @@ class TableViewer(TableViewerBase):
             widget = dock.widget
             if hasattr(widget, "reset_choices"):
                 widget.reset_choices()
+
+    def resize(self, width: int, height: int):
+        """Resize the table viewer."""
+        return self._qwidget.resize(width, height)
 
 
 class DummyViewer(_AbstractViewer):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+import ast
 from typing import TYPE_CHECKING, Any, Callable, NamedTuple, overload
 import numpy as np
 from enum import Enum
@@ -236,6 +237,23 @@ class FilterType(Enum):
     def requires_list(self) -> bool:
         return self is FilterType.isin
 
+    @classmethod
+    def from_ast(self, obj: ast.AST):
+        if isinstance(obj, ast.Eq):
+            return FilterType.eq
+        elif isinstance(obj, ast.NotEq):
+            return FilterType.ne
+        elif isinstance(obj, ast.Gt):
+            return FilterType.gt
+        elif isinstance(obj, ast.GtE):
+            return FilterType.ge
+        elif isinstance(obj, ast.Lt):
+            return FilterType.lt
+        elif isinstance(obj, ast.LtE):
+            return FilterType.le
+        else:
+            raise ValueError(f"Invalid AST object: {obj}")
+
     def __str__(self) -> str:
         return self.repr
 
@@ -308,6 +326,10 @@ class Composable:
         """Copy the instance."""
 
     @abstractmethod
+    def indices(self) -> set[int]:
+        """Get the indices of the header targets."""
+
+    @abstractmethod
     def compose(self, column: int) -> Self:
         """Compose with an additional mapping at the column."""
 
@@ -330,6 +352,23 @@ class ComposableFilter(Composable):
         self.__name__ = "filter"
         self.__annotations__ = {"df": "pd.DataFrame", "return": np.ndarray}
 
+    @classmethod
+    def from_ast(cls, obj: ast.Compare, columns: pd.Index) -> Self:
+        if len(obj.ops) != 1:
+            raise ValueError("AST has more than one operator")
+        op = obj.ops[0]
+        left = obj.left
+        right = obj.comparators[0]
+        if isinstance(left, ast.Name) and isinstance(right, ast.Constant):
+            colname, other = left, right
+        elif isinstance(left, ast.Constant) and isinstance(right, ast.Name):
+            colname, other = right, left
+        else:
+            raise ValueError("Must compare a variable and a constant")
+        _info = FilterInfo(FilterType.from_ast(op), other.value)
+        index = columns.get_loc(colname.id)
+        return cls({index: _info})
+
     def __call__(self, df: pd.DataFrame) -> np.ndarray:
         series: list[pd.Series] = []
         if len(self._dict) == 0:
@@ -342,6 +381,9 @@ class ComposableFilter(Composable):
     def copy(self) -> ComposableFilter:
         """Copy the filter object."""
         return self.__class__(self._dict.copy())
+
+    def indices(self) -> set[int]:
+        return set(self._dict.keys())
 
     def compose(self, column: int, info: FilterInfo) -> ComposableFilter:
         """Compose with an additional column filter."""
@@ -387,6 +429,9 @@ class ComposableSorter(Composable):
 
     def copy(self) -> ComposableSorter:
         return self.__class__(self._columns.copy(), self._ascending)
+
+    def indices(self) -> set[int]:
+        return self._columns.copy()
 
     def compose(self, column: int):
         """Compose the sorter object."""
