@@ -57,6 +57,7 @@ class _QTableLineEdit(QtW.QLineEdit):
         self._pos = pos
         self._is_valid = True
         self._current_exception = ""
+        self._attached_tooltip = ""
         self.textChanged.connect(self._on_text_changed)
 
     @property
@@ -69,8 +70,10 @@ class _QTableLineEdit(QtW.QLineEdit):
         if value is None:
             value = ""
         elif isinstance(value, Exception):
+            # html colored text
             exc_type = type(value).__name__
-            value = f"{exc_type}: {value}"
+            text = str(value).replace("<", "&lt;").replace(">", "&gt;")
+            value = f"<b><font color='red'>{exc_type}</font></b>: {text}"
         self._current_exception = str(value)
         return self.setToolTip(self._current_exception)
 
@@ -79,6 +82,7 @@ class _QTableLineEdit(QtW.QLineEdit):
         return text.startswith(cls._EVAL_PREFIX) or text.startswith(cls._REF_PREFIX)
 
     def parentTableView(self) -> _QTableViewEnhanced:
+        """The parent table view."""
         return self.parent().parent()
 
     def _is_text_valid(self) -> bool:
@@ -143,6 +147,17 @@ class _QTableLineEdit(QtW.QLineEdit):
             painter.setPen(QtGui.QPen(self._INVALID, 3))
         painter.drawLine(p0, p1)
         painter.end()
+        return None
+
+    def attachToolTip(self, text: str) -> None:
+        """Attach a tooltip to the widget."""
+        if text:
+            point = self.mapToGlobal(self.rect().bottomLeft())
+            point.setX(point.x() - 2)
+            point.setY(point.y() - 10)
+            QtW.QToolTip.setFont(QtGui.QFont("Arial", 10))
+            QtW.QToolTip.showText(point, text, self)
+
         return None
 
 
@@ -387,11 +402,14 @@ class QCellLiteralEdit(_QTableLineEdit):
 
     def _on_text_changed(self, text: str) -> None:
         """Change text color to red if invalid."""
+        err_tip = ""
         if self._is_eval_like(text):
             self.mode = self.Mode.EVAL
             if not self.parentTableView().parentTable()._proxy.is_ordered:
-                # TODO: disable further editing
-                ...
+                err_tip = (
+                    "Table proxy is not ordered.\nCannot create cell "
+                    "references from table selection."
+                )
         else:
             self.mode = self.Mode.TEXT
 
@@ -400,7 +418,7 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         palette = QtGui.QPalette()
         self._is_valid = self._is_text_valid()
-        if self._is_valid:
+        if self._is_valid and err_tip == "":
             col = Qt.GlobalColor.black
         else:
             col = Qt.GlobalColor.red
@@ -409,6 +427,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         self.setPalette(palette)
 
         if self.mode is self.Mode.TEXT:
+            self.attachToolTip("")
             return None
 
         # draw ranges
@@ -416,6 +435,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         ranges: list[tuple[slice, slice]] = []
         for op in iter_extract(text):
             ranges.append(op.as_iloc_slices(_table.model().df))
+
         if ranges:
             new_range = MultiRectRange.from_slices(ranges)
         else:
@@ -423,6 +443,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         if self._old_range or new_range:
             _table._qtable_view._current_drawing_slot_ranges = new_range
             _table._qtable_view._update_all()
+        self.attachToolTip(err_tip)
         return None
 
     def close(self) -> None:
@@ -489,8 +510,11 @@ class QCellLiteralEdit(_QTableLineEdit):
                 return True
             try:
                 ast.parse(text)
-            except Exception:
+            except Exception as e:
+                self.current_exception = e
                 return False
+            else:
+                self.current_exception = None
             return True
         else:
             raise RuntimeError("Unreachable")
