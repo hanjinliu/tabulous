@@ -204,14 +204,18 @@ class _QTableViewEnhanced(QtW.QTableView):
     def _on_moving(self, src: Index, dst: Index) -> None:
         _need_update_all = self._current_drawing_slot_ranges is not None
         viewer = self.parentViewer()._table_viewer
-        if slot := self._table_map.get_by_dest(dst, None):
-            self._current_drawing_slot_ranges = slot.range
-            viewer.status = f"<b><code>{slot.as_literal(dest=True)}</code></b>"
-            _need_update_all = True
-        else:
-            if self._current_drawing_slot_ranges is not None:
-                viewer.status = ""
-            self._current_drawing_slot_ranges = None
+        _nr, _nc = self.parentTable().dataShape()
+        _r0, _c0 = dst
+        if _r0 < _nr and _c0 < _nc:
+            _r0 = self.parentTable()._proxy.get_source_index(_r0)
+            if slot := self._table_map.get_by_dest((_r0, _c0), None):
+                self._current_drawing_slot_ranges = slot.range
+                viewer.status = f"<b><code>{slot.as_literal(dest=True)}</code></b>"
+                _need_update_all = True
+            else:
+                if self._current_drawing_slot_ranges is not None:
+                    viewer.status = ""
+                self._current_drawing_slot_ranges = None
 
         if _need_update_all:
             self._update_all()

@@ -292,3 +292,45 @@ def test_broadcasting_during_filter():
     sheet.proxy.reset()
     assert_equal(sheet.data_shown.iloc[:, 2].values, np.cumsum(sheet.data.iloc[:, 1]).values)
     assert (1, 2) in sheet.cell.ref
+
+def _assert_status_equal(s: str, ref: str):
+    l = len("<b><code>")
+    r = len("</code></b>")
+    assert s[l:-r] == ref
+
+def test_status_tip():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((3, 2)))
+    sheet.cell[0, 1] = "&=np.sum(df.iloc[:, 0])"
+    sheet.cell[0, 2] = "&=np.sin(df.iloc[:, 0])"
+    sheet.move_iloc(0, 0)
+    _assert_status_equal(viewer.status, "")
+    sheet.move_iloc(0, 1)
+    _assert_status_equal(viewer.status, "df.iloc[0:1, 1:2] = np.sum(df.iloc[0:3, 0])")
+    sheet.move_iloc(1, 1)
+    _assert_status_equal(viewer.status, "")
+    sheet.move_iloc(0, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:3, 2:3] = np.sin(df.iloc[0:3, 0])")
+    sheet.move_iloc(1, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:3, 2:3] = np.sin(df.iloc[0:3, 0])")
+    sheet.move_iloc(2, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:3, 2:3] = np.sin(df.iloc[0:3, 0])")
+
+def test_status_tip_with_proxy():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((5, 2)))
+    sheet.cell[1, 1] = "&=np.sum(df.iloc[:, 0])"
+    sheet.cell[0, 2] = "&=np.sin(df.iloc[:, 0])"
+    sheet.proxy.set([False, True, True, False, True])
+    sheet.move_iloc(0, 0)
+    _assert_status_equal(viewer.status, "")
+    sheet.move_iloc(0, 1)
+    _assert_status_equal(viewer.status, "df.iloc[1:2, 1:2] = np.sum(df.iloc[0:5, 0])")
+    sheet.move_iloc(1, 1)
+    _assert_status_equal(viewer.status, "")
+    sheet.move_iloc(0, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:5, 2:3] = np.sin(df.iloc[0:5, 0])")
+    sheet.move_iloc(1, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:5, 2:3] = np.sin(df.iloc[0:5, 0])")
+    sheet.move_iloc(2, 2)
+    _assert_status_equal(viewer.status, "df.iloc[0:5, 2:3] = np.sin(df.iloc[0:5, 0])")

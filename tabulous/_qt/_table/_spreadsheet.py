@@ -124,10 +124,10 @@ class SpreadSheetModel(AbstractDataFrameModel):
         if r < self.df.shape[0] and c < self.df.shape[1]:
             val = self.df.iat[r, c]
             name = self.df.columns[c]
-            if ref_expr := self.parent()._get_ref_expr(r, c):
-                ref = f"\nExpr: {ref_expr}"
-            if slot := self.parent()._qtable_view._table_map.get((r, c), None):
-                ref = f"\nExpr: {slot.as_literal()}"
+            qtable = self.parent()
+            r = qtable._proxy.get_source_index(r)
+            if slot := qtable._qtable_view._table_map.get_by_dest((r, c), None):
+                ref = f"\nExpr: {slot.as_literal(dest=True)}"
                 if slot._current_error is not None:
                     ref += "\n" + slot.format_error()
             else:

@@ -861,6 +861,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             return slot.as_literal()
         return None
 
+    def _get_ref_expr_by_dest(self, r: int, c: int) -> str | None:
+        """Try to get a reference expression for the cell at (r, c)."""
+        r = self._proxy.get_source_index(r)
+        if slot := self._qtable_view._table_map.get_by_dest((r, c), None):
+            return slot.as_literal()
+        return None
+
     def _delete_selected_highlights(self) -> None:
         """Delete the selected highlight."""
         self._qtable_view._highlight_model.delete_selected()
