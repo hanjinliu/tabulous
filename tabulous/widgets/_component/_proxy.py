@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import wraps
+import ast
 from contextlib import contextmanager
 from typing import (
     TYPE_CHECKING,
@@ -109,7 +110,7 @@ class ProxyInterface(TableComponent):
     def filter(self, func: Callable[[pd.DataFrame], _BoolArray]) -> None: ...
     # fmt: on
 
-    def filter(self, expr: str, namespace: dict = {}) -> None:
+    def filter(self, expr, namespace={}) -> None:
         """Apply filter proxy to the table."""
         if callable(expr):
             func = expr
@@ -125,6 +126,13 @@ class ProxyInterface(TableComponent):
                 return arr
 
         else:
+            if _cfil := _try_ast_parse(expr, self.parent.columns):
+                from tabulous._qt._proxy_button import QHeaderFilterButton
+
+                index = _cfil.indices().pop()
+                QHeaderFilterButton.install_to_table(self.parent.native, index)
+                self.parent._qwidget._set_proxy(_cfil)
+                return None
 
             def _filter(df: pd.DataFrame) -> np.ndarray:
                 ns = dict(**dict(df.items()), **namespace)
@@ -268,3 +276,14 @@ def _check_duplicate(out: _IntOrBoolArray):
     if out.dtype.kind in "ui" and np.unique(out).size != out.size:
         raise ValueError(f"The proxy contains duplicates: {out!r}")
     return out
+
+
+def _try_ast_parse(expr: str, columns: pd.Index) -> ComposableFilter | None:
+    ast_body = ast.parse(expr, mode="eval").body
+    if not isinstance(ast_body, ast.Compare):
+        return None
+    try:
+        cfil = ComposableFilter.from_ast(ast_body, columns)
+    except Exception:
+        return None
+    return cfil

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, Hashable, Iterable, Sequence, TYPE_CHECKING
 from pandas.core.groupby.generic import DataFrameGroupBy
-from qtpy import QtWidgets as QtW
+from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Signal, Qt
 from collections_undo import arguments
 
@@ -80,6 +80,7 @@ class _QLabeledComboBox(QtW.QWidget):
 class _QGroupByWidget(QtW.QWidget):
     _groupby: QTableGroupBy | None = None
     _qtable_view: _QTableViewEnhanced | None = None
+    focusedSignal = Signal()
 
     @classmethod
     def from_groupby(cls, parent: QTableGroupBy) -> _QGroupByWidget:
@@ -118,6 +119,9 @@ class _QGroupByWidget(QtW.QWidget):
     @property
     def _on_moved(self):
         return self._groupby._qtable_view._on_moved
+
+    def focusInEvent(self, e: QtGui.QFocusEvent) -> None:
+        self.focusedSignal.emit()
 
 
 class QTableGroupBy(QBaseTable):

@@ -299,7 +299,7 @@ class TableBase(ABC):
         c = data.columns.get_loc(column)
         return self._qwidget.moveToItem(r, c)
 
-    def move_iloc(self, row: int | None, column: int | None):
+    def move_iloc(self, row: int | None, column: int | None, scroll: bool = True):
         """
         Move to a location in the table using indices.
         >>> table.move_iloc(2, 4)
@@ -311,7 +311,12 @@ class TableBase(ABC):
             raise IndexError(
                 f"Indices {(row, column)!r} out of range of table shape {shape!r}."
             )
-        return self._qwidget.moveToItem(row, column)
+        self._qwidget.moveToItem(row, column)
+        if scroll:
+            qtable_view = self._qwidget._qtable_view
+            index = qtable_view.model().index(row, column)
+            qtable_view.scrollTo(index)
+        return None
 
     def foreground_colormap(
         self,
