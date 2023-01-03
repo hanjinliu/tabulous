@@ -2,6 +2,8 @@ from typing import Callable
 from functools import wraps
 from pathlib import Path
 import numpy as np
+from magicgui import magicgui
+from magicgui.widgets import TextEdit
 
 from tabulous import TableViewer, commands as cmds
 
@@ -107,6 +109,33 @@ def command_palette_example():
     viewer.add_spreadsheet()
     viewer.resize(100, 100)
     cmds.window.show_command_palette(viewer)
+    return viewer
+
+
+@register
+def custom_widget_example():
+    viewer = TableViewer()
+    sheet = viewer.add_spreadsheet()
+
+    @magicgui
+    def generate_random_data(shape=(100, 100), min="", max=""):
+        pass
+
+    @magicgui
+    def read_csv(save_path: Path):
+        pass
+
+    sheet.add_side_widget(generate_random_data).show()
+    sheet.add_side_widget(read_csv).show()
+
+    sheet.add_overlay_widget(
+        TextEdit(value="This widget is overlaid on the table."),
+        label="Note",
+        topleft=(2, 1),
+        size=(2.5, 3.5),
+    )
+
+    viewer.resize(600, 450)
     return viewer
 
 
