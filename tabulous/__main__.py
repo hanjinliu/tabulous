@@ -9,6 +9,7 @@ class TabulousArgs(argparse.Namespace):
     profile: bool
     debug: bool
     init_config: bool
+    init_history: bool
     open_file: str | None
 
 
@@ -28,6 +29,7 @@ class TabulousParser(argparse.ArgumentParser):
         self.add_argument("--profile", action="store_true")
         self.add_argument("--debug", action="store_true")
         self.add_argument("--init-config", action="store_true")
+        self.add_argument("--init-history", action="store_true")
 
     def parse_known_args(
         self, args=None, namespace=None
@@ -66,6 +68,11 @@ def main():
         CONFIG_PATH.unlink(missing_ok=True)
         TabulousConfig.from_toml(CONFIG_PATH).as_toml()
         return print(f"tabulous config file initialized at {str(CONFIG_PATH)}.")
+
+    if args.init_history:
+        from ._utils import TXT_PATH
+
+        TXT_PATH.write_text("")
 
     from . import TableViewer
 
