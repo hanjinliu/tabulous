@@ -646,8 +646,10 @@ class TableBase(ABC):
         _cell_register("Copy as ... > New table")(_wrap(cmds.selection.copy_as_new_table))  # noqa: E501
         _cell_register("Copy as ... > New spreadsheet")(_wrap(cmds.selection.copy_as_new_spreadsheet))  # noqa: E501
         _cell_register("Paste")(_wrap(cmds.selection.paste_data_tab_separated))
+        _cell_register("Paste from ... > Tab separated text")(_wrap(cmds.selection.paste_data_tab_separated))  # noqa: E501
         _cell_register("Paste from ... > Comma separated text")(_wrap(cmds.selection.paste_data_comma_separated))  # noqa: E501
         _cell_register("Paste from ... > numpy-style text")(_wrap(cmds.selection.paste_data_from_numpy_string))  # noqa: E501
+        _cell_register("Paste from ... > Markdown text")(_wrap(cmds.selection.paste_data_from_markdown))  # noqa: E501
         self._qwidget.addSeparator()
         _cell_register("Sort in-place")(_wrap(cmds.selection.sort_inplace))
         self._qwidget.addSeparator()

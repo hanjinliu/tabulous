@@ -1219,38 +1219,6 @@ class QMutableTable(QBaseTable):
 
         return self._paste_data(df)
 
-    def _paste_numpy_str(self):
-        """
-        Paste numpy array representation to the table.
-
-        Strings formatted as following will be correctly parsed:
-
-        1. String returned by repr() of numpy array.
-        >>> array([[1, 2, 3],
-        >>>        [4, 5, 6]])
-
-        2. String returned by str() of numpy array.
-        >>> [[1 2 3]
-        >>>  [4 5 6]]
-        """
-        s = QtW.QApplication.clipboard().text().strip()
-        _is_repr = s.startswith("array(") and s.endswith(")")
-        _is_str = s.startswith("[") and s.endswith("]")
-        if _is_repr:
-            arr = eval(f"np.{s}", {"np": np}, {})
-            if not isinstance(arr, np.ndarray):
-                raise ValueError("Invalid numpy array representation.")
-            if arr.ndim > 2:
-                raise ValueError("Cannot paste array with dimension > 2.")
-            return self._paste_data(pd.DataFrame(arr))
-        elif _is_str:
-            arr = np.asarray(eval(s.replace(" ", ", "), {}, {}))
-            if arr.ndim > 2:
-                raise ValueError("Cannot paste array with dimension > 2.")
-            return self._paste_data(pd.DataFrame(arr))
-        else:
-            raise ValueError("Invalid numpy array representation.")
-
     def deleteValues(self):
         """Replace selected cells with NaN."""
         if not self.isEditable():

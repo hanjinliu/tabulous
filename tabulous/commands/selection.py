@@ -38,7 +38,7 @@ def copy_as_markdown(viewer: TableViewerBase):
 
 
 def copy_as_rst(viewer: TableViewerBase):
-    """Copy as markdown text"""
+    """Copy as rst text"""
     _utils.get_table(viewer)._qwidget._copy_as_formated("rst")
 
 
@@ -93,7 +93,66 @@ def paste_data_comma_separated(viewer: TableViewerBase):
 
 def paste_data_from_numpy_string(viewer: TableViewerBase):
     """Paste from numpy-style text"""
-    _utils.get_mutable_table(viewer)._qwidget._paste_numpy_str()
+    # import re
+    import numpy as np
+    import pandas as pd
+
+    # TODO: use regex
+    # repr_pattern = re.compile(r"array\(.*\)")
+    # str_pattern = re.compile(r"\[.*\]")
+
+    table = _utils.get_mutable_table(viewer)._qwidget
+    s = _utils.get_clipboard_text().strip()
+
+    _is_repr = s.startswith("array(") and s.endswith(")")
+    _is_str = s.startswith("[") and s.endswith("]")
+
+    if _is_repr:
+        arr = eval(f"np.{s}", {"np": np}, {})
+        if not isinstance(arr, np.ndarray):
+            raise ValueError("Invalid numpy array representation.")
+        if arr.ndim > 2:
+            raise ValueError("Cannot paste array with dimension > 2.")
+        return table._paste_data(pd.DataFrame(arr))
+    elif _is_str:
+        arr = np.asarray(eval(s.replace(" ", ", "), {}, {}))
+        if arr.ndim > 2:
+            raise ValueError("Cannot paste array with dimension > 2.")
+        return table._paste_data(pd.DataFrame(arr))
+    else:
+        raise ValueError("Invalid numpy array representation.")
+
+
+def paste_data_from_markdown(viewer: TableViewerBase):
+    """Paste from Markdown text"""
+    import re
+    import pandas as pd
+
+    table = _utils.get_mutable_table(viewer)
+    text = _utils.get_clipboard_text().strip()
+    pattern = re.compile(r"(?=\|)(.+?)(?=\|)")
+    lines = text.split("\n")
+
+    # check the second "|---|---..." line.
+    grid_spec = lines[1]
+    if not re.match(r"\|(([:-]+\|)+)+", grid_spec):
+        raise ValueError("Input text is not a markdown table.")
+
+    # parse header
+    columns = [cell.group().lstrip("|").strip() for cell in pattern.finditer(lines[0])]
+    if len(columns) == 0:
+        raise ValueError(f"Informal header: {lines[0]!r}")
+
+    data: list[list[str]] = []
+    for line in lines[2:]:
+        if line := line.strip():
+            data.append(
+                [cell.group().lstrip("|").strip() for cell in pattern.finditer(line)]
+            )
+
+    df = pd.DataFrame(data, columns=columns, dtype="string")
+    table.native._paste_data(df)
+    return None
 
 
 def delete_values(viewer: TableViewerBase):

@@ -62,3 +62,21 @@ def toggle_focus(viewer: TableViewerBase):
     else:
         qviewer.setCellFocus()
     return
+
+
+def add_text_edit(viewer: TableViewerBase):
+    """Add a text edit dock widget."""
+    from tabulous import TableViewer, TableViewerWidget
+    from tabulous._qt._qt_const import MonospaceFontFamily
+    from qtpy import QtWidgets as QtW, QtGui
+
+    txt_edit = QtW.QTextEdit()
+    txt_edit.setFont(QtGui.QFont(MonospaceFontFamily, 10))
+
+    if isinstance(viewer, TableViewer):
+        viewer.add_dock_widget(txt_edit, name="Note")
+    elif isinstance(viewer, TableViewerWidget):
+        viewer.add_widget(txt_edit, name="Note")
+    else:
+        raise TypeError(f"Cannot add widget to {type(viewer)}")
+    return None

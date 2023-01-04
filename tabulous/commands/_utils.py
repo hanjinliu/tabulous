@@ -96,3 +96,12 @@ def get_a_selection(table: TableBase) -> tuple[slice, slice]:
     if len(sels) != 1:
         raise ValueError("Multiple selections are selected")
     return sels[0]
+
+
+def get_clipboard_text() -> str:
+    from qtpy import QtWidgets as QtW
+
+    s = QtW.QApplication.clipboard().text()
+    if s:
+        return s
+    raise ValueError("No text found in clipboard.")
