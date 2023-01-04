@@ -65,7 +65,7 @@ def toggle_focus(viewer: TableViewerBase):
 
 
 def add_text_edit(viewer: TableViewerBase):
-    """Add a text edit dock widget."""
+    """Add a note (text edit) dock widget."""
     from tabulous import TableViewer, TableViewerWidget
     from tabulous._qt._qt_const import MonospaceFontFamily
     from qtpy import QtWidgets as QtW, QtGui

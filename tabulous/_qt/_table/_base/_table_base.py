@@ -320,14 +320,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         nc = len(c_ranges)
         if nr > 1 and nc > 1:
             raise SelectionRangeError("Cannot copy selected range.")
+        data = self.dataShown()
+        if nr == 1:
+            axis = 1
         else:
-            data = self.dataShown()
-            if nr == 1:
-                axis = 1
-            else:
-                axis = 0
-            ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
-            return ref
+            axis = 0
+        ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
+        return ref
 
     def copyToClipboard(self, headers: bool = True, sep: str = "\t") -> None:
         """Copy currently selected cells to clipboard."""
@@ -352,15 +351,15 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _copy_as_formated(self, format: str = "markdown"):
         """Copy the selected cells as markdown format."""
         ref = self._selected_dataframe()
-
+        index = not is_ranged(ref.index)
         if format == "markdown":
-            s = _tabulate(ref, tablefmt="github")
+            s = _tabulate(ref, tablefmt="github", index=index)
         elif format == "latex":
-            s = ref.to_latex()
+            s = ref.to_latex(index=index)
         elif format == "html":
-            s = ref.to_html()
+            s = ref.to_html(index=index)
         elif format == "rst":
-            s = _tabulate(ref, tablefmt="rst")
+            s = _tabulate(ref, tablefmt="rst", index=index)
         else:
             raise ValueError(f"Unknown format: {format!r}")
         return _to_clipboard(s, excel=False)
@@ -1503,12 +1502,15 @@ def _to_clipboard(s: str, excel: bool = True, **kwargs) -> None:
     return to_clipboard(s, excel=excel, **kwargs)
 
 
-def _tabulate(df: pd.DataFrame, tablefmt: str) -> str:
+def _tabulate(df: pd.DataFrame, tablefmt: str, index: bool = False) -> str:
     try:
         from tabulate import tabulate
     except ImportError:
-        raise ImportError(
-            "No module named 'tabulate'. Please " "`pip install tabulate -U`."
-        )
+        raise ImportError("No module named 'tabulate'. Please `pip install tabulate`.")
 
-    return tabulate(df.astype("string").fillna(""), headers="keys", tablefmt=tablefmt)
+    return tabulate(
+        df.astype("string").fillna(""),
+        headers="keys",
+        tablefmt=tablefmt,
+        showindex=index,
+    )

@@ -155,6 +155,27 @@ def paste_data_from_markdown(viewer: TableViewerBase):
     return None
 
 
+# TODO: implement this
+# def paste_data_from_rst(viewer: TableViewerBase):
+#     """Paste from reStructuredText text"""
+#     import re
+#     import pandas as pd
+
+#     table = _utils.get_mutable_table(viewer)
+#     text = _utils.get_clipboard_text().strip()
+#     pattern = re.compile(r"(?=\|)(.+?)(?=\|)")
+#     first_line, rest = text.split("\n", maxsplit=1)
+#     if re.match(r"\+((-+\+)+)+", first_line):
+#         lines = rest.split(first_line)
+
+#     else:
+#         rest.split(first_line)
+
+#     lines = text.split("\n")
+
+#     return None
+
+
 def delete_values(viewer: TableViewerBase):
     """Delete selected cells"""
     _utils.get_mutable_table(viewer)._qwidget.deleteValues()
