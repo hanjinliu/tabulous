@@ -354,11 +354,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         ref = self._selected_dataframe()
 
         if format == "markdown":
-            s = ref.to_markdown()
+            s = _tabulate(ref, tablefmt="github")
         elif format == "latex":
             s = ref.to_latex()
         elif format == "html":
             s = ref.to_html()
+        elif format == "rst":
+            s = _tabulate(ref, tablefmt="rst")
         else:
             raise ValueError(f"Unknown format: {format!r}")
         return _to_clipboard(s, excel=False)
@@ -1531,3 +1533,14 @@ def _to_clipboard(s: str, excel: bool = True, **kwargs) -> None:
     from pandas.io.clipboards import to_clipboard
 
     return to_clipboard(s, excel=excel, **kwargs)
+
+
+def _tabulate(df: pd.DataFrame, tablefmt: str) -> str:
+    try:
+        from tabulate import tabulate
+    except ImportError:
+        raise ImportError(
+            "No module named 'tabulate'. Please " "`pip install tabulate -U`."
+        )
+
+    return tabulate(df.astype("string").fillna(""), headers="keys", tablefmt=tablefmt)

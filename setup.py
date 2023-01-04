@@ -40,6 +40,7 @@ setup(
             "pyqt5>=5.12.3",
             "scipy>=1.7",
             "scikit-learn>=1.1",
+            "tabulate",
         ],
         "pyqt5": ["pyqt5>=5.12.3"],
         "pyqt6": ["pyqt6>=6.3.1"],

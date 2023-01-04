@@ -37,6 +37,11 @@ def copy_as_markdown(viewer: TableViewerBase):
     _utils.get_table(viewer)._qwidget._copy_as_formated("markdown")
 
 
+def copy_as_rst(viewer: TableViewerBase):
+    """Copy as markdown text"""
+    _utils.get_table(viewer)._qwidget._copy_as_formated("rst")
+
+
 def copy_as_latex(viewer: TableViewerBase):
     """Copy as LaTeX text"""
     _utils.get_table(viewer)._qwidget._copy_as_formated("latex")

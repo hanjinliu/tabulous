@@ -637,7 +637,8 @@ class TableBase(ABC):
         _cell_register("Copy as ... > Comma separated text")(_wrap(cmds.selection.copy_data_comma_separated))  # noqa: E501
         _cell_register("Copy as ... > Comma separated text with headers")(_wrap(cmds.selection.copy_data_with_header_comma_separated))  # noqa: E501
         self._qwidget.addSeparator("Copy as ... ")
-        _cell_register("Copy as ... > Markdown")(_wrap(cmds.selection.copy_as_markdown))
+        _cell_register("Copy as ... > Markdown (.md)")(_wrap(cmds.selection.copy_as_markdown))  # noqa: E501
+        _cell_register("Copy as ... > reStructuredText (.rst)")(_wrap(cmds.selection.copy_as_rst))  # noqa: E501
         _cell_register("Copy as ... > Latex")(_wrap(cmds.selection.copy_as_latex))
         _cell_register("Copy as ... > HTML")(_wrap(cmds.selection.copy_as_html))
         _cell_register("Copy as ... > Literal")(_wrap(cmds.selection.copy_as_literal))
