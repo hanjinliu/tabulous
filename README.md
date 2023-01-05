@@ -1,4 +1,4 @@
-[![Downloads](https://pepy.tech/badge/tabulous/month)](https://pepy.tech/project/tabulous)
+[![Python package index download statistics](https://img.shields.io/pypi/dm/tabulous.svg)](https://pypistats.org/packages/tabulous)
 [![PyPI version](https://badge.fury.io/py/tabulous.svg)](https://badge.fury.io/py/tabulous)
 
 # tabulous
