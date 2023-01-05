@@ -73,6 +73,9 @@ def add_text_edit(viewer: TableViewerBase):
     txt_edit = QtW.QTextEdit()
     txt_edit.setFont(QtGui.QFont(MonospaceFontFamily, 10))
 
+    metrics = txt_edit.fontMetrics()
+    txt_edit.setTabStopWidth(4 * metrics.width(" "))
+
     if isinstance(viewer, TableViewer):
         viewer.add_dock_widget(txt_edit, name="Note")
     elif isinstance(viewer, TableViewerWidget):
