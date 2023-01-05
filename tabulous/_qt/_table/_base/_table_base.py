@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, TYPE_CHECKING, Tuple, TypeVar
+from typing import Any, Callable, TYPE_CHECKING, Iterable, Tuple, TypeVar
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -360,6 +360,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             s = ref.to_html(index=index)
         elif format == "rst":
             s = _tabulate(ref, tablefmt="rst", index=index)
+        elif format == "grid":
+            s = _dataframe_to_grid_table(ref)
         else:
             raise ValueError(f"Unknown format: {format!r}")
         return _to_clipboard(s, excel=False)
@@ -1514,3 +1516,19 @@ def _tabulate(df: pd.DataFrame, tablefmt: str, index: bool = False) -> str:
         tablefmt=tablefmt,
         showindex=index,
     )
+
+
+def _dataframe_to_grid_table(df: pd.DataFrame):
+    cell_width = [col.str.len().max() for _, col in df.items()]
+
+    def table_div(sep="-"):
+        return "".join("+" + (width + 2) * sep for width in cell_width) + "+"
+
+    def row_to_str(row: Iterable[str]):
+        return "| " + " | ".join([f"{x:{w}}" for x, w in zip(row, cell_width)]) + " |"
+
+    lines = [table_div(), row_to_str(df.columns), table_div("=")]
+    for _, row in df.iterrows():
+        lines.append(row_to_str(row))
+        lines.append(table_div())
+    return "\n".join(lines)

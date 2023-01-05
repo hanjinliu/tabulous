@@ -60,7 +60,7 @@ def concat(viewer: TableViewerBase):
         parent=viewer._qwidget,
     )
     if out is not None:
-        viewer.add_table(out, name=f"concat")
+        viewer.add_table(out, name="concat")
 
 
 def pivot(viewer: TableViewerBase):
@@ -171,3 +171,10 @@ def switch_layout(viewer: TableViewerBase):
         table.layout = "horizontal"
     else:
         table.layout = "vertical"
+
+
+def resize_cells_to_contents(viewer: TableViewerBase):
+    """Resize cells to contents"""
+    table = _utils.get_table(viewer)
+    table.native._qtable_view.resizeColumnsToContents()
+    table.native._qtable_view.resizeRowsToContents()
