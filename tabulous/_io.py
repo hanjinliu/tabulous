@@ -51,8 +51,12 @@ def save_file(path: PathLike, df: pd.DataFrame) -> None:
 
 
 def _get_index_col(path: PathLike, sep=",") -> int | None:
-    with open(path) as f:
-        first_char = f.read(1)
-    if first_char == sep:
-        return 0
-    return None
+    index_col = None
+    try:
+        with open(path) as f:
+            first_char = f.read(1)
+        if first_char == sep:
+            index_col = 0
+    except Exception:
+        pass
+    return index_col
