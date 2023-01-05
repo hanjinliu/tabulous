@@ -37,6 +37,16 @@ def copy_as_markdown(viewer: TableViewerBase):
     _utils.get_table(viewer)._qwidget._copy_as_formated("markdown")
 
 
+def copy_as_rst_simple(viewer: TableViewerBase):
+    """Copy as rst simple table"""
+    _utils.get_table(viewer)._qwidget._copy_as_formated("rst")
+
+
+def copy_as_rst_grid(viewer: TableViewerBase):
+    """Copy as rst grid table"""
+    _utils.get_table(viewer)._qwidget._copy_as_formated("grid")
+
+
 def copy_as_latex(viewer: TableViewerBase):
     """Copy as LaTeX text"""
     _utils.get_table(viewer)._qwidget._copy_as_formated("latex")
@@ -88,7 +98,117 @@ def paste_data_comma_separated(viewer: TableViewerBase):
 
 def paste_data_from_numpy_string(viewer: TableViewerBase):
     """Paste from numpy-style text"""
-    _utils.get_mutable_table(viewer)._qwidget._paste_numpy_str()
+    # import re
+    import numpy as np
+    import pandas as pd
+
+    # TODO: use regex
+    # repr_pattern = re.compile(r"array\(.*\)")
+    # str_pattern = re.compile(r"\[.*\]")
+
+    table = _utils.get_mutable_table(viewer)._qwidget
+    s = _utils.get_clipboard_text().strip()
+
+    _is_repr = s.startswith("array(") and s.endswith(")")
+    _is_str = s.startswith("[") and s.endswith("]")
+
+    if _is_repr:
+        arr = eval(f"np.{s}", {"np": np}, {})
+        if not isinstance(arr, np.ndarray):
+            raise ValueError("Invalid numpy array representation.")
+        if arr.ndim > 2:
+            raise ValueError("Cannot paste array with dimension > 2.")
+        return table._paste_data(pd.DataFrame(arr))
+    elif _is_str:
+        arr = np.asarray(eval(s.replace(" ", ", "), {}, {}))
+        if arr.ndim > 2:
+            raise ValueError("Cannot paste array with dimension > 2.")
+        return table._paste_data(pd.DataFrame(arr))
+    else:
+        raise ValueError("Invalid numpy array representation.")
+
+
+def paste_data_from_markdown(viewer: TableViewerBase):
+    """Paste from Markdown text"""
+    import re
+    import pandas as pd
+
+    table = _utils.get_mutable_table(viewer)
+    text = _utils.get_clipboard_text().strip()
+    pattern = re.compile(r"(?=\|)(.+?)(?=\|)")
+    lines = text.split("\n")
+
+    # check the second "|---|---..." line.
+    grid_spec = lines[1]
+    if not re.match(r"\|(([:-]+\|)+)+", grid_spec):
+        raise ValueError("Input text is not a markdown table.")
+
+    # parse header
+    columns = [cell.group().lstrip("|").strip() for cell in pattern.finditer(lines[0])]
+    if len(columns) == 0:
+        raise ValueError(f"Informal header: {lines[0]!r}")
+
+    data: list[list[str]] = []
+    for line in lines[2:]:
+        if line := line.strip():
+            data.append(
+                [cell.group().lstrip("|").strip() for cell in pattern.finditer(line)]
+            )
+
+    df = pd.DataFrame(data, columns=columns, dtype="string")
+    table.native._paste_data(df)
+    return None
+
+
+def paste_data_from_rst(viewer: TableViewerBase):
+    """Paste from reStructuredText table"""
+
+    import numpy as np
+    import pandas as pd
+    from docutils.parsers.rst.tableparser import GridTableParser, SimpleTableParser
+    from docutils.statemachine import StringList
+    from tabulous._pd_index import char_arange
+
+    table = _utils.get_mutable_table(viewer)
+    text = _utils.get_clipboard_text().strip()
+    lines = list(filter(bool, (line.strip() for line in text.splitlines())))
+    if lines[0].startswith("+"):
+        parser = GridTableParser()
+    else:
+        parser = SimpleTableParser()
+
+    colspec, header, data = parser.parse(StringList(lines))
+
+    # TODO: multiple header is not supported
+    if header:
+        columns = []
+        for rowspan, colspan, lineno, stringlist in header[-1]:
+            name: str = "\n".join(stringlist.data)
+            columns.append(name)
+            for i in range(colspan):
+                columns.append(f"{name}_{i}")
+    else:
+        colcount = 0
+        for rowspan, colspan, lineno, stringlist in data[0]:
+            colcount += 1 + colspan
+        columns = char_arange(colcount)
+
+    df = pd.DataFrame(
+        np.empty((len(data), len(columns))), columns=columns, dtype="string"
+    )
+    ir = 0
+    for row in data:
+        ic = 0
+        for cell in row:
+            # (0, 0, 3, StringList(['column 3'], items=[(None, 3)]))
+            rowspan, colspan, lineno, stringlist = cell
+            value: str = "\n".join(stringlist.data)
+            df.iloc[ir : ir + rowspan + 1, ic : ic + colspan + 1] = value
+            ic += colspan + 1
+        ir += 1
+
+    table.native._paste_data(df)
+    return None
 
 
 def delete_values(viewer: TableViewerBase):

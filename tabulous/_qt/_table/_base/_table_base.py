@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, TYPE_CHECKING, Tuple, TypeVar
+from typing import Any, Callable, TYPE_CHECKING, Iterable, Tuple, TypeVar
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -320,14 +320,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         nc = len(c_ranges)
         if nr > 1 and nc > 1:
             raise SelectionRangeError("Cannot copy selected range.")
+        data = self.dataShown()
+        if nr == 1:
+            axis = 1
         else:
-            data = self.dataShown()
-            if nr == 1:
-                axis = 1
-            else:
-                axis = 0
-            ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
-            return ref
+            axis = 0
+        ref = pd.concat([data.iloc[sel] for sel in selections], axis=axis)
+        return ref
 
     def copyToClipboard(self, headers: bool = True, sep: str = "\t") -> None:
         """Copy currently selected cells to clipboard."""
@@ -352,13 +351,17 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _copy_as_formated(self, format: str = "markdown"):
         """Copy the selected cells as markdown format."""
         ref = self._selected_dataframe()
-
+        index = not is_ranged(ref.index)
         if format == "markdown":
-            s = ref.to_markdown()
+            s = _tabulate(ref, tablefmt="github", index=index)
         elif format == "latex":
-            s = ref.to_latex()
+            s = ref.to_latex(index=index)
         elif format == "html":
-            s = ref.to_html()
+            s = ref.to_html(index=index)
+        elif format == "rst":
+            s = _tabulate(ref, tablefmt="rst", index=index)
+        elif format == "grid":
+            s = _dataframe_to_grid_table(ref)
         else:
             raise ValueError(f"Unknown format: {format!r}")
         return _to_clipboard(s, excel=False)
@@ -1217,38 +1220,6 @@ class QMutableTable(QBaseTable):
 
         return self._paste_data(df)
 
-    def _paste_numpy_str(self):
-        """
-        Paste numpy array representation to the table.
-
-        Strings formatted as following will be correctly parsed:
-
-        1. String returned by repr() of numpy array.
-        >>> array([[1, 2, 3],
-        >>>        [4, 5, 6]])
-
-        2. String returned by str() of numpy array.
-        >>> [[1 2 3]
-        >>>  [4 5 6]]
-        """
-        s = QtW.QApplication.clipboard().text().strip()
-        _is_repr = s.startswith("array(") and s.endswith(")")
-        _is_str = s.startswith("[") and s.endswith("]")
-        if _is_repr:
-            arr = eval(f"np.{s}", {"np": np}, {})
-            if not isinstance(arr, np.ndarray):
-                raise ValueError("Invalid numpy array representation.")
-            if arr.ndim > 2:
-                raise ValueError("Cannot paste array with dimension > 2.")
-            return self._paste_data(pd.DataFrame(arr))
-        elif _is_str:
-            arr = np.asarray(eval(s.replace(" ", ", "), {}, {}))
-            if arr.ndim > 2:
-                raise ValueError("Cannot paste array with dimension > 2.")
-            return self._paste_data(pd.DataFrame(arr))
-        else:
-            raise ValueError("Invalid numpy array representation.")
-
     def deleteValues(self):
         """Replace selected cells with NaN."""
         if not self.isEditable():
@@ -1531,3 +1502,33 @@ def _to_clipboard(s: str, excel: bool = True, **kwargs) -> None:
     from pandas.io.clipboards import to_clipboard
 
     return to_clipboard(s, excel=excel, **kwargs)
+
+
+def _tabulate(df: pd.DataFrame, tablefmt: str, index: bool = False) -> str:
+    try:
+        from tabulate import tabulate
+    except ImportError:
+        raise ImportError("No module named 'tabulate'. Please `pip install tabulate`.")
+
+    return tabulate(
+        df.astype("string").fillna(""),
+        headers="keys",
+        tablefmt=tablefmt,
+        showindex=index,
+    )
+
+
+def _dataframe_to_grid_table(df: pd.DataFrame):
+    cell_width = [col.str.len().max() for _, col in df.items()]
+
+    def table_div(sep="-"):
+        return "".join("+" + (width + 2) * sep for width in cell_width) + "+"
+
+    def row_to_str(row: Iterable[str]):
+        return "| " + " | ".join([f"{x:{w}}" for x, w in zip(row, cell_width)]) + " |"
+
+    lines = [table_div(), row_to_str(df.columns), table_div("=")]
+    for _, row in df.iterrows():
+        lines.append(row_to_str(row))
+        lines.append(table_div())
+    return "\n".join(lines)
