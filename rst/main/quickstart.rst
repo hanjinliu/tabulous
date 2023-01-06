@@ -51,18 +51,16 @@ but you can show it in several ways.
    ``>>> viewer.conosole.visible = True``
 2. Activate keyboard shortcut ``Ctrl+Shift+C``.
 3. Click the |toggle_console| tool button in the "Analysis" tab of the toolbar.
-4. Click the tool button of (3.) using key combo ``Alt, A, 4``
 
 In ``tabulous`` viewer there are additional keybindings.
 
 - ``Ctrl + Shift + ↑``: Set console floating.
 - ``Ctrl + Shift + ↓``: Dock console.
-- ``Ctrl + I``: Insert a data reference object (See :doc:`/main/user_interface`).
 
-Handle Tables
-=============
+Use Tables
+==========
 
-Basically, table data is handled based on ``pandas``.
+In :mod:`tabulous`, table data is handled based on :mod:`pandas`.
 A :class:`TableViewer` instance has several methods that add :class:`DataFrame` to the viewer.
 
 1. :meth:`add_table` ... add a table data as a ``Table`` object.
