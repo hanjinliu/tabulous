@@ -10,6 +10,7 @@ from typing import (
     TYPE_CHECKING,
     NamedTuple,
     SupportsIndex,
+    Mapping,
     MutableSequence,
 )
 from enum import Enum
@@ -204,3 +205,7 @@ def __getattr__(name: str) -> Any:
         )
         return ProxyType
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+ColorType = Union[str, Iterable[int]]
+ColorMapping = Union[Callable[[Any], ColorType], Mapping[str, ColorType]]

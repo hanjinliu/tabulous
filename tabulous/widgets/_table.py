@@ -8,17 +8,7 @@ from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
 import warnings
 from psygnal import SignalGroup, Signal
 
-from tabulous.widgets._component import (
-    CellInterface,
-    HorizontalHeaderInterface,
-    VerticalHeaderInterface,
-    PlotInterface,
-    ColumnDtypeInterface,
-    SelectionRanges,
-    HighlightRanges,
-    ProxyInterface,
-)
-from tabulous.widgets import _doc
+from tabulous.widgets import _doc, _component as _comp
 from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
 from tabulous._psygnal import SignalArray, InCellRangedSlot
 
@@ -52,7 +42,7 @@ class TableSignals(SignalGroup):
     index = Signal(HeaderInfo)
     columns = Signal(HeaderInfo)
     evaluated = Signal(EvalInfo)
-    selections = Signal(SelectionRanges)
+    selections = Signal(_comp.SelectionRanges)
     renamed = Signal(str)
 
 
@@ -82,13 +72,17 @@ class TableBase(ABC):
     """The base class for a table layer."""
 
     _Default_Name = "None"
-    cell = CellInterface()
-    index = VerticalHeaderInterface()
-    columns = HorizontalHeaderInterface()
-    plt = PlotInterface()
-    proxy = ProxyInterface()
-    selections = SelectionRanges()
-    highlights = HighlightRanges()
+    cell = _comp.CellInterface()
+    index = _comp.VerticalHeaderInterface()
+    columns = _comp.HorizontalHeaderInterface()
+    plt = _comp.PlotInterface()
+    proxy = _comp.ProxyInterface()
+    text_color = _comp.TextColormapInterface()
+    background_color = _comp.BackgroundColormapInterface()
+    formatter = _comp.TextFormatterInterface()
+    validator = _comp.ValidatorInterface()
+    selections = _comp.SelectionRanges()
+    highlights = _comp.HighlightRanges()
 
     def __init__(
         self,
@@ -746,7 +740,7 @@ class SpreadSheet(_DataFrameTableLayer):
     _qwidget: QSpreadSheet
     native: QSpreadSheet
     _Default_Name = "sheet"
-    dtypes = ColumnDtypeInterface()
+    dtypes = _comp.ColumnDtypeInterface()
 
     def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
         from tabulous._qt import QSpreadSheet

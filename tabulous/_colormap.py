@@ -6,7 +6,6 @@ from tabulous._dtype import isna, get_converter
 
 if TYPE_CHECKING:
     from pandas.core.dtypes.dtypes import CategoricalDtype
-    from magicgui.widgets import Widget
 
 
 _ColorType = tuple[int, int, int, int]

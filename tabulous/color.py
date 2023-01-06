@@ -1,11 +1,11 @@
 from __future__ import annotations
 from functools import lru_cache
-from typing import Iterable, Union
+from tabulous.types import ColorType
 
 __all__ = ["normalize_color", "rgba_to_str"]
 
 
-def normalize_color(color: str | Iterable[int]) -> tuple[int, int, int, int]:
+def normalize_color(color: ColorType) -> tuple[int, int, int, int]:
     if isinstance(color, str):
         return _str_color_to_tuple(color)
     if hasattr(color, "__iter__"):
@@ -28,9 +28,6 @@ def rgba_to_str(rgba: tuple[int, int, int, int]) -> str:
             code = code[:-2]
         return code
     return color_name
-
-
-ColorType = Union[str, Iterable[int]]
 
 
 @lru_cache(maxsize=64)

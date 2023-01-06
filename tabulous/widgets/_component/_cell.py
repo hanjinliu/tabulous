@@ -25,6 +25,54 @@ if TYPE_CHECKING:
 _F = TypeVar("_F", bound=Callable)
 
 
+class CellLabelInterface(TableComponent):
+    def __getitem__(self, key: tuple[int, int]) -> str | None:
+        """Get the label of a cell."""
+        self._assert_integers(key)
+        return self.parent.native.itemLabel(*key)
+
+    def __setitem__(self, key: tuple[int, int], value: str):
+        """Set the label of a cell."""
+        self._assert_integers(key)
+        return self.parent.native.setItemLabel(*key, value)
+
+    def __delitem__(self, key: tuple[int, int]):
+        """Delete the label of a cell."""
+        self._assert_integers(key)
+        return self.parent.native.setItemLabel(*key, None)
+
+    def _assert_integers(self, key: tuple[int, int]):
+        r, c = key
+        if not (isinstance(r, SupportsIndex) and isinstance(c, SupportsIndex)):
+            raise TypeError("Cell label must be accessed by integer indices.")
+
+
+class CellReferenceInterface(
+    TableComponent, Mapping[Tuple[int, int], InCellRangedSlot]
+):
+    """Interface to the cell references of a table."""
+
+    def _table_map(self):
+        return self.parent._qwidget._qtable_view._table_map
+
+    def __getitem__(self, key: tuple[int, int]):
+        return self._table_map()[key]
+
+    def __iter__(self) -> Iterator[InCellRangedSlot]:
+        return iter(self._table_map())
+
+    def __len__(self) -> int:
+        return len(self._table_map())
+
+    def __repr__(self) -> str:
+        slots = self._table_map()
+        cname = type(self).__name__
+        if len(slots) == 0:
+            return f"{cname}()"
+        s = ",\n\t".join(f"{k}: {slot!r}" for k, slot in slots.items())
+        return f"{cname}(\n\t{s}\n)"
+
+
 class CellInterface(TableComponent):
     """
     Interface with table cells.
@@ -150,15 +198,8 @@ class CellInterface(TableComponent):
         else:
             raise TypeError("input must be a string or callable.")
 
-    @property
-    def label(self) -> CellLabelInterface:
-        """Interface to the cell labels."""
-        return CellLabelInterface(self.parent)
-
-    @property
-    def ref(self) -> CellReferenceInterface:
-        """Interface to the cell references."""
-        return CellReferenceInterface(self.parent)
+    label = CellLabelInterface()
+    ref = CellReferenceInterface()
 
     def get_label(self, r: int, c: int) -> str | None:
         """Get the label of a cell."""
@@ -216,54 +257,6 @@ class CellInterface(TableComponent):
 
         self.parent._qwidget.setLabeledData(slice(r, r + ndata), slice(c, c + 1), _data)
         return None
-
-
-class CellLabelInterface(TableComponent):
-    def __getitem__(self, key: tuple[int, int]) -> str | None:
-        """Get the label of a cell."""
-        self._assert_integers(key)
-        return self.parent.native.itemLabel(*key)
-
-    def __setitem__(self, key: tuple[int, int], value: str):
-        """Set the label of a cell."""
-        self._assert_integers(key)
-        return self.parent.native.setItemLabel(*key, value)
-
-    def __delitem__(self, key: tuple[int, int]):
-        """Delete the label of a cell."""
-        self._assert_integers(key)
-        return self.parent.native.setItemLabel(*key, None)
-
-    def _assert_integers(self, key: tuple[int, int]):
-        r, c = key
-        if not (isinstance(r, SupportsIndex) and isinstance(c, SupportsIndex)):
-            raise TypeError("Cell label must be accessed by integer indices.")
-
-
-class CellReferenceInterface(
-    TableComponent, Mapping[Tuple[int, int], InCellRangedSlot]
-):
-    """Interface to the cell references of a table."""
-
-    def _table_map(self):
-        return self.parent._qwidget._qtable_view._table_map
-
-    def __getitem__(self, key: tuple[int, int]):
-        return self._table_map()[key]
-
-    def __iter__(self) -> Iterator[InCellRangedSlot]:
-        return iter(self._table_map())
-
-    def __len__(self) -> int:
-        return len(self._table_map())
-
-    def __repr__(self) -> str:
-        slots = self._table_map()
-        cname = type(self).__name__
-        if len(slots) == 0:
-            return f"{cname}()"
-        s = ",\n\t".join(f"{k}: {slot!r}" for k, slot in slots.items())
-        return f"{cname}(\n\t{s}\n)"
 
 
 def _normalize_slice(sl: slice, size: int) -> slice:

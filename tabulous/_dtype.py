@@ -68,6 +68,29 @@ def get_converter(kind: str) -> Callable[[Any], Any]:
     return _DTYPE_CONVERTER[kind]
 
 
+def get_converter_from_type(tp: type | str) -> Callable[[Any], Any]:
+    if not isinstance(tp, str):
+        tp = tp.__name__
+
+    if tp == "int":
+        kind = "i"
+    elif tp == "float":
+        kind = "f"
+    elif tp == "str":
+        kind = "U"
+    elif tp == "bool":
+        kind = "b"
+    elif tp == "complex":
+        kind = "c"
+    elif tp == "datetime":
+        kind = "M"
+    elif tp == "timedelta":
+        kind = "m"
+    else:
+        kind = "O"
+    return get_converter(kind)
+
+
 class DefaultValidator:
     """
     The default validator function.
