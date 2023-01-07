@@ -32,6 +32,30 @@ During editing, the text will always be validated. Invalid text will be shown in
 table cells, you can set any validation rules (see :doc:`/main/columnwise_settings`). For
 the table headers, duplicated names are not allowed and considered to be invalid.
 
+Add cell labels
+---------------
+
+People using spreadsheets usually want to name some of the cells. For instance, when you
+calculated the mean of a column, you want to name the cell as "mean". Usually, it is done
+by editing one of the adjacent cells.
+
++---+------+
+| A | B    |
++===+======+
+| 1 | mean |
++---+------+
+| 2 | 2.5  |
++---+------+
+| 3 |      |
++---+------+
+| 4 |      |
++---+------+
+
+In :mod:`tabulous`, however, you can directly name the cell using cell label. You can edit
+cell labels by ``F3`` key.
+
+.. image:: ../fig/cell_labels.png
+
 Excel-style data evaluation
 ---------------------------
 

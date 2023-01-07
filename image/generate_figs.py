@@ -71,17 +71,10 @@ def sort_example():
 def colormap_example():
     viewer = TableViewer()
     sheet = viewer.open_sample("iris", type="spreadsheet")
-    sheet.background_colormap(
-        "species",
+    sheet["species"].background_color.set(
         {"setosa": "lightblue", "versicolor": "orange", "virginica": "violet"},
     )
-
-    @sheet.foreground_colormap("petal_width")
-    def _cmap(v):
-        v = float(v)
-        r = (v - 0.1) / 2.4 * 255
-        b = (1 - (v - 0.1) / 2.4) * 255
-        return [r, 255, b, 255]
+    sheet["petal_width"].text_color.set(interp_from=["red", "blue"])
 
     viewer.resize(100, 100)
     sheet.move_iloc(53, 4)

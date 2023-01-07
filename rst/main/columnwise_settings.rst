@@ -23,10 +23,14 @@ must return a RGBA array (0-255) or a standard color name.
 .. code-block:: python
 
     viewer = TableViewer()
-    viewer.open_sample("iris")
+    table = viewer.open_sample("iris")
 
     # set a continuous colormap to the "sepal_length" column
-    @table.foreground_colormap("sepal_length")
+    lmin = table.data["sepal_length"].min()
+    lmax = table.data["sepal_length"].max()
+    lrange = lmax - lmin
+
+    @table.text_color.set("sepal_length")
     def _(x: float):
         red = np.array([255, 0, 0, 255], dtype=np.uint8)
         blue = np.array([0, 0, 255, 255], dtype=np.uint8)
@@ -35,7 +39,7 @@ must return a RGBA array (0-255) or a standard color name.
 .. code-block:: python
 
     # set a discrete colormap to the "sepal_width" column
-    @table.background_colormap("sepal_width")
+    @table.background_color.set("sepal_width")
     def _(x: float):
         return "green" if x < 3.2 else "violet"
 

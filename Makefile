@@ -11,5 +11,8 @@ release:
 images:
 	python ./image/generate_figs.py
 
+images-rst:
+	python ./rst/fig/generate_figs.py
+
 watch-rst:
 	watchfiles "sphinx-build -b html ./rst ./_docs_temp" rst

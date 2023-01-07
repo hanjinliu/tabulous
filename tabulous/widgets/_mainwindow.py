@@ -494,6 +494,10 @@ class TableViewerBase(_AbstractViewer):
         """Close the viewer."""
         return self._qwidget.close()
 
+    def resize(self, width: int, height: int):
+        """Resize the table viewer."""
+        return self._qwidget.resize(width, height)
+
     def _link_events(self):
         _tablist = self._tablist
         _qtablist = self._qwidget._tablestack
@@ -663,10 +667,6 @@ class TableViewer(TableViewerBase):
             widget = dock.widget
             if hasattr(widget, "reset_choices"):
                 widget.reset_choices()
-
-    def resize(self, width: int, height: int):
-        """Resize the table viewer."""
-        return self._qwidget.resize(width, height)
 
 
 class DummyViewer(_AbstractViewer):

@@ -14,6 +14,7 @@ from tabulous._psygnal import SignalArray, InCellRangedSlot
 
 if TYPE_CHECKING:
     from typing_extensions import Self, Literal
+    import numpy as np
     import pandas as pd
     from collections_undo import UndoManager
     from qtpy import QtWidgets as QtW
@@ -467,6 +468,18 @@ class TableBase(ABC):
         from tabulous._io import save_file
 
         save_file(path, self.data)
+        return None
+
+    def screenshot(self) -> np.ndarray:
+        """Get screenshot of the widget."""
+        return self._qwidget.screenshot()
+
+    def save_screenshot(self, path: str):
+        """Save screenshot of the widget."""
+        from PIL import Image
+
+        arr = self.screenshot()
+        Image.fromarray(arr).save(path)
         return None
 
     def _emit_selections(self):

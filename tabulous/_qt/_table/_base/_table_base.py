@@ -827,6 +827,22 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Return the parent table viewer."""
         return self._qtable_view.parentViewer()
 
+    def screenshot(self):
+        """Create an array of pixel data of the current view."""
+        import qtpy
+
+        img = self.grab().toImage()
+        bits = img.constBits()
+        h, w, c = img.height(), img.width(), 4
+        if qtpy.API_NAME.startswith("PySide"):
+            arr = np.array(bits).reshape(h, w, c)
+        else:
+            bits.setsize(h * w * c)
+            arr: np.ndarray = np.frombuffer(bits, np.uint8)
+            arr = arr.reshape(h, w, c)
+
+        return arr[:, :, [2, 1, 0, 3]]
+
     def _switch_head_and_index(self, axis: int = 1) -> None:
         """Switch the first row/column data and the index object."""
         self.setProxy(None)  # reset filter to avoid unexpected errors

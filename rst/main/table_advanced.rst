@@ -66,8 +66,8 @@ Field Attributes of Tables
 There are several fields that can be used to interact with table state and data.
 Operations via table fields are undoable.
 
-``cell``
---------
+``cell`` field
+--------------
 
 The :attr:`cell` field provides several methods to get access to table cells.
 
@@ -94,10 +94,10 @@ for more detail.
     - :attr:`loc` and :attr:`iloc` does not check data type.
     - Table will not be updated immediately.
 
-The :attr:`cell` field has sub-fields.
+The :attr:`cell` field has several sub-fields.
 
-Cell references
-^^^^^^^^^^^^^^^
+``ref``
+^^^^^^^
 
 All the in-cell functions with cell references are accessible via :attr:`ref` sub-field.
 
@@ -108,18 +108,45 @@ All the in-cell functions with cell references are accessible via :attr:`ref` su
     print(table.cell.ref[0, 1])  # get the slot function at (0, 1)
     print(table.cell.ref[1, 1])  # KeyError
 
-Cell labels
-^^^^^^^^^^^
+``label``
+^^^^^^^^^
 
-table.cell.label
+Cell labels can be edited programmatically using this sub-field.
 
 .. code-block:: python
 
     print(table.cell.label[0, 1])
-    table.cell.label[0, 1] = "mean ="
+    table.cell.label[0, 1] = "mean:"
 
-``plt``
--------
+``text``
+^^^^^^^^
+
+Displayed (formatted) text in cells can be obtained using this sub-field.
+
+.. code-block:: python
+
+    print(table.cell.text[0, 1])
+
+``text_color``
+^^^^^^^^^^^^^^
+
+Displayed text color (8-bit RGBA) in cells can be obtained using this sub-field.
+
+.. code-block:: python
+
+    print(table.cell.text_color[0, 1])
+
+``background_color``
+^^^^^^^^^^^^^^^^^^^^
+
+Displayed background color (8-bit RGBA) in cells can be obtained using this sub-field.
+
+.. code-block:: python
+
+    print(table.cell.text_color[0, 1])
+
+``plt`` field
+-------------
 
 Since plotting is a common use case for table data analysis, plot canvases are implemented
 by default. The basic plot functions are available in :attr:`plt` field with the
@@ -137,8 +164,8 @@ similar API as ``matplotlib.pyplot`` module.
     You can also update plot canvas from the "Plot" tab of the toolbar.
 
 
-``index`` / ``columns``
------------------------
+``index`` / ``columns`` field
+-----------------------------
 
 :attr:`index` and :attr:`column` behaves very similar to :attr:`index` and :attr:`column`
 of :class:`pandas.DataFrame`.
@@ -160,8 +187,8 @@ of :class:`pandas.DataFrame`.
 :attr:`index` and `columns` support custom contextmenu registration. See
 :doc:`register_action` for more detail.
 
-``proxy``
----------
+``proxy`` field
+---------------
 
 Proxy includes sorting and filtering, that is, deciding which rows to be shown and
 which not to be.
@@ -174,8 +201,8 @@ which not to be.
 
 See :doc:`sort_filter` for more details.
 
-``dtypes``
-----------
+``dtypes`` field
+----------------
 
 :attr:`dtypes` is a :class:`SpreadSheet`-specific field. Since a spreadsheet has to
 determine the data type of each column, you may occasionally want to tell which
@@ -275,7 +302,14 @@ also returns the same table as before. When tab "A" or "B" is clicked, the tiled
 table with "A" and "B" is shown as ``A|B``.
 
 You can tile the current table and the table next to it by shortcut ``Ctrl+K, ^``.
-You can also programmatically tile tables by calling ``viewer.tables.tile([0, 1, 2])``.
+You can also programmatically tile tables by calling :meth:`viewer.tables.tile`.
+
+.. code-block:: python
+
+    viewer.tables.tile([0, 1])  # tile the 0th and 1st tables
+    viewer.tables.tile([0, 1, 3])  # tile tables at indices [0, 1, 3]
+
+.. image:: ../fig/tile_tables.png
 
 Untiling
 ^^^^^^^^
