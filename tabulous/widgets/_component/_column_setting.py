@@ -17,7 +17,7 @@ from functools import wraps
 import numpy as np
 
 from tabulous.types import ColorMapping, ColorType
-from tabulous.color import normalize_color
+from tabulous.color import normalize_color, InvertedColormap, OpacityColormap
 from tabulous._dtype import get_converter, get_converter_from_type, isna
 from ._base import Component, TableComponent
 
@@ -47,18 +47,18 @@ _Void = object()
 
 class _DictPropertyInterface(TableComponent, MutableMapping[str, _F]):
     @abstractmethod
-    def _get_dict(self) -> dict[str, ColorMapping]:
+    def _get_dict(self) -> dict[str, _F]:
         """Get dict of colormaps."""
 
     @abstractmethod
-    def _set_value(self, key: str, cmap: ColorMapping):
+    def _set_value(self, key: str, func: _F):
         """Set colormap at key."""
 
-    def __getitem__(self, key: str) -> ColorMapping | None:
+    def __getitem__(self, key: str) -> _F:
         return self._get_dict()[key]
 
-    def __setitem__(self, key: str, cmap: ColorMapping) -> None:
-        self.set(key, cmap)
+    def __setitem__(self, key: str, func: _F) -> None:
+        self.set(key, func)
         return None
 
     def __delitem__(self, key: str) -> None:
@@ -98,9 +98,28 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
         column_name: str,
         colormap: ColorMapping = _Void,
         *,
-        interpolate_from: _Interpolatable | None = None,
+        interp_from: _Interpolatable | None = None,
         infer_parser: bool = True,
     ):
+        """
+        Set colormap for the given column.
+
+        Parameters
+        ----------
+        column_name : str
+            Name of the column.
+        colormap : ColorMapping, optional
+            Colormap function or colormap name.
+        interp_from : list/dict of (value, color) or two colors, optional
+            Create colormap by interpolating given colors. If list or dict
+            of colors are given, the colors are interpolated linearly between
+            each adjacent value set. If two colors are given, the colors are
+            interpolated linearly between the minimum and maximum values.
+        infer_parser : bool, default is True
+            If true, infer the parser from the column dtype and use it before
+            the values are passed to the colormap function.
+        """
+
         def _wrapper(f: ColorMapping) -> ColorMapping:
             if infer_parser:
                 parser = self._get_converter(f, column_name)
@@ -112,14 +131,12 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
         if isinstance(colormap, Mapping):
             return _wrapper(lambda x: colormap.get(x, None))
         elif colormap is _Void:
-            if interpolate_from is None:
+            if interp_from is None:
                 return _wrapper
             else:
-                return _wrapper(
-                    self._from_interpolatable(interpolate_from, column_name)
-                )
+                return _wrapper(self._from_interpolatable(interp_from, column_name))
         elif isinstance(colormap, str):
-            colormap = self._from_colormap_name(column_name, colormap)
+            colormap = self._get_mpl_colormap(column_name, colormap)
             return _wrapper(colormap)
         else:
             return _wrapper(colormap)
@@ -132,6 +149,7 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
         else:
             if isinstance(seq[0], tuple) and len(seq[0]) == 2:
                 # list[tuple[number, ColorType]]
+
                 raise NotImplementedError("Mapping interpolation not yet implemented.")
             else:
                 seq: tuple[ColorType, ColorType]
@@ -140,9 +158,11 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
                 def _cmap(x):
                     return vmin * (1 - x) + vmax * x
 
+                _cmap.__name__ = f"InterpolatedColormap({seq[0]}, {seq[1]})"
+
                 return self._cmap_for_column(column_name, _cmap)
 
-    def _from_colormap_name(self, column_name: str, colormap: str) -> ColorMapping:
+    def _get_mpl_colormap(self, column_name: str, colormap: str) -> ColorMapping:
         from matplotlib.cm import get_cmap
 
         mpl_cmap = get_cmap(colormap)
@@ -162,16 +182,6 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
             Name of the column.
         cmap : [0, 1] -> ColorType
             Colormap function
-
-        Returns
-        -------
-        _type_
-            _description_
-
-        Raises
-        ------
-        TypeError
-            _description_
         """
         ds = self.parent.native._get_sub_frame(column_name)
         vmin, vmax = ds.min(), ds.max()
@@ -224,6 +234,24 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
             parser = get_converter(dtype.kind)
 
         return parser
+
+    def invert(self, column_name: str):
+        """Invert the colormap for a column."""
+        self.set(
+            column_name,
+            InvertedColormap.from_colormap(self[column_name]),
+            infer_parser=False,
+        )
+        return None
+
+    def set_opacity(self, column_name: str, opacity: float):
+        """Set the opacity value for a column."""
+        self.set(
+            column_name,
+            OpacityColormap.from_colormap(self[column_name], opacity),
+            infer_parser=False,
+        )
+        return None
 
 
 class TextColormapInterface(_ColormapInterface):

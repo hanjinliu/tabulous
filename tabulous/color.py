@@ -1,8 +1,9 @@
 from __future__ import annotations
+from typing import Any
 from functools import lru_cache
-from tabulous.types import ColorType
+from tabulous.types import ColorType, ColorMapping
 
-__all__ = ["normalize_color", "rgba_to_str"]
+import numpy as np
 
 
 def normalize_color(color: ColorType) -> tuple[int, int, int, int]:
@@ -28,6 +29,54 @@ def rgba_to_str(rgba: tuple[int, int, int, int]) -> str:
             code = code[:-2]
         return code
     return color_name
+
+
+class ConvertedColormap:
+    def __init__(self, func: ColorMapping):
+        self.func = func
+        self.__name__ = f"{type(self).__name__}<{func.__name__}>"
+        self.__annotations__ = func.__annotations__
+
+    def __repr__(self):
+        return f"{type(self).__name__}<{self.func!r}>"
+
+
+class InvertedColormap(ConvertedColormap):
+    @classmethod
+    def from_colormap(cls, cmap: ColorMapping) -> ColorMapping:
+        """Convert a colormap and return an inverted one."""
+        if isinstance(cmap, cls):
+            return cmap.func
+        return cls(cmap)
+
+    def __call__(self, x: Any) -> ColorType:
+        color = self.func(x)
+        if color is None:
+            return color
+        color = np.array(normalize_color(color), dtype=np.uint8)
+        color[:3] = 255 - color[:3]
+        return color
+
+
+class OpacityColormap(ConvertedColormap):
+    def __init__(self, func: ColorMapping, opacity: float):
+        super().__init__(func)
+        self._alpha = int(opacity * 255)
+
+    @classmethod
+    def from_colormap(cls, cmap: ColorMapping, opacity: float) -> ColorMapping:
+        """Convert a colormap and return an new one with given alpha channel."""
+        if isinstance(cmap, cls):
+            return cls(cmap.func, opacity)
+        return cls(cmap, opacity)
+
+    def __call__(self, x: Any) -> ColorType:
+        color = self.func(x)
+        if color is None:
+            return color
+        color = np.array(normalize_color(color), dtype=np.uint8)
+        color[3] = self._alpha
+        return color
 
 
 @lru_cache(maxsize=64)

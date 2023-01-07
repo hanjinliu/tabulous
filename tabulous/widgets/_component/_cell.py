@@ -13,7 +13,10 @@ from typing import (
 )
 import warnings
 
+from qtpy import QtGui
+from qtpy.QtCore import Qt
 from magicgui.widgets import Widget
+
 from tabulous.exceptions import TableImmutableError
 from tabulous.types import EvalInfo
 from tabulous._psygnal import InCellRangedSlot
@@ -25,7 +28,17 @@ if TYPE_CHECKING:
 _F = TypeVar("_F", bound=Callable)
 
 
-class CellLabelInterface(TableComponent):
+class _Sequence2D(TableComponent):
+    def __getitem__(self, key: tuple[int, int]):
+        raise NotImplementedError()
+
+    def _assert_integers(self, key: tuple[int, int]):
+        r, c = key
+        if not (isinstance(r, SupportsIndex) and isinstance(c, SupportsIndex)):
+            raise TypeError("Cell label must be accessed by integer indices.")
+
+
+class CellLabelInterface(_Sequence2D):
     def __getitem__(self, key: tuple[int, int]) -> str | None:
         """Get the label of a cell."""
         self._assert_integers(key)
@@ -40,11 +53,6 @@ class CellLabelInterface(TableComponent):
         """Delete the label of a cell."""
         self._assert_integers(key)
         return self.parent.native.setItemLabel(*key, None)
-
-    def _assert_integers(self, key: tuple[int, int]):
-        r, c = key
-        if not (isinstance(r, SupportsIndex) and isinstance(c, SupportsIndex)):
-            raise TypeError("Cell label must be accessed by integer indices.")
 
 
 class CellReferenceInterface(
@@ -71,6 +79,39 @@ class CellReferenceInterface(
             return f"{cname}()"
         s = ",\n\t".join(f"{k}: {slot!r}" for k, slot in slots.items())
         return f"{cname}(\n\t{s}\n)"
+
+
+class CellBackgroundColorInterface(_Sequence2D):
+    def __getitem__(self, key: tuple[int, int]) -> tuple[int, int, int, int] | None:
+        """Get the background color of a cell."""
+        self._assert_integers(key)
+        model = self.parent.native.model()
+        idx = model.index(*key)
+        qcolor = model.data(idx, role=Qt.ItemDataRole.BackgroundRole)
+        if isinstance(qcolor, QtGui.QColor):
+            return qcolor.getRgb()
+        return None
+
+
+class CellForegroundColorInterface(_Sequence2D):
+    def __getitem__(self, key: tuple[int, int]) -> tuple[int, int, int, int] | None:
+        """Get the text color of a cell."""
+        self._assert_integers(key)
+        model = self.parent.native.model()
+        idx = model.index(*key)
+        qcolor = model.data(idx, role=Qt.ItemDataRole.TextColorRole)
+        if isinstance(qcolor, QtGui.QColor):
+            return qcolor.getRgb()
+        return None
+
+
+class CellDisplayedTextInterface(_Sequence2D):
+    def __getitem__(self, key: tuple[int, int]) -> str:
+        """Get the displayed text of a cell."""
+        self._assert_integers(key)
+        model = self.parent.native.model()
+        idx = model.index(*key)
+        return model.data(idx, role=Qt.ItemDataRole.DisplayRole)
 
 
 class CellInterface(TableComponent):
@@ -200,6 +241,9 @@ class CellInterface(TableComponent):
 
     label = CellLabelInterface()
     ref = CellReferenceInterface()
+    text_color = CellForegroundColorInterface()
+    background_color = CellBackgroundColorInterface()
+    text = CellDisplayedTextInterface()
 
     def get_label(self, r: int, c: int) -> str | None:
         """Get the label of a cell."""
