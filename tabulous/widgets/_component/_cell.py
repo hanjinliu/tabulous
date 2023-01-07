@@ -19,6 +19,7 @@ from magicgui.widgets import Widget
 
 from tabulous.exceptions import TableImmutableError
 from tabulous.types import EvalInfo
+from tabulous.color import ColorTuple
 from tabulous._psygnal import InCellRangedSlot
 from ._base import TableComponent
 
@@ -82,26 +83,26 @@ class CellReferenceInterface(
 
 
 class CellBackgroundColorInterface(_Sequence2D):
-    def __getitem__(self, key: tuple[int, int]) -> tuple[int, int, int, int] | None:
+    def __getitem__(self, key: tuple[int, int]) -> ColorTuple | None:
         """Get the background color of a cell."""
         self._assert_integers(key)
         model = self.parent.native.model()
         idx = model.index(*key)
         qcolor = model.data(idx, role=Qt.ItemDataRole.BackgroundRole)
         if isinstance(qcolor, QtGui.QColor):
-            return qcolor.getRgb()
+            return ColorTuple(*qcolor.getRgb())
         return None
 
 
 class CellForegroundColorInterface(_Sequence2D):
-    def __getitem__(self, key: tuple[int, int]) -> tuple[int, int, int, int] | None:
+    def __getitem__(self, key: tuple[int, int]) -> ColorTuple | None:
         """Get the text color of a cell."""
         self._assert_integers(key)
         model = self.parent.native.model()
         idx = model.index(*key)
         qcolor = model.data(idx, role=Qt.ItemDataRole.TextColorRole)
         if isinstance(qcolor, QtGui.QColor):
-            return qcolor.getRgb()
+            return ColorTuple(*qcolor.getRgb())
         return None
 
 

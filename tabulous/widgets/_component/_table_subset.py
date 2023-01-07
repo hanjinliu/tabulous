@@ -107,7 +107,7 @@ class TableILocIndexer(TableComponent):
     def __getitem__(self, key):
         table = self.parent
         if not isinstance(key, tuple):
-            ckey = list(self.parent.columns)
+            ckey = slice(None)
             rkey = key
         else:
             rkey, ckey = key
@@ -235,7 +235,7 @@ class PartialTextColormapInterface(_PartialColormapInterface):
         return self.parent.text_color
 
 
-class PartialBackgroundColormapInterface(_PartialInterface):
+class PartialBackgroundColormapInterface(_PartialColormapInterface):
     def _get_field(self):
         return self.parent.background_color
 

@@ -10,6 +10,8 @@ def assert_obj_equal(a, b):
     else:
         assert_series_equal(a, b)
 
+DATA = pd.DataFrame(np.arange(50).reshape(10, 5), columns=list("ABCDE"))
+
 @pytest.mark.parametrize(
     "sl",
     [
@@ -26,8 +28,7 @@ def assert_obj_equal(a, b):
     ]
 )
 def test_loc_data_equal(sl):
-    df = pd.DataFrame(np.arange(50).reshape(10, 5), columns=list("ABCDE"))
-    table = Table(df)
+    table = Table(DATA)
     assert_obj_equal(table.loc[sl].data, table.data.loc[sl])
 
 @pytest.mark.parametrize(
@@ -46,6 +47,38 @@ def test_loc_data_equal(sl):
     ]
 )
 def test_iloc_data_equal(sl):
-    df = pd.DataFrame(np.arange(50).reshape(10, 5), columns=list("ABCDE"))
-    table = Table(df)
+    table = Table(DATA)
     assert_obj_equal(table.iloc[sl].data, table.data.iloc[sl])
+
+def test_partial_text_color():
+    table = Table(DATA)
+
+    assert table["B"].text_color.item() is None
+    table["B"].text_color.set(interp_from=["red", "blue"])
+    assert table["B"].text_color.item() is not None
+    assert table["B"].text_color.item() is table.text_color["B"]
+    assert table.cell.text_color[0, 1].equals("red")
+
+def test_partial_background_color():
+    table = Table(DATA)
+
+    assert table["B"].background_color.item() is None
+    table["B"].background_color.set(interp_from=["red", "blue"])
+    assert table["B"].background_color.item() is not None
+    assert table["B"].background_color.item() is table.background_color["B"]
+    assert table.cell.background_color[0, 1].equals("red")
+
+def test_partial_formatter():
+    table = Table(DATA)
+
+    assert table["B"].formatter.item() is None
+    table["B"].formatter.set(lambda x: "test")
+    assert table["B"].formatter.item() is not None
+    assert table.cell.text[0, 1] == "test"
+
+def test_partial_validator():
+    table = Table(DATA)
+
+    table["B"].validator.set(lambda x: False)
+    with pytest.raises(ValueError):
+        table.cell[0, 1] = "test"

@@ -13,7 +13,7 @@ class ColorTuple(NamedTuple):
     r: int
     g: int
     b: int
-    a: int
+    a: int = 255
 
     @property
     def opacity(self) -> float:
@@ -73,6 +73,10 @@ class ColorTuple(NamedTuple):
         return cls(
             *[int(round(c * 255)) for c in colorsys.hsv_to_rgb(*hsv_float)], alpha
         )
+
+    def equals(self, other):
+        other = normalize_color(other)
+        return self == other
 
 
 def normalize_color(color: ColorType) -> ColorTuple:
