@@ -50,7 +50,15 @@ class TableLocIndexer(TableComponent):
             idx = table.index.get_loc(rkey)
             rsl = slice(idx, idx + 1)
         elif isinstance(rkey, slice):
-            rsl = slice(table.index.get_loc(rkey.start), table.index.get_loc(rkey.stop))
+            if rkey.start is None:
+                start = None
+            else:
+                start = table.index.get_loc(rkey.start)
+            if rkey.stop is None:
+                stop = None
+            else:
+                stop = table.index.get_loc(rkey.stop) + 1
+            rsl = slice(start, stop)
         elif isinstance(rkey, Sequence):
             rsl = [table.index.get_loc(lbl) for lbl in rkey]
         else:
@@ -61,9 +69,15 @@ class TableLocIndexer(TableComponent):
                 raise KeyError(ckey)
             return TableSeries(table, rsl, ckey)
         elif isinstance(ckey, slice):
-            csl = slice(
-                table.columns.get_loc(ckey.start), table.columns.get_loc(ckey.stop)
-            )
+            if ckey.start is None:
+                start = None
+            else:
+                start = table.columns.get_loc(ckey.start)
+            if ckey.stop is None:
+                stop = None
+            else:
+                stop = table.columns.get_loc(ckey.stop) + 1
+            csl = slice(start, stop)
             columns = table.columns[csl]
             return TableSubset(table, rsl, columns)
         elif isinstance(ckey, Sequence):
@@ -136,19 +150,28 @@ class TableSeries(TableComponent):
 
     @property
     def text_color(self):
+        self._assert_row_not_slices()
         return PartialTextColormapInterface(self.parent, self._column)
 
     @property
     def background_color(self):
+        self._assert_row_not_slices()
         return PartialBackgroundColormapInterface(self.parent, self._column)
 
     @property
     def formatter(self):
+        self._assert_row_not_slices()
         return PartialTextFormatterInterface(self.parent, self._column)
 
     @property
     def validator(self):
+        self._assert_row_not_slices()
         return PartialValidatorInterface(self.parent, self._column)
+
+    def _assert_row_not_slices(self):
+        if self._row_slice == slice(None):
+            return
+        raise ValueError(f"{self!r} is sliced in row axis.")
 
 
 _F = TypeVar("_F", bound=Callable)
