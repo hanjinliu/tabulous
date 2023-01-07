@@ -25,8 +25,8 @@ Tables
    ./main/selections
    ./main/sort_filter
    ./main/columnwise_settings
-   ./main/table_advanced
-
+   ./main/table_fields
+   ./main/table_view_mode
 
 Cooperate with Other Widgets
 ----------------------------
