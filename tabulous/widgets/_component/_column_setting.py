@@ -17,8 +17,9 @@ from functools import wraps
 import numpy as np
 
 from tabulous.types import ColorMapping, ColorType
-from tabulous.color import normalize_color, InvertedColormap, OpacityColormap
+from tabulous.color import InvertedColormap, OpacityColormap
 from tabulous._dtype import get_converter, get_converter_from_type, isna
+from tabulous._colormap import segment_by_float, segment_by_time
 from ._base import Component, TableComponent
 
 if TYPE_CHECKING:
@@ -37,7 +38,7 @@ if TYPE_CHECKING:
     _Interpolatable = Union[
         Mapping[_NumberLike, ColorType],
         Sequence[tuple[_NumberLike, ColorType]],
-        tuple[ColorType, ColorType],  # linear interpolation with limits
+        Sequence[ColorType],
     ]
 
 T = TypeVar("T")
@@ -144,7 +145,12 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
             if interp_from is None:
                 return _wrapper
             else:
-                return _wrapper(self._from_interpolatable(interp_from, column_name))
+                return self.set(
+                    column_name,
+                    self._from_interpolatable(interp_from, column_name),
+                    infer_parser=False,
+                    opacity=opacity,
+                )
         elif isinstance(colormap, str):
             colormap = self._get_mpl_colormap(column_name, colormap)
             return _wrapper(colormap)
@@ -154,22 +160,31 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
     def _from_interpolatable(
         self, seq: _Interpolatable, column_name: str
     ) -> ColorMapping:
+
+        ds = self.parent.native._get_sub_frame(column_name)
+        kind = ds.dtype.kind
+
         if isinstance(seq, Mapping):
-            seq = list(seq.items())
+            _seq = list(seq.items())
+        elif not isinstance(seq[0], tuple) or len(seq[0]) != 2:
+            # not list[tuple[number, ColorType]]
+            vmin, vmax = ds.min(), ds.max()
+            if kind not in "mM":
+                _seq = zip(np.linspace(vmin, vmax, len(seq)), seq)
+            else:
+                import pandas as pd
 
-        if isinstance(seq[0], tuple) and len(seq[0]) == 2:
-            # list[tuple[number, ColorType]]
-            raise NotImplementedError("Mapping interpolation not yet implemented.")
+                if kind == "m":
+                    _seq = zip(pd.timedelta_range(vmin, vmax, periods=len(seq)), seq)
+                else:
+                    _seq = zip(pd.date_range(vmin, vmax, periods=len(seq)), seq)
         else:
-            seq: tuple[ColorType, ColorType]
-            vmin, vmax = (np.array(normalize_color(v)) for v in seq)
+            _seq = seq
 
-            def _cmap(x):
-                return vmin * (1 - x) + vmax * x
-
-            _cmap.__name__ = f"InterpolatedColormap({seq[0]}, {seq[1]})"
-
-            return self._simple_cmap_for_column(column_name, _cmap)
+        if kind in "mM":
+            return segment_by_time(_seq, kind)
+        else:
+            return segment_by_float(_seq)
 
     def _get_mpl_colormap(self, column_name: str, colormap: str) -> ColorMapping:
         from matplotlib.cm import get_cmap

@@ -91,6 +91,10 @@ class TableBase(ABC):
         editable: bool = True,
         metadata: dict[str, Any] | None = None,
     ):
+        from tabulous._qt import get_app
+
+        _ = get_app()
+
         _data = self._normalize_data(data)
 
         if name is None:
@@ -318,28 +322,12 @@ class TableBase(ABC):
         /,
         colormap: ColorMapping | None = _Void,
     ):
-        """
-        Set foreground color rule.
-
-        Parameters
-        ----------
-        column_name : Hashable
-            Target column name.
-        colormap : callable or None, optional
-            Colormap function. Must return a color-like object. Pass None to reset
-            the colormap.
-        """
-
-        def _wrapper(f: ColorMapping) -> ColorMapping:
-            self._qwidget.setForegroundColormap(column_name, f)
-            return f
-
-        if isinstance(colormap, Mapping):
-            return _wrapper(lambda x: colormap.get(x, None))
-        elif colormap is _Void:
-            return _wrapper
-        else:
-            return _wrapper(colormap)
+        warnings.warn(
+            "Method `table.foreground_colormap` is deprecated. "
+            "Use `table.text_color.set` instead.",
+            DeprecationWarning,
+        )
+        return self.text_color.set(column_name, colormap)
 
     def background_colormap(
         self,
@@ -347,76 +335,14 @@ class TableBase(ABC):
         /,
         colormap: ColorMapping | None = _Void,
     ):
-        """
-        Set background color rule.
-
-        Parameters
-        ----------
-        column_name : Hashable
-            Target column name.
-        colormap : callable or None, optional
-            Colormap function. Must return a color-like object. Pass None to reset
-            the colormap.
-        """
-
-        def _wrapper(f: ColorMapping) -> ColorMapping:
-            self._qwidget.setBackgroundColormap(column_name, f)
-            return f
-
-        if isinstance(colormap, Mapping):
-            return _wrapper(lambda x: colormap.get(x, None))
-        elif colormap is _Void:
-            return _wrapper
-        else:
-            return _wrapper(colormap)
-
-    def formatter(
-        self,
-        column_name: Hashable,
-        /,
-        formatter: Formatter | None = _Void,
-    ):
-        """
-        Set column specific text formatter.
-
-        Parameters
-        ----------
-        column_name : Hashable
-            Target column name.
-        formatter : callable, optional
-            Formatter function. Pass None to reset the formatter.
-        """
-
-        def _wrapper(f: Formatter) -> Formatter:
-            self._qwidget.setTextFormatter(column_name, f)
-            return f
-
-        return _wrapper(formatter) if formatter is not _Void else _wrapper
+        warnings.warn(
+            "Method `table.background_colormap` is deprecated. "
+            "Use `table.background_color.set` instead.",
+            DeprecationWarning,
+        )
+        return self.background_color.set(column_name, colormap)
 
     text_formatter = formatter  # alias
-
-    def validator(
-        self,
-        column_name: Hashable,
-        /,
-        validator: Validator | None = _Void,
-    ):
-        """
-        Set column specific data validator.
-
-        Parameters
-        ----------
-        column_name : Hashable
-            Target column name.
-        validator : callable or None, optional
-            Validator function. Pass None to reset the validator.
-        """
-
-        def _wrapper(f: Validator) -> Validator:
-            self._qwidget.setDataValidator(column_name, f)
-            return f
-
-        return _wrapper(validator) if validator is not _Void else _wrapper
 
     @property
     def view_mode(self) -> ViewMode:

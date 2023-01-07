@@ -1,11 +1,16 @@
 from __future__ import annotations
-from typing import Callable, Hashable, Sequence, TYPE_CHECKING, TypeVar
+from typing import Callable, Hashable, Iterable, Sequence, TYPE_CHECKING, TypeVar, Union
 import numpy as np
-import pandas as pd
+from tabulous.color import ColorTuple, normalize_color
+from tabulous.types import ColorType
 from tabulous._dtype import isna, get_converter
 
 if TYPE_CHECKING:
     from pandas.core.dtypes.dtypes import CategoricalDtype
+    import pandas as pd
+
+    _TimeLike = Union[pd.Timestamp, pd.Timedelta]
+    _T = TypeVar("_T", bound=_TimeLike)
 
 
 _ColorType = tuple[int, int, int, int]
@@ -117,9 +122,6 @@ def _define_categorical_colormap(
     return _colormap
 
 
-_T = TypeVar("_T", pd.Timestamp, pd.Timedelta)
-
-
 def _define_time_colormap(
     min: _T,
     max: _T,
@@ -152,3 +154,68 @@ def _define_time_colormap(
 
 def _random_color() -> list[int]:
     return list(np.random.randint(256, size=3)) + [255]
+
+
+def _where(x, border: Iterable[float]) -> int:
+    for i, v in enumerate(border):
+        if x < v:
+            return max(i - 1, 0)
+    return len(border) - 1
+
+
+def segment_by_float(maps: list[tuple[float, ColorType]], kind: str = "f"):
+    converter = get_converter("f")
+    borders: list[float] = []
+    colors: list[ColorTuple] = []
+    for v, c in maps:
+        borders.append(v)
+        colors.append(normalize_color(c))
+    idx_max = len(borders) - 1
+
+    # check is sorted
+    if not all(borders[i] <= borders[i + 1] for i in range(len(borders) - 1)):
+        raise ValueError("Borders must be sorted")
+
+    def _colormap(value: float) -> _ColorType:
+        if isna(value):
+            return None
+        value = converter(value)
+        idx = _where(value, borders)
+        if idx == 0 or idx == idx_max:
+            return colors[idx]
+        min_color = np.array(colors[idx], dtype=np.float64)
+        max_color = np.array(colors[idx + 1], dtype=np.float64)
+        min = borders[idx]
+        max = borders[idx + 1]
+        return (value - min) / (max - min) * (max_color - min_color) + min_color
+
+    return _colormap
+
+
+def segment_by_time(maps: list[tuple[_TimeLike, ColorType]], kind: str):
+    converter = get_converter(kind)
+    borders: list[_TimeLike] = []
+    colors: list[ColorTuple] = []
+    for v, c in maps:
+        borders.append(v)
+        colors.append(normalize_color(c))
+    idx_max = len(borders) - 1
+
+    # check is sorted
+    if not all(borders[i] <= borders[i + 1] for i in range(len(borders) - 1)):
+        raise ValueError("Borders must be sorted")
+
+    def _colormap(value: _TimeLike) -> _ColorType:
+        if isna(value):
+            return None
+        value = converter(value)
+        idx = _where(value, borders)
+        if idx == 0 or idx == idx_max:
+            return colors[idx]
+        min_color = np.array(colors[idx], dtype=np.float64)
+        max_color = np.array(colors[idx + 1], dtype=np.float64)
+        min = borders[idx].value
+        max = borders[idx + 1].value
+        return (value.value - min) / (max - min) * (max_color - min_color) + min_color
+
+    return _colormap
