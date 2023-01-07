@@ -13,6 +13,7 @@ from typing import (
     Sequence,
 )
 from functools import wraps
+import warnings
 
 import numpy as np
 
@@ -344,9 +345,12 @@ def _is_spreadsheet(table: TableBase) -> TypeGuard[SpreadSheet]:
 class ColumnDtypeInterface(Component["SpreadSheet"], MutableMapping[str, "_DtypeLike"]):
     """Interface to the column dtype of spreadsheet."""
 
+    def _get_dtype_map(self):
+        return self.parent._qwidget._columns_dtype
+
     def __getitem__(self, key: str) -> _DtypeLike | None:
         """Get the dtype of the given column name."""
-        return self.parent._qwidget._columns_dtype.get(key, None)
+        return self._get_dtype_map().get(key, None)
 
     def __setitem__(self, key: str, dtype: Any) -> None:
         """Set a dtype to the given column name."""
@@ -358,18 +362,18 @@ class ColumnDtypeInterface(Component["SpreadSheet"], MutableMapping[str, "_Dtype
 
     def __repr__(self) -> str:
         clsname = type(self).__name__
-        dict = self.parent._qwidget._columns_dtype
-        return f"{clsname}({dict!r})"
+        _args = ",\n\t".join(f"{k!r}: {v}" for k, v in self._get_dtype_map().items())
+        return f"{clsname}(\n\t{_args}\n)"
 
     def __len__(self) -> str:
-        return len(self.parent._qwidget._columns_dtype)
+        return len(self._get_dtype_map())
 
     def __iter__(self) -> Iterator[Hashable]:
-        return iter(self.parent._qwidget._columns_dtype)
+        return iter(self._get_dtype_map())
 
-    def set_dtype(
+    def set(
         self,
-        name: Hashable,
+        name: str,
         dtype: Any,
         *,
         validation: bool = True,
@@ -382,3 +386,11 @@ class ColumnDtypeInterface(Component["SpreadSheet"], MutableMapping[str, "_Dtype
         if formatting:
             self.parent._qwidget._set_default_text_formatter(name)
         return None
+
+    def set_dtype(self, *args, **kwargs) -> None:
+        """Deprecated alias for set()."""
+        warnings.warn(
+            "set_dtype() is deprecated, use set() instead.",
+            DeprecationWarning,
+        )
+        return self.set(*args, **kwargs)

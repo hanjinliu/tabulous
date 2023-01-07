@@ -1,10 +1,7 @@
 import pandas as pd
-from tabulous import TableViewer
 from tabulous.widgets import Table
 from tabulous.color import normalize_color
-from qtpy.QtGui import QColor
 import numpy as np
-from . import _utils
 
 cmap = {
     "a": (255, 0, 0, 255),
@@ -17,42 +14,43 @@ def _cmap_func(x):
 
 def test_foreground():
     table = Table({"char": ["a", "b", "c"]})
-    default_color = _utils.get_cell_foreground_color(table.native, 0, 0)
+    default_color = table.cell.text_color[0, 0]
 
     table.text_color.set("char", cmap)
-    assert _utils.get_cell_foreground_color(table.native, 0, 0) == QColor(*cmap["a"])
-    assert _utils.get_cell_foreground_color(table.native, 1, 0) == QColor(*cmap["b"])
-    assert _utils.get_cell_foreground_color(table.native, 2, 0) == QColor(*cmap["c"])
+    assert table.cell.text_color[0, 0] == normalize_color(cmap["a"])
+    assert table.cell.text_color[1, 0] == normalize_color(cmap["b"])
+    assert table.cell.text_color[2, 0] == normalize_color(cmap["c"])
 
     table.text_color.set("char", None)
-    assert _utils.get_cell_foreground_color(table.native, 0, 0) == default_color
-    assert _utils.get_cell_foreground_color(table.native, 1, 0) == default_color
-    assert _utils.get_cell_foreground_color(table.native, 2, 0) == default_color
+    assert table.cell.text_color[0, 0] == default_color
+    assert table.cell.text_color[1, 0] == default_color
+    assert table.cell.text_color[2, 0] == default_color
 
     table.text_color.set("char", _cmap_func)
-    assert _utils.get_cell_foreground_color(table.native, 0, 0) == QColor(*cmap["a"])
-    assert _utils.get_cell_foreground_color(table.native, 1, 0) == QColor(*cmap["b"])
-    assert _utils.get_cell_foreground_color(table.native, 2, 0) == QColor(*cmap["c"])
+    assert table.cell.text_color[0, 0] == normalize_color(cmap["a"])
+    assert table.cell.text_color[1, 0] == normalize_color(cmap["b"])
+    assert table.cell.text_color[2, 0] == normalize_color(cmap["c"])
 
 
 def test_background():
     table = Table({"char": ["a", "b", "c"]})
-    default_color = _utils.get_cell_background_color(table.native, 0, 0)
+    default_color = table.cell.background_color[0, 0]
 
     table.background_color.set("char", cmap)
-    assert _utils.get_cell_background_color(table.native, 0, 0) == QColor(*cmap["a"])
-    assert _utils.get_cell_background_color(table.native, 1, 0) == QColor(*cmap["b"])
-    assert _utils.get_cell_background_color(table.native, 2, 0) == QColor(*cmap["c"])
+    assert table.cell.background_color[0, 0] == normalize_color(cmap["a"])
+    assert table.cell.background_color[1, 0] == normalize_color(cmap["b"])
+    assert table.cell.background_color[2, 0] == normalize_color(cmap["c"])
 
     table.background_color.set("char", None)
-    assert _utils.get_cell_background_color(table.native, 0, 0) == default_color
-    assert _utils.get_cell_background_color(table.native, 1, 0) == default_color
-    assert _utils.get_cell_background_color(table.native, 2, 0) == default_color
+    assert table.cell.background_color[0, 0] == default_color
+    assert table.cell.background_color[1, 0] == default_color
+    assert table.cell.background_color[2, 0] == default_color
 
     table.background_color.set("char", _cmap_func)
-    assert _utils.get_cell_background_color(table.native, 0, 0) == QColor(*cmap["a"])
-    assert _utils.get_cell_background_color(table.native, 1, 0) == QColor(*cmap["b"])
-    assert _utils.get_cell_background_color(table.native, 2, 0) == QColor(*cmap["c"])
+    assert table.cell.background_color[0, 0] == normalize_color(cmap["a"])
+    assert table.cell.background_color[1, 0] == normalize_color(cmap["b"])
+    assert table.cell.background_color[2, 0] == normalize_color(cmap["c"])
+
 
 def test_linear_interpolation():
     table = Table(
