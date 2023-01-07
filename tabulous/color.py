@@ -1,12 +1,81 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, NamedTuple
 from functools import lru_cache
+import colorsys
 from tabulous.types import ColorType, ColorMapping
 
 import numpy as np
 
 
-def normalize_color(color: ColorType) -> tuple[int, int, int, int]:
+class ColorTuple(NamedTuple):
+    """8-bit color tuple."""
+
+    r: int
+    g: int
+    b: int
+    a: int
+
+    @property
+    def opacity(self) -> float:
+        """Return the opacity as a float between 0 and 1."""
+        return self.a / 255.0
+
+    @property
+    def html(self) -> str:
+        """Return a HTML color string."""
+        return f"#{self.r:02X}{self.g:02X}{self.b:02X}{self.a:02X}"
+
+    @property
+    def hlsa(self) -> tuple[float, float, float, float]:
+        """Return the color as HSLA."""
+        hlsa_float = colorsys.rgb_to_hls(
+            self.r / 255.0, self.g / 255.0, self.b / 255.0
+        ) + (self.opacity,)
+        return tuple(int(round(c * 255)) for c in hlsa_float)
+
+    @property
+    def hsva(self) -> tuple[float, float, float, float]:
+        """Return the color as HSVA."""
+        hsva_float = colorsys.rgb_to_hsv(
+            self.r / 255.0, self.g / 255.0, self.b / 255.0
+        ) + (self.opacity,)
+        return tuple(int(round(c * 255)) for c in hsva_float)
+
+    @classmethod
+    def from_html(cls, html: str) -> ColorTuple:
+        """Create a ColorTuple from a HTML color string."""
+        if html.startswith("#"):
+            html = html[1:]
+        if len(html) == 6:
+            html += "FF"
+        return cls(*[int(html[i : i + 2], 16) for i in range(0, 8, 2)])
+
+    @classmethod
+    def from_hlsa(cls, *hlsa) -> ColorTuple:
+        """Create a ColorTuple from HSLA."""
+        if len(hlsa) == 1:
+            hlsa = hlsa[0]
+        if len(hlsa) == 3:
+            hls = hlsa
+            alpha = 255
+        hls = tuple(c / 255.0 for c in hls)
+        return cls(*[int(round(c * 255)) for c in colorsys.hls_to_rgb(*hls)], alpha)
+
+    @classmethod
+    def from_hsva(cls, *hsva) -> ColorTuple:
+        """Create a ColorTuple from HSVA."""
+        if len(hsva) == 1:
+            hsva = hsva[0]
+        if len(hsva) == 3:
+            hsv = hsva
+            alpha = 255
+        hsv_float = tuple(c / 255.0 for c in hsv)
+        return cls(
+            *[int(round(c * 255)) for c in colorsys.hsv_to_rgb(*hsv_float)], alpha
+        )
+
+
+def normalize_color(color: ColorType) -> ColorTuple:
     if isinstance(color, str):
         return _str_color_to_tuple(color)
     if hasattr(color, "__iter__"):
@@ -17,7 +86,7 @@ def normalize_color(color: ColorType) -> tuple[int, int, int, int]:
             pass
         else:
             raise ValueError(f"Invalid color: {color!r}")
-        return out
+        return ColorTuple(*out)
     raise ValueError(f"Invalid color: {color!r}")
 
 

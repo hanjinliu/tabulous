@@ -100,6 +100,7 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
         *,
         interp_from: _Interpolatable | None = None,
         infer_parser: bool = True,
+        opacity: float | None = None,
     ):
         """
         Set colormap for the given column.
@@ -118,14 +119,23 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
         infer_parser : bool, default is True
             If true, infer the parser from the column dtype and use it before
             the values are passed to the colormap function.
+        opacity : float, optional
+            If given, apply opacity to the colormap.
         """
 
         def _wrapper(f: ColorMapping) -> ColorMapping:
-            if infer_parser:
-                parser = self._get_converter(f, column_name)
-                self._set_value(column_name, wraps(f)(lambda x: f(parser(x))))
+            if callable(f):
+                if infer_parser:
+                    parser = self._get_converter(f, column_name)
+                    _f = wraps(f)(lambda x: f(parser(x)))
+                else:
+                    _f = f
+                if opacity is not None:
+                    _f = OpacityColormap.from_colormap(_f, opacity)
             else:
-                self._set_value(column_name, f)
+                # void or None
+                _f = f
+            self._set_value(column_name, _f)
             return f
 
         if isinstance(colormap, Mapping):
@@ -145,22 +155,21 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
         self, seq: _Interpolatable, column_name: str
     ) -> ColorMapping:
         if isinstance(seq, Mapping):
+            seq = list(seq.items())
+
+        if isinstance(seq[0], tuple) and len(seq[0]) == 2:
+            # list[tuple[number, ColorType]]
             raise NotImplementedError("Mapping interpolation not yet implemented.")
         else:
-            if isinstance(seq[0], tuple) and len(seq[0]) == 2:
-                # list[tuple[number, ColorType]]
+            seq: tuple[ColorType, ColorType]
+            vmin, vmax = (np.array(normalize_color(v)) for v in seq)
 
-                raise NotImplementedError("Mapping interpolation not yet implemented.")
-            else:
-                seq: tuple[ColorType, ColorType]
-                vmin, vmax = (np.array(normalize_color(v)) for v in seq)
+            def _cmap(x):
+                return vmin * (1 - x) + vmax * x
 
-                def _cmap(x):
-                    return vmin * (1 - x) + vmax * x
+            _cmap.__name__ = f"InterpolatedColormap({seq[0]}, {seq[1]})"
 
-                _cmap.__name__ = f"InterpolatedColormap({seq[0]}, {seq[1]})"
-
-                return self._cmap_for_column(column_name, _cmap)
+            return self._simple_cmap_for_column(column_name, _cmap)
 
     def _get_mpl_colormap(self, column_name: str, colormap: str) -> ColorMapping:
         from matplotlib.cm import get_cmap
@@ -170,9 +179,9 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
         def _cmap(x):
             return np.asarray(mpl_cmap(int(x * 255))) * 255
 
-        return self._cmap_for_column(column_name, _cmap)
+        return self._simple_cmap_for_column(column_name, _cmap)
 
-    def _cmap_for_column(self, column_name: str, cmap: ColorMapping):
+    def _simple_cmap_for_column(self, column_name: str, cmap: ColorMapping):
         """
         Create a colormap for a column, with min/max as the color limits.
 
