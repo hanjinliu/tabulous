@@ -114,7 +114,7 @@ class ConvertedColormap:
 class InvertedColormap(ConvertedColormap):
     @classmethod
     def from_colormap(cls, cmap: ColorMapping) -> ColorMapping:
-        """Convert a colormap and return an inverted one."""
+        """Convert a colormap into return an inverted one."""
         if isinstance(cmap, cls):
             return cmap.func
         return cls(cmap)
@@ -131,11 +131,13 @@ class InvertedColormap(ConvertedColormap):
 class OpacityColormap(ConvertedColormap):
     def __init__(self, func: ColorMapping, opacity: float):
         super().__init__(func)
+        if opacity < 0 or 1 < opacity:
+            raise ValueError(f"Opacity must be between 0 and 1, got {opacity}")
         self._alpha = int(opacity * 255)
 
     @classmethod
     def from_colormap(cls, cmap: ColorMapping, opacity: float) -> ColorMapping:
-        """Convert a colormap and return an new one with given alpha channel."""
+        """Convert a colormap into an new one with given alpha channel."""
         if isinstance(cmap, cls):
             return cls(cmap.func, opacity)
         return cls(cmap, opacity)
@@ -147,6 +149,36 @@ class OpacityColormap(ConvertedColormap):
         color = np.array(normalize_color(color), dtype=np.uint8)
         color[3] = self._alpha
         return color
+
+
+class BrightenedColormap(ConvertedColormap):
+    def __init__(self, func: ColorMapping, factor: float):
+        super().__init__(func)
+        if factor < -1:
+            raise ValueError(f"Brightening factor fell below -1.0: {factor}")
+        if 1 < factor:
+            raise ValueError(f"Brightening factor exceeded 1.0: {factor}")
+        self._factor = factor
+
+    @classmethod
+    def from_colormap(cls, cmap: ColorMapping, factor: float) -> ColorMapping:
+        """Convert a colormap into an new one with given brightening factor."""
+        if isinstance(cmap, cls):
+            return cls(cmap.func, cmap._factor + factor)
+        return cls(cmap, factor)
+
+    def __call__(self, x: Any) -> ColorType:
+        color = self.func(x)
+        if color is None:
+            return color
+        color = np.array(normalize_color(color), dtype=np.float64)
+        factor = self._factor
+        if factor > 0:
+            extreme = np.array([255, 255, 255, 255], dtype=np.float64)
+        else:
+            extreme = np.array([0, 0, 0, 255], dtype=np.float64)
+        color = color * (1 - factor) + extreme * factor
+        return np.round(color).astype(np.uint8)
 
 
 @lru_cache(maxsize=64)

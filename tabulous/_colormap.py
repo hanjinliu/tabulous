@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterable, TYPE_CHECKING, TypeVar, Union
+from typing import Iterable, TYPE_CHECKING, Union
 import numpy as np
 from tabulous.color import ColorTuple, normalize_color
 from tabulous.types import ColorType
@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     import pandas as pd
 
     _TimeLike = Union[pd.Timestamp, pd.Timedelta]
-    _T = TypeVar("_T", bound=_TimeLike)
 
 
 _ColorType = tuple[int, int, int, int]

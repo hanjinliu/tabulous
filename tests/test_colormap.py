@@ -111,3 +111,25 @@ def test_set_opacity():
 
     table.text_color.set("A", interp_from=["red", "blue"], opacity=0.5)
     assert table.cell.text_color[0, 0][3] == 127
+
+def test_adjust_brightness():
+    table = Table({"A": np.arange(10)})
+    table.text_color.set("A", interp_from=["red", "blue"])
+    assert table.cell.text_color[0, 0] == normalize_color("red")
+    assert table.cell.text_color[9, 0] == normalize_color("blue")
+
+    table.text_color.adjust_brightness("A", 0.5)
+    assert table.cell.text_color[0, 0] > normalize_color("red")
+    assert table.cell.text_color[9, 0] > normalize_color("blue")
+
+    table.text_color.adjust_brightness("A", -0.5)
+    assert table.cell.text_color[0, 0] == normalize_color("red")
+    assert table.cell.text_color[9, 0] == normalize_color("blue")
+
+    table.text_color.adjust_brightness("A", -0.5)
+    assert table.cell.text_color[0, 0] < normalize_color("red")
+    assert table.cell.text_color[9, 0] < normalize_color("blue")
+
+    table.text_color.adjust_brightness("A", 0.5)
+    assert table.cell.text_color[0, 0] == normalize_color("red")
+    assert table.cell.text_color[9, 0] == normalize_color("blue")

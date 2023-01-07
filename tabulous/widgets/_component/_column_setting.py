@@ -17,7 +17,7 @@ from functools import wraps
 import numpy as np
 
 from tabulous.types import ColorMapping, ColorType
-from tabulous.color import InvertedColormap, OpacityColormap
+from tabulous.color import InvertedColormap, OpacityColormap, BrightenedColormap
 from tabulous._dtype import get_converter, get_converter_from_type, isna
 from tabulous._colormap import segment_by_float, segment_by_time
 from ._base import Component, TableComponent
@@ -273,6 +273,25 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
         self.set(
             column_name,
             OpacityColormap.from_colormap(self[column_name], opacity),
+            infer_parser=False,
+        )
+        return None
+
+    def adjust_brightness(self, column_name: str, factor: float):
+        """
+        Adjust the brightness of a column.
+
+        Parameters
+        ----------
+        column_name : str
+            Name of the column to adjust.
+        factor : float
+            Brightening factor. -1.0 converts any color to black, while 1.0
+            to white.
+        """
+        self.set(
+            column_name,
+            BrightenedColormap.from_colormap(self[column_name], factor),
             infer_parser=False,
         )
         return None
