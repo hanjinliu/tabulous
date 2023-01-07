@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, TYPE_CHECKING, Iterable, Tuple, TypeVar
+from typing import Any, Callable, TYPE_CHECKING, Iterable, Tuple, TypeVar, overload
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Signal, Qt
@@ -181,7 +181,14 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def getDataFrame(self) -> pd.DataFrame:
         raise NotImplementedError()
 
-    def _get_sub_frame(self, columns: list[str]):
+    # fmt: off
+    @overload
+    def _get_sub_frame(self, columns: list[str]) -> pd.DataFrame: ...
+    @overload
+    def _get_sub_frame(self, columns: str) -> pd.Series: ...
+    # fmt: on
+
+    def _get_sub_frame(self, columns):
         return self.getDataFrame()[columns]
 
     def setDataFrame(self, df: pd.DataFrame) -> None:

@@ -11,8 +11,8 @@ from typing import (
 
 if TYPE_CHECKING:
     from typing_extensions import Self
-    from tabulous.widgets._table import TableBase, SpreadSheet
-    from tabulous.widgets._mainwindow import TableViewerBase
+    from tabulous.widgets._table import TableBase, SpreadSheet  # noqa: F401
+    from tabulous.widgets._mainwindow import TableViewerBase  # noqa: F401
 
 T = TypeVar("T")
 
@@ -53,6 +53,8 @@ class Component(Generic[T]):
     def __get__(self, obj, owner=None):
         if obj is None:
             return self
+        if isinstance(obj, Component):
+            obj = obj.parent
         _id = id(obj)
         if (out := self._instances.get(_id)) is None:
             out = self._instances[_id] = self.__class__(obj)
