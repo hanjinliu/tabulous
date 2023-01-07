@@ -13,14 +13,6 @@ def get_cell_value(table: QBaseTable, row, col) -> str:
     index = table.model().index(row, col)
     return table.model().data(index)
 
-def get_cell_foreground_color(table: QBaseTable, row, col) -> str:
-    index = table.model().index(row, col)
-    return table.model().data(index, Qt.ItemDataRole.ForegroundRole)
-
-def get_cell_background_color(table: QBaseTable, row, col) -> str:
-    index = table.model().index(row, col)
-    return table.model().data(index, Qt.ItemDataRole.BackgroundRole)
-
 def edit_cell(table: QBaseTable, row, col, value):
     table.model().dataEdited.emit(row, col, value)
 

@@ -4,21 +4,11 @@ import logging
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
+from typing import Any, Callable, Hashable, TYPE_CHECKING
 import warnings
 from psygnal import SignalGroup, Signal
 
-from tabulous.widgets._component import (
-    CellInterface,
-    HorizontalHeaderInterface,
-    VerticalHeaderInterface,
-    PlotInterface,
-    ColumnDtypeInterface,
-    SelectionRanges,
-    HighlightRanges,
-    ProxyInterface,
-)
-from tabulous.widgets import _doc
+from tabulous.widgets import _doc, _component as _comp
 from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
 from tabulous._psygnal import SignalArray, InCellRangedSlot
 
@@ -32,17 +22,11 @@ if TYPE_CHECKING:
     from tabulous._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from tabulous._qt._table import QBaseTable
     from tabulous._qt._table._base._overlay import QOverlayFrame
-
     from tabulous._keymap import QtKeyMap
-    from tabulous.color import ColorType
 
-    ColorMapping = Union[Callable[[Any], ColorType], Mapping[Hashable, ColorType]]
-    Formatter = Union[Callable[[Any], str], str, None]
-    Validator = Callable[[Any], None]
     LayoutString = Literal["horizontal", "vertical"]
 
 logger = logging.getLogger("tabulous")
-_Void = object()
 
 
 class TableSignals(SignalGroup):
@@ -52,7 +36,7 @@ class TableSignals(SignalGroup):
     index = Signal(HeaderInfo)
     columns = Signal(HeaderInfo)
     evaluated = Signal(EvalInfo)
-    selections = Signal(SelectionRanges)
+    selections = Signal(_comp.SelectionRanges)
     renamed = Signal(str)
 
 
@@ -82,13 +66,17 @@ class TableBase(ABC):
     """The base class for a table layer."""
 
     _Default_Name = "None"
-    cell = CellInterface()
-    index = VerticalHeaderInterface()
-    columns = HorizontalHeaderInterface()
-    plt = PlotInterface()
-    proxy = ProxyInterface()
-    selections = SelectionRanges()
-    highlights = HighlightRanges()
+    cell = _comp.CellInterface()
+    index = _comp.VerticalHeaderInterface()
+    columns = _comp.HorizontalHeaderInterface()
+    plt = _comp.PlotInterface()
+    proxy = _comp.ProxyInterface()
+    text_color = _comp.TextColormapInterface()
+    background_color = _comp.BackgroundColormapInterface()
+    formatter = _comp.TextFormatterInterface()
+    validator = _comp.ValidatorInterface()
+    selections = _comp.SelectionRanges()
+    highlights = _comp.HighlightRanges()
 
     def __init__(
         self,
@@ -97,6 +85,10 @@ class TableBase(ABC):
         editable: bool = True,
         metadata: dict[str, Any] | None = None,
     ):
+        from tabulous._qt import get_app
+
+        _ = get_app()
+
         _data = self._normalize_data(data)
 
         if name is None:
@@ -318,111 +310,25 @@ class TableBase(ABC):
             qtable_view.scrollTo(index)
         return None
 
-    def foreground_colormap(
-        self,
-        column_name: Hashable,
-        /,
-        colormap: ColorMapping | None = _Void,
-    ):
-        """
-        Set foreground color rule.
+    def foreground_colormap(self, *args, **kwargs):
+        """Deprecated method."""
+        warnings.warn(
+            "Method `table.foreground_colormap` is deprecated. "
+            "Use `table.text_color.set` instead.",
+            DeprecationWarning,
+        )
+        return self.text_color.set(*args, **kwargs)
 
-        Parameters
-        ----------
-        column_name : Hashable
-            Target column name.
-        colormap : callable or None, optional
-            Colormap function. Must return a color-like object. Pass None to reset
-            the colormap.
-        """
-
-        def _wrapper(f: ColorMapping) -> ColorMapping:
-            self._qwidget.setForegroundColormap(column_name, f)
-            return f
-
-        if isinstance(colormap, Mapping):
-            return _wrapper(lambda x: colormap.get(x, None))
-        elif colormap is _Void:
-            return _wrapper
-        else:
-            return _wrapper(colormap)
-
-    def background_colormap(
-        self,
-        column_name: Hashable,
-        /,
-        colormap: ColorMapping | None = _Void,
-    ):
-        """
-        Set background color rule.
-
-        Parameters
-        ----------
-        column_name : Hashable
-            Target column name.
-        colormap : callable or None, optional
-            Colormap function. Must return a color-like object. Pass None to reset
-            the colormap.
-        """
-
-        def _wrapper(f: ColorMapping) -> ColorMapping:
-            self._qwidget.setBackgroundColormap(column_name, f)
-            return f
-
-        if isinstance(colormap, Mapping):
-            return _wrapper(lambda x: colormap.get(x, None))
-        elif colormap is _Void:
-            return _wrapper
-        else:
-            return _wrapper(colormap)
-
-    def formatter(
-        self,
-        column_name: Hashable,
-        /,
-        formatter: Formatter | None = _Void,
-    ):
-        """
-        Set column specific text formatter.
-
-        Parameters
-        ----------
-        column_name : Hashable
-            Target column name.
-        formatter : callable, optional
-            Formatter function. Pass None to reset the formatter.
-        """
-
-        def _wrapper(f: Formatter) -> Formatter:
-            self._qwidget.setTextFormatter(column_name, f)
-            return f
-
-        return _wrapper(formatter) if formatter is not _Void else _wrapper
+    def background_colormap(self, *args, **kwargs):
+        """Deprecated method."""
+        warnings.warn(
+            "Method `table.background_colormap` is deprecated. "
+            "Use `table.background_color.set` instead.",
+            DeprecationWarning,
+        )
+        return self.background_color.set(*args, **kwargs)
 
     text_formatter = formatter  # alias
-
-    def validator(
-        self,
-        column_name: Hashable,
-        /,
-        validator: Validator | None = _Void,
-    ):
-        """
-        Set column specific data validator.
-
-        Parameters
-        ----------
-        column_name : Hashable
-            Target column name.
-        validator : callable or None, optional
-            Validator function. Pass None to reset the validator.
-        """
-
-        def _wrapper(f: Validator) -> Validator:
-            self._qwidget.setDataValidator(column_name, f)
-            return f
-
-        return _wrapper(validator) if validator is not _Void else _wrapper
 
     @property
     def view_mode(self) -> ViewMode:
@@ -746,7 +652,7 @@ class SpreadSheet(_DataFrameTableLayer):
     _qwidget: QSpreadSheet
     native: QSpreadSheet
     _Default_Name = "sheet"
-    dtypes = ColumnDtypeInterface()
+    dtypes = _comp.ColumnDtypeInterface()
 
     def _create_backend(self, data: pd.DataFrame) -> QSpreadSheet:
         from tabulous._qt import QSpreadSheet

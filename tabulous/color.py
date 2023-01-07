@@ -1,11 +1,82 @@
 from __future__ import annotations
+from typing import Any, NamedTuple
 from functools import lru_cache
-from typing import Iterable, Union
+import colorsys
+from tabulous.types import ColorType, ColorMapping
 
-__all__ = ["normalize_color", "rgba_to_str"]
+import numpy as np
 
 
-def normalize_color(color: str | Iterable[int]) -> tuple[int, int, int, int]:
+class ColorTuple(NamedTuple):
+    """8-bit color tuple."""
+
+    r: int
+    g: int
+    b: int
+    a: int
+
+    @property
+    def opacity(self) -> float:
+        """Return the opacity as a float between 0 and 1."""
+        return self.a / 255.0
+
+    @property
+    def html(self) -> str:
+        """Return a HTML color string."""
+        return f"#{self.r:02X}{self.g:02X}{self.b:02X}{self.a:02X}"
+
+    @property
+    def hlsa(self) -> tuple[float, float, float, float]:
+        """Return the color as HSLA."""
+        hlsa_float = colorsys.rgb_to_hls(
+            self.r / 255.0, self.g / 255.0, self.b / 255.0
+        ) + (self.opacity,)
+        return tuple(int(round(c * 255)) for c in hlsa_float)
+
+    @property
+    def hsva(self) -> tuple[float, float, float, float]:
+        """Return the color as HSVA."""
+        hsva_float = colorsys.rgb_to_hsv(
+            self.r / 255.0, self.g / 255.0, self.b / 255.0
+        ) + (self.opacity,)
+        return tuple(int(round(c * 255)) for c in hsva_float)
+
+    @classmethod
+    def from_html(cls, html: str) -> ColorTuple:
+        """Create a ColorTuple from a HTML color string."""
+        if html.startswith("#"):
+            html = html[1:]
+        if len(html) == 6:
+            html += "FF"
+        return cls(*[int(html[i : i + 2], 16) for i in range(0, 8, 2)])
+
+    @classmethod
+    def from_hlsa(cls, *hlsa) -> ColorTuple:
+        """Create a ColorTuple from HSLA."""
+        if len(hlsa) == 1:
+            hlsa = hlsa[0]
+        if len(hlsa) == 3:
+            hls = hlsa
+            alpha = 255
+        hls = tuple(c / 255.0 for c in hls)
+        return cls(*[int(round(c * 255)) for c in colorsys.hls_to_rgb(*hls)], alpha)
+
+    @classmethod
+    def from_hsva(cls, *hsva) -> ColorTuple:
+        """Create a ColorTuple from HSVA."""
+        if len(hsva) == 1:
+            hsva = hsva[0]
+        if len(hsva) == 3:
+            hsv = hsva
+            alpha = 255
+        hsv_float = tuple(c / 255.0 for c in hsv)
+        return cls(
+            *[int(round(c * 255)) for c in colorsys.hsv_to_rgb(*hsv_float)], alpha
+        )
+
+
+def normalize_color(color: ColorType) -> ColorTuple:
+    """Normalize a color-like object to a ColorTuple."""
     if isinstance(color, str):
         return _str_color_to_tuple(color)
     if hasattr(color, "__iter__"):
@@ -16,7 +87,7 @@ def normalize_color(color: str | Iterable[int]) -> tuple[int, int, int, int]:
             pass
         else:
             raise ValueError(f"Invalid color: {color!r}")
-        return out
+        return ColorTuple(*out)
     raise ValueError(f"Invalid color: {color!r}")
 
 
@@ -30,7 +101,84 @@ def rgba_to_str(rgba: tuple[int, int, int, int]) -> str:
     return color_name
 
 
-ColorType = Union[str, Iterable[int]]
+class ConvertedColormap:
+    def __init__(self, func: ColorMapping):
+        self.func = func
+        self.__name__ = f"{type(self).__name__}<{func.__name__}>"
+        self.__annotations__ = func.__annotations__
+
+    def __repr__(self):
+        return f"{type(self).__name__}<{self.func!r}>"
+
+
+class InvertedColormap(ConvertedColormap):
+    @classmethod
+    def from_colormap(cls, cmap: ColorMapping) -> ColorMapping:
+        """Convert a colormap into return an inverted one."""
+        if isinstance(cmap, cls):
+            return cmap.func
+        return cls(cmap)
+
+    def __call__(self, x: Any) -> ColorType:
+        color = self.func(x)
+        if color is None:
+            return color
+        color = np.array(normalize_color(color), dtype=np.uint8)
+        color[:3] = 255 - color[:3]
+        return color
+
+
+class OpacityColormap(ConvertedColormap):
+    def __init__(self, func: ColorMapping, opacity: float):
+        super().__init__(func)
+        if opacity < 0 or 1 < opacity:
+            raise ValueError(f"Opacity must be between 0 and 1, got {opacity}")
+        self._alpha = int(opacity * 255)
+
+    @classmethod
+    def from_colormap(cls, cmap: ColorMapping, opacity: float) -> ColorMapping:
+        """Convert a colormap into an new one with given alpha channel."""
+        if isinstance(cmap, cls):
+            return cls(cmap.func, opacity)
+        return cls(cmap, opacity)
+
+    def __call__(self, x: Any) -> ColorType:
+        color = self.func(x)
+        if color is None:
+            return color
+        color = np.array(normalize_color(color), dtype=np.uint8)
+        color[3] = self._alpha
+        return color
+
+
+class BrightenedColormap(ConvertedColormap):
+    def __init__(self, func: ColorMapping, factor: float):
+        super().__init__(func)
+        if factor < -1:
+            raise ValueError(f"Brightening factor fell below -1.0: {factor}")
+        if 1 < factor:
+            raise ValueError(f"Brightening factor exceeded 1.0: {factor}")
+        self._factor = factor
+
+    @classmethod
+    def from_colormap(cls, cmap: ColorMapping, factor: float) -> ColorMapping:
+        """Convert a colormap into an new one with given brightening factor."""
+        if isinstance(cmap, cls):
+            return cls(cmap.func, cmap._factor + factor)
+        return cls(cmap, factor)
+
+    def __call__(self, x: Any) -> ColorType:
+        color = self.func(x)
+        if color is None:
+            return color
+        color = np.array(normalize_color(color), dtype=np.float64)
+        factor = self._factor
+        if factor > 0:
+            extreme = np.array([255, 255, 255, 255], dtype=np.float64)
+        else:
+            extreme = np.array([0, 0, 0, 255], dtype=np.float64)
+        color = color * (1 - factor) + extreme * factor
+        return np.round(color).astype(np.uint8)
 
 
 @lru_cache(maxsize=64)
