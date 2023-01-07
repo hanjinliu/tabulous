@@ -1,7 +1,6 @@
 .vscode/
 _build/
-make_doc.bat
-_tabulous_history.txt
+_docs_temp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
