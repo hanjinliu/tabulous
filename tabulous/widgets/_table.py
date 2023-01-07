@@ -4,7 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, Union
+from typing import Any, Callable, Hashable, TYPE_CHECKING
 import warnings
 from psygnal import SignalGroup, Signal
 
@@ -22,17 +22,11 @@ if TYPE_CHECKING:
     from tabulous._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from tabulous._qt._table import QBaseTable
     from tabulous._qt._table._base._overlay import QOverlayFrame
-
     from tabulous._keymap import QtKeyMap
-    from tabulous.color import ColorType
 
-    ColorMapping = Union[Callable[[Any], ColorType], Mapping[Hashable, ColorType]]
-    Formatter = Union[Callable[[Any], str], str, None]
-    Validator = Callable[[Any], None]
     LayoutString = Literal["horizontal", "vertical"]
 
 logger = logging.getLogger("tabulous")
-_Void = object()
 
 
 class TableSignals(SignalGroup):
@@ -316,31 +310,23 @@ class TableBase(ABC):
             qtable_view.scrollTo(index)
         return None
 
-    def foreground_colormap(
-        self,
-        column_name: Hashable,
-        /,
-        colormap: ColorMapping | None = _Void,
-    ):
+    def foreground_colormap(self, *args, **kwargs):
+        """Deprecated method."""
         warnings.warn(
             "Method `table.foreground_colormap` is deprecated. "
             "Use `table.text_color.set` instead.",
             DeprecationWarning,
         )
-        return self.text_color.set(column_name, colormap)
+        return self.text_color.set(*args, **kwargs)
 
-    def background_colormap(
-        self,
-        column_name: Hashable,
-        /,
-        colormap: ColorMapping | None = _Void,
-    ):
+    def background_colormap(self, *args, **kwargs):
+        """Deprecated method."""
         warnings.warn(
             "Method `table.background_colormap` is deprecated. "
             "Use `table.background_color.set` instead.",
             DeprecationWarning,
         )
-        return self.background_color.set(column_name, colormap)
+        return self.background_color.set(*args, **kwargs)
 
     text_formatter = formatter  # alias
 

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, Hashable, Iterable, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Iterable, TYPE_CHECKING, TypeVar, Union
 import numpy as np
 from tabulous.color import ColorTuple, normalize_color
 from tabulous.types import ColorType
@@ -18,7 +18,7 @@ _DEFAULT_MIN = "#697FD1"
 _DEFAULT_MAX = "#FF696B"
 
 
-def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
+def exec_colormap_dialog(ds: pd.Series, parent=None):
     """Open a dialog to define a colormap for a series."""
     from tabulous._qt._color_edit import ColorEdit
     from magicgui.widgets import Dialog, LineEdit, Container
@@ -32,11 +32,7 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
         dlg = Dialog(widgets=widgets)
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
-            return _define_categorical_colormap(
-                dtype.categories,
-                [w.value for w in widgets],
-                dtype.kind,
-            )
+            return dict(zip(dtype.categories, (w.value for w in widgets)))
 
     elif dtype.kind in "uif":  # unsigned int, int, float
         lmin = LineEdit(value=str(ds.min()))
@@ -54,8 +50,8 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
         dlg = Dialog(widgets=[min_, max_])
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
-            return _define_continuous_colormap(
-                float(lmin.value), float(lmax.value), cmin.value, cmax.value
+            return segment_by_float(
+                [(float(lmin.value), cmin.value), (float(lmax.value), cmax.value)]
             )
 
     elif dtype.kind == "b":  # boolean
@@ -64,9 +60,9 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
         dlg = Dialog(widgets=[false_, true_])
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
-            return _define_categorical_colormap(
-                [False, True], [false_.value, true_.value], dtype.kind
-            )
+            converter = get_converter("b")
+            _dict = {False: false_.value, True: true_.value}
+            return lambda val: _dict.get(converter(val), None)
 
     elif dtype.kind in "mM":  # time stamp or time delta
         min_ = ColorEdit(value=_DEFAULT_MIN, label="Min")
@@ -74,82 +70,12 @@ def exec_colormap_dialog(ds: pd.Series, parent=None) -> Callable | None:
         dlg = Dialog(widgets=[min_, max_])
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
-            return _define_time_colormap(
-                ds.min(), ds.max(), min_.value, max_.value, dtype.kind
-            )
+            return segment_by_time([(ds.min(), min_.value), (ds.max(), max_.value)])
 
     else:
         raise NotImplementedError(
             f"Dtype {dtype!r} not supported. Please set colormap programmatically."
         )
-
-    return None
-
-
-def _define_continuous_colormap(
-    min: float, max: float, min_color: _ColorType, max_color: _ColorType
-):
-    converter = get_converter("f")
-
-    def _colormap(value: float) -> _ColorType:
-        nonlocal min_color, max_color
-        if isna(value):
-            return None
-        value = converter(value)
-        if value < min:
-            return min_color
-        elif value > max:
-            return max_color
-        else:
-            min_color = np.array(min_color, dtype=np.float64)
-            max_color = np.array(max_color, dtype=np.float64)
-            return (value - min) / (max - min) * (max_color - min_color) + min_color
-
-    return _colormap
-
-
-def _define_categorical_colormap(
-    values: Sequence[Hashable],
-    colors: Sequence[_ColorType],
-    kind: str,
-):
-    map = dict(zip(values, colors))
-    converter = get_converter(kind)
-
-    def _colormap(value: Hashable) -> _ColorType:
-        return map.get(converter(value), None)
-
-    return _colormap
-
-
-def _define_time_colormap(
-    min: _T,
-    max: _T,
-    min_color: _ColorType,
-    max_color: _ColorType,
-    kind: str,
-):
-    min_t = min.value
-    max_t = max.value
-    converter = get_converter(kind)
-
-    def _colormap(value: _T) -> _ColorType:
-        nonlocal min_color, max_color
-        if isna(value):
-            return None
-        value = converter(value).value
-        if value < min_t:
-            return min_color
-        elif value > max_t:
-            return max_color
-        else:
-            min_color = np.array(min_color, dtype=np.float64)
-            max_color = np.array(max_color, dtype=np.float64)
-            return (value - min_t) / (max_t - min_t) * (
-                max_color - min_color
-            ) + min_color
-
-    return _colormap
 
 
 def _random_color() -> list[int]:
@@ -159,12 +85,12 @@ def _random_color() -> list[int]:
 def _where(x, border: Iterable[float]) -> int:
     for i, v in enumerate(border):
         if x < v:
-            return max(i - 1, 0)
+            return i - 1
     return len(border) - 1
 
 
 def segment_by_float(maps: list[tuple[float, ColorType]], kind: str = "f"):
-    converter = get_converter("f")
+    converter = get_converter(kind)
     borders: list[float] = []
     colors: list[ColorTuple] = []
     for v, c in maps:
@@ -181,7 +107,7 @@ def segment_by_float(maps: list[tuple[float, ColorType]], kind: str = "f"):
             return None
         value = converter(value)
         idx = _where(value, borders)
-        if idx == 0 or idx == idx_max:
+        if idx == -1 or idx == idx_max:
             return colors[idx]
         min_color = np.array(colors[idx], dtype=np.float64)
         max_color = np.array(colors[idx + 1], dtype=np.float64)
@@ -210,7 +136,7 @@ def segment_by_time(maps: list[tuple[_TimeLike, ColorType]], kind: str):
             return None
         value = converter(value)
         idx = _where(value, borders)
-        if idx == 0 or idx == idx_max:
+        if idx == -1 or idx == idx_max:
             return colors[idx]
         min_color = np.array(colors[idx], dtype=np.float64)
         max_color = np.array(colors[idx + 1], dtype=np.float64)

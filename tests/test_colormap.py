@@ -66,11 +66,13 @@ def test_linear_interpolation():
     table.text_color.set("B", interp_from=["red", "blue"])
     table.text_color.set("C", interp_from=["red", "blue"])
     assert table.cell.text_color[0, 0] == normalize_color("red")
+    assert table.cell.text_color[4, 0] == normalize_color((141, 0, 113, 255))
     assert table.cell.text_color[9, 0] == normalize_color("blue")
     assert table.cell.text_color[0, 1] == normalize_color("red")
     assert table.cell.text_color[9, 1] == normalize_color("blue")
-    assert table.cell.text_color[0, 0] == normalize_color("red")
-    assert table.cell.text_color[9, 1] == normalize_color("blue")
+    assert table.cell.text_color[0, 2] == normalize_color("red")
+    assert table.cell.text_color[4, 2] == normalize_color((141, 0, 113, 255))
+    assert table.cell.text_color[9, 2] == normalize_color("blue")
 
 def test_linear_segmented():
     table = Table(

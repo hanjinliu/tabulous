@@ -76,6 +76,7 @@ class ColorTuple(NamedTuple):
 
 
 def normalize_color(color: ColorType) -> ColorTuple:
+    """Normalize a color-like object to a ColorTuple."""
     if isinstance(color, str):
         return _str_color_to_tuple(color)
     if hasattr(color, "__iter__"):

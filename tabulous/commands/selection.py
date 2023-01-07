@@ -333,62 +333,58 @@ def set_foreground_colormap(viewer: TableViewerBase) -> None:
     """Set foreground colormap to a column"""
     from tabulous._colormap import exec_colormap_dialog
 
-    sheet = _utils.get_table(viewer)._qwidget
-    index = _utils.get_selected_column(viewer)
-
-    column_name = sheet._filtered_columns[index]
-    if cmap := exec_colormap_dialog(sheet._get_sub_frame(column_name), sheet):
-        sheet.setForegroundColormap(column_name, cmap)
+    table, column_name = _utils.get_table_and_column_name(viewer)
+    if cmap := exec_colormap_dialog(
+        table.native._get_sub_frame(column_name),
+        table.native,
+    ):
+        table.text_color.set(column_name, cmap, infer_parser=False)
     return None
 
 
 def reset_foreground_colormap(viewer: TableViewerBase) -> None:
     """Reset foreground colormap"""
-    sheet = _utils.get_table(viewer)._qwidget
-    index = _utils.get_selected_column(viewer)
-    column_name = sheet._filtered_columns[index]
-    return sheet.setForegroundColormap(column_name, None)
+    table, column_name = _utils.get_table_and_column_name(viewer)
+    del table.text_color[column_name]
 
 
 def set_background_colormap(viewer: TableViewerBase) -> None:
     """Set background colormap to a column"""
     from tabulous._colormap import exec_colormap_dialog
 
-    sheet = _utils.get_table(viewer)._qwidget
-    index = _utils.get_selected_column(viewer)
-    column_name = sheet._filtered_columns[index]
-    if cmap := exec_colormap_dialog(sheet._get_sub_frame(column_name), sheet):
-        sheet.setBackgroundColormap(column_name, cmap)
+    table, column_name = _utils.get_table_and_column_name(viewer)
+    if cmap := exec_colormap_dialog(
+        table.native._get_sub_frame(column_name),
+        table.native,
+    ):
+        table.background_color.set(column_name, cmap, infer_parser=False)
     return None
 
 
 def reset_background_colormap(viewer: TableViewerBase) -> None:
     """Reset background colormap"""
-    sheet = _utils.get_table(viewer)._qwidget
-    index = _utils.get_selected_column(viewer)
-    column_name = sheet._filtered_columns[index]
-    return sheet.setBackgroundColormap(column_name, None)
+    table, column_name = _utils.get_table_and_column_name(viewer)
+    del table.background_color[column_name]
 
 
 def set_text_formatter(viewer: TableViewerBase) -> None:
     """Set text formatter"""
     from tabulous._text_formatter import exec_formatter_dialog
 
-    sheet = _utils.get_table(viewer)._qwidget
-    index = _utils.get_selected_column(viewer)
-    column_name = sheet._filtered_columns[index]
+    table, column_name = _utils.get_table_and_column_name(viewer)
 
-    if fmt := exec_formatter_dialog(sheet.getDataFrame()[column_name], sheet):
-        sheet.setTextFormatter(column_name, fmt)
+    if fmt := exec_formatter_dialog(
+        table.native._get_sub_frame(column_name),
+        table.native,
+    ):
+        table.formatter.set(column_name, fmt)
     return None
 
 
 def reset_text_formatter(viewer: TableViewerBase) -> None:
     """Reset text formatter"""
-    sheet = _utils.get_table(viewer)._qwidget
-    index = _utils.get_selected_column(viewer)
-    column_name = sheet._filtered_columns[index]
-    return sheet.setTextFormatter(column_name, None)
+    table, column_name = _utils.get_table_and_column_name(viewer)
+    del table.formatter[column_name]
 
 
 def write_data_signal_in_console(viewer: TableViewerBase):

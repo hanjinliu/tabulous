@@ -135,11 +135,11 @@ def test_color_mapper():
     viewer = TableViewer(show=False)
     table = viewer.add_table(df0)
 
-    @table.foreground_colormap("a")
+    @table.text_color.set("a")
     def _(val):
         return "red" if val < 2 else None
 
-    @table.background_colormap("b")
+    @table.background_color.set("b")
     def _(val):
         return "green" if val < 20 else None
 

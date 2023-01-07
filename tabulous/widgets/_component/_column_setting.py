@@ -314,8 +314,8 @@ class ValidatorInterface(_DictPropertyInterface["_Validator"]):
     def _get_dict(self) -> dict[str, _Validator]:
         return self.parent._qwidget.model()._text_formatter
 
-    def _set_value(self, key: str, cmap: _Validator):
-        return self.parent.native.setTextFormatter(key, cmap)
+    def _set_value(self, key: str, validator: _Validator):
+        return self.parent.native.setDataValidator(key, validator)
 
 
 def _is_spreadsheet(table: TableBase) -> TypeGuard[SpreadSheet]:
