@@ -69,7 +69,14 @@ class _HeaderInterface(TableComponent):
     def __repr__(self) -> str:
         return f"<{type(self).__name__}({self._get_axis()!r}) of {self.parent!r}>"
 
-    def __getitem__(self, key: int | slice):
+    # fmt: off
+    @overload
+    def __getitem__(self, key: int) -> str: ...
+    @overload
+    def __getitem__(self, key: slice | list[int] | np.ndarray) -> str: ...
+    # fmt: on
+
+    def __getitem__(self, key):
         return self._get_axis()[key]
 
     def __setitem__(self, key: int | slice, value: Any):

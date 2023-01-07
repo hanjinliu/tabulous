@@ -4,7 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Hashable, TYPE_CHECKING
+from typing import Any, Callable, Hashable, TYPE_CHECKING, overload
 import warnings
 from psygnal import SignalGroup, Signal
 
@@ -66,6 +66,7 @@ class TableBase(ABC):
     """The base class for a table layer."""
 
     _Default_Name = "None"
+
     cell = _comp.CellInterface()
     index = _comp.VerticalHeaderInterface()
     columns = _comp.HorizontalHeaderInterface()
@@ -77,6 +78,8 @@ class TableBase(ABC):
     validator = _comp.ValidatorInterface()
     selections = _comp.SelectionRanges()
     highlights = _comp.HighlightRanges()
+    loc = _comp.TableLocIndexer()
+    iloc = _comp.TableILocIndexer()
 
     def __init__(
         self,
@@ -118,6 +121,20 @@ class TableBase(ABC):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}<{self.name!r}>"
+
+    # fmt: off
+    @overload
+    def __getitem__(self, key: str) -> _comp.TableSeries: ...
+    @overload
+    def __getitem__(self, key: list[str]) -> _comp.TableSubset: ...
+    # fmt: on
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            return _comp.TableSeries(self, slice(None), key)
+        elif isinstance(key, list):
+            return _comp.TableSubset(self, slice(None), key)
+        raise TypeError(f"Invalid key type: {type(key)}")
 
     @property
     def cellref(self):
