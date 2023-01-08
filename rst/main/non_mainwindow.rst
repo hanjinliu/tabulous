@@ -29,7 +29,7 @@ window version of it. The ``native`` property returns the Qt backend widget.
 .. note::
 
     A benefit of using ``tabulous`` is that a table widget usually takes too much space but this
-    problem can be solve by popup view of tables in ``tabulous``. See :doc:`table_advanced` for
+    problem can be solve by popup view of tables in ``tabulous``. See :doc:`table_view_mode` for
     more detail.
 
 .. note::

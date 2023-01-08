@@ -10,8 +10,13 @@ new indices.
     :local:
     :depth: 1
 
+.. include:: ../font.rst
+
 Filtering
 =========
+
+.. |filter| image:: ../../tabulous/_qt/_icons/filter.svg
+  :width: 20em
 
 Use filter functions
 --------------------
@@ -35,27 +40,32 @@ This example is essentially equivalent to slicing a :class:`DataFrame` by ``df[d
 
 If the table is
 
-+---+---+-------+
-|   | A | label |
-+---+---+-------+
-| 0 | 2 |   A   |
-+---+---+-------+
-| 1 | 3 |   B   |
-+---+---+-------+
-| 2 | 6 |   B   |
-+---+---+-------+
-| 3 | 4 |   A   |
-+---+---+-------+
+====  ===  =======
+  ..    A  label
+====  ===  =======
+   0    2  A
+   1    3  B
+   2    6  B
+   3    4  A
+====  ===  =======
 
 then it looks like following after applying the filter.
 
-+---+---+-------+
-|   | A | label |
-+---+---+-------+
-| 0 | 2 |   A   |
-+---+---+-------+
-| 3 | 4 |   A   |
-+---+---+-------+
+====  ===  =======
+  ..    A  label
+====  ===  =======
+   0    2  A
+   3    4  A
+====  ===  =======
+
+Simple filtering in GUI
+-----------------------
+
+In right-click contextmenu, you can select ``Filter`` to filter the table by the column.
+Filter buttons |filter| will be anchored at the corner of the column section during
+the table being filtered. You can update or remove the filter by clicking the button.
+
+.. image:: ../fig/column_filter.png
 
 Use query-style expression
 --------------------------
@@ -69,19 +79,17 @@ Instead of a function, you can also set a query-style expression as a filter.
 See `the API reference of pandas.eval <https://pandas.pydata.org/docs/reference/api/pandas.eval.html>`_
 for details of the syntax.
 
-Filter in GUI
--------------
+If the expression can be interpreted as a simple column-wise filter, |filter| button will
+similarly be added.
 
-.. |filter| image:: ../../tabulous/_qt/_icons/filter.svg
-  :width: 20em
+Query-style filtering in GUI
+----------------------------
 
-You can open a overlay dialog to filter the table data from the |filter| button in the toolbar,
-push key combo starting with ``Alt``, or right click on the selected column(s).
+You can also open a overlay dialog to filter the table data from the |filter| button in
+the toolbar.
 
 The line edit for filter expression supports auto-completion (Tab) and history browsing
 (↑, ↓).
-
-.. image:: ../fig/filter.gif
 
 Sorting
 =======
@@ -106,31 +114,25 @@ should map a :class:`DataFrame` to a 1-D interger array, just like :meth:`argsor
 
 If the table is
 
-+---+---+----+
-|   | x |  y |
-+---+---+----+
-| 0 | 2 | a0 |
-+---+---+----+
-| 1 | 3 | a1 |
-+---+---+----+
-| 2 | 1 | a2 |
-+---+---+----+
-| 3 | 0 | a3 |
-+---+---+----+
+===  ===  ===
+ ..    x  y
+===  ===  ===
+  0    2  a0
+  1    3  a1
+  2    1  a2
+  3    0  a3
+===  ===  ===
 
 then it looks like following after sorting.
 
-+---+---+----+
-|   | x |  y |
-+---+---+----+
-| 3 | 0 | a3 |
-+---+---+----+
-| 2 | 1 | a2 |
-+---+---+----+
-| 0 | 2 | a0 |
-+---+---+----+
-| 1 | 3 | a1 |
-+---+---+----+
+===  ===  ===
+ ..    x  y
+===  ===  ===
+  3    0  a3
+  2    1  a2
+  0    2  a0
+  1    3  a1
+===  ===  ===
 
 Sorting function doesn't always have to be surjective, i.e. it can return only a subset of
 the source indices.
@@ -165,5 +167,68 @@ Sort in GUI
 .. |sort| image:: ../../tabulous/_qt/_icons/sort_table.svg
   :width: 20em
 
-You can sort selected column(s) by clicking |sort| button in the toolbar,
-push key combo starting with ``Alt``, or right click on the selected column(s).
+You can sort selected column(s) by clicking |sort| button in the toolbar.
+
+Edit Cells during Proxy
+=======================
+
+You can edit cells while the table is sorted/filtered.
+
+Suppose you have a table like below
+
+===  =====
+  A  B
+===  =====
+  0  row-0
+  1  row-1
+  2  row-2
+  3  row-3
+  4  row-4
+  5  row-5
+  6  row-6
+  7  row-7
+  8  row-8
+  9  row-9
+===  =====
+
+and applied a filter by ``viewer.current_table.proxy.filter("A % 2 == 1")``
+
+===  =====
+  A  B
+===  =====
+  1  row-1
+  3  row-3
+  5  row-5
+  7  row-7
+  9  row-9
+===  =====
+
+Here, you can edit, or paste data directly (The edited cells are highlighted in red).
+
+===  ==========
+  A  B
+===  ==========
+  1  row-1
+  3  :red:`X-3`
+  5  :red:`X-5`
+  7  :red:`X-7`
+  9  row-9
+===  ==========
+
+After removing filter (``viewer.current_table.proxy.reset()``), you'll see the cells
+are properly edited.
+
+===  ==========
+  A  B
+===  ==========
+  0  row-0
+  1  row-1
+  2  row-2
+  3  :red:`X-3`
+  4  row-4
+  5  :red:`X-5`
+  6  row-6
+  7  :red:`X-7`
+  8  row-8
+  9  row-9
+===  ==========

@@ -4,7 +4,7 @@ Integrate Custom Widgets
 
 .. contents:: Contents
     :local:
-    :depth: 2
+    :depth: 1
 
 There are several places to integrate your custom widgets to :mod:`tabulous` viewer.
 
@@ -57,25 +57,30 @@ Basic usage
     the same strategy to recover a ``pd.DataFrame`` from the table list or send a new one
     to the viewer.
 
+:class:`TableData` type is an alias of :class:`pd.DataFrame`. Arguments annotated by this
+type will be interpreted as a combobox of table data by ``magicgui``.
 
 .. code-block:: python
 
     from tabulous.types import TableData
 
     @magicgui
-    def f(table: TableData) -> TableData:
-        return table.apply([np.mean, np.std])
+    def f(table: TableData, mean: bool, std: bool, max: bool, min: bool) -> TableData:
+        funcs = []
+        for checked, f in [(mean, np.mean), (std, np.std), (max, np.max), (min, np.min)]:
+            if checked:
+                funcs.append(f)
+        return table.apply(funcs)
 
     viewer.add_dock_widget(f)
+
+.. image:: ../fig/dock_with_table_data_annotation.png
 
 Table Side Area
 ===============
 
 Every table has a side area that can be used to add table-specific widgets or show
 table-specific information.
-
-Custom widgets
---------------
 
 Custom Qt widgets or ``magicgui`` widgets can be added to the side area using
 :meth:`add_side_widget` method.
@@ -87,11 +92,7 @@ Custom Qt widgets or ``magicgui`` widgets can be added to the side area using
     # if you want to give a name to the widget
     table.add_side_widget(widget, name="widget name")
 
-Examples
-^^^^^^^^
-
-.. code-block:: python
-
+    # example
     from magicgui import magicgui
 
     @magicgui
@@ -100,11 +101,20 @@ Examples
 
     table.add_side_widget(func)
 
-Undo Stack
-----------
+Built-in Widgets
+----------------
 
-Undo/redo is implemented for each table. You can see the registered operations in a list
-view in the side area. You can open it by pressing ``Ctrl+H``.
+There are built-in widgets that uses the table side area by default.
+
+1. Undo stack widget
+
+    Undo/redo is implemented for each table. You can see the registered operations in a list
+    view in the side area. You can open it by pressing ``Ctrl+H``.
+
+2. Plot canvas
+
+    Interactive :mod:`matplotlib` canvas is available in the "Plot" tool or the :attr:`plt`
+    field of table widgets.
 
 Table Overlay Widget
 ====================

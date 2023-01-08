@@ -78,7 +78,7 @@ A :class:`Table` is the most simple interface with :class:`DataFrame`.
   rejected.
 
 A :class:`DataFrame` (or other objects that can be converted into a :class:`DataFrame`) can be added to
-the viewer using ``add_table`` method.
+the viewer using :meth:`add_table` method.
 
 .. code-block:: python
 
@@ -153,13 +153,12 @@ A ``SpreadSheet`` behaves more like Excel or Google Spreadsheet.
 
 For instance, if you manually edited the cells
 
-+---+---+---+
-|   | A | B |
-+---+---+---+
-| 0 | 2 | t |
-+---+---+---+
-| 1 | 3 | u |
-+---+---+---+
+===  ===  ===
+ ..    A  B
+===  ===  ===
+  0    2  t
+  1    3  u
+===  ===  ===
 
 then you'll get following :class:`DataFrame`.
 
@@ -173,7 +172,7 @@ then you'll get following :class:`DataFrame`.
     A     int64
     B    object
 
-A spreadsheet can be added to the viewer by ``add_spreadsheet`` method.
+A spreadsheet can be added to the viewer by :meth:`add_spreadsheet` method.
 
 .. code-block:: python
 
@@ -188,7 +187,7 @@ A spreadsheet can be added to the viewer by ``add_spreadsheet`` method.
 
     SpreadSheet<'sheet'>
 
-Since a ``SpreadSheet`` is easily editable, it is reasonable to add an empty spreadsheet to
+Since a :class:`SpreadSheet`` is easily editable, it is reasonable to add an empty spreadsheet to
 the viewer.
 
 .. code-block:: python
@@ -198,12 +197,13 @@ the viewer.
 For more details ...
 --------------------
 
-See :doc:`/main/table_advanced`.
+- :doc:`/main/table_fields`
+- :doc:`/main/table_view_mode`
 
 Table List
 ==========
 
-All the table data is available in ``tables`` property. It is a ``list`` like
+All the table data is available in :attr:`tables` property. It is a ``list`` like
 object with some extended methods.
 
 .. code-block:: python
@@ -215,13 +215,13 @@ object with some extended methods.
     viewer.tables.move(0, 2)  # move the 0-th table to the 2-th position
 
 You can also get currently acitive (visible) table or its index with
-``viewer.current_table`` or ``viewer.current_index``.
+:attr:`viewer.current_table` or :attr:`viewer.current_index`.
 
 
 Key combo
 =========
 
-``tabulous`` supports many keyboard shortcuts including key combo.
+:mod:`tabulous` supports many keyboard shortcuts including key combo.
 
 All the global key map is listed in a widget that will be shown when you press
 ``Ctrl+K, Shift+?`` key combo.

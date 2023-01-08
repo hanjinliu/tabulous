@@ -34,7 +34,7 @@ Cooperate with Other Widgets
 .. toctree::
    :maxdepth: 2
 
-   ./main/dock_widget
+   ./main/integrate_custom_widgets
    ./main/non_mainwindow
 
 

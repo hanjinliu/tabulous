@@ -642,6 +642,7 @@ class TableViewer(TableViewerBase):
         )
         dock.setSourceObject(widget)
         self._dock_widgets[name] = dock
+        dock.show()
         return dock
 
     def remove_dock_widget(self, name_or_widget: str | Widget | QWidget):

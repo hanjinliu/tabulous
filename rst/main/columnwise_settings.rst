@@ -10,26 +10,31 @@ editing the data.
     :local:
     :depth: 2
 
+Each column-specific setting is stored as a ``dict`` like field.
+
 Colormap
 ========
+
+A "colormap" is a function that maps a value to a color. All the colormaps are stored in
+:attr:`text_color` / :attr:`background_color` fields.
 
 Use Colormap Functions
 ----------------------
 
-The foreground color (text color) and the background color can be set for each column.
-You have to provide a colormap (function that maps values to colors) to do this. A colormap
-must return a RGBA array (0-255) or a standard color name.
+The text color and the background color can be set for each column.
+You can provide a custom colormap function to do this by :meth:`set` method of fields.
+A colormap function must return a RGBA array (0-255) or a standard color name.
 
 .. code-block:: python
 
     viewer = TableViewer()
     table = viewer.open_sample("iris")
 
-    # set a continuous colormap to the "sepal_length" column
     lmin = table.data["sepal_length"].min()
     lmax = table.data["sepal_length"].max()
     lrange = lmax - lmin
 
+    # set a continuous colormap to the "sepal_length" column
     @table.text_color.set("sepal_length")
     def _(x: float):
         red = np.array([255, 0, 0, 255], dtype=np.uint8)
@@ -45,6 +50,14 @@ must return a RGBA array (0-255) or a standard color name.
 
 .. image:: ../fig/colormap.png
 
+Since the fields are ``dict`` like, you can refer to existing colormaps or set new ones.
+
+.. code-block:: python
+
+    print(table.text_color["sepal_length"])  # get the colormap function
+    table.text_color["sepal_length"] = new_cmap  # set a new colormap
+    del table.text_color["sepal_length"]  # reset the existing colormap
+
 Use Dictionaries
 ----------------
 
@@ -57,13 +70,68 @@ For categorical data, you can also use dictionaries to set the colors.
         "versicolor": "green",
         "virginica": "blue",
     }
-    table.foreground_colormap("species", cmap)  # set cmap
+    # set discrete colormap
+    table.text_color.set("species", cmap)
+    # or like this
+    table.text_color["species"] = cmap
+
+Use :mod:`matplotlib` Colormaps
+-------------------------------
+
+The colormap names defined in :mod:`matplotlib` are available. Limits of the contrast
+will be defined by the mininum/maximum values of the column.
+
+.. code-block:: python
+
+    table.text_color["sepal_length"] = "inferno"
+
+.. note::
+
+    Since colormaps are defined continuously, data type of the column must be numbers,
+    datetime or timedelta.
+
+Interpolate Colors to Define Colormaps
+--------------------------------------
+
+In many cases, you'll want to define your own colormap by supplying colors that
+represent the minimum/maximum values, or several colors with their corresponding
+values.
+
+The ``interp_from`` argument is useful for this purpose. A linearly segmented
+colormap will be defined .
+
+.. code-block:: python
+
+    viewer = TableViewer()
+    table = viewer.add_table({"value": [-3, -2, -1, 0, 1, 2, 3]})
+
+    # use value -> color mapping
+    table.text_color.set("value", interp_from={-3: "blue", 0: "gray", 3: "red"})
+
+    # or a list of (value, color)
+    table.text_color.set("value", interp_from=[(-3, "blue"), (0, "gray"), (3, "red")])
+
+.. image:: ../fig/colormap_interpolate.png
+
+.. note::
+
+    You can just pass a list of colors to define a equally divided colormap.
+
+    .. code-block:: python
+
+        table.text_color.set("value", interp_from=["blue", "gray", "red"])
+
+    The simplest argument will be two colors, which represent minimum/maximum.
+
+    .. code-block:: python
+
+        table.text_color.set("value", interp_from=["blue", "red"])
 
 Set Colormaps in GUI
 --------------------
 
 Some basic colormaps are available in the right-click context menu of the columns,
-such as ``Color > Set foreground colormap``.
+such as ``Color > Set background colormap``.
 
 Validator
 =========
@@ -82,7 +150,7 @@ if the input value is invalid.
     viewer = TableViewer()
     viewer.add_table({"sample": [1, 2, 3], "volume": [0., 0., 0.]}, editable=True)
 
-    @table.validator("volume")
+    @table.validator.set("volume")
     def _(x: float):
         if x < 0:
             raise ValueError("Volume must be positive.")
@@ -120,7 +188,7 @@ column specific validation including data type conversion.
     viewer = TableViewer()
     table = viewer.open_sample("iris")
 
-    @table.formatter("sepal_length")
+    @table.formatter.set("sepal_length")
     def _(x: float):
         return f"{x:.2f} cm"
 
@@ -131,7 +199,7 @@ Instead of passing a function, you can also use a ready-to-be-formatted strings.
 
 .. code-block:: python
 
-    table.formatter("sepal_length", "{:.2f} cm")
+    table.formatter.set("sepal_length", "{:.2f} cm")
 
 Example above is identical to passing ``"{:.2f} cm".format``.
 
@@ -167,8 +235,8 @@ set validator functions appropriate for the data types.
     sheet.dtypes.update(int="int64", label="category")
 
     # set dtypes and default validators
-    sheet.dtypes.set_dtype("int", "int64")
-    sheet.dtypes.set_dtype("label", "category")
+    sheet.dtypes.set("int", "int64")
+    sheet.dtypes.set("label", "category")
 
 .. code-block:: python
 

@@ -18,15 +18,13 @@ work as you expects in most of table data editors.
 Additionally, ``Ctrl`` + ``mouse wheel`` zooms in/out the table. ``Ctrl`` + ``Alt`` + arrow
 keys scrolls the table to the desired direction.
 
-.. image:: ../fig/table_interface_0.gif
-
 Edit cells and headers
 ----------------------
 
 If a table is editable, you can edit the values of cells and headers. Double-clicking, ``F2``
 or typing any characters will create an editor for the value.
 
-.. image:: ../fig/table_interface_1.gif
+.. image:: ../fig/edit_cell.png
 
 During editing, the text will always be validated. Invalid text will be shown in red. For the
 table cells, you can set any validation rules (see :doc:`/main/columnwise_settings`). For
@@ -252,13 +250,6 @@ want to add more variables or functions, there are two ways to do it.
 
       You can't use none of ``np``, ``pd`` or ``df`` as a variable name.
 
-
-Send the values to the console
-------------------------------
-
-``Ctrl + I`` in the console will insert a data reference object ``viewer.data[...]`` at the
-cursor position. The data reference object is updated in real-time when the table selection is
-changed. This is the fastest way to obtain the values in the table.
 
 Toolbar
 =======
