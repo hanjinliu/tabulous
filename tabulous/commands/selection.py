@@ -38,12 +38,12 @@ def copy_as_markdown(viewer: TableViewerBase):
 
 
 def copy_as_rst_simple(viewer: TableViewerBase):
-    """Copy as rst simple table"""
+    """Copy as reStructuredText (rst) simple table"""
     _utils.get_table(viewer)._qwidget._copy_as_formated("rst")
 
 
 def copy_as_rst_grid(viewer: TableViewerBase):
-    """Copy as rst grid table"""
+    """Copy as reStructuredText (rst) grid table"""
     _utils.get_table(viewer)._qwidget._copy_as_formated("grid")
 
 
@@ -161,7 +161,7 @@ def paste_data_from_markdown(viewer: TableViewerBase):
 
 
 def paste_data_from_rst(viewer: TableViewerBase):
-    """Paste from reStructuredText table"""
+    """Paste from reStructuredText (rst) table"""
 
     import numpy as np
     import pandas as pd

@@ -659,7 +659,7 @@ class Table(_DataFrameTableLayer):
 
     _Default_Name = "table"
     _qwidget: QTableLayer
-    native: Table
+    native: QTableLayer
 
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
         from tabulous._qt import QTableLayer

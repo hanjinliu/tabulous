@@ -143,17 +143,23 @@ Set validator Functions
 -----------------------
 
 A validator function doesn't care about the returned value. It should raise an exception
-if the input value is invalid.
+if the input value is invalid. In following example, negative value is interpreted as
+invalid and the editor becomes red.
 
 .. code-block:: python
 
     viewer = TableViewer()
-    viewer.add_table({"sample": [1, 2, 3], "volume": [0., 0., 0.]}, editable=True)
+    table = viewer.add_table(
+        {"sample": [1, 2, 3], "volume": [0., 0., 0.]},
+        editable=True,
+    )
 
     @table.validator.set("volume")
     def _(x: float):
         if x < 0:
             raise ValueError("Volume must be positive.")
+
+.. image:: ../fig/validator.png
 
 .. note::
 
@@ -180,17 +186,22 @@ Set formatter function
 ----------------------
 
 As usual in this chapter, you can use functions that convert a value into a string
-as formatter function. The formatted strings are not necessary to satisfy the
-column specific validation including data type conversion.
+as formatter function.
+
+- The formatted strings do not affect the real data.
+- The formatted strings are not necessary to satisfy the column specific validation
+  including data type conversion.
 
 .. code-block:: python
 
     viewer = TableViewer()
-    table = viewer.open_sample("iris")
+    table = viewer.add_table({"length": [2.1, 3.2, 1.8, 6.3]})
 
-    @table.formatter.set("sepal_length")
+    @table.formatter.set("length")
     def _(x: float):
         return f"{x:.2f} cm"
+
+.. image:: ../fig/formatter.png
 
 Set formatter string
 --------------------
@@ -200,6 +211,9 @@ Instead of passing a function, you can also use a ready-to-be-formatted strings.
 .. code-block:: python
 
     table.formatter.set("sepal_length", "{:.2f} cm")
+
+    # or use __setitem__
+    table.formatter["sepal_length"] = "{:.2f} cm"
 
 Example above is identical to passing ``"{:.2f} cm".format``.
 

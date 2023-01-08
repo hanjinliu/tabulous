@@ -50,6 +50,36 @@ def colormap_interpolate():
     return viewer
 
 @REG.register
+def formatter():
+    viewer = TableViewer()
+    table = viewer.add_table({"length": [2.1, 3.2, 1.8, 6.3]})
+
+    @table.formatter.set("length")
+    def _(x: float):
+        return f"{x:.2f} cm"
+    viewer.resize(100, 100)
+    return viewer
+
+@REG.register
+def validator():
+    viewer = TableViewer()
+    table = viewer.add_table(
+        {"sample": [1, 2, 3], "volume": [0., 0., 0.]},
+        editable=True,
+    )
+
+    @table.validator.set("volume")
+    def _(x: float):
+        if x < 0:
+            raise ValueError("Volume must be positive.")
+
+    viewer.resize(100, 100)
+    table.move_iloc(1, 1)
+    cmds.selection.edit_current(viewer)
+    table.native._qtable_view._create_eval_editor("-1")
+    return viewer
+
+@REG.register
 def cell_labels():
     viewer = TableViewer()
     sheet = viewer.add_spreadsheet(np.arange(4))
