@@ -226,11 +226,20 @@ class QFloatFormatterDialog(_QNumberFormatterDialog):
         if val == self._ENUM.default:
             fmt = None
         elif val == self._ENUM.decimal:
-            fmt = f"{{:.{n}f}}"
+
+            def fmt(x):
+                return f"{float(x):.{n}f}"
+
         elif val == self._ENUM.exponential:
-            fmt = f"{{:.{n}g}}"
+
+            def fmt(x):
+                return f"{float(x):.{n}g}"
+
         elif val == self._ENUM.percent:
-            fmt = f"{{:.{n}%}}"
+
+            def fmt(x):
+                return f"{float(x):.{n}%}"
+
         else:
             raise RuntimeError()
         return fmt

@@ -104,7 +104,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self._child_widgets = weakref.WeakValueDictionary()
 
         self.addWidget(self._tab)
-        self.setMaximumHeight(120)
+        self.setMaximumHeight(84)
         self.initToolbar()
 
     @property
@@ -153,7 +153,10 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             self.addToolBar(tabname)
         toolbar = self._child_widgets[tabname]
         qicon = QColoredSVGIcon.fromfile(icon)
-        fn = lambda: f(self.viewer)
+
+        def fn():
+            return f(self.viewer)
+
         fn.__doc__ = f.__doc__
         toolbar.appendAction(fn, qicon)
         return
@@ -168,7 +171,9 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         if name is None:
             name = f.__name__.replace("_", " ").capitalize()
 
-        fn = lambda: f(self.viewer)
+        def fn():
+            return f(self.viewer)
+
         fn.__doc__ = f.__doc__
         toolbar.appendMenuAction(fn, name)
         return None
@@ -182,69 +187,69 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     def initToolbar(self):
         """Add tool buttons"""
 
-        self.registerAction("Home", cmds.file.open_table, ICON_DIR / "open_table.svg")
-        self.registerAction("Home", cmds.file.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")
-        self.registerAction("Home", cmds.file.save_table, ICON_DIR / "save_table.svg")
+        self.registerAction("Home", cmds.file.open_table, ICON_DIR / "open_table.svg")  # noqa: E501
+        self.registerAction("Home", cmds.file.open_spreadsheet, ICON_DIR / "open_spreadsheet.svg")  # noqa: E501
+        self.registerAction("Home", cmds.file.save_table, ICON_DIR / "save_table.svg")  # noqa: E501
         self.addSeparatorToChild("Home")
-        self.registerAction("Home", cmds.file.open_sample, ICON_DIR / "open_sample.svg")
+        self.registerAction("Home", cmds.file.open_sample, ICON_DIR / "open_sample.svg")  # noqa: E501
         self.addSeparatorToChild("Home")
-        self.registerAction("Home", cmds.window.toggle_console, ICON_DIR / "toggle_console.svg")
-        self.registerAction("Home", cmds.window.show_command_palette, ICON_DIR / "palette.svg")
+        self.registerAction("Home", cmds.window.toggle_console, ICON_DIR / "toggle_console.svg")  # noqa: E501
+        self.registerAction("Home", cmds.window.show_command_palette, ICON_DIR / "palette.svg")  # noqa: E501
 
-        self.registerAction("Edit", cmds.selection.copy_data_tab_separated, ICON_DIR / "copy.svg")
-        self.registerAction("Edit", cmds.selection.paste_data_tab_separated, ICON_DIR / "paste.svg")
-        self.registerAction("Edit", cmds.selection.cut_data, ICON_DIR / "cut.svg")
+        self.registerAction("Edit", cmds.selection.copy_data_tab_separated, ICON_DIR / "copy.svg")  # noqa: E501
+        self.registerAction("Edit", cmds.selection.paste_data_tab_separated, ICON_DIR / "paste.svg")  # noqa: E501
+        self.registerAction("Edit", cmds.selection.cut_data, ICON_DIR / "cut.svg")  # noqa: E501
         self.addSeparatorToChild("Edit")
-        self.registerAction("Edit", cmds.table.undo_table, ICON_DIR / "undo.svg")
-        self.registerAction("Edit", cmds.table.redo_table, ICON_DIR / "redo.svg")
+        self.registerAction("Edit", cmds.table.undo_table, ICON_DIR / "undo.svg")  # noqa: E501
+        self.registerAction("Edit", cmds.table.redo_table, ICON_DIR / "redo.svg")  # noqa: E501
 
-        self.registerAction("Table", cmds.table.copy_as_table, ICON_DIR / "copy_as_table.svg")
-        self.registerAction("Table", cmds.table.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")
+        self.registerAction("Table", cmds.table.copy_as_table, ICON_DIR / "copy_as_table.svg")  # noqa: E501
+        self.registerAction("Table", cmds.table.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")  # noqa: E501
         self.addSeparatorToChild("Table")
-        self.registerAction("Table", cmds.table.groupby, ICON_DIR / "groupby.svg")
-        self.registerAction("Table", cmds.table.switch_header, ICON_DIR / "switch_header.svg")
+        self.registerAction("Table", cmds.table.groupby, ICON_DIR / "groupby.svg")  # noqa: E501
+        self.registerAction("Table", cmds.table.switch_header, ICON_DIR / "switch_header.svg")  # noqa: E501
         self.registerAction("Table", cmds.table.pivot, ICON_DIR / "pivot.svg")
         self.registerAction("Table", cmds.table.melt, ICON_DIR / "melt.svg")
         self.addSeparatorToChild("Table")
-        self.registerAction("Table", cmds.table.random, ICON_DIR / "random.svg")
-        self.registerAction("Table", cmds.table.round, ICON_DIR / "round.svg")
+        self.registerAction("Table", cmds.table.random, ICON_DIR / "random.svg")  # noqa: E501
+        self.registerAction("Table", cmds.table.round, ICON_DIR / "round.svg")  # noqa: E501
 
-        self.registerAction("Analyze", cmds.analysis.summarize_table, ICON_DIR / "summarize_table.svg")
-        self.registerAction("Analyze", cmds.analysis.show_eval_widget, ICON_DIR / "eval.svg")
-        self.registerAction("Analyze", cmds.table.show_finder_widget, ICON_DIR / "find_item.svg")
-        self.registerAction("Analyze", cmds.selection.sort_by_columns, ICON_DIR / "sort_table.svg")
-        self.registerAction("Analyze", cmds.analysis.show_filter_widget, ICON_DIR / "filter.svg")
+        self.registerAction("Analyze", cmds.analysis.summarize_table, ICON_DIR / "summarize_table.svg")  # noqa: E501
+        self.registerAction("Analyze", cmds.analysis.show_eval_widget, ICON_DIR / "eval.svg")  # noqa: E501
+        self.registerAction("Analyze", cmds.table.show_finder_widget, ICON_DIR / "find_item.svg")  # noqa: E501
+        self.registerAction("Analyze", cmds.selection.sort_by_columns, ICON_DIR / "sort_table.svg")  # noqa: E501
+        self.registerAction("Analyze", cmds.analysis.show_filter_widget, ICON_DIR / "filter.svg")  # noqa: E501
         self.addSeparatorToChild("Analyze")
-        self.registerAction("Analyze", cmds.analysis.show_optimizer_widget, ICON_DIR / "optimize.svg")
-        self.registerAction("Analyze", cmds.analysis.show_stats_widget, ICON_DIR / "stats_test.svg")
-        self.registerAction("Analyze", cmds.analysis.show_sklearn_widget, ICON_DIR / "sklearn_analysis.svg")
+        self.registerAction("Analyze", cmds.analysis.show_optimizer_widget, ICON_DIR / "optimize.svg")  # noqa: E501
+        self.registerAction("Analyze", cmds.analysis.show_stats_widget, ICON_DIR / "stats_test.svg")  # noqa: E501
+        self.registerAction("Analyze", cmds.analysis.show_sklearn_widget, ICON_DIR / "sklearn_analysis.svg")  # noqa: E501
 
-        self.registerAction("View", cmds.view.set_popup_mode, ICON_DIR / "view_popup.svg")
-        self.registerAction("View", cmds.view.set_dual_h_mode, ICON_DIR / "view_dual_h.svg")
-        self.registerAction("View", cmds.view.set_dual_v_mode, ICON_DIR / "view_dual_v.svg")
-        self.registerAction("View", cmds.view.reset_view_mode, ICON_DIR / "view_reset.svg")
+        self.registerAction("View", cmds.view.set_popup_mode, ICON_DIR / "view_popup.svg")  # noqa: E501
+        self.registerAction("View", cmds.view.set_dual_h_mode, ICON_DIR / "view_dual_h.svg")  # noqa: E501
+        self.registerAction("View", cmds.view.set_dual_v_mode, ICON_DIR / "view_dual_v.svg")  # noqa: E501
+        self.registerAction("View", cmds.view.reset_view_mode, ICON_DIR / "view_reset.svg")  # noqa: E501
         self.addSeparatorToChild("View")
-        self.registerAction("View", cmds.tab.tile_tables, ICON_DIR / "tile.svg")
-        self.registerAction("View", cmds.tab.untile_table, ICON_DIR / "untile.svg")
+        self.registerAction("View", cmds.tab.tile_tables, ICON_DIR / "tile.svg")  # noqa: E501
+        self.registerAction("View", cmds.tab.untile_table, ICON_DIR / "untile.svg")  # noqa: E501
         self.addSeparatorToChild("View")
-        self.registerAction("View", cmds.table.switch_layout, ICON_DIR / "switch_layout.svg")
+        self.registerAction("View", cmds.table.switch_layout, ICON_DIR / "switch_layout.svg")  # noqa: E501
 
         self.registerAction("Plot", cmds.plot.plot, ICON_DIR / "plot.svg")
-        self.registerAction("Plot", cmds.plot.scatter, ICON_DIR / "scatter.svg")
+        self.registerAction("Plot", cmds.plot.scatter, ICON_DIR / "scatter.svg")  # noqa: E501
         self.registerAction("Plot", cmds.plot.hist, ICON_DIR / "hist.svg")
         self.registerMenuAction("Plot", cmds.plot.bar, name="Run plt.bar")
-        self.registerMenuAction("Plot", cmds.plot.errorbar, name="Run plt.errorbar")
-        self.registerMenuAction("Plot", cmds.plot.fill_between, name="Run plt.fill_between")
-        self.registerMenuAction("Plot", cmds.plot.fill_betweenx, name="Run plt.fill_betweenx")
+        self.registerMenuAction("Plot", cmds.plot.errorbar, name="Run plt.errorbar")  # noqa: E501
+        self.registerMenuAction("Plot", cmds.plot.fill_between, name="Run plt.fill_between")  # noqa: E501
+        self.registerMenuAction("Plot", cmds.plot.fill_betweenx, name="Run plt.fill_betweenx")  # noqa: E501
         self.addSeparatorToChild("Plot")
-        self.registerAction("Plot", cmds.plot.swarmplot, ICON_DIR / "swarmplot.svg")
-        self.registerAction("Plot", cmds.plot.barplot, ICON_DIR / "barplot.svg")
-        self.registerAction("Plot", cmds.plot.boxplot, ICON_DIR / "boxplot.svg")
-        self.registerMenuAction("Plot", cmds.plot.boxenplot, name="Run sns.boxenplot")
-        self.registerMenuAction("Plot", cmds.plot.stripplot, name="Run sns.stripplot")
-        self.registerMenuAction("Plot", cmds.plot.violinplot, name="Run sns.violinplot")
+        self.registerAction("Plot", cmds.plot.swarmplot, ICON_DIR / "swarmplot.svg")  # noqa: E501
+        self.registerAction("Plot", cmds.plot.barplot, ICON_DIR / "barplot.svg")  # noqa: E501
+        self.registerAction("Plot", cmds.plot.boxplot, ICON_DIR / "boxplot.svg")  # noqa: E501
+        self.registerMenuAction("Plot", cmds.plot.boxenplot, name="Run sns.boxenplot")  # noqa: E501
+        self.registerMenuAction("Plot", cmds.plot.stripplot, name="Run sns.stripplot")  # noqa: E501
+        self.registerMenuAction("Plot", cmds.plot.violinplot, name="Run sns.violinplot")  # noqa: E501
         self.addSeparatorToChild("Plot")
-        self.registerAction("Plot", cmds.plot.new_figure, ICON_DIR / "new_figure.svg")
+        self.registerAction("Plot", cmds.plot.new_figure, ICON_DIR / "new_figure.svg")  # noqa: E501
 
         return
     # fmt: on

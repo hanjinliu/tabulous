@@ -3,6 +3,7 @@ from typing import Any
 from collections_undo import UndoManager, fmt
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
+from qtpy.sip import isdeleted
 
 import numpy as np
 import pandas as pd
@@ -45,8 +46,11 @@ class QUndoStackViewer(QtW.QWidget):
         self.setMinimumHeight(160)
 
     def refresh(self, *_):
-        self._listview.model().updateUndoShape()
-        self._listview.viewport().update()
+        if isdeleted(self):
+            self._mgr.called.remove(self.refresh)
+        else:
+            self._listview.model().updateUndoShape()
+            self._listview.viewport().update()
 
 
 class QUndoStackModel(QtCore.QAbstractListModel):
@@ -101,7 +105,7 @@ class QtUndoManager(UndoManager):
         self._widget = None
 
     def widget(self) -> QUndoStackViewer:
-        if self._widget is None:
+        if self._widget is None or isdeleted(self._widget):
             self._widget = QUndoStackViewer(self)
         return self._widget
 
