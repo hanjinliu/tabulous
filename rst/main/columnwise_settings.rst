@@ -135,6 +135,38 @@ Set Colormaps in GUI
 Some basic colormaps are available in the right-click context menu of the columns,
 such as :menu:`Color > Set background colormap`.
 
+Update Colormaps
+----------------
+
+There are several ways to update the existing colormap.
+
+1. Update opacity
+
+    :meth:`set_opacity` method takes a value between 0 and 1 to changes the alpha
+    channel of the output color.
+
+    .. code-block:: python
+
+        table.text_color.set_opacity("A", 0.5)
+
+2. Invert colormap
+
+    :meth:`invert` method invert the returned RGB value of the colormap.
+
+    .. code-block:: python
+
+        table.text_color.invert("A")
+
+3. Adjust brightness of colormap
+
+    :meth:`adjust_brightness` takes a value between -1 and 1 to change the brightness
+    of the current colormap.
+
+    .. code-block:: python
+
+        table.text_color.adjust_brightness("A", 0.5)  # brighter
+        table.text_color.adjust_brightness("A", -0.5)  # darker
+
 Validator
 =========
 
@@ -290,3 +322,10 @@ and they can be considered as partial table fields.
     print(sheet["sepal_length"].formatter)  # get formatter function
     sheet["sepal_length"].formatter = f"{:2f} cm"  # set formatter
     del sheet["sepal_length"].formatter  # reset formatter
+
+Colormap can also be updated this way.
+
+.. code-block:: python
+
+    sheet["sepal_length"].background_color.set(interp_from=["violet", "teal"])
+    sheet["sepal_length"].background_color.set_opacity(0.5)

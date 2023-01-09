@@ -555,12 +555,12 @@ class TableBase(ABC):
 
         # fmt: off
         _hheader_register = self.columns.register_action
-        _hheader_register("Color > Set foreground colormap")(_wrap(cmds.selection.set_foreground_colormap))  # noqa: E501
-        _hheader_register("Color > Reset foreground colormap")(_wrap(cmds.selection.reset_foreground_colormap))  # noqa: E501
-        _hheader_register("Color > Set background colormap")(_wrap(cmds.selection.set_background_colormap))  # noqa: E501
-        _hheader_register("Color > Reset background colormap")(_wrap(cmds.selection.reset_background_colormap))  # noqa: E501
-        _hheader_register("Formatter > Set text formatter")(_wrap(cmds.selection.set_text_formatter))  # noqa: E501
-        _hheader_register("Formatter > Reset text formatter")(_wrap(cmds.selection.reset_text_formatter))  # noqa: E501
+        _hheader_register("Color > Set text colormap")(_wrap(cmds.column.set_text_colormap))  # noqa: E501
+        _hheader_register("Color > Reset text colormap")(_wrap(cmds.column.reset_text_colormap))  # noqa: E501
+        _hheader_register("Color > Set background colormap")(_wrap(cmds.column.set_background_colormap))  # noqa: E501
+        _hheader_register("Color > Reset background colormap")(_wrap(cmds.column.reset_background_colormap))  # noqa: E501
+        _hheader_register("Formatter > Set text formatter")(_wrap(cmds.column.set_text_formatter))  # noqa: E501
+        _hheader_register("Formatter > Reset text formatter")(_wrap(cmds.column.reset_text_formatter))  # noqa: E501
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
         _hheader_register("Sort")(_wrap(cmds.selection.sort_by_columns))
         _hheader_register("Filter")(_wrap(cmds.selection.filter_by_columns))

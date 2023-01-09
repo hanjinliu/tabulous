@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Iterator, TYPE_CHECKING
 
-from . import file, plot, selection, tab, table, view, analysis, window
+from . import file, plot, column, selection, tab, table, view, analysis, window
 from types import FunctionType, ModuleType
 from qt_command_palette import get_palette
 
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 _SUB_MODULES: list[ModuleType] = [
     file,
     plot,
+    column,
     selection,
     tab,
     table,

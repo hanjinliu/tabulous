@@ -37,6 +37,7 @@ def load_all_commands():
     view_group = palette.add_group("View")
     plot_group = palette.add_group("Plot")
     selection_group = palette.add_group("Selection")
+    column_group = palette.add_group("Column")
 
     _groups = {
         "window": window_group,
@@ -47,6 +48,7 @@ def load_all_commands():
         "view": view_group,
         "plot": plot_group,
         "selection": selection_group,
+        "column": column_group,
     }
 
     kb = get_config().keybindings.copy()
