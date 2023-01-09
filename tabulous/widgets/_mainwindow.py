@@ -727,7 +727,10 @@ def _normalize_widget(widget: Widget | QWidget, name: str) -> tuple[QWidget, str
 def _copy_dataframe(data) -> pd.DataFrame:
     import pandas as pd
 
-    return pd.DataFrame(data, copy=True)
+    if isinstance(data, pd.DataFrame):
+        return data.copy()
+    else:
+        return Table._normalize_data(data)
 
 
 def _find_parent_table(qwidget: _QtMainWidgetBase) -> TableViewerBase:

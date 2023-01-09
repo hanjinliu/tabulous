@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractstaticmethod
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Hashable, TYPE_CHECKING, overload
@@ -179,7 +179,7 @@ class TableBase(ABC):
     def _create_backend(self, data: pd.DataFrame) -> QBaseTable:
         """This function creates a backend widget."""
 
-    @abstractmethod
+    @abstractstaticmethod
     def _normalize_data(self, data):
         """Data normalization before setting a new data."""
 
@@ -327,24 +327,6 @@ class TableBase(ABC):
             index = qtable_view.model().index(row, column)
             qtable_view.scrollTo(index)
         return None
-
-    def foreground_colormap(self, *args, **kwargs):
-        """Deprecated method."""
-        warnings.warn(
-            "Method `table.foreground_colormap` is deprecated. "
-            "Use `table.text_color.set` instead.",
-            DeprecationWarning,
-        )
-        return self.text_color.set(*args, **kwargs)
-
-    def background_colormap(self, *args, **kwargs):
-        """Deprecated method."""
-        warnings.warn(
-            "Method `table.background_colormap` is deprecated. "
-            "Use `table.background_color.set` instead.",
-            DeprecationWarning,
-        )
-        return self.background_color.set(*args, **kwargs)
 
     text_formatter = formatter  # alias
 
@@ -609,11 +591,30 @@ class _DataFrameTableLayer(TableBase):
     _qwidget: QTableLayer | QSpreadSheet
     native: QTableLayer | QSpreadSheet
 
-    def _normalize_data(self, data) -> pd.DataFrame:
+    @staticmethod
+    def _normalize_data(data) -> pd.DataFrame:
         import pandas as pd
 
         if not isinstance(data, pd.DataFrame):
-            data = pd.DataFrame(data)
+            mod = type(data).__module__.split(".", 1)[0]
+            if mod == "polars":
+                import polars as pl
+
+                if isinstance(data, pl.DataFrame):
+                    data = data.to_pandas()
+                elif isinstance(data, pl.Series):
+                    data = pd.DataFrame(data.to_pandas())
+                else:
+                    raise TypeError(f"{type(data)} cannot be converted.")
+            elif mod == "xarray" and hasattr(data, "to_dataframe"):
+                import xarray as xr
+
+                if isinstance(data, xr.DataArray):
+                    data = data.to_dataframe("val").reset_index()
+                else:
+                    raise TypeError(f"{type(data)} cannot be converted.")
+            else:
+                data = pd.DataFrame(data)
         return data
 
     def assign(self, other: dict[str, Any] = {}, **kwargs: dict[str, Any]) -> Self:
@@ -759,7 +760,8 @@ class GroupBy(TableBase):
 
         return QTableGroupBy(data=data)
 
-    def _normalize_data(self, data):
+    @staticmethod
+    def _normalize_data(data):
         import pandas as pd
         from pandas.core.groupby.generic import DataFrameGroupBy
 
@@ -813,7 +815,8 @@ class TableDisplay(TableBase):
 
         return QTableDisplay(loader=data)
 
-    def _normalize_data(self, data):
+    @staticmethod
+    def _normalize_data(data):
         if not callable(data):
             raise TypeError("Can only add callable object.")
         return data
@@ -847,3 +850,30 @@ class TableDisplay(TableBase):
     @running.setter
     def running(self, value: bool) -> None:
         return self._qwidget.setRunning(value)
+
+
+# deprecations
+
+
+def foreground_colormap(self: TableBase, *args, **kwargs):
+    """Deprecated method."""
+    warnings.warn(
+        "Method `table.foreground_colormap` is deprecated. "
+        "Use `table.text_color.set` instead.",
+        DeprecationWarning,
+    )
+    return self.text_color.set(*args, **kwargs)
+
+
+def background_colormap(self: TableBase, *args, **kwargs):
+    """Deprecated method."""
+    warnings.warn(
+        "Method `table.background_colormap` is deprecated. "
+        "Use `table.background_color.set` instead.",
+        DeprecationWarning,
+    )
+    return self.background_color.set(*args, **kwargs)
+
+
+TableBase.foreground_colormap = foreground_colormap
+TableBase.background_colormap = background_colormap
