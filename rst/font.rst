@@ -13,3 +13,5 @@
 .. role:: aqua
 .. role:: blue
 .. role:: purple
+.. role:: kbd
+.. role:: menu

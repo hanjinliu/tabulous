@@ -6,6 +6,8 @@ Integrate Custom Widgets
     :local:
     :depth: 1
 
+.. include:: ../font.rst
+
 There are several places to integrate your custom widgets to :mod:`tabulous` viewer.
 
 Dock Widget Area
@@ -51,14 +53,14 @@ Basic usage
 
 .. note::
 
-    In ``napari``, you can use such as ``ImageData`` as an alias for ``np.ndarray`` type,
-    while inform ``@magicgui`` that the data you want is the array stored in an ``Image``
-    layer, or returned array should be added as a new ``Image`` layer. ``tabulous`` uses
-    the same strategy to recover a ``pd.DataFrame`` from the table list or send a new one
+    In :mod:`napari``, you can use such as :mod:`ImageData` as an alias for :class:`np.ndarray` type,
+    while inform ``@magicgui`` that the data you want is the array stored in an :class:`Image`
+    layer, or returned array should be added as a new :class:`Image` layer. :mod:`tabulous` uses
+    the same strategy to recover a :class:`pd.DataFrame` from the table list or send a new one
     to the viewer.
 
 :class:`TableData` type is an alias of :class:`pd.DataFrame`. Arguments annotated by this
-type will be interpreted as a combobox of table data by ``magicgui``.
+type will be interpreted as a combobox of table data by :mod:`magicgui`.
 
 .. code-block:: python
 
@@ -82,7 +84,7 @@ Table Side Area
 Every table has a side area that can be used to add table-specific widgets or show
 table-specific information.
 
-Custom Qt widgets or ``magicgui`` widgets can be added to the side area using
+Custom Qt widgets or :mod:`magicgui` widgets can be added to the side area using
 :meth:`add_side_widget` method.
 
 .. code-block:: python
@@ -109,7 +111,7 @@ There are built-in widgets that uses the table side area by default.
 1. Undo stack widget
 
     Undo/redo is implemented for each table. You can see the registered operations in a list
-    view in the side area. You can open it by pressing ``Ctrl+H``.
+    view in the side area. You can open it by pressing :kbd:`Ctrl+H`.
 
 2. Plot canvas
 

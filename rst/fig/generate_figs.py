@@ -6,6 +6,21 @@ from tabulous_doc import FunctionRegistry
 
 REG = FunctionRegistry(Path(__file__).parent)
 
+@REG.register
+def table():
+    viewer = TableViewer()
+    table = viewer.add_table({"A": [1, 2, 3], "B": [4, 5, 6]}, name="table name")
+    viewer.native.setMinimumSize(1, 1)
+    viewer.resize(120, 180)
+    return table
+
+@REG.register
+def spreadsheet():
+    viewer = TableViewer()
+    sheet = viewer.add_spreadsheet([["2", "t"], ["3", "u"]])
+    viewer.native.setMinimumSize(1, 1)
+    viewer.resize(120, 180)
+    return sheet
 
 @REG.register
 def edit_cell():
@@ -134,6 +149,15 @@ def column_filter():
     sheet.proxy.filter("A > 5")
     return viewer
 
+@REG.register
+def command_palette():
+    viewer = TableViewer()
+    viewer.add_spreadsheet()
+    viewer.resize(100, 100)
+    cmds.window.show_command_palette(viewer)
+    cmdp = viewer.native._command_palette.get_widget(viewer.native)
+    cmdp._line.setText("cop")
+    return viewer
 
 if __name__ == "__main__":
     REG.run_all()

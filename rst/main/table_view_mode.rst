@@ -6,6 +6,8 @@ View Tables in Different Modes
     :local:
     :depth: 1
 
+.. include:: ../font.rst
+
 To efficiently inspect table data, it is very useful to change table view modes.
 
 Dual View
@@ -28,8 +30,8 @@ To reset dual view, set the property to ``"normal"``.
 
     table.view_mode = "normal"
 
-Dual view can also be turned on by key combo ``Ctrl+K, H`` (horizontal) or
-``Ctrl+K, V`` (vertical). Reset it by key combo ``Ctrl+K, N``.
+Dual view can also be turned on by key combo :kbd:`Ctrl+K ⇒ H` (horizontal) or
+:kbd:`Ctrl+K ⇒ V` (vertical). Reset it by key combo :kbd:`Ctrl+K ⇒ N`.
 
 Popup View
 ----------
@@ -46,7 +48,7 @@ similar to dual view by ``table.view_mode = "normal"``
     table = viewer.add_table(data)
     table.view_mode = "popup"
 
-Dual view can also be turned on by key combo ``Ctrl+K, P``.
+Dual view can also be turned on by key combo :kbd:`Ctrl+K ⇒ P`.
 
 Tile View
 ---------
@@ -62,7 +64,7 @@ window, but tabs named "A" and "B" still exist in the tab bar. ``viewer.tables[i
 also returns the same table as before. When tab "A" or "B" is clicked, the tiled
 table with "A" and "B" is shown as ``A|B``.
 
-You can tile the current table and the table next to it by shortcut ``Ctrl+K, ^``.
+You can tile the current table and the table next to it by shortcut :kbd:`Ctrl+K ⇒ ^`.
 You can also programmatically tile tables by calling :meth:`viewer.tables.tile`.
 
 .. code-block:: python
@@ -80,5 +82,5 @@ these tabs show tiled view ``A|B|C``. If you untiled "B", "A" and "C" are re-til
 while "B" returns the original state. Therefore, tabs "A" and "C" shows ``A|C`` and
 tab "B" shows ``B``.
 
-You can untile the current table by shortcut ``Ctrl+K, \``.
+You can untile the current table by shortcut :kbd:`Ctrl+K ⇒ \\`.
 You can also programmatically untile tables by calling ``viewer.tables.untile([0, 1, 2])``.

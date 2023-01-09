@@ -87,7 +87,7 @@ Catch Changes in Table Selections
 You can bind a callback function that will get called on every selection change event.
 The :attr:`events` attribute is a :class:`SignalGroup` object of
 `psygnal <https://github.com/tlambert03/psygnal>`_.
-``table.events.selections.connect`` registers a callback function to table events.
+:meth:`table.events.selections.connect` registers a callback function to table events.
 
 .. code-block:: python
 

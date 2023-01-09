@@ -14,16 +14,17 @@ Tables
 Move around the table
 ---------------------
 
-Arrow keys ``→``, ``←``, ``↑``, ``↓`` with ``Ctrl`` (or ``⌘`` in Mac), ``Shift`` modifier
-work as you expects in most of table data editors.
+Arrow keys (:kbd:`→` :kbd:`←` :kbd:`↑` :kbd:`↓`) with :kbd:`Ctrl` (or :kbd:`⌘` in Mac),
+:kbd:`Shift` modifier work as you expects in most of table data editors.
 
-Additionally, ``Ctrl`` + ``mouse wheel`` zooms in/out the table. ``Ctrl`` + ``Alt`` + arrow
-keys scrolls the table to the desired direction.
+Additionally, :kbd:`Ctrl` + ``mouse wheel`` zooms in/out the table. Arrow keys (:kbd:`→`
+:kbd:`←` :kbd:`↑` :kbd:`↓`) with :kbd:`Ctrl` + :kbd:`Alt` scrolls the table to the desired
+direction.
 
 Edit cells and headers
 ----------------------
 
-If a table is editable, you can edit the values of cells and headers. Double-clicking, ``F2``
+If a table is editable, you can edit the values of cells and headers. Double-clicking, :kbd:`F2`
 or typing any characters will create an editor for the value.
 
 .. image:: ../fig/edit_cell.png
@@ -49,7 +50,7 @@ by editing one of the adjacent cells.
 ===  ====
 
 In :mod:`tabulous`, however, you can directly name the cell using cell label. You can edit
-cell labels by ``F3`` key.
+cell labels by :kbd:`F3` key.
 
 .. image:: ../fig/cell_labels.png
 
@@ -238,9 +239,10 @@ Toolbar contains many functions that help you with analyzing the table data.
 
 .. note::
 
-    You can "click" any buttons in the toolbar using the keyboard; push ``Alt`` (or ``⌥``
-    in Mac)  to change focus to the toolbar, and follow the tooltip labels to find the
-    appropriate key combo to get to the button you want (similar to Microsoft Office).
+    You can "click" any buttons in the toolbar using the keyboard; push :kbd:`Alt`
+    (or :kbd:`⌥` in Mac)  to change focus to the toolbar, and follow the tooltip
+    labels to find the appropriate key combo to get to the button you want
+    (similar to Microsoft Office).
 
 Home menu
 ---------

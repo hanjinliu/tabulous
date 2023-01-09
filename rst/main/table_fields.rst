@@ -1,10 +1,12 @@
-============
-Table Fields
-============
+==========================
+Field Attributes of Tables
+==========================
 
 .. contents:: Contents
     :local:
     :depth: 1
+
+.. include:: ../font.rst
 
 Table operations are very complicated. Providing all the programmatic operations
 to interact with table state and data as table methods is confusing. Thus, in
@@ -37,15 +39,15 @@ for more detail.
 
     This is not equivalent to editing cells directly for several reasons.
 
-    - ``Table`` data will be updated in this way but ``SpreadSheet`` will not since
+    - :class:`Table` data will be updated in this way but :class:`SpreadSheet` will not since
       the returned data is a copy.
     - :attr:`loc` and :attr:`iloc` does not check data type.
     - Table will not be updated immediately.
 
 The :attr:`cell` field has several sub-fields.
 
-``ref``
-^^^^^^^
+``cell.ref``
+^^^^^^^^^^^^
 
 All the in-cell functions with cell references are accessible via :attr:`ref` sub-field.
 
@@ -56,8 +58,8 @@ All the in-cell functions with cell references are accessible via :attr:`ref` su
     print(table.cell.ref[0, 1])  # get the slot function at (0, 1)
     print(table.cell.ref[1, 1])  # KeyError
 
-``label``
-^^^^^^^^^
+``cell.label``
+^^^^^^^^^^^^^^
 
 Cell labels can be edited programmatically using this sub-field.
 
@@ -66,8 +68,8 @@ Cell labels can be edited programmatically using this sub-field.
     print(table.cell.label[0, 1])
     table.cell.label[0, 1] = "mean:"
 
-``text``
-^^^^^^^^
+``cell.text``
+^^^^^^^^^^^^^
 
 Displayed (formatted) text in cells can be obtained using this sub-field.
 
@@ -75,8 +77,8 @@ Displayed (formatted) text in cells can be obtained using this sub-field.
 
     print(table.cell.text[0, 1])
 
-``text_color``
-^^^^^^^^^^^^^^
+``cell.text_color``
+^^^^^^^^^^^^^^^^^^^
 
 Displayed text color (8-bit RGBA) in cells can be obtained using this sub-field.
 
@@ -84,8 +86,8 @@ Displayed text color (8-bit RGBA) in cells can be obtained using this sub-field.
 
     print(table.cell.text_color[0, 1])
 
-``background_color``
-^^^^^^^^^^^^^^^^^^^^
+``cell.background_color``
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Displayed background color (8-bit RGBA) in cells can be obtained using this sub-field.
 
@@ -98,7 +100,7 @@ Displayed background color (8-bit RGBA) in cells can be obtained using this sub-
 
 Since plotting is a common use case for table data analysis, plot canvases are implemented
 by default. The basic plot functions are available in :attr:`plt` field with the
-similar API as ``matplotlib.pyplot`` module.
+similar API as :mod:`matplotlib.pyplot` module.
 
 .. code-block:: python
 
@@ -149,6 +151,45 @@ which not to be.
 
 See :doc:`sort_filter` for more details.
 
+``text_color`` / ``background_color`` field
+-------------------------------------------
+
+:attr:`text_color` and :attr:`background_color` stores all the column-specific colormaps.
+
+.. code-block:: python
+
+    table.text_color["A"]  # get the colormap of column "A"
+    table.text_color["A"] = cmap  # set a colormap to column "A"
+
+    # set a colormap to column "A" with a decorator
+    @table.text_color.set("A")
+    def cmap(x):
+        ...
+
+    del table.text_color["A"]  # reset the colormap defined for column "A"
+
+See :doc:`columnwise_settings` for more details.
+
+``formatter`` / ``validator`` field
+-----------------------------------
+
+:attr:`formatter` and :attr:`validator` stores all the column-specific text formatter
+and data validator functions.
+
+.. code-block:: python
+
+    table.formatter["A"]  # get the formatter of column "A"
+    table.formatter["A"] = "{:2f} cm"  # set a formatter of column "A"
+
+    # set a formatter of column "A" with a decorator
+    @table.formatter.set("A")
+    def fmt(x):
+        return f"{:2f} cm"
+
+    del table.formatter["A"]  # reset the formatter of column "A"
+
+See :doc:`columnwise_settings` for more details.
+
 ``dtypes`` field
 ----------------
 
@@ -185,7 +226,6 @@ interpreted as ``category`` or ``datetime``.
     )
 
 Simply delete items if you want to reset the dtype setting.
-
 
 .. code-block:: python
 

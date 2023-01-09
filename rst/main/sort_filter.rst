@@ -61,7 +61,7 @@ then it looks like following after applying the filter.
 Simple filtering in GUI
 -----------------------
 
-In right-click contextmenu, you can select ``Filter`` to filter the table by the column.
+In right-click contextmenu, you can select :menu:`Filter` to filter the table by the column.
 Filter buttons |filter| will be anchored at the corner of the column section during
 the table being filtered. You can update or remove the filter by clicking the button.
 
@@ -88,8 +88,8 @@ Query-style filtering in GUI
 You can also open a overlay dialog to filter the table data from the |filter| button in
 the toolbar.
 
-The line edit for filter expression supports auto-completion (Tab) and history browsing
-(↑, ↓).
+The line edit for filter expression supports auto-completion (:kbd:`Tab`) and history browsing
+(:kbd:`↑`, :kbd:`↓`).
 
 Sorting
 =======
@@ -191,7 +191,12 @@ Suppose you have a table like below
   9  row-9
 ===  =====
 
-and applied a filter by ``viewer.current_table.proxy.filter("A % 2 == 1")``
+and applied a filter by
+
+.. code-block:: python
+
+    viewer.current_table.proxy.filter("A % 2 == 1")
+
 
 ===  =====
   A  B
@@ -215,7 +220,7 @@ Here, you can edit, or paste data directly (The edited cells are highlighted in 
   9  row-9
 ===  ==========
 
-After removing filter (``viewer.current_table.proxy.reset()``), you'll see the cells
+After removing filter (:meth:`viewer.current_table.proxy.reset`), you'll see the cells
 are properly edited.
 
 ===  ==========

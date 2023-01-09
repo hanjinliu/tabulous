@@ -2,6 +2,8 @@
 Column-wise Settings
 ====================
 
+.. include:: ../font.rst
+
 Tables are composed of several columns with different data types. There are some settings
 that can be applied to each column individually, for better visualizing the data and safely
 editing the data.
@@ -131,7 +133,7 @@ Set Colormaps in GUI
 --------------------
 
 Some basic colormaps are available in the right-click context menu of the columns,
-such as ``Color > Set background colormap``.
+such as :menu:`Color > Set background colormap`.
 
 Validator
 =========
@@ -221,7 +223,7 @@ Set Formatter in GUI
 --------------------
 
 Some basic formatters are available in the right-click context menu of the columns,
-such as ``Formatter > Set text formatter``. You'll see a preview of the column in
+such as :menu:`Formatter > Set text formatter`. You'll see a preview of the column in
 the dialog.
 
 Typing Spreadsheet
@@ -232,8 +234,8 @@ because a spreadsheet is a string-based table data in general. This characterist
 raises a problem of data type. This drawback is especially important when you want
 to use data types such as ``datetime64`` or ``category``.
 
-To solve this problem, ``SpreadSheet`` implements a typing system on each column.
-You can tag any data types supported by ``pandas`` to each column, and optionally
+To solve this problem, :class:`SpreadSheet` implements a typing system on each column.
+You can tag any data types supported by :class:`pandas` to each column, and optionally
 set validator functions appropriate for the data types.
 
 .. code-block:: python
@@ -263,4 +265,4 @@ set validator functions appropriate for the data types.
     dtype: object
 
 You can also set dtypes from GUI. Right-click the column header and select
-``Column dtype``.
+:menu:`Column dtype`.
