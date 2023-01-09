@@ -266,3 +266,27 @@ set validator functions appropriate for the data types.
 
 You can also set dtypes from GUI. Right-click the column header and select
 :menu:`Column dtype`.
+
+Use Syntax of Table Subset
+==========================
+
+A :class:`pd.Series`-like table subset, :class:`TableSeries` can be obtained by
+indexing a table.
+
+.. code-block:: python
+
+    sheet = viewer.open_sample("iris")
+    sheet["sepal_length"]
+
+.. code-block::
+
+    <TableSeries<'sepal_length'> of SpreadSheet<'sheet'>>
+
+:class:`TableSeries` also as fields such as :attr:`text_color` and :attr:`formatter`
+and they can be considered as partial table fields.
+
+.. code-block:: python
+
+    print(sheet["sepal_length"].formatter)  # get formatter function
+    sheet["sepal_length"].formatter = f"{:2f} cm"  # set formatter
+    del sheet["sepal_length"].formatter  # reset formatter

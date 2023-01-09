@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
     _DtypeLike = Union[ExtensionDtype, np.dtype]
 
-    from typing_extensions import TypeGuard
+    from typing_extensions import TypeGuard, Self
     import pandas as pd
 
     _Formatter = Union[Callable[[Any], str], str, None]
@@ -81,11 +81,18 @@ class _DictPropertyInterface(TableComponent, MutableMapping[str, _F]):
         return iter(self._get_dict())
 
     def set(self, column_name: str, func: _F = _Void):
+        """Set function to given column name."""
+
         def _wrapper(f: _F) -> _F:
             self._set_value(column_name, f)
             return f
 
         return _wrapper(func) if func is not _Void else _wrapper
+
+    def reset(self, column_name) -> Self:
+        """Reset function for the given column name."""
+        self._set_value(column_name, None)
+        return self
 
     def __call__(self, *args, **kwargs):
         # backwards compatibility

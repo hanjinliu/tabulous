@@ -59,6 +59,9 @@ def test_partial_text_color():
     assert table["B"].text_color.item() is table.text_color["B"]
     assert table.cell.text_color[0, 1].equals("red")
 
+    table["B"].text_color.reset()
+    assert table["B"].text_color.item() is None
+
 def test_partial_background_color():
     table = Table(DATA)
 
@@ -68,6 +71,9 @@ def test_partial_background_color():
     assert table["B"].background_color.item() is table.background_color["B"]
     assert table.cell.background_color[0, 1].equals("red")
 
+    table["B"].background_color.reset()
+    assert table["B"].background_color.item() is None
+
 def test_partial_formatter():
     table = Table(DATA)
 
@@ -76,9 +82,18 @@ def test_partial_formatter():
     assert table["B"].formatter.item() is not None
     assert table.cell.text[0, 1] == "test"
 
-def test_partial_validator():
-    table = Table(DATA)
+    table["B"].formatter.reset()
+    assert table["B"].formatter.item() is None
 
-    table["B"].validator.set(lambda x: False)
+def test_partial_validator():
+    table = Table(DATA, editable=True)
+
+    def _raise(x):
+        raise ValueError
+
+    table["B"].validator.set(_raise)
     with pytest.raises(ValueError):
-        table.cell[0, 1] = "test"
+        table.cell[0, 1] = "6"
+
+    table["B"].validator.reset()
+    table.cell[0, 1] = "6"

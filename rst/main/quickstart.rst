@@ -171,6 +171,8 @@ then you'll get following :class:`DataFrame`.
     A     int64
     B    object
 
+Rows and columns can be inserted or removed in the right-click contextmenu.
+
 A spreadsheet can be added to the viewer by :meth:`add_spreadsheet` method.
 
 .. code-block:: python

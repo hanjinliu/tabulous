@@ -143,6 +143,9 @@ class TableSeries(TableComponent):
         self._row_slice = row_slice
         self._column = column
 
+    def __repr__(self) -> str:
+        return f"<TableSeries<{self._column!r}> of {self.parent!r}>"
+
     @property
     def data(self) -> pd.Series:
         table = self.parent
@@ -150,25 +153,79 @@ class TableSeries(TableComponent):
 
     @property
     def text_color(self):
-        self._assert_row_not_slices()
+        """Get the text colormap of the column."""
+        self._assert_row_not_sliced()
         return PartialTextColormapInterface(self.parent, self._column)
+
+    @text_color.setter
+    def text_color(self, val) -> None:
+        """Set the text colormap of the column."""
+        self._assert_row_not_sliced()
+        self.parent.text_color[self._column] = val
+        return None
+
+    @text_color.deleter
+    def text_color(self) -> None:
+        """Delete the text colormap of the column."""
+        self._assert_row_not_sliced()
+        del self.parent.text_color[self._column]
+        return None
 
     @property
     def background_color(self):
-        self._assert_row_not_slices()
+        """Get the background colormap of the column."""
+        self._assert_row_not_sliced()
         return PartialBackgroundColormapInterface(self.parent, self._column)
+
+    @background_color.setter
+    def background_color(self, val):
+        """Set the background colormap of the column."""
+        self._assert_row_not_sliced()
+        self.parent.background_color[self._column] = val
+        return None
+
+    @background_color.deleter
+    def background_color(self):
+        """Delete the background colormap of the column."""
+        self._assert_row_not_sliced()
+        del self.parent.background_color[self._column]
+        return None
 
     @property
     def formatter(self):
-        self._assert_row_not_slices()
+        self._assert_row_not_sliced()
         return PartialTextFormatterInterface(self.parent, self._column)
+
+    @formatter.setter
+    def formatter(self, val):
+        self._assert_row_not_sliced()
+        self.parent.formatter[self._column] = val
+        return None
+
+    @formatter.deleter
+    def formatter(self):
+        self._assert_row_not_sliced()
+        del self.parent.formatter[self._column]
+        return None
 
     @property
     def validator(self):
-        self._assert_row_not_slices()
+        self._assert_row_not_sliced()
         return PartialValidatorInterface(self.parent, self._column)
 
-    def _assert_row_not_slices(self):
+    @validator.setter
+    def validator(self, val):
+        self._assert_row_not_sliced()
+        self.parent.validator[self._column] = val
+        return None
+
+    @validator.deleter
+    def validator(self):
+        self._assert_row_not_sliced()
+        del self.parent.validator[self._column]
+        return None
+
+    def _assert_row_not_sliced(self):
         if self._row_slice == slice(None):
             return
         raise ValueError(f"{self!r} is sliced in row axis.")
@@ -195,6 +252,9 @@ class _PartialInterface(TableComponent):
 
     def set(self, func: _F = _Void):
         return self._get_field().set(self._column, func)
+
+    def reset(self):
+        return self._get_field().reset(self._column)
 
     def item(self):
         return self._get_field().get(self._column, None)
