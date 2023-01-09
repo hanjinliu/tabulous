@@ -12,6 +12,14 @@ tabulous.commands.analysis module
    :undoc-members:
    :show-inheritance:
 
+tabulous.commands.column module
+-------------------------------
+
+.. automodule:: tabulous.commands.column
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tabulous.commands.file module
 -----------------------------
 

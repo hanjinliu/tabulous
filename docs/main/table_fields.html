@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Field Attributes of Tables &mdash; tabulous 0.4.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/font.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="View Tables in Different Modes" href="table_view_mode.html" />
+    <link rel="prev" title="Column-wise Settings" href="columnwise_settings.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> tabulous
+          </a>
+              <div class="version">
+                0.4.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_interface.html">User Interface</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections and Highlights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sort_filter.html">Sort/Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="columnwise_settings.html">Column-wise Settings</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Field Attributes of Tables</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cell-field"><code class="docutils literal notranslate"><span class="pre">cell</span></code> field</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cell-ref"><code class="docutils literal notranslate"><span class="pre">cell.ref</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cell-label"><code class="docutils literal notranslate"><span class="pre">cell.label</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cell-text"><code class="docutils literal notranslate"><span class="pre">cell.text</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cell-text-color"><code class="docutils literal notranslate"><span class="pre">cell.text_color</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cell-background-color"><code class="docutils literal notranslate"><span class="pre">cell.background_color</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#plt-field"><code class="docutils literal notranslate"><span class="pre">plt</span></code> field</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#index-columns-field"><code class="docutils literal notranslate"><span class="pre">index</span></code> / <code class="docutils literal notranslate"><span class="pre">columns</span></code> field</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#proxy-field"><code class="docutils literal notranslate"><span class="pre">proxy</span></code> field</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#text-color-background-color-field"><code class="docutils literal notranslate"><span class="pre">text_color</span></code> / <code class="docutils literal notranslate"><span class="pre">background_color</span></code> field</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#formatter-validator-field"><code class="docutils literal notranslate"><span class="pre">formatter</span></code> / <code class="docutils literal notranslate"><span class="pre">validator</span></code> field</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dtypes-field"><code class="docutils literal notranslate"><span class="pre">dtypes</span></code> field</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="table_view_mode.html">View Tables in Different Modes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="integrate_custom_widgets.html">Integrate Custom Widgets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidoc/modules.html">tabulous</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tabulous</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Field Attributes of Tables</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/main/table_fields.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <section id="field-attributes-of-tables">
+<h1>Field Attributes of Tables<a class="headerlink" href="#field-attributes-of-tables" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#cell-field" id="id1"><code class="docutils literal notranslate"><span class="pre">cell</span></code> field</a></p></li>
+<li><p><a class="reference internal" href="#plt-field" id="id2"><code class="docutils literal notranslate"><span class="pre">plt</span></code> field</a></p></li>
+<li><p><a class="reference internal" href="#index-columns-field" id="id3"><code class="docutils literal notranslate"><span class="pre">index</span></code> / <code class="docutils literal notranslate"><span class="pre">columns</span></code> field</a></p></li>
+<li><p><a class="reference internal" href="#proxy-field" id="id4"><code class="docutils literal notranslate"><span class="pre">proxy</span></code> field</a></p></li>
+<li><p><a class="reference internal" href="#text-color-background-color-field" id="id5"><code class="docutils literal notranslate"><span class="pre">text_color</span></code> / <code class="docutils literal notranslate"><span class="pre">background_color</span></code> field</a></p></li>
+<li><p><a class="reference internal" href="#formatter-validator-field" id="id6"><code class="docutils literal notranslate"><span class="pre">formatter</span></code> / <code class="docutils literal notranslate"><span class="pre">validator</span></code> field</a></p></li>
+<li><p><a class="reference internal" href="#dtypes-field" id="id7"><code class="docutils literal notranslate"><span class="pre">dtypes</span></code> field</a></p></li>
+</ul>
+</div>
+<p>Table operations are very complicated. Providing all the programmatic operations
+to interact with table state and data as table methods is confusing. Thus, in
+<a class="reference internal" href="../apidoc/tabulous.html#module-tabulous" title="tabulous"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tabulous</span></code></a>, these operations are well organized with fields and sub-fields
+(For instance, all the methods related to table cells are all in <code class="xref py py-attr docutils literal notranslate"><span class="pre">cell</span></code>
+field).</p>
+<p>Followings are all the fields that are available in table widgets.</p>
+<section id="cell-field">
+<h2><a class="toc-backref" href="#id1"><code class="docutils literal notranslate"><span class="pre">cell</span></code> field</a><a class="headerlink" href="#cell-field" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="xref py py-attr docutils literal notranslate"><span class="pre">cell</span></code> field provides several methods to get access to table cells.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">cell</span></code> supports custom contextmenu registration. See <a class="reference internal" href="register_action.html"><span class="doc">Register Custom Actions</span></a>
+for more detail.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To set new table data, <code class="xref py py-attr docutils literal notranslate"><span class="pre">loc</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">iloc</span></code> is not safe.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># set new data</span>
+</pre></div>
+</div>
+<p>This is not equivalent to editing cells directly for several reasons.</p>
+<ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> data will be updated in this way but <code class="xref py py-class docutils literal notranslate"><span class="pre">SpreadSheet</span></code> will not since
+the returned data is a copy.</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">loc</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">iloc</span></code> does not check data type.</p></li>
+<li><p>Table will not be updated immediately.</p></li>
+</ul>
+</div>
+<p>The <code class="xref py py-attr docutils literal notranslate"><span class="pre">cell</span></code> field has several sub-fields.</p>
+<section id="cell-ref">
+<h3><code class="docutils literal notranslate"><span class="pre">cell.ref</span></code><a class="headerlink" href="#cell-ref" title="Permalink to this headline">¶</a></h3>
+<p>All the in-cell functions with cell references are accessible via <code class="xref py py-attr docutils literal notranslate"><span class="pre">ref</span></code> sub-field.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_spreadsheet</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&amp;=np.mean(df.iloc[:, 0])&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">ref</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>  <span class="c1"># get the slot function at (0, 1)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">ref</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>  <span class="c1"># KeyError</span>
+</pre></div>
+</div>
+</section>
+<section id="cell-label">
+<h3><code class="docutils literal notranslate"><span class="pre">cell.label</span></code><a class="headerlink" href="#cell-label" title="Permalink to this headline">¶</a></h3>
+<p>Cell labels can be edited programmatically using this sub-field.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">label</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">label</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mean:&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="cell-text">
+<h3><code class="docutils literal notranslate"><span class="pre">cell.text</span></code><a class="headerlink" href="#cell-text" title="Permalink to this headline">¶</a></h3>
+<p>Displayed (formatted) text in cells can be obtained using this sub-field.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="cell-text-color">
+<h3><code class="docutils literal notranslate"><span class="pre">cell.text_color</span></code><a class="headerlink" href="#cell-text-color" title="Permalink to this headline">¶</a></h3>
+<p>Displayed text color (8-bit RGBA) in cells can be obtained using this sub-field.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="cell-background-color">
+<h3><code class="docutils literal notranslate"><span class="pre">cell.background_color</span></code><a class="headerlink" href="#cell-background-color" title="Permalink to this headline">¶</a></h3>
+<p>Displayed background color (8-bit RGBA) in cells can be obtained using this sub-field.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="plt-field">
+<h2><a class="toc-backref" href="#id2"><code class="docutils literal notranslate"><span class="pre">plt</span></code> field</a><a class="headerlink" href="#plt-field" title="Permalink to this headline">¶</a></h2>
+<p>Since plotting is a common use case for table data analysis, plot canvases are implemented
+by default. The basic plot functions are available in <code class="xref py py-attr docutils literal notranslate"><span class="pre">plt</span></code> field with the
+similar API as <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib.pyplot</span></code> module.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">table</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">table</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">table</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can also update plot canvas from the “Plot” tab of the toolbar.</p>
+</div>
+</section>
+<section id="index-columns-field">
+<h2><a class="toc-backref" href="#id3"><code class="docutils literal notranslate"><span class="pre">index</span></code> / <code class="docutils literal notranslate"><span class="pre">columns</span></code> field</a><a class="headerlink" href="#index-columns-field" title="Permalink to this headline">¶</a></h2>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">index</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">column</span></code> behaves very similar to <code class="xref py py-attr docutils literal notranslate"><span class="pre">index</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">column</span></code>
+of <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># get header data</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+<span class="c1"># get index of header name</span>
+<span class="n">table</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="s2">&quot;index_name&quot;</span><span class="p">)</span>
+<span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="s2">&quot;column_name&quot;</span><span class="p">)</span>
+
+<span class="c1"># update header data</span>
+<span class="n">table</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;index_name&quot;</span>
+<span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;column_name&quot;</span>
+</pre></div>
+</div>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">index</span></code> and <cite>columns</cite> support custom contextmenu registration. See
+<a class="reference internal" href="register_action.html"><span class="doc">Register Custom Actions</span></a> for more detail.</p>
+</section>
+<section id="proxy-field">
+<h2><a class="toc-backref" href="#id4"><code class="docutils literal notranslate"><span class="pre">proxy</span></code> field</a><a class="headerlink" href="#proxy-field" title="Permalink to this headline">¶</a></h2>
+<p>Proxy includes sorting and filtering, that is, deciding which rows to be shown and
+which not to be.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;label == &#39;A&#39;&quot;</span><span class="p">)</span>  <span class="c1"># filter by &#39;label&#39; column</span>
+<span class="n">table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">)</span>  <span class="c1"># sort by &#39;value&#39; column</span>
+<span class="n">table</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># reset proxy</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="sort_filter.html"><span class="doc">Sort/Filter Table Data</span></a> for more details.</p>
+</section>
+<section id="text-color-background-color-field">
+<h2><a class="toc-backref" href="#id5"><code class="docutils literal notranslate"><span class="pre">text_color</span></code> / <code class="docutils literal notranslate"><span class="pre">background_color</span></code> field</a><a class="headerlink" href="#text-color-background-color-field" title="Permalink to this headline">¶</a></h2>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">text_color</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">background_color</span></code> stores all the column-specific colormaps.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span>  <span class="c1"># get the colormap of column &quot;A&quot;</span>
+<span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmap</span>  <span class="c1"># set a colormap to column &quot;A&quot;</span>
+
+<span class="c1"># set a colormap to column &quot;A&quot; with a decorator</span>
+<span class="nd">@table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">cmap</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="o">...</span>
+
+<span class="k">del</span> <span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span>  <span class="c1"># reset the colormap defined for column &quot;A&quot;</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="columnwise_settings.html"><span class="doc">Column-wise Settings</span></a> for more details.</p>
+</section>
+<section id="formatter-validator-field">
+<h2><a class="toc-backref" href="#id6"><code class="docutils literal notranslate"><span class="pre">formatter</span></code> / <code class="docutils literal notranslate"><span class="pre">validator</span></code> field</a><a class="headerlink" href="#formatter-validator-field" title="Permalink to this headline">¶</a></h2>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">formatter</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">validator</span></code> stores all the column-specific text formatter
+and data validator functions.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">formatter</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span>  <span class="c1"># get the formatter of column &quot;A&quot;</span>
+<span class="n">table</span><span class="o">.</span><span class="n">formatter</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{:2f}</span><span class="s2"> cm&quot;</span>  <span class="c1"># set a formatter of column &quot;A&quot;</span>
+
+<span class="c1"># set a formatter of column &quot;A&quot; with a decorator</span>
+<span class="nd">@table</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">fmt</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{:</span><span class="s2">2f</span><span class="si">}</span><span class="s2"> cm&quot;</span>
+
+<span class="k">del</span> <span class="n">table</span><span class="o">.</span><span class="n">formatter</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span>  <span class="c1"># reset the formatter of column &quot;A&quot;</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="columnwise_settings.html"><span class="doc">Column-wise Settings</span></a> for more details.</p>
+</section>
+<section id="dtypes-field">
+<h2><a class="toc-backref" href="#id7"><code class="docutils literal notranslate"><span class="pre">dtypes</span></code> field</a><a class="headerlink" href="#dtypes-field" title="Permalink to this headline">¶</a></h2>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">dtypes</span></code> is a <code class="xref py py-class docutils literal notranslate"><span class="pre">SpreadSheet</span></code>-specific field. Since a spreadsheet has to
+determine the data type of each column, you may occasionally want to tell which
+data type it should be. This is especially important when a column should be
+interpreted as <code class="docutils literal notranslate"><span class="pre">category</span></code> or <code class="docutils literal notranslate"><span class="pre">datetime</span></code>.</p>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">dtypes</span></code> is a <code class="docutils literal notranslate"><span class="pre">dict</span></code>-like object that maps column names to data types.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_spreadsheet</span><span class="p">({</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">],</span> <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]})</span>
+<span class="n">table</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;category&quot;</span>
+<span class="n">table</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;float&quot;</span>
+<span class="n">table</span><span class="o">.</span><span class="n">data</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>   <span class="n">A</span>    <span class="n">B</span>
+<span class="mi">0</span>  <span class="n">X</span>  <span class="mf">1.0</span>
+<span class="mi">1</span>  <span class="n">X</span>  <span class="mf">2.0</span>
+<span class="mi">2</span>  <span class="n">Y</span>  <span class="mf">3.0</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">dtypes</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ColumnDtypeInterface</span><span class="p">(</span>
+    <span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span>
+    <span class="s1">&#39;B&#39;</span><span class="p">:</span> <span class="n">float64</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Simply delete items if you want to reset the dtype setting.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">del</span> <span class="n">table</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="columnwise_settings.html" class="btn btn-neutral float-left" title="Column-wise Settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="table_view_mode.html" class="btn btn-neutral float-right" title="View Tables in Different Modes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Hanjin Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

@@ -6,31 +6,53 @@ User Interface
     :local:
     :depth: 2
 
+.. include:: ../font.rst
+
 Tables
 ======
 
 Move around the table
 ---------------------
 
-Arrow keys ``→``, ``←``, ``↑``, ``↓`` with ``Ctrl`` (or ``⌘`` in Mac), ``Shift`` modifier
-work as you expects in most of table data editors.
+Arrow keys (:kbd:`→` :kbd:`←` :kbd:`↑` :kbd:`↓`) with :kbd:`Ctrl` (or :kbd:`⌘` in Mac),
+:kbd:`Shift` modifier work as you expects in most of table data editors.
 
-Additionally, ``Ctrl`` + ``mouse wheel`` zooms in/out the table. ``Ctrl`` + ``Alt`` + arrow
-keys scrolls the table to the desired direction.
-
-.. image:: ../fig/table_interface_0.gif
+Additionally, :kbd:`Ctrl` + ``mouse wheel`` zooms in/out the table. Arrow keys (:kbd:`→`
+:kbd:`←` :kbd:`↑` :kbd:`↓`) with :kbd:`Ctrl` + :kbd:`Alt` scrolls the table to the desired
+direction.
 
 Edit cells and headers
 ----------------------
 
-If a table is editable, you can edit the values of cells and headers. Double-clicking, ``F2``
+If a table is editable, you can edit the values of cells and headers. Double-clicking, :kbd:`F2`
 or typing any characters will create an editor for the value.
 
-.. image:: ../fig/table_interface_1.gif
+.. image:: ../fig/edit_cell.png
 
 During editing, the text will always be validated. Invalid text will be shown in red. For the
 table cells, you can set any validation rules (see :doc:`/main/columnwise_settings`). For
 the table headers, duplicated names are not allowed and considered to be invalid.
+
+Add cell labels
+---------------
+
+People using spreadsheets usually want to name some of the cells. For instance, when you
+calculated the mean of a column, you want to name the cell as "mean". Usually, it is done
+by editing one of the adjacent cells.
+
+===  ====
+  A  B
+===  ====
+  1  mean
+  2  2.5
+  3
+  4
+===  ====
+
+In :mod:`tabulous`, however, you can directly name the cell using cell label. You can edit
+cell labels by :kbd:`F3` key.
+
+.. image:: ../fig/cell_labels.png
 
 Excel-style data evaluation
 ---------------------------
@@ -60,67 +82,57 @@ Scalar value
 
 If the evaluation result is a scalar value,
 
-+---+------+--------------------------+
-|   | col-0|                     col-1|
-+---+------+--------------------------+
-| 0 |   10 | =np.sum(df['col-0'][0:3])|
-+---+------+--------------------------+
-| 1 |   20 |                          |
-+---+------+--------------------------+
-| 2 |   30 |                          |
-+---+------+--------------------------+
+====  =======  =========================
+  ..    col-0  col-1
+====  =======  =========================
+   0       10  :red:`=np.sum(df['col-0'][0:3])`
+   1       20
+   2       30
+====  =======  =========================
 
 it will simply update the current cell.
 
-+---+------+------+
-|   | col-0| col-1|
-+---+------+------+
-| 0 |   10 |   60 |
-+---+------+------+
-| 1 |   20 |      |
-+---+------+------+
-| 2 |   30 |      |
-+---+------+------+
+====  =======  =====
+  ..    col-0  col-1
+====  =======  =====
+   0       10  60
+   1       20
+   2       30
+====  =======  =====
 
 Column vector
 ^^^^^^^^^^^^^
 
 If the evaluation result is an array such as ``pd.Series``,
 
-+---+------+-----------------------------+
-|   | col-0|                        col-1|
-+---+------+-----------------------------+
-| 0 |   10 | =np.cumsum(df['col-0'][0:3])|
-+---+------+-----------------------------+
-| 1 |   20 |                             |
-+---+------+-----------------------------+
-| 2 |   30 |                             |
-+---+------+-----------------------------+
+====  =======  ============================
+  ..    col-0  col-1
+====  =======  ============================
+   0       10  :red:`=np.cumsum(df['col-0'][0:3])`
+   1       20
+   2       30
+====  =======  ============================
 
 it will update the relevant cells.
 
-+---+------+------+
-|   | col-0| col-1|
-+---+------+------+
-| 0 |   10 |   10 |
-+---+------+------+
-| 1 |   20 |   30 |
-+---+------+------+
-| 2 |   30 |   60 |
-+---+------+------+
+====  =======  =====
+  ..    col-0  col-1
+====  =======  =====
+   0       10     10
+   1       20     30
+   2       30     60
+====  =======  =====
 
 You don't have to edit the top cell. As long as the editing cell will be one of the
 destinations, result will be the same.
 
-+---+------+-----------------------------+
-|   | col-0|                        col-1|
-+---+------+-----------------------------+
-| 0 |   10 |                             |
-+---+------+-----------------------------+
-| 1 |   20 | =np.cumsum(df['col-0'][0:3])|
-+---+------+-----------------------------+
-| 2 |   30 |                             |
-+---+------+-----------------------------+
+====  =======  ============================
+  ..    col-0  col-1
+====  =======  ============================
+   0       10
+   1       20  :red:`=np.cumsum(df['col-0'][0:3])`
+   2       30
+====  =======  ============================
 
 
 Row vector
@@ -128,56 +140,47 @@ Row vector
 
 An row will be updated if the result should be interpreted as a row vector.
 
-+---+------+----------------------------------------+
-|   | col-0| col-1                                  |
-+---+------+----------------------------------------+
-| 0 |   10 |    20                                  |
-+---+------+----------------------------------------+
-| 1 |   20 |    40                                  |
-+---+------+----------------------------------------+
-| 2 |   30 |    60                                  |
-+---+------+----------------------------------------+
-| 3 |      | =np.mean(df.loc[0:3, 'col-0':'col-1']) |
-+---+------+----------------------------------------+
+====  =======  ======================================
+  ..  col-0    col-1
+====  =======  ======================================
+   0  10       20
+   1  20       40
+   2  30       60
+   3           :red:`=np.mean(df.loc[0:3, 'col-0':'col-1'])`
+====  =======  ======================================
 
 will return ``pd.Series([20, 40])``, which will update the table to
 
-+---+------+------+
-|   | col-0| col-1|
-+---+------+------+
-| 0 |   10 |   20 |
-+---+------+------+
-| 1 |   20 |   40 |
-+---+------+------+
-| 2 |   30 |   60 |
-+---+------+------+
-| 3 |   20 |   40 |
-+---+------+------+
+====  =======  =====
+  ..  col-0    col-1
+====  =======  =====
+   0  10       20
+   1  20       40
+   2  30       60
+   3  20       40
+====  =======  =====
+
 
 Evaluate with references
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 To use cell references like Excel, use "&=" instead of "=".
 
-+---+------+----------------------------+
-|   | col-0|                       col-1|
-+---+------+----------------------------+
-| 0 |   10 | &=np.mean(df['col-0'][0:3])|
-+---+------+----------------------------+
-| 1 |   20 |                            |
-+---+------+----------------------------+
-| 2 |   30 |                            |
-+---+------+----------------------------+
+====  =======  =========================
+  ..    col-0  col-1
+====  =======  =========================
+   0       10  :red:`&=np.mean(df['col-0'][0:3])`
+   1       20
+   2       30
+====  =======  =========================
 
-+---+------+------+
-|   | col-0| col-1|
-+---+------+------+
-| 0 |   10 |   20 |
-+---+------+------+
-| 1 |   20 |      |
-+---+------+------+
-| 2 |   30 |      |
-+---+------+------+
+====  =======  =====
+  ..    col-0  col-1
+====  =======  =====
+   0       10  20
+   1       20
+   2       30
+====  =======  =====
 
 When one of the cell is edited, the value of the destination will also be updated. For instance,
 editing 10 → 40 will cause the value of ``(0, "col-1")`` to be updated to 30.
@@ -229,13 +232,6 @@ want to add more variables or functions, there are two ways to do it.
       You can't use none of ``np``, ``pd`` or ``df`` as a variable name.
 
 
-Send the values to the console
-------------------------------
-
-``Ctrl + I`` in the console will insert a data reference object ``viewer.data[...]`` at the
-cursor position. The data reference object is updated in real-time when the table selection is
-changed. This is the fastest way to obtain the values in the table.
-
 Toolbar
 =======
 
@@ -243,9 +239,10 @@ Toolbar contains many functions that help you with analyzing the table data.
 
 .. note::
 
-    You can "click" any buttons in the toolbar using the keyboard; push ``Alt`` (or ``⌥``
-    in Mac)  to change focus to the toolbar, and follow the tooltip labels to find the
-    appropriate key combo to get to the button you want (similar to Microsoft Office).
+    You can "click" any buttons in the toolbar using the keyboard; push :kbd:`Alt`
+    (or :kbd:`⌥` in Mac)  to change focus to the toolbar, and follow the tooltip
+    labels to find the appropriate key combo to get to the button you want
+    (similar to Microsoft Office).
 
 Home menu
 ---------

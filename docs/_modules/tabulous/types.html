@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.types &mdash; tabulous 0.4.0rc0 documentation</title>
+  <title>tabulous.types &mdash; tabulous 0.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/font.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -27,7 +28,7 @@
             <a href="../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0rc0
+                0.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -45,10 +46,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../main/selections.html">Table Selections and Highlights</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../main/sort_filter.html">Sort/Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../main/columnwise_settings.html">Column-wise Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../main/table_advanced.html">Working with Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/table_fields.html">Field Attributes of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/table_view_mode.html">View Tables in Different Modes</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../main/dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/integrate_custom_widgets.html">Integrate Custom Widgets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
@@ -94,12 +96,13 @@
     <span class="n">TYPE_CHECKING</span><span class="p">,</span>
     <span class="n">NamedTuple</span><span class="p">,</span>
     <span class="n">SupportsIndex</span><span class="p">,</span>
+    <span class="n">Mapping</span><span class="p">,</span>
     <span class="n">MutableSequence</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">ArrayLike</span>
+<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="n">NDArray</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -116,7 +119,6 @@
     <span class="s2">&quot;TableColumn&quot;</span><span class="p">,</span>
     <span class="s2">&quot;TableDataTuple&quot;</span><span class="p">,</span>
     <span class="s2">&quot;TableInfo&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;TablePosition&quot;</span><span class="p">,</span>
     <span class="s2">&quot;ItemInfo&quot;</span><span class="p">,</span>
     <span class="s2">&quot;HeaderInfo&quot;</span><span class="p">,</span>
     <span class="s2">&quot;SelectionRanges&quot;</span><span class="p">,</span>
@@ -166,7 +168,10 @@
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> cannot be instantiated.&quot;</span><span class="p">)</span>
 
 
-<span class="n">ProxyType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="s2">&quot;pd.DataFrame&quot;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+<span class="n">_IntArray</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">]</span>
+<span class="n">_BoolArray</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">]</span>
+<span class="n">_IntOrBoolArray</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">_IntArray</span><span class="p">,</span> <span class="n">_BoolArray</span><span class="p">]</span>
+<span class="n">ProxyType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="s2">&quot;pd.DataFrame&quot;</span><span class="p">],</span> <span class="n">_IntOrBoolArray</span><span class="p">],</span> <span class="n">_IntOrBoolArray</span><span class="p">]</span>
 
 
 <span class="k">class</span> <span class="nc">TabPosition</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
@@ -250,18 +255,18 @@
 
 <span class="sd">    Value takes (row, column, expr, old_value, is_ref) where</span>
 
-<span class="sd">    row : int</span>
-<span class="sd">        Row index where item edited.</span>
-<span class="sd">    column : int</span>
-<span class="sd">        Column index where item edited.</span>
+<span class="sd">    pos : tuple[int, int]</span>
+<span class="sd">        The visual position of the cell where expression is evaluated.</span>
+<span class="sd">    source_pos : tuple[int, int]</span>
+<span class="sd">        The source position of the cell where expression is evaluated.</span>
 <span class="sd">    expr : str</span>
 <span class="sd">        Expression to be evaluated.</span>
 <span class="sd">    is_ref: bool</span>
 <span class="sd">        Whether the expression take references in the table.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">row</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">column</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">pos</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+    <span class="n">source_pos</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
     <span class="n">expr</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">is_ref</span><span class="p">:</span> <span class="nb">bool</span>
 
@@ -286,6 +291,10 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">ProxyType</span>
     <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="n">ColorType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>
+<span class="n">ColorMapping</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">ColorType</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ColorType</span><span class="p">]]</span>
 </pre></div>
 
            </div>

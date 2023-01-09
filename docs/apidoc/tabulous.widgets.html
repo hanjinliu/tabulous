@@ -4,9 +4,10 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets package &mdash; tabulous 0.4.0rc0 documentation</title>
+  <title>tabulous.widgets package &mdash; tabulous 0.4.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/font.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -29,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0rc0
+                0.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -47,10 +48,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../main/selections.html">Table Selections and Highlights</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/sort_filter.html">Sort/Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/columnwise_settings.html">Column-wise Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../main/table_advanced.html">Working with Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/table_fields.html">Field Attributes of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/table_view_mode.html">View Tables in Different Modes</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../main/dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main/integrate_custom_widgets.html">Integrate Custom Widgets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul class="current">
@@ -103,85 +105,6 @@
 
   <section id="tabulous-widgets-package">
 <h1>tabulous.widgets package<a class="headerlink" href="#tabulous-widgets-package" title="Permalink to this headline">¶</a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</section>
-<section id="module-tabulous.widgets.filtering">
-<span id="tabulous-widgets-filtering-module"></span><h2>tabulous.widgets.filtering module<a class="headerlink" href="#module-tabulous.widgets.filtering" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="tabulous.widgets.filtering.ColumnFilter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.filtering.</span></span><span class="sig-name descname"><span class="pre">ColumnFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">pd.DataFrame</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pd.Series</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#ColumnFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.ColumnFilter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>A callable object compatible with DataFrame filter, specific to column based filter.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="tabulous.widgets.filtering.ColumnFilter.from_operator">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_operator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operator_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabulous.widgets.filtering.ColumnFilter" title="tabulous.widgets.filtering.ColumnFilter"><span class="pre">tabulous.widgets.filtering.ColumnFilter</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#ColumnFilter.from_operator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.ColumnFilter.from_operator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct an instance from a operator.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>operator_name</strong> (<em>str</em>) – Name of operator, such as “__eq__”.</p></li>
-<li><p><strong>key</strong> (<em>Any</em>) – Target column name.</p></li>
-<li><p><strong>other</strong> (<em>Any</em>) – The other argument of the operator.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>An instance initialized with the given operator.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#tabulous.widgets.filtering.ColumnFilter" title="tabulous.widgets.filtering.ColumnFilter">ColumnFilter</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterIndexer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.filtering.</span></span><span class="sig-name descname"><span class="pre">FilterIndexer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table:</span> <span class="pre">TableBase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key:</span> <span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_filter:</span> <span class="pre">ColumnFilter</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">|</span> <span class="pre">_Void</span> <span class="pre">=</span> <span class="pre">&lt;tabulous.widgets.filtering._Void</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#FilterIndexer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.FilterIndexer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterIndexer.chain">
-<span class="sig-name descname"><span class="pre">chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tabulous.widgets.filtering.ColumnFilter" title="tabulous.widgets.filtering.ColumnFilter"><span class="pre">tabulous.widgets.filtering.ColumnFilter</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabulous.widgets.filtering.ColumnFilter" title="tabulous.widgets.filtering.ColumnFilter"><span class="pre">tabulous.widgets.filtering.ColumnFilter</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#FilterIndexer.chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.FilterIndexer.chain" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterIndexer.filter">
-<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tabulous.widgets.filtering.ColumnFilter" title="tabulous.widgets.filtering.ColumnFilter"><span class="pre">tabulous.widgets.filtering.ColumnFilter</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabulous.widgets.filtering.FilterIndexer" title="tabulous.widgets.filtering.FilterIndexer"><span class="pre">tabulous.widgets.filtering.FilterIndexer</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#FilterIndexer.filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.FilterIndexer.filter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterProxy">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tabulous.widgets.filtering.</span></span><span class="sig-name descname"><span class="pre">FilterProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableBase</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#FilterProxy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.FilterProxy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>A proxy of column-based DataFrame filtering.</p>
-<p>This object makes filtering of table easier. For instance, to filter a table
-by a column, you can do:
-&gt;&gt;&gt; table.filter[“a”] &lt; 5
-which is equivalent to
-&gt;&gt;&gt; table.filter = lambda df: df[“a”] &lt; 5</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterProxy.array">
-<span class="sig-name descname"><span class="pre">array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.Series</span></span></span><a class="reference internal" href="../_modules/tabulous/widgets/filtering.html#FilterProxy.array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.filtering.FilterProxy.array" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterProxy.func">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">func</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ProxyType</span></em><a class="headerlink" href="#tabulous.widgets.filtering.FilterProxy.func" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the filter function.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="tabulous.widgets.filtering.FilterProxy.table">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">table</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">TableBase</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#tabulous.widgets.filtering.FilterProxy.table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the connected table.</p>
-</dd></dl>
-
-</dd></dl>
-
-</section>
 <section id="module-tabulous.widgets">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tabulous.widgets" title="Permalink to this headline">¶</a></h2>
 </section>

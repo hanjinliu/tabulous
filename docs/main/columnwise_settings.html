@@ -4,9 +4,10 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Column-wise Settings &mdash; tabulous 0.4.0rc0 documentation</title>
+  <title>Column-wise Settings &mdash; tabulous 0.4.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/font.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -18,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Working with Tables" href="table_advanced.html" />
+    <link rel="next" title="Field Attributes of Tables" href="table_fields.html" />
     <link rel="prev" title="Sort/Filter Table Data" href="sort_filter.html" />
 </head>
 
@@ -30,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0rc0
+                0.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -51,7 +52,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#colormap">Colormap</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#use-colormap-functions">Use Colormap Functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#use-dictionaries">Use Dictionaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-matplotlib-colormaps">Use <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code> Colormaps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#interpolate-colors-to-define-colormaps">Interpolate Colors to Define Colormaps</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#set-colormaps-in-gui">Set Colormaps in GUI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#update-colormaps">Update Colormaps</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#validator">Validator</a><ul>
@@ -65,12 +69,14 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#typing-spreadsheet">Typing Spreadsheet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-syntax-of-table-subset">Use Syntax of Table Subset</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Working with Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_fields.html">Field Attributes of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_view_mode.html">View Tables in Different Modes</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrate_custom_widgets.html">Integrate Custom Widgets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
@@ -115,36 +121,47 @@ editing the data.</p>
 <ul>
 <li><p><a class="reference internal" href="#use-colormap-functions" id="id2">Use Colormap Functions</a></p></li>
 <li><p><a class="reference internal" href="#use-dictionaries" id="id3">Use Dictionaries</a></p></li>
-<li><p><a class="reference internal" href="#set-colormaps-in-gui" id="id4">Set Colormaps in GUI</a></p></li>
+<li><p><a class="reference internal" href="#use-matplotlib-colormaps" id="id4">Use <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code> Colormaps</a></p></li>
+<li><p><a class="reference internal" href="#interpolate-colors-to-define-colormaps" id="id5">Interpolate Colors to Define Colormaps</a></p></li>
+<li><p><a class="reference internal" href="#set-colormaps-in-gui" id="id6">Set Colormaps in GUI</a></p></li>
+<li><p><a class="reference internal" href="#update-colormaps" id="id7">Update Colormaps</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#validator" id="id5">Validator</a></p>
+<li><p><a class="reference internal" href="#validator" id="id8">Validator</a></p>
 <ul>
-<li><p><a class="reference internal" href="#set-validator-functions" id="id6">Set validator Functions</a></p></li>
+<li><p><a class="reference internal" href="#set-validator-functions" id="id9">Set validator Functions</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#text-formatter" id="id7">Text Formatter</a></p>
+<li><p><a class="reference internal" href="#text-formatter" id="id10">Text Formatter</a></p>
 <ul>
-<li><p><a class="reference internal" href="#set-formatter-function" id="id8">Set formatter function</a></p></li>
-<li><p><a class="reference internal" href="#set-formatter-string" id="id9">Set formatter string</a></p></li>
-<li><p><a class="reference internal" href="#set-formatter-in-gui" id="id10">Set Formatter in GUI</a></p></li>
+<li><p><a class="reference internal" href="#set-formatter-function" id="id11">Set formatter function</a></p></li>
+<li><p><a class="reference internal" href="#set-formatter-string" id="id12">Set formatter string</a></p></li>
+<li><p><a class="reference internal" href="#set-formatter-in-gui" id="id13">Set Formatter in GUI</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#typing-spreadsheet" id="id11">Typing Spreadsheet</a></p></li>
+<li><p><a class="reference internal" href="#typing-spreadsheet" id="id14">Typing Spreadsheet</a></p></li>
+<li><p><a class="reference internal" href="#use-syntax-of-table-subset" id="id15">Use Syntax of Table Subset</a></p></li>
 </ul>
 </div>
+<p>Each column-specific setting is stored as a <code class="docutils literal notranslate"><span class="pre">dict</span></code> like field.</p>
 <section id="colormap">
 <h2><a class="toc-backref" href="#id1">Colormap</a><a class="headerlink" href="#colormap" title="Permalink to this headline">¶</a></h2>
+<p>A “colormap” is a function that maps a value to a color. All the colormaps are stored in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">text_color</span></code> / <code class="xref py py-attr docutils literal notranslate"><span class="pre">background_color</span></code> fields.</p>
 <section id="use-colormap-functions">
 <h3><a class="toc-backref" href="#id2">Use Colormap Functions</a><a class="headerlink" href="#use-colormap-functions" title="Permalink to this headline">¶</a></h3>
-<p>The foreground color (text color) and the background color can be set for each column.
-You have to provide a colormap (function that maps values to colors) to do this. A colormap
-must return a RGBA array (0-255) or a standard color name.</p>
+<p>The text color and the background color can be set for each column.
+You can provide a custom colormap function to do this by <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> method of fields.
+A colormap function must return a RGBA array (0-255) or a standard color name.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span> <span class="o">=</span> <span class="n">TableViewer</span><span class="p">()</span>
-<span class="n">viewer</span><span class="o">.</span><span class="n">open_sample</span><span class="p">(</span><span class="s2">&quot;iris&quot;</span><span class="p">)</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">open_sample</span><span class="p">(</span><span class="s2">&quot;iris&quot;</span><span class="p">)</span>
+
+<span class="n">lmin</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="n">lmax</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="n">lrange</span> <span class="o">=</span> <span class="n">lmax</span> <span class="o">-</span> <span class="n">lmin</span>
 
 <span class="c1"># set a continuous colormap to the &quot;sepal_length&quot; column</span>
-<span class="nd">@table</span><span class="o">.</span><span class="n">foreground_colormap</span><span class="p">(</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">)</span>
+<span class="nd">@table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">_</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
     <span class="n">red</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
     <span class="n">blue</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
@@ -152,12 +169,18 @@ must return a RGBA array (0-255) or a standard color name.</p>
 </pre></div>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># set a discrete colormap to the &quot;sepal_width&quot; column</span>
-<span class="nd">@table</span><span class="o">.</span><span class="n">background_colormap</span><span class="p">(</span><span class="s2">&quot;sepal_width&quot;</span><span class="p">)</span>
+<span class="nd">@table</span><span class="o">.</span><span class="n">background_color</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;sepal_width&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">_</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
     <span class="k">return</span> <span class="s2">&quot;green&quot;</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mf">3.2</span> <span class="k">else</span> <span class="s2">&quot;violet&quot;</span>
 </pre></div>
 </div>
 <img alt="../_images/colormap.png" src="../_images/colormap.png" />
+<p>Since the fields are <code class="docutils literal notranslate"><span class="pre">dict</span></code> like, you can refer to existing colormaps or set new ones.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">])</span>  <span class="c1"># get the colormap function</span>
+<span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_cmap</span>  <span class="c1"># set a new colormap</span>
+<span class="k">del</span> <span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span>  <span class="c1"># reset the existing colormap</span>
+</pre></div>
+</div>
 </section>
 <section id="use-dictionaries">
 <h3><a class="toc-backref" href="#id3">Use Dictionaries</a><a class="headerlink" href="#use-dictionaries" title="Permalink to this headline">¶</a></h3>
@@ -167,33 +190,117 @@ must return a RGBA array (0-255) or a standard color name.</p>
     <span class="s2">&quot;versicolor&quot;</span><span class="p">:</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span>
     <span class="s2">&quot;virginica&quot;</span><span class="p">:</span> <span class="s2">&quot;blue&quot;</span><span class="p">,</span>
 <span class="p">}</span>
-<span class="n">table</span><span class="o">.</span><span class="n">foreground_colormap</span><span class="p">(</span><span class="s2">&quot;species&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="p">)</span>  <span class="c1"># set cmap</span>
+<span class="c1"># set discrete colormap</span>
+<span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;species&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="p">)</span>
+<span class="c1"># or like this</span>
+<span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="s2">&quot;species&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmap</span>
 </pre></div>
 </div>
 </section>
+<section id="use-matplotlib-colormaps">
+<h3><a class="toc-backref" href="#id4">Use <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code> Colormaps</a><a class="headerlink" href="#use-matplotlib-colormaps" title="Permalink to this headline">¶</a></h3>
+<p>The colormap names defined in <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code> are available. Limits of the contrast
+will be defined by the mininum/maximum values of the column.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;inferno&quot;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since colormaps are defined continuously, data type of the column must be numbers,
+datetime or timedelta.</p>
+</div>
+</section>
+<section id="interpolate-colors-to-define-colormaps">
+<h3><a class="toc-backref" href="#id5">Interpolate Colors to Define Colormaps</a><a class="headerlink" href="#interpolate-colors-to-define-colormaps" title="Permalink to this headline">¶</a></h3>
+<p>In many cases, you’ll want to define your own colormap by supplying colors that
+represent the minimum/maximum values, or several colors with their corresponding
+values.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">interp_from</span></code> argument is useful for this purpose. A linearly segmented
+colormap will be defined .</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span> <span class="o">=</span> <span class="n">TableViewer</span><span class="p">()</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">({</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]})</span>
+
+<span class="c1"># use value -&gt; color mapping</span>
+<span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="n">interp_from</span><span class="o">=</span><span class="p">{</span><span class="o">-</span><span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;red&quot;</span><span class="p">})</span>
+
+<span class="c1"># or a list of (value, color)</span>
+<span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="n">interp_from</span><span class="o">=</span><span class="p">[(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;blue&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;gray&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)])</span>
+</pre></div>
+</div>
+<img alt="../_images/colormap_interpolate.png" src="../_images/colormap_interpolate.png" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can just pass a list of colors to define a equally divided colormap.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="n">interp_from</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The simplest argument will be two colors, which represent minimum/maximum.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="n">interp_from</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</section>
 <section id="set-colormaps-in-gui">
-<h3><a class="toc-backref" href="#id4">Set Colormaps in GUI</a><a class="headerlink" href="#set-colormaps-in-gui" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">Set Colormaps in GUI</a><a class="headerlink" href="#set-colormaps-in-gui" title="Permalink to this headline">¶</a></h3>
 <p>Some basic colormaps are available in the right-click context menu of the columns,
-such as <code class="docutils literal notranslate"><span class="pre">Color</span> <span class="pre">&gt;</span> <span class="pre">Set</span> <span class="pre">foreground</span> <span class="pre">colormap</span></code>.</p>
+such as <span class="menu">Color &gt; Set background colormap</span>.</p>
+</section>
+<section id="update-colormaps">
+<h3><a class="toc-backref" href="#id7">Update Colormaps</a><a class="headerlink" href="#update-colormaps" title="Permalink to this headline">¶</a></h3>
+<p>There are several ways to update the existing colormap.</p>
+<ol class="arabic">
+<li><p>Update opacity</p>
+<blockquote>
+<div><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_opacity()</span></code> method takes a value between 0 and 1 to changes the alpha
+channel of the output color.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">set_opacity</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Invert colormap</p>
+<blockquote>
+<div><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">invert()</span></code> method invert the returned RGB value of the colormap.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Adjust brightness of colormap</p>
+<blockquote>
+<div><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">adjust_brightness()</span></code> takes a value between -1 and 1 to change the brightness
+of the current colormap.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">adjust_brightness</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># brighter</span>
+<span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">adjust_brightness</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># darker</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
 </section>
 </section>
 <section id="validator">
-<h2><a class="toc-backref" href="#id5">Validator</a><a class="headerlink" href="#validator" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id8">Validator</a><a class="headerlink" href="#validator" title="Permalink to this headline">¶</a></h2>
 <p>Simple data type conversion is sometimes not enough. To make editing data safer, you can
 customize the validator for each column.</p>
 <section id="set-validator-functions">
-<h3><a class="toc-backref" href="#id6">Set validator Functions</a><a class="headerlink" href="#set-validator-functions" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id9">Set validator Functions</a><a class="headerlink" href="#set-validator-functions" title="Permalink to this headline">¶</a></h3>
 <p>A validator function doesn’t care about the returned value. It should raise an exception
-if the input value is invalid.</p>
+if the input value is invalid. In following example, negative value is interpreted as
+invalid and the editor becomes red.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span> <span class="o">=</span> <span class="n">TableViewer</span><span class="p">()</span>
-<span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">({</span><span class="s2">&quot;sample&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]},</span> <span class="n">editable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span>
+    <span class="p">{</span><span class="s2">&quot;sample&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]},</span>
+    <span class="n">editable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
 
-<span class="nd">@table</span><span class="o">.</span><span class="n">validator</span><span class="p">(</span><span class="s2">&quot;volume&quot;</span><span class="p">)</span>
+<span class="nd">@table</span><span class="o">.</span><span class="n">validator</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;volume&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">_</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Volume must be positive.&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+<img alt="../_images/validator.png" src="../_images/validator.png" />
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> object converts the input value to the data type of the column.
@@ -207,7 +314,7 @@ changing data validation rule might break the safety of the table data.</p>
 </section>
 </section>
 <section id="text-formatter">
-<h2><a class="toc-backref" href="#id7">Text Formatter</a><a class="headerlink" href="#text-formatter" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id10">Text Formatter</a><a class="headerlink" href="#text-formatter" title="Permalink to this headline">¶</a></h2>
 <p>Text formatters are used to convert the values to strings without changing the data
 itself. This is useful for displaying data in a more readable format.</p>
 <div class="admonition note">
@@ -216,42 +323,50 @@ itself. This is useful for displaying data in a more readable format.</p>
 take too much time to run.</p>
 </div>
 <section id="set-formatter-function">
-<h3><a class="toc-backref" href="#id8">Set formatter function</a><a class="headerlink" href="#set-formatter-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id11">Set formatter function</a><a class="headerlink" href="#set-formatter-function" title="Permalink to this headline">¶</a></h3>
 <p>As usual in this chapter, you can use functions that convert a value into a string
-as formatter function. The formatted strings are not necessary to satisfy the
-column specific validation including data type conversion.</p>
+as formatter function.</p>
+<ul class="simple">
+<li><p>The formatted strings do not affect the real data.</p></li>
+<li><p>The formatted strings are not necessary to satisfy the column specific validation
+including data type conversion.</p></li>
+</ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span> <span class="o">=</span> <span class="n">TableViewer</span><span class="p">()</span>
-<span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">open_sample</span><span class="p">(</span><span class="s2">&quot;iris&quot;</span><span class="p">)</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">({</span><span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.1</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">1.8</span><span class="p">,</span> <span class="mf">6.3</span><span class="p">]})</span>
 
-<span class="nd">@table</span><span class="o">.</span><span class="n">formatter</span><span class="p">(</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">)</span>
+<span class="nd">@table</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;length&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">_</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> cm&quot;</span>
 </pre></div>
 </div>
+<img alt="../_images/formatter.png" src="../_images/formatter.png" />
 </section>
 <section id="set-formatter-string">
-<h3><a class="toc-backref" href="#id9">Set formatter string</a><a class="headerlink" href="#set-formatter-string" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id12">Set formatter string</a><a class="headerlink" href="#set-formatter-string" title="Permalink to this headline">¶</a></h3>
 <p>Instead of passing a function, you can also use a ready-to-be-formatted strings.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">formatter</span><span class="p">(</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:.2f}</span><span class="s2"> cm&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:.2f}</span><span class="s2"> cm&quot;</span><span class="p">)</span>
+
+<span class="c1"># or use __setitem__</span>
+<span class="n">table</span><span class="o">.</span><span class="n">formatter</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{:.2f}</span><span class="s2"> cm&quot;</span>
 </pre></div>
 </div>
 <p>Example above is identical to passing <code class="docutils literal notranslate"><span class="pre">&quot;{:.2f}</span> <span class="pre">cm&quot;.format</span></code>.</p>
 </section>
 <section id="set-formatter-in-gui">
-<h3><a class="toc-backref" href="#id10">Set Formatter in GUI</a><a class="headerlink" href="#set-formatter-in-gui" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id13">Set Formatter in GUI</a><a class="headerlink" href="#set-formatter-in-gui" title="Permalink to this headline">¶</a></h3>
 <p>Some basic formatters are available in the right-click context menu of the columns,
-such as <code class="docutils literal notranslate"><span class="pre">Formatter</span> <span class="pre">&gt;</span> <span class="pre">Set</span> <span class="pre">text</span> <span class="pre">formatter</span></code>. You’ll see a preview of the column in
+such as <span class="menu">Formatter &gt; Set text formatter</span>. You’ll see a preview of the column in
 the dialog.</p>
 </section>
 </section>
 <section id="typing-spreadsheet">
-<h2><a class="toc-backref" href="#id11">Typing Spreadsheet</a><a class="headerlink" href="#typing-spreadsheet" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id14">Typing Spreadsheet</a><a class="headerlink" href="#typing-spreadsheet" title="Permalink to this headline">¶</a></h2>
 <p>In a spreadsheet, data types are determined for each column based on its content
 because a spreadsheet is a string-based table data in general. This characteristic
 raises a problem of data type. This drawback is especially important when you want
 to use data types such as <code class="docutils literal notranslate"><span class="pre">datetime64</span></code> or <code class="docutils literal notranslate"><span class="pre">category</span></code>.</p>
-<p>To solve this problem, <code class="docutils literal notranslate"><span class="pre">SpreadSheet</span></code> implements a typing system on each column.
-You can tag any data types supported by <code class="docutils literal notranslate"><span class="pre">pandas</span></code> to each column, and optionally
+<p>To solve this problem, <code class="xref py py-class docutils literal notranslate"><span class="pre">SpreadSheet</span></code> implements a typing system on each column.
+You can tag any data types supported by <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas</span></code> to each column, and optionally
 set validator functions appropriate for the data types.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span> <span class="o">=</span> <span class="n">TableViewer</span><span class="p">()</span>
 <span class="n">sheet</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_spreadsheet</span><span class="p">({</span><span class="s2">&quot;int&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]})</span>
@@ -264,8 +379,8 @@ set validator functions appropriate for the data types.</p>
 <span class="n">sheet</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">int</span><span class="o">=</span><span class="s2">&quot;int64&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
 
 <span class="c1"># set dtypes and default validators</span>
-<span class="n">sheet</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">set_dtype</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="s2">&quot;int64&quot;</span><span class="p">)</span>
-<span class="n">sheet</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">set_dtype</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;category&quot;</span><span class="p">)</span>
+<span class="n">sheet</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+<span class="n">sheet</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;category&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sheet</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtypes</span>
@@ -277,7 +392,31 @@ set validator functions appropriate for the data types.</p>
 </pre></div>
 </div>
 <p>You can also set dtypes from GUI. Right-click the column header and select
-<code class="docutils literal notranslate"><span class="pre">Column</span> <span class="pre">dtype</span></code>.</p>
+<span class="menu">Column dtype</span>.</p>
+</section>
+<section id="use-syntax-of-table-subset">
+<h2><a class="toc-backref" href="#id15">Use Syntax of Table Subset</a><a class="headerlink" href="#use-syntax-of-table-subset" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">pd.Series</span></code>-like table subset, <code class="xref py py-class docutils literal notranslate"><span class="pre">TableSeries</span></code> can be obtained by
+indexing a table.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sheet</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">open_sample</span><span class="p">(</span><span class="s2">&quot;iris&quot;</span><span class="p">)</span>
+<span class="n">sheet</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">TableSeries</span><span class="o">&lt;</span><span class="s1">&#39;sepal_length&#39;</span><span class="o">&gt;</span> <span class="n">of</span> <span class="n">SpreadSheet</span><span class="o">&lt;</span><span class="s1">&#39;sheet&#39;</span><span class="o">&gt;&gt;</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">TableSeries</span></code> also as fields such as <code class="xref py py-attr docutils literal notranslate"><span class="pre">text_color</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">formatter</span></code>
+and they can be considered as partial table fields.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">formatter</span><span class="p">)</span>  <span class="c1"># get formatter function</span>
+<span class="n">sheet</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">formatter</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{:</span><span class="s2">2f</span><span class="si">}</span><span class="s2"> cm&quot;</span>  <span class="c1"># set formatter</span>
+<span class="k">del</span> <span class="n">sheet</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">formatter</span>  <span class="c1"># reset formatter</span>
+</pre></div>
+</div>
+<p>Colormap can also be updated this way.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sheet</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">background_color</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">interp_from</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;violet&quot;</span><span class="p">,</span> <span class="s2">&quot;teal&quot;</span><span class="p">])</span>
+<span class="n">sheet</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">background_color</span><span class="o">.</span><span class="n">set_opacity</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -286,7 +425,7 @@ set validator functions appropriate for the data types.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="sort_filter.html" class="btn btn-neutral float-left" title="Sort/Filter Table Data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="table_advanced.html" class="btn btn-neutral float-right" title="Working with Tables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="table_fields.html" class="btn btn-neutral float-right" title="Field Attributes of Tables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

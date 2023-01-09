@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; tabulous 0.4.0rc0 documentation</title>
+  <title>Index &mdash; tabulous 0.4.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/font.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -27,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0rc0
+                0.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -45,10 +46,11 @@
 <li class="toctree-l1"><a class="reference internal" href="main/selections.html">Table Selections and Highlights</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/sort_filter.html">Sort/Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/columnwise_settings.html">Column-wise Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="main/table_advanced.html">Working with Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/table_fields.html">Field Attributes of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/table_view_mode.html">View Tables in Different Modes</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="main/dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main/integrate_custom_widgets.html">Integrate Custom Widgets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
@@ -108,6 +110,8 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.a">a (tabulous.color.ColorTuple attribute)</a>
+</li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.tab.activate_left">activate_left() (in module tabulous.commands.tab)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.tab.activate_right">activate_right() (in module tabulous.commands.tab)</a>
@@ -120,10 +124,10 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_float_spinbox">add_float_spinbox() (in module tabulous.commands.selection)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_highlight">add_highlight() (in module tabulous.commands.selection)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_line_edit">add_line_edit() (in module tabulous.commands.selection)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_radio_button">add_radio_button() (in module tabulous.commands.selection)</a>
@@ -132,9 +136,13 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_spinbox">add_spinbox() (in module tabulous.commands.selection)</a>
 </li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.window.add_text_edit">add_text_edit() (in module tabulous.commands.window)</a>
+</li>
       <li><a href="apidoc/tabulous.html#tabulous.TableViewerWidget.add_widget">add_widget() (tabulous.TableViewerWidget method)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.filtering.FilterProxy.array">array() (tabulous.widgets.filtering.FilterProxy method)</a>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.adjust_brightness_background_colormap">adjust_brightness_background_colormap() (in module tabulous.commands.column)</a>
+</li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.adjust_brightness_text_colormap">adjust_brightness_text_colormap() (in module tabulous.commands.column)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -142,6 +150,8 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.b">b (tabulous.color.ColorTuple attribute)</a>
+</li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.plot.bar">bar() (in module tabulous.commands.plot)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.plot.barplot">barplot() (in module tabulous.commands.plot)</a>
@@ -152,25 +162,27 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.plot.boxplot">boxplot() (in module tabulous.commands.plot)</a>
 </li>
+      <li><a href="apidoc/tabulous.html#tabulous.color.BrightenedColormap">BrightenedColormap (class in tabulous.color)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.filtering.FilterIndexer.chain">chain() (tabulous.widgets.filtering.FilterIndexer method)</a>
-</li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.window.close_window">close_window() (in module tabulous.commands.window)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.types.ItemInfo.col">col (tabulous.types.ItemInfo property)</a>
 </li>
-      <li><a href="apidoc/tabulous.html#tabulous.types.ItemInfo.column">column (tabulous.types.ItemInfo attribute)</a>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple">ColorTuple (class in tabulous.color)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.filtering.ColumnFilter">ColumnFilter (class in tabulous.widgets.filtering)</a>
+      <li><a href="apidoc/tabulous.html#tabulous.types.ItemInfo.column">column (tabulous.types.ItemInfo attribute)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.plot.PlotInfo.columns">columns (tabulous.commands.plot.PlotInfo attribute)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.concat">concat() (in module tabulous.commands.table)</a>
+</li>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ConvertedColormap">ConvertedColormap (class in tabulous.color)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.copy_as_html">copy_as_html() (in module tabulous.commands.selection)</a>
 </li>
@@ -180,11 +192,15 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.copy_as_markdown">copy_as_markdown() (in module tabulous.commands.selection)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.copy_as_new_spreadsheet">copy_as_new_spreadsheet() (in module tabulous.commands.selection)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.copy_as_new_table">copy_as_new_table() (in module tabulous.commands.selection)</a>
+</li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.copy_as_rst_grid">copy_as_rst_grid() (in module tabulous.commands.selection)</a>
+</li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.copy_as_rst_simple">copy_as_rst_simple() (in module tabulous.commands.selection)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.copy_as_spreadsheet">copy_as_spreadsheet() (in module tabulous.commands.table)</a>
 </li>
@@ -232,6 +248,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.edit_current">edit_current() (in module tabulous.commands.selection)</a>
 </li>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.equals">equals() (tabulous.color.ColorTuple method)</a>
+</li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.plot.errorbar">errorbar() (in module tabulous.commands.plot)</a>
 </li>
   </ul></td>
@@ -254,27 +272,35 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.plot.fill_betweenx">fill_betweenx() (in module tabulous.commands.plot)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.filtering.FilterIndexer.filter">filter() (tabulous.widgets.filtering.FilterIndexer method)</a>
-</li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.filter_by_column">filter_by_column() (in module tabulous.commands.selection)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.filtering.FilterIndexer">FilterIndexer (class in tabulous.widgets.filtering)</a>
-</li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.filtering.FilterProxy">FilterProxy (class in tabulous.widgets.filtering)</a>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.filter_by_columns">filter_by_columns() (in module tabulous.commands.selection)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.window.focus_table">focus_table() (in module tabulous.commands.window)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.filtering.ColumnFilter.from_operator">from_operator() (tabulous.widgets.filtering.ColumnFilter class method)</a>
+      <li><a href="apidoc/tabulous.html#tabulous.color.BrightenedColormap.from_colormap">from_colormap() (tabulous.color.BrightenedColormap class method)</a>
+
+      <ul>
+        <li><a href="apidoc/tabulous.html#tabulous.color.InvertedColormap.from_colormap">(tabulous.color.InvertedColormap class method)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.filtering.FilterProxy.func">func (tabulous.widgets.filtering.FilterProxy property)</a>
+        <li><a href="apidoc/tabulous.html#tabulous.color.OpacityColormap.from_colormap">(tabulous.color.OpacityColormap class method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.from_hlsa">from_hlsa() (tabulous.color.ColorTuple class method)</a>
+</li>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.from_hsva">from_hsva() (tabulous.color.ColorTuple class method)</a>
+</li>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.from_html">from_html() (tabulous.color.ColorTuple class method)</a>
 </li>
   </ul></td>
 </tr></table>
 
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.g">g (tabulous.color.ColorTuple attribute)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.groupby">groupby() (in module tabulous.commands.table)</a>
 </li>
@@ -286,9 +312,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.html#tabulous.types.HeaderInfo">HeaderInfo (class in tabulous.types)</a>
 </li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.plot.hist">hist() (in module tabulous.commands.plot)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.plot.hist">hist() (in module tabulous.commands.plot)</a>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.hlsa">hlsa (tabulous.color.ColorTuple property)</a>
+</li>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.hsva">hsva (tabulous.color.ColorTuple property)</a>
+</li>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.html">html (tabulous.color.ColorTuple property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -304,11 +336,17 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.insert_row_above">insert_row_above() (in module tabulous.commands.selection)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.insert_row_below">insert_row_below() (in module tabulous.commands.selection)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.html#tabulous.types.ItemInfo.INSERTED">INSERTED (tabulous.types.ItemInfo attribute)</a>
+</li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.invert_background_colormap">invert_background_colormap() (in module tabulous.commands.column)</a>
+</li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.invert_text_colormap">invert_text_colormap() (in module tabulous.commands.column)</a>
+</li>
+      <li><a href="apidoc/tabulous.html#tabulous.color.InvertedColormap">InvertedColormap (class in tabulous.color)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.types.ItemInfo">ItemInfo (class in tabulous.types)</a>
 </li>
@@ -336,6 +374,8 @@
 </li>
         <li><a href="apidoc/tabulous.commands.html#module-tabulous.commands.analysis">tabulous.commands.analysis</a>
 </li>
+        <li><a href="apidoc/tabulous.commands.html#module-tabulous.commands.column">tabulous.commands.column</a>
+</li>
         <li><a href="apidoc/tabulous.commands.html#module-tabulous.commands.file">tabulous.commands.file</a>
 </li>
         <li><a href="apidoc/tabulous.commands.html#module-tabulous.commands.plot">tabulous.commands.plot</a>
@@ -358,8 +398,6 @@
 </li>
         <li><a href="apidoc/tabulous.widgets.html#module-tabulous.widgets">tabulous.widgets</a>
 </li>
-        <li><a href="apidoc/tabulous.widgets.html#module-tabulous.widgets.filtering">tabulous.widgets.filtering</a>
-</li>
       </ul></li>
   </ul></td>
 </tr></table>
@@ -371,15 +409,13 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.plot.new_figure">new_figure() (in module tabulous.commands.plot)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.new_spreadsheet">new_spreadsheet() (in module tabulous.commands.table)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.new_spreadsheet">new_spreadsheet() (in module tabulous.commands.table)</a>
+</li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.window.new_window">new_window() (in module tabulous.commands.window)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.color.normalize_color">normalize_color() (in module tabulous.color)</a>
-</li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.notify_editability">notify_editability() (in module tabulous.commands.selection)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -393,6 +429,12 @@
         <li><a href="apidoc/tabulous.html#tabulous.types.ItemInfo.old_value">(tabulous.types.ItemInfo attribute)</a>
 </li>
       </ul></li>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.opacity">opacity (tabulous.color.ColorTuple property)</a>
+</li>
+      <li><a href="apidoc/tabulous.html#tabulous.color.OpacityColormap">OpacityColormap (class in tabulous.color)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.html#tabulous.open_sample">open_sample() (in module tabulous)</a>
 
       <ul>
@@ -401,8 +443,6 @@
         <li><a href="apidoc/tabulous.html#tabulous.core.open_sample">(in module tabulous.core)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.file.open_spreadsheet">open_spreadsheet() (in module tabulous.commands.file)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.file.open_table">open_table() (in module tabulous.commands.file)</a>
@@ -415,12 +455,16 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_comma_separated">paste_data_comma_separated() (in module tabulous.commands.selection)</a>
 </li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_from_markdown">paste_data_from_markdown() (in module tabulous.commands.selection)</a>
+</li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_from_numpy_string">paste_data_from_numpy_string() (in module tabulous.commands.selection)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_tab_separated">paste_data_tab_separated() (in module tabulous.commands.selection)</a>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_from_rst">paste_data_from_rst() (in module tabulous.commands.selection)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_tab_separated">paste_data_tab_separated() (in module tabulous.commands.selection)</a>
+</li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.pivot">pivot() (in module tabulous.commands.table)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.plot.plot">plot() (in module tabulous.commands.plot)</a>
@@ -433,6 +477,8 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.r">r (tabulous.color.ColorTuple attribute)</a>
+</li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.raise_slot_error">raise_slot_error() (in module tabulous.commands.selection)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.random">random() (in module tabulous.commands.table)</a>
@@ -465,17 +511,19 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.tab.rename_tab">rename_tab() (in module tabulous.commands.tab)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.reset_background_colormap">reset_background_colormap() (in module tabulous.commands.selection)</a>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.reset_background_colormap">reset_background_colormap() (in module tabulous.commands.column)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.TableViewer.reset_choices">reset_choices() (tabulous.TableViewer method)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.reset_foreground_colormap">reset_foreground_colormap() (in module tabulous.commands.selection)</a>
-</li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.reset_proxy">reset_proxy() (in module tabulous.commands.table)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.reset_text_formatter">reset_text_formatter() (in module tabulous.commands.selection)</a>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.reset_text_colormap">reset_text_colormap() (in module tabulous.commands.column)</a>
+</li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.reset_text_formatter">reset_text_formatter() (in module tabulous.commands.column)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.view.reset_view_mode">reset_view_mode() (in module tabulous.commands.view)</a>
+</li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.resize_cells_to_contents">resize_cells_to_contents() (in module tabulous.commands.table)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.color.rgba_to_str">rgba_to_str() (in module tabulous.color)</a>
 </li>
@@ -497,7 +545,9 @@
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.exceptions.SelectionRangeError">SelectionRangeError</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.set_background_colormap">set_background_colormap() (in module tabulous.commands.selection)</a>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.set_background_colormap">set_background_colormap() (in module tabulous.commands.column)</a>
+</li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.set_background_colormap_opacity">set_background_colormap_opacity() (in module tabulous.commands.column)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.set_column_dtype">set_column_dtype() (in module tabulous.commands.selection)</a>
 </li>
@@ -507,11 +557,13 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.view.set_dual_v_mode">set_dual_v_mode() (in module tabulous.commands.view)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.set_foreground_colormap">set_foreground_colormap() (in module tabulous.commands.selection)</a>
-</li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.view.set_popup_mode">set_popup_mode() (in module tabulous.commands.view)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.set_text_formatter">set_text_formatter() (in module tabulous.commands.selection)</a>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.set_text_colormap">set_text_colormap() (in module tabulous.commands.column)</a>
+</li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.set_text_colormap_opacity">set_text_colormap_opacity() (in module tabulous.commands.column)</a>
+</li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.column.set_text_formatter">set_text_formatter() (in module tabulous.commands.column)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.window.show_command_palette">show_command_palette() (in module tabulous.commands.window)</a>
 </li>
@@ -537,12 +589,16 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.shuffle_data_column_wise">shuffle_data_column_wise() (in module tabulous.commands.selection)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.sort_by_column_ascending">sort_by_column_ascending() (in module tabulous.commands.selection)</a>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.sort_by_columns">sort_by_columns() (in module tabulous.commands.selection)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.sort_by_column_descending">sort_by_column_descending() (in module tabulous.commands.selection)</a>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.sort_inplace">sort_inplace() (in module tabulous.commands.selection)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.TableViewer.status">status (tabulous.TableViewer property)</a>
+
+      <ul>
+        <li><a href="apidoc/tabulous.html#tabulous.TableViewerWidget.status">(tabulous.TableViewerWidget property)</a>
 </li>
+      </ul></li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.plot.stripplot">stripplot() (in module tabulous.commands.plot)</a>
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.analysis.summarize_table">summarize_table() (in module tabulous.commands.analysis)</a>
@@ -563,8 +619,6 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.filtering.FilterProxy.table">table (tabulous.widgets.filtering.FilterProxy property)</a>
-</li>
       <li><a href="apidoc/tabulous.html#tabulous.types.TableColumn">TableColumn() (in module tabulous.types)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.types.TableData">TableData() (in module tabulous.types)</a>
@@ -606,6 +660,13 @@
 </li>
       </ul></li>
       <li>
+    tabulous.commands.column
+
+      <ul>
+        <li><a href="apidoc/tabulous.commands.html#module-tabulous.commands.column">module</a>
+</li>
+      </ul></li>
+      <li>
     tabulous.commands.file
 
       <ul>
@@ -626,6 +687,8 @@
         <li><a href="apidoc/tabulous.commands.html#module-tabulous.commands.selection">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     tabulous.commands.tab
 
@@ -633,8 +696,6 @@
         <li><a href="apidoc/tabulous.commands.html#module-tabulous.commands.tab">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     tabulous.commands.table
 
@@ -682,13 +743,6 @@
 
       <ul>
         <li><a href="apidoc/tabulous.widgets.html#module-tabulous.widgets">module</a>
-</li>
-      </ul></li>
-      <li>
-    tabulous.widgets.filtering
-
-      <ul>
-        <li><a href="apidoc/tabulous.widgets.html#module-tabulous.widgets.filtering">module</a>
 </li>
       </ul></li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.tab.tile_tables">tile_tables() (in module tabulous.commands.tab)</a>

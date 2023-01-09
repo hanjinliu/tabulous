@@ -4,9 +4,10 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register Custom Actions &mdash; tabulous 0.4.0rc0 documentation</title>
+  <title>Register Custom Actions &mdash; tabulous 0.4.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/font.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -30,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0rc0
+                0.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -48,10 +49,11 @@
 <li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections and Highlights</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sort_filter.html">Sort/Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="columnwise_settings.html">Column-wise Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Working with Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_fields.html">Field Attributes of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_view_mode.html">View Tables in Different Modes</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrate_custom_widgets.html">Integrate Custom Widgets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul class="current">
@@ -100,14 +102,14 @@ to the context menu. Suppose you have a viewer and a table:</p>
 </div>
 <p>you can register functions using following methods.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">viewer.tables.register_action</span></code> … register action to the tab bar.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">table.index.register_action</span></code> … register action to the vertical header.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">table.columns.register_action</span></code> … register action to the horizontal header.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">table.cells.register_action</span></code> … register action to the table cells.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">viewer.tables.register_action()</span></code> … register action to the tab bar.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">table.index.register_action()</span></code> … register action to the vertical header.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">table.columns.register_action()</span></code> … register action to the horizontal header.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">table.cells.register_action()</span></code> … register action to the table cells.</p></li>
 </ul>
 <section id="register-actions-to-the-tab-bar">
 <h2>Register actions to the tab bar<a class="headerlink" href="#register-actions-to-the-tab-bar" title="Permalink to this headline">¶</a></h2>
-<p>Action for <code class="docutils literal notranslate"><span class="pre">viewer.tables.register_action</span></code> must have signature <code class="docutils literal notranslate"><span class="pre">(index:</span> <span class="pre">int)</span></code>.
+<p>Action for <code class="xref py py-meth docutils literal notranslate"><span class="pre">viewer.tables.register_action()</span></code> must have signature <code class="docutils literal notranslate"><span class="pre">(index:</span> <span class="pre">int)</span></code>.
 <code class="docutils literal notranslate"><span class="pre">index</span></code> is the index of the right-clicked tab.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># register function &quot;func&quot; as an action named &quot;Print tab name&quot;</span>
 <span class="nd">@viewer</span><span class="o">.</span><span class="n">tables</span><span class="o">.</span><span class="n">register_action</span><span class="p">(</span><span class="s2">&quot;Print tab name&quot;</span><span class="p">)</span>
@@ -124,7 +126,7 @@ to the context menu. Suppose you have a viewer and a table:</p>
 </section>
 <section id="register-actions-to-the-headers">
 <h2>Register actions to the headers<a class="headerlink" href="#register-actions-to-the-headers" title="Permalink to this headline">¶</a></h2>
-<p>Other <code class="docutils literal notranslate"><span class="pre">register_action</span></code> method works similarly. In the case of headers,
+<p>Other <code class="xref py py-meth docutils literal notranslate"><span class="pre">register_action()</span></code> method works similarly. In the case of headers,
 the signature for the action is also <code class="docutils literal notranslate"><span class="pre">(index:</span> <span class="pre">int)</span></code>. Here, <code class="docutils literal notranslate"><span class="pre">index</span></code> is
 the index of the right-clicked position (ready for <code class="xref py py-meth docutils literal notranslate"><span class="pre">iloc()</span></code>).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@table</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">register_action</span><span class="p">(</span><span class="s2">&quot;Print this row&quot;</span><span class="p">)</span>
@@ -139,7 +141,7 @@ the index of the right-clicked position (ready for <code class="xref py py-meth 
 </section>
 <section id="register-actions-to-the-cells">
 <h2>Register actions to the cells<a class="headerlink" href="#register-actions-to-the-cells" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">register_action</span></code> method for cells also work in a similar way, but has
+<p>The <code class="xref py py-meth docutils literal notranslate"><span class="pre">register_action()</span></code> method for cells also work in a similar way, but has
 signature <code class="docutils literal notranslate"><span class="pre">(index:</span> <span class="pre">tuple[int,</span> <span class="pre">int])</span></code> unlike others. Here, <code class="docutils literal notranslate"><span class="pre">index</span></code> is a
 tuple of row index and column index (ready for <code class="xref py py-meth docutils literal notranslate"><span class="pre">iloc()</span></code>).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">register_action</span><span class="p">(</span><span class="s2">&quot;Print this value&quot;</span><span class="p">)</span>

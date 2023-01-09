@@ -1,0 +1,17 @@
+.. role:: black
+.. role:: gray
+.. role:: white
+.. role:: red
+.. role:: magenta
+.. role:: pink
+.. role:: orange
+.. role:: yellow
+.. role:: lime
+.. role:: green
+.. role:: teal
+.. role:: cyan
+.. role:: aqua
+.. role:: blue
+.. role:: purple
+.. role:: kbd
+.. role:: menu

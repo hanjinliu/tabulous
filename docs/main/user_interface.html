@@ -4,9 +4,10 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Interface &mdash; tabulous 0.4.0rc0 documentation</title>
+  <title>User Interface &mdash; tabulous 0.4.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/font.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -30,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0rc0
+                0.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -46,6 +47,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#tables">Tables</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#move-around-the-table">Move around the table</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#edit-cells-and-headers">Edit cells and headers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#add-cell-labels">Add cell labels</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#excel-style-data-evaluation">Excel-style data evaluation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#scalar-value">Scalar value</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#column-vector">Column vector</a></li>
@@ -54,7 +56,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#user-defined-namespace">User-defined namespace</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#send-the-values-to-the-console">Send the values to the console</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#toolbar">Toolbar</a><ul>
@@ -73,10 +74,11 @@
 <li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections and Highlights</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sort_filter.html">Sort/Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="columnwise_settings.html">Column-wise Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="table_advanced.html">Working with Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_fields.html">Field Attributes of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_view_mode.html">View Tables in Different Modes</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrate_custom_widgets.html">Integrate Custom Widgets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
@@ -118,8 +120,8 @@
 <ul>
 <li><p><a class="reference internal" href="#move-around-the-table" id="id2">Move around the table</a></p></li>
 <li><p><a class="reference internal" href="#edit-cells-and-headers" id="id3">Edit cells and headers</a></p></li>
-<li><p><a class="reference internal" href="#excel-style-data-evaluation" id="id4">Excel-style data evaluation</a></p></li>
-<li><p><a class="reference internal" href="#send-the-values-to-the-console" id="id5">Send the values to the console</a></p></li>
+<li><p><a class="reference internal" href="#add-cell-labels" id="id4">Add cell labels</a></p></li>
+<li><p><a class="reference internal" href="#excel-style-data-evaluation" id="id5">Excel-style data evaluation</a></p></li>
 </ul>
 </li>
 <li><p><a class="reference internal" href="#toolbar" id="id6">Toolbar</a></p>
@@ -138,23 +140,57 @@
 <h2><a class="toc-backref" href="#id1">Tables</a><a class="headerlink" href="#tables" title="Permalink to this headline">¶</a></h2>
 <section id="move-around-the-table">
 <h3><a class="toc-backref" href="#id2">Move around the table</a><a class="headerlink" href="#move-around-the-table" title="Permalink to this headline">¶</a></h3>
-<p>Arrow keys <code class="docutils literal notranslate"><span class="pre">→</span></code>, <code class="docutils literal notranslate"><span class="pre">←</span></code>, <code class="docutils literal notranslate"><span class="pre">↑</span></code>, <code class="docutils literal notranslate"><span class="pre">↓</span></code> with <code class="docutils literal notranslate"><span class="pre">Ctrl</span></code> (or <code class="docutils literal notranslate"><span class="pre">⌘</span></code> in Mac), <code class="docutils literal notranslate"><span class="pre">Shift</span></code> modifier
-work as you expects in most of table data editors.</p>
-<p>Additionally, <code class="docutils literal notranslate"><span class="pre">Ctrl</span></code> + <code class="docutils literal notranslate"><span class="pre">mouse</span> <span class="pre">wheel</span></code> zooms in/out the table. <code class="docutils literal notranslate"><span class="pre">Ctrl</span></code> + <code class="docutils literal notranslate"><span class="pre">Alt</span></code> + arrow
-keys scrolls the table to the desired direction.</p>
-<img alt="../_images/table_interface_0.gif" src="../_images/table_interface_0.gif" />
+<p>Arrow keys (<span class="kbd">→</span> <span class="kbd">←</span> <span class="kbd">↑</span> <span class="kbd">↓</span>) with <span class="kbd">Ctrl</span> (or <span class="kbd">⌘</span> in Mac),
+<span class="kbd">Shift</span> modifier work as you expects in most of table data editors.</p>
+<p>Additionally, <span class="kbd">Ctrl</span> + <code class="docutils literal notranslate"><span class="pre">mouse</span> <span class="pre">wheel</span></code> zooms in/out the table. Arrow keys (<span class="kbd">→</span>
+<span class="kbd">←</span> <span class="kbd">↑</span> <span class="kbd">↓</span>) with <span class="kbd">Ctrl</span> + <span class="kbd">Alt</span> scrolls the table to the desired
+direction.</p>
 </section>
 <section id="edit-cells-and-headers">
 <h3><a class="toc-backref" href="#id3">Edit cells and headers</a><a class="headerlink" href="#edit-cells-and-headers" title="Permalink to this headline">¶</a></h3>
-<p>If a table is editable, you can edit the values of cells and headers. Double-clicking, <code class="docutils literal notranslate"><span class="pre">F2</span></code>
+<p>If a table is editable, you can edit the values of cells and headers. Double-clicking, <span class="kbd">F2</span>
 or typing any characters will create an editor for the value.</p>
-<img alt="../_images/table_interface_1.gif" src="../_images/table_interface_1.gif" />
+<img alt="../_images/edit_cell.png" src="../_images/edit_cell.png" />
 <p>During editing, the text will always be validated. Invalid text will be shown in red. For the
 table cells, you can set any validation rules (see <a class="reference internal" href="columnwise_settings.html"><span class="doc">Column-wise Settings</span></a>). For
 the table headers, duplicated names are not allowed and considered to be invalid.</p>
 </section>
+<section id="add-cell-labels">
+<h3><a class="toc-backref" href="#id4">Add cell labels</a><a class="headerlink" href="#add-cell-labels" title="Permalink to this headline">¶</a></h3>
+<p>People using spreadsheets usually want to name some of the cells. For instance, when you
+calculated the mean of a column, you want to name the cell as “mean”. Usually, it is done
+by editing one of the adjacent cells.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 43%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>A</p></th>
+<th class="head"><p>B</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>mean</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>2.5</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>In <a class="reference internal" href="../apidoc/tabulous.html#module-tabulous" title="tabulous"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tabulous</span></code></a>, however, you can directly name the cell using cell label. You can edit
+cell labels by <span class="kbd">F3</span> key.</p>
+<img alt="../_images/cell_labels.png" src="../_images/cell_labels.png" />
+</section>
 <section id="excel-style-data-evaluation">
-<h3><a class="toc-backref" href="#id4">Excel-style data evaluation</a><a class="headerlink" href="#excel-style-data-evaluation" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id5">Excel-style data evaluation</a><a class="headerlink" href="#excel-style-data-evaluation" title="Permalink to this headline">¶</a></h3>
 <p>Simple analysis should be done inside the table cells, especially when you are using
 SpreadSheet. In Excel and Google Spreadsheet, you can do it by typing, say, <code class="docutils literal notranslate"><span class="pre">=SUM(A1:A4)</span></code>,
 to calculate the sum of the values in the range <code class="docutils literal notranslate"><span class="pre">A1:A4</span></code>.</p>
@@ -178,17 +214,19 @@ of the destinations.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 9%" />
-<col style="width: 17%" />
+<col style="width: 16%" />
 <col style="width: 74%" />
 </colgroup>
-<tbody>
-<tr class="row-odd"><td></td>
-<td><p>col-0</p></td>
-<td><p>col-1</p></td>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>col-0</p></th>
+<th class="head"><p>col-1</p></th>
 </tr>
+</thead>
+<tbody>
 <tr class="row-even"><td><p>0</p></td>
 <td><p>10</p></td>
-<td><p>=np.sum(df[‘col-0’][0:3])</p></td>
+<td><p><span class="red">=np.sum(df[‘col-0’][0:3])</span></p></td>
 </tr>
 <tr class="row-odd"><td><p>1</p></td>
 <td><p>20</p></td>
@@ -203,15 +241,17 @@ of the destinations.</p>
 <p>it will simply update the current cell.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 20%" />
-<col style="width: 40%" />
-<col style="width: 40%" />
+<col style="width: 25%" />
+<col style="width: 44%" />
+<col style="width: 31%" />
 </colgroup>
-<tbody>
-<tr class="row-odd"><td></td>
-<td><p>col-0</p></td>
-<td><p>col-1</p></td>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>col-0</p></th>
+<th class="head"><p>col-1</p></th>
 </tr>
+</thead>
+<tbody>
 <tr class="row-even"><td><p>0</p></td>
 <td><p>10</p></td>
 <td><p>60</p></td>
@@ -232,18 +272,20 @@ of the destinations.</p>
 <p>If the evaluation result is an array such as <code class="docutils literal notranslate"><span class="pre">pd.Series</span></code>,</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 8%" />
-<col style="width: 16%" />
+<col style="width: 9%" />
+<col style="width: 15%" />
 <col style="width: 76%" />
 </colgroup>
-<tbody>
-<tr class="row-odd"><td></td>
-<td><p>col-0</p></td>
-<td><p>col-1</p></td>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>col-0</p></th>
+<th class="head"><p>col-1</p></th>
 </tr>
+</thead>
+<tbody>
 <tr class="row-even"><td><p>0</p></td>
 <td><p>10</p></td>
-<td><p>=np.cumsum(df[‘col-0’][0:3])</p></td>
+<td><p><span class="red">=np.cumsum(df[‘col-0’][0:3])</span></p></td>
 </tr>
 <tr class="row-odd"><td><p>1</p></td>
 <td><p>20</p></td>
@@ -258,15 +300,17 @@ of the destinations.</p>
 <p>it will update the relevant cells.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 20%" />
-<col style="width: 40%" />
-<col style="width: 40%" />
+<col style="width: 25%" />
+<col style="width: 44%" />
+<col style="width: 31%" />
 </colgroup>
-<tbody>
-<tr class="row-odd"><td></td>
-<td><p>col-0</p></td>
-<td><p>col-1</p></td>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>col-0</p></th>
+<th class="head"><p>col-1</p></th>
 </tr>
+</thead>
+<tbody>
 <tr class="row-even"><td><p>0</p></td>
 <td><p>10</p></td>
 <td><p>10</p></td>
@@ -285,22 +329,24 @@ of the destinations.</p>
 destinations, result will be the same.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 8%" />
-<col style="width: 16%" />
+<col style="width: 9%" />
+<col style="width: 15%" />
 <col style="width: 76%" />
 </colgroup>
-<tbody>
-<tr class="row-odd"><td></td>
-<td><p>col-0</p></td>
-<td><p>col-1</p></td>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>col-0</p></th>
+<th class="head"><p>col-1</p></th>
 </tr>
+</thead>
+<tbody>
 <tr class="row-even"><td><p>0</p></td>
 <td><p>10</p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p>1</p></td>
 <td><p>20</p></td>
-<td><p>=np.cumsum(df[‘col-0’][0:3])</p></td>
+<td><p><span class="red">=np.cumsum(df[‘col-0’][0:3])</span></p></td>
 </tr>
 <tr class="row-even"><td><p>2</p></td>
 <td><p>30</p></td>
@@ -314,15 +360,17 @@ destinations, result will be the same.</p>
 <p>An row will be updated if the result should be interpreted as a row vector.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 6%" />
-<col style="width: 12%" />
-<col style="width: 82%" />
+<col style="width: 7%" />
+<col style="width: 13%" />
+<col style="width: 80%" />
 </colgroup>
-<tbody>
-<tr class="row-odd"><td></td>
-<td><p>col-0</p></td>
-<td><p>col-1</p></td>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>col-0</p></th>
+<th class="head"><p>col-1</p></th>
 </tr>
+</thead>
+<tbody>
 <tr class="row-even"><td><p>0</p></td>
 <td><p>10</p></td>
 <td><p>20</p></td>
@@ -337,22 +385,24 @@ destinations, result will be the same.</p>
 </tr>
 <tr class="row-odd"><td><p>3</p></td>
 <td></td>
-<td><p>=np.mean(df.loc[0:3, ‘col-0’:’col-1’])</p></td>
+<td><p><span class="red">=np.mean(df.loc[0:3, ‘col-0’:’col-1’])</span></p></td>
 </tr>
 </tbody>
 </table>
 <p>will return <code class="docutils literal notranslate"><span class="pre">pd.Series([20,</span> <span class="pre">40])</span></code>, which will update the table to</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 20%" />
-<col style="width: 40%" />
-<col style="width: 40%" />
+<col style="width: 25%" />
+<col style="width: 44%" />
+<col style="width: 31%" />
 </colgroup>
-<tbody>
-<tr class="row-odd"><td></td>
-<td><p>col-0</p></td>
-<td><p>col-1</p></td>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>col-0</p></th>
+<th class="head"><p>col-1</p></th>
 </tr>
+</thead>
+<tbody>
 <tr class="row-even"><td><p>0</p></td>
 <td><p>10</p></td>
 <td><p>20</p></td>
@@ -377,18 +427,20 @@ destinations, result will be the same.</p>
 <p>To use cell references like Excel, use “&amp;=” instead of “=”.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 8%" />
+<col style="width: 9%" />
 <col style="width: 16%" />
 <col style="width: 76%" />
 </colgroup>
-<tbody>
-<tr class="row-odd"><td></td>
-<td><p>col-0</p></td>
-<td><p>col-1</p></td>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>col-0</p></th>
+<th class="head"><p>col-1</p></th>
 </tr>
+</thead>
+<tbody>
 <tr class="row-even"><td><p>0</p></td>
 <td><p>10</p></td>
-<td><p>&amp;=np.mean(df[‘col-0’][0:3])</p></td>
+<td><p><span class="red">&amp;=np.mean(df[‘col-0’][0:3])</span></p></td>
 </tr>
 <tr class="row-odd"><td><p>1</p></td>
 <td><p>20</p></td>
@@ -402,15 +454,17 @@ destinations, result will be the same.</p>
 </table>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 20%" />
-<col style="width: 40%" />
-<col style="width: 40%" />
+<col style="width: 25%" />
+<col style="width: 44%" />
+<col style="width: 31%" />
 </colgroup>
-<tbody>
-<tr class="row-odd"><td></td>
-<td><p>col-0</p></td>
-<td><p>col-1</p></td>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>col-0</p></th>
+<th class="head"><p>col-1</p></th>
 </tr>
+</thead>
+<tbody>
 <tr class="row-even"><td><p>0</p></td>
 <td><p>10</p></td>
 <td><p>20</p></td>
@@ -473,21 +527,16 @@ restrict the variables to be added by setting <code class="docutils literal notr
 </ol>
 </section>
 </section>
-<section id="send-the-values-to-the-console">
-<h3><a class="toc-backref" href="#id5">Send the values to the console</a><a class="headerlink" href="#send-the-values-to-the-console" title="Permalink to this headline">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">Ctrl</span> <span class="pre">+</span> <span class="pre">I</span></code> in the console will insert a data reference object <code class="docutils literal notranslate"><span class="pre">viewer.data[...]</span></code> at the
-cursor position. The data reference object is updated in real-time when the table selection is
-changed. This is the fastest way to obtain the values in the table.</p>
-</section>
 </section>
 <section id="toolbar">
 <h2><a class="toc-backref" href="#id6">Toolbar</a><a class="headerlink" href="#toolbar" title="Permalink to this headline">¶</a></h2>
 <p>Toolbar contains many functions that help you with analyzing the table data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>You can “click” any buttons in the toolbar using the keyboard; push <code class="docutils literal notranslate"><span class="pre">Alt</span></code> (or <code class="docutils literal notranslate"><span class="pre">⌥</span></code>
-in Mac)  to change focus to the toolbar, and follow the tooltip labels to find the
-appropriate key combo to get to the button you want (similar to Microsoft Office).</p>
+<p>You can “click” any buttons in the toolbar using the keyboard; push <span class="kbd">Alt</span>
+(or <span class="kbd">⌥</span> in Mac)  to change focus to the toolbar, and follow the tooltip
+labels to find the appropriate key combo to get to the button you want
+(similar to Microsoft Office).</p>
 </div>
 <section id="home-menu">
 <h3><a class="toc-backref" href="#id7">Home menu</a><a class="headerlink" href="#home-menu" title="Permalink to this headline">¶</a></h3>
