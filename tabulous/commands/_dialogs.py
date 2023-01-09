@@ -1,5 +1,5 @@
 from functools import partial
-from typing import List, Union, TYPE_CHECKING
+from typing import List, Union, TYPE_CHECKING, Tuple
 from typing_extensions import Annotated
 
 import logging
@@ -206,7 +206,7 @@ def hist(
     label: SelectionOperator,
     table: TableBase,
     bins: int = 10,
-    range: tuple[str, str] = ("", ""),
+    range: Tuple[str, str] = ("", ""),
     alpha: float = 1.0,
     density: bool = False,
     histtype: str = "bar",

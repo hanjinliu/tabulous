@@ -1,9 +1,6 @@
-import sys
 from tabulous import TableViewer
 from tabulous.types import ItemInfo
 import numpy as np
-
-PY_38 = sys.version_info <= (3, 8)
 
 if __name__ == "__main__":
     viewer = TableViewer()
@@ -24,15 +21,13 @@ if __name__ == "__main__":
             f"{info.old_value} to {info.value}."
         )
 
-    if PY_38:
-        # NOTE: Python <= 3.8 does not support __getitem__ in a decorator
-        def _on_data_change(info: ItemInfo):
-            print("data at row 0 changed.")
-        table.events.data[0, :].connect(_on_data_change)
+    def _on_data_change(info: ItemInfo):
+        print("data at row 0 changed.")
+    table.events.data[0, :].connect(_on_data_change)
 
-    else:
-        @table.events.data[0, :].connect
-        def _on_data_change(info: ItemInfo):
-            print("data at row 0 changed.")
+    # NOTE: Python >= 3.9 supports this syntax
+    # >>> @table.events.data[0, :].connect
+    # >>> def _on_data_change(info: ItemInfo):
+    # ...     print("data at row 0 changed.")
 
     viewer.show()

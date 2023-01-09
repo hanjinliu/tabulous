@@ -10,9 +10,8 @@ if TYPE_CHECKING:
     import pandas as pd
 
     _TimeLike = Union[pd.Timestamp, pd.Timedelta]
+    _ColorType = tuple[int, int, int, int]
 
-
-_ColorType = tuple[int, int, int, int]
 _DEFAULT_MIN = "#697FD1"
 _DEFAULT_MAX = "#FF696B"
 

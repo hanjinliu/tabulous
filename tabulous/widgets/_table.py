@@ -596,7 +596,10 @@ class _DataFrameTableLayer(TableBase):
         import pandas as pd
 
         if not isinstance(data, pd.DataFrame):
-            mod = type(data).__module__.split(".", 1)[0]
+            try:
+                mod = type(data).__module__.split(".", 1)[0]
+            except AttributeError:
+                mod = ""
             if mod == "polars":
                 import polars as pl
 

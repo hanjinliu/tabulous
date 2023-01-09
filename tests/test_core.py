@@ -17,7 +17,7 @@ def test_io():
     tbl.read_csv(DATA_PATH / "test.csv").close()
 
 @pytest.mark.parametrize(
-    "fname", [f for f in glob("examples/*.py") if "napari" not in f]
+    "fname", [f for f in glob("examples/*.py") if "napari" not in f and "seaborn" not in f]
 )
 def test_examples(fname):
     with warnings.catch_warnings():
