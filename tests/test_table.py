@@ -7,7 +7,7 @@ from magicgui import magicgui
 from qtpy import QtWidgets as QtW
 import pytest
 
-from ._utils import get_cell_value, edit_cell, selection_equal
+from ._utils import edit_cell, selection_equal
 
 df0 = pd.DataFrame({"a": [10, 20, 30], "b": [1.0, 1.1, 1.2]})
 df1 = pd.DataFrame({"label": ["one", "two", "one"], "value": [1.0, 1.1, 1.2]})
@@ -21,7 +21,7 @@ def test_display(df: pd.DataFrame):
     assert table.data.columns is df.columns
     assert table.data.index is df.index
     assert table.table_shape == df.shape
-    assert get_cell_value(table._qwidget, 0, 0) == str(df.iloc[0, 0])
+    assert table.cell.text[0, 0] == str(df.iloc[0, 0])
 
 @pytest.mark.parametrize("df", [df0, df1])
 def test_editing_data(df: pd.DataFrame):

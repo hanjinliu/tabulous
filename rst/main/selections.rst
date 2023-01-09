@@ -81,12 +81,13 @@ or directly set a list to :attr:`selections`.
     table.selections = [(slice(0, 10, None), slice(0, 1, None))]
 
 
-Catch Change in Table Selections
-================================
+Catch Changes in Table Selections
+=================================
 
 You can bind a callback function that will get called on every selection change event.
-The :attr:`events` attribute is a :class:`SignalGroup` object of `psygnal <https://github.com/tlambert03/psygnal>`_.
-``table.events.selections.connect`` registers a callback function to table events.
+The :attr:`events` attribute is a :class:`SignalGroup` object of
+`psygnal <https://github.com/tlambert03/psygnal>`_.
+:meth:`table.events.selections.connect` registers a callback function to table events.
 
 .. code-block:: python
 

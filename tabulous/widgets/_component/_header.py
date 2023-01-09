@@ -12,13 +12,45 @@ from typing import (
 
 import numpy as np
 from tabulous.exceptions import TableImmutableError
-from ._base import TableComponent
+from ._base import Component, TableComponent
 
 if TYPE_CHECKING:
     import pandas as pd
     from tabulous._qt._table._base._header_view import QDataFrameHeaderView
 
 _F = TypeVar("_F", bound=Callable)
+
+
+class HeaderSectionSpan(Component["_HeaderInterface"]):
+    def __getitem__(self, index: int) -> int:
+        header = self.parent._get_header()
+        return header.sectionSize(index)
+
+    def __setitem__(
+        self,
+        index: int | slice | list[int],
+        span: int | Sequence[int],
+    ) -> None:
+        header = self.parent._get_header()
+        if isinstance(index, (slice, list)):
+            if isinstance(index, slice):
+                index = list(range(index.indices(header.count())))
+            if isinstance(span, Sequence):
+                # set span for each section
+                if len(span) != len(index):
+                    raise ValueError("Size mismatch between destination and spans.")
+                [header.resizeSection(idx, sp) for idx, sp in zip(index, span)]
+            else:
+                [header.resizeSection(idx, span) for idx in index]
+        else:
+            header.resizeSection(index, span)
+
+    def resize_to_content(self):
+        from qtpy.QtWidgets import QHeaderView
+
+        header = self.parent._get_header()
+        header.resizeSections(QHeaderView.ResizeMode.ResizeToContents)
+        return None
 
 
 class _HeaderInterface(TableComponent):
@@ -69,7 +101,14 @@ class _HeaderInterface(TableComponent):
     def __repr__(self) -> str:
         return f"<{type(self).__name__}({self._get_axis()!r}) of {self.parent!r}>"
 
-    def __getitem__(self, key: int | slice):
+    # fmt: off
+    @overload
+    def __getitem__(self, key: int) -> str: ...
+    @overload
+    def __getitem__(self, key: slice | list[int] | np.ndarray) -> str: ...
+    # fmt: on
+
+    def __getitem__(self, key):
         return self._get_axis()[key]
 
     def __setitem__(self, key: int | slice, value: Any):
@@ -149,6 +188,11 @@ class _HeaderInterface(TableComponent):
             smodel.ranges[i][self._AXIS_NUMBER] for i in smodel._col_selection_indices
         ]
         return out
+
+    @property
+    def span(self) -> HeaderSectionSpan:
+        """Sub-field to interact with section spans."""
+        return HeaderSectionSpan(self)
 
 
 class VerticalHeaderInterface(_HeaderInterface):

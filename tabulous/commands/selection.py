@@ -38,12 +38,12 @@ def copy_as_markdown(viewer: TableViewerBase):
 
 
 def copy_as_rst_simple(viewer: TableViewerBase):
-    """Copy as rst simple table"""
+    """Copy as reStructuredText (rst) simple table"""
     _utils.get_table(viewer)._qwidget._copy_as_formated("rst")
 
 
 def copy_as_rst_grid(viewer: TableViewerBase):
-    """Copy as rst grid table"""
+    """Copy as reStructuredText (rst) grid table"""
     _utils.get_table(viewer)._qwidget._copy_as_formated("grid")
 
 
@@ -161,7 +161,7 @@ def paste_data_from_markdown(viewer: TableViewerBase):
 
 
 def paste_data_from_rst(viewer: TableViewerBase):
-    """Paste from reStructuredText table"""
+    """Paste from reStructuredText (rst) table"""
 
     import numpy as np
     import pandas as pd
@@ -327,64 +327,6 @@ def remove_selected_columns(viewer: TableViewerBase):
         sheet.removeColumns(col_range.start, col_range.stop - col_range.start)
         return None
     raise ValueError("No selection under cursor.")
-
-
-def set_foreground_colormap(viewer: TableViewerBase) -> None:
-    """Set foreground colormap to a column"""
-    from tabulous._colormap import exec_colormap_dialog
-
-    table, column_name = _utils.get_table_and_column_name(viewer)
-    if cmap := exec_colormap_dialog(
-        table.native._get_sub_frame(column_name),
-        table.native,
-    ):
-        table.text_color.set(column_name, cmap, infer_parser=False)
-    return None
-
-
-def reset_foreground_colormap(viewer: TableViewerBase) -> None:
-    """Reset foreground colormap"""
-    table, column_name = _utils.get_table_and_column_name(viewer)
-    del table.text_color[column_name]
-
-
-def set_background_colormap(viewer: TableViewerBase) -> None:
-    """Set background colormap to a column"""
-    from tabulous._colormap import exec_colormap_dialog
-
-    table, column_name = _utils.get_table_and_column_name(viewer)
-    if cmap := exec_colormap_dialog(
-        table.native._get_sub_frame(column_name),
-        table.native,
-    ):
-        table.background_color.set(column_name, cmap, infer_parser=False)
-    return None
-
-
-def reset_background_colormap(viewer: TableViewerBase) -> None:
-    """Reset background colormap"""
-    table, column_name = _utils.get_table_and_column_name(viewer)
-    del table.background_color[column_name]
-
-
-def set_text_formatter(viewer: TableViewerBase) -> None:
-    """Set text formatter"""
-    from tabulous._text_formatter import exec_formatter_dialog
-
-    table, column_name = _utils.get_table_and_column_name(viewer)
-
-    if fmt := exec_formatter_dialog(
-        table.native._get_sub_frame(column_name),
-        table.native,
-    ):
-        table.formatter.set(column_name, fmt)
-    return None
-
-
-def reset_text_formatter(viewer: TableViewerBase) -> None:
-    """Reset text formatter"""
-    table, column_name = _utils.get_table_and_column_name(viewer)
-    del table.formatter[column_name]
 
 
 def write_data_signal_in_console(viewer: TableViewerBase):

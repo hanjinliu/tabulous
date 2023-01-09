@@ -13,15 +13,15 @@ to the context menu. Suppose you have a viewer and a table:
 
 you can register functions using following methods.
 
-- ``viewer.tables.register_action`` ... register action to the tab bar.
-- ``table.index.register_action`` ... register action to the vertical header.
-- ``table.columns.register_action`` ... register action to the horizontal header.
-- ``table.cells.register_action`` ... register action to the table cells.
+- :meth:`viewer.tables.register_action` ... register action to the tab bar.
+- :meth:`table.index.register_action` ... register action to the vertical header.
+- :meth:`table.columns.register_action` ... register action to the horizontal header.
+- :meth:`table.cells.register_action` ... register action to the table cells.
 
 Register actions to the tab bar
 ===============================
 
-Action for ``viewer.tables.register_action`` must have signature ``(index: int)``.
+Action for :meth:`viewer.tables.register_action` must have signature ``(index: int)``.
 ``index`` is the index of the right-clicked tab.
 
 .. code-block:: python
@@ -42,7 +42,7 @@ If you want to register it at a submenu, use ``">"`` as the separator.
 Register actions to the headers
 ===============================
 
-Other ``register_action`` method works similarly. In the case of headers,
+Other :meth:`register_action` method works similarly. In the case of headers,
 the signature for the action is also ``(index: int)``. Here, ``index`` is
 the index of the right-clicked position (ready for :meth:`iloc`).
 
@@ -59,7 +59,7 @@ the index of the right-clicked position (ready for :meth:`iloc`).
 Register actions to the cells
 =============================
 
-The ``register_action`` method for cells also work in a similar way, but has
+The :meth:`register_action` method for cells also work in a similar way, but has
 signature ``(index: tuple[int, int])`` unlike others. Here, ``index`` is a
 tuple of row index and column index (ready for :meth:`iloc`).
 

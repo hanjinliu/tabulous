@@ -2,7 +2,7 @@
 Use Non-main Window Table Viewers
 =================================
 
-Aiming at better extensibility, ``tabulous`` is designed to allow many different types of
+Aiming at better extensibility, :mod:`tabulous` is designed to allow many different types of
 integration to external packages.
 
 .. contents:: Contents
@@ -12,8 +12,8 @@ integration to external packages.
 Use TableViewer in Your Qt Widget
 =================================
 
-If you plan to use a table viewer as a child of another ``QWidget``, you can use a non-main
-window version of it. The ``native`` property returns the Qt backend widget.
+If you plan to use a table viewer as a child of another :class:`QWidget`, you can use a non-main
+window version of it. The :attr:`native` property returns the Qt backend widget.
 
 .. code-block:: python
 
@@ -28,23 +28,24 @@ window version of it. The ``native`` property returns the Qt backend widget.
 
 .. note::
 
-    A benefit of using ``tabulous`` is that a table widget usually takes too much space but this
-    problem can be solve by popup view of tables in ``tabulous``. See :doc:`table_advanced` for
+    A benefit of using :mod:`tabulous` is that a table widget usually takes too much space but this
+    problem can be solve by popup view of tables in :mod:`tabulous`. See :doc:`table_view_mode` for
     more detail.
 
 .. note::
 
     To avoid conflicting with the main widget, the non-main-window version of table viewer has
-    some restriction. For instance, embedded console does not open with shortcut ``Ctrl+Shift+C``
+    some restriction. For instance, embedded console does not open with shortcut :kbd:`Ctrl+Shift+C`
     so you have to programmatically open it by ``viewer.console.visible = True``.
 
 
 Use TableViewer with magicgui
 =============================
 
-If you want to use a `magicgui <https://github.com/pyapp-kit/magicgui>`_ version of it, you can
-use ``MagicTableViewer``. ``MagicTableViewer`` is a subclass of ``TableViewerWidget`` and
-``magicgui.widgets.Widget`` so it is compatible with all the ``magicgui`` functionalities.
+If you want to use a `magicgui <https://github.com/pyapp-kit/magicgui>`_ version of it,
+you can use :class:`MagicTableViewer`. :class:`MagicTableViewer`` is a subclass of
+:class:`TableViewerWidget` and :class:`magicgui.widgets.Widget` so it is compatible with
+all the :mod:`magicgui` functionalities.
 
 In following simple example you can load a table data from a file.
 
@@ -63,7 +64,7 @@ In following simple example you can load a table data from a file.
 
     container.show()
 
-``MagicTableViewer`` can also easily be used with `magic-class <https://github.com/hanjinliu/magic-class>`_.
+:class:`MagicTableViewer` can also easily be used with `magic-class <https://github.com/hanjinliu/magic-class>`_.
 Following example does similar thing as the one above.
 
 .. code-block:: python

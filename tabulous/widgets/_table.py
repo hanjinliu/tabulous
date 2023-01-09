@@ -4,7 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Hashable, TYPE_CHECKING
+from typing import Any, Callable, Hashable, TYPE_CHECKING, overload
 import warnings
 from psygnal import SignalGroup, Signal
 
@@ -14,6 +14,7 @@ from tabulous._psygnal import SignalArray, InCellRangedSlot
 
 if TYPE_CHECKING:
     from typing_extensions import Self, Literal
+    import numpy as np
     import pandas as pd
     from collections_undo import UndoManager
     from qtpy import QtWidgets as QtW
@@ -66,6 +67,7 @@ class TableBase(ABC):
     """The base class for a table layer."""
 
     _Default_Name = "None"
+
     cell = _comp.CellInterface()
     index = _comp.VerticalHeaderInterface()
     columns = _comp.HorizontalHeaderInterface()
@@ -77,6 +79,8 @@ class TableBase(ABC):
     validator = _comp.ValidatorInterface()
     selections = _comp.SelectionRanges()
     highlights = _comp.HighlightRanges()
+    loc = _comp.TableLocIndexer()
+    iloc = _comp.TableILocIndexer()
 
     def __init__(
         self,
@@ -118,6 +122,20 @@ class TableBase(ABC):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}<{self.name!r}>"
+
+    # fmt: off
+    @overload
+    def __getitem__(self, key: str) -> _comp.TableSeries: ...
+    @overload
+    def __getitem__(self, key: list[str]) -> _comp.TableSubset: ...
+    # fmt: on
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            return _comp.TableSeries(self, slice(None), key)
+        elif isinstance(key, list):
+            return _comp.TableSubset(self, slice(None), key)
+        raise TypeError(f"Invalid key type: {type(key)}")
 
     @property
     def cellref(self):
@@ -452,6 +470,18 @@ class TableBase(ABC):
         save_file(path, self.data)
         return None
 
+    def screenshot(self) -> np.ndarray:
+        """Get screenshot of the widget."""
+        return self._qwidget.screenshot()
+
+    def save_screenshot(self, path: str):
+        """Save screenshot of the widget."""
+        from PIL import Image
+
+        arr = self.screenshot()
+        Image.fromarray(arr).save(path)
+        return None
+
     def _emit_selections(self):
         with self.selections.blocked():
             # Block selection to avoid recursive update.
@@ -525,12 +555,12 @@ class TableBase(ABC):
 
         # fmt: off
         _hheader_register = self.columns.register_action
-        _hheader_register("Color > Set foreground colormap")(_wrap(cmds.selection.set_foreground_colormap))  # noqa: E501
-        _hheader_register("Color > Reset foreground colormap")(_wrap(cmds.selection.reset_foreground_colormap))  # noqa: E501
-        _hheader_register("Color > Set background colormap")(_wrap(cmds.selection.set_background_colormap))  # noqa: E501
-        _hheader_register("Color > Reset background colormap")(_wrap(cmds.selection.reset_background_colormap))  # noqa: E501
-        _hheader_register("Formatter > Set text formatter")(_wrap(cmds.selection.set_text_formatter))  # noqa: E501
-        _hheader_register("Formatter > Reset text formatter")(_wrap(cmds.selection.reset_text_formatter))  # noqa: E501
+        _hheader_register("Color > Set text colormap")(_wrap(cmds.column.set_text_colormap))  # noqa: E501
+        _hheader_register("Color > Reset text colormap")(_wrap(cmds.column.reset_text_colormap))  # noqa: E501
+        _hheader_register("Color > Set background colormap")(_wrap(cmds.column.set_background_colormap))  # noqa: E501
+        _hheader_register("Color > Reset background colormap")(_wrap(cmds.column.reset_background_colormap))  # noqa: E501
+        _hheader_register("Formatter > Set text formatter")(_wrap(cmds.column.set_text_formatter))  # noqa: E501
+        _hheader_register("Formatter > Reset text formatter")(_wrap(cmds.column.reset_text_formatter))  # noqa: E501
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
         _hheader_register("Sort")(_wrap(cmds.selection.sort_by_columns))
         _hheader_register("Filter")(_wrap(cmds.selection.filter_by_columns))
@@ -629,7 +659,7 @@ class Table(_DataFrameTableLayer):
 
     _Default_Name = "table"
     _qwidget: QTableLayer
-    native: Table
+    native: QTableLayer
 
     def _create_backend(self, data: pd.DataFrame) -> QTableLayer:
         from tabulous._qt import QTableLayer

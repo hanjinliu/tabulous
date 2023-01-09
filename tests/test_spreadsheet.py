@@ -112,7 +112,7 @@ def test_column_dtype(dtype: str):
 def test_column_dtype_validation():
     viewer = TableViewer(show=False)
     sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
-    sheet.dtypes.set_dtype("a", "int")
+    sheet.dtypes.set("a", "int")
     sheet.cell[0, 0] = 1
     with pytest.raises(ValueError):
         sheet.cell[0, 0] = "a"

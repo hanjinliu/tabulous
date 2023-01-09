@@ -361,6 +361,11 @@ def choose_multiple(choices: List):
 
 
 @dialog_factory
+def get_float(x: float):
+    return x
+
+
+@dialog_factory
 def spinbox(min: str = "0", max: str = "1000", step: str = "") -> dict:
     min = int(min)
     max = int(max)

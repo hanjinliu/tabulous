@@ -162,7 +162,7 @@ class QtConsole(RichJupyterWidget):
 
     def setTempText(self, text: str | None = None) -> None:
         if text is None:
-            text = f"viewer.data.loc[...]"
+            text = "viewer.data.loc[...]"
         cursor = self._control.textCursor()
         cursor.removeSelectedText()
         pos = cursor.position()
@@ -190,7 +190,8 @@ class QtConsole(RichJupyterWidget):
         self.codeExecuted.emit(source)
         return None
 
-    # NOTE: qtconsole overwrites "parent" method so we have to use another method to manage parent.
+    # NOTE: qtconsole overwrites "parent" method so we have to use another method to
+    # manage parent.
     def dockParent(self) -> QtDockWidget:
         """Return the dock widget parent."""
         if self._dock_parent is None:

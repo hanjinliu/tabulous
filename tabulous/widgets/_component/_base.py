@@ -47,7 +47,7 @@ class Component(Generic[T]):
         ...
 
     @overload
-    def __get__(self, obj: T, owner=None) -> Self[T]:
+    def __get__(self, obj: Any, owner=None) -> Self[T]:
         ...
 
     def __get__(self, obj, owner=None):
@@ -60,7 +60,7 @@ class Component(Generic[T]):
             out = self._instances[_id] = self.__class__(obj)
         return out
 
-    def __set__(self, obj: T, value: Any) -> None:
+    def __set__(self, obj: Any, value: Any) -> None:
         if obj is None:
             raise AttributeError("Cannot set attribute.")
         _id = id(obj)

@@ -827,6 +827,22 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Return the parent table viewer."""
         return self._qtable_view.parentViewer()
 
+    def screenshot(self):
+        """Create an array of pixel data of the current view."""
+        import qtpy
+
+        img = self.grab().toImage()
+        bits = img.constBits()
+        h, w, c = img.height(), img.width(), 4
+        if qtpy.API_NAME.startswith("PySide"):
+            arr = np.array(bits).reshape(h, w, c)
+        else:
+            bits.setsize(h * w * c)
+            arr: np.ndarray = np.frombuffer(bits, np.uint8)
+            arr = arr.reshape(h, w, c)
+
+        return arr[:, :, [2, 1, 0, 3]]
+
     def _switch_head_and_index(self, axis: int = 1) -> None:
         """Switch the first row/column data and the index object."""
         self.setProxy(None)  # reset filter to avoid unexpected errors
@@ -839,14 +855,14 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
                 df_new = df.reset_index()
             if was_range:
                 _index = as_constructor(df.columns)(df.columns.size)
-                df_new.set_axis(_index, axis=1, inplace=True)
+                df_new = df_new.set_axis(_index, axis=1)
 
         elif axis == 1:
             was_range = is_ranged(df.index)
             if is_ranged(df.columns):  # df[0] to column
                 top_row = df.iloc[0, :].astype(str)
                 df_new = df.iloc[1:, :]
-                df_new.set_axis(top_row, axis=1, inplace=True)
+                df_new = df_new.set_axis(top_row, axis=1)
             else:  # column to df[0]
                 columns = range(len(df.columns))
                 head = pd.DataFrame(
@@ -856,10 +872,10 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
                     ],
                     columns=columns,
                 )
-                df.set_axis(columns, axis=1, inplace=True)
+                df = df.set_axis(columns, axis=1)
                 df_new = pd.concat([head, df], axis=0)
             if was_range:
-                df_new.set_axis(pd.RangeIndex(len(df_new)), axis=0, inplace=True)
+                df_new = df_new.set_axis(pd.RangeIndex(len(df_new)), axis=0)
         else:
             raise ValueError("axis must be 0 or 1.")
         return self.setDataFrame(df_new)

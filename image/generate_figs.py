@@ -1,5 +1,3 @@
-from typing import Callable
-from functools import wraps
 from pathlib import Path
 import numpy as np
 from magicgui import magicgui
@@ -7,27 +5,12 @@ from magicgui.widgets import TextEdit
 
 from tabulous import TableViewer, commands as cmds
 
-_ALL_FUNCTIONS = []
-_DIR_PATH = Path(__file__).parent
+from tabulous_doc import FunctionRegistry
+
+REG = FunctionRegistry(Path(__file__).parent)
 
 
-def register(f: Callable[[], TableViewer]):
-    @wraps(f)
-    def wrapped():
-        viewer = f()
-        viewer.save_screenshot(_DIR_PATH / f"{f.__name__}.png")
-        viewer.close()
-
-    _ALL_FUNCTIONS.append(wrapped)
-    return wrapped
-
-
-def main():
-    for f in _ALL_FUNCTIONS:
-        f()
-
-
-@register
+@REG.register
 def viewer_example():
     viewer = TableViewer()
     sheet = viewer.open_sample("iris", type="spreadsheet")
@@ -40,7 +23,7 @@ def viewer_example():
     return viewer
 
 
-@register
+@REG.register
 def filter_example():
     viewer = TableViewer()
     rng = np.random.default_rng(1234)
@@ -52,7 +35,7 @@ def filter_example():
     return viewer
 
 
-@register
+@REG.register
 def sort_example():
     viewer = TableViewer()
     rng = np.random.default_rng(1234)
@@ -67,21 +50,14 @@ def sort_example():
     return viewer
 
 
-@register
+@REG.register
 def colormap_example():
     viewer = TableViewer()
     sheet = viewer.open_sample("iris", type="spreadsheet")
-    sheet.background_colormap(
-        "species",
+    sheet["species"].background_color.set(
         {"setosa": "lightblue", "versicolor": "orange", "virginica": "violet"},
     )
-
-    @sheet.foreground_colormap("petal_width")
-    def _cmap(v):
-        v = float(v)
-        r = (v - 0.1) / 2.4 * 255
-        b = (1 - (v - 0.1) / 2.4) * 255
-        return [r, 255, b, 255]
+    sheet["petal_width"].text_color.set(interp_from=["red", "blue"])
 
     viewer.resize(100, 100)
     sheet.move_iloc(53, 4)
@@ -89,7 +65,7 @@ def colormap_example():
     return viewer
 
 
-@register
+@REG.register
 def eval_example():
     viewer = TableViewer()
     sheet = viewer.add_spreadsheet(np.arange(100))
@@ -103,7 +79,7 @@ def eval_example():
     return viewer
 
 
-@register
+@REG.register
 def command_palette_example():
     viewer = TableViewer()
     viewer.add_spreadsheet()
@@ -112,7 +88,7 @@ def command_palette_example():
     return viewer
 
 
-@register
+@REG.register
 def custom_widget_example():
     viewer = TableViewer()
     sheet = viewer.add_spreadsheet()
@@ -140,4 +116,4 @@ def custom_widget_example():
 
 
 if __name__ == "__main__":
-    main()
+    REG.run_all()

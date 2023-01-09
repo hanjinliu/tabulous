@@ -1,0 +1,54 @@
+.gray {color: gray;}
+
+.silver {color: silver;}
+
+.white {color: white;}
+
+.red {color: red;}
+
+.magenta {color: magenta;}
+
+.pink {color: pink;}
+
+.orange {color: orange;}
+
+.yellow {color: yellow;}
+
+.lime {color: lime;}
+
+.green {color: green;}
+
+.teal {color: teal;}
+
+.cyan {color: cyan;}
+
+.aqua {color: aqua;}
+
+.blue {color: blue;}
+
+.navy {color: navy;}
+
+.purple {color: purple;}
+
+.kbd {
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px #fff inset;
+    color: #444;
+    display: inline-block;
+    font-size: 0.85em;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.2em 0.4em;
+    white-space: nowrap;
+}
+
+.menu {
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 0 0 1px #fff inset;
+    font-size: 0.85em;
+    padding: 0.2em 0.4em;
+    white-space: nowrap;
+}
