@@ -141,6 +141,8 @@ ARROW_KEYS = frozenset(
 FUNC_ARROW_KEYS = frozenset(
     {Qt.Key.Key_Home, Qt.Key.Key_End, Qt.Key.Key_PageUp, Qt.Key.Key_PageDown}
 )
+ALPHA = QtGui.QKeySequence("α")[0]
+OMEGA = QtGui.QKeySequence("ω")[0]
 
 
 class QtKeys:
@@ -170,7 +172,8 @@ class QtKeys:
 
     def _reduce_key(self) -> Self:
         if self.key == ExtKey.No:
-            # this case is needed to avoid triggering parametric key binding with modifiers.
+            # this case is needed to avoid triggering parametric key binding
+            # with modifiers.
             return self
         new = QtKeys(self)
         new.key = ExtKey.Any
@@ -199,10 +202,15 @@ class QtKeys:
 
     def is_typing(self) -> bool:
         """True if key is a letter or number."""
-        return self.modifier in (
+        _modifier_ok = self.modifier in (
             Qt.KeyboardModifier.NoModifier,
             Qt.KeyboardModifier.ShiftModifier,
-        ) and (Qt.Key.Key_Exclam <= self.key <= Qt.Key.Key_ydiaeresis)
+        )
+        _key_ok = (
+            Qt.Key.Key_Exclam <= self.key <= Qt.Key.Key_ydiaeresis
+            or ALPHA <= self.key <= OMEGA
+        )
+        return _modifier_ok and _key_ok
 
     def is_moving(self) -> bool:
         """True if arrows are pushed."""
@@ -453,7 +461,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                 if not isinstance(current, QtKeyMap):
                     seq = _key[:i]
                     raise ValueError(
-                        f"Non keymap object {type(current)} encountered at {', '.join(seq)}."
+                        f"Non keymap object {type(current)} encountered at "
+                        f"{', '.join(seq)}."
                     )
                 k = QtKeys(k)
                 try:
@@ -479,7 +488,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                 if not isinstance(current, QtKeyMap):
                     seq = _key[:i]
                     raise ValueError(
-                        f"Non keymap object {type(current)} encountered at {', '.join(seq)}."
+                        f"Non keymap object {type(current)} encountered "
+                        f"at {', '.join(seq)}."
                     )
                 k = QtKeys(k)
                 try:
