@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Hashable
 import re
-from functools import cached_property
 from io import StringIO
 import warnings
 
@@ -40,12 +39,21 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
         self._table_config = get_config().table
         self._columns_dtype = self.parent()._columns_dtype
+        self._out_of_bound_color_cache = None
 
-    @cached_property
+    @property
     def _out_of_bound_color(self) -> QtGui.QColor:
-        color = self.parent()._qtable_view.parentViewer().backgroundColor()
-        r, g, b = color.red(), color.green(), color.blue()
-        return QtGui.QColor(max(r - 4, 0), max(g - 4, 0), b)
+        if self._out_of_bound_color_cache is not None:
+            return self._out_of_bound_color_cache
+        qtable_view = self.parent()._qtable_view
+        if viewer := qtable_view.parentViewer():
+            bgcolor = viewer.backgroundColor()
+        else:
+            bgcolor = qtable_view.palette().color(qtable_view.backgroundRole())
+        r, g, b = bgcolor.red(), bgcolor.green(), bgcolor.blue()
+        qcolor = QtGui.QColor(max(r - 4, 0), max(g - 4, 0), b)
+        self._out_of_bound_color_cache = qcolor
+        return qcolor
 
     @property
     def df(self) -> pd.DataFrame:  # NOTE: this returns a string data frame

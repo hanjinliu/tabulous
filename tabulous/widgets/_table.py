@@ -338,6 +338,11 @@ class TableBase(ABC):
     @view_mode.setter
     def view_mode(self, mode) -> None:
         """Set view mode of the table."""
+
+        if self._qwidget.parentViewer() is None:
+            raise ValueError(
+                "Table is not attached to a viewer. Cannot change the view mode."
+            )
         if mode is None:
             mode = ViewMode.normal
         else:

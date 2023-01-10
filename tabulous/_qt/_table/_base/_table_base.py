@@ -825,7 +825,9 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def parentViewer(self) -> _QtMainWidgetBase:
         """Return the parent table viewer."""
-        return self._qtable_view.parentViewer()
+        if table_stack := self.tableStack():
+            return table_stack.parentWidget()
+        return None
 
     def screenshot(self):
         """Create an array of pixel data of the current view."""

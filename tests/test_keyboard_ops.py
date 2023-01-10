@@ -1,3 +1,4 @@
+import pytest
 from tabulous import TableViewer
 import numpy as np
 from pytestqt.qtbot import QtBot
@@ -30,3 +31,22 @@ def test_movements_in_popup(qtbot: QtBot):
     assert popup is not QtW.QApplication.focusWidget()
     assert sheet.view_mode == "normal"
     assert sheet.cell[1, 0] == "1"
+
+@pytest.mark.parametrize(
+    "mode, key",
+    [("popup", Qt.Key.Key_P), ("vertical", Qt.Key.Key_V), ("horizontal", Qt.Key.Key_H)]
+)
+def test_changing_view_mode(qtbot: QtBot, mode, key):
+    viewer = TableViewer()
+    qtbot.addWidget(viewer._qwidget)
+    sheet = viewer.add_spreadsheet(np.zeros((10, 10)))
+
+    assert sheet.view_mode == "normal"
+    qtbot.keyClick(viewer._qwidget, Qt.Key.Key_K, Qt.KeyboardModifier.ControlModifier)
+    qtbot.keyClick(viewer._qwidget, key)
+
+    assert sheet.view_mode == mode
+
+    qtbot.keyClick(viewer._qwidget, Qt.Key.Key_K, Qt.KeyboardModifier.ControlModifier)
+    qtbot.keyClick(viewer._qwidget, Qt.Key.Key_N)
+    assert sheet.view_mode == "normal"
