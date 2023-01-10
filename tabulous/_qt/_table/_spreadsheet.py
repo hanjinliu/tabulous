@@ -45,13 +45,14 @@ class SpreadSheetModel(AbstractDataFrameModel):
     def _out_of_bound_color(self) -> QtGui.QColor:
         if self._out_of_bound_color_cache is not None:
             return self._out_of_bound_color_cache
-        if viewer := self.parent()._qtable_view.parentViewer():
+        qtable_view = self.parent()._qtable_view
+        if viewer := qtable_view.parentViewer():
             bgcolor = viewer.backgroundColor()
-            r, g, b = bgcolor.red(), bgcolor.green(), bgcolor.blue()
-            qcolor = QtGui.QColor(max(r - 4, 0), max(g - 4, 0), b)
-            self._out_of_bound_color_cache = qcolor
         else:
-            qcolor = QtGui.QColor(0, 0, 0)
+            bgcolor = qtable_view.palette().color(qtable_view.backgroundRole())
+        r, g, b = bgcolor.red(), bgcolor.green(), bgcolor.blue()
+        qcolor = QtGui.QColor(max(r - 4, 0), max(g - 4, 0), b)
+        self._out_of_bound_color_cache = qcolor
         return qcolor
 
     @property

@@ -246,6 +246,13 @@ class CellInterface(TableComponent):
     background_color = CellBackgroundColorInterface()
     text = CellDisplayedTextInterface()
 
+    def selected_at(self, r: int, c: int) -> bool:
+        """Check if a cell is selected."""
+        for rr, cc in self.parent.selections:
+            if rr.start <= r < rr.stop and cc.start <= c < cc.stop:
+                return True
+        return False
+
     def get_label(self, r: int, c: int) -> str | None:
         """Get the label of a cell."""
         warnings.warn(
