@@ -49,6 +49,8 @@ def switch_header(viewer: TableViewerBase):
 
 def concat(viewer: TableViewerBase):
     """Concatenate table data"""
+    if len(viewer.tables) < 2:
+        raise ValueError("At least two tables are required.")
     out = _dialogs.concat(
         viewer={"bind": viewer},
         names={
@@ -58,6 +60,27 @@ def concat(viewer: TableViewerBase):
         },
         axis={"choices": [("vertical", 0), ("horizontal", 1)]},
         parent=viewer._qwidget,
+    )
+    if out is not None:
+        viewer.add_table(out, name="concat")
+
+
+def merge(viewer: TableViewerBase):
+    """Merge table data"""
+    if len(viewer.tables) < 2:
+        raise ValueError("At least two tables are required.")
+    out = _dialogs.merge(
+        viewer={"bind": viewer},
+        left={
+            "value": viewer.tables[0].name,
+            "choices": [t.name for t in viewer.tables],
+        },
+        right={
+            "value": viewer.tables[1].name,
+            "choices": [t.name for t in viewer.tables],
+        },
+        how={"choices": ["left", "right", "outer", "inner"]},
+        parent=viewer.native,
     )
     if out is not None:
         viewer.add_table(out, name="concat")
@@ -90,6 +113,13 @@ def melt(viewer: TableViewerBase):
     )
     if out is not None:
         viewer.add_table(out, name=f"{table.name}-melt")
+
+
+def transpose(viewer: TableViewerBase):
+    """Transpose current table data"""
+    table = _utils.get_table(viewer)
+    out = table.data.T
+    viewer.add_table(out, name=f"{table.name}-transposed")
 
 
 def show_finder_widget(viewer: TableViewerBase):

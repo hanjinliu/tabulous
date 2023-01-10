@@ -37,7 +37,12 @@ def concat(
     import pandas as pd
 
     dfs = [viewer.tables[name].data for name in names]
-    return pd.concat(dfs, axis=axis, ignore_index=ignore_index)
+    out: pd.DataFrame = pd.concat(dfs, axis=axis, ignore_index=ignore_index)
+    if out.index.duplicated().any():
+        raise ValueError("Index contains duplicates.")
+    if out.columns.duplicated().any():
+        raise ValueError("Columns contains duplicates.")
+    return out
 
 
 @dialog_factory
