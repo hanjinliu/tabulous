@@ -9,22 +9,22 @@ if TYPE_CHECKING:
 
 def copy_data_tab_separated(viewer: TableViewerBase):
     """Copy cells (tab separated)"""
-    viewer.copy_data(headers=False, sep="\t")
+    _utils.get_table(viewer).native.copyToClipboard(headers=False, sep="\t")
 
 
 def copy_data_with_header_tab_separated(viewer: TableViewerBase):
     """Copy cells with headers (tab separated)"""
-    viewer.copy_data(headers=True, sep="\t")
+    _utils.get_table(viewer).native.copyToClipboard(headers=True, sep="\t")
 
 
 def copy_data_comma_separated(viewer: TableViewerBase):
     """Copy cells (comma separated)"""
-    viewer.copy_data(headers=False, sep=",")
+    _utils.get_table(viewer).native.copyToClipboard(headers=False, sep=",")
 
 
 def copy_data_with_header_comma_separated(viewer: TableViewerBase):
     """Copy cells with headers (comma separated)"""
-    viewer.copy_data(headers=True, sep=",")
+    _utils.get_table(viewer).native.copyToClipboard(headers=True, sep=",")
 
 
 def copy_as_literal(viewer: TableViewerBase):

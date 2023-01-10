@@ -75,12 +75,14 @@ QBaseTable._keymap.bind("Ctrl+C", headers=False)(
 QBaseTable._keymap.bind("Ctrl+C, Ctrl+H", headers=True)(
     _check_no_viewer(QBaseTable.copyToClipboard)
 )
-QBaseTable._keymap.bind("Ctrl+V")(_check_no_viewer(QBaseTable.pasteFromClipBoard))
+QMutableTable._keymap.bind("Ctrl+V")(_check_no_viewer(QMutableTable.pasteFromClipBoard))
 QBaseTable._keymap.bind("Ctrl+A")(
     _check_no_viewer(lambda self: self._qtable_view.selectAll)
 )
-QBaseTable._keymap.bind("Delete")(_check_no_viewer(QBaseTable.deleteValues))
-QBaseTable._keymap.bind("Backspace")(_check_no_viewer(QBaseTable.deleteValues))
+QMutableTable._keymap.bind("Delete")(_check_no_viewer(QMutableTable.deleteValues))
+QMutableTable._keymap.bind("Backspace")(_check_no_viewer(QMutableTable.deleteValues))
+
+QBaseTable._keymap.bind("Ctrl+K")(_check_no_viewer(lambda x: None))
 QBaseTable._keymap.bind("Ctrl+K, P")(_check_no_viewer(QBaseTable.setPopupView))
 QBaseTable._keymap.bind("Ctrl+K, V", orientation="vertical")(
     _check_no_viewer(QBaseTable.setDualView)
@@ -121,4 +123,5 @@ def _(self: QBaseTable):
     if path := QtFileHistoryManager.requestPath("w", "Save table"):
         _io.save_file(path, self.getDataFrame())
 
-    # (table.show_finder_widget, "Ctrl+F"),
+
+# (table.show_finder_widget, "Ctrl+F"),

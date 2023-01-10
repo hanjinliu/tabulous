@@ -1,11 +1,38 @@
 from tabulous.widgets import Table
+from pytestqt.qtbot import QtBot
+from qtpy.QtCore import Qt
+import numpy as np
 
-# def test_table_only_usage():
-#     table = Table(df0)
-#     assert table.data is df0
-#     assert table.data.columns is df0.columns
-#     assert table.data.index is df0.index
-#     assert table.table_shape == df0.shape
-#     assert get_cell_value(table._qwidget, 0, 0) == str(df0.iloc[0, 0])
-#     edit_cell(table._qwidget, 0, 0, "11")
-#     assert str(df0.iloc[0, 0]) == "11"
+DATA = np.arange(36).reshape(9, 4)
+
+def test_selection_move(qtbot: QtBot):
+    table = Table(DATA, editable=True)
+    qtbot.addWidget(table.native)
+    qtbot.keyClick(table.native, Qt.Key.Key_Down, Qt.KeyboardModifier.NoModifier)
+    assert table.selections[0] == (slice(1, 2), slice(0, 1))
+
+def test_copy_paste(qtbot: QtBot):
+    table = Table(DATA, editable=True)
+    qtbot.addWidget(table.native)
+
+    # copy
+    table.selections = [(slice(0, 1), slice(0, 1))]
+    qtbot.keyClick(table.native, Qt.Key.Key_C, Qt.KeyboardModifier.ControlModifier)
+
+    # paste
+    table.selections = [(slice(0, 5), slice(1, 2))]
+    qtbot.keyClick(table.native, Qt.Key.Key_V, Qt.KeyboardModifier.ControlModifier)
+
+    assert (table.data.iloc[0:5, 1:2] == table.data.iloc[0, 0]).all().all()
+
+def test_undo_redo(qtbot: QtBot):
+    table = Table(DATA, editable=True)
+    qtbot.addWidget(table.native)
+
+    assert table.data.iloc[0, 0] == 0
+    table.cell[0, 0] = -1
+    assert table.data.iloc[0, 0] == -1
+    qtbot.keyClick(table.native, Qt.Key.Key_Z, Qt.KeyboardModifier.ControlModifier)
+    assert table.data.iloc[0, 0] == 0
+    qtbot.keyClick(table.native, Qt.Key.Key_Y, Qt.KeyboardModifier.ControlModifier)
+    assert table.data.iloc[0, 0] == -1
