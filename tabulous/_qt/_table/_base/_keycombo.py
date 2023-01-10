@@ -82,15 +82,7 @@ QBaseTable._keymap.bind("Ctrl+A")(
 QMutableTable._keymap.bind("Delete")(_check_no_viewer(QMutableTable.deleteValues))
 QMutableTable._keymap.bind("Backspace")(_check_no_viewer(QMutableTable.deleteValues))
 
-QBaseTable._keymap.bind("Ctrl+K")(_check_no_viewer(lambda x: None))
-QBaseTable._keymap.bind("Ctrl+K, P")(_check_no_viewer(QBaseTable.setPopupView))
-QBaseTable._keymap.bind("Ctrl+K, V", orientation="vertical")(
-    _check_no_viewer(QBaseTable.setDualView)
-)
-QBaseTable._keymap.bind("Ctrl+K, H", orientation="horizontal")(
-    _check_no_viewer(QBaseTable.setDualView)
-)
-QBaseTable._keymap.bind("Ctrl+K, N")(_check_no_viewer(QBaseTable.resetViewMode))
+QBaseTable._keymap.bind("Ctrl+K")(_check_no_viewer(QBaseTable.setFocus))
 QBaseTable._keymap.bind("Ctrl+H")(_check_no_viewer(QBaseTable.undoStackView))
 QBaseTable._keymap.bind("Menu")(_check_no_viewer(QBaseTable.showContextMenuAtIndex))
 QBaseTable._keymap.bind("F6")(_check_no_viewer(QBaseTable.raiseSlotError))
