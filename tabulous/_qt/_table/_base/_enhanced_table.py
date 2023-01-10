@@ -203,7 +203,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def _on_moving(self, src: Index, dst: Index) -> None:
         _need_update_all = self._current_drawing_slot_ranges is not None
-        viewer = self.parentViewer()._table_viewer
+
         _nr, _nc = self.parentTable().dataShape()
         _r0, _c0 = dst
         new_status_tip = ""
@@ -216,7 +216,9 @@ class _QTableViewEnhanced(QtW.QTableView):
             else:
                 self._current_drawing_slot_ranges = None
 
-        viewer.status = new_status_tip
+        if qviewer := self.parentViewer():
+            qviewer._table_viewer.status = new_status_tip
+
         if _need_update_all:
             self._update_all()
             return None
@@ -332,6 +334,11 @@ class _QTableViewEnhanced(QtW.QTableView):
             if index.isValid():
                 r, c = index.row(), index.column()
                 self._selection_model.jump_to(r, c)
+            else:
+                # if outside the table is clicked, close the editor
+                if isinstance(self._focused_widget, QCellLiteralEdit):
+                    line = cast(QCellLiteralEdit, self._focused_widget)
+                    line.eval_and_close()
             self._mouse_track.last_button = "left"
         elif e.button() == Qt.MouseButton.RightButton:
             self._mouse_track.was_right_dragging = False
@@ -611,12 +618,7 @@ class _QTableViewEnhanced(QtW.QTableView):
     def parentViewer(self) -> _QtMainWidgetBase | None:
         """The parent table viewer widget."""
         parent = self.parentTable()
-        while True:
-            parent = parent.parent()
-            if hasattr(parent, "_table_viewer"):
-                return parent
-            elif parent is None:
-                return None
+        return parent.parentViewer()
 
     def _rect_from_ranges(
         self,
