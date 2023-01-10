@@ -22,6 +22,7 @@ from tabulous.widgets import (
     Table,
     SpreadSheet,
     TableViewerWidget,
+    MagicTable,
 )
 from tabulous.types import (
     TableColumn,
@@ -82,36 +83,6 @@ class MagicTableViewer(Widget, TableViewerWidget):
             enabled=enabled,
         )
         TableViewerWidget.__init__(self, tab_position=tab_position, show=False)
-        self.native: QtW.QWidget
-        self.native.setLayout(QtW.QVBoxLayout())
-        self.native.layout().addWidget(self._qwidget)
-        self.native.setContentsMargins(0, 0, 0, 0)
-
-
-class MagicTable(Widget, Table):
-    def __init__(
-        self,
-        data: Any | None = None,
-        *,
-        name: str = "",
-        editable: bool = False,
-        label: str = None,
-        tooltip: str | None = None,
-        visible: bool | None = None,
-        enabled: bool = True,
-        gui_only: bool = False,
-    ):
-        Table.__init__(self, data, name=name, editable=editable)
-        super().__init__(
-            widget_type=QBaseWidget,
-            backend_kwargs={"qwidg": QtW.QWidget},
-            name=name,
-            label=label,
-            tooltip=tooltip,
-            visible=visible,
-            enabled=enabled,
-            gui_only=gui_only,
-        )
         mgui_native: QtW.QWidget = self._widget._mgui_get_native_widget()
         mgui_native.setLayout(QtW.QVBoxLayout())
         mgui_native.layout().addWidget(self._qwidget)
@@ -119,7 +90,10 @@ class MagicTable(Widget, Table):
 
     @property
     def native(self):
-        return Table.native.fget(self)
+        try:
+            return TableViewerWidget.native.fget(self)
+        except AttributeError:
+            return Widget.native.fget(self)
 
 
 # #############################################################################
