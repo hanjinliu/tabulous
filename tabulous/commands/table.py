@@ -156,6 +156,24 @@ def date_range(viewer: TableViewerBase):
         table.cell[rsl, csl] = data
 
 
+def timedelta_range(viewer: TableViewerBase):
+    """Generate a range of timedelta values (pd.timedelta_range)"""
+    table = _utils.get_mutable_table(viewer)
+
+    from ._arange import TimeDeltaRangeDialog
+
+    dlg = TimeDeltaRangeDialog()
+    dlg.native.setParent(viewer._qwidget, dlg.native.windowFlags())
+    dlg._selection._read_selection(table)
+    dlg.show()
+
+    @dlg.called.connect
+    def _on_called():
+        val = dlg.get_value(table._qwidget.model().df)
+        rsl, csl, data = val
+        table.cell[rsl, csl] = data
+
+
 def toggle_editability(viewer: TableViewerBase):
     """Toggle table editability"""
     table = viewer.current_table

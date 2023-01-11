@@ -47,13 +47,12 @@ class _CheckedWidget(Container):
         self._cbox.value = val
 
 
-class DateRangeDialog(Container):
+class _TimeRangeDialog(Container):
     def __init__(self):
         selection = SelectionWidget(
             format="iloc", allow_out_of_bounds=True, name="Selection"
         )
-        start = _CheckedWidget(DateTimeEdit(name="start", value=datetime(2000, 1, 1)))
-        end = _CheckedWidget(DateTimeEdit(name="stop", value=datetime(2000, 12, 31)))
+        start, end = self._prep_start_and_end()
         freq = _CheckedWidget(
             TimeDeltaEdit(name="freq", value=timedelta(days=1)),
             checked=False,
@@ -83,13 +82,43 @@ class DateRangeDialog(Container):
                     _w.checked = True
             _w.enabled = _w.checked
 
+    def _prep_start_and_end(self) -> tuple[_CheckedWidget, _CheckedWidget]:
+        raise NotImplementedError()
+
+    def _get_params(self):
+        start = self._start.value if self._start.checked else None
+        end = self._end.value if self._end.checked else None
+        freq = self._freq.value if self._freq.checked else None
+        return start, end, freq
+
+
+class DateRangeDialog(_TimeRangeDialog):
+    def _prep_start_and_end(self):
+        start = _CheckedWidget(DateTimeEdit(name="start", value=datetime(2000, 1, 1)))
+        end = _CheckedWidget(DateTimeEdit(name="stop", value=datetime(2000, 12, 31)))
+        return start, end
+
     def get_value(self, df: pd.DataFrame) -> tuple[slice, slice, pd.DatetimeIndex]:
         rsl, csl = self._selection.value.as_iloc_slices(df)
         if csl.start != csl.stop - 1:
             raise ValueError("Selection must be a single column")
         periods = rsl.stop - rsl.start
-        start = self._start.value if self._start.checked else None
-        end = self._end.value if self._end.checked else None
-        freq = self._freq.value if self._freq.checked else None
+        start, end, freq = self._get_params()
         data = pd.date_range(start=start, end=end, periods=periods, freq=freq)
+        return rsl, csl, data
+
+
+class TimeDeltaRangeDialog(_TimeRangeDialog):
+    def _prep_start_and_end(self):
+        start = _CheckedWidget(TimeDeltaEdit(name="start", value=timedelta(seconds=0)))
+        end = _CheckedWidget(TimeDeltaEdit(name="stop", value=timedelta(seconds=60)))
+        return start, end
+
+    def get_value(self, df: pd.DataFrame) -> tuple[slice, slice, pd.DatetimeIndex]:
+        rsl, csl = self._selection.value.as_iloc_slices(df)
+        if csl.start != csl.stop - 1:
+            raise ValueError("Selection must be a single column")
+        periods = rsl.stop - rsl.start
+        start, end, freq = self._get_params()
+        data = pd.timedelta_range(start=start, end=end, periods=periods, freq=freq)
         return rsl, csl, data
