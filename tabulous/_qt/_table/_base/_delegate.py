@@ -6,6 +6,8 @@ from qtpy.QtCore import Qt
 from ._table_base import QBaseTable
 from ._line_edit import QCellLiteralEdit
 
+from tabulous._qt._timedelta import QTimeDeltaEdit
+
 if TYPE_CHECKING:
     import numpy as np
     import pandas as pd
@@ -65,6 +67,12 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 value: pd.Timestamp
                 dt.setDateTime(value.to_pydatetime())
                 return dt
+            elif dtype.kind == "m":
+                td = QTimeDeltaEdit(parent)
+                td.setFont(font)
+                value: pd.Timedelta
+                td.setValue(value)
+                return td
             else:
                 line = qtable_view._create_eval_editor(moveto=(row, col))
                 line.setFont(font)
@@ -96,6 +104,10 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             if editor.mode is QCellLiteralEdit.Mode.EVAL:
                 # set the evaluated data
                 return None
+        elif isinstance(editor, QTimeDeltaEdit):
+            editor = cast(QTimeDeltaEdit, editor)
+            model.setData(index, editor.value(), Qt.ItemDataRole.EditRole)
+            return None
         return super().setModelData(editor, model, index)
 
     def paint(
@@ -116,24 +128,3 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
 
     def parentTable(self) -> QBaseTable:
         return self.parent().parent()
-
-
-# TODO: add timedelta-specific editor
-
-# class QTimeRangeEdit(QtW.QAbstractSpinBox):
-#     def __init__(self, val: pd.Timedelta, parent: QtW.QWidget | None = None) -> None:
-#         super().__init__(parent)
-#         self._value = val
-#         self.setLineEdit
-
-#     def text(self):
-#         return str(self._value)
-
-#     def setValue(self, val: pd.Timedelta):
-#         self._value = str(val)
-
-# class QTimerangeLineEdit(QtW.QLineEdit):
-#     def __init__(self, val: pd.Timedelta, parent: QtW.QWidget | None = None) -> None:
-#         super().__init__(parent)
-#         self._value = val
-#         self.setText(str(val))
