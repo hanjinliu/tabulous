@@ -167,16 +167,6 @@ class _QTimeDeltaLineEdit(QtW.QLineEdit):
         if emit:
             self.timedeltaChanged.emit(value)
 
-    def event(self, a0: QtCore.QEvent) -> bool:
-        _type = a0.type()
-        if _type == QtCore.QEvent.Type.Wheel:
-            e = QtGui.QWheelEvent(a0)
-            pos = self.cursorPositionAt(e.pos())
-            self.sectionChanged.emit(self.sectionUnderCursor(pos))
-            return True
-
-        return super().event(a0)
-
     def sectionUnderCursor(self, pos: int) -> int:
         # nchar = 18
         if 16 <= pos:
