@@ -41,8 +41,14 @@ def groupby(viewer: TableViewerBase):
         viewer.add_groupby(out, name=f"{table.name}-groupby")
 
 
-def switch_header(viewer: TableViewerBase):
-    """Switch header and the top row"""
+def switch_index(viewer: TableViewerBase):
+    """Switch index header and the left column"""
+    table = _utils.get_mutable_table(viewer)
+    table._qwidget._switch_head_and_index(axis=0)
+
+
+def switch_columns(viewer: TableViewerBase):
+    """Switch column header and the top row"""
     table = _utils.get_mutable_table(viewer)
     table._qwidget._switch_head_and_index(axis=1)
 
