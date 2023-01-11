@@ -138,6 +138,24 @@ def round(viewer: TableViewerBase):
     return None
 
 
+def date_range(viewer: TableViewerBase):
+    """Generate a range of date values (pd.date_range)"""
+    table = _utils.get_mutable_table(viewer)
+
+    from ._arange import DateRangeDialog
+
+    dlg = DateRangeDialog()
+    dlg.native.setParent(viewer._qwidget, dlg.native.windowFlags())
+    dlg._selection._read_selection(table)
+    dlg.show()
+
+    @dlg.called.connect
+    def _on_called():
+        val = dlg.get_value(table._qwidget.model().df)
+        rsl, csl, data = val
+        table.cell[rsl, csl] = data
+
+
 def toggle_editability(viewer: TableViewerBase):
     """Toggle table editability"""
     table = viewer.current_table

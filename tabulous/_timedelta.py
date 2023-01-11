@@ -71,7 +71,7 @@ class QTimeDeltaEdit(QtW.QAbstractSpinBox):
         start = line.selectionStart()
         length = line.selectionLength()
         self.setValue(self.value() + steps * self.singleStep())
-        line.setSelection(start, length)
+        line.setSelection(max(start, 0), length)
 
     def maximum(self) -> datetime.timedelta:
         """The maximum time delta value."""
