@@ -848,7 +848,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _switch_head_and_index(self, axis: int = 1) -> None:
         """Switch the first row/column data and the index object."""
         self.setProxy(None)  # reset filter to avoid unexpected errors
-        df = self.model().df
+        df = self.getDataFrame()
         if axis == 0:
             was_range = is_ranged(df.columns)
             if is_ranged(df.index):  # df[0] to index
@@ -856,7 +856,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             else:  # index to df[0]
                 df_new = df.reset_index()
             if was_range:
-                _index = as_constructor(df.columns)(df.columns.size)
+                _index = as_constructor(df.columns)(df_new.columns.size)
                 df_new = df_new.set_axis(_index, axis=1)
 
         elif axis == 1:
@@ -880,7 +880,15 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
                 df_new = df_new.set_axis(pd.RangeIndex(len(df_new)), axis=0)
         else:
             raise ValueError("axis must be 0 or 1.")
-        return self.setDataFrame(df_new)
+        self.setDataFrame(df_new)
+        if axis == 0:
+            self._qtable_view.resizeRowsToContents()
+            if df.columns.size < df_new.columns.size:  # index to df[0]
+                self._process_insert_columns(0, 1)
+            elif df.columns.size > df_new.columns.size:  # df[0] to index
+                self._process_remove_columns(0, 1)
+
+        return None
 
     def _get_ref_expr(self, r: int, c: int) -> str | None:
         """Try to get a reference expression for the cell at (r, c)."""
@@ -905,6 +913,26 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _header_widgets(self) -> dict[int, QtW.QWidget]:
         """Return the header widgets."""
         return self._qtable_view.horizontalHeader()._header_widgets
+
+    def _process_remove_rows(self, row: int, count: int):
+        self._qtable_view._table_map.remove_rows(row, count)
+        self._qtable_view._highlight_model.remove_rows(row, count)
+        self._qtable_view._selection_model.remove_rows(row, count)
+
+    def _process_insert_rows(self, row: int, count: int):
+        self._qtable_view._table_map.insert_rows(row, count)
+        self._qtable_view._selection_model.insert_rows(row, count)
+        self._qtable_view._highlight_model.insert_rows(row, count)
+
+    def _process_remove_columns(self, col: int, count: int):
+        self._qtable_view._table_map.remove_columns(col, count)
+        self._qtable_view._highlight_model.remove_columns(col, count)
+        self._qtable_view._selection_model.remove_columns(col, count)
+
+    def _process_insert_columns(self, col: int, count: int):
+        self._qtable_view._table_map.insert_columns(col, count)
+        self._qtable_view._selection_model.insert_columns(col, count)
+        self._qtable_view._highlight_model.insert_columns(col, count)
 
 
 class QMutableTable(QBaseTable):
@@ -1318,16 +1346,16 @@ class QMutableTable(QBaseTable):
             else:
                 self._data_raw.columns = constructor(self._data_raw.columns.size)
 
-        # adjust header size
-        size_hint = _header.sectionSizeHint(index)
-        if _header.sectionSize(index) < size_hint:
-            _header.resizeSection(index, size_hint)
-
         # set selection
         self._qtable_view._selection_model.move_to(-1, index)
 
         # update
         self.refreshTable()
+
+        # adjust header size
+        size_hint = _header.sectionSizeHint(index)
+        if _header.sectionSize(index) < size_hint:
+            _header.resizeSection(index, size_hint)
         return None
 
     @_set_horizontal_header_value.server
@@ -1360,15 +1388,16 @@ class QMutableTable(QBaseTable):
             else:
                 self._data_raw.index = constructor(self._data_raw.index.size)
 
-        # adjust size
-        _width_hint = _header.sizeHint().width()
-        _header.resize(QtCore.QSize(_width_hint, _header.height()))
-
         # set selection
         self._qtable_view._selection_model.move_to(index, -1)
 
         # update
         self.refreshTable()
+
+        # adjust size
+        _width_hint = _header.sizeHint().width()
+        _header.resize(QtCore.QSize(_width_hint, _header.height()))
+
         return None
 
     @_set_vertical_header_value.server

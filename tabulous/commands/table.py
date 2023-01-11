@@ -41,8 +41,14 @@ def groupby(viewer: TableViewerBase):
         viewer.add_groupby(out, name=f"{table.name}-groupby")
 
 
-def switch_header(viewer: TableViewerBase):
-    """Switch header and the top row"""
+def switch_index(viewer: TableViewerBase):
+    """Switch index header and the left column"""
+    table = _utils.get_mutable_table(viewer)
+    table._qwidget._switch_head_and_index(axis=0)
+
+
+def switch_columns(viewer: TableViewerBase):
+    """Switch column header and the top row"""
     table = _utils.get_mutable_table(viewer)
     table._qwidget._switch_head_and_index(axis=1)
 
@@ -183,6 +189,42 @@ def round(viewer: TableViewerBase):
         selected_data = table.data_shown.iloc[sel]
         table.cell[sel] = selected_data.round(decimals)
     return None
+
+
+def date_range(viewer: TableViewerBase):
+    """Generate a range of date values (pd.date_range)"""
+    table = _utils.get_mutable_table(viewer)
+
+    from ._arange import DateRangeDialog
+
+    dlg = DateRangeDialog()
+    dlg.native.setParent(viewer._qwidget, dlg.native.windowFlags())
+    dlg._selection._read_selection(table)
+    dlg.show()
+
+    @dlg.called.connect
+    def _on_called():
+        val = dlg.get_value(table._qwidget.model().df)
+        rsl, csl, data = val
+        table.cell[rsl, csl] = data
+
+
+def timedelta_range(viewer: TableViewerBase):
+    """Generate a range of timedelta values (pd.timedelta_range)"""
+    table = _utils.get_mutable_table(viewer)
+
+    from ._arange import TimeDeltaRangeDialog
+
+    dlg = TimeDeltaRangeDialog()
+    dlg.native.setParent(viewer._qwidget, dlg.native.windowFlags())
+    dlg._selection._read_selection(table)
+    dlg.show()
+
+    @dlg.called.connect
+    def _on_called():
+        val = dlg.get_value(table._qwidget.model().df)
+        rsl, csl, data = val
+        table.cell[rsl, csl] = data
 
 
 def toggle_editability(viewer: TableViewerBase):
