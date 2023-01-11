@@ -254,7 +254,10 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         self._current_error = None
 
         df = qtable.getDataFrame()
-        ns = dict(qviewer._namespace)
+        if qviewer is not None:
+            ns = dict(qviewer._namespace)
+        else:
+            ns = {"np": np, "pd": pd}
         ns.update(df=df)
         try:
             out, _expr = self._expr.eval_and_format(ns, self.range)

@@ -544,8 +544,12 @@ class TableBase(ABC):
         _hheader_register = self.columns.register_action
         _hheader_register("Color > Set text colormap")(_wrap(cmds.column.set_text_colormap))  # noqa: E501
         _hheader_register("Color > Reset text colormap")(_wrap(cmds.column.reset_text_colormap))  # noqa: E501
+        _hheader_register("Color > Set opacity to text colormap")(_wrap(cmds.column.set_text_colormap_opacity))  # noqa: E501
+        self._qwidget._qtable_view.horizontalHeader().addSeparator("Color ")
         _hheader_register("Color > Set background colormap")(_wrap(cmds.column.set_background_colormap))  # noqa: E501
         _hheader_register("Color > Reset background colormap")(_wrap(cmds.column.reset_background_colormap))  # noqa: E501
+        _hheader_register("Color > Set opacity to background colormap")(_wrap(cmds.column.set_background_colormap_opacity))  # noqa: E501
+
         _hheader_register("Formatter > Set text formatter")(_wrap(cmds.column.set_text_formatter))  # noqa: E501
         _hheader_register("Formatter > Reset text formatter")(_wrap(cmds.column.reset_text_formatter))  # noqa: E501
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
