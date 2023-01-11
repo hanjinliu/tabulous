@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import Any, Callable, Iterable, TYPE_CHECKING, TypeVar, cast
 import warnings
+import datetime
+
 from qtpy import QtWidgets as QtW
 from magicgui import register_type, magicgui
 from magicgui.widgets import (
@@ -33,6 +35,8 @@ from tabulous._selection_op import (
     parse,
     construct,
 )
+
+from tabulous._timedelta import TimeDeltaEdit
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -559,3 +563,5 @@ class SelectionWidget(Container):
 
 
 register_type(SelectionOperator, widget_type=SelectionWidget)
+
+register_type(datetime.timedelta, widget_type=TimeDeltaEdit)

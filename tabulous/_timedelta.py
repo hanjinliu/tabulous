@@ -5,6 +5,18 @@ from typing import TYPE_CHECKING, Union
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Signal
 
+from magicgui import __version__ as MAGICGUI_VERSION
+
+if int(MAGICGUI_VERSION.split(".")[1]) >= 7:
+    from magicgui.widgets.bases import ValueWidget
+    from magicgui.types import Undefined
+else:
+    from magicgui.widgets._bases import ValueWidget
+
+    Undefined = None
+
+from magicgui.backends._qtpy.widgets import QBaseValueWidget
+
 _TimeDeltaLike = Union[datetime.timedelta, str, int, float]
 
 
@@ -17,6 +29,8 @@ class Section:
 
 
 class QTimeDeltaEdit(QtW.QAbstractSpinBox):
+    valueChanged = Signal(datetime.timedelta)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._value = datetime.timedelta(0)
@@ -26,7 +40,7 @@ class QTimeDeltaEdit(QtW.QAbstractSpinBox):
         self.setLineEdit(_QTimeDeltaLineEdit(self._value, self))
         self.lineEdit().timedeltaChanged.connect(self.setValue)
         self.lineEdit().sectionChanged.connect(self._on_section_changed)
-        self.setMinimumHeight(self.lineEdit().minimumHeight())
+        self.setMinimumHeight(20)
 
     if TYPE_CHECKING:
 
@@ -41,6 +55,7 @@ class QTimeDeltaEdit(QtW.QAbstractSpinBox):
         if self._min <= self._value <= self._max:
             self._update_text(self._value)
             self.update()
+            self.valueChanged.emit(value)
             return None
         raise ValueError(f"{value} is out of bound.")
 
@@ -59,18 +74,23 @@ class QTimeDeltaEdit(QtW.QAbstractSpinBox):
         line.setSelection(start, length)
 
     def maximum(self) -> datetime.timedelta:
+        """The maximum time delta value."""
         return self._max
 
     def setMaximum(self, max: _TimeDeltaLike) -> None:
+        """Set the maximum time delta value."""
         self._max = to_timedelta(max)
 
     def minimum(self) -> datetime.timedelta:
+        """The minimum time delta value."""
         return self._min
 
     def setMinimum(self, min: _TimeDeltaLike) -> None:
+        """Set the minimum time delta value."""
         self._min = to_timedelta(min)
 
     def setRange(self, min: _TimeDeltaLike, max: _TimeDeltaLike):
+        """Set the minimum and the maximum time delta value."""
         self.setMinimum(min)
         self.setMaximum(max)
 
@@ -83,6 +103,9 @@ class QTimeDeltaEdit(QtW.QAbstractSpinBox):
         if self._value > self._min:
             flags |= QtW.QAbstractSpinBox.StepEnabledFlag.StepDownEnabled
         return flags
+
+    def stepType(self):
+        return QtW.QAbstractSpinBox.StepType.DefaultStepType
 
     def sizeHint(self):
         # copied from superqt.QLargeIntSpinBox
@@ -192,3 +215,19 @@ def to_timedelta(value: _TimeDeltaLike) -> datetime.timedelta:
         else:
             raise TypeError(f"Cannot convert {value} to timedelta")
     return value
+
+
+class _TimeDeltaEdit(QBaseValueWidget):
+    def __init__(self, **kwargs):
+        super().__init__(QTimeDeltaEdit, "value", "setValue", "valueChanged", **kwargs)
+
+
+class TimeDeltaEdit(ValueWidget):
+    def __init__(self, value=Undefined, **kwargs) -> None:
+        if value is Undefined:
+            value = datetime.timedelta(seconds=0)
+        super().__init__(
+            widget_type=_TimeDeltaEdit,
+            value=value,
+            **kwargs,
+        )
