@@ -52,4 +52,5 @@ class DateRangeDialog(Container):
         rsl, csl = self._selection.value.as_iloc_slices(None)
         if csl.start != csl.stop - 1:
             raise ValueError("Selection must be a single column")
+
         return self._selection.value.operate(data)

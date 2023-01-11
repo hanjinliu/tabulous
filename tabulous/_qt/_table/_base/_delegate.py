@@ -64,13 +64,14 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             elif dtype.kind == "M":
                 dt = QtW.QDateTimeEdit(parent)
                 dt.setFont(font)
+                dt.setButtonSymbols(QtW.QAbstractSpinBox.ButtonSymbols.NoButtons)
                 value: pd.Timestamp
                 dt.setDateTime(value.to_pydatetime())
                 return dt
             elif dtype.kind == "m":
                 td = QTimeDeltaEdit(parent)
                 td.setFont(font)
-                value: pd.Timedelta
+                td.setButtonSymbols(QtW.QAbstractSpinBox.ButtonSymbols.NoButtons)
                 td.setValue(value)
                 return td
             else:

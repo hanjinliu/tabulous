@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 from typing import TYPE_CHECKING, Union
 from qtpy import QtWidgets as QtW, QtCore, QtGui
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Signal
 
 _TimeDeltaLike = Union[datetime.timedelta, str, int, float]
 
@@ -22,6 +22,7 @@ class QTimeDeltaEdit(QtW.QAbstractSpinBox):
         self._value = datetime.timedelta(0)
         self._min = datetime.timedelta(-999999999)
         self._max = datetime.timedelta(999999999)
+        self._step = datetime.timedelta(seconds=1)
         self.setLineEdit(_QTimeDeltaLineEdit(self._value, self))
         self.lineEdit().timedeltaChanged.connect(self.setValue)
         self.lineEdit().sectionChanged.connect(self._on_section_changed)
@@ -35,14 +36,27 @@ class QTimeDeltaEdit(QtW.QAbstractSpinBox):
     def value(self) -> datetime.timedelta:
         return self._value
 
-    def setValue(self, value) -> None:
+    def setValue(self, value: _TimeDeltaLike) -> None:
         self._value = to_timedelta(value)
-        self._update_text(self._value)
-        self.update()
+        if self._min <= self._value <= self._max:
+            self._update_text(self._value)
+            self.update()
+            return None
+        raise ValueError(f"{value} is out of bound.")
 
-    def stepBy(self, steps: int):
+    def singleStep(self) -> datetime.timedelta:
+        return self._step
+
+    def setSingleStep(self, step: _TimeDeltaLike):
+        self._step = to_timedelta(step)
+
+    def stepBy(self, steps: int) -> None:
         """Increment/decrement the time delta by the step value."""
-        self.setValue(self.value() + steps * datetime.timedelta(seconds=1))
+        line = self.lineEdit()
+        start = line.selectionStart()
+        length = line.selectionLength()
+        self.setValue(self.value() + steps * self.singleStep())
+        line.setSelection(start, length)
 
     def maximum(self) -> datetime.timedelta:
         return self._max
@@ -60,7 +74,18 @@ class QTimeDeltaEdit(QtW.QAbstractSpinBox):
         self.setMinimum(min)
         self.setMaximum(max)
 
+    def stepEnabled(self):
+        flags = QtW.QAbstractSpinBox.StepEnabledFlag.StepNone
+        if self.isReadOnly():
+            return flags
+        if self._value < self._max:
+            flags |= QtW.QAbstractSpinBox.StepEnabledFlag.StepUpEnabled
+        if self._value > self._min:
+            flags |= QtW.QAbstractSpinBox.StepEnabledFlag.StepDownEnabled
+        return flags
+
     def sizeHint(self):
+        # copied from superqt.QLargeIntSpinBox
         self.ensurePolished()
         fm = QtGui.QFontMetrics(self.font())
         h = self.lineEdit().sizeHint().height()
@@ -80,28 +105,28 @@ class QTimeDeltaEdit(QtW.QAbstractSpinBox):
     def _update_text(self, value: datetime.timedelta) -> None:
         self.lineEdit().setTimedelta(value, emit=False)
 
-    def _on_section_changed(self, step: int, position: int) -> None:
-        section = self.lineEdit().sectionUnderCursor(position)
+    def _on_section_changed(self, section: int) -> None:
         if section == Section.SECOND:
-            self.stepBy(step)
+            self.setSingleStep(datetime.timedelta(seconds=1))
         elif section == Section.MINUTE:
-            self.stepBy(step * 60)
+            self.setSingleStep(datetime.timedelta(minutes=1))
         elif section == Section.HOUR:
-            self.stepBy(step * 3600)
+            self.setSingleStep(datetime.timedelta(hours=1))
         elif section == Section.DAY:
-            self.stepBy(step * 86400)
-        self.lineEdit()._select_section(position)
+            self.setSingleStep(datetime.timedelta(days=1))
+        self.lineEdit()._select_section(section)
 
 
 class _QTimeDeltaLineEdit(QtW.QLineEdit):
-    sectionChanged = Signal(int, int)  # step, position
+    sectionChanged = Signal(int)  # position
     timedeltaChanged = Signal(datetime.timedelta)
 
     def __init__(self, value: datetime.timedelta, parent=None):
         super().__init__(parent)
         self.setTimedelta(value)
         # "000 days 00:00:00" format
-        self.setInputMask(r"####\ \d\ays\ 00\:00\:00")
+        self.setInputMask(r"###0\ \d\ays\ 00\:00\:00")
+        self.cursorPositionChanged.connect(self._on_cursor_position_changed)
 
     def timedelta(self) -> datetime.timedelta:
         days, rest = self.text().split("days")
@@ -114,28 +139,17 @@ class _QTimeDeltaLineEdit(QtW.QLineEdit):
         sec_tot = value.seconds
         hours, min_rest = divmod(sec_tot, 3600)
         mins, secs = divmod(min_rest, 60)
-        sign = "-" if days < 0 else " "
-        text = f"{sign}{abs(days): 3} days {hours:02}:{mins:02}:{secs:02}"
+        text = f"{days: 3} days {hours:02}:{mins:02}:{secs:02}"
         self.setText(text)
         if emit:
             self.timedeltaChanged.emit(value)
 
     def event(self, a0: QtCore.QEvent) -> bool:
         _type = a0.type()
-        if _type == QtCore.QEvent.Type.KeyPress:
-            e = QtGui.QKeyEvent(a0)
-            if e.key() == Qt.Key.Key_Up:
-                self.sectionChanged.emit(1, self.cursorPosition())
-                return True
-            elif e.key() == Qt.Key.Key_Down:
-                self.sectionChanged.emit(-1, self.cursorPosition())
-                return True
-
-        elif _type == QtCore.QEvent.Type.Wheel:
+        if _type == QtCore.QEvent.Type.Wheel:
             e = QtGui.QWheelEvent(a0)
             pos = self.cursorPositionAt(e.pos())
-            step = e.angleDelta().y() // 120
-            self.sectionChanged.emit(step, pos)
+            self.sectionChanged.emit(self.sectionUnderCursor(pos))
             return True
 
         return super().event(a0)
@@ -151,8 +165,7 @@ class _QTimeDeltaLineEdit(QtW.QLineEdit):
         else:
             return Section.DAY
 
-    def _select_section(self, pos: int) -> None:
-        section = self.sectionUnderCursor(pos)
+    def _select_section(self, section: int) -> None:
         if section == Section.SECOND:
             self.setSelection(16, 2)
         elif section == Section.MINUTE:
@@ -161,6 +174,12 @@ class _QTimeDeltaLineEdit(QtW.QLineEdit):
             self.setSelection(10, 2)
         else:
             self.setSelection(1, 3)
+
+    def _on_cursor_position_changed(self, old: int, new: int) -> None:
+        section_old = self.sectionUnderCursor(old)
+        section_new = self.sectionUnderCursor(new)
+        if section_old != section_new:
+            self.sectionChanged.emit(section_new)
 
 
 def to_timedelta(value: _TimeDeltaLike) -> datetime.timedelta:
