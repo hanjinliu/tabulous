@@ -36,8 +36,31 @@ def concat(
 ) -> TableData:
     import pandas as pd
 
+    if len(names) < 2:
+        raise ValueError("At least two tables are required.")
     dfs = [viewer.tables[name].data for name in names]
-    return pd.concat(dfs, axis=axis, ignore_index=ignore_index)
+    out: pd.DataFrame = pd.concat(dfs, axis=axis, ignore_index=ignore_index)
+    if out.index.duplicated().any():
+        out.index = range(out.index.size)
+    if out.columns.duplicated().any():
+        from tabulous._pd_index import char_range_index
+
+        out.columns = char_range_index(out.columns.size)
+    return out
+
+
+@dialog_factory
+def fillna(df: TableData, method: str, value) -> TableData:
+    if method != "value":
+        value = None
+    else:
+        method = None
+    return df.fillna(value=value, method=method)
+
+
+@dialog_factory
+def dropna(df: TableData, axis: int, how: str) -> TableData:
+    return df.dropna(axis=axis, how=how, inplace=False)
 
 
 @dialog_factory
@@ -361,7 +384,7 @@ def choose_multiple(choices: List):
 
 
 @dialog_factory
-def get_float(x: float):
+def get_value(x):
     return x
 
 
