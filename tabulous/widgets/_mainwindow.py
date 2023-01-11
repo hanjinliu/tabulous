@@ -494,6 +494,18 @@ class TableViewerBase(_AbstractViewer):
         """Close the viewer."""
         return self._qwidget.close()
 
+    @property
+    def status(self) -> str:
+        """Return the statup tip"""
+        return self._status
+
+    @status.setter
+    def status(self, tip: str) -> None:
+        """Set the status tip"""
+        self._status = tip
+        statusbar = self._qwidget.statusBar()
+        return statusbar.showMessage(tip)
+
     def resize(self, width: int, height: int):
         """Resize the table viewer."""
         return self._qwidget.resize(width, height)
@@ -574,19 +586,10 @@ class TableViewerWidget(TableViewerBase):
         *,
         name: str = "",
     ):
+        """Add a widget to the viewer as a child floating widget."""
         backend_widget, name = _normalize_widget(widget, name)
         backend_widget.setParent(self._qwidget, backend_widget.windowFlags())
         return backend_widget
-
-    @property
-    def status(self) -> str:
-        """Return the statup tip"""
-        return self._qwidget.statusTip()
-
-    @status.setter
-    def status(self, tip: str) -> None:
-        """Set the status tip"""
-        return self._qwidget.setStatusTip(tip)
 
 
 class TableViewer(TableViewerBase):
@@ -614,18 +617,6 @@ class TableViewer(TableViewerBase):
             tab_position=tab_position,
             show=show,
         )
-
-    @property
-    def status(self) -> str:
-        """Return the statup tip"""
-        return self._status
-
-    @status.setter
-    def status(self, tip: str) -> None:
-        """Set the status tip"""
-        self._status = tip
-        statusbar = self._qwidget.statusBar()
-        return statusbar.showMessage(tip)
 
     def add_dock_widget(
         self,

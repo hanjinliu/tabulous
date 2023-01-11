@@ -27,6 +27,9 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
         _QtMainWidgetBase.__init__(self, tab_position)
         self.setOrientation(Qt.Orientation.Vertical)
         self._toolbar = None
+        self._statusbar = QRichStatusBar(self)
+        self._statusbar.setFixedHeight(25)
+        self.addWidget(self._statusbar)
 
     def setCentralWidget(self, wdt: QTabbedTableStack):
         """Mimicking QMainWindow's method by adding a widget to the layout."""
@@ -76,6 +79,9 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
             self._console_widget.setFocus()
         else:
             self.setCellFocus()
+
+    def statusBar(self) -> QRichStatusBar:
+        return self._statusbar
 
 
 _REORDER_INSTANCES = frozenset({QEvent.Type.WindowActivate, QEvent.Type.ZOrderChange})

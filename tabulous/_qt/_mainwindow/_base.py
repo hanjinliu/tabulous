@@ -174,3 +174,6 @@ class _QtMainWidgetBase(QtW.QWidget):
     def toggleConsoleVisibility(self) -> None:
         """Toggle visibility of embeded console widget."""
         return self.setConsoleVisible(not self.consoleVisible())
+
+    def statusBar(self) -> QtW.QStatusBar:
+        raise NotImplementedError()
