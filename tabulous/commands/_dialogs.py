@@ -8,6 +8,7 @@ import numpy as np
 # NOTE: Axes should be imported here!
 from tabulous.widgets import TableBase, TableViewerBase
 from tabulous.types import TableData
+from tabulous.exceptions import SelectionRangeError
 from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
 
@@ -18,7 +19,21 @@ logger = logging.getLogger(__name__)
 
 
 @dialog_factory
-def summarize_table(df: TableData, methods: List[str], new_table: bool = False):
+def summarize_table(
+    table: TableBase,
+    methods: List[str],
+    new_table: bool = False,
+    at_selection: bool = False,
+):
+    if len(methods) == 0:
+        raise ValueError("Select at least one method.")
+    df = table.data
+    if at_selection:
+        sels = table.selections
+        if len(sels) != 1:
+            raise SelectionRangeError("Only single selection is allowed.")
+        sel = sels[0]
+        df = df.iloc[sel]
     return df.agg(methods), new_table
 
 

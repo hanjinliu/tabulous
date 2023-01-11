@@ -5,14 +5,24 @@ from . import _dialogs, _utils
 if TYPE_CHECKING:
     from tabulous.widgets._mainwindow import TableViewerBase
 
-SUMMARY_CHOICES = ["mean", "median", "std", "sem", "min", "max", "sum"]
+SUMMARY_CHOICES = [
+    "mean",
+    "median",
+    "std",
+    "sem",
+    "min",
+    "max",
+    "sum",
+    "nunique",
+    "dtype",
+]
 
 
 def summarize_table(viewer: TableViewerBase):
     """Summarize table data"""
     table = _utils.get_table(viewer)
     out = _dialogs.summarize_table(
-        df={"bind": table.data},
+        table={"bind": table},
         methods={"choices": SUMMARY_CHOICES, "widget_type": "Select"},
         parent=viewer._qwidget,
     )
@@ -24,6 +34,7 @@ def summarize_table(viewer: TableViewerBase):
             from tabulous._qt._table import QTableLayer
 
             qtable = QTableLayer(data=df)
+            qtable.setZoom(0.8)
             table.add_side_widget(qtable, name="summary")
 
 
