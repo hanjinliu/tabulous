@@ -48,7 +48,7 @@ def switch_header(viewer: TableViewerBase):
 
 
 def concat(viewer: TableViewerBase):
-    """Concatenate table data"""
+    """Concatenate table data (pd.concat)"""
     if len(viewer.tables) < 2:
         raise ValueError("At least two tables are required.")
     out = _dialogs.concat(
@@ -65,29 +65,8 @@ def concat(viewer: TableViewerBase):
         viewer.add_table(out, name="concat")
 
 
-def merge(viewer: TableViewerBase):
-    """Merge table data"""
-    if len(viewer.tables) < 2:
-        raise ValueError("At least two tables are required.")
-    out = _dialogs.merge(
-        viewer={"bind": viewer},
-        left={
-            "value": viewer.tables[0].name,
-            "choices": [t.name for t in viewer.tables],
-        },
-        right={
-            "value": viewer.tables[1].name,
-            "choices": [t.name for t in viewer.tables],
-        },
-        how={"choices": ["left", "right", "outer", "inner"]},
-        parent=viewer.native,
-    )
-    if out is not None:
-        viewer.add_table(out, name="concat")
-
-
 def pivot(viewer: TableViewerBase):
-    """Pivot current table data"""
+    """Pivot current table data (pd.pivot)"""
     table = _utils.get_table(viewer)
     col = list(table.data.columns)
     if len(col) < 3:
@@ -104,7 +83,7 @@ def pivot(viewer: TableViewerBase):
 
 
 def melt(viewer: TableViewerBase):
-    """Melt (unpivot) current table data"""
+    """Melt (unpivot) current table data (pd.melt)"""
     table = _utils.get_table(viewer)
     out = _dialogs.melt(
         df={"bind": table.data},
@@ -120,6 +99,44 @@ def transpose(viewer: TableViewerBase):
     table = _utils.get_table(viewer)
     out = table.data.T
     viewer.add_table(out, name=f"{table.name}-transposed")
+
+
+def fillna(viewer: TableViewerBase):
+    """Fill nan values (pd.fillna)"""
+    table = _utils.get_table(viewer)
+
+    def _cb(mgui):
+        mgui.value.visible = mgui.method.value == "value"
+
+    _choices = [
+        ("fill by value", "value"),
+        ("forward fill", "ffill"),
+        ("backward fill", "bfill"),
+    ]
+    out = _dialogs.fillna(
+        df={"bind": table.data},
+        method={
+            "choices": _choices,
+            "value": "value",
+            "nullable": False,
+            "changed": _cb,
+        },
+        value={"widget_type": "LiteralEvalLineEdit", "value": "0.0"},
+    )
+    if out is not None:
+        viewer.add_table(out, name=f"{table.name}-fillna")
+
+
+def dropna(viewer: TableViewerBase):
+    """Drop nan values (pd.dropna)"""
+    table = _utils.get_table(viewer)
+    out = _dialogs.dropna(
+        df={"bind": table.data},
+        axis={"choices": [("drop rows", 0), ("drop columns", 1)]},
+        how={"choices": [("if any nan", "any"), ("if all nan", "all")]},
+    )
+    if out is not None:
+        viewer.add_table(out, name=f"{table.name}-dropna")
 
 
 def show_finder_widget(viewer: TableViewerBase):

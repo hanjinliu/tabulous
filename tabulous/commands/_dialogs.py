@@ -46,6 +46,20 @@ def concat(
 
 
 @dialog_factory
+def fillna(df: TableData, method: str, value) -> TableData:
+    if method != "value":
+        value = None
+    else:
+        method = None
+    return df.fillna(value=value, method=method)
+
+
+@dialog_factory
+def dropna(df: TableData, axis: int, how: str) -> TableData:
+    return df.dropna(axis=axis, how=how, inplace=False)
+
+
+@dialog_factory
 def pivot(df: TableData, index: str, columns: str, values: str) -> TableData:
     return df.pivot(index=index, columns=columns, values=values)
 
@@ -366,7 +380,7 @@ def choose_multiple(choices: List):
 
 
 @dialog_factory
-def get_float(x: float):
+def get_value(x):
     return x
 
 

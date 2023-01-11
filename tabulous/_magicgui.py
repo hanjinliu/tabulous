@@ -345,6 +345,13 @@ register_type(
 _F = TypeVar("_F", bound=Callable)
 
 
+def _connect_callback(widget: Widget, callback: Callable[[Widget], Any]):
+    def cb():
+        return callback(widget)
+
+    widget.changed.connect(cb)
+
+
 def dialog_factory(function: _F) -> _F:
     from magicgui.widgets import create_widget
 
@@ -355,6 +362,7 @@ def dialog_factory(function: _F) -> _F:
         for name, param in sig.parameters.items():
             opt = param_options.get(name, {})
             opt.setdefault("gui_only", False)
+            changed_cb = opt.pop("changed", None)
             if param.default is not inspect.Parameter.empty:
                 opt.setdefault("value", param.default)
             if param.annotation is not inspect.Parameter.empty:
@@ -364,7 +372,11 @@ def dialog_factory(function: _F) -> _F:
             for k in "value", "annotation", "name", "label", "widget_type", "gui_only":
                 if k in opt:
                     kwargs[k] = opt.pop(k)
-            widgets.append(create_widget(**kwargs, options=opt))
+            widget = create_widget(**kwargs, options=opt)
+            if changed_cb is not None:
+                assert callable(changed_cb)
+                _connect_callback(widget, changed_cb)
+            widgets.append(widget)
 
         dlg = Dialog(widgets=widgets)
 

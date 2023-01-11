@@ -46,7 +46,7 @@ def reset_text_colormap(viewer: TableViewerBase) -> None:
 def set_text_colormap_opacity(viewer: TableViewerBase) -> None:
     """Set opacity to the text colormap"""
     table, column_name = _utils.get_table_and_column_name(viewer)
-    if val := _dialogs.get_float(x=_OPACITY_CONFIG, parent=viewer.native):
+    if val := _dialogs.get_value(x=_OPACITY_CONFIG, parent=viewer.native):
         table.text_color.set_opacity(column_name, val)
 
 
@@ -59,7 +59,7 @@ def invert_text_colormap(viewer: TableViewerBase) -> None:
 def adjust_brightness_text_colormap(viewer: TableViewerBase) -> None:
     """Adjust brightness of the text colormap"""
     table, column_name = _utils.get_table_and_column_name(viewer)
-    if val := _dialogs.get_float(x=_BRIGHTNESS_CONFIG, parent=viewer.native):
+    if val := _dialogs.get_value(x=_BRIGHTNESS_CONFIG, parent=viewer.native):
         table.text_color.adjust_brightness(column_name, val)
 
 
@@ -85,7 +85,7 @@ def reset_background_colormap(viewer: TableViewerBase) -> None:
 def set_background_colormap_opacity(viewer: TableViewerBase) -> None:
     """Set opacity to the background colormap"""
     table, column_name = _utils.get_table_and_column_name(viewer)
-    if val := _dialogs.get_float(x=_OPACITY_CONFIG, parent=viewer.native):
+    if val := _dialogs.get_value(x=_OPACITY_CONFIG, parent=viewer.native):
         table.background_color.set_opacity(column_name, val)
 
 
@@ -98,7 +98,7 @@ def invert_background_colormap(viewer: TableViewerBase) -> None:
 def adjust_brightness_background_colormap(viewer: TableViewerBase) -> None:
     """Adjust brightness of the background colormap"""
     table, column_name = _utils.get_table_and_column_name(viewer)
-    if val := _dialogs.get_float(x=_BRIGHTNESS_CONFIG, parent=viewer.native):
+    if val := _dialogs.get_value(x=_BRIGHTNESS_CONFIG, parent=viewer.native):
         table.background_color.adjust_brightness(column_name, val)
 
 
