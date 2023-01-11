@@ -36,12 +36,16 @@ def concat(
 ) -> TableData:
     import pandas as pd
 
+    if len(names) < 2:
+        raise ValueError("At least two tables are required.")
     dfs = [viewer.tables[name].data for name in names]
     out: pd.DataFrame = pd.concat(dfs, axis=axis, ignore_index=ignore_index)
     if out.index.duplicated().any():
-        raise ValueError("Index contains duplicates.")
+        out.index = range(out.index.size)
     if out.columns.duplicated().any():
-        raise ValueError("Columns contains duplicates.")
+        from tabulous._pd_index import char_range_index
+
+        out.columns = char_range_index(out.columns.size)
     return out
 
 
