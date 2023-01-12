@@ -116,11 +116,11 @@ def plot(
     y: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    ref: bool = False,
+    retain_reference: bool = False,
 ):
     from ._plot_models import PlotModel
 
-    model = PlotModel(ax, x, y, table=table, alpha=alpha, ref=ref)
+    model = PlotModel(ax, x, y, table=table, alpha=alpha, ref=retain_reference)
     model.add_data()
     table.plt.draw()
     return True
@@ -133,11 +133,11 @@ def bar(
     y: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    ref: bool = False,
+    retain_reference: bool = False,
 ):
     from ._plot_models import BarModel
 
-    model = BarModel(ax, x, y, table=table, alpha=alpha, ref=ref)
+    model = BarModel(ax, x, y, table=table, alpha=alpha, ref=retain_reference)
     model.add_data()
     table.plt.draw()
     return True
@@ -151,12 +151,12 @@ def scatter(
     label: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    ref: bool = False,
+    retain_reference: bool = False,
 ):
     from ._plot_models import ScatterModel
 
     model = ScatterModel(
-        ax, x, y, table=table, label_selection=label, alpha=alpha, ref=ref
+        ax, x, y, table=table, label_selection=label, alpha=alpha, ref=retain_reference
     )
     model.add_data()
     table.plt.draw()
@@ -225,11 +225,13 @@ def fill_between(
     y1: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    ref: bool = False,
+    retain_reference: bool = False,
 ):
     from ._plot_models import FillBetweenModel
 
-    model = FillBetweenModel(ax, x, y0, y1, table=table, alpha=alpha, ref=ref)
+    model = FillBetweenModel(
+        ax, x, y0, y1, table=table, alpha=alpha, ref=retain_reference
+    )
     model.add_data()
     table.plt.draw()
     return True
@@ -243,11 +245,13 @@ def fill_betweenx(
     x1: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    ref: bool = False,
+    retain_reference: bool = False,
 ):
     from ._plot_models import FillBetweenXModel
 
-    model = FillBetweenXModel(ax, y, x0, x1, table=table, alpha=alpha, ref=ref)
+    model = FillBetweenXModel(
+        ax, y, x0, x1, table=table, alpha=alpha, ref=retain_reference
+    )
     model.add_data()
     table.plt.draw()
     return True

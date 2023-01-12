@@ -142,6 +142,11 @@ class _HeaderInterface(TableComponent):
         """The string accessor to the header."""
         return self._get_axis().str
 
+    @property
+    def size(self) -> int:
+        """Size of the axis."""
+        return self._get_axis().size
+
     def get_loc(self, key: str) -> int:
         """Get the location of a label."""
         return self._get_axis().get_loc(key)

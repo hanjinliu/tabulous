@@ -34,6 +34,7 @@ from tabulous.types import (
 )
 from tabulous._selection_op import (
     SelectionOperator,
+    ILocSelOp,
     parse,
     construct,
 )
@@ -463,6 +464,8 @@ def dialog_factory_mpl(function: _F) -> _F:
         dlg.changed.emit()
 
         dlg.native.setParent(parent, dlg.native.windowFlags())
+        dlg._shortcut = QtW.QShortcut(QtGui.QKeySequence("Ctrl+W"), dlg.native)
+        dlg._shortcut.activated.connect(dlg.close)
         dlg.called.connect(lambda: dlg.close())
         return dlg.show()
 
@@ -499,7 +502,7 @@ class SelectionWidget(Container):
         self._format = format
         self._allow_out_of_bounds = allow_out_of_bounds
 
-        if isinstance(value, SelectionOperator):
+        if isinstance(value, (str, SelectionOperator, tuple)):
             self.value = value
 
     @property
@@ -517,7 +520,15 @@ class SelectionWidget(Container):
                 text = parse(val, df_expr="df").fmt()
             else:
                 text = ""
-            self._line.value = text
+        elif isinstance(val, SelectionOperator):
+            text = val.fmt()
+        elif isinstance(val, tuple):
+            text = ILocSelOp(*val).fmt()
+        elif val is None:
+            text = ""
+        else:
+            raise TypeError(f"Invalid type for value: {type(val)}")
+        self._line.value = text
         return None
 
     @property
