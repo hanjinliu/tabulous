@@ -103,7 +103,7 @@ class _RangeDialog(Container):
         freq = self._freq.value if self._freq.checked else None
         return start, end, freq
 
-    def get_value(self, df: pd.DataFrame) -> tuple[slice, slice, pd.DatetimeIndex]:
+    def get_value(self, df: pd.DataFrame) -> tuple[slice, slice, pd.Index]:
         rsl, csl = self._selection.value.as_iloc_slices(df)
         if csl.start != csl.stop - 1:
             raise ValueError("Selection must be a single column")
@@ -139,6 +139,11 @@ class TimeDeltaRangeDialog(_TimeRangeDialog):
 
 
 class PeriodRangeDialog(_TimeRangeDialog):
+    def _prep_start_and_end(self):
+        start = DateTimeEdit(name="start", value=datetime(2000, 1, 1))
+        end = DateTimeEdit(name="stop", value=datetime(2000, 12, 31))
+        return start, end
+
     def _prep_freq(self) -> _CheckedWidget:
         return LineEdit(name="freq", value="1d", tooltip="Period frequency")
 

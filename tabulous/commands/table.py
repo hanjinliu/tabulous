@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from . import _dialogs, _utils
 
 if TYPE_CHECKING:
-    from tabulous.widgets import TableViewerBase, TableBase
+    from tabulous.widgets import TableViewerBase, TableBase, SpreadSheet
     from ._arange import _RangeDialog
 
 
@@ -215,7 +215,12 @@ def _run_range_dialog(dlg: _RangeDialog, viewer: TableViewerBase, table: TableBa
     def _on_called():
         val = dlg.get_value(table._qwidget.model().df)
         rsl, csl, data = val
-        table.cell[rsl, csl] = data
+        c0 = csl.start
+        was_empty = table.columns.size <= c0
+        table.cell[rsl, c0] = data
+        if was_empty and table.table_type == "SpreadSheet":
+            _table: SpreadSheet = table
+            _table.dtypes[_table.columns[c0]] = data.dtype
 
 
 def date_range(viewer: TableViewerBase):
