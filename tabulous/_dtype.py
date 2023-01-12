@@ -90,28 +90,37 @@ _DTYPE_CONVERTER = {
     "m": pd.to_timedelta,
 }
 
-_OBJECT_TYPE_CONVERTER = {
-    pd.PeriodDtype: pd.Period,
-    pd.IntervalDtype: _to_interval,
-}
-
 _GET_CONVERTER_CACHE: dict[Hashable, Callable[[Any], Any]] = {}
 
 
 def get_converter(dtype: _DTypeLike | str) -> Callable[[Any], Any]:
     """Get a scalar value converter function for the given dtype"""
     # try to use the dtype as a key to the cache
-    is_hashable = hasattr(dtype, "__hash__")
-    if is_hashable and dtype in _GET_CONVERTER_CACHE:
+    _is_hashable = hasattr(dtype, "__hash__")
+    if _is_hashable and dtype in _GET_CONVERTER_CACHE:
         return _GET_CONVERTER_CACHE[dtype]
 
     _dtype = get_dtype(dtype)
-    kind = _dtype.kind
-    if kind != "O":
-        out = _DTYPE_CONVERTER[kind]
+    _kind = _dtype.kind
+    _cache = True
+    if _kind != "O":
+        out = _DTYPE_CONVERTER[_kind]
     else:
-        out = _OBJECT_TYPE_CONVERTER.get(type(_dtype), lambda e: e)
-    if is_hashable:
+        if isinstance(_dtype, pd.IntervalDtype):
+            out = _to_interval
+        elif isinstance(_dtype, pd.PeriodDtype):
+            out = pd.Period
+        elif isinstance(_dtype, pd.CategoricalDtype):
+            out = get_converter(_dtype.categories.dtype)
+            _cache = False
+        else:
+
+            def out(e):
+                return e
+
+            _cache = False
+
+    if _cache and _is_hashable:
         _GET_CONVERTER_CACHE[dtype] = out
     return out
 
@@ -141,9 +150,9 @@ def get_converter_from_type(tp: type | str) -> Callable[[Any], Any]:
     elif tp in (datetime.timedelta, pd.Timedelta):
         kind = "m"
     elif tp is pd.Period:
-        return _OBJECT_TYPE_CONVERTER[pd.PeriodDtype]
+        return pd.Period
     elif tp is pd.Interval:
-        return _OBJECT_TYPE_CONVERTER[pd.IntervalDtype]
+        return _to_interval
     else:
         return lambda e: e
     return _DTYPE_CONVERTER[kind]

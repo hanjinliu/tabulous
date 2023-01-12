@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timedelta as td
 from unittest.mock import MagicMock
 from tabulous import TableViewer
 from tabulous.widgets import Table
@@ -31,25 +32,27 @@ def test_editing_data(df: pd.DataFrame):
     edit_cell(table._qwidget, 0, 0, "11")
     assert str(df.iloc[0, 0]) == "11"
 
-def test_edit_category():
+@pytest.mark.parametrize(
+    "data, works, errors",
+    [(["a", "b", "a"], "b", "c"),
+     ([0, 1, 0], 1, 2),
+     ([0.0, 1.0, 0.0], "1.0", "2.0"),
+     ([pd.Interval(0, 1), pd.Interval(1, 2), pd.Interval(0, 1)], "(1, 2]", "(2, 3]"),
+     ([dt(2020, 1, 1), dt(2020, 1, 2), dt(2020, 1, 1)], dt(2020, 1, 2), dt(2020, 1, 3)),
+     ([td(0), td(1), td(0)], "1 days 00:00:00", "2 days 00:00:00"),
+     ]
+)
+def test_edit_category_type(data, works: str, errors: str):
     viewer = TableViewer(show=False)
-    df = {"a": pd.Series(["a", "b", "a"], dtype="category")}
+    df = {"a": pd.Series(data, dtype="category")}
+    works, errors = str(works), str(errors)
     table = viewer.add_table(df, editable=True)
-    edit_cell(table._qwidget, 0, 0, "b")
-    assert table.cell.text[0, 0] == "b"
+    edit_cell(table._qwidget, 0, 0, works)
+    assert table.cell.text[0, 0] == works
     with pytest.raises(Exception):
-        table.cell[0, 0] = "c"
-    assert table.cell.text[0, 0] == "b"
+        table.cell[0, 0] = errors
+    assert table.cell.text[0, 0] == works
 
-def test_edit_category_of_int():
-    viewer = TableViewer(show=False)
-    df = {"a": pd.Series([0, 1, 0], dtype="category")}
-    table = viewer.add_table(df, editable=True)
-    edit_cell(table._qwidget, 0, 0, "1")
-    assert table.cell.text[0, 0] == "1"
-    with pytest.raises(Exception):
-        table.cell[0, 0] = "2"
-    assert table.cell.text[0, 0] == "1"
 
 def test_copy():
     viewer = TableViewer(show=False)
