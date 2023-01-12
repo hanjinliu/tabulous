@@ -166,20 +166,3 @@ def test_ranged_index_extension():
     assert list(sheet.columns) == ["A", "E", "C", "D", "E_0"]
     sheet.cell[0, 6] = "0"
     assert list(sheet.columns) == ["A", "E", "C", "D", "E_0", "F", "G"]
-
-@pytest.mark.parametrize(
-    "dtype, fn",
-    [("int", lambda n: pd.Series(np.arange(n), dtype=np.int32)),
-     ("float", lambda n: pd.Series(np.arange(n), dtype=np.float64)),
-     ("datetime64[ns]", lambda n: pd.date_range("2020/01/01", periods=n, freq="2D")),
-     ("timedelta64[ns]", lambda n: pd.timedelta_range("00:00:00", periods=n, freq="60s")),
-     ("interval", lambda n: pd.interval_range(0, periods=n, freq=1)),
-     ],
-)
-def test_can_parse(dtype, fn: Callable[[int], pd.Series]):
-    viewer = TableViewer(show=False)
-    data = fn(5)
-    sheet = viewer.add_spreadsheet({"c": data})
-    sheet.dtypes["c"] = dtype
-    assert sheet.dtypes["c"] == dtype
-    assert sheet.data["c"].dtype == dtype

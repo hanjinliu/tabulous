@@ -31,6 +31,26 @@ def test_editing_data(df: pd.DataFrame):
     edit_cell(table._qwidget, 0, 0, "11")
     assert str(df.iloc[0, 0]) == "11"
 
+def test_edit_category():
+    viewer = TableViewer(show=False)
+    df = {"a": pd.Series(["a", "b", "a"], dtype="category")}
+    table = viewer.add_table(df, editable=True)
+    edit_cell(table._qwidget, 0, 0, "b")
+    assert table.cell.text[0, 0] == "b"
+    with pytest.raises(Exception):
+        table.cell[0, 0] = "c"
+    assert table.cell.text[0, 0] == "b"
+
+def test_edit_category_of_int():
+    viewer = TableViewer(show=False)
+    df = {"a": pd.Series([0, 1, 0], dtype="category")}
+    table = viewer.add_table(df, editable=True)
+    edit_cell(table._qwidget, 0, 0, "1")
+    assert table.cell.text[0, 0] == "1"
+    with pytest.raises(Exception):
+        table.cell[0, 0] = "2"
+    assert table.cell.text[0, 0] == "1"
+
 def test_copy():
     viewer = TableViewer(show=False)
     df = pd.DataFrame({"a": [1, 2, 3], "b": [0, 0, 0]})
