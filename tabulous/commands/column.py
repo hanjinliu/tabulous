@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+from tabulous.exceptions import SelectionRangeError
 from . import _utils, _dialogs
 
 if TYPE_CHECKING:
@@ -120,3 +121,31 @@ def reset_text_formatter(viewer: TableViewerBase) -> None:
     """Reset text formatter"""
     table, column_name = _utils.get_table_and_column_name(viewer)
     del table.formatter[column_name]
+
+
+def run_groupby(viewer: TableViewerBase) -> None:
+    """Group table by its columns (pd.groupby)"""
+    table = _utils.get_mutable_table(viewer)
+
+    cols = _utils.get_selected_columns(viewer)
+    if len(cols) == 0:
+        raise SelectionRangeError("No columns selected")
+    colnames = [table.columns[c] for c in cols]
+    out = table.data.groupby(by=colnames)
+    viewer.add_groupby(out, name=f"{table.name}-groupby")
+
+
+def run_cut(viewer: TableViewerBase):
+    """Cut a table column into bins (pd.cut)"""
+    table = _utils.get_mutable_table(viewer)
+    try:
+        idx = _utils.get_selected_column(viewer)
+        colname = table.columns[idx]
+    except ValueError:
+        colname = table.columns[0]
+    ds = _dialogs.cut(
+        df={"bind": table.data},
+        column={"choices": table.columns, "value": colname},
+        parent=viewer.native,
+    )
+    table.assign({f"{colname}_cut": ds})

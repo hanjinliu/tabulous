@@ -3,6 +3,7 @@ from typing import List, Union, TYPE_CHECKING, Tuple
 from typing_extensions import Annotated
 
 import logging
+import ast
 import numpy as np
 
 # NOTE: Axes should be imported here!
@@ -38,8 +39,12 @@ def summarize_table(
 
 
 @dialog_factory
-def groupby(df: TableData, by: List[str]):
-    return df.groupby(by)
+def cut(df: TableData, column: str, bins: str, close_right: bool = True) -> TableData:
+    import pandas as pd
+
+    bins = ast.literal_eval(bins)
+    ds = pd.cut(df[column], bins=bins, right=close_right)
+    return ds
 
 
 @dialog_factory

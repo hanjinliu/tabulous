@@ -4,7 +4,7 @@ import pandas as pd
 from collections_undo import arguments
 
 from ._base import QMutableSimpleTable, DataFrameModel
-from tabulous._dtype import convert_value
+from tabulous._dtype import get_converter
 
 
 class QTableLayer(QMutableSimpleTable):
@@ -69,5 +69,5 @@ class QTableLayer(QMutableSimpleTable):
 
     def convertValue(self, c: int, value: Any) -> Any:
         """Convert value to the type of the table."""
-        kind = self._data_raw.dtypes[c].kind
-        return convert_value(kind, value)
+        dtype = self._data_raw.dtypes[c]
+        return get_converter(dtype)(value)

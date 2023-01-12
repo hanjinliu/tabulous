@@ -84,7 +84,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
             colname = df.columns[c]
             if mapper := self._text_formatter.get(colname, None):
                 _converter = get_converter(
-                    self._columns_dtype.get(colname, _STRING_DTYPE).kind
+                    self._columns_dtype.get(colname, _STRING_DTYPE)
                 )
                 try:
                     text = str(mapper(_converter(val)))

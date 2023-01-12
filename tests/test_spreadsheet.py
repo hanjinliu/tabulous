@@ -2,8 +2,9 @@ import pytest
 from tabulous import TableViewer
 from tabulous._qt import QSpreadSheet
 from tabulous.types import ItemInfo
-from typing import cast
+from typing import Callable, cast
 import numpy as np
+import pandas as pd
 from unittest.mock import MagicMock
 
 def assert_data_equal(a, b):

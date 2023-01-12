@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING
 from . import _dialogs, _utils
 
 if TYPE_CHECKING:
-    from tabulous.widgets import TableViewerBase, TableBase
+    from tabulous.widgets import TableViewerBase, TableBase, SpreadSheet
+    from ._arange import _RangeDialog
 
 
 def new_spreadsheet(viewer: TableViewerBase):
@@ -27,18 +28,6 @@ def copy_to_clipboard(viewer: TableViewerBase):
     table = _utils.get_table(viewer)
     table._qwidget.dataShown().to_clipboard()
     return None
-
-
-def groupby(viewer: TableViewerBase):
-    """Group table data by its column(s)"""
-    table = _utils.get_table(viewer)
-    out = _dialogs.groupby(
-        df={"bind": table.data},
-        by={"choices": list(table.data.columns), "widget_type": "Select"},
-        parent=viewer._qwidget,
-    )
-    if out is not None:
-        viewer.add_groupby(out, name=f"{table.name}-groupby")
 
 
 def switch_index(viewer: TableViewerBase):
@@ -217,13 +206,7 @@ def round(viewer: TableViewerBase):
     return None
 
 
-def date_range(viewer: TableViewerBase):
-    """Generate a range of date values (pd.date_range)"""
-    table = _utils.get_mutable_table(viewer)
-
-    from ._arange import DateRangeDialog
-
-    dlg = DateRangeDialog()
+def _run_range_dialog(dlg: _RangeDialog, viewer: TableViewerBase, table: TableBase):
     dlg.native.setParent(viewer._qwidget, dlg.native.windowFlags())
     dlg._selection._read_selection(table)
     dlg.show()
@@ -232,25 +215,44 @@ def date_range(viewer: TableViewerBase):
     def _on_called():
         val = dlg.get_value(table._qwidget.model().df)
         rsl, csl, data = val
-        table.cell[rsl, csl] = data
+        c0 = csl.start
+        was_empty = table.columns.size <= c0
+        table.cell[rsl, c0] = data
+        if was_empty and table.table_type == "SpreadSheet":
+            _table: SpreadSheet = table
+            _table.dtypes[_table.columns[c0]] = data.dtype
+
+
+def date_range(viewer: TableViewerBase):
+    """Generate a range of date values (pd.date_range)"""
+    from ._arange import DateRangeDialog
+
+    table = _utils.get_mutable_table(viewer)
+    _run_range_dialog(DateRangeDialog(), viewer, table)
 
 
 def timedelta_range(viewer: TableViewerBase):
     """Generate a range of timedelta values (pd.timedelta_range)"""
-    table = _utils.get_mutable_table(viewer)
-
     from ._arange import TimeDeltaRangeDialog
 
-    dlg = TimeDeltaRangeDialog()
-    dlg.native.setParent(viewer._qwidget, dlg.native.windowFlags())
-    dlg._selection._read_selection(table)
-    dlg.show()
+    table = _utils.get_mutable_table(viewer)
+    _run_range_dialog(TimeDeltaRangeDialog(), viewer, table)
 
-    @dlg.called.connect
-    def _on_called():
-        val = dlg.get_value(table._qwidget.model().df)
-        rsl, csl, data = val
-        table.cell[rsl, csl] = data
+
+def interval_range(viewer: TableViewerBase):
+    """Generate a range of interval values (pd.interval_range)"""
+    from ._arange import IntervalRangeDialog
+
+    table = _utils.get_mutable_table(viewer)
+    _run_range_dialog(IntervalRangeDialog(), viewer, table)
+
+
+def period_range(viewer: TableViewerBase):
+    """Generate a range of period values (pd.period_range)"""
+    from ._arange import PeriodRangeDialog
+
+    table = _utils.get_mutable_table(viewer)
+    _run_range_dialog(PeriodRangeDialog(), viewer, table)
 
 
 def toggle_editability(viewer: TableViewerBase):

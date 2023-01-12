@@ -49,7 +49,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 cbox.setFont(font)
                 choices = list(map(str, dtype.categories))
                 cbox.addItems(choices)
-                cbox.setCurrentIndex(choices.index(value))
+                cbox.setCurrentIndex(choices.index(str(value)))
                 cbox.currentIndexChanged.connect(qtable_view.setFocus)
                 return cbox
             elif dtype == "bool":
@@ -109,6 +109,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             editor = cast(QTimeDeltaEdit, editor)
             model.setData(index, editor.value(), Qt.ItemDataRole.EditRole)
             return None
+
         return super().setModelData(editor, model, index)
 
     def paint(

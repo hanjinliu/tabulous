@@ -629,7 +629,7 @@ class _DataFrameTableLayer(TableBase):
                 data = pd.DataFrame(data)
         return data
 
-    def assign(self, other: dict[str, Any] = {}, **kwargs: dict[str, Any]) -> Self:
+    def assign(self, other: dict[str, Any] = {}, /, **kwargs: dict[str, Any]) -> Self:
         """
         Assign new column(s) to the table.
 
