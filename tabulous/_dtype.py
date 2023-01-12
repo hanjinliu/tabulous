@@ -52,43 +52,68 @@ _DTYPE_CONVERTER = {
     "u": int,
     "b": _bool_converter,
     "U": str,
-    "O": lambda e: e,
     "c": _complex_or_nan,
     "M": pd.to_datetime,
     "m": pd.to_timedelta,
 }
 
+_OBJECT_TYPE_CONVERTER = {
+    pd.PeriodDtype: pd.Period,
+    pd.IntervalDtype: pd.Interval,
+}
 
-def convert_value(kind: str, value: Any) -> Any:
-    """Convert value according to the dtype kind."""
-    return _DTYPE_CONVERTER[kind](value)
+_GET_CONVERTER_CACHE: dict[Hashable, Callable[[Any], Any]] = {}
 
 
-def get_converter(kind: str) -> Callable[[Any], Any]:
-    return _DTYPE_CONVERTER[kind]
+def get_converter(dtype: _DTypeLike | str) -> Callable[[Any], Any]:
+    """Get a scalar value converter function for the given dtype"""
+    # try to use the dtype as a key to the cache
+    is_hashable = hasattr(dtype, "__hash__")
+    if is_hashable and dtype in _GET_CONVERTER_CACHE:
+        return _GET_CONVERTER_CACHE[dtype]
+
+    _dtype = get_dtype(dtype)
+    kind = _dtype.kind
+    if kind != "O":
+        out = _DTYPE_CONVERTER[kind]
+    else:
+        out = _OBJECT_TYPE_CONVERTER.get(type(_dtype), lambda e: e)
+    if is_hashable:
+        _GET_CONVERTER_CACHE[dtype] = out
+    return out
 
 
 def get_converter_from_type(tp: type | str) -> Callable[[Any], Any]:
-    if not isinstance(tp, str):
-        tp = tp.__name__
+    import datetime
 
-    if tp == "int":
+    if isinstance(tp, str):
+        ns = {"pd": pd, "datetime": datetime, "timedelta": datetime.timedelta}
+        try:
+            tp = eval(tp, ns, {})
+        except NameError:
+            return lambda e: e
+
+    if tp is int:
         kind = "i"
-    elif tp == "float":
+    elif tp is float:
         kind = "f"
-    elif tp == "str":
+    elif tp is str:
         kind = "U"
-    elif tp == "bool":
+    elif tp is bool:
         kind = "b"
-    elif tp == "complex":
+    elif tp is complex:
         kind = "c"
-    elif tp == "datetime":
+    elif tp in (datetime, datetime.datetime, pd.Timestamp):
         kind = "M"
-    elif tp == "timedelta":
+    elif tp in (datetime.timedelta, pd.Timedelta):
         kind = "m"
+    elif tp is pd.Period:
+        return _OBJECT_TYPE_CONVERTER[pd.PeriodDtype]
+    elif tp is pd.Interval:
+        return _OBJECT_TYPE_CONVERTER[pd.IntervalDtype]
     else:
-        kind = "O"
-    return get_converter(kind)
+        return lambda e: e
+    return _DTYPE_CONVERTER[kind]
 
 
 class DefaultValidator:
@@ -279,7 +304,7 @@ class DTypeMap(MutableMapping[_K, _V]):
         if self._need_parsing_dict:
             kwargs.update(
                 converters={
-                    k: get_converter(v.kind) for k, v in self._need_parsing_dict.items()
+                    k: get_converter(v) for k, v in self._need_parsing_dict.items()
                 },
             )
         return kwargs
@@ -287,7 +312,7 @@ class DTypeMap(MutableMapping[_K, _V]):
     def try_convert(self, key: _K, value: Any) -> Any:
         """Convert value according to the dtype, if registered."""
         if dtype := self.get(key, None):
-            return convert_value(dtype.kind, value)
+            return get_converter(dtype)(value)
         return value
 
     def copy(self) -> DTypeMap:
@@ -298,7 +323,7 @@ class DTypeMap(MutableMapping[_K, _V]):
         return new
 
 
-_NANS = {np.nan, pd.NA}
+_NANS = frozenset({np.nan, pd.NA, float("nan")})
 
 
 def isna(val: Any):

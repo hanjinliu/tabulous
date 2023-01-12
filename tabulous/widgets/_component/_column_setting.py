@@ -231,7 +231,7 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
             vmin: _TimeType
             vmax: _TimeType
             vmin, vmax = vmin.value, vmax.value
-            converter = get_converter(ds.dtype.kind)
+            converter = get_converter(ds.dtype)
 
             def _cmap(x):
                 x = converter(x).value
@@ -254,16 +254,14 @@ class _ColormapInterface(_DictPropertyInterface[ColorMapping]):
         if (key := next(iter(_ann.keys()), None)) and key != "return":
             arg_type = _ann[key]
             parser = get_converter_from_type(arg_type)
-            if parser is get_converter("O"):
-                raise TypeError(f"Cannot infer parser from {arg_type}")
 
         elif _is_spreadsheet(table) and (dtype := table.dtypes.get(column_name, None)):
             # try to infer parser from table column dtype
-            parser = get_converter(dtype.kind)
+            parser = get_converter(dtype)
 
         else:
             dtype = table.data[column_name].dtype
-            parser = get_converter(dtype.kind)
+            parser = get_converter(dtype)
 
         return parser
 
