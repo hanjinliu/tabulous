@@ -65,6 +65,22 @@ def concat(
 
 
 @dialog_factory
+def merge(
+    merge: TableBase,
+    with_: TableBase,
+    how: str = "inner",
+    on: List[str] = (),
+) -> TableData:
+    if merge is with_:
+        raise ValueError("Cannot merge a table with itself.")
+    df0 = merge.data
+    df1 = with_.data
+    if len(on) == 0:
+        on = None
+    return df0.merge(df1, how=how, on=on)
+
+
+@dialog_factory
 def fillna(df: TableData, method: str, value) -> TableData:
     if method != "value":
         value = None

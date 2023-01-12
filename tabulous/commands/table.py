@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from . import _dialogs, _utils
 
 if TYPE_CHECKING:
-    from tabulous.widgets import TableViewerBase
+    from tabulous.widgets import TableViewerBase, TableBase
 
 
 def new_spreadsheet(viewer: TableViewerBase):
@@ -71,6 +71,30 @@ def concat(viewer: TableViewerBase):
         viewer.add_table(out, name="concat")
 
 
+def merge(viewer: TableViewerBase):
+    """Merge two tables (pd.merge)"""
+
+    def _update_choices(wdt):
+        table0: TableBase = wdt.merge.value
+        table1: TableBase = wdt.with_.value
+        if table0 is None or table1 is None:
+            return
+        col0 = table0.columns
+        col1 = table1.columns
+        choices = list(set(col0) & set(col1))
+        wdt.on.choices = choices
+
+    out = _dialogs.merge(
+        merge={"changed": _update_choices},
+        with_={"changed": _update_choices},
+        how={"choices": ["left", "right", "outer", "inner"], "value": "inner"},
+        on={"choices": [], "widget_type": "Select"},
+        parent=viewer._qwidget,
+    )
+    if out is not None:
+        viewer.add_table(out, name="merged")
+
+
 def pivot(viewer: TableViewerBase):
     """Pivot current table data (pd.pivot)"""
     table = _utils.get_table(viewer)
@@ -128,6 +152,7 @@ def fillna(viewer: TableViewerBase):
             "changed": _cb,
         },
         value={"widget_type": "LiteralEvalLineEdit", "value": "0.0"},
+        parent=viewer._qwidget,
     )
     if out is not None:
         viewer.add_table(out, name=f"{table.name}-fillna")
@@ -140,6 +165,7 @@ def dropna(viewer: TableViewerBase):
         df={"bind": table.data},
         axis={"choices": [("drop rows", 0), ("drop columns", 1)]},
         how={"choices": [("if any nan", "any"), ("if all nan", "all")]},
+        parent=viewer._qwidget,
     )
     if out is not None:
         viewer.add_table(out, name=f"{table.name}-dropna")

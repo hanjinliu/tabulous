@@ -4,7 +4,7 @@ import warnings
 import datetime
 import inspect
 
-from qtpy import QtWidgets as QtW
+from qtpy import QtWidgets as QtW, QtGui
 from magicgui import register_type, magicgui
 from magicgui.widgets import (
     Widget,
@@ -348,19 +348,13 @@ register_type(
 _F = TypeVar("_F", bound=Callable)
 
 
-def _connect_callback(widget: Widget, callback: Callable[[Widget], Any]):
-    def cb():
-        return callback(widget)
-
-    widget.changed.connect(cb)
-
-
 def dialog_factory(function: _F) -> _F:
     from magicgui.widgets import create_widget
 
     def _runner(parent=None, **param_options):
         # create a list of widgets, similar to magic_signature
         widgets: list[Widget] = []
+        callbacks: dict[str, Callable[[Widget], Any]] = {}
         sig = inspect.signature(function)
         for name, param in sig.parameters.items():
             opt = param_options.get(name, {})
@@ -378,10 +372,13 @@ def dialog_factory(function: _F) -> _F:
             widget = create_widget(**kwargs, options=opt)
             if changed_cb is not None:
                 assert callable(changed_cb)
-                _connect_callback(widget, changed_cb)
+                callbacks[name] = changed_cb
             widgets.append(widget)
 
         dlg = Dialog(widgets=widgets)
+
+        for name, cb in callbacks.items():
+            dlg[name].changed.connect(lambda: cb(dlg))
 
         # if return annotation "TableData" is given, add a preview widget.
         if function.__annotations__.get("return") is TableData:
@@ -414,6 +411,9 @@ def dialog_factory(function: _F) -> _F:
             dlg.changed.emit()
 
         dlg.native.setParent(parent, dlg.native.windowFlags())
+        dlg._shortcut = QtW.QShortcut(QtGui.QKeySequence("Ctrl+W"), dlg.native)
+        dlg._shortcut.activated.connect(dlg.close)
+        dlg.reset_choices()
         if dlg.exec():
             out = function(**dlg.asdict())
         else:
