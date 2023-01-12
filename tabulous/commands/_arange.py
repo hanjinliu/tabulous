@@ -138,6 +138,14 @@ class TimeDeltaRangeDialog(_TimeRangeDialog):
         return pd.timedelta_range(start=start, end=end, periods=periods, freq=freq)
 
 
+class PeriodRangeDialog(_TimeRangeDialog):
+    def _prep_freq(self) -> _CheckedWidget:
+        return LineEdit(name="freq", value="1d", tooltip="Period frequency")
+
+    def get_range(self, start=None, end=None, periods=None, freq=None):
+        return pd.period_range(start=start, end=end, periods=periods, freq=freq)
+
+
 class IntervalRangeDialog(_RangeDialog):
     def __init__(self):
         super().__init__()

@@ -109,6 +109,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
             editor = cast(QTimeDeltaEdit, editor)
             model.setData(index, editor.value(), Qt.ItemDataRole.EditRole)
             return None
+
         return super().setModelData(editor, model, index)
 
     def paint(

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import partial
 from typing import (
     Any,
     Callable,
@@ -93,6 +94,10 @@ _DTYPE_CONVERTER = {
 _GET_CONVERTER_CACHE: dict[Hashable, Callable[[Any], Any]] = {}
 
 
+def _IDENTITY_CONVERTER(e):
+    return e
+
+
 def get_converter(dtype: _DTypeLike | str) -> Callable[[Any], Any]:
     """Get a scalar value converter function for the given dtype"""
     # try to use the dtype as a key to the cache
@@ -102,25 +107,19 @@ def get_converter(dtype: _DTypeLike | str) -> Callable[[Any], Any]:
 
     _dtype = get_dtype(dtype)
     _kind = _dtype.kind
-    _cache = True
     if _kind != "O":
         out = _DTYPE_CONVERTER[_kind]
     else:
         if isinstance(_dtype, pd.IntervalDtype):
             out = _to_interval
         elif isinstance(_dtype, pd.PeriodDtype):
-            out = pd.Period
+            out = partial(pd.Period, freq=_dtype.freq)
         elif isinstance(_dtype, pd.CategoricalDtype):
             out = get_converter(_dtype.categories.dtype)
-            _cache = False
         else:
+            out = _IDENTITY_CONVERTER
 
-            def out(e):
-                return e
-
-            _cache = False
-
-    if _cache and _is_hashable:
+    if _is_hashable:
         _GET_CONVERTER_CACHE[dtype] = out
     return out
 
@@ -133,7 +132,7 @@ def get_converter_from_type(tp: type | str) -> Callable[[Any], Any]:
         try:
             tp = eval(tp, ns, {})
         except NameError:
-            return lambda e: e
+            return _IDENTITY_CONVERTER
 
     if tp is int:
         kind = "i"
@@ -154,7 +153,7 @@ def get_converter_from_type(tp: type | str) -> Callable[[Any], Any]:
     elif tp is pd.Interval:
         return _to_interval
     else:
-        return lambda e: e
+        return _IDENTITY_CONVERTER
     return _DTYPE_CONVERTER[kind]
 
 

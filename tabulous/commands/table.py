@@ -242,6 +242,14 @@ def interval_range(viewer: TableViewerBase):
     _run_range_dialog(IntervalRangeDialog(), viewer, table)
 
 
+def period_range(viewer: TableViewerBase):
+    """Generate a range of period values (pd.period_range)"""
+    from ._arange import PeriodRangeDialog
+
+    table = _utils.get_mutable_table(viewer)
+    _run_range_dialog(PeriodRangeDialog(), viewer, table)
+
+
 def toggle_editability(viewer: TableViewerBase):
     """Toggle table editability"""
     table = viewer.current_table

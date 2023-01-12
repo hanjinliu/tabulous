@@ -34,6 +34,24 @@ def test_editing_data(df: pd.DataFrame):
 
 @pytest.mark.parametrize(
     "data, works, errors",
+    [(pd.interval_range(0, periods=3, freq=2), "(1, 2]", "(2,]"),
+     (pd.date_range("2020-01-01", periods=3, freq="3d"), "2020-01-02 00:00:00", "xyz"),
+     (pd.timedelta_range("00:00:00", periods=3, freq="10s"), "0 days 00:00:10", "xyz"),
+     (pd.period_range("2020-01-01", periods=3, freq="3d"), "2020-01-04", "xyz"),]
+)
+def test_editing_object_type(data, works: str, errors: str):
+    viewer = TableViewer(show=False)
+    df = {"a": data}
+    works, errors = str(works), str(errors)
+    table = viewer.add_table(df, editable=True)
+    edit_cell(table._qwidget, 0, 0, works)
+    assert table.cell.text[0, 0] == works
+    with pytest.raises(Exception):
+        table.cell[0, 0] = errors
+    assert table.cell.text[0, 0] == works
+
+@pytest.mark.parametrize(
+    "data, works, errors",
     [(["a", "b", "a"], "b", "c"),
      ([0, 1, 0], 1, 2),
      ([0.0, 1.0, 0.0], "1.0", "2.0"),
