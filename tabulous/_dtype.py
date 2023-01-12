@@ -67,10 +67,10 @@ def _to_interval(x: Any) -> pd.Interval:
         values = eval(f"({rest})", {"pd": pd}, {})
         closed = _INTERVAL_PARENTHESIS.get((left_par, right_par))
         return pd.Interval(*values, closed=closed)
-    elif hasattr(x, "__iter__"):
-        return pd.Interval(*x)
     elif isinstance(x, pd.Interval):
         return x
+    elif hasattr(x, "__iter__"):
+        return pd.Interval(*x)
     elif isinstance(x, slice):
         if x.start is None or x.stop is None or x.step not in (1, None):
             raise ValueError(f"Slice {x} not interpretable.")
@@ -300,13 +300,16 @@ class DTypeMap(MutableMapping[_K, _V]):
                 out = self._need_parsing_dict[key]
         return out
 
-    def __setitem__(self, key: _K, value: _V) -> None:
-        if value.kind not in ("M", "m", "c"):
-            self._dict[key] = value
-        elif value.kind == "M":
-            self._datetime_dict[key] = value
+    def __setitem__(self, key: _K, dtype: _V) -> None:
+        if dtype.kind not in ("M", "m", "c"):
+            if dtype == "interval" or dtype == "period":
+                self._need_parsing_dict[key] = dtype
+            else:
+                self._dict[key] = dtype
+        elif dtype.kind == "M":
+            self._datetime_dict[key] = dtype
         else:
-            self._need_parsing_dict[key] = value
+            self._need_parsing_dict[key] = dtype
 
     def __delitem__(self, key: _K) -> None:
         self._dict.pop(key, None) or self._datetime_dict.pop(
