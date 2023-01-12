@@ -301,7 +301,7 @@ class DTypeMap(MutableMapping[_K, _V]):
         return out
 
     def __setitem__(self, key: _K, value: _V) -> None:
-        if value.kind not in ("M", "m", "c", "O"):
+        if value.kind not in ("M", "m", "c"):
             self._dict[key] = value
         elif value.kind == "M":
             self._datetime_dict[key] = value

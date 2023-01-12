@@ -30,18 +30,6 @@ def copy_to_clipboard(viewer: TableViewerBase):
     return None
 
 
-def groupby(viewer: TableViewerBase):
-    """Group table data by its column(s)"""
-    table = _utils.get_table(viewer)
-    out = _dialogs.groupby(
-        df={"bind": table.data},
-        by={"choices": list(table.data.columns), "widget_type": "Select"},
-        parent=viewer._qwidget,
-    )
-    if out is not None:
-        viewer.add_groupby(out, name=f"{table.name}-groupby")
-
-
 def switch_index(viewer: TableViewerBase):
     """Switch index header and the left column"""
     table = _utils.get_mutable_table(viewer)

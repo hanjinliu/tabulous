@@ -224,8 +224,10 @@ class VerticalHeaderInterface(_HeaderInterface):
         sheet._qwidget.removeRows(at, count)
 
     @_HeaderInterface.selected.setter
-    def selected(self, slices: list[slice]):
+    def selected(self, slices: int | slice | list[int | slice]):
         """Set the selected ranges."""
+        if isinstance(slices, (int, slice)):
+            slices = [slices]
         smodel = self.parent._qwidget._qtable_view._selection_model
         smodel.clear()
         csl = slice(0, smodel._col_count_getter())
@@ -260,8 +262,10 @@ class HorizontalHeaderInterface(_HeaderInterface):
         sheet._qwidget.removeColumns(at, count)
 
     @_HeaderInterface.selected.setter
-    def selected(self, slices: list[slice]):
+    def selected(self, slices: int | slice | list[int | slice]):
         """Set the selected ranges."""
+        if isinstance(slices, (int, slice)):
+            slices = [slices]
         smodel = self.parent._qwidget._qtable_view._selection_model
         smodel.clear()
         rsl = slice(0, smodel._row_count_getter())
