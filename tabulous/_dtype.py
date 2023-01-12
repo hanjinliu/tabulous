@@ -46,6 +46,39 @@ def _complex_or_nan(x: Any):
     return complex(x)
 
 
+_INTERVAL_PARENTHESIS = {
+    ("[", "]"): "both",
+    ("[", ")"): "left",
+    ("(", "]"): "right",
+    ("(", ")"): "neither",
+}
+
+
+def _to_interval(x: Any) -> pd.Interval:
+    """Convert an object into a pd.Interval object."""
+    if isinstance(x, str):
+        if x == "":
+            return pd.NA
+        elif len(x) < 5:
+            raise ValueError(f"Cannot conver string {x!r} to an interval.")
+        left_par = x[0]
+        right_par = x[-1]
+        rest = x[1:-1]
+        values = eval(f"({rest})", {"pd": pd}, {})
+        closed = _INTERVAL_PARENTHESIS.get((left_par, right_par))
+        return pd.Interval(*values, closed=closed)
+    elif hasattr(x, "__iter__"):
+        return pd.Interval(*x)
+    elif isinstance(x, pd.Interval):
+        return x
+    elif isinstance(x, slice):
+        if x.start is None or x.stop is None or x.step not in (1, None):
+            raise ValueError(f"Slice {x} not interpretable.")
+        return pd.Interval(x.start, x.stop)
+    else:
+        raise TypeError(f"Cannot convert {type(x)} to pd.Interval.")
+
+
 _DTYPE_CONVERTER = {
     "i": int,
     "f": _float_or_nan,
@@ -59,7 +92,7 @@ _DTYPE_CONVERTER = {
 
 _OBJECT_TYPE_CONVERTER = {
     pd.PeriodDtype: pd.Period,
-    pd.IntervalDtype: pd.Interval,
+    pd.IntervalDtype: _to_interval,
 }
 
 _GET_CONVERTER_CACHE: dict[Hashable, Callable[[Any], Any]] = {}
@@ -167,12 +200,8 @@ class QDtypeWidget(QtW.QTreeWidget):
         "uint": ["uint8", "uint16", "uint32", "uint64"],
         "float": ["float16", "float32", "float64"],
         "complex": ["complex64", "complex128"],
-        "time": ["datetime64", "timedelta64"],
-        "others": [
-            "category",
-            "string",
-            "object",
-        ],
+        "time": ["datetime64", "timedelta64", "period"],
+        "others": ["category", "interval", "string", "object"],
     }
 
     def __init__(self, parent: QtW.QWidget | None = None):
@@ -272,7 +301,7 @@ class DTypeMap(MutableMapping[_K, _V]):
         return out
 
     def __setitem__(self, key: _K, value: _V) -> None:
-        if value.kind not in ("M", "m", "c"):
+        if value.kind not in ("M", "m", "c", "O"):
             self._dict[key] = value
         elif value.kind == "M":
             self._datetime_dict[key] = value

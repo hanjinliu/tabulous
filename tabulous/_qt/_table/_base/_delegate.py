@@ -49,7 +49,7 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 cbox.setFont(font)
                 choices = list(map(str, dtype.categories))
                 cbox.addItems(choices)
-                cbox.setCurrentIndex(choices.index(value))
+                cbox.setCurrentIndex(choices.index(str(value)))
                 cbox.currentIndexChanged.connect(qtable_view.setFocus)
                 return cbox
             elif dtype == "bool":
