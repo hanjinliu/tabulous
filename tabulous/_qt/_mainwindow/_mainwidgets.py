@@ -73,6 +73,10 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
             self.addWidget(qtconsole)
             self._console_widget = qtconsole
 
+            if qtconsole.shell is not None:
+                qtconsole.update_console(self._queued_ns)
+                self._queued_ns.clear()
+
         self._console_widget.setVisible(visible)
 
         if visible:
@@ -151,7 +155,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     def setConsoleVisible(self, visible: bool) -> None:
         """Set visibility of embeded console widget."""
         if visible and self._console_widget is None:
-            from .._console import QtConsole
+            from tabulous._qt._console import QtConsole
 
             qtconsole = QtConsole()
             qtconsole.connect_parent(self._table_viewer)
@@ -159,6 +163,10 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
             qtconsole.setDockParent(dock)
             dock.setSourceObject(qtconsole)
             self._console_widget = qtconsole
+
+            if qtconsole.shell is not None:
+                qtconsole.update_console(self._queued_ns)
+                self._queued_ns.clear()
 
         else:
             dock = self._console_widget.dockParent()

@@ -1,12 +1,12 @@
 from __future__ import annotations
-from functools import partial
 
+from functools import partial
 from typing import (
     Any,
     Callable,
     Generic,
+    Hashable,
     TypeVar,
-    Tuple,
     TYPE_CHECKING,
     overload,
     Literal,
@@ -14,16 +14,15 @@ from typing import (
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase, TableBase
+    from typing_extensions import Self
 
 _T = TypeVar("_T")
-_U = TypeVar("_U")
 
 
-class MockObject(Generic[_T]):
+class _Joinable:
     def __init__(self, name: str = ""):
         self._name = name
-        self._registered: list[_T] = []
-        self._instances = {}
+        self._instances: dict[Hashable, Self] = {}
 
     def __get__(self, instance, owner):
         if instance is None:
@@ -35,27 +34,63 @@ class MockObject(Generic[_T]):
     def __set_name__(self, owner, name):
         self._name = name
 
-    def iter_registered(self):
-        return iter(self._registered)
+    def _join(self, other: Self):
+        raise NotImplementedError()
 
 
-class ContextRegisterable(MockObject[Tuple[str, Callable]], Generic[_U]):
-    # fmt: off
-    @overload
-    def register_action(self, loc: str, func: Literal[None] = None) -> Callable[[Callable[[_U, Any], None]], Callable[[_U, Any], None]]: ...  # noqa: E501
-    @overload
-    def register_action(self, loc: str, func: Callable[[_U, Any], None]) -> Callable[[_U, Any], None]: ...  # noqa: E501
-    # fmt: on
+class _Registerable(_Joinable):
+    def __init__(self, name: str = ""):
+        super().__init__(name)
+        self._registered: list[Any] = []
 
-    def register_action(self, loc, func=None):
+    def _register(self, loc, func=None):
         def wrapper(f):
             self._registered.append((loc, f))
             return f
 
         return wrapper(func) if func is not None else wrapper
 
+    def _join(self, other: Self):
+        self._registered.extend(other._registered)
 
-class KeyMapMock(MockObject[Tuple[str, Callable]]):
+
+class _Updatable(_Joinable):
+    def __init__(self, name: str = ""):
+        super().__init__(name)
+        self._dict = {}
+
+    def __setitem__(self, key: str, value: Any):
+        self._dict[key] = value
+
+    def update(self, *args, **kwargs):
+        self._dict.update(*args, **kwargs)
+
+    def add(self, obj: _T) -> _T:
+        """A decorator to add an callable object to the namespace."""
+        if callable(obj) or isinstance(obj, type):
+            name = obj.__name__
+            self[name] = obj
+        else:
+            raise TypeError(f"Expected to be used as a decorator, got {type(obj)}")
+        return obj
+
+    def _join(self, other: Self):
+        self._dict.update(other._dict)
+
+
+class ContextRegisterable(_Registerable, Generic[_T]):
+    # fmt: off
+    @overload
+    def register_action(self, loc: str, func: Literal[None] = None) -> Callable[[Callable[[_T, Any], None]], Callable[[_T, Any], None]]: ...  # noqa: E501
+    @overload
+    def register_action(self, loc: str, func: Callable[[_T, Any], None]) -> Callable[[_T, Any], None]: ...  # noqa: E501
+    # fmt: on
+
+    def register_action(self, loc, func=None):
+        return self._register(loc, func)
+
+
+class KeyMapMock(_Registerable):
     # fmt: off
     @overload
     def bind(self, key: str, func: Literal[None] = None) -> Callable[[Callable[[TableViewerBase, Any], None]], Callable[[TableViewerBase, Any], None]]: ...  # noqa: E501
@@ -64,11 +99,15 @@ class KeyMapMock(MockObject[Tuple[str, Callable]]):
     # fmt: on
 
     def bind(self, key, func=None):
-        def wrapper(f):
-            self._registered.append((key, f))
-            return f
+        return self._register(key, func)
 
-        return wrapper(func) if func is not None else wrapper
+
+class CellNamespaceMock(_Updatable):
+    pass
+
+
+class ConsoleMock(_Updatable):
+    pass
 
 
 class Initializer:
@@ -80,9 +119,9 @@ class Initializer:
     def join(self, other: Initializer):
         """Join initializers together."""
         for name in self._fields:
-            self_field: MockObject = getattr(self, name)
-            other_field: MockObject = getattr(other, name)
-            self_field._registered.extend(other_field._registered)
+            self_field: _Registerable = getattr(self, name)
+            other_field: _Registerable = getattr(other, name)
+            self_field._join(other_field)
         return self
 
     def wrap_args(self, args: tuple[Any, Callable], parent) -> tuple[Any, Callable]:
@@ -92,31 +131,35 @@ class Initializer:
 
 
 class ViewerInitializer(Initializer):
-    tables: ContextRegisterable[TableViewerBase] = ContextRegisterable("tables")
-    keymap: ContextRegisterable[TableViewerBase] = KeyMapMock("keymap")
+    tables: ContextRegisterable[TableViewerBase] = ContextRegisterable()
+    keymap: ContextRegisterable[TableViewerBase] = KeyMapMock()
+    console: ConsoleMock[TableViewerBase] = ConsoleMock()
+    cell_namespace: CellNamespaceMock[TableViewerBase] = CellNamespaceMock()
 
-    _fields = ("tables", "keymap")
+    _fields = ("tables", "keymap", "console", "cell_namespace")
 
-    def initializer_viewer(self, viewer: TableViewerBase):
-        for args in self.tables.iter_registered():
+    def initialize_viewer(self, viewer: TableViewerBase):
+        for args in self.tables._registered:
             viewer.tables.register_action(*self.wrap_args(args, parent=viewer))
-        for args in self.keymap.iter_registered():
+        for args in self.keymap._registered:
             viewer.keymap.bind(*self.wrap_args(args, parent=viewer))
+        viewer.cell_namespace.update_safely(self.cell_namespace._dict)
+        viewer.console.update(self.console._dict)
 
 
 class TableInitializer(Initializer):
-    cell: ContextRegisterable[TableBase] = ContextRegisterable("cell")
-    index: ContextRegisterable[TableBase] = ContextRegisterable("index")
-    columns: ContextRegisterable[TableBase] = ContextRegisterable("columns")
+    cell: ContextRegisterable[TableBase] = ContextRegisterable()
+    index: ContextRegisterable[TableBase] = ContextRegisterable()
+    columns: ContextRegisterable[TableBase] = ContextRegisterable()
 
     _fields = ("cell", "index", "columns")
 
-    def initializer_table(self, table: TableBase):
-        for args in self.cell.iter_registered():
+    def initialize_table(self, table: TableBase):
+        for args in self.cell._registered:
             table.cell.register_action(*self.wrap_args(args, parent=table))
-        for args in self.index.iter_registered():
+        for args in self.index._registered:
             table.index.register_action(*self.wrap_args(args, parent=table))
-        for args in self.columns.iter_registered():
+        for args in self.columns._registered:
             table.columns.register_action(*self.wrap_args(args, parent=table))
 
 

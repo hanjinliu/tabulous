@@ -74,7 +74,7 @@ class Console(ViewerComponent):
 
     @property
     def visible(self) -> bool:
-        """Visibility of the toolbar."""
+        """Visibility of the console."""
         return self.parent._qwidget.consoleVisible()
 
     @visible.setter
@@ -82,21 +82,36 @@ class Console(ViewerComponent):
         return self.parent._qwidget.setConsoleVisible(val)
 
     @property
+    def is_active(self) -> bool:
+        return self.parent._qwidget._console_widget is not None
+
+    def _get_console_widget(self):
+        console = self.parent._qwidget._console_widget
+        if console is None:
+            raise RuntimeError("Console is not active.")
+        return console
+
+    @property
     def buffer(self) -> str:
         """Return the current text buffer of the console."""
-        return self.parent._qwidget._console_widget.input_buffer
+        return self._get_console_widget().input_buffer
 
     @buffer.setter
     def buffer(self, val) -> None:
-        return self.parent._qwidget._console_widget.setBuffer(val)
+        return self._get_console_widget().setBuffer(val)
 
     def execute(self):
         """Execute current buffer."""
-        return self.parent._qwidget._console_widget.execute()
+        return self._get_console_widget().execute()
 
     def update(self, ns: dict[str, Any]):
         """Update IPython namespace."""
-        return self.parent._qwidget._console_widget.update_console(ns)
+        console = self.parent._qwidget._console_widget
+        if console is None:
+            self.parent._qwidget._queued_ns.update(ns)
+        else:
+            self._get_console_widget().update_console(ns)
+        return None
 
 
 class _AbstractViewer(ABC):
@@ -183,16 +198,13 @@ class TableViewerBase(_AbstractViewer):
         _init = get_post_initializers()
         if _init is not None:
             viewer_initializer, self._table_initializer = _init
-            viewer_initializer.initializer_viewer(self)
+            viewer_initializer.initialize_viewer(self)
 
         if show:
             self.show(run=False)
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} widget at {hex(id(self))}>"
-
-    def reset_choices(self, *_):
-        pass
 
     @property
     def tables(self) -> TableList:
@@ -391,7 +403,7 @@ class TableViewerBase(_AbstractViewer):
 
         self._qwidget.setCellFocus()
         if self._table_initializer is not None:
-            self._table_initializer.initializer_table(input)
+            self._table_initializer.initialize_table(input)
         return input
 
     def open(self, path: PathLike, *, type: TableType | str = TableType.table) -> None:
