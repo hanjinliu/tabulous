@@ -95,11 +95,15 @@ def load_cell_namespace() -> MappingProxyType:
 
 @warn_on_exc(default=None)
 def get_post_initializers():
-    from tabulous.post_init import TableInitializer, ViewerInitializer
-
     code = _compile_file(POST_INIT_PATH)
     ns: dict[str, Any] = {}
     exec(code, {}, ns)
+
+    if len(ns) == 0:
+        # if file is empty, don't do anything
+        return None
+
+    from tabulous.post_init import TableInitializer, ViewerInitializer
 
     table_initializer = TableInitializer()
     viewer_initializer = ViewerInitializer()

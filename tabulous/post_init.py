@@ -79,6 +79,8 @@ class _Updatable(_Joinable):
 
 
 class ContextRegisterable(_Registerable, Generic[_T]):
+    """A mock for the `register_action` method."""
+
     # fmt: off
     @overload
     def register_action(self, loc: str, func: Literal[None] = None) -> Callable[[Callable[[_T, Any], None]], Callable[[_T, Any], None]]: ...  # noqa: E501
@@ -91,6 +93,8 @@ class ContextRegisterable(_Registerable, Generic[_T]):
 
 
 class KeyMapMock(_Registerable):
+    """A mock for the `keymap` attribute of a table viewer instance."""
+
     # fmt: off
     @overload
     def bind(self, key: str, func: Literal[None] = None) -> Callable[[Callable[[TableViewerBase, Any], None]], Callable[[TableViewerBase, Any], None]]: ...  # noqa: E501
@@ -103,11 +107,11 @@ class KeyMapMock(_Registerable):
 
 
 class CellNamespaceMock(_Updatable):
-    pass
+    """A mock for the `cell_namespace` attribute of a table viewer instance."""
 
 
 class ConsoleMock(_Updatable):
-    pass
+    """A mock for the `console` attribute of a table viewer instance."""
 
 
 class Initializer:
@@ -163,5 +167,9 @@ class TableInitializer(Initializer):
             table.columns.register_action(*self.wrap_args(args, parent=table))
 
 
-def get_initializer() -> tuple[ViewerInitializer, TableInitializer]:
-    return ViewerInitializer(), TableInitializer()
+_VIEWER_INITIALIZER = ViewerInitializer()
+_TABLE_INITIALIZER = TableInitializer()
+
+
+def get_initializers() -> tuple[ViewerInitializer, TableInitializer]:
+    return _VIEWER_INITIALIZER, _TABLE_INITIALIZER
