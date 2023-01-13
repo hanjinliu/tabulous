@@ -173,4 +173,5 @@ class TableList(EventedList[TableBase], SupportActionRegistration):
         self.register_action("View > Reset view", _wrap(cmds.view.reset_view_mode))  # noqa: E501
         self.register_action("Tile", _wrap(cmds.tab.tile_tables))
         self.register_action("Untile", _wrap(cmds.tab.untile_table))
+        tablestack.addSeparator()
         # fmt: on

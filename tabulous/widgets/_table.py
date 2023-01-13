@@ -545,7 +545,7 @@ class TableBase(ABC):
         _hheader_register("Color > Set text colormap", _wrap(cmds.column.set_text_colormap))  # noqa: E501
         _hheader_register("Color > Reset text colormap", _wrap(cmds.column.reset_text_colormap))  # noqa: E501
         _hheader_register("Color > Set opacity to text colormap", _wrap(cmds.column.set_text_colormap_opacity))  # noqa: E501
-        self._qwidget._qtable_view.horizontalHeader().addSeparator("Color ")
+        self._qwidget._qtable_view.horizontalHeader().addSeparator("Color")
         _hheader_register("Color > Set background colormap", _wrap(cmds.column.set_background_colormap))  # noqa: E501
         _hheader_register("Color > Reset background colormap", _wrap(cmds.column.reset_background_colormap))  # noqa: E501
         _hheader_register("Color > Set opacity to background colormap", _wrap(cmds.column.set_background_colormap_opacity))  # noqa: E501
@@ -563,7 +563,7 @@ class TableBase(ABC):
         _cell_register("Copy as ... > Tab separated text with headers", _wrap(cmds.selection.copy_data_with_header_tab_separated))  # noqa: E501
         _cell_register("Copy as ... > Comma separated text", _wrap(cmds.selection.copy_data_comma_separated))  # noqa: E501
         _cell_register("Copy as ... > Comma separated text with headers", _wrap(cmds.selection.copy_data_with_header_comma_separated))  # noqa: E501
-        self._qwidget.addSeparator("Copy as ... ")
+        self._qwidget.addSeparator("Copy as ...")
         _cell_register("Copy as ... > Markdown", _wrap(cmds.selection.copy_as_markdown))  # noqa: E501
         _cell_register("Copy as ... > reStructuredText grid table", _wrap(cmds.selection.copy_as_rst_grid))  # noqa: E501
         _cell_register("Copy as ... > reStructuredText simple table", _wrap(cmds.selection.copy_as_rst_simple))  # noqa: E501

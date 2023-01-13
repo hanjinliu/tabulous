@@ -55,6 +55,7 @@ class QActionRegistry(QtCore.QObject, Generic[_T]):
             locs = location.split(">")
 
         for loc in locs:
+            loc = loc.strip()
             a = menu.searchChild(loc)
             if a is None:
                 raise ValueError(f"{location} is not a valid location.")

@@ -1,11 +1,22 @@
 from __future__ import annotations
+from functools import partial
 
-from typing import Callable, Generic, TypeVar, Tuple, TYPE_CHECKING
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    TypeVar,
+    Tuple,
+    TYPE_CHECKING,
+    overload,
+    Literal,
+)
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase, TableBase
 
 _T = TypeVar("_T")
+_U = TypeVar("_U")
 
 
 class MockObject(Generic[_T]):
@@ -28,9 +39,16 @@ class MockObject(Generic[_T]):
         return iter(self._registered)
 
 
-class ContextRegisterable(MockObject[Tuple[str, Callable]]):
-    def register_action(self, loc: str, func: Callable | None = None):
-        def wrapper(f: Callable):
+class ContextRegisterable(MockObject[Tuple[str, Callable]], Generic[_U]):
+    # fmt: off
+    @overload
+    def register_action(self, loc: str, func: Literal[None] = None) -> Callable[[Callable[[_U, Any], None]], Callable[[_U, Any], None]]: ...  # noqa: E501
+    @overload
+    def register_action(self, loc: str, func: Callable[[_U, Any], None]) -> Callable[[_U, Any], None]: ...  # noqa: E501
+    # fmt: on
+
+    def register_action(self, loc, func=None):
+        def wrapper(f):
             self._registered.append((loc, f))
             return f
 
@@ -38,8 +56,19 @@ class ContextRegisterable(MockObject[Tuple[str, Callable]]):
 
 
 class KeyMapMock(MockObject[Tuple[str, Callable]]):
-    def bind(self, *args):
-        self._registered.append(args)
+    # fmt: off
+    @overload
+    def bind(self, key: str, func: Literal[None] = None) -> Callable[[Callable[[TableViewerBase, Any], None]], Callable[[TableViewerBase, Any], None]]: ...  # noqa: E501
+    @overload
+    def bind(self, key: str, func: Callable[[TableViewerBase, Any], None]) -> Callable[[TableViewerBase, Any], None]: ...  # noqa: E501
+    # fmt: on
+
+    def bind(self, key, func=None):
+        def wrapper(f):
+            self._registered.append((key, f))
+            return f
+
+        return wrapper(func) if func is not None else wrapper
 
 
 class Initializer:
@@ -56,34 +85,39 @@ class Initializer:
             self_field._registered.extend(other_field._registered)
         return self
 
+    def wrap_args(self, args: tuple[Any, Callable], parent) -> tuple[Any, Callable]:
+        arg, f = args
+        f = partial(f, parent)
+        return arg, f
+
 
 class ViewerInitializer(Initializer):
-    tables = ContextRegisterable("tables")
-    keymap = KeyMapMock("keymap")
+    tables: ContextRegisterable[TableViewerBase] = ContextRegisterable("tables")
+    keymap: ContextRegisterable[TableViewerBase] = KeyMapMock("keymap")
 
     _fields = ("tables", "keymap")
 
     def initializer_viewer(self, viewer: TableViewerBase):
         for args in self.tables.iter_registered():
-            viewer.tables.register_action(*args)
+            viewer.tables.register_action(*self.wrap_args(args, parent=viewer))
         for args in self.keymap.iter_registered():
-            viewer.keymap.bind(*args)
+            viewer.keymap.bind(*self.wrap_args(args, parent=viewer))
 
 
 class TableInitializer(Initializer):
-    cell = ContextRegisterable("cell")
-    index = ContextRegisterable("index")
-    columns = ContextRegisterable("columns")
+    cell: ContextRegisterable[TableBase] = ContextRegisterable("cell")
+    index: ContextRegisterable[TableBase] = ContextRegisterable("index")
+    columns: ContextRegisterable[TableBase] = ContextRegisterable("columns")
 
     _fields = ("cell", "index", "columns")
 
     def initializer_table(self, table: TableBase):
         for args in self.cell.iter_registered():
-            table.cell.register_action(*args)
+            table.cell.register_action(*self.wrap_args(args, parent=table))
         for args in self.index.iter_registered():
-            table.index.register_action(*args)
+            table.index.register_action(*self.wrap_args(args, parent=table))
         for args in self.columns.iter_registered():
-            table.columns.register_action(*args)
+            table.columns.register_action(*self.wrap_args(args, parent=table))
 
 
 def get_initializer() -> tuple[ViewerInitializer, TableInitializer]:
