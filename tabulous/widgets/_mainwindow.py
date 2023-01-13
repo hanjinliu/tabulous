@@ -170,6 +170,7 @@ class TableViewerBase(_AbstractViewer):
         show: bool = True,
     ):
         from tabulous._qt import get_app
+        from tabulous._utils import get_post_initializers
 
         app = get_app()  # noqa: F841
         self._qwidget = self._qwidget_class(tab_position=tab_position)
@@ -178,6 +179,11 @@ class TableViewerBase(_AbstractViewer):
         self._link_events()
 
         self.events = TableViewerSignal()
+        self._table_initializer = None
+        _init = get_post_initializers()
+        if _init is not None:
+            viewer_initializer, self._table_initializer = _init
+            viewer_initializer.initializer_viewer(self)
 
         if show:
             self.show(run=False)
@@ -384,6 +390,8 @@ class TableViewerBase(_AbstractViewer):
         self.current_index = -1  # activate the last table
 
         self._qwidget.setCellFocus()
+        if self._table_initializer is not None:
+            self._table_initializer.initializer_table(input)
         return input
 
     def open(self, path: PathLike, *, type: TableType | str = TableType.table) -> None:

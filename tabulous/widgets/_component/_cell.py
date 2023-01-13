@@ -6,7 +6,6 @@ from typing import (
     SupportsIndex,
     Tuple,
     TypeVar,
-    overload,
     Any,
     Callable,
     Iterator,
@@ -22,6 +21,7 @@ from tabulous.types import EvalInfo
 from tabulous.color import ColorTuple
 from tabulous._psygnal import InCellRangedSlot
 from ._base import TableComponent
+from tabulous.widgets._registry import SupportActionRegistration
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -115,7 +115,7 @@ class CellDisplayedTextInterface(_Sequence2D):
         return model.data(idx, role=Qt.ItemDataRole.DisplayRole)
 
 
-class CellInterface(TableComponent):
+class CellInterface(TableComponent, SupportActionRegistration):
     """
     Interface with table cells.
 
@@ -222,23 +222,8 @@ class CellInterface(TableComponent):
             col = slice(col, col + 1)
         return row, col
 
-    # fmt: off
-    @overload
-    def register_action(self, val: str) -> Callable[[_F], _F]: ...
-    @overload
-    def register_action(self, val: _F) -> _F: ...
-    # fmt: on
-
-    def register_action(self, val: str | Callable[[tuple[int, int]], Any]):
-        """Register an contextmenu action to the tablelist."""
-        table = self.parent.native
-        if isinstance(val, str):
-            return table.registerAction(val)
-        elif callable(val):
-            location = val.__name__.replace("_", " ")
-            return table.registerAction(location)(val)
-        else:
-            raise TypeError("input must be a string or callable.")
+    def _get_qregistry(self):
+        return self.parent.native
 
     label = CellLabelInterface()
     ref = CellReferenceInterface()

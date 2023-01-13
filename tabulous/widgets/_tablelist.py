@@ -1,10 +1,11 @@
 from __future__ import annotations
 import re
-from typing import Any, TYPE_CHECKING, Callable, overload, TypeVar
+from typing import Any, TYPE_CHECKING
 from psygnal import Signal, SignalGroup, SignalInstance
 from psygnal.containers import EventedList
 
 from ._table import TableBase
+from ._registry import SupportActionRegistration
 
 if TYPE_CHECKING:
     from ._mainwindow import TableViewer
@@ -49,10 +50,7 @@ class NamedListEvents(SignalGroup):
     renamed = Signal(int, str)
 
 
-_F = TypeVar("_F", bound=Callable)
-
-
-class TableList(EventedList[TableBase]):
+class TableList(EventedList[TableBase], SupportActionRegistration):
     events: NamedListEvents
 
     def __init__(self, parent: TableViewer):
@@ -136,24 +134,6 @@ class TableList(EventedList[TableBase]):
 
         return new_name
 
-    # fmt: off
-    @overload
-    def register_action(self, val: str) -> Callable[[_F], _F]: ...
-    @overload
-    def register_action(self, val: _F) -> _F: ...
-    # fmt: on
-
-    def register_action(self, val: str | Callable):
-        """Register an contextmenu action to the tablelist."""
-        stack = self._parent._qwidget._tablestack
-        if isinstance(val, str):
-            return stack.registerAction(val)
-        elif callable(val):
-            location = val.__name__.replace("_", " ")
-            return stack.registerAction(location)(val)
-        else:
-            raise ValueError("input must be a string or callable.")
-
     def tile(self, indices: list[int], orientation: str = "horizontal") -> None:
         """Tile the tables in the list."""
         self._parent._qwidget._tablestack.tileTables(indices, orientation=orientation)
@@ -167,6 +147,9 @@ class TableList(EventedList[TableBase]):
             self._parent._qwidget._tablestack.untileTable(idx)
         return None
 
+    def _get_qregistry(self):
+        return self._parent._qwidget._tablestack
+
     def _install_contextmenu(self):
         """Install the default contextmenu."""
 
@@ -178,16 +161,16 @@ class TableList(EventedList[TableBase]):
         tablestack = self._parent._qwidget._tablestack
 
         # fmt: off
-        self.register_action("Copy all")(_wrap(cmds.table.copy_to_clipboard))
-        self.register_action("Rename tab")(_wrap(cmds.tab.rename_tab))
-        self.register_action("Delete tab")(_wrap(cmds.tab.delete_tab))
+        self.register_action("Copy all", _wrap(cmds.table.copy_to_clipboard))
+        self.register_action("Rename tab", _wrap(cmds.tab.rename_tab))
+        self.register_action("Delete tab", _wrap(cmds.tab.delete_tab))
         tablestack.addSeparator()
-        self.register_action("Reset filter/sort")(_wrap(cmds.table.reset_proxy))
+        self.register_action("Reset filter/sort", _wrap(cmds.table.reset_proxy))
         tablestack.addSeparator()
-        self.register_action("View>Horizontal dual view")(_wrap(cmds.view.set_dual_h_mode))
-        self.register_action("View>Vertical dual view")(_wrap(cmds.view.set_dual_v_mode))
-        self.register_action("View>Popup view")(_wrap(cmds.view.set_popup_mode))
-        self.register_action("View>Reset view")(_wrap(cmds.view.reset_view_mode))
-        self.register_action("Tile")(_wrap(cmds.tab.tile_tables))
-        self.register_action("Untile")(_wrap(cmds.tab.untile_table))
+        self.register_action("View > Horizontal dual view", _wrap(cmds.view.set_dual_h_mode))  # noqa: E501
+        self.register_action("View > Vertical dual view", _wrap(cmds.view.set_dual_v_mode))  # noqa: E501
+        self.register_action("View > Popup view", _wrap(cmds.view.set_popup_mode))  # noqa: E501
+        self.register_action("View > Reset view", _wrap(cmds.view.reset_view_mode))  # noqa: E501
+        self.register_action("Tile", _wrap(cmds.tab.tile_tables))
+        self.register_action("Untile", _wrap(cmds.tab.untile_table))
         # fmt: on

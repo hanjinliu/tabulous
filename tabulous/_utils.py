@@ -11,6 +11,7 @@ from appdirs import user_state_dir, user_config_dir
 TXT_PATH = Path(user_state_dir("tabulous", "tabulous", "history.txt"))
 CONFIG_PATH = Path(user_config_dir("tabulous", "tabulous", "config.toml"))
 CELL_NAMESPACE_PATH = Path(user_state_dir("tabulous", "tabulous", "cell_namespace.py"))
+POST_INIT_PATH = Path(user_state_dir("tabulous", "tabulous", "post_init.py"))
 
 
 def warn_on_exc(default=None):
@@ -64,14 +65,19 @@ def load_file_open_path() -> list[str]:
     return lines
 
 
+def _compile_file(path: Path):
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("")
+    with open(path, encoding="utf-8") as f:
+        code = compile(f.read(), path, "exec")
+    return code
+
+
 @warn_on_exc(default=MappingProxyType({}))
 def load_cell_namespace() -> MappingProxyType:
     """Load the cell namespace from a file."""
-    if not CELL_NAMESPACE_PATH.exists():
-        CELL_NAMESPACE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        CELL_NAMESPACE_PATH.write_text("")
-    with open(CELL_NAMESPACE_PATH, encoding="utf-8") as f:
-        code = compile(f.read(), CELL_NAMESPACE_PATH, "exec")
+    code = _compile_file(CELL_NAMESPACE_PATH)
     ns: dict[str, Any] = {}
     exec(code, {}, ns)
     to_be_deleted = set()
@@ -85,6 +91,24 @@ def load_cell_namespace() -> MappingProxyType:
     for k in to_be_deleted:
         ns.pop(k, None)
     return MappingProxyType(ns)
+
+
+@warn_on_exc(default=None)
+def get_post_initializers():
+    from tabulous.post_init import TableInitializer, ViewerInitializer
+
+    code = _compile_file(POST_INIT_PATH)
+    ns: dict[str, Any] = {}
+    exec(code, {}, ns)
+
+    table_initializer = TableInitializer()
+    viewer_initializer = ViewerInitializer()
+    for var in ns.values():
+        if isinstance(var, TableInitializer):
+            table_initializer.join(var)
+        elif isinstance(var, ViewerInitializer):
+            viewer_initializer.join(var)
+    return viewer_initializer, table_initializer
 
 
 def prep_default_keybindings() -> dict[str, str | list[str]]:
