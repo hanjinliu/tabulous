@@ -134,6 +134,9 @@ class Initializer:
         return arg, f
 
 
+# TODO: command palette
+
+
 class ViewerInitializer(Initializer):
     tables: ContextRegisterable[TableViewerBase] = ContextRegisterable()
     keymap: ContextRegisterable[TableViewerBase] = KeyMapMock()
@@ -155,8 +158,9 @@ class TableInitializer(Initializer):
     cell: ContextRegisterable[TableBase] = ContextRegisterable()
     index: ContextRegisterable[TableBase] = ContextRegisterable()
     columns: ContextRegisterable[TableBase] = ContextRegisterable()
+    keymap: ContextRegisterable[TableBase] = KeyMapMock()
 
-    _fields = ("cell", "index", "columns")
+    _fields = ("cell", "index", "columns", "keymap")
 
     def initialize_table(self, table: TableBase):
         for args in self.cell._registered:
@@ -165,6 +169,8 @@ class TableInitializer(Initializer):
             table.index.register_action(*self.wrap_args(args, parent=table))
         for args in self.columns._registered:
             table.columns.register_action(*self.wrap_args(args, parent=table))
+        for args in self.keymap._registered:
+            table.keymap.bind(*self.wrap_args(args, parent=table))
 
 
 _VIEWER_INITIALIZER = ViewerInitializer()

@@ -5,13 +5,13 @@ from typing import Any
 from dataclasses import asdict, dataclass, field
 from functools import wraps
 from pathlib import Path
-from appdirs import user_state_dir, user_config_dir
+from appdirs import user_config_dir
 
 
-TXT_PATH = Path(user_state_dir("tabulous", "tabulous", "history.txt"))
+TXT_PATH = Path(user_config_dir("tabulous", "tabulous", "history.txt"))
 CONFIG_PATH = Path(user_config_dir("tabulous", "tabulous", "config.toml"))
-CELL_NAMESPACE_PATH = Path(user_state_dir("tabulous", "tabulous", "cell_namespace.py"))
-POST_INIT_PATH = Path(user_state_dir("tabulous", "tabulous", "post_init.py"))
+CELL_NAMESPACE_PATH = Path(user_config_dir("tabulous", "tabulous", "cell_namespace.py"))
+POST_INIT_PATH = Path(user_config_dir("tabulous", "tabulous", "post_init.py"))
 
 
 def warn_on_exc(default=None):
@@ -65,19 +65,21 @@ def load_file_open_path() -> list[str]:
     return lines
 
 
-def _compile_file(path: Path):
+def _compile_file(path: Path, default_text: str = ""):
     if not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("")
     with open(path, encoding="utf-8") as f:
-        code = compile(f.read(), path, "exec")
+        code_str = f.read()
+        code = compile(code_str, path, "exec")
+    if code_str.strip() == "":
+        path.write_text(default_text.strip() + "\n")
     return code
 
 
 @warn_on_exc(default=MappingProxyType({}))
 def load_cell_namespace() -> MappingProxyType:
     """Load the cell namespace from a file."""
-    code = _compile_file(CELL_NAMESPACE_PATH)
+    code = _compile_file(CELL_NAMESPACE_PATH, default_text=_CELL_NAMESPACE_TEXT)
     ns: dict[str, Any] = {}
     exec(code, {}, ns)
     to_be_deleted = set()
@@ -95,7 +97,7 @@ def load_cell_namespace() -> MappingProxyType:
 
 @warn_on_exc(default=None)
 def get_post_initializers():
-    code = _compile_file(POST_INIT_PATH)
+    code = _compile_file(POST_INIT_PATH, default_text=_POST_INIT_TEXT)
     ns: dict[str, Any] = {}
     exec(code, {}, ns)
 
@@ -236,3 +238,64 @@ def _as_fields(kwargs: dict[str, Any], dcls: type) -> dict[str, Any]:
     """Remove dict keys that does not belong to the dataclass fields."""
     fields = set(dcls.__annotations__.keys())
     return {k: v for k, v in kwargs.items() if k in fields}
+
+
+_CELL_NAMESPACE_TEXT = """
+# File for custom namespace in the table cells.
+
+# Variables defined in the `__all__` list will be available in the cells.
+# By, uncommenting following lines, you can use such as
+# `=SUM(df.iloc[:, 0])` in cells.
+
+# import scipy
+# import numpy as np
+
+# __all__ = ["scipy", "SUM", "AVERAGE"]
+
+# def SUM(x):
+#     return np.sum(x)
+
+# def AVERAGE(x):
+#     return np.mean(x)
+"""
+
+_POST_INIT_TEXT = """
+# File for post-initialization of the viewer and table.
+# You can add custom actions, commands and variables on the startup of the
+# application.
+
+# First, get initializer objects.
+
+# from tabulous.post_init import get_initializers
+# viewer, table = get_initializers()
+
+# These objects has similar interface to the viewer and table classes.
+
+# 1. Add custom actions to the right-click context menu of table columns.
+
+# @table.columns.register_action("User defined > Print column name")
+# def _print_column_name(table, index):
+#     print(table.columns[index])
+
+# 2. Add custom keybindings to viewers and tables.
+
+# @viewer.keymap.bind("Ctrl+K, Ctrl+1")
+# def _my_keybinding(viewer):
+#     print(viewer)
+
+# @table.keymap.bind("Ctrl+K, Ctrl+2")
+# def _my_keybinding(table):
+#     print(table)
+
+# 3. Add custom variables to the console (note that you can also update
+#    the IPython startup files to do the same thing).
+
+# viewer.console.update({"PI": 3.141592653589793})
+
+# 4. Add custom variables to the table cells (not that you can also update
+#    the cell_namespace.py file to do the same thing).
+
+# import numpy as np
+# viewer.cell_namespace.update({"SUM": np.sum})
+
+"""
