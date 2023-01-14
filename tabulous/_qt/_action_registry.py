@@ -46,6 +46,24 @@ class QActionRegistry(QtCore.QObject, Generic[_T]):
 
         return f
 
+    def unregisterAction(self, location: str):
+        locs = location.split(">")
+        menu = self._qt_context_menu
+        for loc in locs[:-1]:
+            loc = loc.strip()
+            a = menu.searchChild(loc)
+            if a is None:
+                menu = menu.addMenu(loc)
+            elif not isinstance(a, QContextMenu):
+                i = locs.index(loc)
+                err_loc = ">".join(locs[:i])
+                raise TypeError(f"{err_loc} is not a menu.")
+            else:
+                menu = a
+        action = menu._actions[loc[-1]]
+        menu.removeAction(action)
+        return None
+
     def addSeparator(self, location: str | None = None):
         """Add separator at the given location."""
         menu = self._qt_context_menu

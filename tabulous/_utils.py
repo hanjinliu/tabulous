@@ -279,11 +279,11 @@ _POST_INIT_TEXT = """
 
 # 2. Add custom keybindings to viewers and tables.
 
-# @viewer.keymap.bind("Ctrl+K, Ctrl+1")
+# @viewer.keymap.register("Ctrl+K, Ctrl+1")
 # def _my_keybinding(viewer):
 #     print(viewer)
 
-# @table.keymap.bind("Ctrl+K, Ctrl+2")
+# @table.keymap.register("Ctrl+K, Ctrl+2")
 # def _my_keybinding(table):
 #     print(table)
 

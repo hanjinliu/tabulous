@@ -1,20 +1,25 @@
 from __future__ import annotations
-from functools import partial
+
+import re
 from typing import Any, TYPE_CHECKING, Callable, overload, TypeVar, Generic
+from typing_extensions import ParamSpec
 
 if TYPE_CHECKING:
     from tabulous._qt._action_registry import QActionRegistry
 
-_P = TypeVar("_P")
+_S = TypeVar("_S")
 _T = TypeVar("_T")
+_P = ParamSpec("_P")
 
 
-class SupportActionRegistration(Generic[_P, _T]):
+class SupportActionRegistration(Generic[_S, _T]):
+    """An abstract class to support action registration to right-click contextmenu."""
+
     def _get_qregistry(self) -> QActionRegistry:
         raise NotImplementedError()
 
     @property
-    def parent(self) -> _P:
+    def parent(self) -> _S:
         raise NotImplementedError()
 
     def register_action(self, *args):
@@ -54,11 +59,11 @@ class SupportActionRegistration(Generic[_P, _T]):
 
     # fmt: off
     @overload
-    def register(self, location: str) -> Callable[[Callable[[_P, _T], Any]], Callable[[_P, _T], Any]]: ...  # noqa: E501
+    def register(self, location: str) -> Callable[[Callable[[_S, _T], Any]], Callable[[_S, _T], Any]]: ...  # noqa: E501
     @overload
-    def register(self, location: str, func: Callable[[_P, _T], Any]) -> Callable[[_P, _T], Any]: ...  # noqa: E501
+    def register(self, location: str, func: Callable[[_S, _T], Any]) -> Callable[[_S, _T], Any]: ...  # noqa: E501
     @overload
-    def register(self, func: Callable[[_P, _T], Any]) -> Callable[[_P, _T], Any]: ...  # noqa: E501
+    def register(self, func: Callable[[_S, _T], Any]) -> Callable[[_S, _T], Any]: ...  # noqa: E501
     # fmt: on
 
     def register(self, *args):
@@ -88,9 +93,57 @@ class SupportActionRegistration(Generic[_P, _T]):
                 "3. register(location: str, func: Callable)"
             )
 
-        def wrapper(f: Callable[[_P, int], Any]):
-            meth = partial(f, self.parent)
+        def wrapper(f: Callable[[_S, int], Any]):
+            meth = _NormalizedFunction(f, self.parent)
             reg.registerAction(loc, meth)
             return f
 
         return wrapper if func is None else wrapper(func)
+
+    def unregister(self, location: str):
+        """Unregister an contextmenu action."""
+        self._get_qregistry().unregisterAction(location)
+
+
+# f() takes from 0 to 1 positional arguments but 2 were given
+_PATTERN = re.compile(r".*takes .* positional arguments? but (\d+) were given")
+
+
+class _NormalizedFunction(Generic[_P]):
+    def __init__(self, f: Callable[_P, Any], parent) -> None:
+        self._f = f
+        self._parent = parent
+        self._f_normed = f
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} of {self._f.__name__!r}>"
+
+    def __call__(self, *args: _P.args, **kwargs: _P.kwargs):
+        try:
+            out = self._f_normed(self._parent, *args, **kwargs)
+        except TypeError as e:
+            if _PATTERN.match(str(e)):
+                import inspect
+
+                sig = inspect.signature(self._f)
+                nparams = len(sig.parameters)
+
+                if nparams == 0:
+
+                    def normed(parent, *args, **kwargs):
+                        return self._f(**kwargs)
+
+                else:
+
+                    def normed(parent, *args, **kwargs):
+                        return self._f(parent, *args[: nparams - 1], **kwargs)
+
+                self._f_normed = normed
+                out = normed(self._parent, *args)
+            else:
+                raise e
+        return out
+
+    @property
+    def func(self):
+        return self._f
