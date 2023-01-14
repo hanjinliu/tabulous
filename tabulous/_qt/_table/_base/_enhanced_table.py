@@ -476,6 +476,14 @@ class _QTableViewEnhanced(QtW.QTableView):
         )
         return super().keyReleaseEvent(a0)
 
+    def inputMethodEvent(self, event: QtGui.QInputMethodEvent) -> None:
+        """Catch Japanese/Chinese edit event."""
+        # NOTE: super().inputMethodEvent(event) is buggy!!
+        if event.preeditString():
+            self._edit_current()
+            # FIXME: Cannot send the pre-edit text to the editor.
+            # editor.inputMethodQuery(Qt.InputMethodQuery.ImSurroundingText)
+
     def zoom(self) -> float:
         """Get current zoom factor."""
         return self._zoom
