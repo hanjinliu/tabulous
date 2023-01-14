@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.window &mdash; tabulous 0.4.0rc0 documentation</title>
+  <title>tabulous.commands.window &mdash; tabulous 0.4.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -27,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0rc0
+                0.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -45,13 +46,15 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../main/selections.html">Table Selections and Highlights</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/sort_filter.html">Sort/Filter Table Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/columnwise_settings.html">Column-wise Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../main/table_advanced.html">Working with Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/table_fields.html">Field Attributes of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/table_view_mode.html">View Tables in Different Modes</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../main/dock_widget.html">Custom Dock widget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/integrate_custom_widgets.html">Integrate Custom Widgets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/customize.html">Customize Viewer Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/register_action.html">Register Custom Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/modules.html">tabulous</a></li>
@@ -147,6 +150,28 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">qviewer</span><span class="o">.</span><span class="n">setCellFocus</span><span class="p">()</span>
     <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="add_text_edit"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.add_text_edit">[docs]</a><span class="k">def</span> <span class="nf">add_text_edit</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add a note (text edit) dock widget.&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">TableViewer</span><span class="p">,</span> <span class="n">TableViewerWidget</span>
+    <span class="kn">from</span> <span class="nn">tabulous._qt._qt_const</span> <span class="kn">import</span> <span class="n">MonospaceFontFamily</span>
+    <span class="kn">from</span> <span class="nn">qtpy</span> <span class="kn">import</span> <span class="n">QtWidgets</span> <span class="k">as</span> <span class="n">QtW</span><span class="p">,</span> <span class="n">QtGui</span>
+
+    <span class="n">txt_edit</span> <span class="o">=</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QTextEdit</span><span class="p">()</span>
+    <span class="n">txt_edit</span><span class="o">.</span><span class="n">setWordWrapMode</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTextOption</span><span class="o">.</span><span class="n">WrapMode</span><span class="o">.</span><span class="n">NoWrap</span><span class="p">)</span>
+    <span class="n">txt_edit</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QFont</span><span class="p">(</span><span class="n">MonospaceFontFamily</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+    <span class="n">metrics</span> <span class="o">=</span> <span class="n">txt_edit</span><span class="o">.</span><span class="n">fontMetrics</span><span class="p">()</span>
+    <span class="n">txt_edit</span><span class="o">.</span><span class="n">setTabStopWidth</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">metrics</span><span class="o">.</span><span class="n">width</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">TableViewer</span><span class="p">):</span>
+        <span class="n">viewer</span><span class="o">.</span><span class="n">add_dock_widget</span><span class="p">(</span><span class="n">txt_edit</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Note&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">TableViewerWidget</span><span class="p">):</span>
+        <span class="n">viewer</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">txt_edit</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Note&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot add widget to </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
 </pre></div>
 
            </div>

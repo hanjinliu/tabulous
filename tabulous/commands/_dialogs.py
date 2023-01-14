@@ -3,11 +3,13 @@ from typing import List, Union, TYPE_CHECKING, Tuple
 from typing_extensions import Annotated
 
 import logging
+import ast
 import numpy as np
 
 # NOTE: Axes should be imported here!
 from tabulous.widgets import TableBase, TableViewerBase
 from tabulous.types import TableData
+from tabulous.exceptions import SelectionRangeError
 from tabulous._selection_op import SelectionOperator
 from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
 
@@ -18,13 +20,31 @@ logger = logging.getLogger(__name__)
 
 
 @dialog_factory
-def summarize_table(df: TableData, methods: List[str], new_table: bool = False):
+def summarize_table(
+    table: TableBase,
+    methods: List[str],
+    new_table: bool = False,
+    at_selection: bool = False,
+):
+    if len(methods) == 0:
+        raise ValueError("Select at least one method.")
+    df = table.data
+    if at_selection:
+        sels = table.selections
+        if len(sels) != 1:
+            raise SelectionRangeError("Only single selection is allowed.")
+        sel = sels[0]
+        df = df.iloc[sel]
     return df.agg(methods), new_table
 
 
 @dialog_factory
-def groupby(df: TableData, by: List[str]):
-    return df.groupby(by)
+def cut(df: TableData, column: str, bins: str, close_right: bool = True) -> TableData:
+    import pandas as pd
+
+    bins = ast.literal_eval(bins)
+    ds = pd.cut(df[column], bins=bins, right=close_right)
+    return ds
 
 
 @dialog_factory
@@ -36,8 +56,47 @@ def concat(
 ) -> TableData:
     import pandas as pd
 
+    if len(names) < 2:
+        raise ValueError("At least two tables are required.")
     dfs = [viewer.tables[name].data for name in names]
-    return pd.concat(dfs, axis=axis, ignore_index=ignore_index)
+    out: pd.DataFrame = pd.concat(dfs, axis=axis, ignore_index=ignore_index)
+    if out.index.duplicated().any():
+        out.index = range(out.index.size)
+    if out.columns.duplicated().any():
+        from tabulous._pd_index import char_range_index
+
+        out.columns = char_range_index(out.columns.size)
+    return out
+
+
+@dialog_factory
+def merge(
+    merge: TableBase,
+    with_: TableBase,
+    how: str = "inner",
+    on: List[str] = (),
+) -> TableData:
+    if merge is with_:
+        raise ValueError("Cannot merge a table with itself.")
+    df0 = merge.data
+    df1 = with_.data
+    if len(on) == 0:
+        on = None
+    return df0.merge(df1, how=how, on=on)
+
+
+@dialog_factory
+def fillna(df: TableData, method: str, value) -> TableData:
+    if method != "value":
+        value = None
+    else:
+        method = None
+    return df.fillna(value=value, method=method)
+
+
+@dialog_factory
+def dropna(df: TableData, axis: int, how: str) -> TableData:
+    return df.dropna(axis=axis, how=how, inplace=False)
 
 
 @dialog_factory
@@ -62,11 +121,11 @@ def plot(
     y: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    ref: bool = False,
+    retain_reference: bool = False,
 ):
     from ._plot_models import PlotModel
 
-    model = PlotModel(ax, x, y, table=table, alpha=alpha, ref=ref)
+    model = PlotModel(ax, x, y, table=table, alpha=alpha, ref=retain_reference)
     model.add_data()
     table.plt.draw()
     return True
@@ -79,11 +138,11 @@ def bar(
     y: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    ref: bool = False,
+    retain_reference: bool = False,
 ):
     from ._plot_models import BarModel
 
-    model = BarModel(ax, x, y, table=table, alpha=alpha, ref=ref)
+    model = BarModel(ax, x, y, table=table, alpha=alpha, ref=retain_reference)
     model.add_data()
     table.plt.draw()
     return True
@@ -97,12 +156,12 @@ def scatter(
     label: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    ref: bool = False,
+    retain_reference: bool = False,
 ):
     from ._plot_models import ScatterModel
 
     model = ScatterModel(
-        ax, x, y, table=table, label_selection=label, alpha=alpha, ref=ref
+        ax, x, y, table=table, label_selection=label, alpha=alpha, ref=retain_reference
     )
     model.add_data()
     table.plt.draw()
@@ -171,11 +230,13 @@ def fill_between(
     y1: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    ref: bool = False,
+    retain_reference: bool = False,
 ):
     from ._plot_models import FillBetweenModel
 
-    model = FillBetweenModel(ax, x, y0, y1, table=table, alpha=alpha, ref=ref)
+    model = FillBetweenModel(
+        ax, x, y0, y1, table=table, alpha=alpha, ref=retain_reference
+    )
     model.add_data()
     table.plt.draw()
     return True
@@ -189,11 +250,13 @@ def fill_betweenx(
     x1: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    ref: bool = False,
+    retain_reference: bool = False,
 ):
     from ._plot_models import FillBetweenXModel
 
-    model = FillBetweenXModel(ax, y, x0, x1, table=table, alpha=alpha, ref=ref)
+    model = FillBetweenXModel(
+        ax, y, x0, x1, table=table, alpha=alpha, ref=retain_reference
+    )
     model.add_data()
     table.plt.draw()
     return True
@@ -361,7 +424,7 @@ def choose_multiple(choices: List):
 
 
 @dialog_factory
-def get_float(x: float):
+def get_value(x):
     return x
 
 

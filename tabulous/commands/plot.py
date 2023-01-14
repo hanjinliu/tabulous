@@ -126,10 +126,17 @@ def _plot_xy(viewer: TableViewerBase, dialog):
     if table is None:
         return
 
+    _x = _y = None
+    if table.columns.size == 1:
+        _y = (slice(None), slice(0, 1))
+    elif table.columns.size >= 2:
+        _x = (slice(None), slice(0, 1))
+        _y = (slice(None), slice(1, 2))
+
     dialog(
         ax={"bind": table.plt.gca()},
-        x={"format": "iloc"},
-        y={"format": "iloc"},
+        x={"format": "iloc", "value": _x},
+        y={"format": "iloc", "value": _y},
         table={"bind": table},
         alpha={"min": 0, "max": 1, "step": 0.05},
         parent=viewer._qwidget,

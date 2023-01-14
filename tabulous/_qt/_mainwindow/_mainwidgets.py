@@ -27,6 +27,9 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
         _QtMainWidgetBase.__init__(self, tab_position)
         self.setOrientation(Qt.Orientation.Vertical)
         self._toolbar = None
+        self._statusbar = QRichStatusBar(self)
+        self._statusbar.setFixedHeight(25)
+        self.addWidget(self._statusbar)
 
     def setCentralWidget(self, wdt: QTabbedTableStack):
         """Mimicking QMainWindow's method by adding a widget to the layout."""
@@ -70,12 +73,19 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
             self.addWidget(qtconsole)
             self._console_widget = qtconsole
 
+            if qtconsole.shell is not None:
+                qtconsole.update_console(self._queued_ns)
+                self._queued_ns.clear()
+
         self._console_widget.setVisible(visible)
 
         if visible:
             self._console_widget.setFocus()
         else:
             self.setCellFocus()
+
+    def statusBar(self) -> QRichStatusBar:
+        return self._statusbar
 
 
 _REORDER_INSTANCES = frozenset({QEvent.Type.WindowActivate, QEvent.Type.ZOrderChange})
@@ -145,7 +155,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     def setConsoleVisible(self, visible: bool) -> None:
         """Set visibility of embeded console widget."""
         if visible and self._console_widget is None:
-            from .._console import QtConsole
+            from tabulous._qt._console import QtConsole
 
             qtconsole = QtConsole()
             qtconsole.connect_parent(self._table_viewer)
@@ -153,6 +163,10 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
             qtconsole.setDockParent(dock)
             dock.setSourceObject(qtconsole)
             self._console_widget = qtconsole
+
+            if qtconsole.shell is not None:
+                qtconsole.update_console(self._queued_ns)
+                self._queued_ns.clear()
 
         else:
             dock = self._console_widget.dockParent()

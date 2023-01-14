@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Hashable
 import re
-from functools import cached_property
 from io import StringIO
 import warnings
 
@@ -40,12 +39,21 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
         self._table_config = get_config().table
         self._columns_dtype = self.parent()._columns_dtype
+        self._out_of_bound_color_cache = None
 
-    @cached_property
+    @property
     def _out_of_bound_color(self) -> QtGui.QColor:
-        color = self.parent()._qtable_view.parentViewer().backgroundColor()
-        r, g, b = color.red(), color.green(), color.blue()
-        return QtGui.QColor(max(r - 4, 0), max(g - 4, 0), b)
+        if self._out_of_bound_color_cache is not None:
+            return self._out_of_bound_color_cache
+        qtable_view = self.parent()._qtable_view
+        if viewer := qtable_view.parentViewer():
+            bgcolor = viewer.backgroundColor()
+        else:
+            bgcolor = qtable_view.palette().color(qtable_view.backgroundRole())
+        r, g, b = bgcolor.red(), bgcolor.green(), bgcolor.blue()
+        qcolor = QtGui.QColor(max(r - 4, 0), max(g - 4, 0), b)
+        self._out_of_bound_color_cache = qcolor
+        return qcolor
 
     @property
     def df(self) -> pd.DataFrame:  # NOTE: this returns a string data frame
@@ -76,7 +84,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
             colname = df.columns[c]
             if mapper := self._text_formatter.get(colname, None):
                 _converter = get_converter(
-                    self._columns_dtype.get(colname, _STRING_DTYPE).kind
+                    self._columns_dtype.get(colname, _STRING_DTYPE)
                 )
                 try:
                     text = str(mapper(_converter(val)))
@@ -485,9 +493,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = None
 
         # update indices
-        self._qtable_view._table_map.insert_rows(row, count)
-        self._qtable_view._selection_model.insert_rows(row, count)
-        self._qtable_view._highlight_model.insert_rows(row, count)
+        self._process_insert_rows(row, count)
 
         info = ItemInfo(
             slice(row, row + count),
@@ -553,9 +559,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self._data_cache = None
 
         # update indices
-        self._qtable_view._table_map.insert_columns(col, count)
-        self._qtable_view._selection_model.insert_columns(col, count)
-        self._qtable_view._highlight_model.insert_columns(col, count)
+        self._process_insert_columns(col, count)
 
         info = ItemInfo(
             slice(None),
@@ -601,9 +605,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         self._data_cache = None
 
-        self._qtable_view._table_map.remove_rows(row, count)
-        self._qtable_view._highlight_model.remove_rows(row, count)
-        self._qtable_view._selection_model.remove_rows(row, count)
+        self._process_remove_rows(row, count)
         info = ItemInfo(
             slice(row, row + count), slice(None), ItemInfo.DELETED, old_values
         )
@@ -650,9 +652,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         self._data_cache = None
 
-        self._qtable_view._table_map.remove_columns(col, count)
-        self._qtable_view._highlight_model.remove_columns(col, count)
-        self._qtable_view._selection_model.remove_columns(col, count)
+        self._process_remove_columns(col, count)
         info = ItemInfo(
             slice(None), slice(col, col + count), ItemInfo.DELETED, old_values
         )

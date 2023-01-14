@@ -412,7 +412,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     ) -> _F:
         ...
 
-    def bind(self, key, callback=None, *, overwrite=False, desc=None, **kwargs) -> None:
+    def bind(self, key, callback=None, *, overwrite=False, desc=None, **kwargs):
         """Assign key or key combo to callback."""
 
         def wrapper(func):
@@ -428,6 +428,20 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             return func
 
         return wrapper if callback is None else wrapper(callback)
+
+    def unbind(self, key: str) -> None:
+        _key = _normalize_key_combo(key)
+        if isinstance(_key, (str, QtKeys)):
+            del self._current_map[_key]
+        elif isinstance(_key, Sequence):
+            current = self
+            *pref, last = _key
+            for k in pref:
+                current = current[k]
+            del current[last]
+        else:
+            raise TypeError("key must be a string or a sequence of strings")
+        return None
 
     @overload
     def bind_deactivated(

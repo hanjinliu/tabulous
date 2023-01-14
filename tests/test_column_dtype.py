@@ -1,4 +1,8 @@
 from tabulous import TableViewer
+import numpy as np
+import pandas as pd
+import pytest
+from typing import Callable
 
 def test_setting_column_dtype():
     viewer = TableViewer(show=False)
@@ -60,3 +64,20 @@ def test_deleting_column_name():
     sheet.native.removeColumns(0, 1)
 
     assert sheet.dtypes == {"char": "category"}
+
+@pytest.mark.parametrize(
+    "dtype, fn",
+    [("int", lambda n: pd.Series(np.arange(n), dtype=np.int32)),
+     ("float", lambda n: pd.Series(np.arange(n), dtype=np.float64)),
+     ("datetime64[ns]", lambda n: pd.date_range("2020/01/01", periods=n, freq="2D")),
+     ("timedelta64[ns]", lambda n: pd.timedelta_range("00:00:00", periods=n, freq="60s")),
+     ("interval", lambda n: pd.interval_range(0, periods=n, freq=1)),
+     ],
+)
+def test_can_parse(dtype, fn: Callable[[int], pd.Series]):
+    viewer = TableViewer(show=False)
+    data = fn(5)
+    sheet = viewer.add_spreadsheet({"c": data})
+    sheet.dtypes["c"] = dtype
+    assert sheet.dtypes["c"] == dtype
+    assert sheet.data["c"].dtype == dtype

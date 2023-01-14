@@ -71,6 +71,7 @@ def add_text_edit(viewer: TableViewerBase):
     from qtpy import QtWidgets as QtW, QtGui
 
     txt_edit = QtW.QTextEdit()
+    txt_edit.setWordWrapMode(QtGui.QTextOption.WrapMode.NoWrap)
     txt_edit.setFont(QtGui.QFont(MonospaceFontFamily, 10))
 
     metrics = txt_edit.fontMetrics()

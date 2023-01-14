@@ -58,7 +58,7 @@ def exec_colormap_dialog(ds: pd.Series, parent=None):
         dlg = Dialog(widgets=[false_, true_])
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
-            converter = get_converter("b")
+            converter = get_converter(np.dtype(bool))
             _dict = {False: false_.value, True: true_.value}
             return lambda val: _dict.get(converter(val), None)
 
@@ -68,7 +68,9 @@ def exec_colormap_dialog(ds: pd.Series, parent=None):
         dlg = Dialog(widgets=[min_, max_])
         dlg.native.setParent(parent, dlg.native.windowFlags())
         if dlg.exec():
-            return segment_by_time([(ds.min(), min_.value), (ds.max(), max_.value)])
+            return segment_by_time(
+                [(ds.min(), min_.value), (ds.max(), max_.value)], dtype
+            )
 
     else:
         raise NotImplementedError(
@@ -87,8 +89,8 @@ def _where(x, border: Iterable[float]) -> int:
     return len(border) - 1
 
 
-def segment_by_float(maps: list[tuple[float, ColorType]], kind: str = "f"):
-    converter = get_converter(kind)
+def segment_by_float(maps: list[tuple[float, ColorType]]):
+    converter = get_converter(np.dtype("f"))
     borders: list[float] = []
     colors: list[ColorTuple] = []
     for v, c in maps:
@@ -116,8 +118,8 @@ def segment_by_float(maps: list[tuple[float, ColorType]], kind: str = "f"):
     return _colormap
 
 
-def segment_by_time(maps: list[tuple[_TimeLike, ColorType]], kind: str):
-    converter = get_converter(kind)
+def segment_by_time(maps: list[tuple[_TimeLike, ColorType]], dtype):
+    converter = get_converter(dtype)
     borders: list[_TimeLike] = []
     colors: list[ColorTuple] = []
     for v, c in maps:

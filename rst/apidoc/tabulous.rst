@@ -37,6 +37,14 @@ tabulous.exceptions module
    :undoc-members:
    :show-inheritance:
 
+tabulous.post\_init module
+--------------------------
+
+.. automodule:: tabulous.post_init
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tabulous.types module
 ---------------------
 

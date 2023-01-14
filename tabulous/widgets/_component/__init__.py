@@ -11,7 +11,9 @@ from ._column_setting import (
     ColumnDtypeInterface,
 )
 from ._proxy import ProxyInterface
+from ._viewer import Toolbar, Console, CommandPalette
 from ._table_subset import TableSeries, TableSubset, TableLocIndexer, TableILocIndexer
+from ._keymap import KeyMap
 
 __all__ = [
     "Component",
@@ -34,4 +36,8 @@ __all__ = [
     "TableSubset",
     "TableLocIndexer",
     "TableILocIndexer",
+    "Toolbar",
+    "Console",
+    "CommandPalette",
+    "KeyMap",
 ]

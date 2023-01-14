@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING
 from . import _dialogs, _utils
 
 if TYPE_CHECKING:
-    from tabulous.widgets import TableViewerBase
+    from tabulous.widgets import TableViewerBase, TableBase, SpreadSheet
+    from ._arange import _RangeDialog
 
 
 def new_spreadsheet(viewer: TableViewerBase):
@@ -29,26 +30,22 @@ def copy_to_clipboard(viewer: TableViewerBase):
     return None
 
 
-def groupby(viewer: TableViewerBase):
-    """Group table data by its column(s)"""
-    table = _utils.get_table(viewer)
-    out = _dialogs.groupby(
-        df={"bind": table.data},
-        by={"choices": list(table.data.columns), "widget_type": "Select"},
-        parent=viewer._qwidget,
-    )
-    if out is not None:
-        viewer.add_groupby(out, name=f"{table.name}-groupby")
+def switch_index(viewer: TableViewerBase):
+    """Switch index header and the left column"""
+    table = _utils.get_mutable_table(viewer)
+    table._qwidget._switch_head_and_index(axis=0)
 
 
-def switch_header(viewer: TableViewerBase):
-    """Switch header and the top row"""
+def switch_columns(viewer: TableViewerBase):
+    """Switch column header and the top row"""
     table = _utils.get_mutable_table(viewer)
     table._qwidget._switch_head_and_index(axis=1)
 
 
 def concat(viewer: TableViewerBase):
-    """Concatenate table data"""
+    """Concatenate table data (pd.concat)"""
+    if len(viewer.tables) < 2:
+        raise ValueError("At least two tables are required.")
     out = _dialogs.concat(
         viewer={"bind": viewer},
         names={
@@ -63,8 +60,32 @@ def concat(viewer: TableViewerBase):
         viewer.add_table(out, name="concat")
 
 
+def merge(viewer: TableViewerBase):
+    """Merge two tables (pd.merge)"""
+
+    def _update_choices(wdt):
+        table0: TableBase = wdt.merge.value
+        table1: TableBase = wdt.with_.value
+        if table0 is None or table1 is None:
+            return
+        col0 = table0.columns
+        col1 = table1.columns
+        choices = list(set(col0) & set(col1))
+        wdt.on.choices = choices
+
+    out = _dialogs.merge(
+        merge={"changed": _update_choices},
+        with_={"changed": _update_choices},
+        how={"choices": ["left", "right", "outer", "inner"], "value": "inner"},
+        on={"choices": [], "widget_type": "Select"},
+        parent=viewer._qwidget,
+    )
+    if out is not None:
+        viewer.add_table(out, name="merged")
+
+
 def pivot(viewer: TableViewerBase):
-    """Pivot current table data"""
+    """Pivot current table data (pd.pivot)"""
     table = _utils.get_table(viewer)
     col = list(table.data.columns)
     if len(col) < 3:
@@ -81,7 +102,7 @@ def pivot(viewer: TableViewerBase):
 
 
 def melt(viewer: TableViewerBase):
-    """Melt (unpivot) current table data"""
+    """Melt (unpivot) current table data (pd.melt)"""
     table = _utils.get_table(viewer)
     out = _dialogs.melt(
         df={"bind": table.data},
@@ -90,6 +111,53 @@ def melt(viewer: TableViewerBase):
     )
     if out is not None:
         viewer.add_table(out, name=f"{table.name}-melt")
+
+
+def transpose(viewer: TableViewerBase):
+    """Transpose current table data"""
+    table = _utils.get_table(viewer)
+    out = table.data.T
+    viewer.add_table(out, name=f"{table.name}-transposed")
+
+
+def fillna(viewer: TableViewerBase):
+    """Fill nan values (pd.fillna)"""
+    table = _utils.get_table(viewer)
+
+    def _cb(mgui):
+        mgui.value.visible = mgui.method.value == "value"
+
+    _choices = [
+        ("fill by value", "value"),
+        ("forward fill", "ffill"),
+        ("backward fill", "bfill"),
+    ]
+    out = _dialogs.fillna(
+        df={"bind": table.data},
+        method={
+            "choices": _choices,
+            "value": "value",
+            "nullable": False,
+            "changed": _cb,
+        },
+        value={"widget_type": "LiteralEvalLineEdit", "value": "0.0"},
+        parent=viewer._qwidget,
+    )
+    if out is not None:
+        viewer.add_table(out, name=f"{table.name}-fillna")
+
+
+def dropna(viewer: TableViewerBase):
+    """Drop nan values (pd.dropna)"""
+    table = _utils.get_table(viewer)
+    out = _dialogs.dropna(
+        df={"bind": table.data},
+        axis={"choices": [("drop rows", 0), ("drop columns", 1)]},
+        how={"choices": [("if any nan", "any"), ("if all nan", "all")]},
+        parent=viewer._qwidget,
+    )
+    if out is not None:
+        viewer.add_table(out, name=f"{table.name}-dropna")
 
 
 def show_finder_widget(viewer: TableViewerBase):
@@ -136,6 +204,55 @@ def round(viewer: TableViewerBase):
         selected_data = table.data_shown.iloc[sel]
         table.cell[sel] = selected_data.round(decimals)
     return None
+
+
+def _run_range_dialog(dlg: _RangeDialog, viewer: TableViewerBase, table: TableBase):
+    dlg.native.setParent(viewer._qwidget, dlg.native.windowFlags())
+    dlg._selection._read_selection(table)
+    dlg.show()
+
+    @dlg.called.connect
+    def _on_called():
+        val = dlg.get_value(table._qwidget.model().df)
+        rsl, csl, data = val
+        c0 = csl.start
+        was_empty = table.columns.size <= c0
+        table.cell[rsl, c0] = data
+        if was_empty and table.table_type == "SpreadSheet":
+            _table: SpreadSheet = table
+            _table.dtypes[_table.columns[c0]] = data.dtype
+
+
+def date_range(viewer: TableViewerBase):
+    """Generate a range of date values (pd.date_range)"""
+    from ._arange import DateRangeDialog
+
+    table = _utils.get_mutable_table(viewer)
+    _run_range_dialog(DateRangeDialog(), viewer, table)
+
+
+def timedelta_range(viewer: TableViewerBase):
+    """Generate a range of timedelta values (pd.timedelta_range)"""
+    from ._arange import TimeDeltaRangeDialog
+
+    table = _utils.get_mutable_table(viewer)
+    _run_range_dialog(TimeDeltaRangeDialog(), viewer, table)
+
+
+def interval_range(viewer: TableViewerBase):
+    """Generate a range of interval values (pd.interval_range)"""
+    from ._arange import IntervalRangeDialog
+
+    table = _utils.get_mutable_table(viewer)
+    _run_range_dialog(IntervalRangeDialog(), viewer, table)
+
+
+def period_range(viewer: TableViewerBase):
+    """Generate a range of period values (pd.period_range)"""
+    from ._arange import PeriodRangeDialog
+
+    table = _utils.get_mutable_table(viewer)
+    _run_range_dialog(PeriodRangeDialog(), viewer, table)
 
 
 def toggle_editability(viewer: TableViewerBase):

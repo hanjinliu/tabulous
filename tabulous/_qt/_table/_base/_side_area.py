@@ -97,7 +97,7 @@ class QTableSideArea(QtW.QScrollArea):
 
         del self._widgets[idx]
 
-        if self.widget().count() == 0:
+        if len(self._widgets) == 0:
             self.parentWidget().setSizes([1, 0])
 
 

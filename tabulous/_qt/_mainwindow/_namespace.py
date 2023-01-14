@@ -53,6 +53,9 @@ class Namespace(MutableMapping[str, Any]):
 
     def add(self, obj: _T) -> _T:
         """A decorator to add an callable object to the namespace."""
-        name = obj.__name__
-        self[name] = obj
+        if callable(obj) or isinstance(obj, type):
+            name = obj.__name__
+            self[name] = obj
+        else:
+            raise TypeError(f"Expected to be used as a decorator, got {type(obj)}")
         return obj

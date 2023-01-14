@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from abc import ABC, abstractmethod, abstractstaticmethod
+from abc import abstractmethod, abstractstaticmethod
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Hashable, TYPE_CHECKING, overload
@@ -9,6 +9,7 @@ import warnings
 from psygnal import SignalGroup, Signal
 
 from tabulous.widgets import _doc, _component as _comp
+from tabulous.widgets._keymap_abc import SupportKeyMap
 from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
 from tabulous._psygnal import SignalArray, InCellRangedSlot
 
@@ -23,7 +24,6 @@ if TYPE_CHECKING:
     from tabulous._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from tabulous._qt._table import QBaseTable
     from tabulous._qt._table._base._overlay import QOverlayFrame
-    from tabulous._keymap import QtKeyMap
 
     LayoutString = Literal["horizontal", "vertical"]
 
@@ -63,7 +63,7 @@ class ViewMode(Enum):
 # #####################################################################
 
 
-class TableBase(ABC):
+class TableBase(SupportKeyMap):
     """The base class for a table layer."""
 
     _Default_Name = "None"
@@ -217,11 +217,6 @@ class TableBase(ABC):
         return self._qwidget.tableShape()
 
     @property
-    def keymap(self) -> QtKeyMap:
-        """The keymap object."""
-        return self._qwidget._keymap
-
-    @property
     def metadata(self) -> dict[str, Any]:
         """Metadata of the table."""
         return self._metadata
@@ -338,6 +333,11 @@ class TableBase(ABC):
     @view_mode.setter
     def view_mode(self, mode) -> None:
         """Set view mode of the table."""
+
+        if self._qwidget.parentViewer() is None:
+            raise ValueError(
+                "Table is not attached to a viewer. Cannot change the view mode."
+            )
         if mode is None:
             mode = ViewMode.normal
         else:
@@ -518,7 +518,7 @@ class TableBase(ABC):
         return None
 
     def _wrap_command(self, cmd: Callable):
-        def _f(idx):
+        def _f(*_):
             logger.debug(f"Command: {cmd.__module__.split('.')[-1]}.{cmd.__name__}")
             if _qviewer := self._qwidget.parentViewer():
                 _viewer = _qviewer._table_viewer
@@ -536,46 +536,50 @@ class TableBase(ABC):
         _wrap = self._wrap_command
 
         # fmt: off
-        _hheader_register = self.columns.register_action
-        _hheader_register("Color > Set text colormap")(_wrap(cmds.column.set_text_colormap))  # noqa: E501
-        _hheader_register("Color > Reset text colormap")(_wrap(cmds.column.reset_text_colormap))  # noqa: E501
-        _hheader_register("Color > Set background colormap")(_wrap(cmds.column.set_background_colormap))  # noqa: E501
-        _hheader_register("Color > Reset background colormap")(_wrap(cmds.column.reset_background_colormap))  # noqa: E501
-        _hheader_register("Formatter > Set text formatter")(_wrap(cmds.column.set_text_formatter))  # noqa: E501
-        _hheader_register("Formatter > Reset text formatter")(_wrap(cmds.column.reset_text_formatter))  # noqa: E501
+        _hheader_register = self.columns.register
+        _hheader_register("Color > Set text colormap", _wrap(cmds.column.set_text_colormap))  # noqa: E501
+        _hheader_register("Color > Reset text colormap", _wrap(cmds.column.reset_text_colormap))  # noqa: E501
+        _hheader_register("Color > Set opacity to text colormap", _wrap(cmds.column.set_text_colormap_opacity))  # noqa: E501
+        self._qwidget._qtable_view.horizontalHeader().addSeparator("Color")
+        _hheader_register("Color > Set background colormap", _wrap(cmds.column.set_background_colormap))  # noqa: E501
+        _hheader_register("Color > Reset background colormap", _wrap(cmds.column.reset_background_colormap))  # noqa: E501
+        _hheader_register("Color > Set opacity to background colormap", _wrap(cmds.column.set_background_colormap_opacity))  # noqa: E501
+
+        _hheader_register("Formatter > Set text formatter", _wrap(cmds.column.set_text_formatter))  # noqa: E501
+        _hheader_register("Formatter > Reset text formatter", _wrap(cmds.column.reset_text_formatter))  # noqa: E501
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
-        _hheader_register("Sort")(_wrap(cmds.selection.sort_by_columns))
-        _hheader_register("Filter")(_wrap(cmds.selection.filter_by_columns))
+        _hheader_register("Sort", _wrap(cmds.selection.sort_by_columns))
+        _hheader_register("Filter", _wrap(cmds.selection.filter_by_columns))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
 
-        _cell_register = self.cell.register_action
+        _cell_register = self.cell.register
         _cell_register("Copy")(_wrap(cmds.selection.copy_data_tab_separated))
-        _cell_register("Copy as ... > Tab separated text")(_wrap(cmds.selection.copy_data_tab_separated))  # noqa: E501
-        _cell_register("Copy as ... > Tab separated text with headers")(_wrap(cmds.selection.copy_data_with_header_tab_separated))  # noqa: E501
-        _cell_register("Copy as ... > Comma separated text")(_wrap(cmds.selection.copy_data_comma_separated))  # noqa: E501
-        _cell_register("Copy as ... > Comma separated text with headers")(_wrap(cmds.selection.copy_data_with_header_comma_separated))  # noqa: E501
+        _cell_register("Copy as ... > Tab separated text", _wrap(cmds.selection.copy_data_tab_separated))  # noqa: E501
+        _cell_register("Copy as ... > Tab separated text with headers", _wrap(cmds.selection.copy_data_with_header_tab_separated))  # noqa: E501
+        _cell_register("Copy as ... > Comma separated text", _wrap(cmds.selection.copy_data_comma_separated))  # noqa: E501
+        _cell_register("Copy as ... > Comma separated text with headers", _wrap(cmds.selection.copy_data_with_header_comma_separated))  # noqa: E501
+        self._qwidget.addSeparator("Copy as ...")
+        _cell_register("Copy as ... > Markdown", _wrap(cmds.selection.copy_as_markdown))  # noqa: E501
+        _cell_register("Copy as ... > reStructuredText grid table", _wrap(cmds.selection.copy_as_rst_grid))  # noqa: E501
+        _cell_register("Copy as ... > reStructuredText simple table", _wrap(cmds.selection.copy_as_rst_simple))  # noqa: E501
+        _cell_register("Copy as ... > Latex", _wrap(cmds.selection.copy_as_latex))
+        _cell_register("Copy as ... > HTML", _wrap(cmds.selection.copy_as_html))
+        _cell_register("Copy as ... > Literal", _wrap(cmds.selection.copy_as_literal))
         self._qwidget.addSeparator("Copy as ... ")
-        _cell_register("Copy as ... > Markdown")(_wrap(cmds.selection.copy_as_markdown))  # noqa: E501
-        _cell_register("Copy as ... > reStructuredText grid table")(_wrap(cmds.selection.copy_as_rst_grid))  # noqa: E501
-        _cell_register("Copy as ... > reStructuredText simple table")(_wrap(cmds.selection.copy_as_rst_simple))  # noqa: E501
-        _cell_register("Copy as ... > Latex")(_wrap(cmds.selection.copy_as_latex))
-        _cell_register("Copy as ... > HTML")(_wrap(cmds.selection.copy_as_html))
-        _cell_register("Copy as ... > Literal")(_wrap(cmds.selection.copy_as_literal))
-        self._qwidget.addSeparator("Copy as ... ")
-        _cell_register("Copy as ... > New table")(_wrap(cmds.selection.copy_as_new_table))  # noqa: E501
-        _cell_register("Copy as ... > New spreadsheet")(_wrap(cmds.selection.copy_as_new_spreadsheet))  # noqa: E501
-        _cell_register("Paste")(_wrap(cmds.selection.paste_data_tab_separated))
-        _cell_register("Paste from ... > Tab separated text")(_wrap(cmds.selection.paste_data_tab_separated))  # noqa: E501
-        _cell_register("Paste from ... > Comma separated text")(_wrap(cmds.selection.paste_data_comma_separated))  # noqa: E501
-        _cell_register("Paste from ... > numpy-style text")(_wrap(cmds.selection.paste_data_from_numpy_string))  # noqa: E501
-        _cell_register("Paste from ... > Markdown text")(_wrap(cmds.selection.paste_data_from_markdown))  # noqa: E501
+        _cell_register("Copy as ... > New table", _wrap(cmds.selection.copy_as_new_table))  # noqa: E501
+        _cell_register("Copy as ... > New spreadsheet", _wrap(cmds.selection.copy_as_new_spreadsheet))  # noqa: E501
+        _cell_register("Paste", _wrap(cmds.selection.paste_data_tab_separated))
+        _cell_register("Paste from ... > Tab separated text", _wrap(cmds.selection.paste_data_tab_separated))  # noqa: E501
+        _cell_register("Paste from ... > Comma separated text", _wrap(cmds.selection.paste_data_comma_separated))  # noqa: E501
+        _cell_register("Paste from ... > numpy-style text", _wrap(cmds.selection.paste_data_from_numpy_string))  # noqa: E501
+        _cell_register("Paste from ... > Markdown text", _wrap(cmds.selection.paste_data_from_markdown))  # noqa: E501
         self._qwidget.addSeparator()
-        _cell_register("Sort in-place")(_wrap(cmds.selection.sort_inplace))
+        _cell_register("Sort in-place", _wrap(cmds.selection.sort_inplace))
         self._qwidget.addSeparator()
-        _cell_register("Code ... > Data-changed signal")(_wrap(cmds.selection.write_data_signal_in_console))  # noqa: E501
-        _cell_register("Code ... > Get slice")(_wrap(cmds.selection.write_slice_in_console))  # noqa: E501
-        _cell_register("Add highlight")(_wrap(cmds.selection.add_highlight))
-        _cell_register("Delete highlight")(_wrap(cmds.selection.delete_selected_highlight))  # noqa: E501
+        _cell_register("Code ... > Data-changed signal", _wrap(cmds.selection.write_data_signal_in_console))  # noqa: E501
+        _cell_register("Code ... > Get slice", _wrap(cmds.selection.write_slice_in_console))  # noqa: E501
+        _cell_register("Add highlight", _wrap(cmds.selection.add_highlight))
+        _cell_register("Delete highlight", _wrap(cmds.selection.delete_selected_highlight))  # noqa: E501
         self._qwidget.addSeparator()
         # fmt: on
 
@@ -620,7 +624,7 @@ class _DataFrameTableLayer(TableBase):
                 data = pd.DataFrame(data)
         return data
 
-    def assign(self, other: dict[str, Any] = {}, **kwargs: dict[str, Any]) -> Self:
+    def assign(self, other: dict[str, Any] = {}, /, **kwargs: dict[str, Any]) -> Self:
         """
         Assign new column(s) to the table.
 
@@ -702,41 +706,41 @@ class SpreadSheet(_DataFrameTableLayer):
 
         _wrap = self._wrap_command
         # fmt: off
-        _vheader_register = self.index.register_action
-        _vheader_register("Insert row above")(_wrap(cmds.selection.insert_row_above))
-        _vheader_register("Insert row below")(_wrap(cmds.selection.insert_row_below))
-        _vheader_register("Remove selected rows")(_wrap(cmds.selection.remove_selected_rows))  # noqa: E501
+        _vheader_register = self.index.register
+        _vheader_register("Insert row above", _wrap(cmds.selection.insert_row_above))
+        _vheader_register("Insert row below", _wrap(cmds.selection.insert_row_below))
+        _vheader_register("Remove selected rows", _wrap(cmds.selection.remove_selected_rows))  # noqa: E501
         self._qwidget._qtable_view.verticalHeader().addSeparator()
 
-        _hheader_register = self.columns.register_action
-        _hheader_register("Insert column left")(_wrap(cmds.selection.insert_column_left))  # noqa: E501
-        _hheader_register("Insert column right")(_wrap(cmds.selection.insert_column_right))  # noqa: E501
-        _hheader_register("Remove selected columns")(_wrap(cmds.selection.remove_selected_columns))  # noqa: E501
+        _hheader_register = self.columns.register
+        _hheader_register("Insert column left", _wrap(cmds.selection.insert_column_left))  # noqa: E501
+        _hheader_register("Insert column right", _wrap(cmds.selection.insert_column_right))  # noqa: E501
+        _hheader_register("Remove selected columns", _wrap(cmds.selection.remove_selected_columns))  # noqa: E501
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
-        _hheader_register("Column dtype")(_wrap(cmds.selection.set_column_dtype))
+        _hheader_register("Column dtype", _wrap(cmds.selection.set_column_dtype))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
 
         _cell_register = self._qwidget.registerAction
-        _cell_register("Insert/Remove > Insert a row above")(_wrap(cmds.selection.insert_row_above))  # noqa: E501
-        _cell_register("Insert/Remove > Insert a row below")(_wrap(cmds.selection.insert_row_below))  # noqa: E501
-        _cell_register("Insert/Remove > Remove rows")(_wrap(cmds.selection.remove_selected_rows))  # noqa: E501
+        _cell_register("Insert/Remove > Insert a row above", _wrap(cmds.selection.insert_row_above))  # noqa: E501
+        _cell_register("Insert/Remove > Insert a row below", _wrap(cmds.selection.insert_row_below))  # noqa: E501
+        _cell_register("Insert/Remove > Remove rows", _wrap(cmds.selection.remove_selected_rows))  # noqa: E501
         self._qwidget.addSeparator()
-        _cell_register("Insert/Remove > Insert a column on the left")(_wrap(cmds.selection.insert_column_left))  # noqa: E501
-        _cell_register("Insert/Remove > Insert a column on the right")(_wrap(cmds.selection.insert_column_right))  # noqa: E501
-        _cell_register("Insert/Remove > Remove columns")(_wrap(cmds.selection.remove_selected_columns))  # noqa: E501
+        _cell_register("Insert/Remove > Insert a column on the left", _wrap(cmds.selection.insert_column_left))  # noqa: E501
+        _cell_register("Insert/Remove > Insert a column on the right", _wrap(cmds.selection.insert_column_right))  # noqa: E501
+        _cell_register("Insert/Remove > Remove columns", _wrap(cmds.selection.remove_selected_columns))  # noqa: E501
         self._qwidget.addSeparator()
 
         super()._install_actions()
 
-        _cell_register("Cell widget > SpinBox")(_wrap(cmds.selection.add_spinbox))
-        _cell_register("Cell widget > Slider")(_wrap(cmds.selection.add_slider))
-        _cell_register("Cell widget > FloatSpinBox")(_wrap(cmds.selection.add_float_spinbox))  # noqa: E501
-        _cell_register("Cell widget > FloatSlider")(_wrap(cmds.selection.add_float_slider))  # noqa: E501
-        _cell_register("Cell widget > CheckBox")(_wrap(cmds.selection.add_checkbox))
-        _cell_register("Cell widget > RadioButton")(_wrap(cmds.selection.add_radio_button))  # noqa: E501
-        _cell_register("Cell widget > LineEdit")(_wrap(cmds.selection.add_line_edit))
+        _cell_register("Cell widget > SpinBox", _wrap(cmds.selection.add_spinbox))
+        _cell_register("Cell widget > Slider", _wrap(cmds.selection.add_slider))
+        _cell_register("Cell widget > FloatSpinBox", _wrap(cmds.selection.add_float_spinbox))  # noqa: E501
+        _cell_register("Cell widget > FloatSlider", _wrap(cmds.selection.add_float_slider))  # noqa: E501
+        _cell_register("Cell widget > CheckBox", _wrap(cmds.selection.add_checkbox))
+        _cell_register("Cell widget > RadioButton", _wrap(cmds.selection.add_radio_button))  # noqa: E501
+        _cell_register("Cell widget > LineEdit", _wrap(cmds.selection.add_line_edit))
         self._qwidget.addSeparator("Cell widget ")
-        _cell_register("Cell widget > Remove")(_wrap(cmds.selection.remove_cell_widgets))  # noqa: E501
+        _cell_register("Cell widget > Remove", _wrap(cmds.selection.remove_cell_widgets))  # noqa: E501
 
         # fmt: on
         return None

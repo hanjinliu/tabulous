@@ -3,22 +3,20 @@ from __future__ import annotations
 from typing import (
     TYPE_CHECKING,
     Sequence,
-    TypeVar,
     overload,
     Any,
-    Callable,
     Iterator,
 )
 
 import numpy as np
 from tabulous.exceptions import TableImmutableError
 from ._base import Component, TableComponent
+from tabulous.widgets._registry import SupportActionRegistration
 
 if TYPE_CHECKING:
     import pandas as pd
+    from tabulous.widgets import TableBase  # noqa: F401
     from tabulous._qt._table._base._header_view import QDataFrameHeaderView
-
-_F = TypeVar("_F", bound=Callable)
 
 
 class HeaderSectionSpan(Component["_HeaderInterface"]):
@@ -53,7 +51,7 @@ class HeaderSectionSpan(Component["_HeaderInterface"]):
         return None
 
 
-class _HeaderInterface(TableComponent):
+class _HeaderInterface(TableComponent, SupportActionRegistration["TableBase", int]):
     """
     Interface to the table {index/columns} header.
 
@@ -74,10 +72,10 @@ class _HeaderInterface(TableComponent):
     >>> table.{index/columns}.insert(at=0, count=2)
     >>> table.{index/columns}.remove(at=0, count=2)
 
-    Use ``register_action`` to register a contextmenu function.
+    Use ``register`` to register a contextmenu function.
 
-    >>> @table.{index/columns}.register_action("My Action")
-    >>> def my_action(index):
+    >>> @table.{index/columns}.register("My Action")
+    >>> def my_action(table, index):
     ...     # do something
 
     Many other pandas.Index methods are also available.
@@ -142,6 +140,11 @@ class _HeaderInterface(TableComponent):
         """The string accessor to the header."""
         return self._get_axis().str
 
+    @property
+    def size(self) -> int:
+        """Size of the axis."""
+        return self._get_axis().size
+
     def get_loc(self, key: str) -> int:
         """Get the location of a label."""
         return self._get_axis().get_loc(key)
@@ -162,23 +165,8 @@ class _HeaderInterface(TableComponent):
             i += 1
         return name
 
-    # fmt: off
-    @overload
-    def register_action(self, val: str) -> Callable[[_F], _F]: ...
-    @overload
-    def register_action(self, val: _F) -> _F: ...
-    # fmt: on
-
-    def register_action(self, val: str | Callable[[int], Any]):
-        """Register an contextmenu action to the header."""
-        header = self._get_header()
-        if isinstance(val, str):
-            return header.registerAction(val)
-        elif callable(val):
-            location = val.__name__.replace("_", " ")
-            return header.registerAction(location)(val)
-        else:
-            raise ValueError("input must be a string or callable.")
+    def _get_qregistry(self):
+        return self._get_header()
 
     @property
     def selected(self) -> list[slice]:
@@ -219,8 +207,10 @@ class VerticalHeaderInterface(_HeaderInterface):
         sheet._qwidget.removeRows(at, count)
 
     @_HeaderInterface.selected.setter
-    def selected(self, slices: list[slice]):
+    def selected(self, slices: int | slice | list[int | slice]):
         """Set the selected ranges."""
+        if isinstance(slices, (int, slice)):
+            slices = [slices]
         smodel = self.parent._qwidget._qtable_view._selection_model
         smodel.clear()
         csl = slice(0, smodel._col_count_getter())
@@ -255,8 +245,10 @@ class HorizontalHeaderInterface(_HeaderInterface):
         sheet._qwidget.removeColumns(at, count)
 
     @_HeaderInterface.selected.setter
-    def selected(self, slices: list[slice]):
+    def selected(self, slices: int | slice | list[int | slice]):
         """Set the selected ranges."""
+        if isinstance(slices, (int, slice)):
+            slices = [slices]
         smodel = self.parent._qwidget._qtable_view._selection_model
         smodel.clear()
         rsl = slice(0, smodel._row_count_getter())

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.selection &mdash; tabulous 0.4.0 documentation</title>
+  <title>tabulous.commands.selection &mdash; tabulous 0.4.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0
+                0.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -54,6 +54,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/customize.html">Customize Viewer Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/register_action.html">Register Custom Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/modules.html">tabulous</a></li>
@@ -96,22 +97,22 @@
 
 <div class="viewcode-block" id="copy_data_tab_separated"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.copy_data_tab_separated">[docs]</a><span class="k">def</span> <span class="nf">copy_data_tab_separated</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Copy cells (tab separated)&quot;&quot;&quot;</span>
-    <span class="n">viewer</span><span class="o">.</span><span class="n">copy_data</span><span class="p">(</span><span class="n">headers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span></div>
+    <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">copyToClipboard</span><span class="p">(</span><span class="n">headers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="copy_data_with_header_tab_separated"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.copy_data_with_header_tab_separated">[docs]</a><span class="k">def</span> <span class="nf">copy_data_with_header_tab_separated</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Copy cells with headers (tab separated)&quot;&quot;&quot;</span>
-    <span class="n">viewer</span><span class="o">.</span><span class="n">copy_data</span><span class="p">(</span><span class="n">headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span></div>
+    <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">copyToClipboard</span><span class="p">(</span><span class="n">headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="copy_data_comma_separated"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.copy_data_comma_separated">[docs]</a><span class="k">def</span> <span class="nf">copy_data_comma_separated</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Copy cells (comma separated)&quot;&quot;&quot;</span>
-    <span class="n">viewer</span><span class="o">.</span><span class="n">copy_data</span><span class="p">(</span><span class="n">headers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span></div>
+    <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">copyToClipboard</span><span class="p">(</span><span class="n">headers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="copy_data_with_header_comma_separated"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.copy_data_with_header_comma_separated">[docs]</a><span class="k">def</span> <span class="nf">copy_data_with_header_comma_separated</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Copy cells with headers (comma separated)&quot;&quot;&quot;</span>
-    <span class="n">viewer</span><span class="o">.</span><span class="n">copy_data</span><span class="p">(</span><span class="n">headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span></div>
+    <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">copyToClipboard</span><span class="p">(</span><span class="n">headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="copy_as_literal"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.copy_as_literal">[docs]</a><span class="k">def</span> <span class="nf">copy_as_literal</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands &mdash; tabulous 0.4.0 documentation</title>
+  <title>tabulous.commands &mdash; tabulous 0.4.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0
+                0.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -54,6 +54,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../main/customize.html">Customize Viewer Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../main/register_action.html">Register Custom Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../apidoc/modules.html">tabulous</a></li>
@@ -122,6 +123,7 @@
 
 
 <div class="viewcode-block" id="register_command"><a class="viewcode-back" href="../../apidoc/tabulous.commands.html#tabulous.commands.register_command">[docs]</a><span class="k">def</span> <span class="nf">register_command</span><span class="p">(</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;User defined&quot;</span><span class="p">,</span>
     <span class="n">desc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">TableViewerBase</span><span class="p">],</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">TableViewerBase</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]:</span>
@@ -146,7 +148,7 @@
         <span class="n">palette</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">f</span>
 
-    <span class="k">return</span> <span class="n">wrapper</span></div>
+    <span class="k">return</span> <span class="n">wrapper</span> <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">)</span></div>
 
 
 <span class="n">DEFAULT_KEYBINDING_SETTING</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">FunctionType</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>

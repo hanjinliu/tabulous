@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.column &mdash; tabulous 0.4.0 documentation</title>
+  <title>tabulous.commands.column &mdash; tabulous 0.4.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0
+                0.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -54,6 +54,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/customize.html">Customize Viewer Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/register_action.html">Register Custom Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/modules.html">tabulous</a></li>
@@ -87,6 +88,7 @@
   <h1>Source code for tabulous.commands.column</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span> <span class="nn">tabulous.exceptions</span> <span class="kn">import</span> <span class="n">SelectionRangeError</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_utils</span><span class="p">,</span> <span class="n">_dialogs</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -133,7 +135,7 @@
 <div class="viewcode-block" id="set_text_colormap_opacity"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.set_text_colormap_opacity">[docs]</a><span class="k">def</span> <span class="nf">set_text_colormap_opacity</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Set opacity to the text colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_float</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_OPACITY_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_OPACITY_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
         <span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">set_opacity</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
 
 
@@ -146,7 +148,7 @@
 <div class="viewcode-block" id="adjust_brightness_text_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.adjust_brightness_text_colormap">[docs]</a><span class="k">def</span> <span class="nf">adjust_brightness_text_colormap</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Adjust brightness of the text colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_float</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_BRIGHTNESS_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_BRIGHTNESS_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
         <span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">adjust_brightness</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
 
 
@@ -172,7 +174,7 @@
 <div class="viewcode-block" id="set_background_colormap_opacity"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.set_background_colormap_opacity">[docs]</a><span class="k">def</span> <span class="nf">set_background_colormap_opacity</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Set opacity to the background colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_float</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_OPACITY_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_OPACITY_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
         <span class="n">table</span><span class="o">.</span><span class="n">background_color</span><span class="o">.</span><span class="n">set_opacity</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
 
 
@@ -185,7 +187,7 @@
 <div class="viewcode-block" id="adjust_brightness_background_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.adjust_brightness_background_colormap">[docs]</a><span class="k">def</span> <span class="nf">adjust_brightness_background_colormap</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Adjust brightness of the background colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_float</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_BRIGHTNESS_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_BRIGHTNESS_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
         <span class="n">table</span><span class="o">.</span><span class="n">background_color</span><span class="o">.</span><span class="n">adjust_brightness</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
 
 
@@ -207,6 +209,34 @@
     <span class="sd">&quot;&quot;&quot;Reset text formatter&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="k">del</span> <span class="n">table</span><span class="o">.</span><span class="n">formatter</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="run_groupby"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.run_groupby">[docs]</a><span class="k">def</span> <span class="nf">run_groupby</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Group table by its columns (pd.groupby)&quot;&quot;&quot;</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_mutable_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_selected_columns</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SelectionRangeError</span><span class="p">(</span><span class="s2">&quot;No columns selected&quot;</span><span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="n">colnames</span><span class="p">)</span>
+    <span class="n">viewer</span><span class="o">.</span><span class="n">add_groupby</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-groupby&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="run_cut"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.run_cut">[docs]</a><span class="k">def</span> <span class="nf">run_cut</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Cut a table column into bins (pd.cut)&quot;&quot;&quot;</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_mutable_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_selected_column</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+        <span class="n">colname</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="n">colname</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span>
+        <span class="n">df</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;bind&quot;</span><span class="p">:</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">},</span>
+        <span class="n">column</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;choices&quot;</span><span class="p">:</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">colname</span><span class="p">},</span>
+        <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">assign</span><span class="p">({</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">colname</span><span class="si">}</span><span class="s2">_cut&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="p">})</span></div>
 </pre></div>
 
            </div>

@@ -206,8 +206,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Table", cmds.table.copy_as_table, ICON_DIR / "copy_as_table.svg")  # noqa: E501
         self.registerAction("Table", cmds.table.copy_as_spreadsheet, ICON_DIR / "copy_as_spreadsheet.svg")  # noqa: E501
         self.addSeparatorToChild("Table")
-        self.registerAction("Table", cmds.table.groupby, ICON_DIR / "groupby.svg")  # noqa: E501
-        self.registerAction("Table", cmds.table.switch_header, ICON_DIR / "switch_header.svg")  # noqa: E501
+        self.registerAction("Table", cmds.column.run_groupby, ICON_DIR / "groupby.svg")  # noqa: E501
+        self.registerAction("Table", cmds.table.switch_columns, ICON_DIR / "switch_header.svg")  # noqa: E501
         self.registerAction("Table", cmds.table.pivot, ICON_DIR / "pivot.svg")
         self.registerAction("Table", cmds.table.melt, ICON_DIR / "melt.svg")
         self.addSeparatorToChild("Table")

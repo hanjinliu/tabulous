@@ -36,6 +36,7 @@ def iter_commands() -> Iterator[tuple[str, FunctionType]]:
 
 
 def register_command(
+    func: Callable = None,
     title: str = "User defined",
     desc: str = None,
 ) -> Callable[[Callable[[TableViewerBase], Any]], Callable[[TableViewerBase], Any]]:
@@ -60,7 +61,7 @@ def register_command(
         palette.update()
         return f
 
-    return wrapper
+    return wrapper if func is None else wrapper(func)
 
 
 DEFAULT_KEYBINDING_SETTING: list[tuple[FunctionType, str]] = [

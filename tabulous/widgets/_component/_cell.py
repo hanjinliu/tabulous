@@ -5,10 +5,7 @@ from typing import (
     Mapping,
     SupportsIndex,
     Tuple,
-    TypeVar,
-    overload,
     Any,
-    Callable,
     Iterator,
 )
 import warnings
@@ -22,11 +19,11 @@ from tabulous.types import EvalInfo
 from tabulous.color import ColorTuple
 from tabulous._psygnal import InCellRangedSlot
 from ._base import TableComponent
+from tabulous.widgets._registry import SupportActionRegistration
 
 if TYPE_CHECKING:
     import pandas as pd
-
-_F = TypeVar("_F", bound=Callable)
+    from tabulous.widgets import TableBase  # noqa: F401
 
 
 class _Sequence2D(TableComponent):
@@ -115,7 +112,7 @@ class CellDisplayedTextInterface(_Sequence2D):
         return model.data(idx, role=Qt.ItemDataRole.DisplayRole)
 
 
-class CellInterface(TableComponent):
+class CellInterface(TableComponent, SupportActionRegistration["TableBase", int]):
     """
     Interface with table cells.
 
@@ -132,10 +129,10 @@ class CellInterface(TableComponent):
     >>> table.cell.label[i, j] = value  # set the (i, j) cell label text
     >>> del table.cell.label[i, j]  # delete the (i, j) cell label text
 
-    Use ``register_action`` to register a contextmenu function.
+    Use ``register`` to register a contextmenu function.
 
-    >>> @table.cell.register_action("My Action")
-    >>> def my_action(index):
+    >>> @table.cell.register("My Action")
+    >>> def my_action(table, index):
     ...     # do something
     """
 
@@ -222,29 +219,21 @@ class CellInterface(TableComponent):
             col = slice(col, col + 1)
         return row, col
 
-    # fmt: off
-    @overload
-    def register_action(self, val: str) -> Callable[[_F], _F]: ...
-    @overload
-    def register_action(self, val: _F) -> _F: ...
-    # fmt: on
-
-    def register_action(self, val: str | Callable[[tuple[int, int]], Any]):
-        """Register an contextmenu action to the tablelist."""
-        table = self.parent.native
-        if isinstance(val, str):
-            return table.registerAction(val)
-        elif callable(val):
-            location = val.__name__.replace("_", " ")
-            return table.registerAction(location)(val)
-        else:
-            raise TypeError("input must be a string or callable.")
+    def _get_qregistry(self):
+        return self.parent.native
 
     label = CellLabelInterface()
     ref = CellReferenceInterface()
     text_color = CellForegroundColorInterface()
     background_color = CellBackgroundColorInterface()
     text = CellDisplayedTextInterface()
+
+    def selected_at(self, r: int, c: int) -> bool:
+        """Check if a cell is selected."""
+        for rr, cc in self.parent.selections:
+            if rr.start <= r < rr.stop and cc.start <= c < cc.stop:
+                return True
+        return False
 
     def get_label(self, r: int, c: int) -> str | None:
         """Get the label of a cell."""

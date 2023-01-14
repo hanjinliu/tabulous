@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customize Viewer Actions &mdash; tabulous 0.4.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/font.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Register Custom Actions" href="register_action.html" />
+    <link rel="prev" title="Use Non-main Window Table Viewers" href="non_mainwindow.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> tabulous
+          </a>
+              <div class="version">
+                0.4.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_interface.html">User Interface</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="selections.html">Table Selections and Highlights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sort_filter.html">Sort/Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="columnwise_settings.html">Column-wise Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_fields.html">Field Attributes of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_view_mode.html">View Tables in Different Modes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="integrate_custom_widgets.html">Integrate Custom Widgets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Customize Viewer Actions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#edit-config-toml">Edit config.toml</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#edit-post-init-py">Edit post_init.py</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#register-actions-using-register-method">Register actions using <code class="xref py py-meth docutils literal notranslate"><span class="pre">register()</span></code> method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#update-namespaces">Update namespaces</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidoc/modules.html">tabulous</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tabulous</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Customize Viewer Actions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/main/customize.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <section id="customize-viewer-actions">
+<h1>Customize Viewer Actions<a class="headerlink" href="#customize-viewer-actions" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference internal" href="../apidoc/tabulous.html#module-tabulous" title="tabulous"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tabulous</span></code></a> settings and configuration are stored in the user directory.
+Configuration files will be created automatically when the viewer is launched
+for the first time.</p>
+<p>You can check the location of the user directory by running the following
+command.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ tabulous --user-dir
+</pre></div>
+</div>
+<section id="edit-config-toml">
+<h2>Edit config.toml<a class="headerlink" href="#edit-config-toml" title="Permalink to this headline">¶</a></h2>
+<p>The “config.toml” file describes the basic settings of the viewer.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[console_namespace]</span>
+<span class="n">tabulous</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># default identifier of the tabulous module</span>
+<span class="n">viewer</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># default identifier of the viewer instance</span>
+<span class="n">pandas</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># default identifier of the pandas module</span>
+<span class="n">numpy</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># default identifier of the numpy module</span>
+<span class="n">load_startup_file</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># load IPython startup file or not</span>
+
+<span class="k">[table]</span>
+<span class="n">max_row_count</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># maximum number of rows allowed to be added</span>
+<span class="n">max_column_count</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># maximum number of rows allowed to be added</span>
+<span class="n">font</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># font family name</span>
+<span class="n">font_size</span> <span class="o">=</span> <span class="p">...</span>   <span class="c1"># font size in points</span>
+<span class="n">row_size</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># row height in pixels</span>
+<span class="n">column_size</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># column width in pixels</span>
+
+<span class="k">[cell]</span>
+<span class="n">eval_prefix</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># prefix of for in-cell evaluation</span>
+<span class="n">ref_prefix</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># prefix of for in-cell evaluation with cell references</span>
+
+<span class="k">[window]</span>
+<span class="n">ask_on_close</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># ask before closing the window or not</span>
+<span class="n">show_console</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># show console on startup or not</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To reset the configuration file to the default, run the following command.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ tabulous --init-config
+</pre></div>
+</div>
+</div>
+</section>
+<section id="edit-post-init-py">
+<h2>Edit post_init.py<a class="headerlink" href="#edit-post-init-py" title="Permalink to this headline">¶</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 0.4.1.</span></p>
+</div>
+<p>The “post_init.py” file is used to customize contextmenus, keybindings, namespaces
+and commands of the viewer.</p>
+<p>Two initializer objects are used to register variables and functions to the
+application <em>before</em> it is actually launched.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># post_init.py</span>
+<span class="kn">from</span> <span class="nn">tabulous.post_init</span> <span class="kn">import</span> <span class="n">get_initializers</span>
+
+<span class="n">viewer</span><span class="p">,</span> <span class="n">table</span> <span class="o">=</span> <span class="n">get_initializers</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Each initializer object has similar attributes as the <code class="xref py py-class docutils literal notranslate"><span class="pre">TableViewer</span></code> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> respectively.</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>Contextmenu registration</dt><dd><p>See <a class="reference internal" href="register_action.html"><span class="doc">Register Custom Actions</span></a> for what viewer/table components support the
+registration.</p>
+<ul class="simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">viewer.tables.register()</span></code> … register action to the tab bar.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">table.index.register()</span></code> … register action to the vertical header.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">table.columns.register()</span></code> … register action to the horizontal header.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">table.cells.register()</span></code> … register action to the table cells.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">viewer.commands.register()</span></code> … register command to the console.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">viewer.keymap.register()</span></code> … register keybinding to the viewer.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">table.keymap.register()</span></code> … register keybinding to each table.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Namespace update</dt><dd><ul class="simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">viewer.cell_namespace.update()</span></code> … update the namespace in cells.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">viewer.console.update()</span></code> … update the namespace of the console.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+<section id="register-actions-using-register-method">
+<h3>Register actions using <code class="xref py py-meth docutils literal notranslate"><span class="pre">register()</span></code> method<a class="headerlink" href="#register-actions-using-register-method" title="Permalink to this headline">¶</a></h3>
+<p>Contextmenu, keybindings and commands can be registered using the <code class="xref py py-meth docutils literal notranslate"><span class="pre">register()</span></code>
+method are also available for initialization.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># post_init.py</span>
+
+<span class="nd">@viewer</span><span class="o">.</span><span class="n">keymap</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Ctrl+U&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_func</span><span class="p">(</span><span class="n">viewer</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ctrl+U clicked&quot;</span><span class="p">)</span>
+
+<span class="nd">@table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Test &gt; Print location&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_func</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="n">row</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="n">index</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cell location: </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">))</span>
+
+<span class="nd">@viewer</span><span class="o">.</span><span class="n">command_palette</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Test: Print string&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_func</span><span class="p">(</span><span class="n">viewer</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Command palette clicked&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="update-namespaces">
+<h3>Update namespaces<a class="headerlink" href="#update-namespaces" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">viewer.cell_namespace</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">viewer.console</span></code> supports <code class="xref py py-meth docutils literal notranslate"><span class="pre">update()</span></code> and
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">add()</span></code> methods to update the namespace.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># post_init.py</span>
+
+<span class="c1"># use `update` method to update the namespace in a dict-like manner</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">cell_namespace</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;my_var&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">pi</span><span class="o">=</span><span class="mf">3.14159265359</span><span class="p">)</span>
+
+<span class="c1"># use `add` decorator</span>
+<span class="nd">@viewer</span><span class="o">.</span><span class="n">cell_namespace</span><span class="o">.</span><span class="n">add</span>
+<span class="k">def</span> <span class="nf">SUM</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="nd">@viewer</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">add</span>
+<span class="k">class</span> <span class="nc">MyClass</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="non_mainwindow.html" class="btn btn-neutral float-left" title="Use Non-main Window Table Viewers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="register_action.html" class="btn btn-neutral float-right" title="Register Custom Actions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Hanjin Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

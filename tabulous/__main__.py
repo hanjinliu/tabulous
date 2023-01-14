@@ -7,6 +7,7 @@ class TabulousArgs(argparse.Namespace):
     """Tabulous specific arguments"""
 
     profile: bool
+    user_dir: bool
     debug: bool
     init_config: bool
     init_history: bool
@@ -27,6 +28,7 @@ class TabulousParser(argparse.ArgumentParser):
             version=f"tabulous version {__version__}",
         )
         self.add_argument("--profile", action="store_true")
+        self.add_argument("--user-dir", action="store_true")
         self.add_argument("--debug", action="store_true")
         self.add_argument("--init-config", action="store_true")
         self.add_argument("--init-history", action="store_true")
@@ -50,7 +52,7 @@ def main():
 
     args, _ = parser.parse_known_args()
 
-    if args.profile:
+    if args.profile or args.user_dir:
         from ._utils import CONFIG_PATH
 
         return print(CONFIG_PATH.parent)

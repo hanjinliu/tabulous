@@ -10,6 +10,11 @@ def _(self: _QtMainWidgetBase):
     """Basic sequence to trigger key combo."""
     return self.setFocus()
 
+@QMainWidget._keymap.bind_deactivated("Ctrl+K")
+@QMainWindow._keymap.bind_deactivated("Ctrl+K")
+def _(self: _QtMainWidgetBase):
+    return self.setCellFocus()
+
 
 @QMainWindow._keymap.bind("Alt")
 def _(self: _QtMainWidgetBase):
@@ -42,6 +47,8 @@ def _(self: QMainWindow, key: str):
     except ValueError:
         return None
 
-    self._toolbar.currentToolBar().clickButton((index - 1) % 10, ignore_index_error=True)
+    self._toolbar.currentToolBar().clickButton(
+        (index - 1) % 10, ignore_index_error=True
+    )
 
 # fmt: on

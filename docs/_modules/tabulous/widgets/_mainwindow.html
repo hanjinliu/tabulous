@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets._mainwindow &mdash; tabulous 0.4.0 documentation</title>
+  <title>tabulous.widgets._mainwindow &mdash; tabulous 0.4.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0
+                0.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -54,6 +54,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/customize.html">Customize Viewer Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/register_action.html">Register Custom Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../apidoc/modules.html">tabulous</a></li>
@@ -98,13 +99,13 @@
 <span class="kn">from</span> <span class="nn">._table</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">SpreadSheet</span><span class="p">,</span> <span class="n">GroupBy</span><span class="p">,</span> <span class="n">TableDisplay</span>
 <span class="kn">from</span> <span class="nn">._tablelist</span> <span class="kn">import</span> <span class="n">TableList</span>
 <span class="kn">from</span> <span class="nn">._sample</span> <span class="kn">import</span> <span class="n">open_sample</span>
-<span class="kn">from</span> <span class="nn">._component</span> <span class="kn">import</span> <span class="n">ViewerComponent</span>
+<span class="kn">from</span> <span class="nn">._component</span> <span class="kn">import</span> <span class="n">Toolbar</span><span class="p">,</span> <span class="n">Console</span><span class="p">,</span> <span class="n">CommandPalette</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_doc</span>
 
 <span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">_utils</span><span class="p">,</span> <span class="n">_io</span>
 <span class="kn">from</span> <span class="nn">tabulous.types</span> <span class="kn">import</span> <span class="n">SelectionType</span><span class="p">,</span> <span class="n">TabPosition</span><span class="p">,</span> <span class="n">_TableLike</span><span class="p">,</span> <span class="n">_SingleSelection</span>
 <span class="kn">from</span> <span class="nn">tabulous.exceptions</span> <span class="kn">import</span> <span class="n">UnreachableError</span>
-<span class="kn">from</span> <span class="nn">tabulous._keymap</span> <span class="kn">import</span> <span class="n">QtKeyMap</span>
+<span class="kn">from</span> <span class="nn">tabulous.widgets._keymap_abc</span> <span class="kn">import</span> <span class="n">SupportKeyMap</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">tabulous.widgets._table</span> <span class="kn">import</span> <span class="n">TableBase</span>
@@ -131,60 +132,6 @@
     <span class="n">current_index</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">Toolbar</span><span class="p">(</span><span class="n">ViewerComponent</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The toolbar proxy.&quot;&quot;&quot;</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">visible</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Visibility of the toolbar.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">toolBarVisible</span><span class="p">()</span>
-
-    <span class="nd">@visible</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">visible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setToolBarVisible</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">current_index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_toolbar</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">()</span>
-
-    <span class="nd">@current_index</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">current_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_toolbar</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">register_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
-
-
-<span class="k">class</span> <span class="nc">Console</span><span class="p">(</span><span class="n">ViewerComponent</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The QtConsole proxy.&quot;&quot;&quot;</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">visible</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Visibility of the toolbar.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">consoleVisible</span><span class="p">()</span>
-
-    <span class="nd">@visible</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">visible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setConsoleVisible</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the current text buffer of the console.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_console_widget</span><span class="o">.</span><span class="n">input_buffer</span>
-
-    <span class="nd">@buffer</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_console_widget</span><span class="o">.</span><span class="n">setBuffer</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Execute current buffer.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_console_widget</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ns</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-        <span class="sd">&quot;&quot;&quot;Update IPython namespace.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_console_widget</span><span class="o">.</span><span class="n">update_console</span><span class="p">(</span><span class="n">ns</span><span class="p">)</span>
-
-
 <span class="k">class</span> <span class="nc">_AbstractViewer</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">current_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableBase</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -197,10 +144,6 @@
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">cell_namespace</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Namespace</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the namespace of the cell editor.&quot;&quot;&quot;</span>
-
-    <span class="nd">@abstractproperty</span>
-    <span class="k">def</span> <span class="nf">keymap</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QtKeyMap</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the keymap object.&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -240,7 +183,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_table</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">pasteFromClipBoard</span><span class="p">()</span>
 
 
-<span class="k">class</span> <span class="nc">TableViewerBase</span><span class="p">(</span><span class="n">_AbstractViewer</span><span class="p">):</span>
+<div class="viewcode-block" id="TableViewerBase"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase">[docs]</a><span class="k">class</span> <span class="nc">TableViewerBase</span><span class="p">(</span><span class="n">_AbstractViewer</span><span class="p">,</span> <span class="n">SupportKeyMap</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;The base class of a table viewer widget.&quot;&quot;&quot;</span>
 
     <span class="n">events</span><span class="p">:</span> <span class="n">TableViewerSignal</span>
@@ -248,6 +191,7 @@
 
     <span class="n">toolbar</span> <span class="o">=</span> <span class="n">Toolbar</span><span class="p">()</span>
     <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
+    <span class="n">command_palette</span> <span class="o">=</span> <span class="n">CommandPalette</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -256,6 +200,7 @@
         <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="kn">from</span> <span class="nn">tabulous._qt</span> <span class="kn">import</span> <span class="n">get_app</span>
+        <span class="kn">from</span> <span class="nn">tabulous._utils</span> <span class="kn">import</span> <span class="n">get_post_initializers</span>
 
         <span class="n">app</span> <span class="o">=</span> <span class="n">get_app</span><span class="p">()</span>  <span class="c1"># noqa: F841</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget_class</span><span class="p">(</span><span class="n">tab_position</span><span class="o">=</span><span class="n">tab_position</span><span class="p">)</span>
@@ -264,6 +209,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_link_events</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">TableViewerSignal</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_table_initializer</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">_init</span> <span class="o">=</span> <span class="n">get_post_initializers</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">_init</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">viewer_initializer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_table_initializer</span> <span class="o">=</span> <span class="n">_init</span>
+            <span class="n">viewer_initializer</span><span class="o">.</span><span class="n">initialize_viewer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">run</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -271,18 +221,10 @@
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> widget at </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">reset_choices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
-        <span class="k">pass</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableList</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the table list object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tablist</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">keymap</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QtKeyMap</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the keymap object.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_keymap</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">current_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableBase</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -322,28 +264,28 @@
         <span class="sd">&quot;&quot;&quot;The file I/O history manager.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_hist_mgr</span>
 
-    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="TableViewerBase.show"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Show the widget.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">run</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">tabulous._qt._app</span> <span class="kn">import</span> <span class="n">run_app</span>
 
             <span class="n">run_app</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="k">def</span> <span class="nf">screenshot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="TableViewerBase.screenshot"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.screenshot">[docs]</a>    <span class="k">def</span> <span class="nf">screenshot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Get screenshot of the widget.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">screenshot</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">screenshot</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">save_screenshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="TableViewerBase.save_screenshot"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.save_screenshot">[docs]</a>    <span class="k">def</span> <span class="nf">save_screenshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Save screenshot of the widget.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 
         <span class="n">arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">screenshot</span><span class="p">()</span>
         <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="nd">@_doc</span><span class="o">.</span><span class="n">update_doc</span>
+<div class="viewcode-block" id="TableViewerBase.add_table"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.add_table">[docs]</a>    <span class="nd">@_doc</span><span class="o">.</span><span class="n">update_doc</span>
     <span class="k">def</span> <span class="nf">add_table</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">_TableLike</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -371,9 +313,9 @@
         <span class="k">if</span> <span class="n">copy</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">_copy_dataframe</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="n">editable</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">add_spreadsheet</span><span class="p">(</span>
+<div class="viewcode-block" id="TableViewerBase.add_spreadsheet"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.add_spreadsheet">[docs]</a>    <span class="k">def</span> <span class="nf">add_spreadsheet</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">_TableLike</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -406,9 +348,9 @@
         <span class="n">table</span> <span class="o">=</span> <span class="n">SpreadSheet</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="n">editable</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">dtyped</span><span class="p">:</span>
             <span class="n">table</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtypes</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">add_groupby</span><span class="p">(</span>
+<div class="viewcode-block" id="TableViewerBase.add_groupby"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.add_groupby">[docs]</a>    <span class="k">def</span> <span class="nf">add_groupby</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -431,9 +373,9 @@
 <span class="sd">            A groupby table.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">table</span> <span class="o">=</span> <span class="n">GroupBy</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">add_loader</span><span class="p">(</span>
+<div class="viewcode-block" id="TableViewerBase.add_loader"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.add_loader">[docs]</a>    <span class="k">def</span> <span class="nf">add_loader</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">loader</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">_TableLike</span><span class="p">],</span>
         <span class="o">*</span><span class="p">,</span>
@@ -456,9 +398,9 @@
 <span class="sd">            A table display object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">table</span> <span class="o">=</span> <span class="n">TableDisplay</span><span class="p">(</span><span class="n">loader</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">add_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">TableBase</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="TableViewerBase.add_layer"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.add_layer">[docs]</a>    <span class="k">def</span> <span class="nf">add_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">TableBase</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="n">update</span>
             <span class="ow">and</span> <span class="p">(</span><span class="n">table</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
@@ -470,9 +412,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">current_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># activate the last table</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setCellFocus</span><span class="p">()</span>
-        <span class="k">return</span> <span class="nb">input</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_table_initializer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_table_initializer</span><span class="o">.</span><span class="n">initialize_table</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">input</span></div>
 
-    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="n">TableType</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">TableType</span><span class="o">.</span><span class="n">table</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="TableViewerBase.open"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="n">TableType</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">TableType</span><span class="o">.</span><span class="n">table</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read a table data and add to the viewer.</span>
 
@@ -498,18 +442,18 @@
             <span class="n">fopen</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
 
         <span class="n">_utils</span><span class="o">.</span><span class="n">dump_file_open_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="TableViewerBase.save"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Save current table.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;viewer.save() is deprecated. Use table.save() instead.&quot;</span><span class="p">,</span>
             <span class="ne">DeprecationWarning</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">_io</span><span class="o">.</span><span class="n">save_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_table</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="k">def</span> <span class="nf">save_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="TableViewerBase.save_all"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.save_all">[docs]</a>    <span class="k">def</span> <span class="nf">save_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Save all tables.&quot;&quot;&quot;</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
@@ -535,9 +479,9 @@
 
         <span class="k">for</span> <span class="n">table</span><span class="p">,</span> <span class="n">fp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="p">,</span> <span class="n">paths</span><span class="p">):</span>
             <span class="n">_io</span><span class="o">.</span><span class="n">save_file</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="k">def</span> <span class="nf">open_sample</span><span class="p">(</span>
+<div class="viewcode-block" id="TableViewerBase.open_sample"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.open_sample">[docs]</a>    <span class="k">def</span> <span class="nf">open_sample</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">sample_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -553,9 +497,9 @@
             <span class="n">fopen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_spreadsheet</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">UnreachableError</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">fopen</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">sample_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fopen</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">sample_name</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">copy_data</span><span class="p">(</span>
+<div class="viewcode-block" id="TableViewerBase.copy_data"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.copy_data">[docs]</a>    <span class="k">def</span> <span class="nf">copy_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">selections</span><span class="p">:</span> <span class="n">SelectionType</span> <span class="o">|</span> <span class="n">_SingleSelection</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -565,24 +509,36 @@
         <span class="sd">&quot;&quot;&quot;Copy selected cells to clipboard.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">selections</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">current_table</span><span class="o">.</span><span class="n">selections</span> <span class="o">=</span> <span class="n">selections</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_table</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">copyToClipboard</span><span class="p">(</span><span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_table</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">copyToClipboard</span><span class="p">(</span><span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">paste_data</span><span class="p">(</span>
+<div class="viewcode-block" id="TableViewerBase.paste_data"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.paste_data">[docs]</a>    <span class="k">def</span> <span class="nf">paste_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">selections</span><span class="p">:</span> <span class="n">SelectionType</span> <span class="o">|</span> <span class="n">_SingleSelection</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Paste from clipboard.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">selections</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">current_table</span><span class="o">.</span><span class="n">selections</span> <span class="o">=</span> <span class="n">selections</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_table</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">pasteFromClipBoard</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_table</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">pasteFromClipBoard</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="TableViewerBase.close"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Close the viewer.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">resize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the statup tip&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span>
+
+    <span class="nd">@status</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tip</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set the status tip&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">tip</span>
+        <span class="n">statusbar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">statusBar</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">statusbar</span><span class="o">.</span><span class="n">showMessage</span><span class="p">(</span><span class="n">tip</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TableViewerBase.resize"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.resize">[docs]</a>    <span class="k">def</span> <span class="nf">resize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Resize the table viewer.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_link_events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">_tablist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tablist</span>
@@ -639,10 +595,10 @@
         <span class="n">_tablist</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">removed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_choices</span><span class="p">)</span>
         <span class="n">_tablist</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">moved</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_choices</span><span class="p">)</span>
         <span class="n">_tablist</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">changed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_choices</span><span class="p">)</span>
-        <span class="n">_tablist</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">renamed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_choices</span><span class="p">)</span>
+        <span class="n">_tablist</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">renamed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_choices</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="TableViewerWidget"><a class="viewcode-back" href="../../../apidoc/tabulous.html#tabulous.TableViewerWidget">[docs]</a><span class="k">class</span> <span class="nc">TableViewerWidget</span><span class="p">(</span><span class="n">TableViewerBase</span><span class="p">):</span>
+<div class="viewcode-block" id="TableViewerWidget"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerWidget">[docs]</a><span class="k">class</span> <span class="nc">TableViewerWidget</span><span class="p">(</span><span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;The non-main table viewer widget.&quot;&quot;&quot;</span>
 
     <span class="n">events</span><span class="p">:</span> <span class="n">TableViewerSignal</span>
@@ -654,28 +610,19 @@
 
         <span class="k">return</span> <span class="n">QMainWidget</span>
 
-<div class="viewcode-block" id="TableViewerWidget.add_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.html#tabulous.TableViewerWidget.add_widget">[docs]</a>    <span class="k">def</span> <span class="nf">add_widget</span><span class="p">(</span>
+<div class="viewcode-block" id="TableViewerWidget.add_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerWidget.add_widget">[docs]</a>    <span class="k">def</span> <span class="nf">add_widget</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span> <span class="o">|</span> <span class="n">QWidget</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a widget to the viewer as a child floating widget.&quot;&quot;&quot;</span>
         <span class="n">backend_widget</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">_normalize_widget</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="n">backend_widget</span><span class="o">.</span><span class="n">setParent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">,</span> <span class="n">backend_widget</span><span class="o">.</span><span class="n">windowFlags</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">backend_widget</span></div>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the statup tip&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">statusTip</span><span class="p">()</span>
-
-    <span class="nd">@status</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tip</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Set the status tip&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setStatusTip</span><span class="p">(</span><span class="n">tip</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">backend_widget</span></div></div>
 
 
-<div class="viewcode-block" id="TableViewer"><a class="viewcode-back" href="../../../apidoc/tabulous.html#tabulous.TableViewer">[docs]</a><span class="k">class</span> <span class="nc">TableViewer</span><span class="p">(</span><span class="n">TableViewerBase</span><span class="p">):</span>
+<div class="viewcode-block" id="TableViewer"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewer">[docs]</a><span class="k">class</span> <span class="nc">TableViewer</span><span class="p">(</span><span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;The main table viewer widget.&quot;&quot;&quot;</span>
 
     <span class="n">events</span><span class="p">:</span> <span class="n">TableViewerSignal</span>
@@ -701,19 +648,7 @@
             <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the statup tip&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span>
-
-    <span class="nd">@status</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tip</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Set the status tip&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">tip</span>
-        <span class="n">statusbar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">statusBar</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">statusbar</span><span class="o">.</span><span class="n">showMessage</span><span class="p">(</span><span class="n">tip</span><span class="p">)</span>
-
-<div class="viewcode-block" id="TableViewer.add_dock_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.html#tabulous.TableViewer.add_dock_widget">[docs]</a>    <span class="k">def</span> <span class="nf">add_dock_widget</span><span class="p">(</span>
+<div class="viewcode-block" id="TableViewer.add_dock_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewer.add_dock_widget">[docs]</a>    <span class="k">def</span> <span class="nf">add_dock_widget</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span> <span class="o">|</span> <span class="n">QWidget</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -731,7 +666,7 @@
         <span class="n">dock</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">dock</span></div>
 
-<div class="viewcode-block" id="TableViewer.remove_dock_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.html#tabulous.TableViewer.remove_dock_widget">[docs]</a>    <span class="k">def</span> <span class="nf">remove_dock_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name_or_widget</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Widget</span> <span class="o">|</span> <span class="n">QWidget</span><span class="p">):</span>
+<div class="viewcode-block" id="TableViewer.remove_dock_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewer.remove_dock_widget">[docs]</a>    <span class="k">def</span> <span class="nf">remove_dock_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name_or_widget</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Widget</span> <span class="o">|</span> <span class="n">QWidget</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Remove dock widget from the table viewer.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name_or_widget</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">name_or_widget</span>
@@ -748,7 +683,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_dock_widgets</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="TableViewer.reset_choices"><a class="viewcode-back" href="../../../apidoc/tabulous.html#tabulous.TableViewer.reset_choices">[docs]</a>    <span class="k">def</span> <span class="nf">reset_choices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+<div class="viewcode-block" id="TableViewer.reset_choices"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewer.reset_choices">[docs]</a>    <span class="k">def</span> <span class="nf">reset_choices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Reset all the magicgui combo boxes.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">dock</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dock_widgets</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="n">widget</span> <span class="o">=</span> <span class="n">dock</span><span class="o">.</span><span class="n">widget</span>
@@ -765,7 +700,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_namespace</span><span class="p">:</span> <span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">_keymap</span><span class="p">:</span> <span class="n">QtKeyMap</span> <span class="o">=</span> <span class="n">QtKeyMap</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="n">TableBase</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_table</span> <span class="o">=</span> <span class="n">table</span>
@@ -791,10 +725,6 @@
             <span class="c1"># update with user namespace</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_namespace</span><span class="o">.</span><span class="n">update_safely</span><span class="p">(</span><span class="n">load_cell_namespace</span><span class="p">())</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_namespace</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">keymap</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QtKeyMap</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keymap</span>
 
 
 <span class="k">def</span> <span class="nf">_normalize_widget</span><span class="p">(</span><span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span> <span class="o">|</span> <span class="n">QWidget</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">QWidget</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>

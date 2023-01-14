@@ -1,7 +1,10 @@
 from __future__ import annotations
 from typing import Any, Callable, Iterable, TYPE_CHECKING, TypeVar, cast
 import warnings
-from qtpy import QtWidgets as QtW
+import datetime
+import inspect
+
+from qtpy import QtWidgets as QtW, QtGui
 from magicgui import register_type, magicgui
 from magicgui.widgets import (
     Widget,
@@ -20,6 +23,7 @@ from tabulous.widgets import (
     Table,
     SpreadSheet,
     TableViewerWidget,
+    MagicTable,
 )
 from tabulous.types import (
     TableColumn,
@@ -30,9 +34,12 @@ from tabulous.types import (
 )
 from tabulous._selection_op import (
     SelectionOperator,
+    ILocSelOp,
     parse,
     construct,
 )
+
+from tabulous._timedelta import TimeDeltaEdit
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -80,40 +87,17 @@ class MagicTableViewer(Widget, TableViewerWidget):
             enabled=enabled,
         )
         TableViewerWidget.__init__(self, tab_position=tab_position, show=False)
-        self.native: QtW.QWidget
-        self.native.setLayout(QtW.QVBoxLayout())
-        self.native.layout().addWidget(self._qwidget)
-        self.native.setContentsMargins(0, 0, 0, 0)
+        mgui_native: QtW.QWidget = self._widget._mgui_get_native_widget()
+        mgui_native.setLayout(QtW.QVBoxLayout())
+        mgui_native.layout().addWidget(self._qwidget)
+        mgui_native.setContentsMargins(0, 0, 0, 0)
 
-
-class MagicTable(Widget, Table):
-    def __init__(
-        self,
-        data: Any | None = None,
-        *,
-        name: str = "",
-        editable: bool = False,
-        label: str = None,
-        tooltip: str | None = None,
-        visible: bool | None = None,
-        enabled: bool = True,
-        gui_only: bool = False,
-    ):
-        Table.__init__(self, data, name=name, editable=editable)
-        super().__init__(
-            widget_type=QBaseWidget,
-            backend_kwargs={"qwidg": QtW.QWidget},
-            name=name,
-            label=label,
-            tooltip=tooltip,
-            visible=visible,
-            enabled=enabled,
-            gui_only=gui_only,
-        )
-        self.native: QtW.QWidget
-        self.native.setLayout(QtW.QVBoxLayout())
-        self.native.layout().addWidget(self._qwidget)
-        self.native.setContentsMargins(0, 0, 0, 0)
+    @property
+    def native(self):
+        try:
+            return TableViewerWidget.native.fget(self)
+        except AttributeError:
+            return Widget.native.fget(self)
 
 
 # #############################################################################
@@ -239,7 +223,7 @@ def add_table_data_tuple_to_viewer(
 register_type(
     TableViewerBase,
     return_callback=open_viewer,
-    choices=find_table_viewer_ancestor,
+    bind=find_table_viewer_ancestor,
 )
 register_type(TableBase, return_callback=add_table_to_viewer, choices=get_any_tables)
 register_type(Table, return_callback=add_table_to_viewer, choices=get_tables)
@@ -366,13 +350,36 @@ _F = TypeVar("_F", bound=Callable)
 
 
 def dialog_factory(function: _F) -> _F:
-    from magicgui.signature import magic_signature
+    from magicgui.widgets import create_widget
 
     def _runner(parent=None, **param_options):
-        widgets = list(
-            magic_signature(function, gui_options=param_options).widgets().values()
-        )
+        # create a list of widgets, similar to magic_signature
+        widgets: list[Widget] = []
+        callbacks: dict[str, Callable[[Widget], Any]] = {}
+        sig = inspect.signature(function)
+        for name, param in sig.parameters.items():
+            opt = param_options.get(name, {})
+            opt.setdefault("gui_only", False)
+            changed_cb = opt.pop("changed", None)
+            if param.default is not inspect.Parameter.empty:
+                opt.setdefault("value", param.default)
+            if param.annotation is not inspect.Parameter.empty:
+                opt.setdefault("annotation", param.annotation)
+            opt.setdefault("name", name)
+            kwargs: dict[str, Any] = {}
+            for k in "value", "annotation", "name", "label", "widget_type", "gui_only":
+                if k in opt:
+                    kwargs[k] = opt.pop(k)
+            widget = create_widget(**kwargs, options=opt)
+            if changed_cb is not None:
+                assert callable(changed_cb)
+                callbacks[name] = changed_cb
+            widgets.append(widget)
+
         dlg = Dialog(widgets=widgets)
+
+        for name, cb in callbacks.items():
+            dlg[name].changed.connect(lambda: cb(dlg))
 
         # if return annotation "TableData" is given, add a preview widget.
         if function.__annotations__.get("return") is TableData:
@@ -405,6 +412,9 @@ def dialog_factory(function: _F) -> _F:
             dlg.changed.emit()
 
         dlg.native.setParent(parent, dlg.native.windowFlags())
+        dlg._shortcut = QtW.QShortcut(QtGui.QKeySequence("Ctrl+W"), dlg.native)
+        dlg._shortcut.activated.connect(dlg.close)
+        dlg.reset_choices()
         if dlg.exec():
             out = function(**dlg.asdict())
         else:
@@ -454,6 +464,8 @@ def dialog_factory_mpl(function: _F) -> _F:
         dlg.changed.emit()
 
         dlg.native.setParent(parent, dlg.native.windowFlags())
+        dlg._shortcut = QtW.QShortcut(QtGui.QKeySequence("Ctrl+W"), dlg.native)
+        dlg._shortcut.activated.connect(dlg.close)
         dlg.called.connect(lambda: dlg.close())
         return dlg.show()
 
@@ -490,7 +502,7 @@ class SelectionWidget(Container):
         self._format = format
         self._allow_out_of_bounds = allow_out_of_bounds
 
-        if isinstance(value, SelectionOperator):
+        if isinstance(value, (str, SelectionOperator, tuple)):
             self.value = value
 
     @property
@@ -508,7 +520,15 @@ class SelectionWidget(Container):
                 text = parse(val, df_expr="df").fmt()
             else:
                 text = ""
-            self._line.value = text
+        elif isinstance(val, SelectionOperator):
+            text = val.fmt()
+        elif isinstance(val, tuple):
+            text = ILocSelOp(*val).fmt()
+        elif val is None:
+            text = ""
+        else:
+            raise TypeError(f"Invalid type for value: {type(val)}")
+        self._line.value = text
         return None
 
     @property
@@ -559,3 +579,5 @@ class SelectionWidget(Container):
 
 
 register_type(SelectionOperator, widget_type=SelectionWidget)
+
+register_type(datetime.timedelta, widget_type=TimeDeltaEdit)
