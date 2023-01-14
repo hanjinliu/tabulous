@@ -114,6 +114,18 @@ class ConsoleMock(_Updatable):
     """A mock for the `console` attribute of a table viewer instance."""
 
 
+class CommandPaletteMock(_Registerable):
+    # fmt: off
+    @overload
+    def register(self, command: Callable[[TableViewerBase], Any], title: str, desc: str | None, key: str | None): ...  # noqa: E501
+    @overload
+    def register(self, command: Literal[None], title: str, desc: str | None, key: str | None): ...  # noqa: E501
+    # fmt: on
+
+    def register(self, command, title="User defined", desc=None, key=None):
+        return self._register((command, title, desc, key))
+
+
 class Initializer:
     _fields = ()
 
@@ -134,16 +146,14 @@ class Initializer:
         return arg, f
 
 
-# TODO: command palette
-
-
 class ViewerInitializer(Initializer):
     tables: ContextRegisterable[TableViewerBase] = ContextRegisterable()
     keymap: ContextRegisterable[TableViewerBase] = KeyMapMock()
     console: ConsoleMock[TableViewerBase] = ConsoleMock()
     cell_namespace: CellNamespaceMock[TableViewerBase] = CellNamespaceMock()
+    command_palette: CommandPaletteMock[TableViewerBase] = CommandPaletteMock()
 
-    _fields = ("tables", "keymap", "console", "cell_namespace")
+    _fields = ("tables", "keymap", "console", "cell_namespace", "command_palette")
 
     def initialize_viewer(self, viewer: TableViewerBase):
         for args in self.tables._registered:
@@ -152,6 +162,8 @@ class ViewerInitializer(Initializer):
             viewer.keymap.bind(*self.wrap_args(args, parent=viewer))
         viewer.cell_namespace.update_safely(self.cell_namespace._dict)
         viewer.console.update(self.console._dict)
+        for args in self.command_palette._registered:
+            viewer.command_palette.register(args)
 
 
 class TableInitializer(Initializer):
@@ -178,4 +190,5 @@ _TABLE_INITIALIZER = TableInitializer()
 
 
 def get_initializers() -> tuple[ViewerInitializer, TableInitializer]:
+    """Get viewer and table initializers."""
     return _VIEWER_INITIALIZER, _TABLE_INITIALIZER

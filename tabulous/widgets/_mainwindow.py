@@ -12,7 +12,7 @@ from psygnal import Signal, SignalGroup
 from ._table import Table, SpreadSheet, GroupBy, TableDisplay
 from ._tablelist import TableList
 from ._sample import open_sample
-from ._component import ViewerComponent
+from ._component import Toolbar, Console, CommandPalette
 from . import _doc
 
 from tabulous import _utils, _io
@@ -43,75 +43,6 @@ class TableViewerSignal(SignalGroup):
     """Signal group for table viewer."""
 
     current_index = Signal(int)
-
-
-class Toolbar(ViewerComponent):
-    """The toolbar proxy."""
-
-    @property
-    def visible(self) -> bool:
-        """Visibility of the toolbar."""
-        return self.parent._qwidget.toolBarVisible()
-
-    @visible.setter
-    def visible(self, val) -> None:
-        return self.parent._qwidget.setToolBarVisible(val)
-
-    @property
-    def current_index(self) -> int:
-        return self.parent._qwidget._toolbar.currentIndex()
-
-    @current_index.setter
-    def current_index(self, val: int) -> None:
-        return self.parent._qwidget._toolbar.setCurrentIndex(val)
-
-    def register_action(self, f: Callable):
-        raise NotImplementedError()
-
-
-class Console(ViewerComponent):
-    """The QtConsole proxy."""
-
-    @property
-    def visible(self) -> bool:
-        """Visibility of the console."""
-        return self.parent._qwidget.consoleVisible()
-
-    @visible.setter
-    def visible(self, val) -> None:
-        return self.parent._qwidget.setConsoleVisible(val)
-
-    @property
-    def is_active(self) -> bool:
-        return self.parent._qwidget._console_widget is not None
-
-    def _get_console_widget(self):
-        console = self.parent._qwidget._console_widget
-        if console is None:
-            raise RuntimeError("Console is not active.")
-        return console
-
-    @property
-    def buffer(self) -> str:
-        """Return the current text buffer of the console."""
-        return self._get_console_widget().input_buffer
-
-    @buffer.setter
-    def buffer(self, val) -> None:
-        return self._get_console_widget().setBuffer(val)
-
-    def execute(self):
-        """Execute current buffer."""
-        return self._get_console_widget().execute()
-
-    def update(self, ns: dict[str, Any]):
-        """Update IPython namespace."""
-        console = self.parent._qwidget._console_widget
-        if console is None:
-            self.parent._qwidget._queued_ns.update(ns)
-        else:
-            self._get_console_widget().update_console(ns)
-        return None
 
 
 class _AbstractViewer(ABC):
@@ -177,6 +108,7 @@ class TableViewerBase(_AbstractViewer):
 
     toolbar = Toolbar()
     console = Console()
+    command_palette = CommandPalette()
 
     def __init__(
         self,
