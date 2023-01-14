@@ -50,7 +50,7 @@ class NamedListEvents(SignalGroup):
     renamed = Signal(int, str)
 
 
-class TableList(EventedList[TableBase], SupportActionRegistration):
+class TableList(EventedList[TableBase], SupportActionRegistration["TableViewer", int]):
     events: NamedListEvents
 
     def __init__(self, parent: TableViewer):
@@ -58,6 +58,10 @@ class TableList(EventedList[TableBase], SupportActionRegistration):
         self.events = NamedListEvents()
         self._parent = parent
         self._install_contextmenu()
+
+    @property
+    def parent(self):
+        return self._parent
 
     def insert(self, index: int, table: TableBase):
         if not isinstance(table, TableBase):
@@ -156,22 +160,22 @@ class TableList(EventedList[TableBase], SupportActionRegistration):
         from tabulous import commands as cmds
 
         def _wrap(cmd):
-            return lambda idx: cmd(self._parent)
+            return lambda *_: cmd(self._parent)
 
         tablestack = self._parent._qwidget._tablestack
 
         # fmt: off
-        self.register_action("Copy all", _wrap(cmds.table.copy_to_clipboard))
-        self.register_action("Rename tab", _wrap(cmds.tab.rename_tab))
-        self.register_action("Delete tab", _wrap(cmds.tab.delete_tab))
+        self.register("Copy all", _wrap(cmds.table.copy_to_clipboard))
+        self.register("Rename tab", _wrap(cmds.tab.rename_tab))
+        self.register("Delete tab", _wrap(cmds.tab.delete_tab))
         tablestack.addSeparator()
-        self.register_action("Reset filter/sort", _wrap(cmds.table.reset_proxy))
+        self.register("Reset filter/sort", _wrap(cmds.table.reset_proxy))
         tablestack.addSeparator()
-        self.register_action("View > Horizontal dual view", _wrap(cmds.view.set_dual_h_mode))  # noqa: E501
-        self.register_action("View > Vertical dual view", _wrap(cmds.view.set_dual_v_mode))  # noqa: E501
-        self.register_action("View > Popup view", _wrap(cmds.view.set_popup_mode))  # noqa: E501
-        self.register_action("View > Reset view", _wrap(cmds.view.reset_view_mode))  # noqa: E501
-        self.register_action("Tile", _wrap(cmds.tab.tile_tables))
-        self.register_action("Untile", _wrap(cmds.tab.untile_table))
+        self.register("View > Horizontal dual view", _wrap(cmds.view.set_dual_h_mode))  # noqa: E501
+        self.register("View > Vertical dual view", _wrap(cmds.view.set_dual_v_mode))  # noqa: E501
+        self.register("View > Popup view", _wrap(cmds.view.set_popup_mode))  # noqa: E501
+        self.register("View > Reset view", _wrap(cmds.view.reset_view_mode))  # noqa: E501
+        self.register("Tile", _wrap(cmds.tab.tile_tables))
+        self.register("Untile", _wrap(cmds.tab.untile_table))
         tablestack.addSeparator()
         # fmt: on

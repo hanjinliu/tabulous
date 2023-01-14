@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import partial
 from typing import (
     Any,
     Callable,
@@ -79,16 +78,16 @@ class _Updatable(_Joinable):
 
 
 class ContextRegisterable(_Registerable, Generic[_T]):
-    """A mock for the `register_action` method."""
+    """A mock for the `register` method."""
 
     # fmt: off
     @overload
-    def register_action(self, loc: str, func: Literal[None] = None) -> Callable[[Callable[[_T, Any], None]], Callable[[_T, Any], None]]: ...  # noqa: E501
+    def register(self, loc: str, func: Literal[None] = None) -> Callable[[Callable[[_T, Any], None]], Callable[[_T, Any], None]]: ...  # noqa: E501
     @overload
-    def register_action(self, loc: str, func: Callable[[_T, Any], None]) -> Callable[[_T, Any], None]: ...  # noqa: E501
+    def register(self, loc: str, func: Callable[[_T, Any], None]) -> Callable[[_T, Any], None]: ...  # noqa: E501
     # fmt: on
 
-    def register_action(self, loc, func=None):
+    def register(self, loc, func=None):
         return self._register(loc, func)
 
 
@@ -140,11 +139,6 @@ class Initializer:
             self_field._join(other_field)
         return self
 
-    def wrap_args(self, args: tuple[Any, Callable], parent) -> tuple[Any, Callable]:
-        arg, f = args
-        f = partial(f, parent)
-        return arg, f
-
 
 class ViewerInitializer(Initializer):
     tables: ContextRegisterable[TableViewerBase] = ContextRegisterable()
@@ -157,9 +151,9 @@ class ViewerInitializer(Initializer):
 
     def initialize_viewer(self, viewer: TableViewerBase):
         for args in self.tables._registered:
-            viewer.tables.register_action(*self.wrap_args(args, parent=viewer))
+            viewer.tables.register(args)
         for args in self.keymap._registered:
-            viewer.keymap.bind(*self.wrap_args(args, parent=viewer))
+            viewer.keymap.register(args)
         viewer.cell_namespace.update_safely(self.cell_namespace._dict)
         viewer.console.update(self.console._dict)
         for args in self.command_palette._registered:
@@ -176,13 +170,13 @@ class TableInitializer(Initializer):
 
     def initialize_table(self, table: TableBase):
         for args in self.cell._registered:
-            table.cell.register_action(*self.wrap_args(args, parent=table))
+            table.cell.register(args)
         for args in self.index._registered:
-            table.index.register_action(*self.wrap_args(args, parent=table))
+            table.index.register(args)
         for args in self.columns._registered:
-            table.columns.register_action(*self.wrap_args(args, parent=table))
+            table.columns.register(args)
         for args in self.keymap._registered:
-            table.keymap.bind(*self.wrap_args(args, parent=table))
+            table.keymap.register(args)
 
 
 _VIEWER_INITIALIZER = ViewerInitializer()

@@ -26,7 +26,7 @@ class Toolbar(ViewerComponent):
     def current_index(self, val: int) -> None:
         return self.parent._qwidget._toolbar.setCurrentIndex(val)
 
-    def register_action(self, f: Callable):
+    def register(self, loc: str, f: Callable):
         raise NotImplementedError()
 
 
@@ -87,7 +87,7 @@ class CommandPalette(ViewerComponent):
         from tabulous.commands import register_command
 
         if key is not None:
-            self.parent.keymap.bind(key, command)
+            self.parent.keymap.register(key, command)
         return register_command(command, title=title, desc=desc)
 
     @property

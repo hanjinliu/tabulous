@@ -3,10 +3,8 @@ from __future__ import annotations
 from typing import (
     TYPE_CHECKING,
     Sequence,
-    TypeVar,
     overload,
     Any,
-    Callable,
     Iterator,
 )
 
@@ -17,9 +15,8 @@ from tabulous.widgets._registry import SupportActionRegistration
 
 if TYPE_CHECKING:
     import pandas as pd
+    from tabulous.widgets import TableBase  # noqa: F401
     from tabulous._qt._table._base._header_view import QDataFrameHeaderView
-
-_F = TypeVar("_F", bound=Callable)
 
 
 class HeaderSectionSpan(Component["_HeaderInterface"]):
@@ -54,7 +51,7 @@ class HeaderSectionSpan(Component["_HeaderInterface"]):
         return None
 
 
-class _HeaderInterface(TableComponent, SupportActionRegistration):
+class _HeaderInterface(TableComponent, SupportActionRegistration["TableBase", int]):
     """
     Interface to the table {index/columns} header.
 
@@ -75,10 +72,10 @@ class _HeaderInterface(TableComponent, SupportActionRegistration):
     >>> table.{index/columns}.insert(at=0, count=2)
     >>> table.{index/columns}.remove(at=0, count=2)
 
-    Use ``register_action`` to register a contextmenu function.
+    Use ``register`` to register a contextmenu function.
 
-    >>> @table.{index/columns}.register_action("My Action")
-    >>> def my_action(index):
+    >>> @table.{index/columns}.register("My Action")
+    >>> def my_action(table, index):
     ...     # do something
 
     Many other pandas.Index methods are also available.

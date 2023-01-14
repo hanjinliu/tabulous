@@ -18,7 +18,7 @@ from . import _doc
 from tabulous import _utils, _io
 from tabulous.types import SelectionType, TabPosition, _TableLike, _SingleSelection
 from tabulous.exceptions import UnreachableError
-from tabulous._keymap import QtKeyMap
+from tabulous.widgets._keymap_abc import SupportKeyMap
 
 if TYPE_CHECKING:
     from tabulous.widgets._table import TableBase
@@ -58,10 +58,6 @@ class _AbstractViewer(ABC):
     def cell_namespace(self) -> Namespace:
         """Return the namespace of the cell editor."""
 
-    @abstractproperty
-    def keymap(self) -> QtKeyMap:
-        """Return the keymap object."""
-
     @property
     def data(self) -> pd.DataFrame | None:
         """The data of the current table if exists."""
@@ -100,7 +96,7 @@ class _AbstractViewer(ABC):
         return self.current_table._qwidget.pasteFromClipBoard()
 
 
-class TableViewerBase(_AbstractViewer):
+class TableViewerBase(_AbstractViewer, SupportKeyMap):
     """The base class of a table viewer widget."""
 
     events: TableViewerSignal
@@ -142,11 +138,6 @@ class TableViewerBase(_AbstractViewer):
     def tables(self) -> TableList:
         """Return the table list object."""
         return self._tablist
-
-    @property
-    def keymap(self) -> QtKeyMap:
-        """Return the keymap object."""
-        return self._qwidget._keymap
 
     @property
     def current_table(self) -> TableBase | None:
@@ -622,7 +613,6 @@ class DummyViewer(_AbstractViewer):
     """
 
     _namespace: Namespace | None = None
-    _keymap: QtKeyMap = QtKeyMap()
 
     def __init__(self, table: TableBase):
         self._table = table
@@ -648,10 +638,6 @@ class DummyViewer(_AbstractViewer):
             # update with user namespace
             cls._namespace.update_safely(load_cell_namespace())
         return cls._namespace
-
-    @property
-    def keymap(self) -> QtKeyMap:
-        return self._keymap
 
 
 def _normalize_widget(widget: Widget | QWidget, name: str) -> tuple[QWidget, str]:

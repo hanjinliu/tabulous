@@ -13,6 +13,7 @@ from ._column_setting import (
 from ._proxy import ProxyInterface
 from ._viewer import Toolbar, Console, CommandPalette
 from ._table_subset import TableSeries, TableSubset, TableLocIndexer, TableILocIndexer
+from ._keymap import KeyMap
 
 __all__ = [
     "Component",
@@ -38,4 +39,5 @@ __all__ = [
     "Toolbar",
     "Console",
     "CommandPalette",
+    "KeyMap",
 ]

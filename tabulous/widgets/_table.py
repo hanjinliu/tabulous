@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from abc import ABC, abstractmethod, abstractstaticmethod
+from abc import abstractmethod, abstractstaticmethod
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Hashable, TYPE_CHECKING, overload
@@ -9,6 +9,7 @@ import warnings
 from psygnal import SignalGroup, Signal
 
 from tabulous.widgets import _doc, _component as _comp
+from tabulous.widgets._keymap_abc import SupportKeyMap
 from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
 from tabulous._psygnal import SignalArray, InCellRangedSlot
 
@@ -23,7 +24,6 @@ if TYPE_CHECKING:
     from tabulous._qt import QTableLayer, QSpreadSheet, QTableGroupBy, QTableDisplay
     from tabulous._qt._table import QBaseTable
     from tabulous._qt._table._base._overlay import QOverlayFrame
-    from tabulous._keymap import QtKeyMap
 
     LayoutString = Literal["horizontal", "vertical"]
 
@@ -63,7 +63,7 @@ class ViewMode(Enum):
 # #####################################################################
 
 
-class TableBase(ABC):
+class TableBase(SupportKeyMap):
     """The base class for a table layer."""
 
     _Default_Name = "None"
@@ -215,11 +215,6 @@ class TableBase(ABC):
     def table_shape(self) -> tuple[int, int]:
         """Shape of table."""
         return self._qwidget.tableShape()
-
-    @property
-    def keymap(self) -> QtKeyMap:
-        """The keymap object."""
-        return self._qwidget._keymap
 
     @property
     def metadata(self) -> dict[str, Any]:
@@ -523,7 +518,7 @@ class TableBase(ABC):
         return None
 
     def _wrap_command(self, cmd: Callable):
-        def _f(idx):
+        def _f(*_):
             logger.debug(f"Command: {cmd.__module__.split('.')[-1]}.{cmd.__name__}")
             if _qviewer := self._qwidget.parentViewer():
                 _viewer = _qviewer._table_viewer
@@ -541,7 +536,7 @@ class TableBase(ABC):
         _wrap = self._wrap_command
 
         # fmt: off
-        _hheader_register = self.columns.register_action
+        _hheader_register = self.columns.register
         _hheader_register("Color > Set text colormap", _wrap(cmds.column.set_text_colormap))  # noqa: E501
         _hheader_register("Color > Reset text colormap", _wrap(cmds.column.reset_text_colormap))  # noqa: E501
         _hheader_register("Color > Set opacity to text colormap", _wrap(cmds.column.set_text_colormap_opacity))  # noqa: E501
@@ -557,7 +552,7 @@ class TableBase(ABC):
         _hheader_register("Filter", _wrap(cmds.selection.filter_by_columns))
         self._qwidget._qtable_view.horizontalHeader().addSeparator()
 
-        _cell_register = self.cell.register_action
+        _cell_register = self.cell.register
         _cell_register("Copy")(_wrap(cmds.selection.copy_data_tab_separated))
         _cell_register("Copy as ... > Tab separated text", _wrap(cmds.selection.copy_data_tab_separated))  # noqa: E501
         _cell_register("Copy as ... > Tab separated text with headers", _wrap(cmds.selection.copy_data_with_header_tab_separated))  # noqa: E501
@@ -711,13 +706,13 @@ class SpreadSheet(_DataFrameTableLayer):
 
         _wrap = self._wrap_command
         # fmt: off
-        _vheader_register = self.index.register_action
+        _vheader_register = self.index.register
         _vheader_register("Insert row above", _wrap(cmds.selection.insert_row_above))
         _vheader_register("Insert row below", _wrap(cmds.selection.insert_row_below))
         _vheader_register("Remove selected rows", _wrap(cmds.selection.remove_selected_rows))  # noqa: E501
         self._qwidget._qtable_view.verticalHeader().addSeparator()
 
-        _hheader_register = self.columns.register_action
+        _hheader_register = self.columns.register
         _hheader_register("Insert column left", _wrap(cmds.selection.insert_column_left))  # noqa: E501
         _hheader_register("Insert column right", _wrap(cmds.selection.insert_column_right))  # noqa: E501
         _hheader_register("Remove selected columns", _wrap(cmds.selection.remove_selected_columns))  # noqa: E501

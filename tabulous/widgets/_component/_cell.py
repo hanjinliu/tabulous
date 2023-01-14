@@ -5,9 +5,7 @@ from typing import (
     Mapping,
     SupportsIndex,
     Tuple,
-    TypeVar,
     Any,
-    Callable,
     Iterator,
 )
 import warnings
@@ -25,8 +23,7 @@ from tabulous.widgets._registry import SupportActionRegistration
 
 if TYPE_CHECKING:
     import pandas as pd
-
-_F = TypeVar("_F", bound=Callable)
+    from tabulous.widgets import TableBase  # noqa: F401
 
 
 class _Sequence2D(TableComponent):
@@ -115,7 +112,7 @@ class CellDisplayedTextInterface(_Sequence2D):
         return model.data(idx, role=Qt.ItemDataRole.DisplayRole)
 
 
-class CellInterface(TableComponent, SupportActionRegistration):
+class CellInterface(TableComponent, SupportActionRegistration["TableBase", int]):
     """
     Interface with table cells.
 
@@ -132,10 +129,10 @@ class CellInterface(TableComponent, SupportActionRegistration):
     >>> table.cell.label[i, j] = value  # set the (i, j) cell label text
     >>> del table.cell.label[i, j]  # delete the (i, j) cell label text
 
-    Use ``register_action`` to register a contextmenu function.
+    Use ``register`` to register a contextmenu function.
 
-    >>> @table.cell.register_action("My Action")
-    >>> def my_action(index):
+    >>> @table.cell.register("My Action")
+    >>> def my_action(table, index):
     ...     # do something
     """
 

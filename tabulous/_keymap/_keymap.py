@@ -170,7 +170,8 @@ class QtKeys:
 
     def _reduce_key(self) -> Self:
         if self.key == ExtKey.No:
-            # this case is needed to avoid triggering parametric key binding with modifiers.
+            # this case is needed to avoid triggering parametric key binding with
+            # modifiers.
             return self
         new = QtKeys(self)
         new.key = ExtKey.Any
@@ -404,7 +405,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     ) -> _F:
         ...
 
-    def bind(self, key, callback=None, *, overwrite=False, desc=None, **kwargs) -> None:
+    def bind(self, key, callback=None, *, overwrite=False, desc=None, **kwargs):
         """Assign key or key combo to callback."""
 
         def wrapper(func):
@@ -420,6 +421,20 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
             return func
 
         return wrapper if callback is None else wrapper(callback)
+
+    def unbind(self, key: str) -> None:
+        _key = _normalize_key_combo(key)
+        if isinstance(_key, (str, QtKeys)):
+            del self._current_map[_key]
+        elif isinstance(_key, Sequence):
+            current = self
+            *pref, last = _key
+            for k in pref:
+                current = current[k]
+            del current[last]
+        else:
+            raise TypeError("key must be a string or a sequence of strings")
+        return None
 
     @overload
     def bind_deactivated(
@@ -453,7 +468,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                 if not isinstance(current, QtKeyMap):
                     seq = _key[:i]
                     raise ValueError(
-                        f"Non keymap object {type(current)} encountered at {', '.join(seq)}."
+                        f"Non keymap object {type(current)} encountered at "
+                        f"{', '.join(seq)}."
                     )
                 k = QtKeys(k)
                 try:
@@ -479,7 +495,8 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
                 if not isinstance(current, QtKeyMap):
                     seq = _key[:i]
                     raise ValueError(
-                        f"Non keymap object {type(current)} encountered at {', '.join(seq)}."
+                        f"Non keymap object {type(current)} encountered at "
+                        f"{', '.join(seq)}."
                     )
                 k = QtKeys(k)
                 try:

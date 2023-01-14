@@ -227,23 +227,23 @@ Key combo
 All the global key map is listed in a widget that will be shown when you press
 :kbd:`Ctrl+K ⇒ Shift+?` key combo.
 
-:attr:`keymap` is the key map registry object of table viewers. You can use :meth:`bind_key`
+:attr:`keymap` is the key map registry object of table viewers. You can use :meth:`register`
 to register custom key combo.
 
 .. code-block:: python
 
     # simple key binding
-    @viewer.keymap.bind_key("Ctrl+P")
+    @viewer.keymap.register("Ctrl+P")
     def function():
         """do something"""
 
     # key combo
-    @viewer.keymap.bind_key("Ctrl+K, Ctrl+Q")
+    @viewer.keymap.register("Ctrl+K, Ctrl+Q")
     def function():
         """do something"""
 
     # overwrite an existing key combo
-    @viewer.keymap.bind_key("Ctrl+K, Ctrl+Q", overwrite=True)
+    @viewer.keymap.register("Ctrl+K, Ctrl+Q", overwrite=True)
     def function():
         """do something"""
 

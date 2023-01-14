@@ -273,7 +273,7 @@ _POST_INIT_TEXT = """
 
 # 1. Add custom actions to the right-click context menu of table columns.
 
-# @table.columns.register_action("User defined > Print column name")
+# @table.columns.register("User defined > Print column name")
 # def _print_column_name(table, index):
 #     print(table.columns[index])
 
