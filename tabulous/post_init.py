@@ -96,12 +96,12 @@ class KeyMapMock(_Registerable):
 
     # fmt: off
     @overload
-    def bind(self, key: str, func: Literal[None] = None) -> Callable[[Callable[[TableViewerBase, Any], None]], Callable[[TableViewerBase, Any], None]]: ...  # noqa: E501
+    def register(self, key: str, func: Literal[None] = None) -> Callable[[Callable[[TableViewerBase, Any], None]], Callable[[TableViewerBase, Any], None]]: ...  # noqa: E501
     @overload
-    def bind(self, key: str, func: Callable[[TableViewerBase, Any], None]) -> Callable[[TableViewerBase, Any], None]: ...  # noqa: E501
+    def register(self, key: str, func: Callable[[TableViewerBase, Any], None]) -> Callable[[TableViewerBase, Any], None]: ...  # noqa: E501
     # fmt: on
 
-    def bind(self, key, func=None):
+    def register(self, key, func=None):
         return self._register(key, func)
 
 
@@ -151,13 +151,16 @@ class ViewerInitializer(Initializer):
 
     def initialize_viewer(self, viewer: TableViewerBase):
         for args in self.tables._registered:
-            viewer.tables.register(args)
+            viewer.tables.register(*args)
         for args in self.keymap._registered:
-            viewer.keymap.register(args)
+            # NOTE: The QtKeyMap object is currently a class variable. When the second
+            # viewer is launched, old keybindings are still registered. To avoid this,
+            # we just allow overwriting the keymap.
+            viewer.keymap.register(*args, overwrite=True)
         viewer.cell_namespace.update_safely(self.cell_namespace._dict)
         viewer.console.update(self.console._dict)
         for args in self.command_palette._registered:
-            viewer.command_palette.register(args)
+            viewer.command_palette.register(*args)
 
 
 class TableInitializer(Initializer):
@@ -170,13 +173,13 @@ class TableInitializer(Initializer):
 
     def initialize_table(self, table: TableBase):
         for args in self.cell._registered:
-            table.cell.register(args)
+            table.cell.register(*args)
         for args in self.index._registered:
-            table.index.register(args)
+            table.index.register(*args)
         for args in self.columns._registered:
-            table.columns.register(args)
+            table.columns.register(*args)
         for args in self.keymap._registered:
-            table.keymap.register(args)
+            table.keymap.register(*args, overwrite=True)
 
 
 _VIEWER_INITIALIZER = ViewerInitializer()

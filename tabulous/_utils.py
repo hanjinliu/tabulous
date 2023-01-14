@@ -95,7 +95,6 @@ def load_cell_namespace() -> MappingProxyType:
     return MappingProxyType(ns)
 
 
-@warn_on_exc(default=None)
 def get_post_initializers():
     code = _compile_file(POST_INIT_PATH, default_text=_POST_INIT_TEXT)
     ns: dict[str, Any] = {}
@@ -283,7 +282,7 @@ _POST_INIT_TEXT = """
 # def _my_keybinding(viewer):
 #     print(viewer)
 
-# @table.keymap.register("Ctrl+K, Ctrl+2")
+# @table.keymap.register("Ctrl+Shift+K, Ctrl+1")
 # def _my_keybinding(table):
 #     print(table)
 
