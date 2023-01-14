@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quickstart &mdash; tabulous 0.4.0 documentation</title>
+  <title>Quickstart &mdash; tabulous 0.4.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.0
+                0.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -70,6 +70,7 @@
 <li class="toctree-l1"><a class="reference internal" href="non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="customize.html">Customize Viewer Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="register_action.html">Register Custom Actions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apidoc/modules.html">tabulous</a></li>
@@ -291,21 +292,21 @@ object with some extended methods.</p>
 <p><a class="reference internal" href="../apidoc/tabulous.html#module-tabulous" title="tabulous"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tabulous</span></code></a> supports many keyboard shortcuts including key combo.</p>
 <p>All the global key map is listed in a widget that will be shown when you press
 <span class="kbd">Ctrl+K ⇒ Shift+?</span> key combo.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">keymap</span></code> is the key map registry object of table viewers. You can use <code class="xref py py-meth docutils literal notranslate"><span class="pre">bind_key()</span></code>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">keymap</span></code> is the key map registry object of table viewers. You can use <code class="xref py py-meth docutils literal notranslate"><span class="pre">register()</span></code>
 to register custom key combo.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># simple key binding</span>
-<span class="nd">@viewer</span><span class="o">.</span><span class="n">keymap</span><span class="o">.</span><span class="n">bind_key</span><span class="p">(</span><span class="s2">&quot;Ctrl+P&quot;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">function</span><span class="p">():</span>
+<span class="nd">@viewer</span><span class="o">.</span><span class="n">keymap</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Ctrl+P&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">function</span><span class="p">(</span><span class="n">viewer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;do something&quot;&quot;&quot;</span>
 
 <span class="c1"># key combo</span>
-<span class="nd">@viewer</span><span class="o">.</span><span class="n">keymap</span><span class="o">.</span><span class="n">bind_key</span><span class="p">(</span><span class="s2">&quot;Ctrl+K, Ctrl+Q&quot;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">function</span><span class="p">():</span>
+<span class="nd">@viewer</span><span class="o">.</span><span class="n">keymap</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Ctrl+K, Ctrl+Q&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">function</span><span class="p">(</span><span class="n">viewer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;do something&quot;&quot;&quot;</span>
 
 <span class="c1"># overwrite an existing key combo</span>
-<span class="nd">@viewer</span><span class="o">.</span><span class="n">keymap</span><span class="o">.</span><span class="n">bind_key</span><span class="p">(</span><span class="s2">&quot;Ctrl+K, Ctrl+Q&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">function</span><span class="p">():</span>
+<span class="nd">@viewer</span><span class="o">.</span><span class="n">keymap</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Ctrl+K, Ctrl+Q&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">function</span><span class="p">(</span><span class="n">viewer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;do something&quot;&quot;&quot;</span>
 </pre></div>
 </div>

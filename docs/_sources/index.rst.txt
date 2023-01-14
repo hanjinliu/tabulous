@@ -44,6 +44,7 @@ Other Contents
 .. toctree::
    :maxdepth: 1
 
+   ./main/customize
    ./main/register_action
    ./main/cheat_sheet
    ./apidoc/modules

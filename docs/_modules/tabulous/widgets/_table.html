@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tabulous.widgets._table &mdash; tabulous 0.4.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> tabulous
+          </a>
+              <div class="version">
+                0.4.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/user_interface.html">User Interface</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/selections.html">Table Selections and Highlights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/sort_filter.html">Sort/Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/columnwise_settings.html">Column-wise Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/table_fields.html">Field Attributes of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/table_view_mode.html">View Tables in Different Modes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/integrate_custom_widgets.html">Integrate Custom Widgets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/customize.html">Customize Viewer Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidoc/modules.html">tabulous</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">tabulous</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>tabulous.widgets._table</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for tabulous.widgets._table</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span><span class="p">,</span> <span class="n">abstractstaticmethod</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">overload</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">psygnal</span> <span class="kn">import</span> <span class="n">SignalGroup</span><span class="p">,</span> <span class="n">Signal</span>
+
+<span class="kn">from</span> <span class="nn">tabulous.widgets</span> <span class="kn">import</span> <span class="n">_doc</span><span class="p">,</span> <span class="n">_component</span> <span class="k">as</span> <span class="n">_comp</span>
+<span class="kn">from</span> <span class="nn">tabulous.widgets._keymap_abc</span> <span class="kn">import</span> <span class="n">SupportKeyMap</span>
+<span class="kn">from</span> <span class="nn">tabulous.types</span> <span class="kn">import</span> <span class="n">ItemInfo</span><span class="p">,</span> <span class="n">HeaderInfo</span><span class="p">,</span> <span class="n">EvalInfo</span>
+<span class="kn">from</span> <span class="nn">tabulous._psygnal</span> <span class="kn">import</span> <span class="n">SignalArray</span><span class="p">,</span> <span class="n">InCellRangedSlot</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Self</span><span class="p">,</span> <span class="n">Literal</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+    <span class="kn">from</span> <span class="nn">collections_undo</span> <span class="kn">import</span> <span class="n">UndoManager</span>
+    <span class="kn">from</span> <span class="nn">qtpy</span> <span class="kn">import</span> <span class="n">QtWidgets</span> <span class="k">as</span> <span class="n">QtW</span>
+    <span class="kn">from</span> <span class="nn">magicgui.widgets</span> <span class="kn">import</span> <span class="n">Widget</span>
+
+    <span class="kn">from</span> <span class="nn">tabulous._qt</span> <span class="kn">import</span> <span class="n">QTableLayer</span><span class="p">,</span> <span class="n">QSpreadSheet</span><span class="p">,</span> <span class="n">QTableGroupBy</span><span class="p">,</span> <span class="n">QTableDisplay</span>
+    <span class="kn">from</span> <span class="nn">tabulous._qt._table</span> <span class="kn">import</span> <span class="n">QBaseTable</span>
+    <span class="kn">from</span> <span class="nn">tabulous._qt._table._base._overlay</span> <span class="kn">import</span> <span class="n">QOverlayFrame</span>
+
+    <span class="n">LayoutString</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;horizontal&quot;</span><span class="p">,</span> <span class="s2">&quot;vertical&quot;</span><span class="p">]</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;tabulous&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">TableSignals</span><span class="p">(</span><span class="n">SignalGroup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Signal group for a Table.&quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">SignalArray</span><span class="p">(</span><span class="n">ItemInfo</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="n">HeaderInfo</span><span class="p">)</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="n">HeaderInfo</span><span class="p">)</span>
+    <span class="n">evaluated</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="n">EvalInfo</span><span class="p">)</span>
+    <span class="n">selections</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="n">_comp</span><span class="o">.</span><span class="n">SelectionRanges</span><span class="p">)</span>
+    <span class="n">renamed</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">ViewMode</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Enum of view modes&quot;&quot;&quot;</span>
+
+    <span class="n">normal</span> <span class="o">=</span> <span class="s2">&quot;normal&quot;</span>
+    <span class="n">horizontal</span> <span class="o">=</span> <span class="s2">&quot;horizontal&quot;</span>
+    <span class="n">vertical</span> <span class="o">=</span> <span class="s2">&quot;vertical&quot;</span>
+    <span class="n">popup</span> <span class="o">=</span> <span class="s2">&quot;popup&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">other</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
+
+
+<span class="c1"># #####################################################################</span>
+<span class="c1">#   The abstract base class of tables.</span>
+<span class="c1"># #####################################################################</span>
+
+
+<div class="viewcode-block" id="TableBase"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.TableBase">[docs]</a><span class="k">class</span> <span class="nc">TableBase</span><span class="p">(</span><span class="n">SupportKeyMap</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The base class for a table layer.&quot;&quot;&quot;</span>
+
+    <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;None&quot;</span>
+
+    <span class="n">cell</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">CellInterface</span><span class="p">()</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">VerticalHeaderInterface</span><span class="p">()</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">HorizontalHeaderInterface</span><span class="p">()</span>
+    <span class="n">plt</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">PlotInterface</span><span class="p">()</span>
+    <span class="n">proxy</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">ProxyInterface</span><span class="p">()</span>
+    <span class="n">text_color</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">TextColormapInterface</span><span class="p">()</span>
+    <span class="n">background_color</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">BackgroundColormapInterface</span><span class="p">()</span>
+    <span class="n">formatter</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">TextFormatterInterface</span><span class="p">()</span>
+    <span class="n">validator</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">ValidatorInterface</span><span class="p">()</span>
+    <span class="n">selections</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">SelectionRanges</span><span class="p">()</span>
+    <span class="n">highlights</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">HighlightRanges</span><span class="p">()</span>
+    <span class="n">loc</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">TableLocIndexer</span><span class="p">()</span>
+    <span class="n">iloc</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">TableILocIndexer</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">editable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">tabulous._qt</span> <span class="kn">import</span> <span class="n">get_app</span>
+
+        <span class="n">_</span> <span class="o">=</span> <span class="n">get_app</span><span class="p">()</span>
+
+        <span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Default_Name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">TableSignals</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_backend</span><span class="p">(</span><span class="n">_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_install_actions</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">connectSelectionChangedSignal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_emit_selections</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">tabulous._map_model</span> <span class="kn">import</span> <span class="n">SlotRefMapping</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_table_map</span> <span class="o">=</span> <span class="n">SlotRefMapping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_view_mode</span> <span class="o">=</span> <span class="n">ViewMode</span><span class="o">.</span><span class="n">normal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span> <span class="ow">or</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutable</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">blocked</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setEditable</span><span class="p">(</span><span class="n">editable</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">connectItemChangedSignal</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_emit_data_changed_signal</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">emit</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">emit</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">evaluated</span><span class="o">.</span><span class="n">emit</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">evaluated</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_emit_evaluated</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&lt;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">&gt;&quot;</span>
+
+    <span class="c1"># fmt: off</span>
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_comp</span><span class="o">.</span><span class="n">TableSeries</span><span class="p">:</span> <span class="o">...</span>
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">_comp</span><span class="o">.</span><span class="n">TableSubset</span><span class="p">:</span> <span class="o">...</span>
+    <span class="c1"># fmt: on</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_comp</span><span class="o">.</span><span class="n">TableSeries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_comp</span><span class="o">.</span><span class="n">TableSubset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid key type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cellref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;table.cellref is deprecated. Use table.cell.ref instead.&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">ref</span>
+
+    <span class="k">def</span> <span class="nf">_emit_data_changed_signal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">ItemInfo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">column</span>
+        <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="n">info</span><span class="o">.</span><span class="n">DELETED</span> <span class="ow">or</span> <span class="n">info</span><span class="o">.</span><span class="n">old_value</span> <span class="ow">is</span> <span class="n">info</span><span class="o">.</span><span class="n">INSERTED</span><span class="p">:</span>
+            <span class="c1"># insertion/deletion emits signal from the next row/column.</span>
+            <span class="n">_is_deleted</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="n">info</span><span class="o">.</span><span class="n">DELETED</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+                <span class="c1"># column is deleted/inserted</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+                    <span class="n">index</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">c</span><span class="o">.</span><span class="n">start</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">index</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="n">c</span><span class="p">,</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">_is_deleted</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">remove_columns</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">insert_columns</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span> <span class="n">c</span><span class="o">.</span><span class="n">start</span> <span class="p">:]</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># row is deleted/inserted</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+                    <span class="n">index</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">r</span><span class="o">.</span><span class="n">start</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">index</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="n">r</span><span class="p">,</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">_is_deleted</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">remove_rows</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">insert_rows</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">start</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_create_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QBaseTable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;This function creates a backend widget.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractstaticmethod</span>
+    <span class="k">def</span> <span class="nf">_normalize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Data normalization before setting a new data.&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">table_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the table type in string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Table data.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">getDataFrame</span><span class="p">()</span>
+
+    <span class="nd">@data</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set table data.&quot;&quot;&quot;</span>
+        <span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_data</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setDataFrame</span><span class="p">(</span><span class="n">_data</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_shown</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the data shown in the table (filter considered).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">dataShown</span><span class="p">(</span><span class="n">parse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mutable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mutability of the table type.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">tabulous._qt._table</span> <span class="kn">import</span> <span class="n">QMutableTable</span>
+
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">,</span> <span class="n">QMutableTable</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">table_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Shape of table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">tableShape</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Metadata of the table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span>
+
+    <span class="nd">@metadata</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set metadata of the table.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;metadata must be a dict&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">zoom</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Zoom factor of table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">zoom</span><span class="p">()</span>
+
+    <span class="nd">@zoom</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">zoom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set zoom factor of table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setZoom</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Table name.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="nd">@name</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set table name.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">renamed</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">editable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Editability of table.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutable</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">isEditable</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@editable</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">editable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set editability of table.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutable</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setEditable</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Table is not mutable.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">native</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QBaseTable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The backend widget.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Filter applied to the table.&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;&#39;filter&#39; is deprecated. Please use `table.proxy.filter` API instead&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">prx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">_get_proxy_object</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">prx</span><span class="o">.</span><span class="n">proxy_type</span> <span class="o">==</span> <span class="s2">&quot;filter&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">prx</span><span class="o">.</span><span class="n">_obj</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@filter</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;&#39;filter&#39; is deprecated. Please use `table.proxy.filter` API instead&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TableBase.refresh"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.refresh">[docs]</a>    <span class="k">def</span> <span class="nf">refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Refresh the table view and force table to update.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">refreshTable</span><span class="p">(</span><span class="n">process</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableBase.move_loc"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.move_loc">[docs]</a>    <span class="k">def</span> <span class="nf">move_loc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Move to a location in the table using axis label.</span>
+<span class="sd">        &gt;&gt;&gt; table.move_loc(&quot;index-2&quot;, &quot;column-4&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">moveToItem</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableBase.move_iloc"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.move_iloc">[docs]</a>    <span class="k">def</span> <span class="nf">move_iloc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">scroll</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Move to a location in the table using indices.</span>
+<span class="sd">        &gt;&gt;&gt; table.move_iloc(2, 4)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_shape</span>
+        <span class="n">row_outofrange</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">row</span> <span class="o">&gt;=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">col_outofrange</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">column</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">column</span> <span class="o">&gt;=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">row_outofrange</span> <span class="ow">or</span> <span class="n">col_outofrange</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Indices </span><span class="si">{</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> out of range of table shape </span><span class="si">{</span><span class="n">shape</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">moveToItem</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scroll</span><span class="p">:</span>
+            <span class="n">qtable_view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtable_view</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">qtable_view</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span>
+            <span class="n">qtable_view</span><span class="o">.</span><span class="n">scrollTo</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="n">text_formatter</span> <span class="o">=</span> <span class="n">formatter</span>  <span class="c1"># alias</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">view_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ViewMode</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;View mode of the table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_view_mode</span>
+
+    <span class="nd">@view_mode</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">view_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set view mode of the table.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">parentViewer</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Table is not attached to a viewer. Cannot change the view mode.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="n">ViewMode</span><span class="o">.</span><span class="n">normal</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="n">ViewMode</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ViewMode</span><span class="o">.</span><span class="n">horizontal</span><span class="p">,</span> <span class="n">ViewMode</span><span class="o">.</span><span class="n">vertical</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setDualView</span><span class="p">(</span><span class="n">orientation</span><span class="o">=</span><span class="n">mode</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">ViewMode</span><span class="o">.</span><span class="n">popup</span><span class="p">:</span>
+            <span class="n">view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setPopupView</span><span class="p">()</span>
+            <span class="n">view</span><span class="o">.</span><span class="n">popup</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="nd">@view</span><span class="o">.</span><span class="n">popup</span><span class="o">.</span><span class="n">closed</span><span class="o">.</span><span class="n">connect</span>
+            <span class="k">def</span> <span class="nf">_</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">view_mode</span> <span class="o">=</span> <span class="n">ViewMode</span><span class="o">.</span><span class="n">normal</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">setFocus</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">ViewMode</span><span class="o">.</span><span class="n">normal</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">resetViewMode</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown view mode: </span><span class="si">{</span><span class="n">mode</span><span class="si">!r}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_view_mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LayoutString</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Table layout.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">orientation</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;vertical&quot;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">orientation</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;horizontal&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown layout.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@layout</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">layout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layout</span><span class="p">:</span> <span class="n">LayoutString</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set table layout.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">layout</span> <span class="o">==</span> <span class="s2">&quot;vertical&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setOrientation</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">layout</span> <span class="o">==</span> <span class="s2">&quot;horizontal&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setOrientation</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown layout: </span><span class="si">{</span><span class="n">layout</span><span class="si">!r}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">undo_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UndoManager</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the undo manager.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_mgr</span>
+
+<div class="viewcode-block" id="TableBase.add_side_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.add_side_widget">[docs]</a>    <span class="k">def</span> <span class="nf">add_side_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget</span><span class="p">:</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span> <span class="o">|</span> <span class="n">Widget</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a side widget to the table.</span>
+
+<span class="sd">        A side widget is a widget that is docked to the side area of the table.</span>
+<span class="sd">        It is visible only when the table is active. Thus, it is a good place</span>
+<span class="sd">        to add a widget specific to the table.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        widget: QWidget or magicgui Widget</span>
+<span class="sd">            The widget to add.</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Name of the size widget. Use the input widget name by default.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="s2">&quot;native&quot;</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">widget</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">widget</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">native</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">widget</span><span class="o">.</span><span class="n">objectName</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">addSideWidget</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">widget</span></div>
+
+<div class="viewcode-block" id="TableBase.add_overlay_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.add_overlay_widget">[docs]</a>    <span class="k">def</span> <span class="nf">add_overlay_widget</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">widget</span><span class="p">:</span> <span class="n">QtW</span><span class="o">.</span><span class="n">QWidget</span> <span class="o">|</span> <span class="n">Widget</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">topleft</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="n">size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">grip</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QOverlayFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a widget overlaid over the table.</span>
+
+<span class="sd">        An overlay widget is shown on top of the table, just like the chart in Excel.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        widget: QWidget or magicgui Widget</span>
+<span class="sd">            The widget to add.</span>
+<span class="sd">        label : str, optional</span>
+<span class="sd">            Label that is shown in the bottom of the widget.</span>
+<span class="sd">        topleft: tuple of float, optional</span>
+<span class="sd">            Top-left position of the widget described as the row and column indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="s2">&quot;native&quot;</span><span class="p">):</span>
+            <span class="n">widget</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">native</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">addOverlayWidget</span><span class="p">(</span>
+            <span class="n">widget</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+            <span class="n">topleft</span><span class="o">=</span><span class="n">topleft</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+            <span class="n">grip</span><span class="o">=</span><span class="n">grip</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="TableBase.save"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save table data to the given path.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">tabulous._io</span> <span class="kn">import</span> <span class="n">save_file</span>
+
+        <span class="n">save_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="TableBase.screenshot"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.screenshot">[docs]</a>    <span class="k">def</span> <span class="nf">screenshot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get screenshot of the widget.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">screenshot</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TableBase.save_screenshot"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.save_screenshot">[docs]</a>    <span class="k">def</span> <span class="nf">save_screenshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save screenshot of the widget.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+
+        <span class="n">arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">screenshot</span><span class="p">()</span>
+        <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="k">def</span> <span class="nf">_emit_selections</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">selections</span><span class="o">.</span><span class="n">blocked</span><span class="p">():</span>
+            <span class="c1"># Block selection to avoid recursive update.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">selections</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_emit_evaluated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">EvalInfo</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">expr</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">qtable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">native</span>
+        <span class="n">qtable_view</span> <span class="o">=</span> <span class="n">qtable</span><span class="o">.</span><span class="n">_qtable_view</span>
+
+        <span class="n">slot</span> <span class="o">=</span> <span class="n">InCellRangedSlot</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_raise</span><span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">):</span>
+            <span class="c1"># the common exception handling</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">(</span><span class="ne">SyntaxError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">)):</span>
+                <span class="c1"># Update cell text with the exception object.</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="n">qtable_view</span><span class="o">.</span><span class="n">_focused_widget</span>
+                <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">with</span> <span class="n">qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">blocked</span><span class="p">():</span>
+                    <span class="n">qtable</span><span class="o">.</span><span class="n">setDataFrameValue</span><span class="p">(</span><span class="o">*</span><span class="n">info</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="s2">&quot;#ERROR&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="c1"># SyntaxError/AttributeError might be caused by mistouching. Don&#39;t close</span>
+            <span class="c1"># the editor.</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&gt;&gt;&gt; </span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">expr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,)</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">info</span><span class="o">.</span><span class="n">is_ref</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">slot</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="o">:=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_err</span><span class="p">():</span>
+                <span class="n">_raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">move_iloc</span><span class="p">(</span><span class="o">*</span><span class="n">info</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">range</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># if no reference exists, evaluate the expression as &quot;=...&quot; form.</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_emit_evaluated</span><span class="p">(</span>
+                    <span class="n">EvalInfo</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">source_pos</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">with</span> <span class="n">qtable</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">merging</span><span class="p">(</span><span class="n">formatter</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cmds</span><span class="p">:</span> <span class="n">cmds</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">()):</span>
+                <span class="c1"># call here to properly update undo stack</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">slot</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">e</span> <span class="o">:=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_err</span><span class="p">():</span>
+                    <span class="n">_raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">qtable</span><span class="o">.</span><span class="n">setInCellSlot</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">source_pos</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+
+        <span class="k">del</span> <span class="n">qtable_view</span><span class="o">.</span><span class="n">_focused_widget</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_wrap_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_f</span><span class="p">(</span><span class="o">*</span><span class="n">_</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Command: </span><span class="si">{</span><span class="n">cmd</span><span class="o">.</span><span class="vm">__module__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">cmd</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">_qviewer</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">parentViewer</span><span class="p">():</span>
+                <span class="n">_viewer</span> <span class="o">=</span> <span class="n">_qviewer</span><span class="o">.</span><span class="n">_table_viewer</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">tabulous.widgets._mainwindow</span> <span class="kn">import</span> <span class="n">DummyViewer</span>
+
+                <span class="n">_viewer</span> <span class="o">=</span> <span class="n">DummyViewer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cmd</span><span class="p">(</span><span class="n">_viewer</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_f</span>
+
+    <span class="k">def</span> <span class="nf">_install_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">commands</span> <span class="k">as</span> <span class="n">cmds</span>
+
+        <span class="n">_wrap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wrap_command</span>
+
+        <span class="c1"># fmt: off</span>
+        <span class="n">_hheader_register</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">register</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Color &gt; Set text colormap&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">set_text_colormap</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Color &gt; Reset text colormap&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">reset_text_colormap</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Color &gt; Set opacity to text colormap&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">set_text_colormap_opacity</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">(</span><span class="s2">&quot;Color&quot;</span><span class="p">)</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Color &gt; Set background colormap&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">set_background_colormap</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Color &gt; Reset background colormap&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">reset_background_colormap</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Color &gt; Set opacity to background colormap&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">set_background_colormap_opacity</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Formatter &gt; Set text formatter&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">set_text_formatter</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Formatter &gt; Reset text formatter&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">reset_text_formatter</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Sort&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">sort_by_columns</span><span class="p">))</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Filter&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">filter_by_columns</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+
+        <span class="n">_cell_register</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">register</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy&quot;</span><span class="p">)(</span><span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_data_tab_separated</span><span class="p">))</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; Tab separated text&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_data_tab_separated</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; Tab separated text with headers&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_data_with_header_tab_separated</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; Comma separated text&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_data_comma_separated</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; Comma separated text with headers&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_data_with_header_comma_separated</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">(</span><span class="s2">&quot;Copy as ...&quot;</span><span class="p">)</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; Markdown&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_as_markdown</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; reStructuredText grid table&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_as_rst_grid</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; reStructuredText simple table&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_as_rst_simple</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; Latex&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_as_latex</span><span class="p">))</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; HTML&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_as_html</span><span class="p">))</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; Literal&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_as_literal</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">(</span><span class="s2">&quot;Copy as ... &quot;</span><span class="p">)</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; New table&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_as_new_table</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Copy as ... &gt; New spreadsheet&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_as_new_spreadsheet</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Paste&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">paste_data_tab_separated</span><span class="p">))</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Paste from ... &gt; Tab separated text&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">paste_data_tab_separated</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Paste from ... &gt; Comma separated text&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">paste_data_comma_separated</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Paste from ... &gt; numpy-style text&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">paste_data_from_numpy_string</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Paste from ... &gt; Markdown text&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">paste_data_from_markdown</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Sort in-place&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">sort_inplace</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Code ... &gt; Data-changed signal&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">write_data_signal_in_console</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Code ... &gt; Get slice&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">write_slice_in_console</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Add highlight&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">add_highlight</span><span class="p">))</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Delete highlight&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">delete_selected_highlight</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span></div>
+        <span class="c1"># fmt: on</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1">#   Concrete table widgets</span>
+<span class="c1"># #############################################################################</span>
+
+
+<span class="k">class</span> <span class="nc">_DataFrameTableLayer</span><span class="p">(</span><span class="n">TableBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Table layer for DataFrame.&quot;&quot;&quot;</span>
+
+    <span class="n">_qwidget</span><span class="p">:</span> <span class="n">QTableLayer</span> <span class="o">|</span> <span class="n">QSpreadSheet</span>
+    <span class="n">native</span><span class="p">:</span> <span class="n">QTableLayer</span> <span class="o">|</span> <span class="n">QSpreadSheet</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_normalize_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mod</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="n">mod</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">mod</span> <span class="o">==</span> <span class="s2">&quot;polars&quot;</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">polars</span> <span class="k">as</span> <span class="nn">pl</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> cannot be converted.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">mod</span> <span class="o">==</span> <span class="s2">&quot;xarray&quot;</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;to_dataframe&quot;</span><span class="p">):</span>
+                <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">):</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">(</span><span class="s2">&quot;val&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> cannot be converted.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">def</span> <span class="nf">assign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span> <span class="o">/</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign new column(s) to the table.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; table.assign(a=[1, 2, 3], b=[2, 3, 4])</span>
+<span class="sd">        &gt;&gt;&gt; table.assign({&quot;a&quot;: [1, 2, 3], &quot;b&quot;: [2, 3, 4]})</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        TableBase</span>
+<span class="sd">            Same table object with new columns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">other</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_data_raw</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># DataFrame.assign does not support updating empty DataFrame.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setDataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">serieses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">serieses</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">assignColumns</span><span class="p">(</span><span class="n">serieses</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<div class="viewcode-block" id="Table"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.Table">[docs]</a><span class="nd">@_doc</span><span class="o">.</span><span class="n">update_doc</span>
+<span class="k">class</span> <span class="nc">Table</span><span class="p">(</span><span class="n">_DataFrameTableLayer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A table implemented with type checking.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : DataFrame like, optional</span>
+<span class="sd">        Table data to add.</span>
+<span class="sd">    {name}{editable}{metadata}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;table&quot;</span>
+    <span class="n">_qwidget</span><span class="p">:</span> <span class="n">QTableLayer</span>
+    <span class="n">native</span><span class="p">:</span> <span class="n">QTableLayer</span>
+
+    <span class="k">def</span> <span class="nf">_create_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QTableLayer</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">tabulous._qt</span> <span class="kn">import</span> <span class="n">QTableLayer</span>
+
+        <span class="k">return</span> <span class="n">QTableLayer</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SpreadSheet"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.SpreadSheet">[docs]</a><span class="nd">@_doc</span><span class="o">.</span><span class="n">update_doc</span>
+<span class="k">class</span> <span class="nc">SpreadSheet</span><span class="p">(</span><span class="n">_DataFrameTableLayer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A table that behaves like a spreadsheet.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : DataFrame like, optional</span>
+<span class="sd">        Table data to add.</span>
+<span class="sd">    {name}{editable}{metadata}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_qwidget</span><span class="p">:</span> <span class="n">QSpreadSheet</span>
+    <span class="n">native</span><span class="p">:</span> <span class="n">QSpreadSheet</span>
+    <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;sheet&quot;</span>
+    <span class="n">dtypes</span> <span class="o">=</span> <span class="n">_comp</span><span class="o">.</span><span class="n">ColumnDtypeInterface</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_create_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QSpreadSheet</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">tabulous._qt</span> <span class="kn">import</span> <span class="n">QSpreadSheet</span>
+
+        <span class="k">return</span> <span class="n">QSpreadSheet</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SpreadSheet.add_item_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.SpreadSheet.add_item_widget">[docs]</a>    <span class="k">def</span> <span class="nf">add_item_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a widget to a cell.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_set_widget_at_index</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_install_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">commands</span> <span class="k">as</span> <span class="n">cmds</span>
+
+        <span class="n">_wrap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wrap_command</span>
+        <span class="c1"># fmt: off</span>
+        <span class="n">_vheader_register</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">register</span>
+        <span class="n">_vheader_register</span><span class="p">(</span><span class="s2">&quot;Insert row above&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">insert_row_above</span><span class="p">))</span>
+        <span class="n">_vheader_register</span><span class="p">(</span><span class="s2">&quot;Insert row below&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">insert_row_below</span><span class="p">))</span>
+        <span class="n">_vheader_register</span><span class="p">(</span><span class="s2">&quot;Remove selected rows&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">remove_selected_rows</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">verticalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+
+        <span class="n">_hheader_register</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">register</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Insert column left&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">insert_column_left</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Insert column right&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">insert_column_right</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Remove selected columns&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">remove_selected_columns</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+        <span class="n">_hheader_register</span><span class="p">(</span><span class="s2">&quot;Column dtype&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">set_column_dtype</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+
+        <span class="n">_cell_register</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">registerAction</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Insert/Remove &gt; Insert a row above&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">insert_row_above</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Insert/Remove &gt; Insert a row below&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">insert_row_below</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Insert/Remove &gt; Remove rows&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">remove_selected_rows</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Insert/Remove &gt; Insert a column on the left&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">insert_column_left</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Insert/Remove &gt; Insert a column on the right&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">insert_column_right</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Insert/Remove &gt; Remove columns&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">remove_selected_columns</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_install_actions</span><span class="p">()</span>
+
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Cell widget &gt; SpinBox&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">add_spinbox</span><span class="p">))</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Cell widget &gt; Slider&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">add_slider</span><span class="p">))</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Cell widget &gt; FloatSpinBox&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">add_float_spinbox</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Cell widget &gt; FloatSlider&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">add_float_slider</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Cell widget &gt; CheckBox&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">add_checkbox</span><span class="p">))</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Cell widget &gt; RadioButton&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">add_radio_button</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Cell widget &gt; LineEdit&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">add_line_edit</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">(</span><span class="s2">&quot;Cell widget &quot;</span><span class="p">)</span>
+        <span class="n">_cell_register</span><span class="p">(</span><span class="s2">&quot;Cell widget &gt; Remove&quot;</span><span class="p">,</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">cmds</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">remove_cell_widgets</span><span class="p">))</span>  <span class="c1"># noqa: E501</span>
+
+        <span class="c1"># fmt: on</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="GroupBy"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.GroupBy">[docs]</a><span class="nd">@_doc</span><span class="o">.</span><span class="n">update_doc</span>
+<span class="k">class</span> <span class="nc">GroupBy</span><span class="p">(</span><span class="n">TableBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A group of tables.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : DataFrameGroupBy like, optional</span>
+<span class="sd">        Groupby data to add.</span>
+<span class="sd">    {name}{metadata}{update}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;groupby&quot;</span>
+    <span class="n">_qwidget</span><span class="p">:</span> <span class="n">QTableGroupBy</span>
+    <span class="n">native</span><span class="p">:</span> <span class="n">QTableGroupBy</span>
+
+    <span class="k">def</span> <span class="nf">_create_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QTableGroupBy</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">tabulous._qt</span> <span class="kn">import</span> <span class="n">QTableGroupBy</span>
+
+        <span class="k">return</span> <span class="n">QTableGroupBy</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_normalize_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+        <span class="kn">from</span> <span class="nn">pandas.core.groupby.generic</span> <span class="kn">import</span> <span class="n">DataFrameGroupBy</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">DataFrameGroupBy</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+            <span class="n">data_all</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="s2">&quot;group&quot;</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">it</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">it</span> <span class="o">=</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input data must not have a &#39;group&#39; column.&quot;</span><span class="p">)</span>
+                <span class="n">data_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="n">key</span><span class="p">))</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">data_all</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot only add DataFrameGroupBy object.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">current_group</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Current group ID.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">currentGroup</span><span class="p">()</span>
+
+    <span class="nd">@current_group</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">current_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setCurrentGroup</span><span class="p">(</span><span class="n">val</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TableDisplay"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.TableDisplay">[docs]</a><span class="nd">@_doc</span><span class="o">.</span><span class="n">update_doc</span>
+<span class="k">class</span> <span class="nc">TableDisplay</span><span class="p">(</span><span class="n">TableBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A table that is hotly reloaded by the given function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : callable, optional</span>
+<span class="sd">        The loader function.</span>
+<span class="sd">    {name}{metadata}{update}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_Default_Name</span> <span class="o">=</span> <span class="s2">&quot;display&quot;</span>
+    <span class="n">_qwidget</span><span class="p">:</span> <span class="n">QTableDisplay</span>
+    <span class="n">native</span><span class="p">:</span> <span class="n">QTableDisplay</span>
+
+    <span class="k">def</span> <span class="nf">_create_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">QTableDisplay</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">tabulous._qt</span> <span class="kn">import</span> <span class="n">QTableDisplay</span>
+
+        <span class="k">return</span> <span class="n">QTableDisplay</span><span class="p">(</span><span class="n">loader</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_normalize_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Can only add callable object.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">interval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Interval of table refresh.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">interval</span><span class="p">()</span>
+
+    <span class="nd">@interval</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">interval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set the interval of table refresh.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">10</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="mi">10000</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Interval must be between 10 and 10000.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setInterval</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">loader</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Loader function.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">loader</span><span class="p">()</span>
+
+    <span class="nd">@loader</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">loader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setLoader</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">running</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;True if the loading task is running&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">running</span><span class="p">()</span>
+
+    <span class="nd">@running</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">running</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">setRunning</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<span class="c1"># deprecations</span>
+
+
+<span class="k">def</span> <span class="nf">foreground_colormap</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">TableBase</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Deprecated method.&quot;&quot;&quot;</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="s2">&quot;Method `table.foreground_colormap` is deprecated. &quot;</span>
+        <span class="s2">&quot;Use `table.text_color.set` instead.&quot;</span><span class="p">,</span>
+        <span class="ne">DeprecationWarning</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">background_colormap</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">TableBase</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Deprecated method.&quot;&quot;&quot;</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="s2">&quot;Method `table.background_colormap` is deprecated. &quot;</span>
+        <span class="s2">&quot;Use `table.background_color.set` instead.&quot;</span><span class="p">,</span>
+        <span class="ne">DeprecationWarning</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">background_color</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="n">TableBase</span><span class="o">.</span><span class="n">foreground_colormap</span> <span class="o">=</span> <span class="n">foreground_colormap</span>
+<span class="n">TableBase</span><span class="o">.</span><span class="n">background_colormap</span> <span class="o">=</span> <span class="n">background_colormap</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Hanjin Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>
