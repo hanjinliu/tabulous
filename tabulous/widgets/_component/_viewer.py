@@ -78,13 +78,25 @@ class Console(ViewerComponent):
 class CommandPalette(ViewerComponent):
     def register(
         self,
+        name: str,
         command: Callable[[TableViewerBase], Any] | None = None,
-        title: str = "User defined",
-        desc: str | None = None,
+        *,
         key: str | None = None,
     ):
         """Register a command."""
         from tabulous.commands import register_command
+
+        if callable(name):
+            name = None
+            command = name
+
+        elif ":" in name:
+            title, desc = name.split(":", maxsplit=1)
+            title = title.strip()
+            desc = desc.strip()
+        else:
+            title = "User defined"
+            desc = name
 
         if key is not None:
             self.parent.keymap.register(key, command)

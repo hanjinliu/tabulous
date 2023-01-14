@@ -234,17 +234,17 @@ to register custom key combo.
 
     # simple key binding
     @viewer.keymap.register("Ctrl+P")
-    def function():
+    def function(viewer):
         """do something"""
 
     # key combo
     @viewer.keymap.register("Ctrl+K, Ctrl+Q")
-    def function():
+    def function(viewer):
         """do something"""
 
     # overwrite an existing key combo
     @viewer.keymap.register("Ctrl+K, Ctrl+Q", overwrite=True)
-    def function():
+    def function(viewer):
         """do something"""
 
 Command palette
