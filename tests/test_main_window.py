@@ -58,16 +58,16 @@ def test_renaming(viewer_cls: type[TableViewerWidget], pos):
 @pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
 def test_register_action(viewer_cls: type[TableViewerWidget]):
     viewer = viewer_cls(show=False)
-    @viewer.tables.register_action
-    def f(i):
+    @viewer.tables.register
+    def f(viewer, i):
         pass
 
-    @viewer.tables.register_action("register-test")
-    def g(i):
+    @viewer.tables.register("register-test")
+    def g(viewer, i):
         pass
 
-    @viewer.tables.register_action("Tests>name")
-    def h(i):
+    @viewer.tables.register("Tests > name")
+    def h(viewrer, i):
         pass
 
 @pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
@@ -93,13 +93,13 @@ def test_bind_keycombo(viewer_cls: type[TableViewerWidget]):
 
     mock = MagicMock()
 
-    viewer.keymap.bind("T")(mock)
+    viewer.keymap.register("T")(mock)
     mock.assert_not_called()
     viewer.keymap.press_key("T")
     mock.assert_called_once()
 
     with pytest.raises(Exception):
-        viewer.keymap.bind("T")(mock)
-    viewer.keymap.bind("T", overwrite=True)(print)
+        viewer.keymap.register("T")(mock)
+    viewer.keymap.register("T", overwrite=True)(print)
 
     viewer.close()

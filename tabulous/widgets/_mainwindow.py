@@ -12,13 +12,13 @@ from psygnal import Signal, SignalGroup
 from ._table import Table, SpreadSheet, GroupBy, TableDisplay
 from ._tablelist import TableList
 from ._sample import open_sample
-from ._component import ViewerComponent
+from ._component import Toolbar, Console, CommandPalette
 from . import _doc
 
 from tabulous import _utils, _io
 from tabulous.types import SelectionType, TabPosition, _TableLike, _SingleSelection
 from tabulous.exceptions import UnreachableError
-from tabulous._keymap import QtKeyMap
+from tabulous.widgets._keymap_abc import SupportKeyMap
 
 if TYPE_CHECKING:
     from tabulous.widgets._table import TableBase
@@ -45,60 +45,6 @@ class TableViewerSignal(SignalGroup):
     current_index = Signal(int)
 
 
-class Toolbar(ViewerComponent):
-    """The toolbar proxy."""
-
-    @property
-    def visible(self) -> bool:
-        """Visibility of the toolbar."""
-        return self.parent._qwidget.toolBarVisible()
-
-    @visible.setter
-    def visible(self, val) -> None:
-        return self.parent._qwidget.setToolBarVisible(val)
-
-    @property
-    def current_index(self) -> int:
-        return self.parent._qwidget._toolbar.currentIndex()
-
-    @current_index.setter
-    def current_index(self, val: int) -> None:
-        return self.parent._qwidget._toolbar.setCurrentIndex(val)
-
-    def register_action(self, f: Callable):
-        raise NotImplementedError()
-
-
-class Console(ViewerComponent):
-    """The QtConsole proxy."""
-
-    @property
-    def visible(self) -> bool:
-        """Visibility of the toolbar."""
-        return self.parent._qwidget.consoleVisible()
-
-    @visible.setter
-    def visible(self, val) -> None:
-        return self.parent._qwidget.setConsoleVisible(val)
-
-    @property
-    def buffer(self) -> str:
-        """Return the current text buffer of the console."""
-        return self.parent._qwidget._console_widget.input_buffer
-
-    @buffer.setter
-    def buffer(self, val) -> None:
-        return self.parent._qwidget._console_widget.setBuffer(val)
-
-    def execute(self):
-        """Execute current buffer."""
-        return self.parent._qwidget._console_widget.execute()
-
-    def update(self, ns: dict[str, Any]):
-        """Update IPython namespace."""
-        return self.parent._qwidget._console_widget.update_console(ns)
-
-
 class _AbstractViewer(ABC):
     @abstractproperty
     def current_table(self) -> TableBase | None:
@@ -111,10 +57,6 @@ class _AbstractViewer(ABC):
     @abstractproperty
     def cell_namespace(self) -> Namespace:
         """Return the namespace of the cell editor."""
-
-    @abstractproperty
-    def keymap(self) -> QtKeyMap:
-        """Return the keymap object."""
 
     @property
     def data(self) -> pd.DataFrame | None:
@@ -154,7 +96,7 @@ class _AbstractViewer(ABC):
         return self.current_table._qwidget.pasteFromClipBoard()
 
 
-class TableViewerBase(_AbstractViewer):
+class TableViewerBase(_AbstractViewer, SupportKeyMap):
     """The base class of a table viewer widget."""
 
     events: TableViewerSignal
@@ -162,6 +104,7 @@ class TableViewerBase(_AbstractViewer):
 
     toolbar = Toolbar()
     console = Console()
+    command_palette = CommandPalette()
 
     def __init__(
         self,
@@ -170,6 +113,7 @@ class TableViewerBase(_AbstractViewer):
         show: bool = True,
     ):
         from tabulous._qt import get_app
+        from tabulous._utils import get_post_initializers
 
         app = get_app()  # noqa: F841
         self._qwidget = self._qwidget_class(tab_position=tab_position)
@@ -178,6 +122,11 @@ class TableViewerBase(_AbstractViewer):
         self._link_events()
 
         self.events = TableViewerSignal()
+        self._table_initializer = None
+        _init = get_post_initializers()
+        if _init is not None:
+            viewer_initializer, self._table_initializer = _init
+            viewer_initializer.initialize_viewer(self)
 
         if show:
             self.show(run=False)
@@ -185,18 +134,10 @@ class TableViewerBase(_AbstractViewer):
     def __repr__(self) -> str:
         return f"<{type(self).__name__} widget at {hex(id(self))}>"
 
-    def reset_choices(self, *_):
-        pass
-
     @property
     def tables(self) -> TableList:
         """Return the table list object."""
         return self._tablist
-
-    @property
-    def keymap(self) -> QtKeyMap:
-        """Return the keymap object."""
-        return self._qwidget._keymap
 
     @property
     def current_table(self) -> TableBase | None:
@@ -384,6 +325,8 @@ class TableViewerBase(_AbstractViewer):
         self.current_index = -1  # activate the last table
 
         self._qwidget.setCellFocus()
+        if self._table_initializer is not None:
+            self._table_initializer.initialize_table(input)
         return input
 
     def open(self, path: PathLike, *, type: TableType | str = TableType.table) -> None:
@@ -670,7 +613,6 @@ class DummyViewer(_AbstractViewer):
     """
 
     _namespace: Namespace | None = None
-    _keymap: QtKeyMap = QtKeyMap()
 
     def __init__(self, table: TableBase):
         self._table = table
@@ -696,10 +638,6 @@ class DummyViewer(_AbstractViewer):
             # update with user namespace
             cls._namespace.update_safely(load_cell_namespace())
         return cls._namespace
-
-    @property
-    def keymap(self) -> QtKeyMap:
-        return self._keymap
 
 
 def _normalize_widget(widget: Widget | QWidget, name: str) -> tuple[QWidget, str]:

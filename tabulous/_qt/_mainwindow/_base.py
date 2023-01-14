@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import qtpy
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import QEvent, Signal
@@ -57,9 +57,12 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._event_filter.styleChanged.connect(self.updateWidgetStyle)
         self._console_widget: QtConsole | None = None
         self._keymap_widget = None
-        self._namespace = Namespace()
+
+        # Queued namespaces for console
+        self._queued_ns: dict[str, Any] = {}
 
         # update with user namespace
+        self._namespace = Namespace()
         self._namespace.update_safely(load_cell_namespace())
 
         # install command palette

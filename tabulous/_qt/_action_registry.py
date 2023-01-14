@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable, Generic, TypeVar
-from qtpy import QtWidgets as QtW, QtCore, QtGui
+from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtWidgets import QAction
 
 _T = TypeVar("_T")
@@ -24,11 +24,12 @@ class QActionRegistry(QtCore.QObject, Generic[_T]):
     def __init__(self, *args, **kwargs) -> None:
         self._qt_context_menu = QContextMenu(self)
 
-    def registerAction(self, location: str):
+    def registerAction(self, location: str, f: Callable[[_T], Any]):
         """Register a function to the context menu at the given location."""
         locs = location.split(">")
         menu = self._qt_context_menu
         for loc in locs[:-1]:
+            loc = loc.strip()
             a = menu.searchChild(loc)
             if a is None:
                 menu = menu.addMenu(loc)
@@ -39,13 +40,29 @@ class QActionRegistry(QtCore.QObject, Generic[_T]):
             else:
                 menu = a
 
-        def wrapper(f: Callable[[_T], Any]):
-            action = QAction(locs[-1], self)
-            action.triggered.connect(lambda: f(self._qt_context_menu._current_index))
-            menu.addAction(action)
-            return f
+        action = QAction(locs[-1], self)
+        action.triggered.connect(lambda: f(self._qt_context_menu._current_index))
+        menu.addAction(action)
 
-        return wrapper
+        return f
+
+    def unregisterAction(self, location: str):
+        locs = location.split(">")
+        menu = self._qt_context_menu
+        for loc in locs[:-1]:
+            loc = loc.strip()
+            a = menu.searchChild(loc)
+            if a is None:
+                menu = menu.addMenu(loc)
+            elif not isinstance(a, QContextMenu):
+                i = locs.index(loc)
+                err_loc = ">".join(locs[:i])
+                raise TypeError(f"{err_loc} is not a menu.")
+            else:
+                menu = a
+        action = menu._actions[loc[-1]]
+        menu.removeAction(action)
+        return None
 
     def addSeparator(self, location: str | None = None):
         """Add separator at the given location."""
@@ -56,6 +73,7 @@ class QActionRegistry(QtCore.QObject, Generic[_T]):
             locs = location.split(">")
 
         for loc in locs:
+            loc = loc.strip()
             a = menu.searchChild(loc)
             if a is None:
                 raise ValueError(f"{location} is not a valid location.")
