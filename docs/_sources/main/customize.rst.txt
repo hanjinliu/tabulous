@@ -79,10 +79,10 @@ Each initializer object has similar attributes as the :class:`TableViewer` and
     - :meth:`viewer.tables.register` ... register action to the tab bar.
     - :meth:`table.index.register` ... register action to the vertical header.
     - :meth:`table.columns.register` ... register action to the horizontal header.
-    - :meth:`table.cells.register` ... register action to the table cells.
-    - :meth:`viewer.commands.register` ... register command to the console.
+    - :meth:`table.cell.register` ... register action to the table cells.
+    - :meth:`viewer.command_palette.register` ... register command to the command palette.
     - :meth:`viewer.keymap.register` ... register keybinding to the viewer.
-    - :meth:`table.keymap.register` ... register keybinding to each table.
+    - :meth:`table.keymap.register` ... register keybinding to a table.
 
 2. Namespace update
     - :meth:`viewer.cell_namespace.update` ... update the namespace in cells.

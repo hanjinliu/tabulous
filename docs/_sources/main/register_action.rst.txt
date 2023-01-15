@@ -138,7 +138,7 @@ Custom Keybindings
 Both viewers and tables have :attr:`keymap` attribute for keymap registration.
 
 1. :meth:`viewer.keymap.register` ... register keybindings to the viewer.
-2. :meth:`table.keymap.register` ... register keybindings to each table.
+2. :meth:`table.keymap.register` ... register keybindings to a table.
 
 .. code-block:: python
 
