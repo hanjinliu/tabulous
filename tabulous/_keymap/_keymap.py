@@ -144,6 +144,9 @@ FUNC_ARROW_KEYS = frozenset(
 ALPHA = QtGui.QKeySequence("α")[0]
 OMEGA = QtGui.QKeySequence("ω")[0]
 
+CYR_A = QtGui.QKeySequence("а")[0]
+CYR_YA = QtGui.QKeySequence("я")[0]
+
 
 class QtKeys:
     """A custom class for handling key events."""
@@ -209,6 +212,7 @@ class QtKeys:
         _key_ok = (
             Qt.Key.Key_Exclam <= self.key <= Qt.Key.Key_ydiaeresis
             or ALPHA <= self.key <= OMEGA
+            or CYR_A <= self.key <= CYR_YA
         )
         return _modifier_ok and _key_ok
 
