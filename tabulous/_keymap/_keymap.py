@@ -436,7 +436,7 @@ class QtKeyMap(RecursiveMapping[QtKeys, Callable]):
     def unbind(self, key: str) -> None:
         _key = _normalize_key_combo(key)
         if isinstance(_key, (str, QtKeys)):
-            del self._current_map[_key]
+            del self.current_map[_key]
         elif isinstance(_key, Sequence):
             current = self
             *pref, last = _key

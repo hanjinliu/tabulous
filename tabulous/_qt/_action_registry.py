@@ -100,6 +100,9 @@ class QContextMenu(QtW.QMenu):
         self._current_index = None
         self._actions: dict[str, QAction | QContextMenu] = {}
 
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({self._actions})"
+
     def addMenu(self, title: str) -> QContextMenu:
         """Add a submenu to the contextmenu."""
         menu = self.__class__(self)

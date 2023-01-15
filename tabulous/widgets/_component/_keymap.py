@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable, Any
+import re
 from ._base import Component
 
 if TYPE_CHECKING:
     from tabulous.widgets._keymap_abc import SupportKeyMap
+
+# e.g. f() takes 0 positional arguments but 1 was given
+_PATTERN = re.compile(r".*takes 0 positional arguments but (\d+) w.+ given")
 
 
 class KeyMap(Component["SupportKeyMap"]):
@@ -16,7 +20,14 @@ class KeyMap(Component["SupportKeyMap"]):
     ):
         def wrapper(f):
             def _inner(*_):
-                return f(self.parent)
+                try:
+                    out = f(self.parent)
+                except TypeError as e:
+                    if _PATTERN.match(str(e)):
+                        out = f()
+                    else:
+                        raise e
+                return out
 
             return self.parent._qwidget._keymap.bind(key, _inner, overwrite=overwrite)
 

@@ -96,6 +96,11 @@ class _HeaderInterface(TableComponent, SupportActionRegistration["TableBase", in
     def _get_header(self) -> QDataFrameHeaderView:
         raise NotImplementedError()
 
+    @property
+    def _qcontextmenu(self):
+        """The QContextMenu widget."""
+        return self._get_header()._qt_context_menu
+
     def __repr__(self) -> str:
         return f"<{type(self).__name__}({self._get_axis()!r}) of {self.parent!r}>"
 

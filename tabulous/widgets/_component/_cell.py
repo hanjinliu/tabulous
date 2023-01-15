@@ -219,6 +219,11 @@ class CellInterface(TableComponent, SupportActionRegistration["TableBase", int])
             col = slice(col, col + 1)
         return row, col
 
+    @property
+    def _qcontextmenu(self):
+        """The QContextMenu widget."""
+        return self.parent.native._qt_context_menu
+
     def _get_qregistry(self):
         return self.parent.native
 

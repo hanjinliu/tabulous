@@ -76,6 +76,7 @@ class MagicTableViewer(Widget, TableViewerWidget):
         tooltip: str | None = None,
         visible: bool | None = None,
         enabled: bool = True,
+        show: bool = False,
     ):
         super().__init__(
             widget_type=QBaseWidget,
@@ -91,6 +92,8 @@ class MagicTableViewer(Widget, TableViewerWidget):
         mgui_native.setLayout(QtW.QVBoxLayout())
         mgui_native.layout().addWidget(self._qwidget)
         mgui_native.setContentsMargins(0, 0, 0, 0)
+        if show:
+            self.show(run=False)
 
     @property
     def native(self):

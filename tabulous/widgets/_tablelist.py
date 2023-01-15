@@ -61,9 +61,16 @@ class TableList(EventedList[TableBase], SupportActionRegistration["TableViewer",
 
     @property
     def parent(self):
+        """The parent viewer widget."""
         return self._parent
 
+    @property
+    def _qcontextmenu(self):
+        """The QContextMenu widget."""
+        return self.parent.native._tablestack._qt_context_menu
+
     def insert(self, index: int, table: TableBase):
+        """Insert a table at index `index`."""
         if not isinstance(table, TableBase):
             raise TypeError(
                 f"Cannot insert {type(table)} to {self.__class__.__name__}."
