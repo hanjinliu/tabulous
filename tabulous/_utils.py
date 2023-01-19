@@ -66,8 +66,10 @@ def load_file_open_path() -> list[str]:
 
 
 def _compile_file(path: Path, default_text: str = ""):
+    # if file doesn't exist, create it
     if not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("")
     with open(path, encoding="utf-8") as f:
         code_str = f.read()
         code = compile(code_str, path, "exec")
