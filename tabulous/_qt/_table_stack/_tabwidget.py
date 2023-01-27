@@ -302,7 +302,13 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         idx = self.currentIndex()
         qtable = self.tableAtIndex(idx)
         name = self.tabText(idx)
-        self._notifier.addWidget(QEditabilityNotifier(qtable, name))
+        return self.notifyByWidget(QEditabilityNotifier(qtable, name))
+
+    def notifyLatestVersion(self, version: str):
+        return self.notifyByWidget(QLatestVersionNotifier(version))
+
+    def notifyByWidget(self, widget: QtW.QWidget):
+        self._notifier.addWidget(widget)
         self._notifier.show()
         self._notifier.hideLater()
         return None
@@ -536,7 +542,26 @@ class QEditabilityNotifier(QtW.QWidget):
             ol.setVisible(False)
         return None
 
-    if TYPE_CHECKING:
 
-        def parentWidget(self) -> QOverlayWidget:
-            ...
+class QLatestVersionNotifier(QtW.QWidget):
+    def __init__(self, version: str):
+        super().__init__()
+
+        btn = QClickableLabel("See release note")
+        btn.clicked.connect(self.open_release_note)
+        self.setFont(QtGui.QFont("Arial"))
+
+        _layout = QtW.QVBoxLayout()
+        _layout.addWidget(QtW.QLabel(f"Latest version {version} is available."))
+        _layout.addWidget(btn)
+
+        self.setLayout(_layout)
+
+    def open_release_note(self):
+        """Open the release note page in the default browser."""
+        from qtpy.QtGui import QDesktopServices
+        from qtpy.QtCore import QUrl
+
+        url = "https://github.com/hanjinliu/tabulous/releases"
+        QDesktopServices.openUrl(QUrl(url))
+        return None

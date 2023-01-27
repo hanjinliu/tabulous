@@ -7,7 +7,7 @@ from magicgui.widgets import Container, ComboBox, PushButton, SpinBox
 from tabulous._magicgui import find_current_table, SelectionWidget
 
 if TYPE_CHECKING:
-    from .._table._base import QMutableSimpleTable
+    from tabulous._qt._table._base import QMutableSimpleTable
 
 
 class OptimizerWidget(Container):
@@ -56,7 +56,9 @@ class OptimizerWidget(Container):
         data = qtable.dataShown().iloc[params]
         param0 = data.to_numpy(dtype=np.float64, copy=False)
 
-        callback = lambda x: qtable.refreshTable(True)
+        def callback(x):
+            return qtable.refreshTable(True)
+
         with qtable._mgr.merging(lambda x: "optimize"):
             sp_opt.minimize(
                 cost_function,
