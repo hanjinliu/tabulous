@@ -10,7 +10,7 @@ from functools import wraps, partial
 
 if TYPE_CHECKING:
     from typing_extensions import Self, ParamSpec
-    from ._keymap import QtKeys
+    from ._keymap_objects import QtKeys
 
     _P = ParamSpec("_P")
 

@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import Sequence, TYPE_CHECKING
 
-from qtpy import QtWidgets as QtW, QtGui
+from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Signal
 
 from ._callback import BoundCallback
-from ._keymap import QtKeys, QtKeyMap
+from ._keymap_objects import QtKeys, QtKeyMap
 
 
 class QtKeyMapView(QtW.QWidget):

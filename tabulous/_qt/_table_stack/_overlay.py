@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from enum import Enum
-from qtpy import QtWidgets as QtW, QtCore, QtGui
+from qtpy import QtWidgets as QtW, QtCore
 from qtpy.QtCore import Qt
 from .._titlebar import QTitleBar
 
@@ -150,7 +150,8 @@ class QOverlayWidget(QtW.QDialog):
         if not self.isVisible():
             return
         qtable = self.parentWidget()
-        if not qtable or qtable.isEmpty():
+        # if not qtable or qtable.isEmpty():
+        if not qtable:
             return
         if self._anchor == Anchor.bottom_left:
             self.alignBottomLeft()
@@ -166,12 +167,15 @@ class QOverlayWidget(QtW.QDialog):
     def viewRect(self) -> QtCore.QRect:
         """Return the parent table rect."""
         parent = self.parentWidget()
-        qtable = parent.tableAtIndex(parent.currentIndex())
-        wdt = qtable.widget(0)
-        if wdt is None:
-            rect = qtable.rect()
+        if parent.isEmpty():
+            rect = parent.rect()
         else:
-            rect = qtable.widget(0).rect()
+            qtable = parent.tableAtIndex(parent.currentIndex())
+            wdt = qtable.widget(0)
+            if wdt is None:
+                rect = qtable.rect()
+            else:
+                rect = qtable.widget(0).rect()
         return rect
 
     def alignTopLeft(self, offset=(8, 8)):

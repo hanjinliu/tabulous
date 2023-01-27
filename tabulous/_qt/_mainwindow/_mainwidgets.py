@@ -107,6 +107,9 @@ _HIDE_TOOLTIPS = frozenset(
     }
 )
 
+# Flag to assert that the new version of tabulous will be notified only once
+_NOTIFIED = False
+
 
 class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     _instances: list[QMainWindow] = []
@@ -207,6 +210,27 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         """Return the current TableViewer widget."""
         window = cls._instances[-1] if cls._instances else None
         return window._table_viewer if window else None
+
+    def show(self) -> None:
+        global _NOTIFIED
+
+        super().show()
+
+        if _NOTIFIED:
+            return
+        _NOTIFIED = True
+        from tabulous._fetch_and_install import get_worker
+
+        worker = get_worker()
+
+        @worker.returned.connect
+        def _(v):
+            if v is not None:
+                self._tablestack.notifyLatestVersion(v)
+            # NOTE: uncomment the following line to test the notification
+            # self._tablestack.notifyLatestVersion("0.X.X")
+
+        worker.start()
 
     def close(self, ask: bool | None = False) -> bool:
         if ask is not None:
