@@ -9,6 +9,7 @@ from ._base import _QtMainWidgetBase
 from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
 from tabulous._utils import get_config
+from tabulous.style import Style
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewer
@@ -16,7 +17,6 @@ if TYPE_CHECKING:
     from tabulous._qt._dockwidget import QtDockWidget
 
 ICON_DIR = Path(__file__).parent.parent / "_icons"
-STYLE_DIR = Path(__file__).parent.parent
 
 
 class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
@@ -124,9 +124,6 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         _QtMainWidgetBase.__init__(self, tab_position=tab_position)
         self.setWindowTitle("tabulous")
         self.setWindowIcon(QtGui.QIcon(str(ICON_DIR / "window_icon.png")))
-        with open(STYLE_DIR / "_style.qss") as f:
-            style = f.read()
-        self.setStyleSheet(style)
 
         self._console_dock_widget = None
         self._dock_widgets = weakref.WeakValueDictionary()
@@ -135,7 +132,12 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         from tabulous._qt._toolbar import QTableStackToolBar
 
         _config = get_config()
+
+        # ask if it is OK to close
         self._ask_on_close = _config.window.ask_on_close
+
+        # set style
+        self.applyTheme(_config.window.style)
 
         self._toolbar = QTableStackToolBar(self)
         self.addToolBar(self._toolbar)
@@ -171,6 +173,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 qtconsole.update_console(self._queued_ns)
                 self._queued_ns.clear()
 
+            qtconsole.update_theme(self._style_theme)
         else:
             dock = self._console_widget.dockParent()
 
@@ -285,6 +288,12 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     def setToolBarVisible(self, visible: bool):
         """Set visibility of toolbar"""
         return self._toolbar.setVisible(visible)
+
+    def applyTheme(self, theme: str):
+        self._style_theme = theme
+        self.setStyleSheet(Style.from_global(self._style_theme).format_file())
+        if console := self._console_widget:
+            console.update_theme(theme)
 
 
 class QRichStatusBar(QtW.QStatusBar):

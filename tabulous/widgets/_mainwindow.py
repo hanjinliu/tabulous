@@ -603,6 +603,14 @@ class TableViewer(TableViewerBase):
             if hasattr(widget, "reset_choices"):
                 widget.reset_choices()
 
+    @property
+    def theme(self) -> str:
+        return self._qwidget._style_theme
+
+    @theme.setter
+    def theme(self, theme: str):
+        self._qwidget.applyTheme(theme)
+
 
 class DummyViewer(_AbstractViewer):
     """

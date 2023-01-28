@@ -266,3 +266,20 @@ class QtConsole(RichJupyterWidget):
     @_keymap.bind("Ctrl+.")
     def _ignore(self):
         """Ignore restarting the kernel."""
+
+    def update_theme(self, theme: str):
+        from tabulous.style import Style
+        from tabulous.color import normalize_color
+
+        style = Style.from_global(theme)
+        stylesheet = style.format_file()
+        self.style_sheet = stylesheet
+
+        # Set syntax styling and highlighting using theme
+        light_theme = sum(normalize_color(style.background)[:3]) > 382.5
+        if light_theme:
+            self.syntax_style = "default"
+        else:
+            self.syntax_style = "vim"
+        bracket_color = QtGui.QColor(*normalize_color(style.highlight0))
+        self._bracket_matcher.format.setBackground(bracket_color)

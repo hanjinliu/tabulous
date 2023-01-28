@@ -1,0 +1,47 @@
+{
+    "light-blue": {
+        "background": "#F0F0F0",
+        "foreground": "#000000",
+        "base_color": "#2065F2"
+    },
+    "light-green": {
+        "background": "#F0F0F0",
+        "foreground": "#000000",
+        "base_color": "#6AF2C3"
+    },
+    "light-orange": {
+        "background": "#F0F0F0",
+        "foreground": "#000000",
+        "base_color": "#F2A675"
+    },
+    "light-red": {
+        "background": "#F0F0F0",
+        "foreground": "#000000",
+        "base_color": "#F27575"
+    },
+    "light-yellow": {
+        "background": "#F0F0F0",
+        "foreground": "#000000",
+        "base_color": "#F2F275"
+    },
+    "light-purple": {
+        "background": "#F0F0F0",
+        "foreground": "#000000",
+        "base_color": "#A675F2"
+    },
+    "light-gray": {
+        "background": "#F0F0F0",
+        "foreground": "#000000",
+        "base_color": "#A6A6A6"
+    },
+    "dark-blue": {
+        "background": "#242424",
+        "foreground": "#F0F0F0",
+        "base_color": "#2065F2"
+    },
+    "dark-green": {
+        "background": "#242424",
+        "foreground": "#F0F0F0",
+        "base_color": "#6AF2C3"
+    }
+}
