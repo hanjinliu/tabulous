@@ -12,13 +12,6 @@ if TYPE_CHECKING:
 class QOverlayFrame(QtW.QDialog):
     """The overlay frame widget used to display the overlaid widget in tables."""
 
-    _Style = """
-    QOverlayFrame {{
-        border: 1px solid gray;
-        background-color: {backgroundcolor};
-    }}
-    """
-
     def __init__(
         self,
         content: QtW.QWidget,
@@ -108,13 +101,6 @@ class QOverlayFrame(QtW.QDialog):
     def tableStack(self) -> QTabbedTableStack:
         """The parent table stack."""
         return self.parentTable().tableStack()
-
-    def show(self):
-        """Show the overlay widget."""
-        super().show()
-        bgqcolor = self.tableStack().parent().backgroundColor()
-        self.setStyleSheet(self._Style.format(backgroundcolor=bgqcolor.name()))
-        return None
 
     def _add_header(self):
         self.layout().addWidget(

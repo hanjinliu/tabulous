@@ -50,22 +50,13 @@ QPushButton:disabled {
   border: 0px;
 }
 
-/* QComboBox */
+/* ----- QComboBox ----- */
 
 QComboBox {
   border-radius: 2px;
-  background-color: #[background1];
+  background-color: #[background0];
   color: #[foreground];
-  border: 1px solid #[highlight0];
 }
-
-/* QComboBox
-QPushButton {
-    background-color: #[background0];
-    border-radius: 2px;
-    padding: 4px;
-    border: 0px;
-} */
 
 
 /* QScrollBar */
@@ -79,12 +70,13 @@ QScrollBar {
 QScrollBar:horizontal {
     min-height: 10px;
     max-height: 10px;
-    margin: 0px 13px;
+    margin: 0px 8px;
 }
 
 QScrollBar:vertical {
+    min-width: 10px;
     max-width: 10px;
-    margin: 13px 0px;
+    margin: 8px 0px;
 }
 
 QScrollBar::handle {
@@ -105,72 +97,16 @@ QScrollBar::handle:vertical {
     min-height: 26px;
 }
 
-QScrollBar::add-line, QScrollBar::sub-line {
-    border: none;
-    border-radius: 5px;
-    background: #[background0];
-    subcontrol-origin: margin;
+QScrollBar::add-line,
+QScrollBar::sub-line {
+    height: 0px;
+    width: 0px;
 }
-
-
-QScrollBar::add-line:horizontal {
-    width: 10px;
-    subcontrol-position: right;
-}
-
-QScrollBar::sub-line:horizontal {
-    width: 10px;
-    subcontrol-position: left;
-}
-
-QScrollBar::add-line:vertical {
-    height: 10px;
-    subcontrol-position: bottom;
-}
-
-QScrollBar::sub-line:vertical {
-    height: 10px;
-    subcontrol-position: top;
-}
-
-QScrollBar::add-line:horizontal:pressed,
-QScrollBar::sub-line:horizontal:pressed {
-    background: #[highlight1];
-}
-
-QScrollBar::left-arrow,
-QScrollBar::right-arrow,
-QScrollBar::up-arrow,
-QScrollBar::down-arrow {
-  min-height: 10px;
-  min-width: 10px;
-  max-height: 10px;
-  max-width: 10px;
-  padding: 1px 2px;
-  margin: 0;
-  border: 0;
-  border-radius: 2px;
-  background: #[background];
-}
-
-QScrollBar::left-arrow:hover,
-QScrollBar::right-arrow:hover,
-QScrollBar::up-arrow:hover,
-QScrollBar::down-arrow:hover {
-  background-color: #[highlight0];
-}
-
-QScrollBar::left-arrow:pressed,
-QScrollBar::right-arrow:pressed,
-QScrollBar::up-arrow:pressed,
-QScrollBar::down-arrow:pressed {
-  background-color: #[highlight1];
-}
-
 
 QScrollBar::add-page,
 QScrollBar::sub-page {
-    background: none;
+    height: 0px;
+    width: 0px;
 }
 
 
@@ -192,7 +128,7 @@ QSlider::groove:horizontal {
 QSlider::handle:horizontal {
    background-color: #[highlight0];
    border: 0px;
-   width: 16px;
+   width: 12px;
    margin-top: -5px;
    margin-bottom: -5px;
    border-radius: 8px;
@@ -234,7 +170,7 @@ QTableView {
     border: 1px solid gray;
     background-color: #[background];
     color: #[foreground];
-    gridline-color: #[background1];
+    gridline-color: #[highlight1];
 }
 
 QTableView:focus {
@@ -274,7 +210,7 @@ QTabWidget {
 QTabWidget::tab-bar {
     left: 0;
     background-color: #[background];
-    color: #[foreground];
+    color: #[highlight0];
 }
 
 QTabBar::tab:top {
@@ -315,20 +251,6 @@ QTabBar::tab:bottom:selected {
     color: #[foreground];
 }
 
-_QTableLineEdit {
-    border: none;
-    border-bottom: 2px solid #[highlight0];
-    background-color: #[background];
-    color: #[foreground];
-}
-
-QCellLabelEdit {
-    color: gray;
-    border-bottom: 2px solid gray;
-    background-color: #[background];
-    color: #[foreground];
-}
-
 QKeyMapList:item {
     border-top: 1px solid lightgray;
     border-bottom: 1px solid lightgray;
@@ -339,6 +261,14 @@ QKeyMapList:item:hover {
     border-top: 2px solid #[highlight0];
     border-bottom: 2px solid #[highlight0];
     color: #[foreground];
+}
+
+QToolBar {
+    border: none;
+    background-color: #[background];
+    color: #[foreground];
+    margin: 0px;
+    padding: 0px;
 }
 
 QToolButton {
@@ -416,5 +346,76 @@ QMenu:!enabled {
 }
 
 QStatusBar::item{
-  border: none;
+    border: none;
+}
+
+QLabel {
+    background-color: none;
+}
+
+QLineEdit {
+    background-color: #[background0];
+    color: #[foreground];
+    min-height: 16px;
+    padding: 1px;
+    border-radius: 1px;
+    selection-background-color: #[highlight0];
+}
+
+QDockWidget {
+    border: 1px solid #[highlight0];
+}
+
+QAbstractSpinBox {
+  background-color: #[background0];
+  border: solid 1px #[foreground];
+  padding: 1px 3px;
+  min-width: 70px;
+  min-height: 16px;
+  border-radius: 2px;
+}
+
+QAbstractSpinBox > QLineEdit {
+    background-color: #[background0];
+    color: #[foreground];
+    min-height: 16px;
+    padding: 1px;
+    border-radius: 1px;
+    selection-background-color: #[highlight0];
+}
+
+_QTableLineEdit {
+    border: none;
+    border-bottom: 2px solid #[highlight0];
+    background-color: #[background];
+    color: #[foreground];
+}
+
+QCellLabelEdit {
+    color: gray;
+    border-bottom: 2px solid gray;
+    background-color: #[background];
+    color: #[foreground];
+}
+
+QTableStackToolBar {
+    margin: 0px, 0px, 0px, 0px;
+    padding: 0px;
+    background-color: #[background];
+}
+
+QTabbedTableStack::pane {
+    border: 1px solid #[highlight0];
+    top: -1px;
+}
+
+QOverlayWidget {
+    border: 1px solid gray;
+    border-radius: 3px;
+    background-color: #[background];
+}
+
+QOverlayFrame {
+    border: 1px solid gray;
+    background-color: #[background];
 }

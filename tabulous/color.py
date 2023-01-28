@@ -88,15 +88,23 @@ class ColorTuple(NamedTuple):
         hsv = (hsv[0], hsv[1], val)
         return ColorTuple.from_hsva(hsv)
 
-    def mix(self, other, ratio: float = 0.5) -> ColorTuple:
+    def mix(self, other, ratio: float = 0.5, alpha: bool = False) -> ColorTuple:
         """Mix the color with another color."""
         other = normalize_color(other)
+        if alpha:
+            _alpha = _8bit(self.a * (1 - ratio) + other.a * ratio)
+        else:
+            _alpha = self.a
         return ColorTuple(
-            round(self.r * (1 - ratio) + other.r * ratio),
-            round(self.g * (1 - ratio) + other.g * ratio),
-            round(self.b * (1 - ratio) + other.b * ratio),
-            round(self.a * (1 - ratio) + other.a * ratio),
+            _8bit(self.r * (1 - ratio) + other.r * ratio),
+            _8bit(self.g * (1 - ratio) + other.g * ratio),
+            _8bit(self.b * (1 - ratio) + other.b * ratio),
+            _alpha,
         )
+
+
+def _8bit(x: float) -> int:
+    return max(min(int(round(x)), 255), 0)
 
 
 def normalize_color(color: ColorType) -> ColorTuple:

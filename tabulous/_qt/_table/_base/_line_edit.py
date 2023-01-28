@@ -745,7 +745,6 @@ class QCellLabelEdit(QtW.QLineEdit):
         font = QtGui.QFont(table_config.font, table_config.font_size)
         font.setBold(True)
         self.setFont(font)
-        self.setStyleSheet("QCellLabelEdit{ color: gray; }")
         self.editingFinished.connect(self._on_editing_finished)
 
     def _on_editing_finished(self):

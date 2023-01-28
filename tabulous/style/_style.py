@@ -49,11 +49,11 @@ with open(Path(__file__).parent / "defaults.json") as f:
         fg = normalize_color(style["foreground"])
         base = normalize_color(style["base_color"])
         if "background0" not in style:
-            style["background0"] = bg.brighten(0.05).html
+            style["background0"] = bg.mix(fg, 0.05).html
         if "background1" not in style:
-            style["background1"] = bg.brighten(-0.05).html
+            style["background1"] = bg.mix(fg, -0.05).html
         if "highlight0" not in style:
-            style["highlight0"] = (base.mix(bg, 0.6)).html
+            style["highlight0"] = base.mix(bg, 0.6).html
         if "highlight1" not in style:
-            style["highlight1"] = (base.mix(bg, 0.75)).html
+            style["highlight1"] = base.mix(bg, 0.75).html
         _GLOBAL_STYLES[name] = Style(**style)
