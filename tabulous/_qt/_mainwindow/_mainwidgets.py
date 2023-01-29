@@ -6,6 +6,7 @@ from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, QEvent, QTimer
 
 from ._base import _QtMainWidgetBase
+from ._titlebar import QMainWindowTitleBar
 from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
 from tabulous._utils import get_config
@@ -120,24 +121,35 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self,
         tab_position: TabPosition | str = TabPosition.top,
     ):
-        super().__init__()
-        _QtMainWidgetBase.__init__(self, tab_position=tab_position)
-        self.setWindowTitle("tabulous")
-        self.setWindowIcon(QtGui.QIcon(str(ICON_DIR / "window_icon.png")))
-
-        self._console_dock_widget = None
-        self._dock_widgets = weakref.WeakValueDictionary()
-
         from tabulous._utils import get_config
         from tabulous._qt._toolbar import QTableStackToolBar
 
         _config = get_config()
 
+        super().__init__()
+        _QtMainWidgetBase.__init__(self, tab_position=tab_position)
+        self.setWindowTitle("tabulous")
+
+        if _config.window.title_bar == "native":
+            self.setWindowIcon(QtGui.QIcon(str(ICON_DIR / "window_icon.png")))
+        elif _config.window.title_bar == "win":
+            self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint)
+            # self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+            self._menubar = QMainWindowTitleBar(
+                self, QtGui.QIcon(str(ICON_DIR / "window_icon.png"))
+            )
+            self.setMenuBar(self._menubar)
+        else:
+            raise ValueError(_config.window.title_bar)
+
+        self._console_dock_widget = None
+        self._dock_widgets = weakref.WeakValueDictionary()
+
         # ask if it is OK to close
         self._ask_on_close = _config.window.ask_on_close
 
         # set style
-        self.applyTheme(_config.window.style)
+        self.applyTheme(_config.window.theme)
 
         self._toolbar = QTableStackToolBar(self)
         self.addToolBar(self._toolbar)

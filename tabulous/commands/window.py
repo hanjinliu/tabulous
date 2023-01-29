@@ -33,10 +33,7 @@ def toggle_console(viewer: TableViewerBase):
 
 def toggle_fullscreen(viewer: TableViewerBase):
     """Toggle fullscreen"""
-    if viewer._qwidget.isFullScreen():
-        viewer._qwidget.showNormal()
-    else:
-        viewer._qwidget.showFullScreen()
+    viewer._qwidget.toggleWindowState()
 
 
 def show_command_palette(viewer: TableViewerBase):

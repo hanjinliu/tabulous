@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 import qtpy
 from qtpy import QtWidgets as QtW, QtGui, QtCore
-from qtpy.QtCore import QEvent, Signal
+from qtpy.QtCore import QEvent, Signal, Qt
 from qt_command_palette import get_palette
 
 from ._namespace import Namespace
@@ -15,6 +15,7 @@ from tabulous._utils import load_cell_namespace
 
 if TYPE_CHECKING:
     from tabulous._qt._toolbar import QTableStackToolBar
+    from tabulous._qt._mainwindow._titlebar import QMainWindowTitleBar
     from tabulous._qt._console import QtConsole
     from tabulous.widgets import TableViewer
 
@@ -33,6 +34,7 @@ class _QtMainWidgetBase(QtW.QWidget):
     _table_viewer: TableViewer
     _tablestack: QTabbedTableStack
     _toolbar: QTableStackToolBar
+    _menubar: QMainWindowTitleBar
     _keymap: QtKeyMap
     _namespace: Namespace
 
@@ -47,6 +49,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         tab_position = TabPosition(tab_position)
         self._tablestack = QTabbedTableStack(tab_position=tab_position.name)
         self._toolbar = None
+        self._menubar = None
         self.setCentralWidget(self._tablestack)
 
         # NOTE: Event filter must be stored as an attribute, otherwise it will be
@@ -90,11 +93,13 @@ class _QtMainWidgetBase(QtW.QWidget):
         whiteness = bg.red() + bg.green() + bg.blue()
         self._white_background = whiteness > 128 * 3
         if self._white_background:
-            if self._toolbar is not None:
-                self._toolbar.setToolButtonColor("#1E1E1E")
+            color = "#1E1E1E"
         else:
-            if self._toolbar is not None:
-                self._toolbar.setToolButtonColor("#CCCCCC")
+            color = "#CCCCCC"
+        if self._toolbar is not None:
+            self._toolbar.setToolButtonColor(color)
+        if self._menubar is not None:
+            self._menubar.setIconColor(color)
 
     def screenshot(self):
         """Create an array of pixel data of the current view."""
@@ -180,3 +185,11 @@ class _QtMainWidgetBase(QtW.QWidget):
 
     def statusBar(self) -> QtW.QStatusBar:
         raise NotImplementedError()
+
+    def toggleWindowState(self):
+        if self.windowState() == Qt.WindowState.WindowMaximized:
+            self.setWindowState(Qt.WindowState.WindowNoState)
+        else:
+            self.setWindowState(Qt.WindowState.WindowMaximized)
+        if self._menubar is not None:
+            self._menubar._corner_buttons.setMiddleIcon(self.windowState())

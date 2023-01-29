@@ -166,7 +166,8 @@ class Window:
 
     ask_on_close: bool = True
     show_console: bool = False
-    style: str = "light-blue"
+    theme: str = "light-blue"
+    title_bar: str = "win"
 
 
 @dataclass

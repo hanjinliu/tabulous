@@ -22,6 +22,12 @@ QFrame:!enabled {
     border-color: gray;
 }
 
+QMainWindow {
+    background-color: #[background];
+    color: #[foreground];
+    border-radius: 10px;
+}
+
 /* QPushButton */
 
 QPushButton {
@@ -329,6 +335,11 @@ QClickableLabel {
 
 /* ----------------- QMenuBar ------------------ */
 
+QMenuBar {
+    background-color: #[background0];
+    padding: 3px;
+}
+
 QMenuBar::item:selected {
    background-color: #[highlight0];
 }
@@ -418,4 +429,22 @@ QOverlayWidget {
 QOverlayFrame {
     border: 1px solid gray;
     background-color: #[background];
+}
+
+QCornerButtons {
+    background-color: #[background0];
+}
+
+QCornerButtons > QToolButton {
+    background-color: #[background0];
+    border-radius: 4px;
+    border: none;
+    padding: 7px;
+}
+
+QCornerButtons > QToolButton:hover {
+    background-color: #[highlight1];
+    border-radius: 4px;
+    border: none;
+    padding: 7px;
 }
