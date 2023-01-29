@@ -12,11 +12,17 @@ ICON_DIR = Path(__file__).parent.parent / "_icons"
 
 
 class QMainWindowTitleBar(QtW.QMenuBar):
-    def __init__(self, parent: QtW.QMainWindow, icon: QtGui.QIcon) -> None:
+    """The custom title bar widget for the main window."""
+
+    def __init__(self, parent: _QtMainWidgetBase, icon: QtGui.QIcon) -> None:
         super().__init__(parent)
         self.setFixedHeight(28)
         self._title_icon = self.addMenu(icon, "icon")
-        self._title_icon.setEnabled(False)
+        self._title_icon.addAction("Toggle toolbar", parent.toggleToolBarVisibility)
+        self._title_icon.addSeparator()
+        self._title_icon.addAction("Minimize window", self._minimize_window)
+        self._title_icon.addAction("Close", self._close_window)
+
         self._drag_start = None
 
         self._corner_buttons = QCornerButtons(self)
@@ -52,9 +58,13 @@ class QMainWindowTitleBar(QtW.QMenuBar):
         return super().mouseDoubleClickEvent(a0)
 
     def mouseMoveEvent(self, event: QtGui.QMouseEvent):
-        if self._drag_start is not None:
-            self.parentWidget().move(self.mapToGlobal(event.pos() - self._drag_start))
-
+        if event.buttons() == Qt.MouseButton.LeftButton:
+            if self._drag_start is not None:
+                self.parentWidget().move(
+                    self.mapToGlobal(event.pos() - self._drag_start)
+                )
+        else:
+            self._drag_start = None
         return super().mouseMoveEvent(event)
 
     if TYPE_CHECKING:

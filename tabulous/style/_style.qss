@@ -351,6 +351,11 @@ QClickableLabel {
 
 /* ----------------- QMenuBar ------------------ */
 
+QMenuBar::item {
+    padding: 2px;
+    border-radius: 3px;
+}
+
 QMenuBar::item:selected {
    background-color: #[highlight0];
 }
@@ -467,4 +472,10 @@ QThemeSelectionLabel {
 QMainWindowTitleBar {
     background-color: #[background0];
     padding: 3px;
+    spacing: 5px;
+}
+
+QCommandPalette > QLineEdit {
+    border: 2px solid #[highlight0];
+    border-radius: 4px;
 }
