@@ -25,7 +25,6 @@ QFrame:!enabled {
 QMainWindow {
     background-color: #[background];
     color: #[foreground];
-    border-radius: 10px;
 }
 
 /* QPushButton */

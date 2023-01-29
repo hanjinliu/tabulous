@@ -18,6 +18,10 @@ def close_window(viewer: TableViewerBase):
 def new_window(viewer: TableViewerBase):
     """Create a new window"""
     new = viewer.__class__()
+    pos = viewer._qwidget.pos()
+    pos.setX(pos.x() + 20)
+    pos.setY(pos.y() + 20)
+    new._qwidget.move(pos)
     return new._qwidget.activateWindow()
 
 
