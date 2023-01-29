@@ -12,6 +12,7 @@ from tabulous._qt._history import QtFileHistoryManager
 from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
 from tabulous._utils import load_cell_namespace
+from tabulous.style import Style
 
 if TYPE_CHECKING:
     from tabulous._qt._toolbar import QTableStackToolBar
@@ -50,6 +51,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         self._tablestack = QTabbedTableStack(tab_position=tab_position.name)
         self._toolbar = None
         self._menubar = None
+        self._style_theme = "none"
         self.setCentralWidget(self._tablestack)
 
         # NOTE: Event filter must be stored as an attribute, otherwise it will be
@@ -88,11 +90,28 @@ class _QtMainWidgetBase(QtW.QWidget):
     def backgroundColor(self):
         return self.palette().color(self.backgroundRole())
 
+    def applyTheme(self, theme: str):
+        self._style_theme = theme
+        self.setStyleSheet(Style.from_global(self._style_theme).format_file())
+        # update console theme
+        if console := self._console_widget:
+            console.update_theme(theme)
+        # update table selection colors by clearing caches
+        for i in range(self._tablestack.count()):
+            if table := self._tablestack.tableAtIndex(i):
+                table._qtable_view._selection_color = None
+                table._qtable_view._highlight_color = None
+
     def updateWidgetStyle(self):
         bg = self.backgroundColor()
-        whiteness = bg.red() + bg.green() + bg.blue()
-        self._white_background = whiteness > 128 * 3
-        if self._white_background:
+        if self._style_theme.startswith("dark"):
+            _white = False
+        elif self._style_theme.startswith("light"):
+            _white = True
+        else:
+            _white = bg.red() + bg.green() + bg.blue() > 128 * 3
+        self._white_background = _white
+        if _white:
             color = "#1E1E1E"
         else:
             color = "#CCCCCC"

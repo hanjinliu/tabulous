@@ -107,12 +107,14 @@ QScrollBar::add-line,
 QScrollBar::sub-line {
     height: 0px;
     width: 0px;
+    background-color: #[background0];
 }
 
 QScrollBar::add-page,
 QScrollBar::sub-page {
     height: 0px;
     width: 0px;
+    background-color: #[background0];
 }
 
 
@@ -206,11 +208,15 @@ QTableCornerButton::section {
 }
 
 QTabWidget {
-    border: 1px solid #[foreground];
     background-color: #[background];
     color: #[foreground];
+    padding: 0px;
 }
 
+QTabWidget::pane {
+    border: 1px solid #[base_color];
+    background-color: #[background];
+}
 
 /* In MacOS, the positions of tabs are centered. */
 QTabWidget::tab-bar {

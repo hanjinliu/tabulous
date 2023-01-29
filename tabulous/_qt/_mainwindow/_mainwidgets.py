@@ -10,7 +10,6 @@ from ._titlebar import QMainWindowTitleBar
 from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
 from tabulous._utils import get_config
-from tabulous.style import Style
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewer
@@ -148,9 +147,6 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         # ask if it is OK to close
         self._ask_on_close = _config.window.ask_on_close
 
-        # set style
-        self.applyTheme(_config.window.theme)
-
         self._toolbar = QTableStackToolBar(self)
         self.addToolBar(self._toolbar)
         self._toolbar.setMovable(False)  # nested toolbar causes layout problems
@@ -161,6 +157,10 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
         if _config.window.show_console:
             self.setConsoleVisible(True)
+
+        # set style
+        self.applyTheme(_config.window.theme)
+        self.updateWidgetStyle()
 
     def consoleVisible(self) -> bool:
         """True if embeded console is visible."""
@@ -300,12 +300,6 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     def setToolBarVisible(self, visible: bool):
         """Set visibility of toolbar"""
         return self._toolbar.setVisible(visible)
-
-    def applyTheme(self, theme: str):
-        self._style_theme = theme
-        self.setStyleSheet(Style.from_global(self._style_theme).format_file())
-        if console := self._console_widget:
-            console.update_theme(theme)
 
 
 class QRichStatusBar(QtW.QStatusBar):
