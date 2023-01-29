@@ -81,3 +81,8 @@ def add_text_edit(viewer: TableViewerBase):
     else:
         raise TypeError(f"Cannot add widget to {type(viewer)}")
     return None
+
+
+def show_preference(viewer: TableViewerBase):
+    """Show preference dialog"""
+    viewer._qwidget.showPreferenceDialog()

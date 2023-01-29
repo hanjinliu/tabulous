@@ -214,7 +214,7 @@ QTabWidget {
 }
 
 QTabWidget::pane {
-    border: 1px solid #[base_color];
+    border: 1px solid #[highlight0];
     background-color: #[background];
 }
 
@@ -342,7 +342,7 @@ QClickableLabel {
 /* ----------------- QMenuBar ------------------ */
 
 QMenuBar {
-    background-color: #[background0];
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #[background0], stop:1 #[background1]);
     padding: 3px;
 }
 
@@ -427,13 +427,13 @@ QTabbedTableStack::pane {
 }
 
 QOverlayWidget {
-    border: 1px solid gray;
+    border: 1px solid #[highlight0];
     border-radius: 3px;
     background-color: #[background];
 }
 
 QOverlayFrame {
-    border: 1px solid gray;
+    border: 1px solid #[highlight0];
     background-color: #[background];
 }
 
@@ -445,12 +445,16 @@ QCornerButtons > QToolButton {
     background-color: #[background0];
     border-radius: 4px;
     border: none;
-    padding: 7px;
+    padding: 5px;
 }
 
 QCornerButtons > QToolButton:hover {
     background-color: #[highlight1];
     border-radius: 4px;
     border: none;
-    padding: 7px;
+    padding: 5px;
+}
+
+QThemeSelectionLabel {
+    border-radius: 5px;
 }

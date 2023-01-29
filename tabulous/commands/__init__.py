@@ -74,6 +74,7 @@ DEFAULT_KEYBINDING_SETTING: list[tuple[FunctionType, str]] = [
     (window.close_window, "Ctrl+W"),
     (window.show_keymap, "Ctrl+K, Shift+?"),
     (window.toggle_focus, "Ctrl+Shift+F"),
+    (window.show_preference, "Ctrl+."),
     (tab.activate_left, "Alt+Left"),
     (tab.activate_right, "Alt+Right"),
     (tab.swap_tab_with_left, "Alt+Shift+Left"),

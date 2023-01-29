@@ -19,11 +19,6 @@
         "foreground": "#000000",
         "base_color": "#F27575"
     },
-    "light-yellow": {
-        "background": "#F0F0F0",
-        "foreground": "#000000",
-        "base_color": "#F2F275"
-    },
     "light-purple": {
         "background": "#F0F0F0",
         "foreground": "#000000",
@@ -43,5 +38,10 @@
         "background": "#242424",
         "foreground": "#F0F0F0",
         "base_color": "#6AF2C3"
+    },
+    "dark-yellow": {
+        "background": "#242424",
+        "foreground": "#F0F0F0",
+        "base_color": "#F2F275"
     }
 }

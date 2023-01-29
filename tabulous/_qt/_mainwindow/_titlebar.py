@@ -70,7 +70,7 @@ class QCornerButtons(QtW.QToolBar):
 
     def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
-        self.setMaximumHeight(24)
+        self.setMaximumHeight(21)
         self._minimize_icon = QColoredSVGIcon.fromfile(ICON_DIR / "minimize.svg")
         self._maximize_inv_icon = QColoredSVGIcon.fromfile(
             ICON_DIR / "maximize_invert.svg"

@@ -91,6 +91,7 @@ class _QtMainWidgetBase(QtW.QWidget):
         return self.palette().color(self.backgroundRole())
 
     def applyTheme(self, theme: str):
+        """Apply predefined theme to the main window."""
         self._style_theme = theme
         self.setStyleSheet(Style.from_global(self._style_theme).format_file())
         # update console theme
@@ -101,6 +102,12 @@ class _QtMainWidgetBase(QtW.QWidget):
             if table := self._tablestack.tableAtIndex(i):
                 table._qtable_view._selection_color = None
                 table._qtable_view._highlight_color = None
+
+    def showPreferenceDialog(self):
+        from tabulous._qt._preference import QPreferenceDialog
+
+        dlg = QPreferenceDialog(self)
+        dlg.exec()
 
     def updateWidgetStyle(self):
         bg = self.backgroundColor()

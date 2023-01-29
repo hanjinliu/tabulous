@@ -31,7 +31,7 @@ class Style:
 
     @classmethod
     def from_global(cls, name: str) -> Style:
-        theme = _GLOBAL_STYLES.get(name, None)
+        theme = GLOBAL_STYLES.get(name, None)
         if theme is None:
             raise ValueError(f"Theme {name!r} not found")
         js = asdict(theme)
@@ -39,7 +39,7 @@ class Style:
         return self
 
 
-_GLOBAL_STYLES: dict[str, Style] = {}
+GLOBAL_STYLES: dict[str, Style] = {}
 
 with open(Path(__file__).parent / "defaults.json") as f:
     js: dict = json.load(f)
@@ -56,4 +56,4 @@ with open(Path(__file__).parent / "defaults.json") as f:
             style["highlight0"] = base.mix(bg, 0.6).html
         if "highlight1" not in style:
             style["highlight1"] = base.mix(bg, 0.75).html
-        _GLOBAL_STYLES[name] = Style(**style)
+        GLOBAL_STYLES[name] = Style(**style)

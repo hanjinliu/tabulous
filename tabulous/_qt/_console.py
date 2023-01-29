@@ -266,6 +266,12 @@ class QtConsole(RichJupyterWidget):
     @_keymap.bind("Ctrl+.")
     def _ignore(self):
         """Ignore restarting the kernel."""
+        parent = self.parentWidget()
+        while parent is not None:
+            parent = parent.parentWidget()
+            if hasattr(parent, "_table_viewer"):
+                parent._keymap.press_key("Ctrl+.")
+                break
 
     def update_theme(self, theme: str):
         from tabulous.style import Style
