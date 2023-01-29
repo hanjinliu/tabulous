@@ -7,7 +7,7 @@
     "light-green": {
         "background": "#F0F0F0",
         "foreground": "#000000",
-        "base_color": "#6AF2C3"
+        "base_color": "#44B58E"
     },
     "light-orange": {
         "background": "#F0F0F0",
@@ -17,7 +17,7 @@
     "light-red": {
         "background": "#F0F0F0",
         "foreground": "#000000",
-        "base_color": "#F27575"
+        "base_color": "#F20909"
     },
     "light-purple": {
         "background": "#F0F0F0",
@@ -27,7 +27,7 @@
     "light-gray": {
         "background": "#F0F0F0",
         "foreground": "#000000",
-        "base_color": "#A6A6A6"
+        "base_color": "#777777"
     },
     "dark-blue": {
         "background": "#242424",
@@ -42,6 +42,26 @@
     "dark-yellow": {
         "background": "#242424",
         "foreground": "#F0F0F0",
-        "base_color": "#F2F275"
+        "base_color": "#FFFF00"
+    },
+    "dark-orange": {
+        "background": "#242424",
+        "foreground": "#F0F0F0",
+        "base_color": "#FE8206"
+    },
+    "dark-red": {
+        "background": "#242424",
+        "foreground": "#F0F0F0",
+        "base_color": "#D91B1B"
+    },
+    "dark-purple": {
+        "background": "#242424",
+        "foreground": "#F0F0F0",
+        "base_color": "#D049EE"
+    },
+    "dark-gray": {
+        "background": "#242424",
+        "foreground": "#F0F0F0",
+        "base_color": "#CBCACA"
     }
 }

@@ -333,6 +333,16 @@ QListView {
     selection-background-color: #[highlight0];
 }
 
+QListView:item:hover {
+    background-color: #[highlight0];
+    color: #[foreground];
+}
+
+QListView:item:selected {
+    background-color: #[highlight0];
+    color: #[foreground];
+}
+
 QClickableLabel {
     background-color: #[background];
     color: #[base_color];
@@ -340,11 +350,6 @@ QClickableLabel {
 }
 
 /* ----------------- QMenuBar ------------------ */
-
-QMenuBar {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #[background0], stop:1 #[background1]);
-    padding: 3px;
-}
 
 QMenuBar::item:selected {
    background-color: #[highlight0];
@@ -457,4 +462,9 @@ QCornerButtons > QToolButton:hover {
 
 QThemeSelectionLabel {
     border-radius: 5px;
+}
+
+QMainWindowTitleBar {
+    background-color: #[background0];
+    padding: 3px;
 }
