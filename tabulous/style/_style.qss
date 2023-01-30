@@ -311,13 +311,26 @@ QCommandList:item:hover {
 }
 
 /* QTextEdit */
+QPlainTextEdit {
+    background-color: #[background0];
+    background-clip: padding;
+    color: #[foreground];
+    min-height: 35px;
+    padding: 2px;
+    border-radius: 2px;
+    border: 1px solid #[highlight1];
+    selection-background-color: #[highlight0];
+}
 
 QTextEdit {
     background-color: #[background];
     background-clip: padding;
     color: #[foreground];
+    min-height: 35px;
+    padding: 2px;
+    border-radius: 2px;
+    border: 1px solid #[highlight1];
     selection-background-color: #[highlight0];
-    padding: 4px 2px 4px 4px;
 }
 
 /* the area behind the scrollbar */
@@ -325,9 +338,14 @@ QTextEdit > QWidget {
     background-color: #[background];
 }
 
+QPlainTextEdit > QWidget {
+    background-color: #[background];
+}
+
 QListView {
     background-color: #[background];
     color: #[foreground];
+    border: 1px solid #[highlight1];
     border-radius: 2px;
     selection-background-color: #[highlight0];
 }
@@ -388,8 +406,53 @@ QLineEdit {
     selection-background-color: #[highlight0];
 }
 
+QLineEdit:hover {
+    border-bottom: 1px solid #[highlight0];
+}
+
+QGroupBox {
+    border: 1px solid #[highlight0];
+    border-radius: 2px;
+    margin-top: 1ex;
+    background-color: #[background];
+    color: #[foreground];
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 5px;
+    background-color: #[background];
+    color: #[highlight0];
+}
+
 QDockWidget {
     border: 1px solid #[highlight0];
+}
+
+QCheckBox {
+    background-color: none;
+}
+
+QRadioButton {
+    background: none;
+}
+
+QProgressBar {
+    border: 1px solid #[highlight0];
+    border-radius: 2px;
+    background-color: #[background];
+    color: #[foreground];
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    background-color: #[highlight0];
+    width: 20px;
+}
+
+QRangeSlider {
+  qproperty-barColor: #[highlight0];
 }
 
 QAbstractSpinBox {
@@ -401,6 +464,10 @@ QAbstractSpinBox {
   border-radius: 2px;
 }
 
+QAbstractSpinBox:hover {
+    border-bottom: 1px solid #[highlight0];
+}
+
 QAbstractSpinBox > QLineEdit {
     background-color: #[background0];
     color: #[foreground];
@@ -409,6 +476,7 @@ QAbstractSpinBox > QLineEdit {
     border-radius: 1px;
     selection-background-color: #[highlight0];
 }
+
 
 _QTableLineEdit {
     border: none;
