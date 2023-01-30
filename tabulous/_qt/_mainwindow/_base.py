@@ -97,11 +97,6 @@ class _QtMainWidgetBase(QtW.QWidget):
         # update console theme
         if console := self._console_widget:
             console.update_theme(theme)
-        # update table selection colors by clearing caches
-        for i in range(self._tablestack.count()):
-            if table := self._tablestack.tableAtIndex(i):
-                table._qtable_view._selection_color = None
-                table._qtable_view._highlight_color = None
 
     def showPreferenceDialog(self):
         from tabulous._qt._preference import QPreferenceDialog

@@ -2,66 +2,79 @@
     "light-blue": {
         "background": "#F0F0F0",
         "foreground": "#000000",
-        "base_color": "#2065F2"
+        "base_color": "#2065F2",
+        "cell_highlight": "#FF6060"
     },
     "light-green": {
         "background": "#F0F0F0",
         "foreground": "#000000",
-        "base_color": "#44B58E"
+        "base_color": "#44B58E",
+        "cell_highlight": "#FF6060"
     },
     "light-orange": {
         "background": "#F0F0F0",
         "foreground": "#000000",
-        "base_color": "#F2A675"
+        "base_color": "#F2A675",
+        "cell_highlight": "#FF6060"
     },
     "light-red": {
         "background": "#F0F0F0",
         "foreground": "#000000",
-        "base_color": "#F20909"
+        "base_color": "#F20909",
+        "cell_highlight": "#FF6060"
     },
     "light-purple": {
         "background": "#F0F0F0",
         "foreground": "#000000",
-        "base_color": "#A675F2"
+        "base_color": "#A675F2",
+        "cell_highlight": "#FF6060"
     },
     "light-gray": {
         "background": "#F0F0F0",
         "foreground": "#000000",
-        "base_color": "#777777"
+        "base_color": "#777777",
+        "cell_highlight": "#323232"
     },
     "dark-blue": {
         "background": "#242424",
         "foreground": "#F0F0F0",
-        "base_color": "#4780F3"
+        "base_color": "#4780F3",
+        "cell_highlight": "#FF1010"
     },
     "dark-green": {
         "background": "#242424",
         "foreground": "#F0F0F0",
-        "base_color": "#6AF2C3"
+        "base_color": "#6AF2C3",
+        "cell_highlight": "#FF1010"
     },
     "dark-yellow": {
         "background": "#242424",
         "foreground": "#F0F0F0",
-        "base_color": "#FFFF00"
+        "base_color": "#FFFF00",
+        "cell_highlight": "#FF1010"
     },
     "dark-orange": {
         "background": "#242424",
         "foreground": "#F0F0F0",
-        "base_color": "#FE8206"
+        "base_color": "#FE8206",
+        "cell_highlight": "#FF1010"
     },
     "dark-red": {
         "background": "#242424",
         "foreground": "#F0F0F0",
-        "base_color": "#D91B1B"
+        "base_color": "#D91B1B",
+        "cell_highlight": "#FF1010"
     },
     "dark-purple": {
         "background": "#242424",
         "foreground": "#F0F0F0",
-        "base_color": "#D049EE"
+        "base_color": "#D049EE",
+        "cell_highlight": "#FF1010"
     },
     "dark-gray": {
         "background": "#242424",
         "foreground": "#F0F0F0",
-        "base_color": "#CBCACA"
+        "base_color": "#CBCACA",
+        "cell_highlight": "#B3B3B3"
     }
 }

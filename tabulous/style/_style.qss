@@ -213,7 +213,7 @@ QTabWidget {
 }
 
 QTabWidget::pane {
-    border: 1px solid #[highlight0];
+    border: 1px solid #[foreground];
     background-color: #[background];
 }
 
@@ -423,7 +423,7 @@ QGroupBox::title {
     subcontrol-position: top left;
     left: 5px;
     background-color: #[background];
-    color: #[highlight0];
+    color: #[base_color];
 }
 
 QDockWidget {
@@ -545,4 +545,9 @@ QMainWindowTitleBar {
 QCommandPalette > QLineEdit {
     border: 2px solid #[highlight0];
     border-radius: 4px;
+}
+
+_QTableViewEnhanced {
+    qproperty-selectionColor: #[cell_selection];
+    qproperty-highlightColor: #[cell_highlight];
 }

@@ -15,6 +15,8 @@ class Style:
     highlight1: str
     background0: str
     background1: str
+    cell_highlight: str
+    cell_selection: str
 
     # @lru_cache(maxsize=12)
     def format_text(self, text: str) -> str:
@@ -56,4 +58,6 @@ with open(Path(__file__).parent / "defaults.json") as f:
             style["highlight0"] = base.mix(bg, 0.6).html
         if "highlight1" not in style:
             style["highlight1"] = base.mix(bg, 0.75).html
+        if "cell_selection" not in style:
+            style["cell_selection"] = base.html
         GLOBAL_STYLES[name] = Style(**style)

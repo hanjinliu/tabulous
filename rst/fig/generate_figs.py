@@ -11,7 +11,7 @@ def table():
     viewer = TableViewer()
     table = viewer.add_table({"A": [1, 2, 3], "B": [4, 5, 6]}, name="table name")
     viewer.native.setMinimumSize(1, 1)
-    viewer.resize(120, 180)
+    viewer.size = (120, 180)
     return table
 
 @REG.register
@@ -19,14 +19,14 @@ def spreadsheet():
     viewer = TableViewer()
     sheet = viewer.add_spreadsheet([["2", "t"], ["3", "u"]])
     viewer.native.setMinimumSize(1, 1)
-    viewer.resize(120, 180)
+    viewer.size = (120, 180)
     return sheet
 
 @REG.register
 def edit_cell():
     viewer = TableViewer()
     sheet = viewer.add_spreadsheet({"A": [1, 2, 3, 4], "B": ["a", "b", "c", "d"]})
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     sheet.move_iloc(2, 2)
     cmds.selection.edit_current(viewer)
     return viewer
@@ -52,7 +52,7 @@ def colormap():
     def _(x: float):
         return "green" if x < 3.2 else "violet"
 
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     table.move_iloc(57, 2)
     return viewer
 
@@ -61,7 +61,7 @@ def colormap_interpolate():
     viewer = TableViewer()
     table = viewer.add_table({"value": [-3, -2, -1, 0, 1, 2, 3]})
     table.text_color.set("value", interp_from=["blue", "gray", "red"])
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     return viewer
 
 @REG.register
@@ -72,7 +72,7 @@ def formatter():
     @table.formatter.set("length")
     def _(x: float):
         return f"{x:.2f} cm"
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     return viewer
 
 @REG.register
@@ -88,7 +88,7 @@ def validator():
         if x < 0:
             raise ValueError("Volume must be positive.")
 
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     table.move_iloc(1, 1)
     cmds.selection.edit_current(viewer)
     table.native._qtable_view._create_eval_editor("-1")
@@ -101,7 +101,7 @@ def cell_labels():
     sheet.cell[1, 1] = "&=np.mean(df.iloc[:, 0])"
     sheet.cell.label[1, 1] = "mean: "
     viewer.native.setMinimumSize(1, 1)
-    viewer.resize(120, 180)
+    viewer.size = (120, 180)
     return sheet
 
 @REG.register
@@ -112,7 +112,7 @@ def tile_tables():
     sheet1 = viewer.add_spreadsheet(name="B")
     sheet1.cell[0:5, 0:5] = "B"
     viewer.tables.tile([0, 1])
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     return viewer
 
 @REG.register
@@ -134,7 +134,7 @@ def dock_with_table_data_annotation():
         return table.apply(funcs)
 
     viewer.add_dock_widget(f)
-    viewer.resize(120, 180)
+    viewer.size = (120, 180)
     return viewer
 
 @REG.register
@@ -145,7 +145,7 @@ def column_filter():
         {"A": rng.integers(0, 10, size=20),
          "B": rng.random(20).round(2)}
     )
-    viewer.resize(120, 180)
+    viewer.size = (120, 180)
     sheet.proxy.filter("A > 5")
     return viewer
 
@@ -153,7 +153,7 @@ def column_filter():
 def command_palette():
     viewer = TableViewer()
     viewer.add_spreadsheet()
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     cmds.window.show_command_palette(viewer)
     cmdp = viewer.native._command_palette.get_widget(viewer.native)
     cmdp._line.setText("cop")

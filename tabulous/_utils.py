@@ -167,7 +167,7 @@ class Window:
     ask_on_close: bool = True
     show_console: bool = False
     theme: str = "light-blue"
-    title_bar: str = "win"
+    title_bar: str = "native"
 
 
 @dataclass

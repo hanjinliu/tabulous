@@ -4,7 +4,7 @@ import weakref
 import logging
 from typing import TYPE_CHECKING, Iterable, Iterator, cast, Literal
 from qtpy import QtWidgets as QtW, QtGui, QtCore
-from qtpy.QtCore import Signal, Qt
+from qtpy.QtCore import Signal, Qt, Property
 
 from ._item_model import AbstractDataFrameModel
 from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
@@ -137,8 +137,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._table_map = DummySlotRefMapping()
 
         # colors
-        self._selection_color = None
-        self._highlight_color = None
+        self._selection_color = QtGui.QColor(0, 0, 0, 255)
+        self._highlight_color = QtGui.QColor(255, 0, 0, 86)
 
     # fmt: off
     if TYPE_CHECKING:
@@ -550,22 +550,22 @@ class _QTableViewEnhanced(QtW.QTableView):
         return super().resizeEvent(e)
 
     def _get_selection_color(self):
-        if self._selection_color is None:
-            if _viewer := self.parentViewer():
-                white_bg = _viewer._white_background
-            else:
-                white_bg = True
-            self._selection_color = S_COLOR_W if white_bg else S_COLOR_B
         return self._selection_color
 
+    def _set_selection_color(self, value: QtGui.QColor):
+        self._selection_color = value
+        self.update()
+
+    selectionColor = Property(QtGui.QColor, _get_selection_color, _set_selection_color)
+
     def _get_highlight_color(self):
-        if self._highlight_color is None:
-            if _viewer := self.parentViewer():
-                white_bg = _viewer._white_background
-            else:
-                white_bg = True
-            self._highlight_color = H_COLOR_W if white_bg else H_COLOR_B
         return self._highlight_color
+
+    def _set_highlight_color(self, value: QtGui.QColor):
+        self._highlight_color = value
+        self.update()
+
+    highlightColor = Property(QtGui.QColor, _get_highlight_color, _set_highlight_color)
 
     def _get_current_index_color(self):
         return CUR_COLOR
