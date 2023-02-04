@@ -412,8 +412,8 @@ class QCellLiteralEdit(_QTableLineEdit):
         else:
             self.mode = self.Mode.TEXT
 
-        self._reshape_widget(text)
         self._manage_completion(text)
+        self._reshape_widget(self.text())  # text may have changed!
 
         palette = QtGui.QPalette()
         self._is_valid = self._is_text_valid()

@@ -8,7 +8,6 @@ from magicgui.widgets import (
     Container,
     PushButton,
     DateTimeEdit,
-    CheckBox,
     LineEdit,
     ComboBox,
 )
@@ -24,8 +23,9 @@ class _CheckedWidget(Container):
     check_changed = Signal(bool)
 
     def __init__(self, widget: ValueWidget, checked: bool = True, **kwargs):
-        self._cbox = CheckBox(value=checked)
-        self._cbox.max_width = 28
+        from tabulous._qt._toggle_switch import ToggleSwitch
+
+        self._cbox = ToggleSwitch(value=checked)
         self._child_widget = widget
         super().__init__(
             widgets=[self._cbox, widget],

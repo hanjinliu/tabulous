@@ -551,3 +551,9 @@ _QTableViewEnhanced {
     qproperty-selectionColor: #[cell_selection];
     qproperty-highlightColor: #[cell_highlight];
 }
+
+QToggleSwitch {
+    qproperty-onColor: #[highlight0];
+    qproperty-offColor: #[background1];
+    qproperty-handleColor: #[background0];
+}
