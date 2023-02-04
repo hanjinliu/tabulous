@@ -117,10 +117,22 @@ class _QtMainWidgetBase(QtW.QWidget):
             color = "#1E1E1E"
         else:
             color = "#CCCCCC"
+        # update toolbar tool button colors
         if self._toolbar is not None:
             self._toolbar.setToolButtonColor(color)
+
+        # custom title bar
         if self._menubar is not None:
             self._menubar.setIconColor(color)
+
+        # update header button colors
+        if self._tablestack.isEmpty():
+            return
+        for i in range(self._tablestack.count()):
+            table = self._tablestack.tableAtIndex(i)
+            for wdt in table._header_widgets().values():
+                if hasattr(wdt, "updateColor"):
+                    wdt.updateColor(color)
 
     def screenshot(self):
         """Create an array of pixel data of the current view."""
