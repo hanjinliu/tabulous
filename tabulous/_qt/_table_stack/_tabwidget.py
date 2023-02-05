@@ -185,9 +185,8 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
             for path in text.splitlines():
                 if path:
                     # properly format path
-                    if path.startswith(
-                        "file:///"
-                    ):  # NOTE: this is needed! lstrip-only does not work
+                    if path.startswith("file:///"):
+                        # NOTE: this is needed! lstrip-only does not work
                         path = path.lstrip("file:///")
                     elif path.startswith("file:"):
                         path = path.lstrip("file:")
@@ -214,10 +213,13 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
     def mouseMoveEvent(self, e: QtGui.QMouseEvent):
         if self.isEmpty():
             return
-        pos_global = self.mapToGlobal(e.pos())
+        self._startDrag(e.pos())
+
+    def _startDrag(self, pos: QtCore.QPoint):
+        pos_global = self.mapToGlobal(pos)
         tabbar = self.tabBar()
         pos_intab = tabbar.mapFromGlobal(pos_global)
-        self._moving_tab_index = tabbar.tabAt(e.pos())
+        self._moving_tab_index = tabbar.tabAt(pos)
         if self._moving_tab_index < 0:
             return
 
@@ -230,7 +232,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         drag.setMimeData(mime)
         drag.setPixmap(pixmap)
         cursor = QtGui.QCursor(Qt.CursorShape.OpenHandCursor)
-        drag.setHotSpot(e.pos() - pos_intab)
+        drag.setHotSpot(pos - pos_intab)
         drag.setDragCursor(cursor.pixmap(), Qt.DropAction.MoveAction)
         drag.exec_(Qt.DropAction.MoveAction)
 

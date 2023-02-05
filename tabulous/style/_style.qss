@@ -215,6 +215,7 @@ QTabWidget {
 QTabWidget::pane {
     border: 1px solid #[foreground];
     background-color: #[background];
+    top: -1px;
 }
 
 /* In MacOS, the positions of tabs are centered. */
@@ -261,6 +262,7 @@ QTabBar::tab:bottom:selected {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #[highlight1], stop:1 #[highlight0]);
     color: #[foreground];
 }
+
 
 QKeyMapList:item {
     border-top: 1px solid lightgray;

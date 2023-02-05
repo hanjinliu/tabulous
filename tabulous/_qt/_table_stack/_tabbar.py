@@ -1,6 +1,10 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Qt
+
+if TYPE_CHECKING:
+    from ._tabwidget import QTabbedTableStack
 
 # https://stackoverflow.com/questions/50578661/how-to-implement-vertical-tabs-in-qt
 
@@ -9,9 +13,12 @@ class QTabulousTabBar(QtW.QTabBar):
     def __init__(self, parent: QtW.QWidget | None = None) -> None:
         super().__init__(parent)
         self.setMouseTracking(True)
-        self.setStyleSheet("QTabWidget::pane { border: 1px solid #C4C4C3; top: -1px; }")
-
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+
+    if TYPE_CHECKING:
+
+        def parentWidget(self) -> QTabbedTableStack:
+            ...
 
 
 class _QSideBar(QTabulousTabBar):
