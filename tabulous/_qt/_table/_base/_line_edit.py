@@ -92,6 +92,19 @@ class _QTableLineEdit(QtW.QLineEdit):
 
     def _on_text_changed(self, text: str) -> None:
         """Change text color to red if invalid."""
+        palette = QtGui.QPalette()
+        self._is_valid = self._is_text_valid()
+        if self._is_valid:
+            col = Qt.GlobalColor.black
+        else:
+            col = Qt.GlobalColor.red
+
+        palette.setColor(QtGui.QPalette.ColorRole.Text, col)
+        self.setPalette(palette)
+        return None
+
+    def _on_text_changed(self, text: str) -> None:
+        """Change text color to red if invalid."""
         return None
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
@@ -407,6 +420,8 @@ class QCellLiteralEdit(_QTableLineEdit):
 
         self._manage_completion(text)
         self._reshape_widget(self.text())  # text may have changed!
+
+        super()._on_text_changed(text)
 
         if self.mode is self.Mode.TEXT:
             self.attachToolTip("")
