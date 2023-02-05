@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
+from functools import lru_cache
 import json
 from pathlib import Path
 from tabulous.color import normalize_color
@@ -18,7 +19,7 @@ class Style:
     cell_highlight: str
     cell_selection: str
 
-    # @lru_cache(maxsize=12)
+    @lru_cache(maxsize=12)
     def format_text(self, text: str) -> str:
         for name, value in asdict(self).items():
             text = text.replace(f"#[{name}]", f"{value}")
@@ -51,9 +52,9 @@ with open(Path(__file__).parent / "defaults.json") as f:
         fg = normalize_color(style["foreground"])
         base = normalize_color(style["base_color"])
         if "background0" not in style:
-            style["background0"] = bg.mix(fg, 0.05).html
+            style["background0"] = bg.mix(fg, 0.1).html
         if "background1" not in style:
-            style["background1"] = bg.mix(fg, -0.05).html
+            style["background1"] = bg.mix(fg, -0.1).html
         if "highlight0" not in style:
             style["highlight0"] = base.mix(bg, 0.6).html
         if "highlight1" not in style:

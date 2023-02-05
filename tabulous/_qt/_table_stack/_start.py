@@ -23,15 +23,15 @@ class QStartupWidget(QtW.QWidget):
         self.setLayout(_layout)
 
         # fmt: off
-        self._open_table_btn = QClickableLabel("Open File as Table (Ctrl+O)")
-        self._open_spreadsheet_btn = QClickableLabel("Open File as Spreadsheet (Ctrl+K, Ctrl+O)")
-        self._open_new_btn = QClickableLabel("New Spreadsheet (Ctrl+N)")
+        self._open_table_btn = QClickableLabel("Open File as Table (Ctrl+O)")  # noqa: E501
+        self._open_spreadsheet_btn = QClickableLabel("Open File as Spreadsheet (Ctrl+K, Ctrl+O)")  # noqa: E501
+        self._open_new_btn = QClickableLabel("New Spreadsheet (Ctrl+N)")  # noqa: E501
         self._path_list = QPathList()
 
-        self._open_table_btn.clicked.connect(lambda: cmds.file.open_table(self.mainWidget()._table_viewer))
-        self._open_spreadsheet_btn.clicked.connect(lambda: cmds.file.open_spreadsheet(self.mainWidget()._table_viewer))
-        self._open_new_btn.clicked.connect(lambda: cmds.table.new_spreadsheet(self.mainWidget()._table_viewer))
-        self._path_list.pathClicked.connect(lambda path: self.mainWidget()._table_viewer.open(path))
+        self._open_table_btn.clicked.connect(lambda: cmds.file.open_table(self.mainWidget()._table_viewer))  # noqa: E501
+        self._open_spreadsheet_btn.clicked.connect(lambda: cmds.file.open_spreadsheet(self.mainWidget()._table_viewer))  # noqa: E501
+        self._open_new_btn.clicked.connect(lambda: cmds.table.new_spreadsheet(self.mainWidget()._table_viewer))  # noqa: E501
+        self._path_list.pathClicked.connect(lambda path: self.mainWidget()._table_viewer.open(path))  # noqa: E501
         # fmt: on
         _layout.addWidget(self._open_table_btn)
         _layout.addWidget(self._open_spreadsheet_btn)
@@ -70,6 +70,7 @@ class QPathList(QtW.QGroupBox):
             if path == "":
                 continue
             btn = QClickableLabel(path)
+            btn.setFixedHeight(_HEIGHT)
             btn.clicked.connect(lambda path=path: self.pathClicked.emit(path))
             _layout.addWidget(btn)
             self._buttons.append(btn)

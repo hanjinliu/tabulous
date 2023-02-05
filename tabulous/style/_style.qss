@@ -485,11 +485,11 @@ _QTableLineEdit {
     color: #[foreground];
 }
 
+
 QCellLabelEdit {
     color: gray;
     border-bottom: 2px solid gray;
     background-color: #[background];
-    color: #[foreground];
 }
 
 QTableStackToolBar {
@@ -554,6 +554,6 @@ _QTableViewEnhanced {
 
 QToggleSwitch {
     qproperty-onColor: #[highlight0];
-    qproperty-offColor: #[background1];
+    qproperty-offColor: #[background0];
     qproperty-handleColor: #[background0];
 }

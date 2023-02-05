@@ -87,7 +87,7 @@ class QToggleSwitch(QtW.QAbstractButton):
             p.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
         else:
             p.setBrush(self._off_color)
-            p.setOpacity(0.12)
+            p.setOpacity(0.66)
         p.drawRoundedRect(rrect, _y, _y)
         p.setBrush(self._handle_color)
         p.setOpacity(1.0)
