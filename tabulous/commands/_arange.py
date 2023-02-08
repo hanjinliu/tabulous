@@ -23,7 +23,7 @@ class _CheckedWidget(Container):
     check_changed = Signal(bool)
 
     def __init__(self, widget: ValueWidget, checked: bool = True, **kwargs):
-        from tabulous._qt._toggle_switch import ToggleSwitch
+        from tabulous._magicgui import ToggleSwitch
 
         self._cbox = ToggleSwitch(value=checked)
         self._child_widget = widget

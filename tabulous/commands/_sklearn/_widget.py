@@ -9,13 +9,12 @@ from magicgui.widgets import (
     Container,
     Dialog,
     PushButton,
-    RadioButton,
     ComboBox,
     Label,
     TextEdit,
 )
 
-from tabulous._magicgui import find_current_table, SelectionWidget
+from tabulous._magicgui import find_current_table, SelectionWidget, ToggleSwitch
 from ._models import MODELS, ADVANCED
 from tabulous._qt._qt_const import MonospaceFontFamily
 
@@ -77,7 +76,7 @@ class SkLearnModelEdit(Container):
         self._text = Label(name="Model", value="")
         self._text.min_width = 200
         self._btn = PushButton(text="Select model")
-        self._check = RadioButton(
+        self._check = ToggleSwitch(
             value=False, label="Advanced", tooltip="Check to show more models"
         )
         self._model: SkLearnModelProtocol | None = None
@@ -269,7 +268,7 @@ class SkLearnContainer(Container):
         transformed = self._model_widget.model.transform(input.X)
         df_dict = {}
         for i in range(transformed.shape[1]):
-            name = table.columns.coerce_name(f"transformed", start=i)
+            name = table.columns.coerce_name("transformed", start=i)
             df_dict[name] = transformed[:, i]
         nc_before = len(table.columns)
         table.assign(df_dict)
