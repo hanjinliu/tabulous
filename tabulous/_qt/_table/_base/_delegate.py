@@ -6,7 +6,7 @@ from qtpy.QtCore import Qt
 from ._table_base import QBaseTable
 from ._line_edit import QCellLiteralEdit
 
-from tabulous._timedelta import QTimeDeltaEdit
+from tabulous._magicgui._timedelta import QTimeDeltaEdit
 
 if TYPE_CHECKING:
     import numpy as np

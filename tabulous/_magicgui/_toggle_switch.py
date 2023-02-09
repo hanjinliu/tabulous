@@ -142,7 +142,7 @@ class QToggleSwitch(QtW.QWidget):
             return self._height // 2
 
 
-class QToggleSwitchBase(QtW.QWidget):
+class QLabeledToggleSwitch(QtW.QWidget):
     def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
         layout = QtW.QHBoxLayout(self)
@@ -152,6 +152,10 @@ class QToggleSwitchBase(QtW.QWidget):
         layout.addWidget(self._switch)
         layout.addWidget(self._text)
         self.setLayout(layout)
+
+    @property
+    def toggled(self):
+        return self._switch.toggled
 
     def enterEvent(self, e):
         self.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -181,42 +185,39 @@ class QToggleSwitchBase(QtW.QWidget):
     def toggle(self):
         self.setChecked(not self.isChecked())
 
-    def paintEvent(self, e: QtGui.QPaintEvent) -> None:
-        return QtW.QWidget.paintEvent(self, e)
-
 
 class QButtonGroup(QtCore.QObject):
     """A button group object that mimics the Qt API."""
 
-    buttonToggled = Signal(QToggleSwitchBase, bool)
+    buttonToggled = Signal(QLabeledToggleSwitch, bool)
 
     def __init__(self) -> None:
         super().__init__()
-        self._list: list[QToggleSwitchBase] = []
+        self._list: list[QLabeledToggleSwitch] = []
         self._exclusive = True
 
-    def buttons(self) -> list[QToggleSwitchBase]:
+    def buttons(self) -> list[QLabeledToggleSwitch]:
         """Return the list of buttons in the group."""
         # NOTE: Must return a copy of the list because this function will be used as
         # an iterator.
         return self._list.copy()
 
-    def checkedButton(self) -> QToggleSwitchBase:
+    def checkedButton(self) -> QLabeledToggleSwitch:
         for btn in self._list:
             if btn.isChecked():
                 return btn
         return None
 
-    def checkedButtons(self) -> list[QToggleSwitchBase]:
+    def checkedButtons(self) -> list[QLabeledToggleSwitch]:
         return [btn for btn in self._list if btn.isChecked()]
 
-    def addButton(self, btn: QToggleSwitchBase):
+    def addButton(self, btn: QLabeledToggleSwitch):
         self._list.append(btn)
         btn._switch.toggled.connect(
             lambda checked: self._on_button_toggled(btn, checked)
         )
 
-    def removeButton(self, btn: QToggleSwitchBase):
+    def removeButton(self, btn: QLabeledToggleSwitch):
         self._list.remove(btn)
         btn._switch.toggled.disconnect()
 
@@ -226,7 +227,7 @@ class QButtonGroup(QtCore.QObject):
     def setExclusive(self, val: bool):
         self._exclusive = val
 
-    def _on_button_toggled(self, btn: QToggleSwitchBase, checked: bool):
+    def _on_button_toggled(self, btn: QLabeledToggleSwitch, checked: bool):
         if self.exclusive():
             if checked:
                 for b in self._list:
@@ -252,7 +253,7 @@ class QToggleSwitchesBase(RadioButtonsBase):
             self._event_filter.valueChanged.emit(self._mgui_get_value())
 
     def _add_button(self, label: str, data=None):
-        btn = QToggleSwitchBase(self._qwidget)
+        btn = QLabeledToggleSwitch(self._qwidget)
         btn.setText(label)
         btn._data = data
         self._btn_group.addButton(btn)
@@ -280,10 +281,10 @@ class ToggleSwitch(ButtonWidget):
     def __init__(self, **kwargs):
         super().__init__(
             widget_type=QBaseButtonWidget,
-            backend_kwargs={"qwidg": QToggleSwitchBase},
+            backend_kwargs={"qwidg": QLabeledToggleSwitch},
             **kwargs,
         )
-        self.native: QToggleSwitchBase
+        self.native: QLabeledToggleSwitch
 
 
 class ToggleSwitches(RadioButtons):  # type: ignore

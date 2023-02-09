@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import Any, Callable, Iterable, TYPE_CHECKING, cast
-import datetime
 from qtpy import QtWidgets as QtW
 from magicgui import register_type
 
@@ -22,7 +21,6 @@ from tabulous.types import (
     TableDataTuple,
     TableInfoInstance,
 )
-from tabulous._timedelta import TimeDeltaEdit
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -265,4 +263,3 @@ class ColumnNameChoice(Container):
 register_type(
     TableInfoInstance, widget_type=ColumnNameChoice, data_choices=get_table_data
 )
-register_type(datetime.timedelta, widget_type=TimeDeltaEdit)

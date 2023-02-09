@@ -105,16 +105,10 @@ def pivot(viewer: TableViewerBase):
 def melt(viewer: TableViewerBase):
     """Melt (unpivot) current table data (pd.melt)"""
     table = _utils.get_table(viewer)
-    out = _dialogs.melt(
-        df={"bind": table.data},
-        id_vars={
-            "choices": list(table.data.columns),
-            "widget_type": ToggleSwitchSelect,
-        },
-        parent=viewer._qwidget,
-    )
-    if out is not None:
-        viewer.add_table(out, name=f"{table.name}-melt")
+    cols = _utils.get_selected_columns(viewer)
+    df = table.data
+    out = df.melt(id_vars=[df.columns[i] for i in cols])
+    viewer.add_table(out, name=f"{table.name}-melt")
 
 
 def transpose(viewer: TableViewerBase):

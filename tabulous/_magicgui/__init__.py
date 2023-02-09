@@ -7,6 +7,7 @@ from ._selection import SelectionWidget
 from ._dialog import dialog_factory, dialog_factory_mpl
 from ._color_edit import ColorEdit
 from ._toggle_switch import ToggleSwitch, ToggleSwitches, ToggleSwitchSelect
+from ._timedelta import TimeDeltaEdit
 
 from typing import TYPE_CHECKING
 
@@ -29,4 +30,5 @@ __all__ = [
     "ToggleSwitches",
     "ToggleSwitchSelect",
     "Axes",
+    "TimeDeltaEdit",
 ]
