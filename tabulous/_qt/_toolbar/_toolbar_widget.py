@@ -4,6 +4,7 @@ from typing import Callable, TYPE_CHECKING, Union
 from functools import partial
 import weakref
 from qtpy import QtWidgets as QtW, QtCore
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QAction
 
 from tabulous._qt._svg import QColoredSVGIcon
@@ -11,6 +12,7 @@ from tabulous._qt._multitips import QHasToolTip
 from tabulous import commands as cmds
 
 from ._toolbutton import QColoredToolButton, QMoreToolButton
+from ._corner import QSelectionRangeEdit
 
 if TYPE_CHECKING:
     from tabulous._qt._mainwindow import _QtMainWidgetBase
@@ -89,12 +91,17 @@ class QSubToolBar(QtW.QToolBar, QHasToolTip):
 
 class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
     _child_widgets: weakref.WeakValueDictionary[str, QSubToolBar]
+    sliceChanged = Signal(object)
 
     def __init__(self, parent: _QtMainWidgetBase):
         super().__init__(parent)
 
         self._tab = QtW.QTabWidget(self)
         self._tab.setContentsMargins(0, 0, 0, 0)
+        corner = QSelectionRangeEdit(self._tab)
+        self._tab.setCornerWidget(corner)
+        corner.sliceChanged.connect(self.sliceChanged)
+
         self.setSizePolicy(
             QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Minimum
         )

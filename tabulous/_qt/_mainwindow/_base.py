@@ -226,3 +226,9 @@ class _QtMainWidgetBase(QtW.QWidget):
             self.setWindowState(Qt.WindowState.WindowMaximized)
         if self._menubar is not None:
             self._menubar._corner_buttons.setMiddleIcon(self.windowState())
+
+    def setTableSelection(self, sl: tuple[slice, slice]):
+        if table := self._table_viewer.current_table:
+            self._toolbar.blockSignals(True)
+            table.selections([sl])
+            self._toolbar.blockSignals(False)
