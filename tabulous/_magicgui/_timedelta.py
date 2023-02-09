@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Union
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Signal
 
-from magicgui import __version__ as MAGICGUI_VERSION
+from magicgui import __version__ as MAGICGUI_VERSION, register_type
 
 if int(MAGICGUI_VERSION.split(".")[1]) >= 7:
     from magicgui.widgets.bases import ValueWidget
@@ -40,7 +40,7 @@ class QTimeDeltaEdit(QtW.QAbstractSpinBox):
         self.setLineEdit(_QTimeDeltaLineEdit(self._value, self))
         self.lineEdit().timedeltaChanged.connect(self.setValue)
         self.lineEdit().sectionChanged.connect(self._on_section_changed)
-        self.setMinimumHeight(20)
+        self.setMinimumSize(120, 20)
 
     if TYPE_CHECKING:
 
@@ -221,3 +221,6 @@ class TimeDeltaEdit(ValueWidget):
             value=value,
             **kwargs,
         )
+
+
+register_type(datetime.timedelta, widget_type=TimeDeltaEdit)

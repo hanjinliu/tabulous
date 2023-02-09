@@ -20,7 +20,9 @@ setup(
     license="BSD 3-Clause",
     download_url="https://github.com/hanjinliu/tabulous",
     packages=find_packages(exclude=["docs", "examples", "rst", "tests", "tests.*"]),
-    package_data={TABULOUS: ["**/*.pyi", "*.pyi", "**/*.svg", "**/*.png", "**/*.qss"]},
+    package_data={
+        TABULOUS: ["**/*.pyi", "*.pyi", "**/*.svg", "**/*.png", "**/*.qss", "**/*.json"]
+    },
     include_package_data=True,
     install_requires=[
         "magicgui>=0.5.1",

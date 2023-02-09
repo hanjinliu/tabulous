@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from . import _dialogs, _utils
+from tabulous._magicgui import ToggleSwitchSelect
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase, TableBase, SpreadSheet
@@ -50,7 +51,7 @@ def concat(viewer: TableViewerBase):
         viewer={"bind": viewer},
         names={
             "value": [viewer.current_table.name],
-            "widget_type": "Select",
+            "widget_type": ToggleSwitchSelect,
             "choices": [t.name for t in viewer.tables],
         },
         axis={"choices": [("vertical", 0), ("horizontal", 1)]},
@@ -77,7 +78,7 @@ def merge(viewer: TableViewerBase):
         merge={"changed": _update_choices},
         with_={"changed": _update_choices},
         how={"choices": ["left", "right", "outer", "inner"], "value": "inner"},
-        on={"choices": [], "widget_type": "Select"},
+        on={"choices": [], "widget_type": ToggleSwitchSelect},
         parent=viewer._qwidget,
     )
     if out is not None:
@@ -104,13 +105,10 @@ def pivot(viewer: TableViewerBase):
 def melt(viewer: TableViewerBase):
     """Melt (unpivot) current table data (pd.melt)"""
     table = _utils.get_table(viewer)
-    out = _dialogs.melt(
-        df={"bind": table.data},
-        id_vars={"choices": list(table.data.columns), "widget_type": "Select"},
-        parent=viewer._qwidget,
-    )
-    if out is not None:
-        viewer.add_table(out, name=f"{table.name}-melt")
+    cols = _utils.get_selected_columns(viewer)
+    df = table.data
+    out = df.melt(id_vars=[df.columns[i] for i in cols])
+    viewer.add_table(out, name=f"{table.name}-melt")
 
 
 def transpose(viewer: TableViewerBase):

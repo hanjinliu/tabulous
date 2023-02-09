@@ -31,7 +31,7 @@ def filter_example():
         {"label": rng.choice(3, 50), "value": rng.normal(0, 1, 50)}
     )
     sheet.proxy.filter("label == 1")
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     return viewer
 
 
@@ -46,7 +46,7 @@ def sort_example():
         }
     )
     sheet.proxy.sort(by=["label", "value"])
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     return viewer
 
 
@@ -59,7 +59,7 @@ def colormap_example():
     )
     sheet["petal_width"].text_color.set(interp_from=["red", "blue"])
 
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     sheet.move_iloc(53, 4)
     sheet.move_iloc(49, 3)
     return viewer
@@ -74,7 +74,7 @@ def eval_example():
     sheet.cell[0, 1] = "&=np.sin(df.iloc[:, 0] * df.iloc[0, 2])"
     df = sheet.data
     sheet.plt.plot(df.iloc[:, 0], df.iloc[:, 1])
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     sheet.move_iloc(3, 1)
     return viewer
 
@@ -83,7 +83,7 @@ def eval_example():
 def command_palette_example():
     viewer = TableViewer()
     viewer.add_spreadsheet()
-    viewer.resize(100, 100)
+    viewer.size = (100, 100)
     cmds.window.show_command_palette(viewer)
     return viewer
 
@@ -111,7 +111,7 @@ def custom_widget_example():
         size=(2.5, 3.5),
     )
 
-    viewer.resize(600, 450)
+    viewer.size = (600, 450)
     return viewer
 
 

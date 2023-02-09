@@ -5,7 +5,7 @@ from matplotlib.collections import PathCollection, LineCollection, PolyCollectio
 from matplotlib.container import BarContainer
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
-from matplotlib.patches import Patch, Polygon
+from matplotlib.patches import Polygon
 
 from matplotlib.artist import Artist
 
@@ -89,7 +89,7 @@ class ArtistEditor(Container, Generic[_A]):
 @_register(Line2D)
 class Line2DEdit(ArtistEditor[Line2D]):
     def _create_widgets(self) -> None:
-        from .._color_edit import ColorEdit
+        from tabulous._magicgui import ColorEdit
 
         widgets = []
         line = self.artist
@@ -200,7 +200,7 @@ class Line2DEdit(ArtistEditor[Line2D]):
 @_register(PathCollection)
 class ScatterEdit(ArtistEditor[PathCollection]):
     def _create_widgets(self) -> list[Widget]:
-        from tabulous._qt._color_edit import ColorEdit
+        from tabulous._magicgui._color_edit import ColorEdit
 
         scatter = self.artist
 
@@ -261,7 +261,7 @@ class ScatterEdit(ArtistEditor[PathCollection]):
 @_register(BarContainer)
 class PatchContainerEdit(ArtistEditor[BarContainer]):
     def _create_widgets(self) -> list[Widget]:
-        from .._color_edit import ColorEdit
+        from ..._magicgui._color_edit import ColorEdit
 
         artist = self.artist
         _facecolor = ColorEdit(
@@ -302,7 +302,7 @@ class PatchContainerEdit(ArtistEditor[BarContainer]):
 @_register(LineCollection)
 class LineCollectionEdit(ArtistEditor[LineCollection]):
     def _create_widgets(self) -> list[Widget]:
-        from tabulous._qt._color_edit import ColorEdit
+        from tabulous._magicgui._color_edit import ColorEdit
 
         line = self.artist
 
@@ -327,7 +327,7 @@ class LineCollectionEdit(ArtistEditor[LineCollection]):
 @_register(PolyCollection)
 class PolyCollectionEdit(ArtistEditor[PolyCollection]):
     def _create_widgets(self) -> list[Widget]:
-        from tabulous._qt._color_edit import ColorEdit
+        from tabulous._magicgui._color_edit import ColorEdit
 
         poly = self.artist
 
@@ -376,7 +376,7 @@ class PolyCollectionEdit(ArtistEditor[PolyCollection]):
 @_register(Polygon)
 class PolygonEdit(ArtistEditor[Polygon]):
     def _create_widgets(self) -> list[Widget]:
-        from tabulous._qt._color_edit import ColorEdit
+        from tabulous._magicgui._color_edit import ColorEdit
 
         polygon = self.artist
         _facecolor = ColorEdit(
@@ -414,7 +414,7 @@ class PolygonEdit(ArtistEditor[Polygon]):
 @_register(Text)
 class TextEdit(ArtistEditor[Text]):
     def _create_widgets(self) -> list[Widget]:
-        from tabulous._qt._color_edit import ColorEdit
+        from tabulous._magicgui._color_edit import ColorEdit
 
         _color = ColorEdit(name="color", value=fix_color(self.artist.get_color()))
         _color.changed.connect(self.set_color)

@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import weakref
 import logging
-from functools import lru_cache
 from typing import TYPE_CHECKING, Iterable, Iterator, cast, Literal
 from qtpy import QtWidgets as QtW, QtGui, QtCore
-from qtpy.QtCore import Signal, Qt
+from qtpy.QtCore import Signal, Qt, Property
 
 from ._item_model import AbstractDataFrameModel
 from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
@@ -19,6 +18,7 @@ if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
     from tabulous._qt._mainwindow import _QtMainWidgetBase
     from tabulous._map_model import SlotRefMapping
+    from tabulous._utils import TabulousConfig
 
 # Flags
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
@@ -76,18 +76,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         else:
             self._parent_table = None
 
-        from tabulous._utils import get_config
-
-        table = get_config().table
-
-        # settings
-        self._font_size = table.font_size
         self._zoom = 1.0
-        self._h_default = table.row_size
-        self._w_default = table.column_size
-        self._font = table.font
-        self.setFont(QtGui.QFont(self._font, self._font_size))
         self.setWordWrap(False)  # this disables eliding float text
+        self.load_config()
 
         # use custom selection model
         self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.NoSelection)
@@ -137,6 +128,10 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         self._table_map = DummySlotRefMapping()
 
+        # colors
+        self._selection_color = QtGui.QColor(0, 0, 0, 255)
+        self._highlight_color = QtGui.QColor(255, 0, 0, 86)
+
     # fmt: off
     if TYPE_CHECKING:
         def model(self) -> AbstractDataFrameModel: ...
@@ -144,6 +139,21 @@ class _QTableViewEnhanced(QtW.QTableView):
         def verticalHeader(self) -> QVerticalHeaderView: ...
         def horizontalHeader(self) -> QHorizontalHeaderView: ...
     # fmt: on
+
+    def load_config(self, cfg: TabulousConfig | None = None) -> None:
+        from tabulous._utils import get_config
+
+        if cfg is None:
+            cfg = get_config()
+
+        table = cfg.table
+
+        # settings
+        self._font_size = table.font_size
+        self._h_default = table.row_size
+        self._w_default = table.column_size
+        self._font = table.font
+        self.setFont(QtGui.QFont(self._font, self._zoom * self._font_size))
 
     @property
     def _focused_widget(self) -> QtW.QWidget | None:
@@ -546,21 +556,23 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.resizedSignal.emit()
         return super().resizeEvent(e)
 
-    @lru_cache(maxsize=1)
     def _get_selection_color(self):
-        if _viewer := self.parentViewer():
-            white_bg = _viewer._white_background
-        else:
-            white_bg = True
-        return S_COLOR_W if white_bg else S_COLOR_B
+        return self._selection_color
 
-    @lru_cache(maxsize=1)
+    def _set_selection_color(self, value: QtGui.QColor):
+        self._selection_color = value
+        self.update()
+
+    selectionColor = Property(QtGui.QColor, _get_selection_color, _set_selection_color)
+
     def _get_highlight_color(self):
-        if _viewer := self.parentViewer():
-            white_bg = _viewer._white_background
-        else:
-            white_bg = True
-        return H_COLOR_W if white_bg else H_COLOR_B
+        return self._highlight_color
+
+    def _set_highlight_color(self, value: QtGui.QColor):
+        self._highlight_color = value
+        self.update()
+
+    highlightColor = Property(QtGui.QColor, _get_highlight_color, _set_highlight_color)
 
     def _get_current_index_color(self):
         return CUR_COLOR

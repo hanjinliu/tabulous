@@ -95,9 +95,6 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
 
         self._tab = QtW.QTabWidget(self)
         self._tab.setContentsMargins(0, 0, 0, 0)
-        self._tab.setStyleSheet(
-            "QTabWidget {margin: 0px, 0px, 0px, 0px; padding: 0px;}"
-        )
         self.setSizePolicy(
             QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Minimum
         )
@@ -195,6 +192,8 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.addSeparatorToChild("Home")
         self.registerAction("Home", cmds.window.toggle_console, ICON_DIR / "toggle_console.svg")  # noqa: E501
         self.registerAction("Home", cmds.window.show_command_palette, ICON_DIR / "palette.svg")  # noqa: E501
+        self.addSeparatorToChild("Home")
+        self.registerAction("Home", cmds.window.show_preference, ICON_DIR / "preferences.svg")  # noqa: E501
 
         self.registerAction("Edit", cmds.selection.copy_data_tab_separated, ICON_DIR / "copy.svg")  # noqa: E501
         self.registerAction("Edit", cmds.selection.paste_data_tab_separated, ICON_DIR / "paste.svg")  # noqa: E501

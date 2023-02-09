@@ -7,14 +7,13 @@ import numpy as np
 import pandas as pd
 from magicgui.widgets import (
     Container,
-    RadioButtons,
     ListEdit,
     PushButton,
     ComboBox,
     Label,
 )
 
-from tabulous._magicgui import find_current_table, SelectionWidget
+from tabulous._magicgui import find_current_table, SelectionWidget, ToggleSwitches
 from tabulous._selection_op import SelectionOperator
 from tabulous.exceptions import UnreachableError
 from tabulous.widgets import Table
@@ -253,7 +252,7 @@ class TestTypes:
 
 class StatsTestDialog(Container):
     def __init__(self, **kwargs):
-        self._data_types = RadioButtons(
+        self._data_types = ToggleSwitches(
             choices=[DataTypes.SEPARATE, DataTypes.LABELED], value=DataTypes.SEPARATE
         )
         self._data_containers: dict[str, DataContainer] = {

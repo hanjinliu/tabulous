@@ -6,6 +6,7 @@ from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, QEvent, QTimer
 
 from ._base import _QtMainWidgetBase
+from ._titlebar import QMainWindowTitleBar
 from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
 from tabulous._utils import get_config
@@ -16,7 +17,6 @@ if TYPE_CHECKING:
     from tabulous._qt._dockwidget import QtDockWidget
 
 ICON_DIR = Path(__file__).parent.parent / "_icons"
-STYLE_DIR = Path(__file__).parent.parent
 
 
 class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
@@ -120,21 +120,31 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self,
         tab_position: TabPosition | str = TabPosition.top,
     ):
-        super().__init__()
-        _QtMainWidgetBase.__init__(self, tab_position=tab_position)
-        self.setWindowTitle("tabulous")
-        self.setWindowIcon(QtGui.QIcon(str(ICON_DIR / "window_icon.png")))
-        with open(STYLE_DIR / "_style.qss") as f:
-            style = f.read()
-        self.setStyleSheet(style)
-
-        self._console_dock_widget = None
-        self._dock_widgets = weakref.WeakValueDictionary()
-
         from tabulous._utils import get_config
         from tabulous._qt._toolbar import QTableStackToolBar
 
         _config = get_config()
+
+        super().__init__()
+        _QtMainWidgetBase.__init__(self, tab_position=tab_position)
+        self.setWindowTitle("tabulous")
+
+        if _config.window.title_bar == "native":
+            self.setWindowIcon(QtGui.QIcon(str(ICON_DIR / "window_icon.png")))
+        elif _config.window.title_bar == "win":
+            self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint)
+            # self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+            self._menubar = QMainWindowTitleBar(
+                self, QtGui.QIcon(str(ICON_DIR / "window_icon.png"))
+            )
+            self.setMenuBar(self._menubar)
+        else:
+            raise ValueError(_config.window.title_bar)
+
+        self._console_dock_widget = None
+        self._dock_widgets = weakref.WeakValueDictionary()
+
+        # ask if it is OK to close
         self._ask_on_close = _config.window.ask_on_close
 
         self._toolbar = QTableStackToolBar(self)
@@ -147,6 +157,10 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
         if _config.window.show_console:
             self.setConsoleVisible(True)
+
+        # set style
+        self.applyTheme(_config.window.theme)
+        self.updateWidgetStyle()
 
     def consoleVisible(self) -> bool:
         """True if embeded console is visible."""
@@ -171,6 +185,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 qtconsole.update_console(self._queued_ns)
                 self._queued_ns.clear()
 
+            qtconsole.update_theme(self._style_theme)
         else:
             dock = self._console_widget.dockParent()
 

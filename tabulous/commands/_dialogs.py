@@ -105,11 +105,6 @@ def pivot(df: TableData, index: str, columns: str, values: str) -> TableData:
 
 
 @dialog_factory
-def melt(df: TableData, id_vars: List[str]) -> TableData:
-    return df.melt(id_vars=id_vars)
-
-
-@dialog_factory
 def sort(df: TableData, by: List[str], ascending: bool = True) -> TableData:
     return df.sort_values(by=by, ascending=ascending)
 

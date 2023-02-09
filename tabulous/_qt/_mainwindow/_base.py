@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 import qtpy
 from qtpy import QtWidgets as QtW, QtGui, QtCore
-from qtpy.QtCore import QEvent, Signal
+from qtpy.QtCore import QEvent, Signal, Qt
 from qt_command_palette import get_palette
 
 from ._namespace import Namespace
@@ -12,9 +12,11 @@ from tabulous._qt._history import QtFileHistoryManager
 from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
 from tabulous._utils import load_cell_namespace
+from tabulous.style import Style
 
 if TYPE_CHECKING:
     from tabulous._qt._toolbar import QTableStackToolBar
+    from tabulous._qt._mainwindow._titlebar import QMainWindowTitleBar
     from tabulous._qt._console import QtConsole
     from tabulous.widgets import TableViewer
 
@@ -33,6 +35,7 @@ class _QtMainWidgetBase(QtW.QWidget):
     _table_viewer: TableViewer
     _tablestack: QTabbedTableStack
     _toolbar: QTableStackToolBar
+    _menubar: QMainWindowTitleBar
     _keymap: QtKeyMap
     _namespace: Namespace
 
@@ -47,6 +50,8 @@ class _QtMainWidgetBase(QtW.QWidget):
         tab_position = TabPosition(tab_position)
         self._tablestack = QTabbedTableStack(tab_position=tab_position.name)
         self._toolbar = None
+        self._menubar = None
+        self._style_theme = "none"
         self.setCentralWidget(self._tablestack)
 
         # NOTE: Event filter must be stored as an attribute, otherwise it will be
@@ -85,16 +90,49 @@ class _QtMainWidgetBase(QtW.QWidget):
     def backgroundColor(self):
         return self.palette().color(self.backgroundRole())
 
+    def applyTheme(self, theme: str):
+        """Apply predefined theme to the main window."""
+        self._style_theme = theme
+        self.setStyleSheet(Style.from_global(self._style_theme).format_file())
+        # update console theme
+        if console := self._console_widget:
+            console.update_theme(theme)
+
+    def showPreferenceDialog(self):
+        from tabulous._qt._preference import QPreferenceDialog
+
+        dlg = QPreferenceDialog(self)
+        dlg.exec()
+
     def updateWidgetStyle(self):
         bg = self.backgroundColor()
-        whiteness = bg.red() + bg.green() + bg.blue()
-        self._white_background = whiteness > 128 * 3
-        if self._white_background:
-            if self._toolbar is not None:
-                self._toolbar.setToolButtonColor("#1E1E1E")
+        if self._style_theme.startswith("dark"):
+            _white = False
+        elif self._style_theme.startswith("light"):
+            _white = True
         else:
-            if self._toolbar is not None:
-                self._toolbar.setToolButtonColor("#CCCCCC")
+            _white = bg.red() + bg.green() + bg.blue() > 128 * 3
+        self._white_background = _white
+        if _white:
+            color = "#1E1E1E"
+        else:
+            color = "#CCCCCC"
+        # update toolbar tool button colors
+        if self._toolbar is not None:
+            self._toolbar.setToolButtonColor(color)
+
+        # custom title bar
+        if self._menubar is not None:
+            self._menubar.setIconColor(color)
+
+        # update header button colors
+        if self._tablestack.isEmpty():
+            return
+        for i in range(self._tablestack.count()):
+            table = self._tablestack.tableAtIndex(i)
+            for wdt in table._header_widgets().values():
+                if hasattr(wdt, "updateColor"):
+                    wdt.updateColor(color)
 
     def screenshot(self):
         """Create an array of pixel data of the current view."""
@@ -180,3 +218,11 @@ class _QtMainWidgetBase(QtW.QWidget):
 
     def statusBar(self) -> QtW.QStatusBar:
         raise NotImplementedError()
+
+    def toggleWindowState(self):
+        if self.windowState() == Qt.WindowState.WindowMaximized:
+            self.setWindowState(Qt.WindowState.WindowNoState)
+        else:
+            self.setWindowState(Qt.WindowState.WindowMaximized)
+        if self._menubar is not None:
+            self._menubar._corner_buttons.setMiddleIcon(self.windowState())

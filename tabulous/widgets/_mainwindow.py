@@ -177,6 +177,15 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         """The file I/O history manager."""
         return self._qwidget._hist_mgr
 
+    @property
+    def theme(self) -> str:
+        """Get current widget theme name."""
+        return self._qwidget._style_theme
+
+    @theme.setter
+    def theme(self, theme: str):
+        self._qwidget.applyTheme(theme)
+
     def show(self, *, run: bool = True) -> None:
         """Show the widget."""
         self._qwidget.show()
@@ -451,7 +460,22 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
 
     def resize(self, width: int, height: int):
         """Resize the table viewer."""
-        return self._qwidget.resize(width, height)
+        warnings.warn(
+            "viewer.resize() is deprecated. Use `viewer.size` instead.",
+            DeprecationWarning,
+        )
+        self.size = width, height
+
+    @property
+    def size(self) -> tuple[int, int]:
+        """Return the size of the table viewer."""
+        return self._qwidget.size().width(), self._qwidget.size().height()
+
+    @size.setter
+    def size(self, size: tuple[int, int]):
+        """Set the size of the table viewer."""
+        w, h = size
+        return self._qwidget.resize(int(w), int(h))
 
     def _link_events(self):
         _tablist = self._tablist

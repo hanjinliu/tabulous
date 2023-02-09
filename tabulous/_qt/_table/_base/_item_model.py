@@ -181,10 +181,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             qlabel = QtW.QLabel(text, self.parent())
             qlabel.setStyleSheet("background-color: transparent; color: gray;")
             qlabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            from tabulous._utils import get_config
-
-            table_config = get_config().table
-            font = QtGui.QFont(table_config.font, table_config.font_size)
+            font = self.parent()._qtable_view.font()
             font.setBold(True)
             qlabel.setFont(font)
             rect = QtGui.QFontMetrics(font).boundingRect(text)

@@ -5,7 +5,6 @@ from enum import Enum
 import numpy as np
 from magicgui.widgets import (
     LineEdit,
-    RadioButtons,
     Container,
     LiteralEvalLineEdit,
     PushButton,
@@ -13,6 +12,7 @@ from magicgui.widgets import (
 )
 from tabulous._magicgui import SelectionWidget
 from tabulous.exceptions import UnreachableError
+from tabulous._magicgui import ToggleSwitches
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -99,7 +99,7 @@ class RandomGeneratorDialog(Container):
         self._selection_wdt = SelectionWidget(
             format="iloc", allow_out_of_bounds=True, label="Selection"
         )
-        self._radio_buttons = RadioButtons(
+        self._radio_buttons = ToggleSwitches(
             choices=Generator, value=Generator.uniform, label="Distribution"
         )
         self._uniform_wdt = UniformRandomGenerator(label="parameters")

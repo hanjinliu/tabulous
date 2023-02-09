@@ -5,10 +5,10 @@ from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Qt
 import numpy as np
 import pandas as pd
-from magicgui.widgets import RadioButtons
 
-from tabulous._dtype import get_dtype, isna
 from tabulous.widgets import Table
+from tabulous._dtype import get_dtype, isna
+from tabulous._magicgui import ToggleSwitches
 
 __all__ = ["exec_formatter_dialog"]
 
@@ -166,7 +166,7 @@ class _QNumberFormatterDialog(_QFormatterDialog):
     _ENUM = NumberFormat
 
     def _init(self) -> None:
-        btns = RadioButtons(choices=self._ENUM, value=self._ENUM.default)
+        btns = ToggleSwitches(choices=self._ENUM, value=self._ENUM.default)
         self._btns = btns
         self.addWidget(btns.native)
 
@@ -326,7 +326,7 @@ class QDateTimeFormatterDialog(_QFormatterDialog):
 
 class QTimeDeltaFormatterDialog(_QFormatterDialog):
     def _init(self) -> None:
-        self._btns = RadioButtons(
+        self._btns = ToggleSwitches(
             choices=TimedeltaFormat, value=TimedeltaFormat.default
         )
         self.addWidget(self._btns.native)

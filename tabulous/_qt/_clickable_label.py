@@ -17,7 +17,6 @@ class QClickableLabel(QtW.QLabel):
             QtW.QSizePolicy.Policy.Minimum, QtW.QSizePolicy.Policy.Expanding
         )
         self.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.setStyleSheet("QClickableLabel { color: #319DFF; }")
         self.setText(text)
         return None
 

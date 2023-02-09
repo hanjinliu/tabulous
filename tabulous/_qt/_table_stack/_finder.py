@@ -280,7 +280,7 @@ class QSearchBox(QtW.QLineEdit):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        from ..._utils import get_config
+        from tabulous._utils import get_config
 
         table_config = get_config().table
         self.setFont(QtGui.QFont(table_config.font, table_config.font_size))

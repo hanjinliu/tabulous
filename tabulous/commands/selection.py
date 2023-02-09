@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from magicgui import widgets as mwdg
 from . import _utils, _dialogs
+from tabulous._magicgui import ToggleSwitchSelect
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase
@@ -573,7 +574,7 @@ def sort_inplace(viewer: TableViewerBase) -> None:
         chosen = _dialogs.choose_multiple(
             choices={
                 "choices": list(df.columns),
-                "widget_type": "Select",
+                "widget_type": ToggleSwitchSelect,
                 "label": "by",
             },
             parent=viewer.native,

@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
     from ._header_view import QDataFrameHeaderView
 
-_CONFIG = get_config()
 _LEFT_LIKE = frozenset(
     {"Left", "Ctrl+Left", "Shift+Left", "Ctrl+Shift+Left", "Home", "Shift+Home"}
 )
@@ -44,8 +43,6 @@ class _QTableLineEdit(QtW.QLineEdit):
 
     _VALID = QtGui.QColor(186, 222, 244, 200)
     _INVALID = QtGui.QColor(255, 0, 0, 200)
-    _EVAL_PREFIX = _CONFIG.cell.eval_prefix
-    _REF_PREFIX = _CONFIG.cell.ref_prefix
 
     def __init__(
         self,
@@ -80,7 +77,9 @@ class _QTableLineEdit(QtW.QLineEdit):
 
     @classmethod
     def _is_eval_like(cls, text: str) -> bool:
-        return text.startswith(cls._EVAL_PREFIX) or text.startswith(cls._REF_PREFIX)
+        _eval_prefix = get_config().cell.eval_prefix
+        _ref_prefix = get_config().cell.ref_prefix
+        return text.startswith(_eval_prefix) or text.startswith(_ref_prefix)
 
     def parentTableView(self) -> _QTableViewEnhanced:
         """The parent table view."""
@@ -101,6 +100,10 @@ class _QTableLineEdit(QtW.QLineEdit):
 
         palette.setColor(QtGui.QPalette.ColorRole.Text, col)
         self.setPalette(palette)
+        return None
+
+    def _on_text_changed(self, text: str) -> None:
+        """Change text color to red if invalid."""
         return None
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
@@ -375,11 +378,13 @@ class QCellLiteralEdit(_QTableLineEdit):
     @classmethod
     def _parse_ref(cls, raw_text: str) -> tuple[str, bool]:
         """Convert texts if it starts with the evaluation prefixes."""
-        if raw_text.startswith(cls._REF_PREFIX):
-            text = raw_text.lstrip(cls._REF_PREFIX).strip()
+        _ref_prefix = get_config().cell.ref_prefix
+        _eval_prefix = get_config().cell.eval_prefix
+        if raw_text.startswith(_ref_prefix):
+            text = raw_text.lstrip(_ref_prefix).strip()
             is_ref = True
-        elif raw_text.startswith(cls._EVAL_PREFIX):
-            text = raw_text.lstrip(cls._EVAL_PREFIX).strip()
+        elif raw_text.startswith(_eval_prefix):
+            text = raw_text.lstrip(_eval_prefix).strip()
             is_ref = False
         else:
             raise UnreachableError(raw_text)
@@ -399,7 +404,8 @@ class QCellLiteralEdit(_QTableLineEdit):
             font.setBold(True)
             self.setFont(font)
         else:
-            font = QtGui.QFont(_CONFIG.table.font, self.font().pointSize())
+            font_family = self.parentTableView().font().family()
+            font = QtGui.QFont(font_family, self.font().pointSize())
             font.setBold(False)
             self.setFont(font)
         return None
@@ -412,18 +418,10 @@ class QCellLiteralEdit(_QTableLineEdit):
         else:
             self.mode = self.Mode.TEXT
 
-        self._reshape_widget(text)
         self._manage_completion(text)
+        self._reshape_widget(self.text())  # text may have changed!
 
-        palette = QtGui.QPalette()
-        self._is_valid = self._is_text_valid()
-        if self._is_valid and err_tip == "":
-            col = Qt.GlobalColor.black
-        else:
-            col = Qt.GlobalColor.red
-
-        palette.setColor(QtGui.QPalette.ColorRole.Text, col)
-        self.setPalette(palette)
+        super()._on_text_changed(text)
 
         if self.mode is self.Mode.TEXT:
             self.attachToolTip("")
@@ -504,10 +502,12 @@ class QCellLiteralEdit(_QTableLineEdit):
                 return True
         elif self.mode is self.Mode.EVAL:
             raw_text = self.text()
-            if raw_text.startswith(self._EVAL_PREFIX):
-                text = raw_text.lstrip(self._EVAL_PREFIX).strip()
-            elif raw_text.startswith(self._REF_PREFIX):
-                text = raw_text.lstrip(self._REF_PREFIX).strip()
+            _ref_prefix = get_config().cell.ref_prefix
+            _eval_prefix = get_config().cell.eval_prefix
+            if raw_text.startswith(_eval_prefix):
+                text = raw_text.lstrip(_eval_prefix).strip()
+            elif raw_text.startswith(_ref_prefix):
+                text = raw_text.lstrip(_ref_prefix).strip()
             else:
                 return False
 
@@ -741,11 +741,6 @@ class QCellLabelEdit(QtW.QLineEdit):
         super().__init__(parent)
         self._table = table
         self._pos = pos
-        table_config = get_config().table
-        font = QtGui.QFont(table_config.font, table_config.font_size)
-        font.setBold(True)
-        self.setFont(font)
-        self.setStyleSheet("QCellLabelEdit{ color: gray; }")
         self.editingFinished.connect(self._on_editing_finished)
 
     def _on_editing_finished(self):
@@ -823,6 +818,10 @@ class QCellLabelEdit(QtW.QLineEdit):
 
         line.setFocus()
         line.selectAll()
+
+        font = qtable.font()
+        font.setBold(True)
+        line.setFont(font)
         return line
 
 

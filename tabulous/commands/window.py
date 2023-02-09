@@ -18,6 +18,10 @@ def close_window(viewer: TableViewerBase):
 def new_window(viewer: TableViewerBase):
     """Create a new window"""
     new = viewer.__class__()
+    pos = viewer._qwidget.pos()
+    pos.setX(pos.x() + 20)
+    pos.setY(pos.y() + 20)
+    new._qwidget.move(pos)
     return new._qwidget.activateWindow()
 
 
@@ -33,10 +37,7 @@ def toggle_console(viewer: TableViewerBase):
 
 def toggle_fullscreen(viewer: TableViewerBase):
     """Toggle fullscreen"""
-    if viewer._qwidget.isFullScreen():
-        viewer._qwidget.showNormal()
-    else:
-        viewer._qwidget.showFullScreen()
+    viewer._qwidget.toggleWindowState()
 
 
 def show_command_palette(viewer: TableViewerBase):
@@ -84,3 +85,8 @@ def add_text_edit(viewer: TableViewerBase):
     else:
         raise TypeError(f"Cannot add widget to {type(viewer)}")
     return None
+
+
+def show_preference(viewer: TableViewerBase):
+    """Show preference dialog"""
+    viewer._qwidget.showPreferenceDialog()
