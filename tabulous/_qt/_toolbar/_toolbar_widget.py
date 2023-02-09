@@ -102,6 +102,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self._corner_widget = corner
         self._tab.setCornerWidget(corner)
         corner.sliceChanged.connect(self.sliceChanged.emit)
+        corner.hide()
 
         self.setSizePolicy(
             QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Minimum

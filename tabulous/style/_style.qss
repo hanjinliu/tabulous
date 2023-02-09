@@ -16,6 +16,15 @@ QWidget:!enabled {
     color: gray;
 }
 
+/* separator */
+QToolBar > QWidget {
+    background-color: gray
+}
+
+QToolBar > QToolButton {
+    background-color: #[background];
+}
+
 QFrame:!enabled {
     background-color: #[background];
     color: gray;
