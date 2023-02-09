@@ -15,8 +15,8 @@ class QIntOrNoneEdit(QtW.QLineEdit):
     def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
         self.setValidator(QIntOrNoneValidator())
-        self.setMaximumWidth(24)
-        self.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.textChanged.connect(self.ensureVisible)
 
     def value(self):
         return int(self.text()) if self.text() else None
@@ -56,6 +56,11 @@ class QIntOrNoneEdit(QtW.QLineEdit):
             self.decrement()
         return super().wheelEvent(a0)
 
+    def ensureVisible(self, text: str) -> QtCore.QSize:
+        metrics = QtGui.QFontMetrics(self.font())
+        w = metrics.width("9") * len(text) + 6
+        self.setFixedWidth(w)
+
 
 class QSelectionRangeEdit(QtW.QWidget):
     sliceChanged = Signal(object)
@@ -63,7 +68,8 @@ class QSelectionRangeEdit(QtW.QWidget):
     def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
         layout = QtW.QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(8, 0, 8, 0)
+        layout.setSpacing(0)
         self.setLayout(layout)
         self._r_start = QIntOrNoneEdit()
         self._r_stop = QIntOrNoneEdit()
