@@ -9,7 +9,6 @@ from ._base import _QtMainWidgetBase
 from ._titlebar import QMainWindowTitleBar
 from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
-from tabulous._utils import get_config
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewer
@@ -162,6 +161,8 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self.applyTheme(_config.window.theme)
         self.updateWidgetStyle()
 
+        self._config = _config
+
     def consoleVisible(self) -> bool:
         """True if embeded console is visible."""
         if self._console_widget is None:
@@ -268,7 +269,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 msgbox.setCheckBox(cbox)
                 btn = msgbox.exec()
                 if cbox.isChecked():
-                    get_config().window.ask_on_close = False
+                    self._config.window.ask_on_close = False
                 if btn == QtW.QMessageBox.StandardButton.No:
                     e.ignore()
                     return True
@@ -277,7 +278,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 QMainWindow._instances.remove(self)
             except ValueError:
                 pass
-            get_config().as_toml()  # save config
+            self._config.as_toml()  # save config
 
         elif type in _REORDER_INSTANCES:
             # upon activation or raise_, put window at the end of _instances
