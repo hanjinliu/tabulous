@@ -103,6 +103,9 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         startup = QStartupWidget()
         self.addTab(startup, "")
         self.tabBar().hide()
+        if parent := self.parentWidget():
+            if toolbar := parent._toolbar:
+                toolbar._corner_widget.hide()
         return
 
     def isEmpty(self) -> bool:
@@ -113,8 +116,13 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         if self.isEmpty():
             self.removeTab(0)
             self.tabBar().show()
+            if toolbar := self.parentWidget()._toolbar:
+                toolbar._corner_widget.show()
         self.addTab(table, name)
         table._qtable_view.resizedSignal.connect(self.resizedSignal.emit)
+        table.selectionChangedSignal.connect(
+            lambda: self.updateSelectionEdit(table.selections())
+        )
         return None
 
     def takeTable(self, index: int) -> QBaseTable:
@@ -164,6 +172,14 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
     def moveTable(self, src: int, dst: int):
         """Move table from `src` to `dst`."""
         return self.tabBar().moveTab(src, dst)
+
+    def updateSelectionEdit(self, sel: list[tuple[slice, slice]]):
+        if sel:
+            if toolbar := self.parentWidget()._toolbar:
+                corner = toolbar._corner_widget
+                corner.blockSignals(True)
+                corner.setSlice(sel[-1])
+                corner.blockSignals(False)
 
     def dragEnterEvent(self, e: QtGui.QDragEnterEvent) -> None:
         # This override is necessary for accepting drops from files.
@@ -320,6 +336,8 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         if isinstance(wdt, QTableGroup):
             wdt = cast(QTableGroup, wdt)
             wdt.setFocusedIndex(self._tab_index_to_group_index(index))
+        table = self.tableAtIndex(index)
+        self.updateSelectionEdit(table.selections())
         return super().setCurrentIndex(index)
 
     def tileTables(

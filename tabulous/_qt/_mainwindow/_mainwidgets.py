@@ -9,7 +9,6 @@ from ._base import _QtMainWidgetBase
 from ._titlebar import QMainWindowTitleBar
 from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
-from tabulous._utils import get_config
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewer
@@ -53,6 +52,7 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
             self._toolbar = QTableStackToolBar(self)
             self.insertWidget(0, self._toolbar)
             self.updateWidgetStyle()
+            self._toolbar.sliceChanged.emit(self.setTableSelection)
 
         return self._toolbar.setVisible(visible)
 
@@ -150,6 +150,8 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self._toolbar = QTableStackToolBar(self)
         self.addToolBar(self._toolbar)
         self._toolbar.setMovable(False)  # nested toolbar causes layout problems
+        self._toolbar.sliceChanged.connect(self.setTableSelection)
+
         self._tablestack.setMinimumSize(400, 250)
         self.resize(800, 600)
         self.setStatusBar(QRichStatusBar(self))
@@ -161,6 +163,8 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         # set style
         self.applyTheme(_config.window.theme)
         self.updateWidgetStyle()
+
+        self._config = _config
 
     def consoleVisible(self) -> bool:
         """True if embeded console is visible."""
@@ -268,7 +272,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 msgbox.setCheckBox(cbox)
                 btn = msgbox.exec()
                 if cbox.isChecked():
-                    get_config().window.ask_on_close = False
+                    self._config.window.ask_on_close = False
                 if btn == QtW.QMessageBox.StandardButton.No:
                     e.ignore()
                     return True
@@ -277,7 +281,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 QMainWindow._instances.remove(self)
             except ValueError:
                 pass
-            get_config().as_toml()  # save config
+            self._config.as_toml()  # save config
 
         elif type in _REORDER_INSTANCES:
             # upon activation or raise_, put window at the end of _instances

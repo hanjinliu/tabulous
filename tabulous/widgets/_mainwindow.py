@@ -585,6 +585,11 @@ class TableViewer(TableViewerBase):
             show=show,
         )
 
+    @property
+    def config(self) -> MappingProxyType:
+        """Return the config info."""
+        return self._qwidget._config.as_immutable()
+
     def add_dock_widget(
         self,
         widget: Widget | QWidget,
@@ -593,6 +598,20 @@ class TableViewer(TableViewerBase):
         area: str = "right",
         allowed_areas: list[str] | None = None,
     ):
+        """
+        Add a Qt or magic widget as a dock widget of the table viewer.
+
+        Parameters
+        ----------
+        widget : magicgui.widgets.Widget or QWidget
+            Widget to add to the table viewer.
+        name : str, optional
+            Name of the widget.
+        area : str, default is "right"
+            The initial area of the dock widget.
+        allowed_areas : list of str, optional
+            The allowed areas of the dock widget.
+        """
         backend_widget, name = _normalize_widget(widget, name)
 
         dock = self._qwidget.addDockWidget(
