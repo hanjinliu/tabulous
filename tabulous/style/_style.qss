@@ -321,19 +321,8 @@ QCommandList:item:hover {
     selection-background-color: #[highlight0];
 }
 
-/* QTextEdit */
-QPlainTextEdit {
-    background-color: #[background0];
-    background-clip: padding;
-    color: #[foreground];
-    min-height: 35px;
-    padding: 2px;
-    border-radius: 2px;
-    border: 1px solid #[highlight1];
-    selection-background-color: #[highlight0];
-}
-
-QTextEdit {
+/* Text including QtConsole */
+QPlainTextEdit, QTextEdit {
     background-color: #[background];
     background-clip: padding;
     color: #[foreground];
@@ -343,6 +332,15 @@ QTextEdit {
     border: 1px solid #[highlight1];
     selection-background-color: #[highlight0];
 }
+.inverted {
+    background-color: #[highlight0];
+    color: #[background];
+}
+.error { color: red; }
+.in-prompt-number { font-weight: bold; }
+.out-prompt-number { font-weight: bold; }
+.in-prompt { color: #[base_color]; }
+.out-prompt { color: #[base_color]; }
 
 /* the area behind the scrollbar */
 QTextEdit > QWidget {
@@ -435,10 +433,6 @@ QGroupBox::title {
     left: 5px;
     background-color: #[background];
     color: #[base_color];
-}
-
-QDockWidget {
-    border: 1px solid #[highlight0];
 }
 
 QCheckBox {
