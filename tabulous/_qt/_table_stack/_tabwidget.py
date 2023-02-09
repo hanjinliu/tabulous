@@ -115,6 +115,9 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
             self.tabBar().show()
         self.addTab(table, name)
         table._qtable_view.resizedSignal.connect(self.resizedSignal.emit)
+        table.selectionChangedSignal.connect(
+            lambda: self.updateSelectionEdit(table.selections())
+        )
         return None
 
     def takeTable(self, index: int) -> QBaseTable:
@@ -164,6 +167,13 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
     def moveTable(self, src: int, dst: int):
         """Move table from `src` to `dst`."""
         return self.tabBar().moveTab(src, dst)
+
+    def updateSelectionEdit(self, sel: list[tuple[slice, slice]]):
+        if sel:
+            corner = self.parentWidget()._toolbar._corner_widget
+            corner.blockSignals(True)
+            corner.setSlice(sel[-1])
+            corner.blockSignals(False)
 
     def dragEnterEvent(self, e: QtGui.QDragEnterEvent) -> None:
         # This override is necessary for accepting drops from files.

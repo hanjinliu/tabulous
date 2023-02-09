@@ -229,6 +229,8 @@ class _QtMainWidgetBase(QtW.QWidget):
 
     def setTableSelection(self, sl: tuple[slice, slice]):
         if table := self._table_viewer.current_table:
+            sel = list(table.selections)
             self._toolbar.blockSignals(True)
-            table.selections([sl])
+            sel[-1] = sl
+            table.selections = sel
             self._toolbar.blockSignals(False)

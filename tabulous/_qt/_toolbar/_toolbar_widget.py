@@ -99,8 +99,9 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self._tab = QtW.QTabWidget(self)
         self._tab.setContentsMargins(0, 0, 0, 0)
         corner = QSelectionRangeEdit(self._tab)
+        self._corner_widget = corner
         self._tab.setCornerWidget(corner)
-        corner.sliceChanged.connect(self.sliceChanged)
+        corner.sliceChanged.connect(self.sliceChanged.emit)
 
         self.setSizePolicy(
             QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Minimum

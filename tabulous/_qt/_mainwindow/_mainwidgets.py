@@ -150,6 +150,8 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self._toolbar = QTableStackToolBar(self)
         self.addToolBar(self._toolbar)
         self._toolbar.setMovable(False)  # nested toolbar causes layout problems
+        self._toolbar.sliceChanged.connect(self.setTableSelection)
+
         self._tablestack.setMinimumSize(400, 250)
         self.resize(800, 600)
         self.setStatusBar(QRichStatusBar(self))
