@@ -5,6 +5,7 @@ from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt
 
 from ._theme import QThemePanel
+from ._table_config import QTableConfigPanel
 
 if TYPE_CHECKING:
     from tabulous._qt._mainwindow import _QtMainWidgetBase
@@ -55,3 +56,6 @@ class QPreferenceDialog(QtW.QDialog):
         panel_apperance = self.addPanel("Apperance")
         panel_apperance.layout().addWidget(QtW.QLabel("Theme"))
         panel_apperance.layout().addWidget(QThemePanel(self))
+        panel_table = self.addPanel("Table")
+        panel_table.layout().addWidget(QtW.QLabel("Table configuation"))
+        panel_table.layout().addWidget(QTableConfigPanel(self))

@@ -192,12 +192,15 @@ class TabulousConfig:
 
         with open(path) as f:
             tm = toml.load(f)
+        return cls.from_dict(tm)
 
-        console_namespace = tm.get("console_namespace", {})
-        table = tm.get("table", {})
-        cell = tm.get("cell", {})
-        window = tm.get("window", {})
-        if not (kb := tm.get("keybindings", {})):
+    @classmethod
+    def from_dict(cls, dict_: dict[str, Any]) -> TabulousConfig:
+        console_namespace = dict_.get("console_namespace", {})
+        table = dict_.get("table", {})
+        cell = dict_.get("cell", {})
+        window = dict_.get("window", {})
+        if not (kb := dict_.get("keybindings", {})):
             kb = prep_default_keybindings()
         return cls(
             ConsoleNamespace(**_as_fields(console_namespace, ConsoleNamespace)),
@@ -235,6 +238,15 @@ def get_config(reload: bool = False) -> TabulousConfig:
     if CONFIG is None or reload:
         CONFIG = TabulousConfig.from_toml()
     return CONFIG
+
+
+def update_config(cfg: dict[str, Any], save: bool = False) -> None:
+    """Update the global config."""
+    global CONFIG
+    CONFIG = TabulousConfig.from_dict(cfg)
+    if save:
+        CONFIG.as_toml()
+    return None
 
 
 def _as_fields(kwargs: dict[str, Any], dcls: type) -> dict[str, Any]:

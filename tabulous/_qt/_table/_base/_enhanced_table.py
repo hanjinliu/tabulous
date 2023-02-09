@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
     from tabulous._qt._mainwindow import _QtMainWidgetBase
     from tabulous._map_model import SlotRefMapping
+    from tabulous._utils import TabulousConfig
 
 # Flags
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
@@ -75,18 +76,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         else:
             self._parent_table = None
 
-        from tabulous._utils import get_config
-
-        table = get_config().table
-
-        # settings
-        self._font_size = table.font_size
         self._zoom = 1.0
-        self._h_default = table.row_size
-        self._w_default = table.column_size
-        self._font = table.font
-        self.setFont(QtGui.QFont(self._font, self._font_size))
         self.setWordWrap(False)  # this disables eliding float text
+        self.load_config()
 
         # use custom selection model
         self.setSelectionMode(QtW.QAbstractItemView.SelectionMode.NoSelection)
@@ -147,6 +139,21 @@ class _QTableViewEnhanced(QtW.QTableView):
         def verticalHeader(self) -> QVerticalHeaderView: ...
         def horizontalHeader(self) -> QHorizontalHeaderView: ...
     # fmt: on
+
+    def load_config(self, cfg: TabulousConfig | None = None) -> None:
+        from tabulous._utils import get_config
+
+        if cfg is None:
+            cfg = get_config()
+
+        table = cfg.table
+
+        # settings
+        self._font_size = table.font_size
+        self._h_default = table.row_size
+        self._w_default = table.column_size
+        self._font = table.font
+        self.setFont(QtGui.QFont(self._font, self._zoom * self._font_size))
 
     @property
     def _focused_widget(self) -> QtW.QWidget | None:

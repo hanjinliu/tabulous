@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
     from ._header_view import QDataFrameHeaderView
 
-_CONFIG = get_config()
 _LEFT_LIKE = frozenset(
     {"Left", "Ctrl+Left", "Shift+Left", "Ctrl+Shift+Left", "Home", "Shift+Home"}
 )
@@ -405,7 +404,8 @@ class QCellLiteralEdit(_QTableLineEdit):
             font.setBold(True)
             self.setFont(font)
         else:
-            font = QtGui.QFont(_CONFIG.table.font, self.font().pointSize())
+            font_family = self.parentTableView().font().family()
+            font = QtGui.QFont(font_family, self.font().pointSize())
             font.setBold(False)
             self.setFont(font)
         return None
@@ -741,10 +741,6 @@ class QCellLabelEdit(QtW.QLineEdit):
         super().__init__(parent)
         self._table = table
         self._pos = pos
-        table_config = get_config().table
-        font = QtGui.QFont(table_config.font, table_config.font_size)
-        font.setBold(True)
-        self.setFont(font)
         self.editingFinished.connect(self._on_editing_finished)
 
     def _on_editing_finished(self):
@@ -822,6 +818,10 @@ class QCellLabelEdit(QtW.QLineEdit):
 
         line.setFocus()
         line.selectAll()
+
+        font = qtable.font()
+        font.setBold(True)
+        line.setFont(font)
         return line
 
 
