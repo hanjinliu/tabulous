@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from . import _dialogs, _utils
+from tabulous._magicgui import ToggleSwitchSelect
 
 if TYPE_CHECKING:
     from tabulous.widgets._mainwindow import TableViewerBase
@@ -23,7 +24,7 @@ def summarize_table(viewer: TableViewerBase):
     table = _utils.get_table(viewer)
     out = _dialogs.summarize_table(
         table={"bind": table},
-        methods={"choices": SUMMARY_CHOICES, "widget_type": "Select"},
+        methods={"choices": SUMMARY_CHOICES, "widget_type": ToggleSwitchSelect},
         parent=viewer._qwidget,
     )
     if out is not None:

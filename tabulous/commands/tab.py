@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from . import _dialogs
+from tabulous._magicgui import ToggleSwitchSelect
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase
@@ -56,7 +57,7 @@ def tile_tables(viewer: TableViewerBase):
     """Tile tabs"""
     choices = [(table.name, idx) for idx, table in enumerate(viewer.tables)]
     out = _dialogs.choose_multiple(
-        choices={"choices": choices, "widget_type": "Select"},
+        choices={"choices": choices, "widget_type": ToggleSwitchSelect},
         parent=viewer.native,
     )
     if out:

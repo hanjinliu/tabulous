@@ -41,7 +41,7 @@ class QToggleSwitch(QtW.QWidget):
         self._margin = 3
         self._anim = QtCore.QPropertyAnimation(self, b"offset", self)
 
-        self.setFixedWidth(38)
+        self.setFixedSize(38, 22)
         self.toggled.connect(self._set_checked)
 
     @Property(QtGui.QColor)
@@ -125,6 +125,10 @@ class QToggleSwitch(QtW.QWidget):
     def _set_checked(self, val: bool):
         start = self.positionForValue(self._checked)
         end = self.positionForValue(val)
+
+        # Do not re-animate if the value is the same
+        if self._checked == val:
+            return
         self._checked = val
         self._anim.setStartValue(start)
         self._anim.setEndValue(end)
@@ -182,6 +186,8 @@ class QToggleSwitchBase(QtW.QWidget):
 
 
 class QButtonGroup(QtCore.QObject):
+    """A button group object that mimics the Qt API."""
+
     buttonToggled = Signal(QToggleSwitchBase, bool)
 
     def __init__(self) -> None:
@@ -190,7 +196,10 @@ class QButtonGroup(QtCore.QObject):
         self._exclusive = True
 
     def buttons(self) -> list[QToggleSwitchBase]:
-        return self._list
+        """Return the list of buttons in the group."""
+        # NOTE: Must return a copy of the list because this function will be used as
+        # an iterator.
+        return self._list.copy()
 
     def checkedButton(self) -> QToggleSwitchBase:
         for btn in self._list:
@@ -235,6 +244,7 @@ class QToggleSwitchesBase(RadioButtonsBase):
         QBaseValueWidget.__init__(self, QtW.QGroupBox, "", "", "", **kwargs)
         self._btn_group = QButtonGroup()
         self._qwidget.setLayout(QtW.QVBoxLayout())
+        self._qwidget.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
         self._btn_group.buttonToggled.connect(self._emit_data)
 
     def _emit_data(self, btn, checked):
