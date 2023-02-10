@@ -18,6 +18,7 @@ class QGeneralPanel(QtW.QWidget):
         cfg.window.notify_latest = self._notify_latest.isChecked()
         cfg.window.selection_editor = self._selection_editor.isChecked()
         cfg.window.show_console = self._show_console.isChecked()
+        cfg.console_namespace.load_startup_file = self._load_startup.isChecked()
         return cfg
 
     def _update_config(self):
@@ -42,16 +43,21 @@ class QGeneralPanel(QtW.QWidget):
         self._show_console = QToggleSwitch()
         self._show_console.setChecked(cfg.window.show_console)
 
+        self._load_startup = QToggleSwitch()
+        self._load_startup.setChecked(cfg.console_namespace.load_startup_file)
+
         _layout = QtW.QFormLayout()
 
         _layout.addRow("Ask before closing window", self._ask_on_close)
         _layout.addRow("Notify latest version", self._notify_latest)
         _layout.addRow("Show selection editor", self._selection_editor)
         _layout.addRow("Show Qt console", self._show_console)
+        _layout.addRow("Load IPython startup files", self._load_startup)
 
         self._ask_on_close.toggled.connect(self._update_config)
         self._notify_latest.toggled.connect(self._update_config)
         self._selection_editor.toggled.connect(self._update_config)
         self._show_console.toggled.connect(self._update_config)
+        self._load_startup.toggled.connect(self._update_config)
 
         self.setLayout(_layout)

@@ -25,6 +25,8 @@ class QTableConfigPanel(QtW.QWidget):
         cfg.table.font_size = self._font_size.value()
         cfg.table.row_size = self._row_size.value()
         cfg.table.column_size = self._column_size.value()
+        cfg.cell.ref_prefix = self._ref_prefix.text()
+        cfg.cell.eval_prefix = self._eval_prefix.text()
         return cfg
 
     def _on_throttled(self):

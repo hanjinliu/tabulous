@@ -153,8 +153,11 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._h_default = table.row_size
         self._w_default = table.column_size
         self._font = table.font
-        self.setFont(QtGui.QFont(self._font, int(self._zoom * self._font_size)))
-        self.update()
+        qfont = QtGui.QFont(self._font, int(self._zoom * self._font_size))
+        self.setFont(qfont)
+        self.horizontalHeader().setFont(qfont)
+        self.verticalHeader().setFont(qfont)
+        self._update_all()
 
     @property
     def _focused_widget(self) -> QtW.QWidget | None:
@@ -510,10 +513,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         pos = self.horizontalScrollBar().sliderPosition()
         self.horizontalScrollBar().setSliderPosition(int(pos * zoom_ratio))
 
-        # # Zoom section size of headers
+        # Zoom section size of headers
         self.setSectionSize(int(self._w_default * value), int(self._h_default * value))
 
-        # # Update stuff
+        # Update stuff
         self._zoom = value
         font = self.font()
         font.setPointSize(int(self._font_size * value))

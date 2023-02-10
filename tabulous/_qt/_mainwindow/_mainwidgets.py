@@ -306,6 +306,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
     @classmethod
     def reload_config(cls):
+        """Reload tabulous config and apply to all TableViewer instances"""
         cfg = get_config()
         for self in cls._instances:
             self.applyTheme(cfg.window.theme)
