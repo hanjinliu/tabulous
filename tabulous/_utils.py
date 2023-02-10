@@ -256,6 +256,8 @@ def update_config(cfg: TabulousConfig, save: bool = False) -> None:
 def init_config():
     """Temporarily initialize the config."""
     global CONFIG
+    if CONFIG is None:
+        get_config()
     ori = TabulousConfig()
     old = CONFIG
     CONFIG = ori
@@ -263,8 +265,7 @@ def init_config():
         yield
     finally:
         CONFIG = old
-        if old is not None:
-            old.as_toml()
+        old.as_toml()
 
 
 def _as_fields(kwargs: dict[str, Any], dcls: type) -> dict[str, Any]:

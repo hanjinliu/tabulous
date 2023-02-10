@@ -217,7 +217,7 @@ QTabWidget {
 }
 
 QTabWidget::pane {
-    border: 1px solid #[foreground];
+    border: 1px solid #[highlight0];
     background-color: #[background];
     top: -1px;
 }
@@ -459,16 +459,16 @@ QToolTip {
 }
 
 QRangeSlider {
-  qproperty-barColor: #[highlight0];
+    qproperty-barColor: #[highlight0];
 }
 
 QAbstractSpinBox {
-  background-color: #[background0];
-  border: solid 1px #[foreground];
-  padding: 1px 3px;
-  min-width: 70px;
-  min-height: 16px;
-  border-radius: 2px;
+    background-color: #[background0];
+    border: solid 1px #[foreground];
+    padding: 1px 3px;
+    min-width: 70px;
+    min-height: 16px;
+    border-radius: 2px;
 }
 
 QAbstractSpinBox:hover {
