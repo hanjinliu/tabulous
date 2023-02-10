@@ -168,6 +168,7 @@ class Window:
     show_console: bool = False
     theme: str = "light-blue"
     notify_latest: bool = True
+    selection_editor: bool = True
     title_bar: str = "native"
 
 

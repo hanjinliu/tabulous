@@ -309,6 +309,8 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         cfg = get_config()
         for self in cls._instances:
             self.applyTheme(cfg.window.theme)
+            if toolbar := self._toolbar:
+                toolbar._corner_widget.setVisible(get_config().window.selection_editor)
             for table in self._table_viewer.tables:
                 table._qwidget._qtable_view.load_config(cfg)
         return None
