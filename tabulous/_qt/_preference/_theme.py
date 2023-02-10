@@ -31,14 +31,18 @@ class QThemePanel(QtW.QWidget):
         self.setLayout(_layout)
         self.setMinimumSize(200, 100)
         name = get_config().window.theme
-        for key, wdt in self._labels.items():
-            wdt.setChecked(key == name)
+        self._update_check_state(name)
 
     def setTheme(self, name: str):
         cfg = get_config()
         cfg.window.theme = name
         update_config(cfg)
         QMainWindow.reload_config()
+        self._update_check_state(name)
+
+    def _update_check_state(self, name: str):
+        for key, wdt in self._labels.items():
+            wdt.setChecked(key == name)
 
 
 class QThemeSelectionLabel(QtW.QLabel):

@@ -254,6 +254,7 @@ def update_config(cfg: TabulousConfig, save: bool = False) -> None:
 
 @contextmanager
 def init_config():
+    """Temporarily initialize the config."""
     global CONFIG
     ori = TabulousConfig()
     old = CONFIG
@@ -262,6 +263,8 @@ def init_config():
         yield
     finally:
         CONFIG = old
+        if old is not None:
+            old.as_toml()
 
 
 def _as_fields(kwargs: dict[str, Any], dcls: type) -> dict[str, Any]:

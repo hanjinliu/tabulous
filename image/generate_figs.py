@@ -19,6 +19,7 @@ def viewer_example():
     sheet = viewer.open_sample("iris", type="spreadsheet")
     grouped = viewer.add_groupby(sheet.data.groupby("species"), name="grouped")
     cmds.tab.tile_with_adjacent_table(viewer)
+    viewer.size = (600, 400)
     grouped.move_iloc(46, 4)
     viewer.current_index = 0
     sheet.move_iloc(5, 3)
