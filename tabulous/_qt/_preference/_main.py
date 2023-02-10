@@ -24,6 +24,7 @@ class QPreferenceDialog(QtW.QDialog):
 
         self._list = QtW.QListWidget(self)
         self._list.setFixedWidth(150)
+        self._list.setFont(QtGui.QFont("Arial", 13))
         self._stack = QtW.QStackedWidget(self)
 
         self._list.itemClicked.connect(

@@ -1,15 +1,11 @@
 from __future__ import annotations
 from functools import partial
 
-from typing import TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Qt, Signal
 from tabulous.style import Style, GLOBAL_STYLES
 from tabulous._qt._mainwindow import QMainWindow
 from tabulous._utils import get_config, update_config
-
-if TYPE_CHECKING:
-    pass
 
 
 class QThemePanel(QtW.QWidget):
