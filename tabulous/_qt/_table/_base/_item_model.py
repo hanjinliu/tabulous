@@ -5,11 +5,11 @@ from qtpy import QtCore, QtGui, QtWidgets as QtW
 from qtpy.QtCore import Qt, Signal
 import pandas as pd
 
-from ._line_edit import QCellLiteralEdit
 from tabulous._dtype import isna
 from tabulous.color import normalize_color, ColorType
 from tabulous._text_formatter import DefaultFormatter
 from tabulous._map_model import TableMapping
+from tabulous._utils import get_config
 
 if TYPE_CHECKING:
     from ._table_base import QBaseTable
@@ -94,7 +94,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         if r < df.shape[0] and c < df.shape[1]:
             base_table = self.parent()
             if ref_expr := base_table._get_ref_expr(r, c):
-                return QCellLiteralEdit._REF_PREFIX + ref_expr
+                return get_config().cell.ref_prefix + ref_expr
 
             val = df.iat[r, c]
             if isna(val):

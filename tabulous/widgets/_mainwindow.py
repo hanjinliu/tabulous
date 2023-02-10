@@ -588,7 +588,9 @@ class TableViewer(TableViewerBase):
     @property
     def config(self) -> MappingProxyType:
         """Return the config info."""
-        return self._qwidget._config.as_immutable()
+        from tabulous._utils import get_config
+
+        return get_config().as_immutable()
 
     def add_dock_widget(
         self,

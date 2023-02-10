@@ -1,13 +1,11 @@
 from __future__ import annotations
 from functools import partial
 
-from typing import TYPE_CHECKING
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Qt, Signal
 from tabulous.style import Style, GLOBAL_STYLES
-
-if TYPE_CHECKING:
-    from tabulous._qt._mainwindow import _QtMainWidgetBase
+from tabulous._qt._mainwindow import QMainWindow
+from tabulous._utils import get_config, update_config
 
 
 class QThemePanel(QtW.QWidget):
@@ -32,23 +30,15 @@ class QThemePanel(QtW.QWidget):
 
         self.setLayout(_layout)
         self.setMinimumSize(200, 100)
-        name = self.parentViewer()._table_viewer.theme
+        name = get_config().window.theme
         for key, wdt in self._labels.items():
             wdt.setChecked(key == name)
 
     def setTheme(self, name: str):
-        for key, wdt in self._labels.items():
-            wdt.setChecked(key == name)
-
-        self.parentViewer()._table_viewer.theme = name
-
-    def parentViewer(self) -> _QtMainWidgetBase:
-        parent = self.parentWidget()
-        while parent is not None:
-            parent = parent.parentWidget()
-            if hasattr(parent, "_table_viewer"):
-                return parent
-        return None
+        cfg = get_config()
+        cfg.window.theme = name
+        update_config(cfg)
+        QMainWindow.reload_config()
 
 
 class QThemeSelectionLabel(QtW.QLabel):

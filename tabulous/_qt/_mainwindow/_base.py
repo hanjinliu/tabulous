@@ -40,6 +40,7 @@ class _QtMainWidgetBase(QtW.QWidget):
     _namespace: Namespace
 
     _hist_mgr = QtFileHistoryManager()
+    _is_mainwindow = False
 
     def __init__(
         self,
@@ -92,6 +93,8 @@ class _QtMainWidgetBase(QtW.QWidget):
 
     def applyTheme(self, theme: str):
         """Apply predefined theme to the main window."""
+        if self._style_theme == theme:
+            return
         self._style_theme = theme
         self.setStyleSheet(Style.from_global(self._style_theme).format_file())
         # update console theme
@@ -228,6 +231,7 @@ class _QtMainWidgetBase(QtW.QWidget):
             self._menubar._corner_buttons.setMiddleIcon(self.windowState())
 
     def setTableSelection(self, sl: tuple[slice, slice]):
+        """Set selection slices to the table selection editor"""
         if table := self._table_viewer.current_table:
             sel = list(table.selections)
             self._toolbar.blockSignals(True)

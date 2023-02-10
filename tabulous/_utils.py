@@ -5,6 +5,7 @@ from typing import Any
 from dataclasses import asdict, dataclass, field
 from functools import wraps
 from pathlib import Path
+from contextlib import contextmanager
 from appdirs import user_config_dir
 
 
@@ -167,6 +168,8 @@ class Window:
     ask_on_close: bool = True
     show_console: bool = False
     theme: str = "light-blue"
+    notify_latest: bool = True
+    selection_editor: bool = True
     title_bar: str = "native"
 
 
@@ -240,13 +243,25 @@ def get_config(reload: bool = False) -> TabulousConfig:
     return CONFIG
 
 
-def update_config(cfg: dict[str, Any], save: bool = False) -> None:
+def update_config(cfg: TabulousConfig, save: bool = False) -> None:
     """Update the global config."""
     global CONFIG
-    CONFIG = TabulousConfig.from_dict(cfg)
+    CONFIG = cfg
     if save:
         CONFIG.as_toml()
     return None
+
+
+@contextmanager
+def init_config():
+    global CONFIG
+    ori = TabulousConfig()
+    old = CONFIG
+    CONFIG = ori
+    try:
+        yield
+    finally:
+        CONFIG = old
 
 
 def _as_fields(kwargs: dict[str, Any], dcls: type) -> dict[str, Any]:

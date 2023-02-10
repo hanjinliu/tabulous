@@ -11,6 +11,8 @@ from tabulous._qt._table._base._table_group import QTableGroup
 from tabulous._qt._clickable_label import QClickableLabel
 from tabulous._qt._action_registry import QActionRegistry
 
+from tabulous._utils import get_config
+
 if TYPE_CHECKING:
     from tabulous._qt._table import QBaseTable, QMutableTable
     from tabulous._qt._mainwindow._base import _QtMainWidgetBase
@@ -117,7 +119,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
             self.removeTab(0)
             self.tabBar().show()
             if toolbar := self.parentWidget()._toolbar:
-                toolbar._corner_widget.show()
+                toolbar._corner_widget.setVisible(get_config().window.selection_editor)
         self.addTab(table, name)
         table._qtable_view.resizedSignal.connect(self.resizedSignal.emit)
         table.selectionChangedSignal.connect(

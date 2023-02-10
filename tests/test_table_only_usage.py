@@ -1,6 +1,5 @@
 from tabulous.widgets import Table, SpreadSheet
 from pytestqt.qtbot import QtBot
-from qtpy.QtWidgets import QApplication
 from qtpy.QtCore import Qt
 import numpy as np
 
@@ -66,7 +65,7 @@ def test_erase(qtbot: QtBot):
     qtbot.keyClick(sheet.native, Qt.Key.Key_Delete)
     assert sheet.cell[0, 1] == ""
 
-def test_slot():
+def test_slot(make_tabulous_viewer):  # NOTE: make_tabulous_viewer initializes config
     sheet = SpreadSheet({"a": [1, 3, 5]})
     sheet.cell[0, 1] = "&=np.mean(df.iloc[:, 0])"
     assert sheet.cell[0, 1] == "3.0"

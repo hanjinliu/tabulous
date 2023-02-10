@@ -4,8 +4,8 @@ import pandas as pd
 from numpy.testing import assert_allclose, assert_equal
 import pytest
 
-def test_scalar():
-    viewer = TableViewer(show=False)
+def test_scalar(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(pd.DataFrame({"a": [1, 3, 5]}))
     qtable = sheet.native._qtable_view
     editor = qtable._create_eval_editor("&=np.mean(df['a'][0:3])", (0, 1))
@@ -21,8 +21,8 @@ def test_scalar():
     sheet.cell[0, 0] = 7
     assert sheet.data.iloc[0, 1] == 5.0
 
-def test_delete_ref_by_editing_the_cells():
-    viewer = TableViewer(show=False)
+def test_delete_ref_by_editing_the_cells(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(pd.DataFrame({"a": [1, 3, 5]}))
     qtable = sheet.native._qtable_view
     editor = qtable._create_eval_editor("&=np.mean(df['a'][0:3])", (0, 1))
@@ -34,8 +34,8 @@ def test_delete_ref_by_editing_the_cells():
     sheet.cell[0, 1] = "10"
     assert (0, 1) not in list(qtable._table_map.keys())
 
-def test_delete_ref_by_editing_many_cells():
-    viewer = TableViewer(show=False)
+def test_delete_ref_by_editing_many_cells(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(pd.DataFrame({"a": [1, 3, 5]}))
     qtable = sheet.native._qtable_view
     editor = qtable._create_eval_editor("&=np.mean(df['a'][0:3])", (0, 1))
@@ -47,14 +47,14 @@ def test_delete_ref_by_editing_many_cells():
     sheet.cell[0:3, 1] = ["10", "10", "20"]
     assert (0, 1) not in list(qtable._table_map.keys())
 
-def test_eval_with_no_ref():
-    viewer = TableViewer(show=False)
+def test_eval_with_no_ref(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet()
     sheet.cell[0, 0] = "&=np.arange(5)"
     assert len(sheet.cell.ref) == 0
 
-def test_1x1_ref_overwritten_by_Nx1_eval():
-    viewer = TableViewer(show=False)
+def test_1x1_ref_overwritten_by_Nx1_eval(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
     sheet.cell[0, 1] = "&=np.mean(df['a'][0:3])"
     assert (0, 1) in sheet.cell.ref
@@ -62,8 +62,8 @@ def test_1x1_ref_overwritten_by_Nx1_eval():
     assert (0, 1) not in sheet.cell.ref
     assert (1, 1) in sheet.cell.ref
 
-def test_eval_undo():
-    viewer = TableViewer(show=False)
+def test_eval_undo(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
     sheet.cell[0, 1] = "&=np.mean(df['a'][0:3])"
     assert sheet.data.iloc[0, 1] == 2.0
@@ -77,8 +77,8 @@ def test_eval_undo():
     assert sheet.data.iloc[0, 0] == 10
     assert sheet.data.iloc[0, 1] == 5.0
 
-def test_eval_undo_with_many_cells():
-    viewer = TableViewer(show=False)
+def test_eval_undo_with_many_cells(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
     sheet.cell[0, 1] = "&=np.cumsum(df['a'][0:3])"
     assert_allclose(sheet.data.iloc[:, 1].values, [1, 3, 6])
@@ -92,9 +92,8 @@ def test_eval_undo_with_many_cells():
     assert sheet.data.iloc[0, 0] == 10
     assert_allclose(sheet.data.iloc[:, 1].values, [10, 12, 15])
 
-def test_eval_undo_with_overwrite():
-    import numpy as np
-    viewer = TableViewer(show=False)
+def test_eval_undo_with_overwrite(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
     sheet.cell[0, 1] = "&=np.mean(df['a'][0:3])"
     sheet.cell[1, 1] = "&=np.cumsum(df['a'][0:3])"
@@ -118,24 +117,24 @@ def test_eval_undo_with_overwrite():
         "df['a'][:].values",  # array
     ]
 )
-def test_many_expr(expr: str):
-    viewer = TableViewer(show=False)
+def test_many_expr(expr: str, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(
         {"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 4, 5]}
     )
     sheet.cell[1, 2] = f"&={expr}"
     assert_allclose(sheet.data.iloc[:, 2].values, eval(expr, {"df": sheet.data, "np": np}, {}))
 
-def test_returns_shorter():
-    viewer = TableViewer(show=False)
+def test_returns_shorter(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(
         {"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 4, 5]}
     )
     sheet.cell[1, 2] = f"&=np.diff(df['a'][:])"
     assert_allclose(sheet.data.iloc[:, 2].values, [1, 1, 1, 1, np.nan])
 
-def test_called_once():
-    viewer = TableViewer(show=False)
+def test_called_once(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     count = 0
     @viewer.cell_namespace.add
     def func(*_):
@@ -149,11 +148,11 @@ def test_called_once():
     sheet.cell[0, 0] = "4"
     assert count == 2
 
-def test_ref_after_insert():
+def test_ref_after_insert(make_tabulous_viewer):
     # 0 0 0 0 0
     # 0 0 0 X 0 <- edit here
     # 0 0 0 0 0
-    viewer = TableViewer(show=False)
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
     sheet.cell[1, 3] = "&=np.sum(df.iloc[0:2, 0:1]) + 1"
     assert sheet.cell[1, 3] == "1.0"
@@ -169,11 +168,11 @@ def test_ref_after_insert():
     assert (1, 4) not in sheet.cell.ref
 
 
-def test_ref_after_removal():
+def test_ref_after_removal(make_tabulous_viewer):
     # 0 0 0 0 0
     # 0 0 0 X 0 <- edit here
     # 0 0 0 0 0
-    viewer = TableViewer(show=False)
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
     sheet.cell[1, 3] = "&=np.sum(df.iloc[0:2, 0:1]) + 1"
     assert sheet.cell[1, 3] == "1.0"
@@ -189,12 +188,12 @@ def test_ref_after_removal():
     assert (1, 2) not in sheet.cell.ref
 
 
-def test_ref_after_removal_of_column():
+def test_ref_after_removal_of_column(make_tabulous_viewer):
     # --- table ---
     # 0 0 0 0 0
     # 0 0 0 X 0  and delete the column including X
     # 0 0 0 0 0
-    viewer = TableViewer(show=False)
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
     sheet.cell[1, 3] = "&=np.sum(df.iloc[0:2, 0:1]) + 1"
     assert sheet.cell[1, 3] == "1.0"
@@ -208,8 +207,8 @@ def test_ref_after_removal_of_column():
     assert (1, 2) not in sheet.cell.ref
 
 
-def test_removing_source():
-    viewer = TableViewer(show=False)
+def test_removing_source(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((3, 1), dtype=np.float32))
     sheet.cell[0, 1] = "&=np.sum(df.iloc[:, 0])"
     assert len(sheet.cell.ref) == 1
@@ -218,8 +217,8 @@ def test_removing_source():
     assert len(sheet.cell.ref) == 0, "slot not removed"
 
 
-def test_removing_one_of_two_sources():
-    viewer = TableViewer(show=False)
+def test_removing_one_of_two_sources(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((3, 2), dtype=np.float32))
     sheet.cell[0, 2] = "&=np.sum(df.iloc[:, 0]) + np.sum(df.iloc[:, 1])"
     assert len(sheet.cell.ref) == 1
@@ -227,12 +226,12 @@ def test_removing_one_of_two_sources():
     assert sheet.data.shape == (3, 2), "wrong shape"
     assert len(sheet.cell.ref) == 0, "slot not removed"
 
-def test_removing_or_inserting_left_column():
+def test_removing_or_inserting_left_column(make_tabulous_viewer):
     # --- table ---
     # 0 0 &=np.sum(df.iloc[:, 1:2])
     # 0 0
     # 0 0
-    viewer = TableViewer(show=False)
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet([[0., 1.], [1., 2.], [3., 5.]])
     sheet.cell[0, 2] = "&=np.sum(df.iloc[:, 1])"
     assert sheet.cell[0, 2] == "8.0"
@@ -247,8 +246,8 @@ def test_removing_or_inserting_left_column():
     sheet.cell[1, 0] = 5
     assert sheet.cell[0, 2] == "10.0"
 
-def test_eval_during_sort():
-    viewer = TableViewer(show=False)
+def test_eval_during_sort(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     rng = np.random.default_rng(123)
     sheet = viewer.add_spreadsheet(rng.poisson(3, size=(5, 1)))
     sheet.proxy.set([1, 3, 2, 4, 0])
@@ -258,8 +257,8 @@ def test_eval_during_sort():
     assert sheet.data_shown.iloc[3, 1] == np.sum(sheet.data.iloc[:, 0])
     assert (3, 1) in sheet.cell.ref
 
-def test_eval_during_filter():
-    viewer = TableViewer(show=False)
+def test_eval_during_filter(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     rng = np.random.default_rng(123)
     sheet = viewer.add_spreadsheet({"a": [0, 1, 1, 0, 1], "b": rng.poisson(3, size=5)})
     sheet.proxy.filter("a == 1")
@@ -269,8 +268,8 @@ def test_eval_during_filter():
     assert sheet.data_shown.iloc[1, 2] == np.sum(sheet.data.iloc[:, 1])
     assert (1, 2) in sheet.cell.ref
 
-def test_broadcasting_during_sort():
-    viewer = TableViewer(show=False)
+def test_broadcasting_during_sort(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     rng = np.random.default_rng(123)
     sheet = viewer.add_spreadsheet(rng.poisson(3, size=(5, 1)))
     order = [1, 3, 2, 4, 0]
@@ -281,8 +280,8 @@ def test_broadcasting_during_sort():
     assert_equal(sheet.data_shown.iloc[:, 1].values, np.cumsum(sheet.data.iloc[:, 0]).values)
     assert (3, 1) in sheet.cell.ref
 
-def test_broadcasting_during_filter():
-    viewer = TableViewer(show=False)
+def test_broadcasting_during_filter(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     rng = np.random.default_rng(123)
     sheet = viewer.add_spreadsheet({"a": [0, 1, 1, 0, 1], "b": rng.poisson(3, size=5)})
     sheet.proxy.filter("a == 1")
@@ -298,8 +297,8 @@ def _assert_status_equal(s: str, ref: str):
     r = len("</code></b>")
     assert s[l:-r] == ref
 
-def test_status_tip():
-    viewer = TableViewer(show=False)
+def test_status_tip(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((3, 2)))
     sheet.cell[0, 1] = "&=np.sum(df.iloc[:, 0])"
     sheet.cell[0, 2] = "&=np.sin(df.iloc[:, 0])"
@@ -316,8 +315,8 @@ def test_status_tip():
     sheet.move_iloc(2, 2)
     _assert_status_equal(viewer.status, "df.iloc[0:3, 2:3] = np.sin(df.iloc[0:3, 0])")
 
-def test_status_tip_with_proxy():
-    viewer = TableViewer(show=False)
+def test_status_tip_with_proxy(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer(show=False)
     sheet = viewer.add_spreadsheet(np.zeros((5, 2)))
     sheet.cell[1, 1] = "&=np.sum(df.iloc[:, 0])"
     sheet.cell[0, 2] = "&=np.sin(df.iloc[:, 0])"

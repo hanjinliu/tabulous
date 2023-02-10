@@ -1,4 +1,6 @@
+# This file is used to generate the readme/documentation for tabulous.
 from __future__ import annotations
+
 from pathlib import Path
 from typing import Callable, Union
 
