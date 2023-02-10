@@ -5,6 +5,7 @@ from typing import Any
 from dataclasses import asdict, dataclass, field
 from functools import wraps
 from pathlib import Path
+from contextlib import contextmanager
 from appdirs import user_config_dir
 
 
@@ -249,6 +250,18 @@ def update_config(cfg: TabulousConfig, save: bool = False) -> None:
     if save:
         CONFIG.as_toml()
     return None
+
+
+@contextmanager
+def init_config():
+    global CONFIG
+    ori = TabulousConfig()
+    old = CONFIG
+    CONFIG = ori
+    try:
+        yield
+    finally:
+        CONFIG = old
 
 
 def _as_fields(kwargs: dict[str, Any], dcls: type) -> dict[str, Any]:
