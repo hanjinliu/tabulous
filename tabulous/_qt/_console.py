@@ -92,7 +92,7 @@ class QtConsole(RichJupyterWidget):
             self.shell = shell
             self.push = self.shell.push
         else:
-            raise ValueError("ipython shell not recognized; " f"got {type(shell)}")
+            raise ValueError(f"ipython shell not recognized, got {type(shell)}")
 
         if self.shell is not None:
 

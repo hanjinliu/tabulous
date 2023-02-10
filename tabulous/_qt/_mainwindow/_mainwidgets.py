@@ -9,6 +9,7 @@ from ._base import _QtMainWidgetBase
 from ._titlebar import QMainWindowTitleBar
 from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
+from tabulous._utils import get_config
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewer
@@ -115,12 +116,12 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     _instances: list[QMainWindow] = []
     _keymap = QtKeyMap()
     _dock_widgets: weakref.WeakValueDictionary[str, QtDockWidget]
+    _is_mainwindow = True
 
     def __init__(
         self,
         tab_position: TabPosition | str = TabPosition.top,
     ):
-        from tabulous._utils import get_config
         from tabulous._qt._toolbar import QTableStackToolBar
 
         _config = get_config()
@@ -163,8 +164,6 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         # set style
         self.applyTheme(_config.window.theme)
         self.updateWidgetStyle()
-
-        self._config = _config
 
     def consoleVisible(self) -> bool:
         """True if embeded console is visible."""
@@ -243,8 +242,8 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         worker = get_worker()
 
         @worker.returned.connect
-        def _(v):
-            if v is not None:
+        def _(v: str):
+            if v is not None and get_config().window.notify_latest:
                 self._tablestack.notifyLatestVersion(v)
             # NOTE: uncomment the following line to test the notification
             # self._tablestack.notifyLatestVersion("0.X.X")
@@ -272,7 +271,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 msgbox.setCheckBox(cbox)
                 btn = msgbox.exec()
                 if cbox.isChecked():
-                    self._config.window.ask_on_close = False
+                    get_config().window.ask_on_close = False
                 if btn == QtW.QMessageBox.StandardButton.No:
                     e.ignore()
                     return True
@@ -281,7 +280,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 QMainWindow._instances.remove(self)
             except ValueError:
                 pass
-            self._config.as_toml()  # save config
+            get_config().as_toml()  # save config
 
         elif type in _REORDER_INSTANCES:
             # upon activation or raise_, put window at the end of _instances
@@ -304,6 +303,15 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     def setToolBarVisible(self, visible: bool):
         """Set visibility of toolbar"""
         return self._toolbar.setVisible(visible)
+
+    @classmethod
+    def reload_config(cls):
+        cfg = get_config()
+        for self in cls._instances:
+            self.applyTheme(cfg.window.theme)
+            for table in self._table_viewer.tables:
+                table._qwidget._qtable_view.load_config(cfg)
+        return None
 
 
 class QRichStatusBar(QtW.QStatusBar):
