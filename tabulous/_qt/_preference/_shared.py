@@ -4,6 +4,8 @@ from qtpy import QtWidgets as QtW, QtGui, QtCore
 
 
 class QTitleLabel(QtW.QLabel):
+    """Label used for titles in the preference dialog."""
+
     def __init__(self, text: str, size: int) -> None:
         super().__init__()
         self.setText(text)
