@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from qtpy import QtWidgets as QtW, QtGui
 from superqt.utils import QSignalThrottler
+
 from tabulous._qt._mainwindow import QMainWindow
+from tabulous._qt._qt_const import MonospaceFontFamily
 from tabulous._utils import get_config, update_config
+from ._shared import QTitleLabel
 
 
 class QTableConfigPanel(QtW.QWidget):
@@ -57,13 +60,35 @@ class QTableConfigPanel(QtW.QWidget):
         self._column_size.setRange(20, 200)
         self._column_size.setValue(cfg.table.column_size)
 
-        _layout = QtW.QFormLayout()
-        _layout.addRow("Max row count", self._max_row_count)
-        _layout.addRow("Max column count", self._max_column_count)
-        _layout.addRow("Font family", self._font)
-        _layout.addRow("Font size", self._font_size)
-        _layout.addRow("Default row span", self._row_size)
-        _layout.addRow("Default column span", self._column_size)
+        self._ref_prefix = QtW.QLineEdit()
+        self._ref_prefix.setFont(QtGui.QFont(MonospaceFontFamily))
+        self._ref_prefix.setText(cfg.cell.ref_prefix)
+
+        self._eval_prefix = QtW.QLineEdit()
+        self._eval_prefix.setFont(QtGui.QFont(MonospaceFontFamily))
+        self._eval_prefix.setText(cfg.cell.eval_prefix)
+
+        _layout = QtW.QVBoxLayout()
+        _layout.addWidget(QTitleLabel("Table", 14))
+        _widget_table = QtW.QWidget()
+        _layout_table = QtW.QFormLayout()
+        _layout_table.setContentsMargins(0, 0, 0, 0)
+        _widget_table.setLayout(_layout_table)
+        _layout.addWidget(_widget_table)
+        _layout_table.addRow("Max row count", self._max_row_count)
+        _layout_table.addRow("Max column count", self._max_column_count)
+        _layout_table.addRow("Font family", self._font)
+        _layout_table.addRow("Font size", self._font_size)
+        _layout_table.addRow("Default row span", self._row_size)
+        _layout_table.addRow("Default column span", self._column_size)
+        _layout.addWidget(QTitleLabel("Cell", 14))
+        _widget_cell = QtW.QWidget()
+        _layout_cell = QtW.QFormLayout()
+        _layout_cell.setContentsMargins(0, 0, 0, 0)
+        _widget_cell.setLayout(_layout_cell)
+        _layout.addWidget(_widget_cell)
+        _layout_cell.addRow("Reference prefix", self._ref_prefix)
+        _layout_cell.addRow("Evaluation prefix", self._eval_prefix)
 
         self._max_row_count.valueChanged.connect(self._throttler.throttle)
         self._max_column_count.valueChanged.connect(self._throttler.throttle)
@@ -71,5 +96,7 @@ class QTableConfigPanel(QtW.QWidget):
         self._font_size.valueChanged.connect(self._throttler.throttle)
         self._row_size.valueChanged.connect(self._throttler.throttle)
         self._column_size.valueChanged.connect(self._throttler.throttle)
+        self._ref_prefix.editingFinished.connect(self._throttler.throttle)
+        self._eval_prefix.editingFinished.connect(self._throttler.throttle)
 
         self.setLayout(_layout)

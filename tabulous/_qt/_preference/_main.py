@@ -6,6 +6,7 @@ from qtpy.QtCore import Qt
 
 from ._theme import QThemePanel
 from ._table_config import QTableConfigPanel
+from ._shared import QTitleLabel
 
 if TYPE_CHECKING:
     from tabulous._qt._mainwindow import _QtMainWidgetBase
@@ -54,8 +55,8 @@ class QPreferenceDialog(QtW.QDialog):
         panel_general = self.addPanel("General")
         panel_general.layout().addWidget(QtW.QLabel("TODO"))
         panel_apperance = self.addPanel("Apperance")
-        panel_apperance.layout().addWidget(QtW.QLabel("Theme"))
+        panel_apperance.layout().addWidget(QTitleLabel("Theme", 18))
         panel_apperance.layout().addWidget(QThemePanel(self))
         panel_table = self.addPanel("Table")
-        panel_table.layout().addWidget(QtW.QLabel("Table configuation"))
+        panel_table.layout().addWidget(QTitleLabel("Table Configuation", 18))
         panel_table.layout().addWidget(QTableConfigPanel(self))

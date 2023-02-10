@@ -456,6 +456,13 @@ QProgressBar::chunk {
     width: 20px;
 }
 
+QToolTip {
+    background-color: #[background];
+    color: #[foreground];
+    padding: 1px;
+    border-radius: 2px;
+}
+
 QRangeSlider {
   qproperty-barColor: #[highlight0];
 }
