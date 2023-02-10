@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 import qtpy
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import QEvent, Signal, Qt
@@ -7,6 +7,7 @@ from qt_command_palette import get_palette
 
 from ._namespace import Namespace
 
+from tabulous._qt._table import QSpreadSheet
 from tabulous._qt._table_stack import QTabbedTableStack
 from tabulous._qt._history import QtFileHistoryManager
 from tabulous._keymap import QtKeyMap
@@ -133,6 +134,9 @@ class _QtMainWidgetBase(QtW.QWidget):
             return
         for i in range(self._tablestack.count()):
             table = self._tablestack.tableAtIndex(i)
+            if isinstance(table, QSpreadSheet):
+                table = cast(QSpreadSheet, table)
+                table.model()._out_of_bound_color_cache = None
             for wdt in table._header_widgets().values():
                 if hasattr(wdt, "updateColor"):
                     wdt.updateColor(color)

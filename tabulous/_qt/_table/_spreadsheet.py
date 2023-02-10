@@ -51,7 +51,10 @@ class SpreadSheetModel(AbstractDataFrameModel):
         else:
             bgcolor = qtable_view.palette().color(qtable_view.backgroundRole())
         r, g, b = bgcolor.red(), bgcolor.green(), bgcolor.blue()
-        qcolor = QtGui.QColor(max(r - 4, 0), max(g - 4, 0), b)
+        if r + b + g > 382.5:
+            qcolor = QtGui.QColor(max(r - 4, 0), max(g - 4, 0), b)
+        else:
+            qcolor = QtGui.QColor(r, g, max(b + 4, 0))
         self._out_of_bound_color_cache = qcolor
         return qcolor
 

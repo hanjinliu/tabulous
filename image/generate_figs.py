@@ -1,9 +1,12 @@
+# Generate figures for README.md
+
 from pathlib import Path
 import numpy as np
 from magicgui import magicgui
 from magicgui.widgets import TextEdit
 
 from tabulous import TableViewer, commands as cmds
+from tabulous._utils import init_config
 
 from tabulous_doc import FunctionRegistry
 
@@ -116,4 +119,5 @@ def custom_widget_example():
 
 
 if __name__ == "__main__":
-    REG.run_all()
+    with init_config():
+        REG.run_all()

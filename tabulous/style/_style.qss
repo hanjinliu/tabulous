@@ -195,11 +195,6 @@ QTableView:focus {
     color: #[foreground];
 }
 
-QTableView:item {
-    background-color: #[background];
-    color: #[foreground];
-}
-
 QTableView:item:hover {
     /* empty style sheet enables paint event on hovering.
     without affecting the colormap.*/

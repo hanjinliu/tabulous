@@ -47,13 +47,13 @@ Couldn't find how to do it? Open the command palette and search for it!
 
 ![](https://github.com/hanjinliu/tabulous/blob/main/image/eval_example.png)
 
-Call `numpy` and `pandas` functions that you are familiar with directly in cells.
+Call `numpy` and `pandas` functions directly in cells.
 
 #### Rich visualization
 
 ![](https://github.com/hanjinliu/tabulous/blob/main/image/colormap_example.png)
 
-Set colormaps that will help you.
+Set colormaps that will help you to browse table data.
 
 #### Custom widget integration
 
