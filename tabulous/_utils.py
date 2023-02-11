@@ -170,6 +170,7 @@ class Window:
     theme: str = "light-blue"
     notify_latest: bool = True
     selection_editor: bool = True
+    nonmain_style: bool = False
     title_bar: str = "native"
 
 
@@ -262,7 +263,7 @@ def init_config():
     old = CONFIG
     CONFIG = ori
     try:
-        yield
+        yield CONFIG
     finally:
         CONFIG = old
         old.as_toml()

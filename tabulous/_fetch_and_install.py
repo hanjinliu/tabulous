@@ -24,7 +24,7 @@ def get_current_version() -> str:
 def _get_latest_version() -> str | None:
     try:
         version = get_latest_version()
-        if get_current_version() == version:
+        if get_current_version() >= version:
             version = None
     except Exception as e:
         warnings.warn(f"Failed to fetch latest version {type(e).__name__}: {e}")

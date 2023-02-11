@@ -565,10 +565,10 @@ QToggleSwitch {
     qproperty-handleColor: #[background0];
 }
 
-QSelectionRangeEdit {
+QSelectionRangeEdit > QWidget {
     border: 1px solid #[highlight0];
 }
 
-QSelectionRangeEdit > QLineEdit {
-    background-color: #[background];
+QSelectionRangeEdit > QWidget > QLineEdit {
+    background-color: transparent;
 }

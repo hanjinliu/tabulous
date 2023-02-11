@@ -6,7 +6,6 @@ from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, QEvent, QTimer
 
 from ._base import _QtMainWidgetBase
-from ._titlebar import QMainWindowTitleBar
 from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
 from tabulous._utils import get_config
@@ -30,6 +29,12 @@ class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
         self._statusbar = QRichStatusBar(self)
         self._statusbar.setFixedHeight(25)
         self.addWidget(self._statusbar)
+
+        cfg = get_config()
+        if cfg.window.nonmain_style:
+            # set style
+            self.applyTheme(cfg.window.theme)
+            self.updateWidgetStyle()
 
     def setCentralWidget(self, wdt: QTabbedTableStack):
         """Mimicking QMainWindow's method by adding a widget to the layout."""
@@ -124,29 +129,19 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     ):
         from tabulous._qt._toolbar import QTableStackToolBar
 
-        _config = get_config()
+        cfg = get_config()
 
         super().__init__()
         _QtMainWidgetBase.__init__(self, tab_position=tab_position)
         self.setWindowTitle("tabulous")
 
-        if _config.window.title_bar == "native":
-            self.setWindowIcon(QtGui.QIcon(str(ICON_DIR / "window_icon.png")))
-        elif _config.window.title_bar == "win":
-            self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint)
-            # self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-            self._menubar = QMainWindowTitleBar(
-                self, QtGui.QIcon(str(ICON_DIR / "window_icon.png"))
-            )
-            self.setMenuBar(self._menubar)
-        else:
-            raise ValueError(_config.window.title_bar)
+        self.setWindowIcon(QtGui.QIcon(str(ICON_DIR / "window_icon.png")))
 
         self._console_dock_widget = None
         self._dock_widgets = weakref.WeakValueDictionary()
 
         # ask if it is OK to close
-        self._ask_on_close = _config.window.ask_on_close
+        self._ask_on_close = cfg.window.ask_on_close
 
         self._toolbar = QTableStackToolBar(self)
         self.addToolBar(self._toolbar)
@@ -158,11 +153,11 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self.setStatusBar(QRichStatusBar(self))
         QMainWindow._instances.append(self)
 
-        if _config.window.show_console:
+        if cfg.window.show_console:
             self.setConsoleVisible(True)
 
         # set style
-        self.applyTheme(_config.window.theme)
+        self.applyTheme(cfg.window.theme)
         self.updateWidgetStyle()
 
     def consoleVisible(self) -> bool:

@@ -24,10 +24,6 @@ if TYPE_CHECKING:
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
 # Selection colors
-H_COLOR_W = QtGui.QColor(255, 96, 96, 86)
-H_COLOR_B = QtGui.QColor(255, 0, 0, 86)
-S_COLOR_W = Qt.GlobalColor.darkBlue
-S_COLOR_B = Qt.GlobalColor.cyan
 CUR_COLOR = QtGui.QColor(128, 128, 128, 108)
 HOV_COLOR = QtGui.QColor(75, 75, 242, 80)
 
@@ -128,8 +124,8 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         self._table_map = DummySlotRefMapping()
 
-        # colors
-        self._selection_color = QtGui.QColor(0, 0, 0, 255)
+        # initialize colors
+        self._selection_color = QtGui.QColor(120, 120, 170, 255)
         self._highlight_color = QtGui.QColor(255, 0, 0, 86)
 
     # fmt: off

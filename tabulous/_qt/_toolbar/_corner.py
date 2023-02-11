@@ -67,10 +67,15 @@ class QSelectionRangeEdit(QtW.QWidget):
 
     def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
+        self.setLayout(QtW.QHBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        inner = QtW.QWidget()
+        self.layout().addWidget(inner)
         layout = QtW.QHBoxLayout()
         layout.setContentsMargins(8, 0, 8, 0)
         layout.setSpacing(0)
-        self.setLayout(layout)
+        inner.setLayout(layout)
+        self.setMaximumWidth(180)
         self._r_start = QIntOrNoneEdit()
         self._r_stop = QIntOrNoneEdit()
         self._c_start = QIntOrNoneEdit()
@@ -80,15 +85,17 @@ class QSelectionRangeEdit(QtW.QWidget):
         self._c_start.setToolTip("Column starting index")
         self._c_stop.setToolTip("Column stopping index")
         self._r_start.textChanged.connect(self._rstart_changed)
+        self._r_colon = _label(":")
         self._r_stop.textChanged.connect(self._rstop_changed)
         self._c_start.textChanged.connect(self._cstart_changed)
+        self._c_colon = _label(":")
         self._c_stop.textChanged.connect(self._cstop_changed)
         layout.addWidget(self._r_start)
-        layout.addWidget(_label(":"))
+        layout.addWidget(self._r_colon)
         layout.addWidget(self._r_stop)
         layout.addWidget(_label(", "))
         layout.addWidget(self._c_start)
-        layout.addWidget(_label(":"))
+        layout.addWidget(self._c_colon)
         layout.addWidget(self._c_stop)
 
     def slice(self) -> tuple[slice, slice]:
@@ -98,16 +105,31 @@ class QSelectionRangeEdit(QtW.QWidget):
 
     def setSlice(self, sl: tuple[slice, slice]):
         rsl, csl = sl
-        self._r_start.setValue(rsl.start)
-        self._r_stop.setValue(rsl.stop)
-        self._c_start.setValue(csl.start)
-        self._c_stop.setValue(csl.stop)
+        rstart, rstop = rsl.start, rsl.stop
+        cstart, cstop = csl.start, csl.stop
+        self._r_start.setValue(rstart)
+        self._r_stop.setValue(rstop)
+        self._c_start.setValue(cstart)
+        self._c_stop.setValue(cstop)
+        if rstart is not None and rstop is not None and rstop == rstart + 1:
+            self._r_stop.hide()
+            self._r_colon.hide()
+        else:
+            self._r_stop.show()
+            self._r_colon.show()
+        if cstart is not None and cstop is not None and cstop == cstart + 1:
+            self._c_stop.hide()
+            self._c_colon.hide()
+        else:
+            self._c_stop.show()
+            self._c_colon.show()
         return None
 
     def _rstart_changed(self, txt: str):
         rstop = self._r_stop.text()
-        if txt and rstop and int(rstop) <= int(txt):
-            self._r_stop.setText(str(int(txt) + 1))
+        if txt and rstop:
+            if not self._r_stop.isVisible() or int(rstop) <= int(txt):
+                self._r_stop.setText(str(int(txt) + 1))
         return self.sliceChanged.emit(self.slice())
 
     def _rstop_changed(self, txt: str):
@@ -123,8 +145,9 @@ class QSelectionRangeEdit(QtW.QWidget):
 
     def _cstart_changed(self, txt: str):
         cstop = self._c_stop.text()
-        if txt and cstop and int(cstop) <= int(txt):
-            self._c_stop.setText(str(int(txt) + 1))
+        if txt and cstop:
+            if not self._c_stop.isVisible() or int(cstop) <= int(txt):
+                self._c_stop.setText(str(int(txt) + 1))
         return self.sliceChanged.emit(self.slice())
 
     def _cstop_changed(self, txt: str):
