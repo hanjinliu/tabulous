@@ -160,6 +160,7 @@ QDataFrameHeaderView:section {
     border: 1px solid black;
     background-color: #[highlight0];
     color: #[foreground];
+    margin: 0px;
 }
 
 QHorizontalHeaderView:section:hover {
@@ -563,6 +564,10 @@ QToggleSwitch {
     qproperty-onColor: #[highlight0];
     qproperty-offColor: #[background0];
     qproperty-handleColor: #[background0];
+}
+
+QSelectionRangeEdit {
+    max-width: 180px;
 }
 
 QSelectionRangeEdit > QWidget {

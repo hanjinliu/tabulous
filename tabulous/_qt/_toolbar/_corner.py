@@ -75,7 +75,6 @@ class QSelectionRangeEdit(QtW.QWidget):
         layout.setContentsMargins(8, 0, 8, 0)
         layout.setSpacing(0)
         inner.setLayout(layout)
-        self.setMaximumWidth(180)
         self._r_start = QIntOrNoneEdit()
         self._r_stop = QIntOrNoneEdit()
         self._c_start = QIntOrNoneEdit()

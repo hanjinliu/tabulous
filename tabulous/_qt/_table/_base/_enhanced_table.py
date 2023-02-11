@@ -50,8 +50,6 @@ class _EventFilter(QtCore.QObject):
                 if e.modifiers() == Qt.KeyboardModifier.NoModifier:
                     o._tab_clicked()
                     return True
-        elif _type == QtCore.QEvent.Type.StyleChange:
-            pass  # TODO: do something in the future
         return False
 
 
