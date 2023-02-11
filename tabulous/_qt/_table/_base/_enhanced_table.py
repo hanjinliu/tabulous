@@ -25,7 +25,6 @@ _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel
 
 # Selection colors
 CUR_COLOR = QtGui.QColor(128, 128, 128, 108)
-HOV_COLOR = QtGui.QColor(75, 75, 242, 80)
 
 logger = logging.getLogger("tabulous")
 
@@ -614,15 +613,6 @@ class _QTableViewEnhanced(QtW.QTableView):
                 pen = QtGui.QPen(next(color_cycle), 3)
                 painter.setPen(pen)
                 painter.drawRect(rect)
-
-        # mouse hover
-        mouse_idx = self.indexAt(self.viewport().mapFromGlobal(QtGui.QCursor.pos()))
-        if mouse_idx.isValid():
-            rect_cursor = self.visualRect(mouse_idx)
-            rect_cursor.adjust(1, 1, -1, -1)
-            pen = QtGui.QPen(HOV_COLOR, 2)
-            painter.setPen(pen)
-            painter.drawRect(rect_cursor)
 
         return None
 

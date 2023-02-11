@@ -15,6 +15,8 @@ if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
     from ._item_model import AbstractDataFrameModel
 
+HOV_COLOR = QtGui.QColor(75, 75, 242, 80)
+
 
 class TableItemDelegate(QtW.QStyledItemDelegate):
     """Displays table widget items with properly formatted numbers."""
@@ -119,7 +121,11 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         index: QtCore.QModelIndex,
     ):
         option.textElideMode = Qt.TextElideMode.ElideNone
-        return super().paint(painter, option, index)
+        super().paint(painter, option, index)
+        if option.state & QtW.QStyle.StateFlag.State_MouseOver:
+            painter.setPen(QtGui.QPen(HOV_COLOR, 2))
+            option.rect.adjust(1, 1, -1, -1)
+            painter.drawRect(option.rect)
 
     def initStyleOption(
         self, option: QtW.QStyleOptionViewItem, index: QtCore.QModelIndex
