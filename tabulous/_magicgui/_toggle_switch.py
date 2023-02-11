@@ -31,7 +31,9 @@ class QToggleSwitch(QtW.QWidget):
 
     def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
-
+        self.setSizePolicy(
+            QtW.QSizePolicy.Policy.Minimum, QtW.QSizePolicy.Policy.Expanding
+        )
         self._height = 16
         self._on_color = QtGui.QColor("#4D79C7")
         self._off_color = QtGui.QColor("#909090")
@@ -95,9 +97,10 @@ class QToggleSwitch(QtW.QWidget):
         if self.isEnabled():
             p.setBrush(self._on_color if self._checked else self._off_color)
             p.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
+            p.setOpacity(0.8)
         else:
             p.setBrush(self._off_color)
-            p.setOpacity(0.66)
+            p.setOpacity(0.6)
         p.drawRoundedRect(rrect, _y, _y)
         p.setBrush(self._handle_color)
         p.setOpacity(1.0)

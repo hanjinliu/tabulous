@@ -1,6 +1,5 @@
 from functools import partial
 from typing import List, Union, TYPE_CHECKING, Tuple
-from typing_extensions import Annotated
 
 import logging
 import ast
@@ -11,20 +10,22 @@ from tabulous.widgets import TableBase, TableViewerBase
 from tabulous.types import TableData
 from tabulous.exceptions import SelectionRangeError
 from tabulous._selection_op import SelectionOperator
-from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes
+from tabulous._magicgui import dialog_factory, dialog_factory_mpl, Axes, ToggleSwitch
+from typing_extensions import Annotated
 
 if TYPE_CHECKING:
     import pandas as pd
 
 logger = logging.getLogger(__name__)
+_bool = Annotated[bool, {"widget_type": ToggleSwitch}]
 
 
 @dialog_factory
 def summarize_table(
     table: TableBase,
     methods: List[str],
-    new_table: bool = False,
-    at_selection: bool = False,
+    new_table: _bool = False,
+    at_selection: _bool = False,
 ):
     if len(methods) == 0:
         raise ValueError("Select at least one method.")
@@ -39,7 +40,7 @@ def summarize_table(
 
 
 @dialog_factory
-def cut(df: TableData, column: str, bins: str, close_right: bool = True) -> TableData:
+def cut(df: TableData, column: str, bins: str, close_right: _bool = True) -> TableData:
     import pandas as pd
 
     bins = ast.literal_eval(bins)
@@ -52,7 +53,7 @@ def concat(
     viewer: TableViewerBase,
     names: List[str],
     axis: int,
-    ignore_index: bool = False,
+    ignore_index: _bool = False,
 ) -> TableData:
     import pandas as pd
 
@@ -105,7 +106,7 @@ def pivot(df: TableData, index: str, columns: str, values: str) -> TableData:
 
 
 @dialog_factory
-def sort(df: TableData, by: List[str], ascending: bool = True) -> TableData:
+def sort(df: TableData, by: List[str], ascending: _bool = True) -> TableData:
     return df.sort_values(by=by, ascending=ascending)
 
 
@@ -116,7 +117,7 @@ def plot(
     y: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    retain_reference: bool = False,
+    retain_reference: _bool = False,
 ):
     from ._plot_models import PlotModel
 
@@ -133,7 +134,7 @@ def bar(
     y: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    retain_reference: bool = False,
+    retain_reference: _bool = False,
 ):
     from ._plot_models import BarModel
 
@@ -151,7 +152,7 @@ def scatter(
     label: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    retain_reference: bool = False,
+    retain_reference: _bool = False,
 ):
     from ._plot_models import ScatterModel
 
@@ -225,7 +226,7 @@ def fill_between(
     y1: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    retain_reference: bool = False,
+    retain_reference: _bool = False,
 ):
     from ._plot_models import FillBetweenModel
 
@@ -245,7 +246,7 @@ def fill_betweenx(
     x1: SelectionOperator,
     table: TableBase,
     alpha: float = 1.0,
-    retain_reference: bool = False,
+    retain_reference: _bool = False,
 ):
     from ._plot_models import FillBetweenXModel
 
@@ -266,7 +267,7 @@ def hist(
     bins: int = 10,
     range: Tuple[str, str] = ("", ""),
     alpha: float = 1.0,
-    density: bool = False,
+    density: _bool = False,
     histtype: str = "bar",
 ):
     from ._plot_models import HistModel
@@ -301,7 +302,7 @@ def swarmplot(
     table: TableBase,
     csel,
     hue: str = None,
-    dodge: bool = False,
+    dodge: _bool = False,
     alpha: Annotated[float, {"min": 0.0, "max": 1.0}] = 1.0,
 ):
     import seaborn as sns
@@ -322,7 +323,7 @@ def barplot(
     table: TableBase,
     csel,
     hue: str = None,
-    dodge: bool = False,
+    dodge: _bool = False,
     alpha: Annotated[float, {"min": 0.0, "max": 1.0}] = 1.0,
 ):
     import seaborn as sns
@@ -344,7 +345,7 @@ def boxplot(
     table: TableBase,
     csel,
     hue: str = None,
-    dodge: bool = False,
+    dodge: _bool = False,
 ):
     import seaborn as sns
 
@@ -362,7 +363,7 @@ def boxenplot(
     table: TableBase,
     csel,
     hue: str = None,
-    dodge: bool = False,
+    dodge: _bool = False,
 ):
     import seaborn as sns
 
@@ -380,7 +381,7 @@ def violinplot(
     table: TableBase,
     csel,
     hue: str = None,
-    dodge: bool = False,
+    dodge: _bool = False,
 ):
     import seaborn as sns
 
@@ -398,7 +399,7 @@ def stripplot(
     table: TableBase,
     csel,
     hue: str = None,
-    dodge: bool = False,
+    dodge: _bool = False,
 ):
     import seaborn as sns
 
@@ -456,12 +457,12 @@ def float_slider(min: str = "0.0", max: str = "1000.0", step: str = "") -> dict:
 
 
 @dialog_factory
-def checkbox(text: str, checked: bool = True) -> dict:
+def checkbox(text: str, checked: _bool = True) -> dict:
     return dict(text=text, value=checked)
 
 
 @dialog_factory
-def radio_button(text: str, checked: bool = True) -> dict:
+def radio_button(text: str, checked: _bool = True) -> dict:
     return dict(text=text, value=checked)
 
 

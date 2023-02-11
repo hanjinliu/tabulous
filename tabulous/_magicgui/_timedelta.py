@@ -40,7 +40,7 @@ class QTimeDeltaEdit(QtW.QAbstractSpinBox):
         self.setLineEdit(_QTimeDeltaLineEdit(self._value, self))
         self.lineEdit().timedeltaChanged.connect(self.setValue)
         self.lineEdit().sectionChanged.connect(self._on_section_changed)
-        self.setMinimumSize(120, 20)
+        self.setMinimumSize(140, 20)
 
     if TYPE_CHECKING:
 
