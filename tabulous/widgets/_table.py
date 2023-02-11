@@ -10,6 +10,7 @@ from psygnal import SignalGroup, Signal
 
 from tabulous.widgets import _doc, _component as _comp
 from tabulous.widgets._keymap_abc import SupportKeyMap
+from tabulous.widgets._source import Source
 from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
 from tabulous._psygnal import SignalArray, InCellRangedSlot
 
@@ -90,6 +91,7 @@ class TableBase(SupportKeyMap):
         metadata: dict[str, Any] | None = None,
     ):
         from tabulous._qt import get_app
+        from tabulous._map_model import SlotRefMapping
 
         _ = get_app()
 
@@ -102,11 +104,11 @@ class TableBase(SupportKeyMap):
         self._qwidget = self._create_backend(_data)
         self._install_actions()
         self._qwidget.connectSelectionChangedSignal(self._emit_selections)
-        from tabulous._map_model import SlotRefMapping
 
         self._qwidget._qtable_view._table_map = SlotRefMapping(self)
         self._view_mode = ViewMode.normal
         self._metadata: dict[str, Any] = metadata or {}
+        self._source = Source()
 
         if self.mutable:
             with self._qwidget._mgr.blocked():
@@ -144,6 +146,11 @@ class TableBase(SupportKeyMap):
             DeprecationWarning,
         )
         return self.cell.ref
+
+    @property
+    def source(self) -> Source:
+        """The source of the table."""
+        return self._source
 
     def _emit_data_changed_signal(self, info: ItemInfo) -> None:
         r, c = info.row, info.column

@@ -13,6 +13,7 @@ from ._table import Table, SpreadSheet, GroupBy, TableDisplay
 from ._tablelist import TableList
 from ._sample import open_sample
 from ._component import Toolbar, Console, CommandPalette
+from ._source import Source
 from . import _doc
 
 from tabulous import _utils, _io
@@ -359,9 +360,11 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         out = _io.open_file(path)
         if isinstance(out, dict):
             for sheet_name, df in out.items():
-                fopen(df, name=sheet_name)
+                table = fopen(df, name=sheet_name)
+                table._source = Source(path)
         else:
-            fopen(out, name=path.stem)
+            table = fopen(out, name=path.stem)
+            table._source = Source(path)
 
         _utils.dump_file_open_path(path)
         return None
