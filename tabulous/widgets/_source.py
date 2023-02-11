@@ -8,6 +8,8 @@ import weakref
 if TYPE_CHECKING:
     from tabulous.widgets._table import TableBase
 
+_void = object()
+
 
 @dataclass(frozen=True)
 class Source:
@@ -24,3 +26,10 @@ class Source:
         if self.parent is not None:
             return self.parent()
         return None
+
+    def replace(self, path=_void, parent=_void) -> Source:
+        if path is _void:
+            path = self.path
+        if parent is _void:
+            parent = self.parent
+        return Source(path=path, parent=parent)

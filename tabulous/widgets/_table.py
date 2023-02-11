@@ -456,7 +456,9 @@ class TableBase(SupportKeyMap):
         """Save table data to the given path."""
         from tabulous._io import save_file
 
+        path = Path(path)
         save_file(path, self.data)
+        self._source = self.source.replace(path=path)
         return None
 
     def screenshot(self) -> np.ndarray:
