@@ -41,7 +41,7 @@ MAC = sys.platform == "darwin"
 class _QTableLineEdit(QtW.QLineEdit):
     """LineEdit widget with dtype checker and custom defocusing."""
 
-    _VALID = QtGui.QColor(186, 222, 244, 200)
+    _VALID = QtGui.QColor(122, 122, 122, 200)
     _INVALID = QtGui.QColor(255, 0, 0, 200)
 
     def __init__(
@@ -91,19 +91,7 @@ class _QTableLineEdit(QtW.QLineEdit):
 
     def _on_text_changed(self, text: str) -> None:
         """Change text color to red if invalid."""
-        palette = QtGui.QPalette()
         self._is_valid = self._is_text_valid()
-        if self._is_valid:
-            col = Qt.GlobalColor.black
-        else:
-            col = Qt.GlobalColor.red
-
-        palette.setColor(QtGui.QPalette.ColorRole.Text, col)
-        self.setPalette(palette)
-        return None
-
-    def _on_text_changed(self, text: str) -> None:
-        """Change text color to red if invalid."""
         return None
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
@@ -142,6 +130,7 @@ class _QTableLineEdit(QtW.QLineEdit):
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
         super().paintEvent(a0)
         rect = self.rect()
+        rect.adjust(1, 1, -1, -1)
         p0 = rect.bottomLeft()
         p1 = rect.bottomRight()
         painter = QtGui.QPainter(self)
