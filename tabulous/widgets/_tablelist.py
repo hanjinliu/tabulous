@@ -158,6 +158,13 @@ class TableList(EventedList[TableBase], SupportActionRegistration["TableViewer",
             self._parent._qwidget._tablestack.untileTable(idx)
         return None
 
+    def del_checked(self, index: int):
+        table = self[index]
+        if table._qwidget._edited and table.source.path is not None:
+            self._parent._qwidget._tablestack.notifyNotSaved(index)
+        else:
+            del self[index]
+
     def _get_qregistry(self):
         return self._parent._qwidget._tablestack
 

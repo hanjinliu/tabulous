@@ -130,8 +130,6 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         """Remove table at `index` and return it."""
         table = self.tableAtIndex(index)
         self.untileTable(index)
-        if table._edited:
-            ...
         self.removeTab(index)
         if self.count() == 0:
             self.addEmptyWidget()
@@ -326,6 +324,10 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
 
     def notifyLatestVersion(self, version: str):
         return self.notifyByWidget(QLatestVersionNotifier(version))
+
+    def notifyNotSaved(self, idx: int):
+        name = self.tabText(idx)
+        return self.notifyByWidget(QNotSavedNotifier(name))
 
     def notifyByWidget(self, widget: QtW.QWidget):
         self._notifier.addWidget(widget)
@@ -550,7 +552,7 @@ class QEditabilityNotifier(QtW.QWidget):
         self.setFont(QtGui.QFont("Arial"))
 
         _layout = QtW.QVBoxLayout()
-        _layout.addWidget(QtW.QLabel(f"Table {name!r} is not editable."))
+        _layout.addWidget(_label(f"Table {name!r} is not editable."))
         _layout.addWidget(btn)
 
         self._table = weakref.ref(table)
@@ -587,3 +589,70 @@ class QLatestVersionNotifier(QtW.QWidget):
         url = "https://github.com/hanjinliu/tabulous/releases"
         QDesktopServices.openUrl(QUrl(url))
         return None
+
+
+class QNotSavedNotifier(QtW.QWidget):
+    def __init__(self, name: str):
+        super().__init__()
+        btn_save = QClickableLabel("Save to the source file")
+        btn_save_new = QClickableLabel("Save to a new file")
+        btn_delete = QClickableLabel("Discard changes")
+        btn_cancel = QClickableLabel("Cancel")
+
+        _layout = QtW.QVBoxLayout()
+        _layout.addWidget(_label(f"You may have unsaved changes in table {name!r}."))
+        _layout.addWidget(btn_save)
+        _layout.addWidget(btn_save_new)
+        _layout.addWidget(btn_delete)
+        _layout.addWidget(btn_cancel)
+
+        btn_save.clicked.connect(self._on_save_clicked)
+        btn_save_new.clicked.connect(self._on_save_new_clicked)
+        btn_delete.clicked.connect(self._on_delete_clicked)
+        btn_cancel.clicked.connect(self._on_cancel_clicked)
+
+        self._name = name
+        self.setLayout(_layout)
+
+    def parentViewer(self) -> _QtMainWidgetBase:
+        from tabulous._qt._mainwindow import _QtMainWidgetBase
+
+        parent = self.parentWidget()
+        while not isinstance(parent, _QtMainWidgetBase):
+            parent = parent.parentWidget()
+            if parent is None:
+                raise RuntimeError("Cannot find the viewer.")
+        return parent
+
+    def _on_save_clicked(self):
+        qviewer = self.parentViewer()
+        table = qviewer._table_viewer.tables[self._name]
+        table.save(table.source.path)
+        self._on_delete_clicked()
+
+    def _on_save_new_clicked(self):
+        qviewer = self.parentViewer()
+        table = qviewer._table_viewer.tables[self._name]
+        self._on_cancel_clicked()
+        path = qviewer._table_viewer.history_manager.openFileDialog(
+            mode="w", caption="Save table"
+        )
+        if path:
+            table.save(path)
+            del qviewer._table_viewer.tables[self._name]
+
+    def _on_delete_clicked(self):
+        qviewer = self.parentViewer()
+        del qviewer._table_viewer.tables[self._name]
+        self._on_cancel_clicked()
+
+    def _on_cancel_clicked(self):
+        ol: QOverlayWidget = self.parentWidget()
+        ol.setVisible(False)
+
+
+def _label(text: str) -> QtW.QLabel:
+    w = QtW.QLabel(text)
+    w.setFont(QtGui.QFont("Arial", 11))
+    w.setContentsMargins(0, 0, 0, 8)
+    return w
