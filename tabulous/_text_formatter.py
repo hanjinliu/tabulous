@@ -175,6 +175,7 @@ class _QNumberFormatterDialog(_QFormatterDialog):
 
         btns.changed.connect(self._on_choice_changed)
         self._ndigits.valueChanged.connect(lambda: self._on_choice_changed())
+        self._on_choice_changed()
 
     def _on_choice_changed(self, val=None):
         raise NotImplementedError()

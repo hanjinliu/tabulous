@@ -36,6 +36,7 @@ setup(
         "toml",
         "matplotlib>=3.1",
         "tabulate",
+        "requests",
     ],
     extras_require={
         "all": [
