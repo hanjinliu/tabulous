@@ -380,13 +380,15 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         self.after_called(out)
         return out
 
-    def raise_in_msgbox(self) -> None:
+    def raise_in_msgbox(self, parent=None) -> None:
         """Raise current error in a message box."""
         if self._current_error is None:
             raise ValueError("No error to raise.")
         from tabulous._qt._traceback import QtErrorMessageBox
 
-        return QtErrorMessageBox.from_exc(self._current_error).exec_traceback()
+        return QtErrorMessageBox.from_exc(
+            self._current_error, parent=parent
+        ).exec_traceback()
 
     def insert_columns(self, col: int, count: int) -> None:
         """Insert columns and update range."""

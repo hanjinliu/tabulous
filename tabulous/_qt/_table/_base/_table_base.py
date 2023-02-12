@@ -815,7 +815,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         idx = qtable_view._selection_model.current_index
         if slot := qtable_view._table_map.get_by_dest(idx, None):
             if slot._current_error is not None:
-                slot.raise_in_msgbox()
+                slot.raise_in_msgbox(parent=self)
 
     def tableStack(self) -> QTabbedTableStack | None:
         """Return the table stack."""

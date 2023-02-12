@@ -87,6 +87,7 @@ class QtErrorMessageBox(QtW.QMessageBox):
             if e is None:
                 raise RuntimeError("EmitLoopError unwrapping failed.")
         self = cls(type(e).__name__, e, parent)
+        print(parent)
         return self
 
     @classmethod
@@ -155,9 +156,8 @@ def get_tb_formatter() -> Callable[[Exception, bool, str], str]:
                 html = "".join(ansi2html(ansi_string))
                 html = html.replace("\n", "<br>")
                 html = (
-                    f"<span style='font-family: monaco,{MonospaceFontFamily},monospace;'>"
-                    + html
-                    + "</span>"
+                    f"<span style='font-family: monaco,{MonospaceFontFamily},"
+                    "monospace;'>" + html + "</span>"
                 )
                 tb_text = html
             else:
@@ -235,9 +235,8 @@ def get_tb_formatter() -> Callable[[Exception, bool, str], str]:
                 # remove hardcoded fonts
                 html = html.replace("\n", "<br>")
                 html = (
-                    f"<span style='font-family: monaco,{MonospaceFontFamily},monospace;'>"
-                    + html
-                    + "</span>"
+                    f"<span style='font-family: monaco,{MonospaceFontFamily},"
+                    "monospace;'>" + html + "</span>"
                 )
                 tb_text = html
             else:

@@ -15,7 +15,9 @@ def gui_qt():
     try:
         from IPython import get_ipython
     except ImportError:
-        get_ipython = lambda: False
+
+        def get_ipython():
+            return False
 
     shell = get_ipython()
 
@@ -29,7 +31,9 @@ def gui_qt_is_active() -> bool:
     try:
         from IPython import get_ipython
     except ImportError:
-        get_ipython = lambda: False
+
+        def get_ipython():
+            return False
 
     shell = get_ipython()
 
@@ -59,7 +63,7 @@ def run_app():
     if not gui_qt_is_active():
         from tabulous.exceptions import ExceptionHandler
 
-        with ExceptionHandler(hook=_excepthook) as exc_handler:
+        with ExceptionHandler(hook=_excepthook) as _:
             get_app().exec_()
         return None
 
@@ -67,6 +71,8 @@ def run_app():
 def _excepthook(exc_type: type[Exception], exc_value: Exception, exc_traceback):
     """Exception hook used during application execution."""
     from ._traceback import QtErrorMessageBox
+    from ._mainwindow import QMainWindow
 
-    QtErrorMessageBox.raise_(exc_value)
+    viewer = QMainWindow.currentViewer()
+    QtErrorMessageBox.raise_(exc_value, parent=viewer.native)
     return None
