@@ -55,6 +55,7 @@ class QOverlayWidget(QtW.QDialog):
         self._effect = effect
         self.opacity_anim = QtCore.QPropertyAnimation(self._effect, b"opacity", self)
         self._duration = duration
+        self._timer: QtCore.QTimer | None = None
 
     def addWidget(self, widget: QtW.QWidget):
         """Set the central widget."""
@@ -94,11 +95,17 @@ class QOverlayWidget(QtW.QDialog):
 
     def hideLater(self, sec: float = 5):
         """Hide overlay widget after a delay."""
-        return QtCore.QTimer.singleShot(int(sec * 1000), self._hide)
+        self._timer = QtCore.QTimer(self)
+        self._timer.setInterval(int(sec * 1000))
+        self._timer.setSingleShot(True)
+        self._timer.timeout.connect(self._hide)
+        self._timer.start()
+        return None
 
     def _hide(self):
         if self.isVisible():
             self.setVisible(False)
+            self._timer = None
         return None
 
     # fmt: off
@@ -131,6 +138,16 @@ class QOverlayWidget(QtW.QDialog):
             self.opacity_anim.finished.disconnect()
 
         return None
+
+    def enterEvent(self, a0: QtCore.QEvent) -> None:
+        if self._timer is not None:
+            self._timer.stop()
+        return super().enterEvent(a0)
+
+    def leaveEvent(self, a0: QtCore.QEvent) -> None:
+        if self._timer is not None:
+            self._timer.start()
+        return super().leaveEvent(a0)
 
     def alignToParent(self):
         """Position widget at the bottom right edge of the parent."""

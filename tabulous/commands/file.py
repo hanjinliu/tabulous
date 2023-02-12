@@ -41,6 +41,16 @@ def save_table(viewer: TableViewerBase):
     return None
 
 
+def save_table_to_source(viewer: TableViewerBase):
+    """Save current table data to the source file if exists"""
+    if table := viewer.current_table:
+        if path := table.source.path:
+            table.save(path)
+        else:
+            save_table(viewer)
+    return None
+
+
 def open_sample(viewer: TableViewerBase):
     """Open sample data"""
     out = choose_one(choice={"choices": SAMPLE_CHOICES, "nullable": False})

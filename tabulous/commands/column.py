@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from tabulous.exceptions import SelectionRangeError
 from . import _utils, _dialogs
+from tabulous.widgets._source import Source
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase
@@ -132,7 +133,8 @@ def run_groupby(viewer: TableViewerBase) -> None:
         raise SelectionRangeError("No columns selected")
     colnames = [table.columns[c] for c in cols]
     out = table.data.groupby(by=colnames)
-    viewer.add_groupby(out, name=f"{table.name}-groupby")
+    table_out = viewer.add_groupby(out, name=f"{table.name}-groupby")
+    table_out._source = Source.from_table(table)
 
 
 def run_cut(viewer: TableViewerBase):

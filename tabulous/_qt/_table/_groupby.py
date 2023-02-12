@@ -22,6 +22,7 @@ class _QLabeledComboBox(QtW.QWidget):
         _layout.setContentsMargins(2, 2, 2, 2)
         self.setLayout(_layout)
         self._cbox = QtW.QComboBox()
+        self._cbox.setMinimumWidth(100)
         self._label = QtW.QLabel()
         _layout.addWidget(self._label)
         _layout.addWidget(self._cbox)

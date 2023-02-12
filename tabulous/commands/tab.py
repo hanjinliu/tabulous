@@ -98,4 +98,4 @@ def rename_tab(viewer: TableViewerBase):
 def delete_tab(viewer: TableViewerBase) -> None:
     """Delete current tab."""
     idx = viewer.current_index
-    del viewer.tables[idx]
+    viewer.tables.del_checked(idx)

@@ -55,6 +55,18 @@ def test_renaming(viewer_cls: type[TableViewerWidget], pos):
     assert table1.name == name
     assert get_tabwidget_tab_name(viewer, 0) == name
 
+@pytest.mark.parametrize(
+    "src, dst",
+    [(0, 1), (1, 0), (0, 2), (2, 0)]
+)
+def test_move(src: int, dst: int):
+    viewer = TableViewer(show=False)
+    names = ["0", "1", "2"]
+    for name in names:
+        viewer.add_spreadsheet(name=name)
+    viewer.tables.move(src, dst)
+    assert [t.name for t in viewer.tables] == [viewer.native._tablestack.tabText(i) for i in range(3)]
+
 @pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
 def test_register_action(viewer_cls: type[TableViewerWidget]):
     viewer = viewer_cls(show=False)

@@ -95,6 +95,7 @@ DEFAULT_KEYBINDING_SETTING: list[tuple[FunctionType, str]] = [
     (file.open_table, "Ctrl+O"),
     (file.open_spreadsheet, "Ctrl+K, Ctrl+O"),
     (file.save_table, "Ctrl+S"),
+    (file.save_table_to_source, "Ctrl+Shift+S"),
     (selection.show_context_menu, "Menu"),
     (selection.raise_slot_error, "F6"),
     (selection.copy_data_tab_separated, "Ctrl+C"),

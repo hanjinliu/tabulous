@@ -322,6 +322,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.setProxy(None)
         self.refreshTable()
         self._data_cache = None
+        self._edited = True
         return None
 
     @assignColumns.server
@@ -494,6 +495,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.model().insertRows(row, count, QtCore.QModelIndex())
         self._set_proxy(self._proxy)
         self._data_cache = None
+        self._edited = True
 
         # update indices
         self._process_insert_rows(row, count)
@@ -560,6 +562,7 @@ class QSpreadSheet(QMutableSimpleTable):
             )
         self.model().insertColumns(col, count, QtCore.QModelIndex())
         self._data_cache = None
+        self._edited = True
 
         # update indices
         self._process_insert_columns(col, count)
@@ -607,6 +610,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self._set_proxy(self._proxy)
         self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
         self._data_cache = None
+        self._edited = True
 
         self._process_remove_rows(row, count)
         info = ItemInfo(
@@ -654,6 +658,7 @@ class QSpreadSheet(QMutableSimpleTable):
         self.model().removeColumns(col, count, QtCore.QModelIndex())
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         self._data_cache = None
+        self._edited = True
 
         self._process_remove_columns(col, count)
         info = ItemInfo(

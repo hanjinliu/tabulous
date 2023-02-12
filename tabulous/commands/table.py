@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from . import _dialogs, _utils
 from tabulous._magicgui import ToggleSwitchSelect
+from tabulous.widgets._source import Source
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewerBase, TableBase, SpreadSheet
@@ -16,13 +17,15 @@ def new_spreadsheet(viewer: TableViewerBase):
 def copy_as_table(viewer: TableViewerBase):
     """Copy current table as a new table"""
     table = _utils.get_table(viewer)
-    viewer.add_table(table.data, name=f"{table.name}-copy")
+    out = viewer.add_table(table.data, name=f"{table.name}-copy")
+    out._source = Source.from_table(table)
 
 
 def copy_as_spreadsheet(viewer: TableViewerBase):
     """Copy current table as a new spreadsheet"""
     table = _utils.get_table(viewer)
-    viewer.add_spreadsheet(table.data, name=f"{table.name}-copy")
+    out = viewer.add_spreadsheet(table.data, name=f"{table.name}-copy")
+    out._source = Source.from_table(table)
 
 
 def copy_to_clipboard(viewer: TableViewerBase):
@@ -58,7 +61,8 @@ def concat(viewer: TableViewerBase):
         parent=viewer._qwidget,
     )
     if out is not None:
-        viewer.add_table(out, name="concat")
+        table = viewer.add_table(out, name="concat")
+        table._source = Source.from_table(viewer.current_table)
 
 
 def merge(viewer: TableViewerBase):
@@ -99,7 +103,8 @@ def pivot(viewer: TableViewerBase):
         parent=viewer._qwidget,
     )
     if out is not None:
-        viewer.add_table(out, name=f"{table.name}-pivot")
+        table_out = viewer.add_table(out, name=f"{table.name}-pivot")
+        table_out._source = Source.from_table(table)
 
 
 def melt(viewer: TableViewerBase):
@@ -108,14 +113,17 @@ def melt(viewer: TableViewerBase):
     cols = _utils.get_selected_columns(viewer)
     df = table.data
     out = df.melt(id_vars=[df.columns[i] for i in cols])
-    viewer.add_table(out, name=f"{table.name}-melt")
+    if out is not None:
+        table_out = viewer.add_table(out, name=f"{table.name}-melt")
+        table_out._source = Source.from_table(table)
 
 
 def transpose(viewer: TableViewerBase):
     """Transpose current table data"""
     table = _utils.get_table(viewer)
     out = table.data.T
-    viewer.add_table(out, name=f"{table.name}-transposed")
+    table_out = viewer.add_table(out, name=f"{table.name}-transposed")
+    table_out._source = Source.from_table(table)
 
 
 def fillna(viewer: TableViewerBase):
@@ -142,7 +150,8 @@ def fillna(viewer: TableViewerBase):
         parent=viewer._qwidget,
     )
     if out is not None:
-        viewer.add_table(out, name=f"{table.name}-fillna")
+        table_out = viewer.add_table(out, name=f"{table.name}-fillna")
+        table_out._source = Source.from_table(table)
 
 
 def dropna(viewer: TableViewerBase):
@@ -155,7 +164,8 @@ def dropna(viewer: TableViewerBase):
         parent=viewer._qwidget,
     )
     if out is not None:
-        viewer.add_table(out, name=f"{table.name}-dropna")
+        table_out = viewer.add_table(out, name=f"{table.name}-dropna")
+        table_out._source = Source.from_table(table)
 
 
 def show_finder_widget(viewer: TableViewerBase):
