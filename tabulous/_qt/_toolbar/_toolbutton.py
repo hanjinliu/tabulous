@@ -1,7 +1,8 @@
 from __future__ import annotations
 from pathlib import Path
-from qtpy import QtWidgets as QtW
+from qtpy import QtWidgets as QtW, QtGui
 
+from tabulous.color import normalize_color
 from tabulous._qt._svg import QColoredSVGIcon
 
 
@@ -26,9 +27,31 @@ class QColoredToolButton(QtW.QToolButton):
         self._icon = icon
         return super().setIcon(icon)
 
-    def updateColor(self, color):
+    def updateColor(self, color: str):
         """Update svg color."""
-        return self.setIcon(self.icon().colored(color))
+        icon = self.icon().colored(color)
+        if not self.isEnabled():
+            icon = icon.with_converted(self._mix_with_background)
+        self.setIcon(icon)
+        return None
+
+    def setEnabled(self, a0: bool) -> None:
+        if self.isEnabled() != a0:
+            # blend icon color with background color
+            if a0:
+                self.setIcon(self.icon().with_converted(lambda x: x))
+            else:
+                self.setIcon(self.icon().with_converted(self._mix_with_background))
+        return super().setEnabled(a0)
+
+    def backgroundColor(self) -> QtGui.QColor:
+        """Get background color."""
+        return self.palette().color(self.backgroundRole())
+
+    def _mix_with_background(self, color: QtGui.QColor) -> QtGui.QColor:
+        """Mix color with background color."""
+        bg = self.palette().color(self.backgroundRole()).getRgb()
+        return QtGui.QColor(*normalize_color(color.getRgb()).mix(bg, 0.7))
 
 
 class QMoreToolButton(QColoredToolButton):

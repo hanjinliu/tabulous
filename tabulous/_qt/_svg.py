@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from typing import Callable
 from pathlib import Path
 from qtpy import QtGui, QtCore, QtSvg
 from qtpy.QtCore import Qt
@@ -42,9 +44,12 @@ class QColoredSVGIcon(QtGui.QIcon):
         self,
         xml: str,
         color: str = "#000000",
+        converter: Callable[[QtGui.QColor], QtGui.QColor] = lambda x: x,
     ) -> None:
+        self._color = QtGui.QColor(color)
+        col = converter(self._color)
         self._xml = xml
-        colorized = xml.replace(self._COLOR_ARG, f"{color}")
+        colorized = xml.replace(self._COLOR_ARG, col.name())
         super().__init__(SVGBufferIconEngine(colorized))
 
     @lru_cache
@@ -59,3 +64,12 @@ class QColoredSVGIcon(QtGui.QIcon):
         with open(path) as f:
             xml = f.read()
         return cls(xml, color=color)
+
+    def color(self) -> QtGui.QColor:
+        """Color of the icon"""
+        return self._color
+
+    def with_converted(
+        self, converter: Callable[[QtGui.QColor], QtGui.QColor]
+    ) -> QColoredSVGIcon:
+        return QColoredSVGIcon(self._xml, color=self._color.name(), converter=converter)

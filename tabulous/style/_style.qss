@@ -59,6 +59,7 @@ QPushButton:checked {
 
 QPushButton:disabled {
   background-color: #[background];
+  color: #[background1];
   border-radius: 2px;
   padding: 4px;
   border: 0px;
