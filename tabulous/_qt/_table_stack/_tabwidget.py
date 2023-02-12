@@ -63,7 +63,6 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
 
         self.tabBar().customContextMenuRequested.connect(self.showContextMenu)
         self.currentChanged.connect(self.currentTableChanged.emit)
-        self.tabCloseRequested.connect(self.takeTable)
         self.tabCloseRequested.connect(self.tableRemoved.emit)
         # NOTE: arguments are not (from, to). Bug in Qt??
         self.tabBar().tabMoved.connect(lambda a, b: self.itemMoved.emit(b, a))
@@ -131,6 +130,8 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         """Remove table at `index` and return it."""
         table = self.tableAtIndex(index)
         self.untileTable(index)
+        if table._edited:
+            ...
         self.removeTab(index)
         if self.count() == 0:
             self.addEmptyWidget()

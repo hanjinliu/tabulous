@@ -118,6 +118,11 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self.setStyleSheet(_SplitterStyle)
 
         self._qtable_view.rightClickedSignal.connect(self.showContextMenu)
+        self._edited = False  # data loaded from a file is edited or not
+
+    def needSave(self) -> bool:
+        """Return True if the table is edited."""
+        return self._edited
 
     def setOrientation(self, a0: Qt.Orientation) -> None:
         """Set table orientation and the side area orientation."""
@@ -132,6 +137,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         return QTableHandle(Qt.Orientation.Horizontal, self)
 
     def showContextMenu(self, pos: QtCore.QPoint) -> None:
+        """Show contextmenu at the given position."""
         index = self._qtable_view.indexAt(pos)
         if not index.isValid():
             return None
@@ -1095,6 +1101,7 @@ class QMutableTable(QBaseTable):
         """Undoable set-value function."""
         self.updateValue(r, c, value)
         self._data_cache = None
+        self._edited = True
         # update selection using the non-filtered index.
         self.setSelections([(r_ori, c_ori)])
         self.itemChangedSignal.emit(ItemInfo(r, c, value, old_value))
@@ -1346,6 +1353,8 @@ class QMutableTable(QBaseTable):
             else:
                 self._data_raw.columns = constructor(self._data_raw.columns.size)
 
+        self._edited = True
+
         # set selection
         self._qtable_view._selection_model.move_to(-1, index)
 
@@ -1387,6 +1396,8 @@ class QMutableTable(QBaseTable):
                 _rename_row(self._data_raw, r0, value)
             else:
                 self._data_raw.index = constructor(self._data_raw.index.size)
+
+        self._edited = True
 
         # set selection
         self._qtable_view._selection_model.move_to(index, -1)

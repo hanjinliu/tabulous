@@ -491,16 +491,20 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
 
         @_tablist.events.removed.connect
         def _remove_qtable(index: int, table: TableBase):
-            with _tablist.events.blocked():
+            _qtablist.blockSignals(True)
+            try:
                 _qtablist.takeTable(index)
+            finally:
+                _qtablist.blockSignals(False)
 
         @_tablist.events.moved.connect
         def _move_qtable(src: int, dst: int):
             # Evented list emits (0, 1) when move(0, 2) is called (v0.3.5 now).
-            if src < dst:
-                dst += 1
-            with _tablist.events.blocked():
+            _qtablist.blockSignals(True)
+            try:
                 _qtablist.moveTable(src, dst)
+            finally:
+                _qtablist.blockSignals(False)
 
         @_tablist.events.renamed.connect
         def _rename_qtable(index: int, name: str):
@@ -510,6 +514,8 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         @_qtablist.itemMoved.connect
         def _move_pytable(src: int, dst: int):
             """Move evented list when list is moved in GUI."""
+            if src < dst:
+                dst += 1
             with self._tablist.events.blocked():
                 self._tablist.move(src, dst)
 
