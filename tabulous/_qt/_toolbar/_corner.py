@@ -17,6 +17,9 @@ class QIntOrNoneEdit(QtW.QLineEdit):
         self.setValidator(QIntOrNoneValidator())
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.textChanged.connect(self.ensureVisible)
+        self.setSizePolicy(
+            QtW.QSizePolicy.Policy.Minimum, QtW.QSizePolicy.Policy.Expanding
+        )
 
     def value(self):
         return int(self.text()) if self.text() else None

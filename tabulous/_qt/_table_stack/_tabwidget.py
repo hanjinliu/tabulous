@@ -118,7 +118,10 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
             self.removeTab(0)
             self.tabBar().show()
             if toolbar := self.parentWidget()._toolbar:
-                toolbar._corner_widget.setVisible(get_config().window.selection_editor)
+                if get_config().window.selection_editor:
+                    toolbar._corner_widget.show()
+                else:
+                    toolbar._corner_widget.hide()
         self.addTab(table, name)
         table._qtable_view.resizedSignal.connect(self.resizedSignal.emit)
         table.selectionChangedSignal.connect(
