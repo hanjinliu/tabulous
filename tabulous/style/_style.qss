@@ -243,6 +243,13 @@ QTabBar::tab:top {
     color: #[foreground];
 }
 
+QTabBar::tab:top:hover {
+    height: 16px;
+    margin-top: 2px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #[background0], stop:1 #[highlight1]);
+    color: #[foreground];
+}
+
 QTabBar::tab:top:selected {
     height: 18px;
     margin-top: 0px;
@@ -262,13 +269,19 @@ QTabBar::tab:bottom {
     color: #[foreground];
 }
 
+QTabBar::tab:bottom:hover {
+    height: 16px;
+    margin-bottom: 2px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #[highlight0], stop:1 #[background0]);
+    color: #[foreground];
+}
+
 QTabBar::tab:bottom:selected {
     height: 18px;
     margin-bottom: 0px;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #[highlight1], stop:1 #[highlight0]);
     color: #[foreground];
 }
-
 
 QKeyMapList:item {
     border-top: 1px solid lightgray;
