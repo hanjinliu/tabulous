@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.window &mdash; tabulous 0.4.1 documentation</title>
+  <title>tabulous.commands.window &mdash; tabulous 0.5.0rc1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.1
+                0.5.0rc1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -106,6 +106,10 @@
 <div class="viewcode-block" id="new_window"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.new_window">[docs]</a><span class="k">def</span> <span class="nf">new_window</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a new window&quot;&quot;&quot;</span>
     <span class="n">new</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="vm">__class__</span><span class="p">()</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span>
+    <span class="n">pos</span><span class="o">.</span><span class="n">setX</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">x</span><span class="p">()</span> <span class="o">+</span> <span class="mi">20</span><span class="p">)</span>
+    <span class="n">pos</span><span class="o">.</span><span class="n">setY</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">y</span><span class="p">()</span> <span class="o">+</span> <span class="mi">20</span><span class="p">)</span>
+    <span class="n">new</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">new</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">activateWindow</span><span class="p">()</span></div>
 
 
@@ -121,10 +125,7 @@
 
 <div class="viewcode-block" id="toggle_fullscreen"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.toggle_fullscreen">[docs]</a><span class="k">def</span> <span class="nf">toggle_fullscreen</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Toggle fullscreen&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">isFullScreen</span><span class="p">():</span>
-        <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">showNormal</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">showFullScreen</span><span class="p">()</span></div>
+    <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">toggleWindowState</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="show_command_palette"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.show_command_palette">[docs]</a><span class="k">def</span> <span class="nf">show_command_palette</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
@@ -172,6 +173,11 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot add widget to </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="show_preference"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.show_preference">[docs]</a><span class="k">def</span> <span class="nf">show_preference</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Show preference dialog&quot;&quot;&quot;</span>
+    <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">showPreferenceDialog</span><span class="p">()</span></div>
 </pre></div>
 
            </div>

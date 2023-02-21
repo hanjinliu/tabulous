@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets._table &mdash; tabulous 0.4.1 documentation</title>
+  <title>tabulous.widgets._table &mdash; tabulous 0.5.0rc1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.1
+                0.5.0rc1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -97,6 +97,7 @@
 
 <span class="kn">from</span> <span class="nn">tabulous.widgets</span> <span class="kn">import</span> <span class="n">_doc</span><span class="p">,</span> <span class="n">_component</span> <span class="k">as</span> <span class="n">_comp</span>
 <span class="kn">from</span> <span class="nn">tabulous.widgets._keymap_abc</span> <span class="kn">import</span> <span class="n">SupportKeyMap</span>
+<span class="kn">from</span> <span class="nn">tabulous.widgets._source</span> <span class="kn">import</span> <span class="n">Source</span>
 <span class="kn">from</span> <span class="nn">tabulous.types</span> <span class="kn">import</span> <span class="n">ItemInfo</span><span class="p">,</span> <span class="n">HeaderInfo</span><span class="p">,</span> <span class="n">EvalInfo</span>
 <span class="kn">from</span> <span class="nn">tabulous._psygnal</span> <span class="kn">import</span> <span class="n">SignalArray</span><span class="p">,</span> <span class="n">InCellRangedSlot</span>
 
@@ -177,6 +178,7 @@
         <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="kn">from</span> <span class="nn">tabulous._qt</span> <span class="kn">import</span> <span class="n">get_app</span>
+        <span class="kn">from</span> <span class="nn">tabulous._map_model</span> <span class="kn">import</span> <span class="n">SlotRefMapping</span>
 
         <span class="n">_</span> <span class="o">=</span> <span class="n">get_app</span><span class="p">()</span>
 
@@ -189,11 +191,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_backend</span><span class="p">(</span><span class="n">_data</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_install_actions</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">connectSelectionChangedSignal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_emit_selections</span><span class="p">)</span>
-        <span class="kn">from</span> <span class="nn">tabulous._map_model</span> <span class="kn">import</span> <span class="n">SlotRefMapping</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_table_map</span> <span class="o">=</span> <span class="n">SlotRefMapping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_view_mode</span> <span class="o">=</span> <span class="n">ViewMode</span><span class="o">.</span><span class="n">normal</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutable</span><span class="p">:</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">blocked</span><span class="p">():</span>
@@ -231,6 +233,11 @@
             <span class="ne">DeprecationWarning</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">ref</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">source</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Source</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The source of the table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span>
 
     <span class="k">def</span> <span class="nf">_emit_data_changed_signal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">ItemInfo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">column</span>
@@ -536,7 +543,9 @@
         <span class="sd">&quot;&quot;&quot;Save table data to the given path.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">tabulous._io</span> <span class="kn">import</span> <span class="n">save_file</span>
 
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="n">save_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="TableBase.screenshot"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.screenshot">[docs]</a>    <span class="k">def</span> <span class="nf">screenshot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>

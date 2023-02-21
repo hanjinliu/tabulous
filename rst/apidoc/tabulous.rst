@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    tabulous.commands
+   tabulous.style
    tabulous.widgets
 
 Submodules

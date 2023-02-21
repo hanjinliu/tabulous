@@ -92,6 +92,8 @@ DEFAULT_KEYBINDING_SETTING: list[tuple[FunctionType, str]] = [
     (table.show_undo_stack_view, "Ctrl+H"),
     (table.undo_table, "Ctrl+Z"),
     (table.redo_table, "Ctrl+Y"),
+    (table.zoom_in, "Ctrl+Shift+>"),
+    (table.zoom_out, "Ctrl+Shift+<"),
     (file.open_table, "Ctrl+O"),
     (file.open_spreadsheet, "Ctrl+K, Ctrl+O"),
     (file.save_table, "Ctrl+S"),

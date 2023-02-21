@@ -507,7 +507,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.horizontalScrollBar().setSliderPosition(int(pos * zoom_ratio))
 
         # Zoom section size of headers
-        self.setSectionSize(int(self._w_default * value), int(self._h_default * value))
+        self.horizontalHeader().setZoomRatio(zoom_ratio)
+        self.verticalHeader().setZoomRatio(zoom_ratio)
 
         # Update stuff
         self._zoom = value
@@ -517,17 +518,22 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.verticalHeader().setFont(font)
         self.horizontalHeader().setFont(font)
         self._update_all()
+        if qviewer := self.parentViewer():
+            qviewer.statusBar().showMessage(f"Zoom: {value * 100:.0f}%")
         return
 
     def wheelEvent(self, e: QtGui.QWheelEvent) -> None:
         """Zoom in/out table."""
         if e.modifiers() & Qt.KeyboardModifier.ControlModifier:
-            dt = e.angleDelta().y() / 120
-            zoom = self.zoom() + 0.15 * dt
-            self.setZoom(min(max(zoom, 0.25), 2.0))
-            return None
+            return self.zoomIn(e.angleDelta().y() / 120)
 
         return super().wheelEvent(e)
+
+    def zoomIn(self, delta: int = 1) -> None:
+        """Zoom in or out."""
+        zoom = self.zoom() + 0.15 * delta
+        self.setZoom(min(max(zoom, 0.25), 2.0))
+        return None
 
     def sectionSize(self) -> tuple[int, int]:
         """Return current section size."""

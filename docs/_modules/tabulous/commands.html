@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands &mdash; tabulous 0.4.1 documentation</title>
+  <title>tabulous.commands &mdash; tabulous 0.5.0rc1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.1
+                0.5.0rc1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -161,6 +161,7 @@
     <span class="p">(</span><span class="n">window</span><span class="o">.</span><span class="n">close_window</span><span class="p">,</span> <span class="s2">&quot;Ctrl+W&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">window</span><span class="o">.</span><span class="n">show_keymap</span><span class="p">,</span> <span class="s2">&quot;Ctrl+K, Shift+?&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">window</span><span class="o">.</span><span class="n">toggle_focus</span><span class="p">,</span> <span class="s2">&quot;Ctrl+Shift+F&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">window</span><span class="o">.</span><span class="n">show_preference</span><span class="p">,</span> <span class="s2">&quot;Ctrl+,&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">tab</span><span class="o">.</span><span class="n">activate_left</span><span class="p">,</span> <span class="s2">&quot;Alt+Left&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">tab</span><span class="o">.</span><span class="n">activate_right</span><span class="p">,</span> <span class="s2">&quot;Alt+Right&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">tab</span><span class="o">.</span><span class="n">swap_tab_with_left</span><span class="p">,</span> <span class="s2">&quot;Alt+Shift+Left&quot;</span><span class="p">),</span>
@@ -178,9 +179,12 @@
     <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">show_undo_stack_view</span><span class="p">,</span> <span class="s2">&quot;Ctrl+H&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">undo_table</span><span class="p">,</span> <span class="s2">&quot;Ctrl+Z&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">redo_table</span><span class="p">,</span> <span class="s2">&quot;Ctrl+Y&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">zoom_in</span><span class="p">,</span> <span class="s2">&quot;Ctrl+Shift+&gt;&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">zoom_out</span><span class="p">,</span> <span class="s2">&quot;Ctrl+Shift+&lt;&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">open_table</span><span class="p">,</span> <span class="s2">&quot;Ctrl+O&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">open_spreadsheet</span><span class="p">,</span> <span class="s2">&quot;Ctrl+K, Ctrl+O&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">save_table</span><span class="p">,</span> <span class="s2">&quot;Ctrl+S&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">save_table_to_source</span><span class="p">,</span> <span class="s2">&quot;Ctrl+Shift+S&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">selection</span><span class="o">.</span><span class="n">show_context_menu</span><span class="p">,</span> <span class="s2">&quot;Menu&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">selection</span><span class="o">.</span><span class="n">raise_slot_error</span><span class="p">,</span> <span class="s2">&quot;F6&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">selection</span><span class="o">.</span><span class="n">copy_data_tab_separated</span><span class="p">,</span> <span class="s2">&quot;Ctrl+C&quot;</span><span class="p">),</span>

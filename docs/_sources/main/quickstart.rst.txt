@@ -51,13 +51,13 @@ but you can show it in several ways.
 
 1. Set :attr:`visible` property of :attr:`console` interface to ``True``:
    ``>>> viewer.conosole.visible = True``
-2. Activate keyboard shortcut :kbd:`Ctrl+Shift+C`.
+2. Activate keyboard shortcut :kbd:`Ctrl` :kbd:`Shift` :kbd:`C`.
 3. Click the |toggle_console| tool button in the the toolbar.
 
 In ``tabulous`` viewer there are additional keybindings.
 
-- :kbd:`Ctrl+Shift+↑`: Set console floating.
-- :kbd:`Ctrl+Shift+↓`: Dock console.
+- :kbd:`Ctrl` :kbd:`Shift` :kbd:`↑`: Set console floating.
+- :kbd:`Ctrl` :kbd:`Shift` :kbd:`↓`: Dock console.
 
 Use Tables
 ==========
@@ -225,7 +225,7 @@ Key combo
 :mod:`tabulous` supports many keyboard shortcuts including key combo.
 
 All the global key map is listed in a widget that will be shown when you press
-:kbd:`Ctrl+K ⇒ Shift+?` key combo.
+:kbd:`Ctrl` :kbd:`K` ⇒ :kbd:`Shift` :kbd:`?` key combo.
 
 :attr:`keymap` is the key map registry object of table viewers. You can use :meth:`register`
 to register custom key combo.
@@ -252,7 +252,7 @@ Command palette
 
 .. versionadded:: 0.4.0
 
-:kbd:`Ctrl+Shift+P` or :kbd:`F1` opens a command palette widget. You can search for a variety of
+:kbd:`Ctrl` :kbd:`Shift` :kbd:`P` or :kbd:`F1` opens a command palette widget. You can search for a variety of
 registered commands.
 
 .. image:: ../fig/command_palette.png

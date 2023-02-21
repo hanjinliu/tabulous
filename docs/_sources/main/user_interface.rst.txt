@@ -11,15 +11,26 @@ User Interface
 Tables
 ======
 
-Move around the table
----------------------
+Move and scroll
+---------------
 
-Arrow keys (:kbd:`→` :kbd:`←` :kbd:`↑` :kbd:`↓`) with :kbd:`Ctrl` (or :kbd:`⌘` in Mac),
-:kbd:`Shift` modifier work as you expects in most of table data editors.
+- Arrow keys (:kbd:`→` :kbd:`←` :kbd:`↑` :kbd:`↓`) with :kbd:`Ctrl` (or :kbd:`⌘` in Mac),
+  :kbd:`Shift` modifier work as you expects in most of table data editors.
+- Arrow keys (:kbd:`→` :kbd:`←` :kbd:`↑` :kbd:`↓`) with :kbd:`Ctrl` + :kbd:`Alt` scrolls
+  the table to the desired direction. You can also scroll tables using the scroll bar, or
+  right-dragging.
 
-Additionally, :kbd:`Ctrl` + ``mouse wheel`` zooms in/out the table. Arrow keys (:kbd:`→`
-:kbd:`←` :kbd:`↑` :kbd:`↓`) with :kbd:`Ctrl` + :kbd:`Alt` scrolls the table to the desired
-direction.
+Zoom
+----
+
+- :kbd:`Ctrl` + ``mouse wheel`` zooms in/out the table.
+- You can also use keybindings
+  :kbd:`Ctrl` :kbd:`Shift` :kbd:`>` :kbd:`Ctrl` :kbd:`Shift` :kbd:`<` to zoom in/out.
+
+Resize
+------
+
+Cells and headers can be resized by dragging the borders of header sections.
 
 Edit cells and headers
 ----------------------
@@ -33,27 +44,6 @@ During editing, the text will always be validated. Invalid text will be shown in
 table cells, you can set any validation rules (see :doc:`/main/columnwise_settings`). For
 the table headers, duplicated names are not allowed and considered to be invalid.
 
-Add cell labels
----------------
-
-People using spreadsheets usually want to name some of the cells. For instance, when you
-calculated the mean of a column, you want to name the cell as "mean". Usually, it is done
-by editing one of the adjacent cells.
-
-===  ====
-  A  B
-===  ====
-  1  mean
-  2  2.5
-  3
-  4
-===  ====
-
-In :mod:`tabulous`, however, you can directly name the cell using cell label. You can edit
-cell labels by :kbd:`F3` key.
-
-.. image:: ../fig/cell_labels.png
-
 Excel-style data evaluation
 ---------------------------
 
@@ -66,7 +56,7 @@ data is available as a variable ``df``. By default, modules :mod:`numpy` and :mo
 also available as ``np`` and ``pd``. If the input string starts with ``=``, the editor is
 automatically switched to the literal evaluation mode and cell selection will insert table data
 reference to the editor. For instance, if you select column ``'A'`` and rows from 1 to 8, then
-``df['A'][1:9]`` will be inserted.
+``df[1:9, 0:1]`` will be inserted.
 
 One of the differences between this mode and Excel is that this evaluation does not use
 reference, so that changing the value of any of the source cells will **NOT** affect the value
@@ -231,6 +221,37 @@ want to add more variables or functions, there are two ways to do it.
 
       You can't use none of ``np``, ``pd`` or ``df`` as a variable name.
 
+
+Add cell labels
+---------------
+
+People using spreadsheets usually want to name some of the cells. For instance, when you
+calculated the mean of a column, you want to name the cell as "mean". Usually, it is done
+by editing one of the adjacent cells.
+
+===  ====
+  A  B
+===  ====
+  1  mean
+  2  2.5
+  3
+  4
+===  ====
+
+In :mod:`tabulous`, however, you can directly name the cell using cell label. You can edit
+cell labels by :kbd:`F3` key.
+
+.. image:: ../fig/cell_labels.png
+
+Table Tabs
+==========
+
+All the tables are managed by the table tabs.
+
+- You can double-click to rename the tab. The ``name`` property of the table will also be
+  updated.
+- You can run table specific actions by right-clicking the tab.
+- You can drag-and-drop tabs between viewers by right-drag.
 
 Toolbar
 =======

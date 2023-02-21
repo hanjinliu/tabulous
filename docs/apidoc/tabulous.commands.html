@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands package &mdash; tabulous 0.4.1 documentation</title>
+  <title>tabulous.commands package &mdash; tabulous 0.5.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="tabulous.widgets package" href="tabulous.widgets.html" />
+    <link rel="next" title="tabulous.style package" href="tabulous.style.html" />
     <link rel="prev" title="tabulous package" href="tabulous.html" />
 </head>
 
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.1
+                0.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -64,6 +64,7 @@
 <li class="toctree-l2 current"><a class="reference internal" href="tabulous.html">tabulous package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="tabulous.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l4 current"><a class="current reference internal" href="#">tabulous.commands package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tabulous.style.html">tabulous.style package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="tabulous.widgets.html">tabulous.widgets package</a></li>
 </ul>
 </li>
@@ -874,6 +875,18 @@
 <dd><p>Undo table operation</p>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.zoom_in">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">zoom_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#zoom_in"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.zoom_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zoom in</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.table.zoom_out">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.table.</span></span><span class="sig-name descname"><span class="pre">zoom_out</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/table.html#zoom_out"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.table.zoom_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zoom in</p>
+</dd></dl>
+
 </section>
 <section id="module-tabulous.commands.view">
 <span id="tabulous-commands-view-module"></span><h2>tabulous.commands.view module<a class="headerlink" href="#module-tabulous.commands.view" title="Permalink to this headline">¶</a></h2>
@@ -941,6 +954,12 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.window.show_preference">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">show_preference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#show_preference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.show_preference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show preference dialog</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="tabulous.commands.window.toggle_console">
 <span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">toggle_console</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#toggle_console"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.toggle_console" title="Permalink to this definition">¶</a></dt>
 <dd><p>Toggle QtConsole visibility</p>
@@ -985,7 +1004,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="tabulous.html" class="btn btn-neutral float-left" title="tabulous package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="tabulous.widgets.html" class="btn btn-neutral float-right" title="tabulous.widgets package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tabulous.style.html" class="btn btn-neutral float-right" title="tabulous.style package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

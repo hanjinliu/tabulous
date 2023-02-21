@@ -50,6 +50,10 @@ class HeaderSectionSpan(Component["_HeaderInterface"]):
         header.resizeSections(QHeaderView.ResizeMode.ResizeToContents)
         return None
 
+    def __repr__(self) -> str:
+        sizes = self.parent._get_header()._section_sizes
+        return f"{type(self).__name__}({sizes.astype(np.uint16)})"
+
 
 class _HeaderInterface(TableComponent, SupportActionRegistration["TableBase", int]):
     """

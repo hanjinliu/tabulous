@@ -87,7 +87,6 @@ class QtErrorMessageBox(QtW.QMessageBox):
             if e is None:
                 raise RuntimeError("EmitLoopError unwrapping failed.")
         self = cls(type(e).__name__, e, parent)
-        print(parent)
         return self
 
     @classmethod

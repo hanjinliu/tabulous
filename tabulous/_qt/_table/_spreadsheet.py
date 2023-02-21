@@ -506,6 +506,7 @@ class QSpreadSheet(QMutableSimpleTable):
             value,
             ItemInfo.INSERTED,
         )
+        self._qtable_view.setZoom(self._qtable_view.zoom())
         self.itemChangedSignal.emit(info)
         return None
 
@@ -573,6 +574,7 @@ class QSpreadSheet(QMutableSimpleTable):
             value,
             ItemInfo.INSERTED,
         )
+        self._qtable_view.setZoom(self._qtable_view.zoom())
         self.itemChangedSignal.emit(info)
         return None
 
@@ -616,6 +618,7 @@ class QSpreadSheet(QMutableSimpleTable):
         info = ItemInfo(
             slice(row, row + count), slice(None), ItemInfo.DELETED, old_values
         )
+        self._qtable_view.setZoom(self._qtable_view.zoom())
         self.itemChangedSignal.emit(info)
         return None
 
@@ -664,6 +667,7 @@ class QSpreadSheet(QMutableSimpleTable):
         info = ItemInfo(
             slice(None), slice(col, col + count), ItemInfo.DELETED, old_values
         )
+        self._qtable_view.setZoom(self._qtable_view.zoom())
         self.itemChangedSignal.emit(info)
         return None
 
