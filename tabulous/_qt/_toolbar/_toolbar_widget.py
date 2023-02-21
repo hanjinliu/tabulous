@@ -99,9 +99,6 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self._tab = QtW.QTabWidget(self)
         self._tab.setTabsClosable(False)
         self._tab.setContentsMargins(0, 0, 0, 0)
-        corner = QSelectionRangeEdit(self._tab)
-        self._corner_widget = corner
-        corner.sliceChanged.connect(self.sliceChanged.emit)
 
         self.setSizePolicy(
             QtW.QSizePolicy.Policy.Expanding, QtW.QSizePolicy.Policy.Minimum
@@ -111,8 +108,16 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.addWidget(self._tab)
         self.setMaximumHeight(84)
         self.initToolbar()
-        self._tab.setCornerWidget(corner)
-        corner.hide()
+
+    @property
+    def _corner_widget(self) -> QSelectionRangeEdit:
+        if self._tab.cornerWidget() is None:
+            corner = QSelectionRangeEdit(self._tab)
+            corner.sliceChanged.connect(self.sliceChanged.emit)
+
+            self._tab.setCornerWidget(corner)
+            corner.hide()
+        return self._tab.cornerWidget()
 
     @property
     def viewer(self) -> TableViewerBase:
