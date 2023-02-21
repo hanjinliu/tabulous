@@ -197,11 +197,6 @@ class QHorizontalHeaderView(QDataFrameHeaderView):
         width = self.sectionSize(index)
         return QtCore.QRect(x, y, width, height)
 
-    def data(self, index: QtCore.QModelIndex, role: int) -> QtCore.QVariant:
-        if role == Qt.ItemDataRole.SizeHintRole:
-            return int(self._section_sizes[index.column()])
-        return super().data(index, role)
-
     @staticmethod
     def drawBorder(painter: QtGui.QPainter, rect: QtCore.QRect):
         return painter.drawPolyline(
@@ -238,11 +233,6 @@ class QVerticalHeaderView(QDataFrameHeaderView):
         height = self.sectionSize(index)
         width = self.width()
         return QtCore.QRect(x, y, width, height)
-
-    def data(self, index: QtCore.QModelIndex, role: int) -> QtCore.QVariant:
-        if role == Qt.ItemDataRole.SizeHintRole:
-            return int(self._section_sizes[index.row()])
-        return super().data(index, role)
 
     @staticmethod
     def drawBorder(painter: QtGui.QPainter, rect: QtCore.QRect):
