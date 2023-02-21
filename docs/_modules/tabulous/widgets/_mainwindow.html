@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets._mainwindow &mdash; tabulous 0.4.1 documentation</title>
+  <title>tabulous.widgets._mainwindow &mdash; tabulous 0.5.0rc1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.1
+                0.5.0rc1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -100,6 +100,7 @@
 <span class="kn">from</span> <span class="nn">._tablelist</span> <span class="kn">import</span> <span class="n">TableList</span>
 <span class="kn">from</span> <span class="nn">._sample</span> <span class="kn">import</span> <span class="n">open_sample</span>
 <span class="kn">from</span> <span class="nn">._component</span> <span class="kn">import</span> <span class="n">Toolbar</span><span class="p">,</span> <span class="n">Console</span><span class="p">,</span> <span class="n">CommandPalette</span>
+<span class="kn">from</span> <span class="nn">._source</span> <span class="kn">import</span> <span class="n">Source</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_doc</span>
 
 <span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">_utils</span><span class="p">,</span> <span class="n">_io</span>
@@ -263,6 +264,15 @@
     <span class="k">def</span> <span class="nf">history_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The file I/O history manager.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_hist_mgr</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">theme</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get current widget theme name.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_style_theme</span>
+
+    <span class="nd">@theme</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">theme</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theme</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">applyTheme</span><span class="p">(</span><span class="n">theme</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TableViewerBase.show"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Show the widget.&quot;&quot;&quot;</span>
@@ -437,9 +447,11 @@
         <span class="n">out</span> <span class="o">=</span> <span class="n">_io</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">sheet_name</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">fopen</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">sheet_name</span><span class="p">)</span>
+                <span class="n">table</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">sheet_name</span><span class="p">)</span>
+                <span class="n">table</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">fopen</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
         <span class="n">_utils</span><span class="o">.</span><span class="n">dump_file_open_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
@@ -538,7 +550,22 @@
 
 <div class="viewcode-block" id="TableViewerBase.resize"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.resize">[docs]</a>    <span class="k">def</span> <span class="nf">resize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Resize the table viewer.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span></div>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;viewer.resize() is deprecated. Use `viewer.size` instead.&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the size of the table viewer.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+
+    <span class="nd">@size</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;Set the size of the table viewer.&quot;&quot;&quot;</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">w</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_link_events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">_tablist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tablist</span>
@@ -551,16 +578,20 @@
 
         <span class="nd">@_tablist</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">removed</span><span class="o">.</span><span class="n">connect</span>
         <span class="k">def</span> <span class="nf">_remove_qtable</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="n">TableBase</span><span class="p">):</span>
-            <span class="k">with</span> <span class="n">_tablist</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">blocked</span><span class="p">():</span>
+            <span class="n">_qtablist</span><span class="o">.</span><span class="n">blockSignals</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
                 <span class="n">_qtablist</span><span class="o">.</span><span class="n">takeTable</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="n">_qtablist</span><span class="o">.</span><span class="n">blockSignals</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="nd">@_tablist</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">moved</span><span class="o">.</span><span class="n">connect</span>
         <span class="k">def</span> <span class="nf">_move_qtable</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
             <span class="c1"># Evented list emits (0, 1) when move(0, 2) is called (v0.3.5 now).</span>
-            <span class="k">if</span> <span class="n">src</span> <span class="o">&lt;</span> <span class="n">dst</span><span class="p">:</span>
-                <span class="n">dst</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">with</span> <span class="n">_tablist</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">blocked</span><span class="p">():</span>
+            <span class="n">_qtablist</span><span class="o">.</span><span class="n">blockSignals</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
                 <span class="n">_qtablist</span><span class="o">.</span><span class="n">moveTable</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="n">_qtablist</span><span class="o">.</span><span class="n">blockSignals</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="nd">@_tablist</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">renamed</span><span class="o">.</span><span class="n">connect</span>
         <span class="k">def</span> <span class="nf">_rename_qtable</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -570,6 +601,8 @@
         <span class="nd">@_qtablist</span><span class="o">.</span><span class="n">itemMoved</span><span class="o">.</span><span class="n">connect</span>
         <span class="k">def</span> <span class="nf">_move_pytable</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;Move evented list when list is moved in GUI.&quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">src</span> <span class="o">&lt;</span> <span class="n">dst</span><span class="p">:</span>
+                <span class="n">dst</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tablist</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">blocked</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_tablist</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
 
@@ -648,6 +681,13 @@
             <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span>
         <span class="p">)</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MappingProxyType</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the config info.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">tabulous._utils</span> <span class="kn">import</span> <span class="n">get_config</span>
+
+        <span class="k">return</span> <span class="n">get_config</span><span class="p">()</span><span class="o">.</span><span class="n">as_immutable</span><span class="p">()</span>
+
 <div class="viewcode-block" id="TableViewer.add_dock_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewer.add_dock_widget">[docs]</a>    <span class="k">def</span> <span class="nf">add_dock_widget</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">widget</span><span class="p">:</span> <span class="n">Widget</span> <span class="o">|</span> <span class="n">QWidget</span><span class="p">,</span>
@@ -656,6 +696,20 @@
         <span class="n">area</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;right&quot;</span><span class="p">,</span>
         <span class="n">allowed_areas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a Qt or magic widget as a dock widget of the table viewer.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        widget : magicgui.widgets.Widget or QWidget</span>
+<span class="sd">            Widget to add to the table viewer.</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Name of the widget.</span>
+<span class="sd">        area : str, default is &quot;right&quot;</span>
+<span class="sd">            The initial area of the dock widget.</span>
+<span class="sd">        allowed_areas : list of str, optional</span>
+<span class="sd">            The allowed areas of the dock widget.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">backend_widget</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">_normalize_widget</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
         <span class="n">dock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">addDockWidget</span><span class="p">(</span>

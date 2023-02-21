@@ -99,7 +99,7 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         self.sectionResized.disconnect(self._on_section_resized)
         try:
             for idx, size in enumerate(self._section_sizes):
-                self.resizeSection(idx, size)
+                self.resizeSection(idx, int(size))
         finally:
             self.sectionResized.connect(self._on_section_resized)
         return None

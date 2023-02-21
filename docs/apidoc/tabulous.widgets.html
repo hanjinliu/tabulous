@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets package &mdash; tabulous 0.4.1 documentation</title>
+  <title>tabulous.widgets package &mdash; tabulous 0.5.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="tabulous.commands package" href="tabulous.commands.html" />
+    <link rel="prev" title="tabulous.style package" href="tabulous.style.html" />
 </head>
 
 <body class="wy-body-for-nav">
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.1
+                0.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -63,6 +63,7 @@
 <li class="toctree-l2 current"><a class="reference internal" href="tabulous.html">tabulous package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="tabulous.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="tabulous.commands.html">tabulous.commands package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tabulous.style.html">tabulous.style package</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">tabulous.widgets package</a></li>
 </ul>
 </li>
@@ -526,6 +527,12 @@ a boolean array or an integer array of the same length as the number of rows.</p
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.TableBase.source">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">source</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tabulous.widgets._source.Source</span></em><a class="headerlink" href="#tabulous.widgets.TableBase.source" title="Permalink to this definition">¶</a></dt>
+<dd><p>The source of the table.</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="tabulous.widgets.TableBase.table_shape">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">table_shape</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tabulous.widgets.TableBase.table_shape" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shape of table.</p>
@@ -615,7 +622,24 @@ a boolean array or an integer array of the same length as the number of rows.</p
 <dl class="py method">
 <dt class="sig sig-object py" id="tabulous.widgets.TableViewer.add_dock_widget">
 <span class="sig-name descname"><span class="pre">add_dock_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Widget</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">QWidget</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'right'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_areas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/widgets/_mainwindow.html#TableViewer.add_dock_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableViewer.add_dock_widget" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Add a Qt or magic widget as a dock widget of the table viewer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>widget</strong> (<em>magicgui.widgets.Widget</em><em> or </em><em>QWidget</em>) – Widget to add to the table viewer.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the widget.</p></li>
+<li><p><strong>area</strong> (<em>str</em><em>, </em><em>default is &quot;right&quot;</em>) – The initial area of the dock widget.</p></li>
+<li><p><strong>allowed_areas</strong> (<em>list of str</em><em>, </em><em>optional</em>) – The allowed areas of the dock widget.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewer.config">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">mappingproxy</span></em><a class="headerlink" href="#tabulous.widgets.TableViewer.config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the config info.</p>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="tabulous.widgets.TableViewer.events">
@@ -850,6 +874,12 @@ Typed spreadsheet is safer for data recovery but less flexible for editing.</p><
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewerBase.size">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tabulous.widgets.TableViewerBase.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the size of the table viewer.</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="tabulous.widgets.TableViewerBase.status">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#tabulous.widgets.TableViewerBase.status" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the statup tip</p>
@@ -859,6 +889,12 @@ Typed spreadsheet is safer for data recovery but less flexible for editing.</p><
 <dt class="sig sig-object py" id="tabulous.widgets.TableViewerBase.tables">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tables</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tabulous.widgets._tablelist.TableList</span></em><a class="headerlink" href="#tabulous.widgets.TableViewerBase.tables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the table list object.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tabulous.widgets.TableViewerBase.theme">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">theme</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#tabulous.widgets.TableViewerBase.theme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get current widget theme name.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -894,7 +930,7 @@ Typed spreadsheet is safer for data recovery but less flexible for editing.</p><
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="tabulous.commands.html" class="btn btn-neutral float-left" title="tabulous.commands package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tabulous.style.html" class="btn btn-neutral float-left" title="tabulous.style package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

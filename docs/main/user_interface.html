@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Interface &mdash; tabulous 0.4.1 documentation</title>
+  <title>User Interface &mdash; tabulous 0.5.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.1
+                0.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -45,9 +45,10 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">User Interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#tables">Tables</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#move-around-the-table">Move around the table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#move-and-scroll">Move and scroll</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#zoom">Zoom</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#resize">Resize</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#edit-cells-and-headers">Edit cells and headers</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#add-cell-labels">Add cell labels</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#excel-style-data-evaluation">Excel-style data evaluation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#scalar-value">Scalar value</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#column-vector">Column vector</a></li>
@@ -56,8 +57,10 @@
 <li class="toctree-l4"><a class="reference internal" href="#user-defined-namespace">User-defined namespace</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#add-cell-labels">Add cell labels</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#table-tabs">Table Tabs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#toolbar">Toolbar</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#home-menu">Home menu</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#edit-menu">Edit menu</a></li>
@@ -119,36 +122,53 @@
 <ul class="simple">
 <li><p><a class="reference internal" href="#tables" id="id1">Tables</a></p>
 <ul>
-<li><p><a class="reference internal" href="#move-around-the-table" id="id2">Move around the table</a></p></li>
-<li><p><a class="reference internal" href="#edit-cells-and-headers" id="id3">Edit cells and headers</a></p></li>
-<li><p><a class="reference internal" href="#add-cell-labels" id="id4">Add cell labels</a></p></li>
-<li><p><a class="reference internal" href="#excel-style-data-evaluation" id="id5">Excel-style data evaluation</a></p></li>
+<li><p><a class="reference internal" href="#move-and-scroll" id="id2">Move and scroll</a></p></li>
+<li><p><a class="reference internal" href="#zoom" id="id3">Zoom</a></p></li>
+<li><p><a class="reference internal" href="#resize" id="id4">Resize</a></p></li>
+<li><p><a class="reference internal" href="#edit-cells-and-headers" id="id5">Edit cells and headers</a></p></li>
+<li><p><a class="reference internal" href="#excel-style-data-evaluation" id="id6">Excel-style data evaluation</a></p></li>
+<li><p><a class="reference internal" href="#add-cell-labels" id="id7">Add cell labels</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#toolbar" id="id6">Toolbar</a></p>
+<li><p><a class="reference internal" href="#table-tabs" id="id8">Table Tabs</a></p></li>
+<li><p><a class="reference internal" href="#toolbar" id="id9">Toolbar</a></p>
 <ul>
-<li><p><a class="reference internal" href="#home-menu" id="id7">Home menu</a></p></li>
-<li><p><a class="reference internal" href="#edit-menu" id="id8">Edit menu</a></p></li>
-<li><p><a class="reference internal" href="#table-menu" id="id9">Table menu</a></p></li>
-<li><p><a class="reference internal" href="#analyze-menu" id="id10">Analyze menu</a></p></li>
-<li><p><a class="reference internal" href="#view-menu" id="id11">View menu</a></p></li>
-<li><p><a class="reference internal" href="#plot-menu" id="id12">Plot menu</a></p></li>
+<li><p><a class="reference internal" href="#home-menu" id="id10">Home menu</a></p></li>
+<li><p><a class="reference internal" href="#edit-menu" id="id11">Edit menu</a></p></li>
+<li><p><a class="reference internal" href="#table-menu" id="id12">Table menu</a></p></li>
+<li><p><a class="reference internal" href="#analyze-menu" id="id13">Analyze menu</a></p></li>
+<li><p><a class="reference internal" href="#view-menu" id="id14">View menu</a></p></li>
+<li><p><a class="reference internal" href="#plot-menu" id="id15">Plot menu</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <section id="tables">
 <h2><a class="toc-backref" href="#id1">Tables</a><a class="headerlink" href="#tables" title="Permalink to this headline">¶</a></h2>
-<section id="move-around-the-table">
-<h3><a class="toc-backref" href="#id2">Move around the table</a><a class="headerlink" href="#move-around-the-table" title="Permalink to this headline">¶</a></h3>
-<p>Arrow keys (<span class="kbd">→</span> <span class="kbd">←</span> <span class="kbd">↑</span> <span class="kbd">↓</span>) with <span class="kbd">Ctrl</span> (or <span class="kbd">⌘</span> in Mac),
-<span class="kbd">Shift</span> modifier work as you expects in most of table data editors.</p>
-<p>Additionally, <span class="kbd">Ctrl</span> + <code class="docutils literal notranslate"><span class="pre">mouse</span> <span class="pre">wheel</span></code> zooms in/out the table. Arrow keys (<span class="kbd">→</span>
-<span class="kbd">←</span> <span class="kbd">↑</span> <span class="kbd">↓</span>) with <span class="kbd">Ctrl</span> + <span class="kbd">Alt</span> scrolls the table to the desired
-direction.</p>
+<section id="move-and-scroll">
+<h3><a class="toc-backref" href="#id2">Move and scroll</a><a class="headerlink" href="#move-and-scroll" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Arrow keys (<span class="kbd">→</span> <span class="kbd">←</span> <span class="kbd">↑</span> <span class="kbd">↓</span>) with <span class="kbd">Ctrl</span> (or <span class="kbd">⌘</span> in Mac),
+<span class="kbd">Shift</span> modifier work as you expects in most of table data editors.</p></li>
+<li><p>Arrow keys (<span class="kbd">→</span> <span class="kbd">←</span> <span class="kbd">↑</span> <span class="kbd">↓</span>) with <span class="kbd">Ctrl</span> + <span class="kbd">Alt</span> scrolls
+the table to the desired direction. You can also scroll tables using the scroll bar, or
+right-dragging.</p></li>
+</ul>
+</section>
+<section id="zoom">
+<h3><a class="toc-backref" href="#id3">Zoom</a><a class="headerlink" href="#zoom" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><span class="kbd">Ctrl</span> + <code class="docutils literal notranslate"><span class="pre">mouse</span> <span class="pre">wheel</span></code> zooms in/out the table.</p></li>
+<li><p>You can also use keybindings
+<span class="kbd">Ctrl</span> <span class="kbd">Shift</span> <span class="kbd">&gt;</span> <span class="kbd">Ctrl</span> <span class="kbd">Shift</span> <span class="kbd">&lt;</span> to zoom in/out.</p></li>
+</ul>
+</section>
+<section id="resize">
+<h3><a class="toc-backref" href="#id4">Resize</a><a class="headerlink" href="#resize" title="Permalink to this headline">¶</a></h3>
+<p>Cells and headers can be resized by dragging the borders of header sections.</p>
 </section>
 <section id="edit-cells-and-headers">
-<h3><a class="toc-backref" href="#id3">Edit cells and headers</a><a class="headerlink" href="#edit-cells-and-headers" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id5">Edit cells and headers</a><a class="headerlink" href="#edit-cells-and-headers" title="Permalink to this headline">¶</a></h3>
 <p>If a table is editable, you can edit the values of cells and headers. Double-clicking, <span class="kbd">F2</span>
 or typing any characters will create an editor for the value.</p>
 <img alt="../_images/edit_cell.png" src="../_images/edit_cell.png" />
@@ -156,42 +176,8 @@ or typing any characters will create an editor for the value.</p>
 table cells, you can set any validation rules (see <a class="reference internal" href="columnwise_settings.html"><span class="doc">Column-wise Settings</span></a>). For
 the table headers, duplicated names are not allowed and considered to be invalid.</p>
 </section>
-<section id="add-cell-labels">
-<h3><a class="toc-backref" href="#id4">Add cell labels</a><a class="headerlink" href="#add-cell-labels" title="Permalink to this headline">¶</a></h3>
-<p>People using spreadsheets usually want to name some of the cells. For instance, when you
-calculated the mean of a column, you want to name the cell as “mean”. Usually, it is done
-by editing one of the adjacent cells.</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 43%" />
-<col style="width: 57%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>A</p></th>
-<th class="head"><p>B</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>1</p></td>
-<td><p>mean</p></td>
-</tr>
-<tr class="row-odd"><td><p>2</p></td>
-<td><p>2.5</p></td>
-</tr>
-<tr class="row-even"><td><p>3</p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>4</p></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<p>In <a class="reference internal" href="../apidoc/tabulous.html#module-tabulous" title="tabulous"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tabulous</span></code></a>, however, you can directly name the cell using cell label. You can edit
-cell labels by <span class="kbd">F3</span> key.</p>
-<img alt="../_images/cell_labels.png" src="../_images/cell_labels.png" />
-</section>
 <section id="excel-style-data-evaluation">
-<h3><a class="toc-backref" href="#id5">Excel-style data evaluation</a><a class="headerlink" href="#excel-style-data-evaluation" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">Excel-style data evaluation</a><a class="headerlink" href="#excel-style-data-evaluation" title="Permalink to this headline">¶</a></h3>
 <p>Simple analysis should be done inside the table cells, especially when you are using
 SpreadSheet. In Excel and Google Spreadsheet, you can do it by typing, say, <code class="docutils literal notranslate"><span class="pre">=SUM(A1:A4)</span></code>,
 to calculate the sum of the values in the range <code class="docutils literal notranslate"><span class="pre">A1:A4</span></code>.</p>
@@ -200,7 +186,7 @@ data is available as a variable <code class="docutils literal notranslate"><span
 also available as <code class="docutils literal notranslate"><span class="pre">np</span></code> and <code class="docutils literal notranslate"><span class="pre">pd</span></code>. If the input string starts with <code class="docutils literal notranslate"><span class="pre">=</span></code>, the editor is
 automatically switched to the literal evaluation mode and cell selection will insert table data
 reference to the editor. For instance, if you select column <code class="docutils literal notranslate"><span class="pre">'A'</span></code> and rows from 1 to 8, then
-<code class="docutils literal notranslate"><span class="pre">df['A'][1:9]</span></code> will be inserted.</p>
+<code class="docutils literal notranslate"><span class="pre">df[1:9,</span> <span class="pre">0:1]</span></code> will be inserted.</p>
 <p>One of the differences between this mode and Excel is that this evaluation does not use
 reference, so that changing the value of any of the source cells will <strong>NOT</strong> affect the value
 of the destinations.</p>
@@ -528,9 +514,53 @@ restrict the variables to be added by setting <code class="docutils literal notr
 </ol>
 </section>
 </section>
+<section id="add-cell-labels">
+<h3><a class="toc-backref" href="#id7">Add cell labels</a><a class="headerlink" href="#add-cell-labels" title="Permalink to this headline">¶</a></h3>
+<p>People using spreadsheets usually want to name some of the cells. For instance, when you
+calculated the mean of a column, you want to name the cell as “mean”. Usually, it is done
+by editing one of the adjacent cells.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 43%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>A</p></th>
+<th class="head"><p>B</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>mean</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>2.5</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>In <a class="reference internal" href="../apidoc/tabulous.html#module-tabulous" title="tabulous"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tabulous</span></code></a>, however, you can directly name the cell using cell label. You can edit
+cell labels by <span class="kbd">F3</span> key.</p>
+<img alt="../_images/cell_labels.png" src="../_images/cell_labels.png" />
+</section>
+</section>
+<section id="table-tabs">
+<h2><a class="toc-backref" href="#id8">Table Tabs</a><a class="headerlink" href="#table-tabs" title="Permalink to this headline">¶</a></h2>
+<p>All the tables are managed by the table tabs.</p>
+<ul class="simple">
+<li><p>You can double-click to rename the tab. The <code class="docutils literal notranslate"><span class="pre">name</span></code> property of the table will also be
+updated.</p></li>
+<li><p>You can run table specific actions by right-clicking the tab.</p></li>
+<li><p>You can drag-and-drop tabs between viewers by right-drag.</p></li>
+</ul>
 </section>
 <section id="toolbar">
-<h2><a class="toc-backref" href="#id6">Toolbar</a><a class="headerlink" href="#toolbar" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id9">Toolbar</a><a class="headerlink" href="#toolbar" title="Permalink to this headline">¶</a></h2>
 <p>Toolbar contains many functions that help you with analyzing the table data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -540,7 +570,7 @@ labels to find the appropriate key combo to get to the button you want
 (similar to Microsoft Office).</p>
 </div>
 <section id="home-menu">
-<h3><a class="toc-backref" href="#id7">Home menu</a><a class="headerlink" href="#home-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id10">Home menu</a><a class="headerlink" href="#home-menu" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/open_table.svg"><img alt="open_table" src="../_images/open_table.svg" width="20em" /></a> … Open a table data as a <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> from a file using a
 file dialog.</p></li>
@@ -553,7 +583,7 @@ file using a file dialog.</p></li>
 </ul>
 </section>
 <section id="edit-menu">
-<h3><a class="toc-backref" href="#id8">Edit menu</a><a class="headerlink" href="#edit-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id11">Edit menu</a><a class="headerlink" href="#edit-menu" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/copy.svg"><img alt="copy" src="../_images/copy.svg" width="20em" /></a> … Copy the selected cells to the clipboard.</p></li>
 <li><p><a class="reference internal" href="../_images/paste.svg"><img alt="paste" src="../_images/paste.svg" width="20em" /></a> … Paste the clipboard data to the selected cells.</p></li>
@@ -563,7 +593,7 @@ file using a file dialog.</p></li>
 </ul>
 </section>
 <section id="table-menu">
-<h3><a class="toc-backref" href="#id9">Table menu</a><a class="headerlink" href="#table-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id12">Table menu</a><a class="headerlink" href="#table-menu" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/copy_as_table.svg"><img alt="copy_as_table" src="../_images/copy_as_table.svg" width="20em" /></a> … Make a copy of the active table as a <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code>.</p></li>
 <li><p><a class="reference internal" href="../_images/copy_as_spreadsheet.svg"><img alt="copy_as_spreadsheet" src="../_images/copy_as_spreadsheet.svg" width="20em" /></a> … Make a copy of the active table as a <code class="xref py py-class docutils literal notranslate"><span class="pre">SpreadSheet</span></code>.</p></li>
@@ -574,7 +604,7 @@ file using a file dialog.</p></li>
 </ul>
 </section>
 <section id="analyze-menu">
-<h3><a class="toc-backref" href="#id10">Analyze menu</a><a class="headerlink" href="#analyze-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id13">Analyze menu</a><a class="headerlink" href="#analyze-menu" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/summarize_table.svg"><img alt="summarize_table" src="../_images/summarize_table.svg" width="20em" /></a> … Summarize table data by mean, standard deviation etc.</p></li>
 <li><p><a class="reference internal" href="../_images/eval.svg"><img alt="eval" src="../_images/eval.svg" width="20em" /></a> … Evaluate a string expression on the table data. Essentially equivalent
@@ -589,7 +619,7 @@ match by value, partial match and regular expression) are available.</p></li>
 </ul>
 </section>
 <section id="view-menu">
-<h3><a class="toc-backref" href="#id11">View menu</a><a class="headerlink" href="#view-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id14">View menu</a><a class="headerlink" href="#view-menu" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/view_popup.svg"><img alt="view_popup" src="../_images/view_popup.svg" width="20em" /></a> … Popup current active table.</p></li>
 <li><p><a class="reference internal" href="../_images/view_dual_h.svg"><img alt="view_dual_h" src="../_images/view_dual_h.svg" width="20em" /></a> … Activate dual view mode (horizontal).</p></li>
@@ -601,7 +631,7 @@ match by value, partial match and regular expression) are available.</p></li>
 </ul>
 </section>
 <section id="plot-menu">
-<h3><a class="toc-backref" href="#id12">Plot menu</a><a class="headerlink" href="#plot-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id15">Plot menu</a><a class="headerlink" href="#plot-menu" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/plot.svg"><img alt="plot" src="../_images/plot.svg" width="20em" /></a> … Plot table data by <code class="xref py py-meth docutils literal notranslate"><span class="pre">plt.plot()</span></code>.</p></li>
 <li><p><a class="reference internal" href="../_images/scatter.svg"><img alt="scatter" src="../_images/scatter.svg" width="20em" /></a> … Plot table data by <code class="xref py py-meth docutils literal notranslate"><span class="pre">plt.scatter()</span></code>.</p></li>

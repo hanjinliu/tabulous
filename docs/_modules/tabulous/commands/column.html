@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.column &mdash; tabulous 0.4.1 documentation</title>
+  <title>tabulous.commands.column &mdash; tabulous 0.5.0rc1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.1
+                0.5.0rc1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -90,6 +90,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 <span class="kn">from</span> <span class="nn">tabulous.exceptions</span> <span class="kn">import</span> <span class="n">SelectionRangeError</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_utils</span><span class="p">,</span> <span class="n">_dialogs</span>
+<span class="kn">from</span> <span class="nn">tabulous.widgets._source</span> <span class="kn">import</span> <span class="n">Source</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">tabulous.widgets</span> <span class="kn">import</span> <span class="n">TableViewerBase</span>
@@ -220,7 +221,8 @@
         <span class="k">raise</span> <span class="n">SelectionRangeError</span><span class="p">(</span><span class="s2">&quot;No columns selected&quot;</span><span class="p">)</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">]</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="n">colnames</span><span class="p">)</span>
-    <span class="n">viewer</span><span class="o">.</span><span class="n">add_groupby</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-groupby&quot;</span><span class="p">)</span></div>
+    <span class="n">table_out</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_groupby</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-groupby&quot;</span><span class="p">)</span>
+    <span class="n">table_out</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="run_cut"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.run_cut">[docs]</a><span class="k">def</span> <span class="nf">run_cut</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>

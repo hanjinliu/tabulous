@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.table &mdash; tabulous 0.4.1 documentation</title>
+  <title>tabulous.commands.table &mdash; tabulous 0.5.0rc1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.4.1
+                0.5.0rc1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -89,6 +89,8 @@
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_dialogs</span><span class="p">,</span> <span class="n">_utils</span>
+<span class="kn">from</span> <span class="nn">tabulous._magicgui</span> <span class="kn">import</span> <span class="n">ToggleSwitchSelect</span>
+<span class="kn">from</span> <span class="nn">tabulous.widgets._source</span> <span class="kn">import</span> <span class="n">Source</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">tabulous.widgets</span> <span class="kn">import</span> <span class="n">TableViewerBase</span><span class="p">,</span> <span class="n">TableBase</span><span class="p">,</span> <span class="n">SpreadSheet</span>
@@ -103,13 +105,15 @@
 <div class="viewcode-block" id="copy_as_table"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.copy_as_table">[docs]</a><span class="k">def</span> <span class="nf">copy_as_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Copy current table as a new table&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
-    <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-copy&quot;</span><span class="p">)</span></div>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-copy&quot;</span><span class="p">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="copy_as_spreadsheet"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.copy_as_spreadsheet">[docs]</a><span class="k">def</span> <span class="nf">copy_as_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Copy current table as a new spreadsheet&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
-    <span class="n">viewer</span><span class="o">.</span><span class="n">add_spreadsheet</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-copy&quot;</span><span class="p">)</span></div>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_spreadsheet</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-copy&quot;</span><span class="p">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="copy_to_clipboard"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.copy_to_clipboard">[docs]</a><span class="k">def</span> <span class="nf">copy_to_clipboard</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
@@ -138,14 +142,15 @@
         <span class="n">viewer</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;bind&quot;</span><span class="p">:</span> <span class="n">viewer</span><span class="p">},</span>
         <span class="n">names</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">viewer</span><span class="o">.</span><span class="n">current_table</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
-            <span class="s2">&quot;widget_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Select&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;widget_type&quot;</span><span class="p">:</span> <span class="n">ToggleSwitchSelect</span><span class="p">,</span>
             <span class="s2">&quot;choices&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">],</span>
         <span class="p">},</span>
         <span class="n">axis</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;choices&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;vertical&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;horizontal&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]},</span>
         <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;concat&quot;</span><span class="p">)</span></div>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;concat&quot;</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">current_table</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="merge"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.merge">[docs]</a><span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
@@ -165,7 +170,7 @@
         <span class="n">merge</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;changed&quot;</span><span class="p">:</span> <span class="n">_update_choices</span><span class="p">},</span>
         <span class="n">with_</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;changed&quot;</span><span class="p">:</span> <span class="n">_update_choices</span><span class="p">},</span>
         <span class="n">how</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;choices&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="s2">&quot;outer&quot;</span><span class="p">,</span> <span class="s2">&quot;inner&quot;</span><span class="p">],</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;inner&quot;</span><span class="p">},</span>
-        <span class="n">on</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;choices&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;widget_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Select&quot;</span><span class="p">},</span>
+        <span class="n">on</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;choices&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;widget_type&quot;</span><span class="p">:</span> <span class="n">ToggleSwitchSelect</span><span class="p">},</span>
         <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -186,26 +191,27 @@
         <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-pivot&quot;</span><span class="p">)</span></div>
+        <span class="n">table_out</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-pivot&quot;</span><span class="p">)</span>
+        <span class="n">table_out</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="melt"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.melt">[docs]</a><span class="k">def</span> <span class="nf">melt</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Melt (unpivot) current table data (pd.melt)&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
-        <span class="n">df</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;bind&quot;</span><span class="p">:</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">},</span>
-        <span class="n">id_vars</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;choices&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="s2">&quot;widget_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Select&quot;</span><span class="p">},</span>
-        <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_selected_columns</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-melt&quot;</span><span class="p">)</span></div>
+        <span class="n">table_out</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-melt&quot;</span><span class="p">)</span>
+        <span class="n">table_out</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="transpose"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.transpose">[docs]</a><span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Transpose current table data&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">T</span>
-    <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-transposed&quot;</span><span class="p">)</span></div>
+    <span class="n">table_out</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-transposed&quot;</span><span class="p">)</span>
+    <span class="n">table_out</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="fillna"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.fillna">[docs]</a><span class="k">def</span> <span class="nf">fillna</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
@@ -232,7 +238,8 @@
         <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-fillna&quot;</span><span class="p">)</span></div>
+        <span class="n">table_out</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-fillna&quot;</span><span class="p">)</span>
+        <span class="n">table_out</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="dropna"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.dropna">[docs]</a><span class="k">def</span> <span class="nf">dropna</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
@@ -245,7 +252,8 @@
         <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-dropna&quot;</span><span class="p">)</span></div>
+        <span class="n">table_out</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-dropna&quot;</span><span class="p">)</span>
+        <span class="n">table_out</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="show_finder_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.show_finder_widget">[docs]</a><span class="k">def</span> <span class="nf">show_finder_widget</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
@@ -383,6 +391,18 @@
     <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="n">table</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">resizeColumnsToContents</span><span class="p">()</span>
     <span class="n">table</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">resizeRowsToContents</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="zoom_in"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.zoom_in">[docs]</a><span class="k">def</span> <span class="nf">zoom_in</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Zoom in&quot;&quot;&quot;</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">zoomIn</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="zoom_out"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.zoom_out">[docs]</a><span class="k">def</span> <span class="nf">zoom_out</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Zoom in&quot;&quot;&quot;</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">zoomIn</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
