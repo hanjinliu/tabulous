@@ -42,7 +42,6 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             Qt.ItemDataRole.ToolTipRole: self._data_tooltip,
             Qt.ItemDataRole.BackgroundColorRole: self._data_background_color,
             Qt.ItemDataRole.DecorationRole: self._data_decoration,
-            Qt.ItemDataRole.SizeHintRole: self._data_size_hint,
         }
 
         self._decorations: TableMapping[tuple[QtGui.QPixmap, str]] = TableMapping()
@@ -173,15 +172,6 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         r, c = index.row(), index.column()
         if content := self._decorations.get((r, c), None):
             return content[0]
-        return QtCore.QVariant()
-
-    def _data_size_hint(self, index: QtCore.QModelIndex):
-        r, c = index.row(), index.column()
-        qtable_view = self.parent()._qtable_view
-        hsize = qtable_view.horizontalHeader()._section_sizes
-        vsize = qtable_view.verticalHeader()._section_sizes
-        if r < len(vsize) and c < len(hsize):
-            return QtCore.QSize(hsize[c], vsize[r])
         return QtCore.QVariant()
 
     def set_cell_label(self, index: QtCore.QModelIndex, text: str | None):
@@ -319,7 +309,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         self, column: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
         self._decorations.remove_columns(column, count)
-        self.parent()._qtable_view.horizontalHeader().removeSection(column)
+        self.parent()._qtable_view.horizontalHeader().removeSection(column, count)
         return super().removeColumns(column, count, parent)
 
     def insertRows(
@@ -338,7 +328,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         self, row: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
         self._decorations.remove_rows(row, count)
-        self.parent()._qtable_view.verticalHeader().removeSection(row)
+        self.parent()._qtable_view.verticalHeader().removeSection(row, count)
         return super().removeRows(row, count, parent)
 
     if TYPE_CHECKING:

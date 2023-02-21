@@ -525,12 +525,15 @@ class _QTableViewEnhanced(QtW.QTableView):
     def wheelEvent(self, e: QtGui.QWheelEvent) -> None:
         """Zoom in/out table."""
         if e.modifiers() & Qt.KeyboardModifier.ControlModifier:
-            dt = e.angleDelta().y() / 120
-            zoom = self.zoom() + 0.15 * dt
-            self.setZoom(min(max(zoom, 0.25), 2.0))
-            return None
+            return self.zoomIn(e.angleDelta().y() / 120)
 
         return super().wheelEvent(e)
+
+    def zoomIn(self, delta: int = 1) -> None:
+        """Zoom in or out."""
+        zoom = self.zoom() + 0.15 * delta
+        self.setZoom(min(max(zoom, 0.25), 2.0))
+        return None
 
     def sectionSize(self) -> tuple[int, int]:
         """Return current section size."""
