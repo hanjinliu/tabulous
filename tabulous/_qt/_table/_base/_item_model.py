@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable, Hashable, TYPE_CHECKING
+from typing import Any, Callable, Hashable, TYPE_CHECKING, cast
 import warnings
 from qtpy import QtCore, QtGui, QtWidgets as QtW
 from qtpy.QtCore import Qt, Signal
@@ -42,6 +42,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             Qt.ItemDataRole.ToolTipRole: self._data_tooltip,
             Qt.ItemDataRole.BackgroundColorRole: self._data_background_color,
             Qt.ItemDataRole.DecorationRole: self._data_decoration,
+            Qt.ItemDataRole.SizeHintRole: self._data_size_hint,
         }
 
         self._decorations: TableMapping[tuple[QtGui.QPixmap, str]] = TableMapping()
@@ -174,6 +175,15 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             return content[0]
         return QtCore.QVariant()
 
+    def _data_size_hint(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        qtable_view = self.parent()._qtable_view
+        hsize = qtable_view.horizontalHeader()._section_sizes
+        vsize = qtable_view.verticalHeader()._section_sizes
+        if r < len(vsize) and c < len(hsize):
+            return QtCore.QSize(hsize[c], vsize[r])
+        return QtCore.QVariant()
+
     def set_cell_label(self, index: QtCore.QModelIndex, text: str | None):
         if text is None or text == "":
             self._decorations.pop((index.row(), index.column()), None)
@@ -297,24 +307,38 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         self, column: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
         self._decorations.insert_columns(column, count)
+        span = self.data(self.index(0, column - 1), Qt.ItemDataRole.SizeHintRole)
+        if isinstance(span, QtCore.QSize):
+            span = cast(QtCore.QSize, span).width()
+        else:
+            span = get_config().table.column_size
+        self.parent()._qtable_view.horizontalHeader().insertSection(column, count, span)
         return super().insertColumns(column, count, parent)
 
     def removeColumns(
         self, column: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
         self._decorations.remove_columns(column, count)
+        self.parent()._qtable_view.horizontalHeader().removeSection(column)
         return super().removeColumns(column, count, parent)
 
     def insertRows(
         self, row: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
         self._decorations.insert_rows(row, count)
+        span = self.data(self.index(0, row - 1), Qt.ItemDataRole.SizeHintRole)
+        if isinstance(span, QtCore.QSize):
+            span = cast(QtCore.QSize, span).height()
+        else:
+            span = get_config().table.row_size
+        self.parent()._qtable_view.verticalHeader().insertSection(row, count, span)
         return super().insertRows(row, count, parent)
 
     def removeRows(
         self, row: int, count: int, parent: QtCore.QModelIndex = None
     ) -> bool:
         self._decorations.remove_rows(row, count)
+        self.parent()._qtable_view.verticalHeader().removeSection(row)
         return super().removeRows(row, count, parent)
 
     if TYPE_CHECKING:

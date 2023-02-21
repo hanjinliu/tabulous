@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Iterator, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal
 
+import numpy as np
+
 from tabulous._qt._action_registry import QActionRegistry
 from tabulous._qt._proxy_button import HeaderAnchorMixin
 
@@ -29,6 +31,7 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
 
+        self._section_sizes = np.zeros(0, dtype=np.float32)
         self._header_widgets: dict[int, QtW.QWidget] = {}
 
     # fmt: off
@@ -55,6 +58,7 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
     def _on_section_resized(
         self, logicalIndex: int, oldSize: int, newSize: int
     ) -> None:
+        self._section_sizes[logicalIndex] = newSize
         for idx, widget in self._header_widgets.items():
             if idx < logicalIndex:
                 continue
@@ -89,6 +93,31 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
     def drawCurrent(self, painter: QtGui.QPainter, rect: QtCore.QRect):
         """Draw the current index if exists."""
         raise NotImplementedError()
+
+    def setZoomRatio(self, ratio: float):
+        self._section_sizes *= ratio
+        self.sectionResized.disconnect(self._on_section_resized)
+        try:
+            for idx, size in enumerate(self._section_sizes):
+                self.resizeSection(idx, size)
+        finally:
+            self.sectionResized.connect(self._on_section_resized)
+        return None
+
+    def insertSection(self, index: int, count: int, span: int = 0) -> None:
+        """Insert a section at the given index."""
+        sz = self._section_sizes
+        self._section_sizes = np.concatenate(
+            [sz[:index], np.full(count, span), sz[index:]]
+        )
+        return None
+
+    def removeSection(self, index: int, count: int) -> None:
+        """Remove the section at the given index."""
+        self._section_sizes = np.delete(
+            self._section_sizes, slice(index, index + count)
+        )
+        return None
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
         super().paintEvent(event)
@@ -168,6 +197,11 @@ class QHorizontalHeaderView(QDataFrameHeaderView):
         width = self.sectionSize(index)
         return QtCore.QRect(x, y, width, height)
 
+    def data(self, index: QtCore.QModelIndex, role: int) -> QtCore.QVariant:
+        if role == Qt.ItemDataRole.SizeHintRole:
+            return int(self._section_sizes[index.column()])
+        return super().data(index, role)
+
     @staticmethod
     def drawBorder(painter: QtGui.QPainter, rect: QtCore.QRect):
         return painter.drawPolyline(
@@ -204,6 +238,11 @@ class QVerticalHeaderView(QDataFrameHeaderView):
         height = self.sectionSize(index)
         width = self.width()
         return QtCore.QRect(x, y, width, height)
+
+    def data(self, index: QtCore.QModelIndex, role: int) -> QtCore.QVariant:
+        if role == Qt.ItemDataRole.SizeHintRole:
+            return int(self._section_sizes[index.row()])
+        return super().data(index, role)
 
     @staticmethod
     def drawBorder(painter: QtGui.QPainter, rect: QtCore.QRect):

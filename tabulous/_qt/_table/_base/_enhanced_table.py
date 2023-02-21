@@ -507,7 +507,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.horizontalScrollBar().setSliderPosition(int(pos * zoom_ratio))
 
         # Zoom section size of headers
-        self.setSectionSize(int(self._w_default * value), int(self._h_default * value))
+        self.horizontalHeader().setZoomRatio(zoom_ratio)
+        self.verticalHeader().setZoomRatio(zoom_ratio)
 
         # Update stuff
         self._zoom = value
@@ -517,6 +518,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.verticalHeader().setFont(font)
         self.horizontalHeader().setFont(font)
         self._update_all()
+        if qviewer := self.parentViewer():
+            qviewer.statusBar().showMessage(f"Zoom: {value * 100:.0f}%")
         return
 
     def wheelEvent(self, e: QtGui.QWheelEvent) -> None:
