@@ -1,4 +1,6 @@
 from __future__ import annotations
+from typing import Any
+import re
 import requests
 from superqt.utils import thread_worker
 import warnings
@@ -10,8 +12,13 @@ def get_latest_version() -> str:
     if resp.status_code != 200:
         raise RuntimeError(f"Failed to get latest version: {resp.status_code}")
     js = resp.json()
-    release = js["releases"]
-    return list(release.keys())[-1]
+    release: dict[str, Any] = js["releases"]
+    all_releases = list(release.keys())
+    for r in reversed(all_releases):
+        if re.match(r".*[a-zA-Z].*", r):
+            continue
+        return r
+    return "0.0.0"
 
 
 def get_current_version() -> str:

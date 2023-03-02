@@ -28,7 +28,7 @@ class RectRange(TableAnchorBase):
         rsl: slice = slice(0, 0),
         csl: slice = slice(0, 0),
     ):
-        assert type(rsl) is slice and type(csl) is slice
+        assert type(rsl) is slice and type(csl) is slice, f"{rsl!r}, {csl!r}"
         self._rsl = rsl
         self._csl = csl
 

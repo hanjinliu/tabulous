@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from typing_extensions import Self
 
 _Slice = Union[int, slice]
+_SlicePattern = r"(\w|:|-|\s)"
 
 
 class SelectionOperator:
@@ -236,7 +237,7 @@ class ILocSelOp(SelectionOperator):
     """An object that represents selection such as ``df.iloc[4:7, 2:5]``."""
 
     args: tuple[_Slice, _Slice]
-    PATTERN = r"df\.iloc\[.+?\]"
+    PATTERN = rf"df\.iloc\[{_SlicePattern}+(,{_SlicePattern}*)?\]"
 
     def __init__(self, rsel: _Slice, csel: _Slice):
         self.args = (rsel, csel)
@@ -276,7 +277,7 @@ class ILocSelOp(SelectionOperator):
 class ValueSelOp(SelectionOperator):
     """An object that represents selection such as ``df.iloc[4:7, 2:5]``."""
 
-    PATTERN = r"df\.values\[.+?\]"
+    PATTERN = rf"df\.values\[{_SlicePattern}+(,{_SlicePattern}*)?\]"
 
     def __init__(self, rsel: _Slice, csel: _Slice):
         self.args = (rsel, csel)
@@ -313,7 +314,12 @@ class ValueSelOp(SelectionOperator):
 def iter_extract(text: str, *, df_expr: str = "df") -> Iterator[SelectionOperator]:
     """Iteratively extract selection literal from text."""
     for match_obj in _PATTERN.finditer(text):
-        yield parse(match_obj.group(), df_expr=df_expr)
+        try:
+            op = parse(match_obj.group(), df_expr=df_expr)
+        except (ValueError, SyntaxError):
+            pass
+        else:
+            yield op
 
 
 def iter_extract_with_range(
@@ -331,27 +337,27 @@ def parse(expr: str, *, df_expr: str = "df") -> SelectionOperator:
     ndf = len(df_expr)
     if expr.startswith(f"{df_expr}["):
         # df['val'][...]
-        colname, rsl_str = expr[ndf + 1 : -1].split("][")
+        colname, rsl_str = _split_or(expr[ndf + 1 : -1], "][")
         rsl = _parse_slice(rsl_str)
         sel = ColumnSelOp(_eval(colname), rsl)
 
     elif expr.startswith(f"{df_expr}.loc["):
         # df.loc[..., ...]
-        rsl_str, csl_str = expr[ndf + 5 : -1].split(",")
+        rsl_str, csl_str = _split_or(expr[ndf + 5 : -1], ",")
         rsl = _parse_slice(rsl_str)
         csl = _parse_slice(csl_str)
         sel = LocSelOp(rsl, csl)
 
     elif expr.startswith(f"{df_expr}.iloc["):
         # df.iloc[..., ...]
-        rsl_str, csl_str = expr[ndf + 6 : -1].split(",")
+        rsl_str, csl_str = _split_or(expr[ndf + 6 : -1], ",")
         rsl = _parse_slice(rsl_str)
         csl = _parse_slice(csl_str)
         sel = ILocSelOp(rsl, csl)
 
     elif expr.startswith(f"{df_expr}.values["):
         # df.values[..., ...]
-        rsl_str, csl_str = expr[ndf + 8 : -1].split(",")
+        rsl_str, csl_str = _split_or(expr[ndf + 8 : -1], ",")
         rsl = _parse_slice(rsl_str)
         csl = _parse_slice(csl_str)
         sel = ValueSelOp(rsl, csl)
@@ -442,6 +448,8 @@ def _parse_slice(s: str) -> Hashable | slice:
         stop = _eval(stop_str)
         return slice(start, stop)
     else:
+        if s == "":
+            return slice(None)
         return _eval(s)
 
 
@@ -471,3 +479,9 @@ def _(s: slice) -> str:
     start = "" if s.start is None else s.start
     stop = "" if s.stop is None else s.stop
     return f"{start!r}:{stop!r}"
+
+
+def _split_or(s: str, sep: str, default: str = ":") -> tuple[str, str]:
+    if sep not in s:
+        return s, default
+    return s.split(sep)
