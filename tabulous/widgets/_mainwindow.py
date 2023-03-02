@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractproperty
+from functools import partial
 from pathlib import Path
 from types import MappingProxyType
 import warnings
@@ -8,6 +9,7 @@ import weakref
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Union
 from psygnal import Signal, SignalGroup
+from superqt.utils import thread_worker
 
 from ._table import Table, SpreadSheet, GroupBy, TableDisplay
 from ._tablelist import TableList
@@ -412,17 +414,23 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         *,
         plugin: str = "seaborn",
         type: TableType | str = TableType.table,
+        asynchronous: bool = False,
     ) -> Table:
         """Open a sample table."""
-        df = open_sample(sample_name, plugin)
         type = TableType(type)
         if type is TableType.table:
-            fopen = self.add_table
+            fopen = partial(self.add_table, name=sample_name)
         elif type is TableType.spreadsheet:
-            fopen = self.add_spreadsheet
+            fopen = partial(self.add_spreadsheet, name=sample_name)
         else:
             raise UnreachableError(type)
-        return fopen(df, name=sample_name)
+        if asynchronous:
+            worker = thread_worker(open_sample)(sample_name, plugin)
+            worker.returned.connect(fopen)
+            worker.start()
+        else:
+            df = open_sample(sample_name, plugin)
+            return fopen(df)
 
     def copy_data(
         self,

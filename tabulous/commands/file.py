@@ -55,7 +55,7 @@ def open_sample(viewer: TableViewerBase):
     """Open sample data"""
     out = choose_one(choice={"choices": SAMPLE_CHOICES, "nullable": False})
     if out is not None:
-        viewer.open_sample(out)
+        viewer.open_sample(out, asynchronous=True)
 
 
 def save_as_xlsx(viewer: TableViewerBase):
