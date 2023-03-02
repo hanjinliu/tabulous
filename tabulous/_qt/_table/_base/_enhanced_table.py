@@ -649,8 +649,25 @@ class _QTableViewEnhanced(QtW.QTableView):
                     rr = prx.map_slice(rr)
                 except Exception:
                     continue
-            top_left = model.index(rr.start, cc.start)
-            bottom_right = model.index(rr.stop - 1, cc.stop - 1)
+            if rr.start is None:
+                rstart = 0
+            else:
+                rstart = rr.start
+            if cc.start is None:
+                cstart = 0
+            else:
+                cstart = cc.start
+            top_left = model.index(rstart, cstart)
+
+            if rr.stop is None:
+                rstop = model.rowCount()
+            else:
+                rstop = rr.stop
+            if cc.stop is None:
+                cstop = model.columnCount()
+            else:
+                cstop = cc.stop
+            bottom_right = model.index(rstop - 1, cstop - 1)
             rect = self.visualRect(top_left) | self.visualRect(bottom_right)
             yield rect
 
