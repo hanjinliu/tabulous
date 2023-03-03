@@ -53,7 +53,9 @@ def save_table_to_source(viewer: TableViewerBase):
 
 def open_sample(viewer: TableViewerBase):
     """Open sample data"""
-    out = choose_one(choice={"choices": SAMPLE_CHOICES, "nullable": False})
+    out = choose_one(
+        choice={"choices": SAMPLE_CHOICES, "nullable": False}, parent=viewer.native
+    )
     if out is not None:
         viewer.open_sample(out, asynchronous=True)
 
