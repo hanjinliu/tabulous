@@ -87,6 +87,23 @@ def add_text_edit(viewer: TableViewerBase):
     return None
 
 
+def add_file_explorer(viewer: TableViewerBase):
+    """Add a file explorer dock widget."""
+    from tabulous import TableViewer, TableViewerWidget
+    from tabulous._qt._filetree import QFileExplorer
+
+    tree_view = QFileExplorer()
+    if isinstance(viewer, TableViewer):
+        viewer.add_dock_widget(
+            tree_view, name="File Explorer", area="left", allowed_areas=["left"]
+        )
+    elif isinstance(viewer, TableViewerWidget):
+        viewer.add_widget(tree_view, name="File Explorer")
+    else:
+        raise TypeError(f"Cannot add widget to {type(viewer)}")
+    return None
+
+
 def show_preference(viewer: TableViewerBase):
     """Show preference dialog"""
     viewer._qwidget.showPreferenceDialog()
