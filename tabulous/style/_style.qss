@@ -591,3 +591,8 @@ QSelectionRangeEdit > QWidget {
 QSelectionRangeEdit > QWidget > QLineEdit {
     background-color: transparent;
 }
+
+QCircularProgressBar {
+    qproperty-color: #[highlight0];
+    qproperty-grooveColor: #[background0];
+}
