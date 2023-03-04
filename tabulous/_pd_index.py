@@ -10,12 +10,38 @@ LONGEST = np.array(CHARS[:-1], dtype=object)
 
 
 def str_to_num(s: str):
-    out = 0
-    for i, c in enumerate(reversed(s)):
-        if c not in CHARS_SET:
-            raise ValueError(f"Character {c} is not allowed.")
-        out += (ord(c) - ORD_A) ** (i + 1)
-    return out
+    """Converts an Excel-like column label to an integer."""
+    result = -1
+    for i, char in enumerate(reversed(s)):
+        result += (ord(char) - 64) * (26**i)
+    return result
+
+
+def num_to_str(n: int) -> str:
+    """Converts an integer to an Excel-like column label."""
+    n += 1
+    results: list[str] = []
+    while n > 0:
+        n -= 1
+        remainder = n % 26
+        results.append(CHARS[remainder])
+        n //= 26
+    return "".join(reversed(results))
+
+
+def increment(s: str, d: int) -> str:
+    """Increment an Excel-like column label."""
+    return num_to_str(str_to_num(s) + d)
+
+
+def decrement(s: str, d: int) -> str:
+    """Decrement an Excel-like column label."""
+    return num_to_str(str_to_num(s) - d)
+
+
+def is_between(s: str, start: int, stop: int) -> bool:
+    """Check if a string is between two integers."""
+    return start <= num_to_str(s) <= stop
 
 
 def _iter_char(start: int, stop: int):
@@ -78,6 +104,7 @@ HEADER = UniqueName("header")
 
 
 def char_range_index(stop: int) -> pd.Index:
+    """Make an index with values A, B, C, ..."""
     return pd.Index(char_arange(stop), name=HEADER)
 
 

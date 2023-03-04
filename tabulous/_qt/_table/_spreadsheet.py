@@ -17,7 +17,7 @@ from tabulous._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
 from tabulous.color import normalize_color
 from tabulous.types import ItemInfo
 from tabulous._text_formatter import DefaultFormatter
-from tabulous._pd_index import char_range_index, is_ranged, char_arange
+from tabulous import _pd_index
 
 if TYPE_CHECKING:
     from magicgui.widgets._bases import ValueWidget
@@ -253,7 +253,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
         # SpreadSheet columns should be str if possible. Convert it.
         if isinstance(self._data_raw.columns, pd.RangeIndex):
-            self._data_raw.columns = char_arange(self._data_raw.columns.size)
+            self._data_raw.columns = _pd_index.char_arange(self._data_raw.columns.size)
         elif self._data_raw.columns.dtype.kind in "iuf":
             self._data_raw.columns = self._data_raw.columns.astype(str)
 
@@ -490,7 +490,7 @@ class QSpreadSheet(QMutableSimpleTable):
             ],
             axis=0,
         )
-        if is_ranged(index_existing):
+        if _pd_index.is_ranged(index_existing):
             self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
         self.model().insertRows(row, count, QtCore.QModelIndex())
         self._set_proxy(self._proxy)
@@ -531,11 +531,11 @@ class QSpreadSheet(QMutableSimpleTable):
     @QMutableSimpleTable._mgr.undoable
     def _insert_columns(self, col: int, count: int, value: Any = _EMPTY):
         columns_existing = self._data_raw.columns
-        _c_ranged = is_ranged(columns_existing)
+        _c_ranged = _pd_index.is_ranged(columns_existing)
 
         if value is _EMPTY:
             columns = _remove_duplicate(
-                char_arange(col, col + count), existing=columns_existing
+                _pd_index.char_arange(col, col + count), existing=columns_existing
             )
             value = _df_full(
                 nrows=self._data_raw.shape[0],
@@ -552,8 +552,20 @@ class QSpreadSheet(QMutableSimpleTable):
             ],
             axis=1,
         )
+        # if column index is ranged chars, re-assign them
         if _c_ranged:
-            self._data_raw.columns = char_range_index(self._data_raw.columns.size)
+            self._data_raw.columns = _pd_index.char_range_index(
+                self._data_raw.columns.size
+            )
+            model = self.model()
+            for d in [
+                model._foreground_colormap,
+                model._background_colormap,
+                model._text_formatter,
+                model._validator,
+            ]:
+                _inserte_in_dict(d, col, count)
+
         self.model().insertColumns(col, count, QtCore.QModelIndex())
         self._data_cache = None
         self._edited = True
@@ -646,13 +658,24 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @QMutableSimpleTable._mgr.undoable
     def _remove_columns(self, col: int, count: int, old_values: pd.DataFrame):
-        _c_ranged = is_ranged(self._data_raw.columns)
+        _c_ranged = _pd_index.is_ranged(self._data_raw.columns)
         self._data_raw = pd.concat(
             [self._data_raw.iloc[:, :col], self._data_raw.iloc[:, col + count :]],
             axis=1,
         )
         if _c_ranged:
-            self._data_raw.columns = char_range_index(self._data_raw.columns.size)
+            self._data_raw.columns = _pd_index.char_range_index(
+                self._data_raw.columns.size
+            )
+            model = self.model()
+            for d in [
+                model._foreground_colormap,
+                model._background_colormap,
+                model._text_formatter,
+                model._validator,
+                self._columns_dtype,
+            ]:
+                _remove_in_dict(d, col, count)
         self.model().removeColumns(col, count, QtCore.QModelIndex())
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         self._data_cache = None
@@ -828,12 +851,12 @@ class QSpreadSheet(QMutableSimpleTable):
 def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.DataFrame:
     """Pad a dataframe by nr rows and nr columns with the given value."""
     if df.shape == (0, 0):
-        return _df_full(nr, nc, value, columns=char_range_index(nc))
+        return _df_full(nr, nc, value, columns=_pd_index.char_range_index(nc))
 
     # pad rows
     _nr, _nc = df.shape
     _r_ranged = isinstance(df.index, pd.RangeIndex)
-    _c_ranged = is_ranged(df.columns)
+    _c_ranged = _pd_index.is_ranged(df.columns)
     if nr > 0:
         # find unique index
         if df.index.size == 0:
@@ -848,14 +871,14 @@ def _pad_dataframe(df: pd.DataFrame, nr: int, nc: int, value: Any = "") -> pd.Da
     # pad columns
     _nr, _nc = df.shape  # NOTE: shape may have changed
     if nc > 0:
-        columns = char_arange(df.columns.size, df.columns.size + nc)
+        columns = _pd_index.char_arange(df.columns.size, df.columns.size + nc)
         # check duplication
         if not _c_ranged:
             columns = _remove_duplicate(columns, existing=df.columns)
         ext = _df_full(_nr, nc, value, index=df.index, columns=columns)
         df = pd.concat([df, ext], axis=1)
         if _c_ranged:
-            df.columns = char_range_index(df.columns.size)
+            df.columns = _pd_index.char_range_index(df.columns.size)
     return df
 
 
@@ -898,3 +921,27 @@ def _remove_duplicate(
                 c0 = f"{c}_{i}"
             columns[ic] = c0
     return columns
+
+
+def _inserte_in_dict(d: dict[str, Any], start: int, count: int) -> None:
+    out: dict[str, Any] = {}
+    for k, v in d.items():
+        if _pd_index.str_to_num(k) >= start:
+            out[_pd_index.increment(k, count)] = v
+        else:
+            out[k] = v
+    d.clear()
+    d.update(out)
+    return None
+
+
+def _remove_in_dict(d: dict[str, Any], start: int, count: int) -> None:
+    out: dict[str, Any] = {}
+    for k, v in d.items():
+        if _pd_index.str_to_num(k) >= start + count:
+            out[_pd_index.decrement(k, count)] = v
+        else:
+            out[k] = v
+    d.clear()
+    d.update(out)
+    return None
