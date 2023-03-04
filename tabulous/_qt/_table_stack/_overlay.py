@@ -233,7 +233,7 @@ class QInfoStack(_QOverlayBase):
         self.setAnchor(Anchor.bottom_left)
 
     def addWorker(self, worker: WorkerBase, label: str, total: int = 0):
-        pbar = QCircularProgressBar(self._list_widget)
+        pbar = QCircularProgressBar()
         if isinstance(worker, FunctionWorker):
             pbar.setValue(-1)
 
@@ -253,24 +253,31 @@ class QInfoStack(_QOverlayBase):
         else:
             raise TypeError(f"Unsupported worker type: {type(worker)}")
 
-        lw = self._list_widget
         item = QtW.QListWidgetItem()
-        lw.addItem(item)
-        lw.setIndexWidget(
-            lw.model().index(lw.count() - 1, 0), labeled_progressbar(label, pbar)
-        )
-        self.show()
-        height = self._list_widget.sizeHintForRow(0) * min(3, lw.count()) + 6
-        self._list_widget.setFixedHeight(height)
-        self.setMaximumHeight(height + self._title_bar.sizeHint().height())
-        self.alignToParent()
+        labeled_pbar = labeled_progressbar(label, pbar)
+        worker.started.connect(lambda: self._on_worker_started(item, labeled_pbar))
         worker.returned.connect(lambda: self._on_worker_finish(item))
+
+    def _on_worker_started(self, item: QtW.QListWidgetItem, widget: QtW.QWidget):
+        lw = self._list_widget
+        lw.addItem(item)
+        lw.setIndexWidget(lw.model().index(lw.count() - 1, 0), widget)
+        self.adjustHeight()
+        self.show()
 
     def _on_worker_finish(self, item: QtW.QListWidgetItem):
         lw = self._list_widget
         lw.takeItem(lw.row(item))
         if lw.count() == 0:
             self.hide()
+        else:
+            self.adjustHeight()
+
+    def adjustHeight(self):
+        height = 20 * min(3, self._list_widget.count()) + 6
+        self._list_widget.setFixedHeight(height)
+        self.setFixedHeight(height + self._title_bar.sizeHint().height())
+        self.alignToParent()
 
 
 def labeled_progressbar(label: str, pbar: QCircularProgressBar):
