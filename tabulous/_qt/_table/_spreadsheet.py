@@ -534,11 +534,14 @@ class QSpreadSheet(QMutableSimpleTable):
         _c_ranged = is_ranged(columns_existing)
 
         if value is _EMPTY:
+            columns = _remove_duplicate(
+                char_arange(col, col + count), existing=columns_existing
+            )
             value = _df_full(
                 nrows=self._data_raw.shape[0],
                 ncols=count,
                 index=self._data_raw.index,
-                columns=range(count),
+                columns=columns,
             )
 
         self._data_raw = pd.concat(
@@ -551,16 +554,6 @@ class QSpreadSheet(QMutableSimpleTable):
         )
         if _c_ranged:
             self._data_raw.columns = char_range_index(self._data_raw.columns.size)
-        else:
-            columns = char_arange(col, col + count)
-            columns = _remove_duplicate(columns, existing=columns_existing)
-            self._data_raw.columns = np.concatenate(
-                [
-                    columns_existing[:col],
-                    columns,
-                    columns_existing[col:],
-                ]
-            )
         self.model().insertColumns(col, count, QtCore.QModelIndex())
         self._data_cache = None
         self._edited = True
@@ -639,6 +632,14 @@ class QSpreadSheet(QMutableSimpleTable):
                 slice(column, column + count),
             )
             self._process_header_widgets_on_remove(column, count)
+            model = self.model()
+            for index in range(column, column + count):
+                colname = model.df.columns[index]
+                self.setForegroundColormap(colname, None)
+                self.setBackgroundColormap(colname, None)
+                self.setTextFormatter(colname, None)
+                self.setDataValidator(colname, None)
+                self.setColumnDtype(colname, None)
             self._remove_columns(column, count, df)
             self._set_proxy(self._proxy)
         return None
@@ -646,12 +647,6 @@ class QSpreadSheet(QMutableSimpleTable):
     @QMutableSimpleTable._mgr.undoable
     def _remove_columns(self, col: int, count: int, old_values: pd.DataFrame):
         _c_ranged = is_ranged(self._data_raw.columns)
-        model = self.model()
-        for index in range(col, col + count):
-            colname = model.df.columns[index]
-            model.delete_column(colname)
-            self._columns_dtype.pop(colname, None)
-
         self._data_raw = pd.concat(
             [self._data_raw.iloc[:, :col], self._data_raw.iloc[:, col + count :]],
             axis=1,
@@ -891,6 +886,7 @@ def _remove_duplicate(
     existing: pd.Index,
     copy: bool = False,
 ) -> np.ndarray:
+    """Remove names from `columns` that have duplicates in `existing`"""
     if copy:
         columns = columns.copy()
     for ic, c in enumerate(columns):
