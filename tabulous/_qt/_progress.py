@@ -150,3 +150,13 @@ class QCircularProgressBar(QtW.QWidget):
         """Set radius of the progress bar in pixels"""
         self._radius = radius
         self.update()
+
+    def barWidth(self) -> float:
+        return self._barWidth
+
+    def setBarWidth(self, width: float) -> None:
+        """Set width of the progress bar in pixels"""
+        self._barWidth = width
+        self._pen.setWidth(width)
+        self._groove_pen.setWidth(width)
+        self.update()

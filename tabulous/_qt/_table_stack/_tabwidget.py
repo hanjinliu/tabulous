@@ -72,9 +72,10 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         self.tabBarClicked.connect(self.setCurrentIndex)
 
         # add overlay widget
-        from ._overlay import QOverlayWidget
+        from ._overlay import QOverlayWidget, QInfoStack
 
         self._overlay = QOverlayWidget(self)
+        self._info_stack = QInfoStack(self)
 
         # temporal QLineEdit for editing tabs
         self._line: QtW.QLineEdit | None = None
