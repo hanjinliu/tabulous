@@ -58,7 +58,8 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
     def _on_section_resized(
         self, logicalIndex: int, oldSize: int, newSize: int
     ) -> None:
-        self._section_sizes[logicalIndex] = newSize
+        if logicalIndex < len(self._section_sizes):
+            self._section_sizes[logicalIndex] = newSize
         for idx, widget in self._header_widgets.items():
             if idx < logicalIndex:
                 continue
