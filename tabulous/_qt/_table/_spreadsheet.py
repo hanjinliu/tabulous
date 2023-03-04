@@ -150,6 +150,12 @@ class SpreadSheetModel(AbstractDataFrameModel):
                 return f"{val!r} (dtype: {dtype}){ref}"
         return QtCore.QVariant()
 
+    def rename_column(self, old_name: str, new_name: str):
+        super().rename_column(old_name, new_name)
+        if dtype := self._columns_dtype.pop(old_name, None):
+            self._columns_dtype[new_name] = dtype
+        return None
+
     if TYPE_CHECKING:
 
         def parent(self) -> QSpreadSheet:
@@ -563,6 +569,7 @@ class QSpreadSheet(QMutableSimpleTable):
                 model._background_colormap,
                 model._text_formatter,
                 model._validator,
+                self._columns_dtype,
             ]:
                 _inserte_in_dict(d, col, count)
 
