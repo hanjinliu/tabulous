@@ -235,14 +235,6 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         dtype = self.df.dtypes.values[section]
         return f"{name} (dtype: {dtype})"
 
-    def delete_column(self, name: str):
-        """Delete keys to match new columns."""
-        self._foreground_colormap.pop(name, None)
-        self._background_colormap.pop(name, None)
-        self._text_formatter.pop(name, None)
-        self._validator.pop(name, None)
-        return None
-
     def rename_column(self, old_name: str, new_name: str):
         """Fix keys to match new column names."""
         if background_colormap := self._background_colormap.pop(old_name, None):
