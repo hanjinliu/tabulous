@@ -232,14 +232,16 @@ class QInfoStack(_QOverlayBase):
         self.addWidget(self._list_widget)
         self.setAnchor(Anchor.bottom_left)
 
-    def addWorker(self, worker: WorkerBase, label: str, total: int = 0):
+    def addWorker(self, worker: WorkerBase, desc: str, total: int = 0):
         pbar = QCircularProgressBar()
+        pbar.setButtonState("square")
         if isinstance(worker, FunctionWorker):
             pbar.setValue(-1)
 
         elif isinstance(worker, GeneratorWorker):
             _nyield = 0
 
+            @worker.yielded.connect
             def _increment(*_):
                 nonlocal _nyield
                 _nyield += 1
@@ -249,14 +251,19 @@ class QInfoStack(_QOverlayBase):
                     value = _nyield / total * 100
                 return pbar.setValue(value)
 
-            worker.yielded.connect(_increment)
         else:
             raise TypeError(f"Unsupported worker type: {type(worker)}")
 
+        @pbar.abortRequested.connect
+        def _aborting():
+            if not worker.abort_requested:
+                pbar.setInfinite(True)
+                worker.quit()
+
         item = QtW.QListWidgetItem()
-        labeled_pbar = labeled_progressbar(label, pbar)
+        labeled_pbar = labeled_progressbar(desc, pbar)
         worker.started.connect(lambda: self._on_worker_started(item, labeled_pbar))
-        worker.returned.connect(lambda: self._on_worker_finish(item))
+        worker.finished.connect(lambda: self._on_worker_finish(item))
 
     def _on_worker_started(self, item: QtW.QListWidgetItem, widget: QtW.QWidget):
         lw = self._list_widget
@@ -287,8 +294,8 @@ def labeled_progressbar(label: str, pbar: QCircularProgressBar):
     w.setLayout(_layout)
     label_widget = QtW.QLabel(label)
     _layout.addWidget(label_widget, alignment=Qt.AlignmentFlag.AlignLeft)
-    pbar.setRadius(6)
-    pbar.setBarWidth(2)
-    pbar.setFixedSize(16, 16)
+    pbar.setRadius(8)
+    pbar.setBarWidth(3)
+    pbar.setFixedSize(20, 20)
     _layout.addWidget(pbar, alignment=Qt.AlignmentFlag.AlignRight)
     return w

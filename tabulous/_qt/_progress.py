@@ -22,6 +22,7 @@ class QCircularProgressBar(QtW.QWidget):
         self._timer = QtCore.QTimer(self)
         self._radius = 20
         self._barWidth = 4
+        self._infinite = False
         self._pen = QtGui.QPen(
             QtGui.QColor(0, 48, 48, 255),
             self._barWidth,
@@ -60,7 +61,7 @@ class QCircularProgressBar(QtW.QWidget):
             _l = self._radius * 0.4
             x0 = center.x() - _l
             y0 = center.y() - _l
-            rect = QtCore.QRect(x0, y0, 2 * _l, 2 * _l)
+            rect = QtCore.QRectF(x0, y0, 2 * _l, 2 * _l)
             painter.setPen(QtGui.QPen(self._pen.color(), 1))
             painter.setBrush(QtGui.QBrush(self._pen.color()))
             painter.drawRect(rect)
@@ -126,16 +127,17 @@ class QCircularProgressBar(QtW.QWidget):
             self.abortRequested.emit()
 
     def setInfinite(self, infinite: bool) -> None:
-        if infinite:
+        if infinite and not self._infinite:
             self._timer.setInterval(15)
             self._timer.timeout.connect(self._on_infinite_timeout)
             self._timer.start()
             self._minimum = 0
             self._value = 25
-        else:
+        elif not infinite and self._infinite:
             self._timer.stop()
             self._value = 0
             self._minimum = 0
+        self._infinite = infinite
         self.update()
 
     def _on_infinite_timeout(self):
