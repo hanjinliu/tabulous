@@ -427,6 +427,9 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         if asynchronous:
             worker = thread_worker(open_sample)(sample_name, plugin)
             worker.returned.connect(fopen)
+            self.native._tablestack._info_stack.addWorker(
+                worker, f"Fetching {sample_name!r} data."
+            )
             worker.start()
         else:
             df = open_sample(sample_name, plugin)

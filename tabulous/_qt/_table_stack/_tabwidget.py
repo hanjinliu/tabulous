@@ -72,11 +72,10 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         self.tabBarClicked.connect(self.setCurrentIndex)
 
         # add overlay widget
-        from ._overlay import QOverlayWidget
+        from ._overlay import QOverlayWidget, QInfoStack
 
         self._overlay = QOverlayWidget(self)
-        self._notifier = QOverlayWidget(self, duration=200)
-        self._notifier.setAnchor("top_right")
+        self._info_stack = QInfoStack(self)
 
         # temporal QLineEdit for editing tabs
         self._line: QtW.QLineEdit | None = None
@@ -333,9 +332,14 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         return self.notifyByWidget(QNotSavedNotifier(name))
 
     def notifyByWidget(self, widget: QtW.QWidget):
-        self._notifier.addWidget(widget)
-        self._notifier.show()
-        self._notifier.hideLater()
+        """Show a widget in in the notifier."""
+        from ._overlay import QOverlayWidget
+
+        _notifier = QOverlayWidget(self, duration=200)
+        _notifier.setAnchor("top_right")
+        _notifier.addWidget(widget)
+        _notifier.show()
+        _notifier.hideLater()
         return None
 
     def setCurrentIndex(self, index: int):

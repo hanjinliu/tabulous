@@ -268,7 +268,6 @@ def toggle_editability(viewer: TableViewerBase):
     table = viewer.current_table
     try:
         table.editable = not table.editable
-        viewer.native._tablestack._notifier.setVisible(False)
     except Exception:
         pass
     viewer.native.setCellFocus()
