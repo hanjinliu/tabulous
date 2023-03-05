@@ -257,7 +257,7 @@ class QInfoStack(_QOverlayBase):
         @pbar.abortRequested.connect
         def _aborting():
             if not worker.abort_requested:
-                pbar.setInfinite(True)
+                pbar.infiniteRequested.emit(True)
                 worker.quit()
 
         item = QtW.QListWidgetItem()

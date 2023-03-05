@@ -13,6 +13,7 @@ class ButtonState(Enum):
 
 class QCircularProgressBar(QtW.QWidget):
     abortRequested = Signal()
+    infiniteRequested = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -37,6 +38,7 @@ class QCircularProgressBar(QtW.QWidget):
         )
         self._btn_state = ButtonState.NONE
         self.setMouseTracking(True)
+        self.infiniteRequested.connect(self.setInfinite)
 
     def sizeHint(self) -> QtCore.QSize:
         return QtCore.QSize(self._radius * 2, self._radius * 2)
@@ -79,9 +81,9 @@ class QCircularProgressBar(QtW.QWidget):
 
     def setValue(self, value: float) -> None:
         if value < 0:
-            self.setInfinite(True)
+            self.infiniteRequested.emit(True)
         else:
-            self.setInfinite(False)
+            self.infiniteRequested.emit(False)
             self._value = value
             self.update()
 

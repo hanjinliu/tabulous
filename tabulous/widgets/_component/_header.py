@@ -32,7 +32,7 @@ class HeaderSectionSpan(Component["_HeaderInterface"]):
         header = self.parent._get_header()
         if isinstance(index, (slice, list)):
             if isinstance(index, slice):
-                index = list(range(index.indices(header.count())))
+                index = list(range(*index.indices(header.count())))
             if isinstance(span, Sequence):
                 # set span for each section
                 if len(span) != len(index):
@@ -52,7 +52,7 @@ class HeaderSectionSpan(Component["_HeaderInterface"]):
 
     def __repr__(self) -> str:
         sizes = self.parent._get_header()._section_sizes
-        return f"{type(self).__name__}({sizes.astype(np.uint16)})"
+        return f"{type(self).__name__}({sizes.astype(np.uint16).tolist()!r})"
 
 
 class _HeaderInterface(TableComponent, SupportActionRegistration["TableBase", int]):
