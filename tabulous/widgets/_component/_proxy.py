@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 from functools import wraps
 import ast
 from contextlib import contextmanager
@@ -136,6 +137,7 @@ class ProxyInterface(TableComponent):
 
             def _filter(df: pd.DataFrame) -> np.ndarray:
                 ns = dict(**dict(df.items()), **namespace)
+                ns["__builtins__"] = _BUILTINS
                 return eval(expr, ns, {})
 
             _filter.__name__ = f"filter<{expr!r}>"
@@ -287,3 +289,17 @@ def _try_ast_parse(expr: str, columns: pd.Index) -> ComposableFilter | None:
     except Exception:
         return None
     return cfil
+
+
+# "safe" builtin functions
+# fmt: off
+_BUILTINS = {
+    k: getattr(builtins, k)
+    for k in [
+        "int", "str", "float", "bool", "list", "tuple", "set", "dict", "range",
+        "slice", "frozenset", "len", "abs", "min", "max", "sum", "any", "all",
+        "divmod", "id", "bin", "oct", "hex", "hash", "iter", "isinstance",
+        "issubclass", "ord"
+    ]
+}
+# fmt: on

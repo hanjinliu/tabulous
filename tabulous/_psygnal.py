@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from types import MethodType
+import builtins
 import logging
 from typing import (
     Callable,
@@ -51,6 +52,19 @@ if TYPE_CHECKING:
 
     Slice1D = Union[SupportsIndex, slice]
     Slice2D = tuple[Slice1D, Slice1D]
+
+# "safe" builtin functions
+# fmt: off
+_BUILTINS = {
+    k: getattr(builtins, k)
+    for k in [
+        "int", "str", "float", "bool", "list", "tuple", "set", "dict", "range",
+        "slice", "frozenset", "len", "abs", "min", "max", "sum", "any", "all",
+        "divmod", "id", "bin", "oct", "hex", "hash", "iter", "isinstance",
+        "issubclass", "ord"
+    ]
+}
+# fmt: on
 
 
 class RangedSlot(Generic[_P, _R], TableAnchorBase):
@@ -122,6 +136,7 @@ class InCellExpr:
     def eval_and_format(self, ns: dict[str, Any], ranges: MultiRectRange):
         expr = self.as_literal(ranges)
         logger.debug(f"About to run: {expr!r}")
+        ns["__builtins__"] = _BUILTINS
         out = eval(expr, ns, {})
         return out, expr
 

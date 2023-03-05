@@ -490,7 +490,7 @@ class TableBase(SupportKeyMap):
 
         def _raise(e: Exception):
             # the common exception handling
-            if not isinstance(e, (SyntaxError, AttributeError)):
+            if not isinstance(e, (SyntaxError, AttributeError, NameError)):
                 # Update cell text with the exception object.
                 try:
                     del qtable_view._focused_widget
@@ -499,8 +499,8 @@ class TableBase(SupportKeyMap):
                 with qtable_view._selection_model.blocked():
                     qtable.setDataFrameValue(*info.pos, "#ERROR")
                 return None
-            # SyntaxError/AttributeError might be caused by mistouching. Don't close
-            # the editor.
+            # SyntaxError, AttributeError or NameError might be caused by
+            # mistouching. Don't close the editor.
             e.args = (f"{str(e)}\n>>> {info.expr}",)
             raise e
 

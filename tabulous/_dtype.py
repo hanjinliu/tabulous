@@ -65,7 +65,7 @@ def _to_interval(x: Any) -> pd.Interval:
         left_par = x[0]
         right_par = x[-1]
         rest = x[1:-1]
-        values = eval(f"({rest})", {"pd": pd}, {})
+        values = eval(f"({rest})", {"pd": pd, "__builtins__": {}}, {})
         closed = _INTERVAL_PARENTHESIS.get((left_par, right_par))
         return pd.Interval(*values, closed=closed)
     elif isinstance(x, pd.Interval):
@@ -128,7 +128,12 @@ def get_converter_from_type(tp: type | str) -> Callable[[Any], Any]:
     import datetime
 
     if isinstance(tp, str):
-        ns = {"pd": pd, "datetime": datetime, "timedelta": datetime.timedelta}
+        ns = {
+            "pd": pd,
+            "datetime": datetime,
+            "timedelta": datetime.timedelta,
+            "__builtins__": {},
+        }
         try:
             tp = eval(tp, ns, {})
         except NameError:

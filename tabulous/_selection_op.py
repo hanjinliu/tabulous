@@ -437,7 +437,7 @@ def find_last_dataframe_expr(s: str) -> int:
 
 def _eval(expr: str, default=None):
     """evaluate expression."""
-    return eval(expr, {}, {}) if expr else default
+    return eval(expr, {"__builtins__": {}}, {}) if expr else default
 
 
 def _parse_slice(s: str) -> Hashable | slice:

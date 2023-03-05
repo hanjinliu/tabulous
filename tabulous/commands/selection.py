@@ -114,14 +114,14 @@ def paste_data_from_numpy_string(viewer: TableViewerBase):
     _is_str = s.startswith("[") and s.endswith("]")
 
     if _is_repr:
-        arr = eval(f"np.{s}", {"np": np}, {})
+        arr = eval(f"np.{s}", {"np": np, "__builtins__": {}}, {})
         if not isinstance(arr, np.ndarray):
             raise ValueError("Invalid numpy array representation.")
         if arr.ndim > 2:
             raise ValueError("Cannot paste array with dimension > 2.")
         return table._paste_data(pd.DataFrame(arr))
     elif _is_str:
-        arr = np.asarray(eval(s.replace(" ", ", "), {}, {}))
+        arr = np.asarray(eval(s.replace(" ", ", "), {"__builtins__": {}}, {}))
         if arr.ndim > 2:
             raise ValueError("Cannot paste array with dimension > 2.")
         return table._paste_data(pd.DataFrame(arr))
