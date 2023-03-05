@@ -28,7 +28,6 @@ class OptimizerWidget(Container):
         self._maxiter = SpinBox(value=50, label="Max Iterations")
 
         self._call_button = PushButton(text="Run", tooltip="Run optimization")
-        self._call_button.changed.connect(self._on_called)
         super().__init__(
             widgets=[
                 self._cost_selector,
@@ -38,6 +37,7 @@ class OptimizerWidget(Container):
                 self._call_button,
             ]
         )
+        self._call_button.changed.connect(self._on_called)
 
     def _on_called(self):
         table = find_current_table(self)

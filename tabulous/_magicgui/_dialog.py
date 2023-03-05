@@ -90,6 +90,10 @@ def dialog_factory(function: _F) -> _F:
 
 
 def dialog_factory_mpl(function: _F) -> _F:
+    # NOTE: undefined type annotation and the "bind" argument is not stable in
+    # magicgui. To avoid the error, we just remove the annotations.
+    function.__annotations__.pop("ax", None)
+
     def _runner(parent=None, **param_options):
         dlg = magicgui(function, **param_options)
 

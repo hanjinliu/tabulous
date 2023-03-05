@@ -9,7 +9,6 @@ from superqt.utils import (
     GeneratorWorker,
     FunctionWorker,
 )
-from tabulous._qt._mainwindow import QMainWindow
 
 __all__ = ["thread_worker"]
 
@@ -87,7 +86,10 @@ def create_worker(
     sig = inspect.signature(fn)
 
     def _create_worker(*args, **kwargs):
+        from tabulous._qt._mainwindow import QMainWindow
+
         nonlocal desc, total
+
         bound = sig.bind_partial(*args, **kwargs)
         if desc is None:
             _desc = getattr(fn, "__name__", repr(fn))
