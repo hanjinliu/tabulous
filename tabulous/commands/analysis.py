@@ -5,6 +5,7 @@ from tabulous._magicgui import ToggleSwitchSelect
 
 if TYPE_CHECKING:
     from tabulous.widgets._mainwindow import TableViewerBase
+    import pandas as pd
 
 SUMMARY_CHOICES = [
     "mean",
@@ -37,6 +38,22 @@ def summarize_table(viewer: TableViewerBase):
             qtable = QTableLayer(data=df)
             qtable.setZoom(0.8)
             table.add_side_widget(qtable, name="summary")
+
+
+def polynomial_fit(viewer: TableViewerBase):
+    """Polynomial fitting of 1D data"""
+    from ._regression import PolynomialFitWidget
+    from tabulous.widgets import Table
+
+    table = _utils.get_table(viewer)
+    wdt = PolynomialFitWidget()
+
+    @wdt.called.connect
+    def _on_called(df: pd.DataFrame):
+        table.add_side_widget(Table(df, editable=False), name="Polynomial fit")
+
+    wdt.native.setParent(viewer.native, wdt.native.windowFlags())
+    wdt.show()
 
 
 def show_filter_widget(viewer: TableViewerBase):
