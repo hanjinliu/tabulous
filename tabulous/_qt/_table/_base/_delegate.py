@@ -76,6 +76,8 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 td.setButtonSymbols(QtW.QAbstractSpinBox.ButtonSymbols.NoButtons)
                 td.setValue(value)
                 return td
+            elif dtype == "object":
+                raise NotImplementedError("Cannot edit cell of object dtype.")
             else:
                 line = qtable_view._create_eval_editor(moveto=(row, col))
                 line.setFont(font)

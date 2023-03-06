@@ -371,6 +371,10 @@ class DTypeMap(MutableMapping[_K, _V]):
 _NANS = frozenset({np.nan, pd.NA, float("nan")})
 
 
-def isna(val: Any):
+def isna(val: Any) -> bool:
     # NOTE: pd.isna is slow.
-    return val in _NANS
+    try:
+        return val in _NANS
+    except Exception:
+        # some data types, such as unhashable types, raises error.
+        return False
