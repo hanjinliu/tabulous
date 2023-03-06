@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands package &mdash; tabulous 0.5.0 documentation</title>
+  <title>tabulous.commands package &mdash; tabulous 0.5.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.5.0
+                0.5.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -73,6 +73,7 @@
 <li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.core">tabulous.core module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.exceptions">tabulous.exceptions module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.post_init">tabulous.post_init module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.threading">tabulous.threading module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.types">tabulous.types module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous">Module contents</a></li>
 </ul>
@@ -114,6 +115,12 @@
 </section>
 <section id="module-tabulous.commands.analysis">
 <span id="tabulous-commands-analysis-module"></span><h2>tabulous.commands.analysis module<a class="headerlink" href="#module-tabulous.commands.analysis" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.analysis.polynomial_fit">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.analysis.</span></span><span class="sig-name descname"><span class="pre">polynomial_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/analysis.html#polynomial_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.analysis.polynomial_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Polynomial fitting of 1D data</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="tabulous.commands.analysis.show_eval_widget">
 <span class="sig-prename descclassname"><span class="pre">tabulous.commands.analysis.</span></span><span class="sig-name descname"><span class="pre">show_eval_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/analysis.html#show_eval_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.analysis.show_eval_widget" title="Permalink to this definition">¶</a></dt>
@@ -917,6 +924,12 @@
 </section>
 <section id="module-tabulous.commands.window">
 <span id="tabulous-commands-window-module"></span><h2>tabulous.commands.window module<a class="headerlink" href="#module-tabulous.commands.window" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.window.add_file_explorer">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">add_file_explorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#add_file_explorer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.add_file_explorer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a file explorer dock widget.</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="tabulous.commands.window.add_text_edit">
 <span class="sig-prename descclassname"><span class="pre">tabulous.commands.window.</span></span><span class="sig-name descname"><span class="pre">add_text_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/window.html#add_text_edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.window.add_text_edit" title="Permalink to this definition">¶</a></dt>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets._table &mdash; tabulous 0.5.0rc1 documentation</title>
+  <title>tabulous.widgets._table &mdash; tabulous 0.5.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.5.0rc1
+                0.5.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -577,7 +577,7 @@
 
         <span class="k">def</span> <span class="nf">_raise</span><span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">):</span>
             <span class="c1"># the common exception handling</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">(</span><span class="ne">SyntaxError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">(</span><span class="ne">SyntaxError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">NameError</span><span class="p">)):</span>
                 <span class="c1"># Update cell text with the exception object.</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="k">del</span> <span class="n">qtable_view</span><span class="o">.</span><span class="n">_focused_widget</span>
@@ -586,8 +586,8 @@
                 <span class="k">with</span> <span class="n">qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">blocked</span><span class="p">():</span>
                     <span class="n">qtable</span><span class="o">.</span><span class="n">setDataFrameValue</span><span class="p">(</span><span class="o">*</span><span class="n">info</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="s2">&quot;#ERROR&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">None</span>
-            <span class="c1"># SyntaxError/AttributeError might be caused by mistouching. Don&#39;t close</span>
-            <span class="c1"># the editor.</span>
+            <span class="c1"># SyntaxError, AttributeError or NameError might be caused by</span>
+            <span class="c1"># mistouching. Don&#39;t close the editor.</span>
             <span class="n">e</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&gt;&gt;&gt; </span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">expr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,)</span>
             <span class="k">raise</span> <span class="n">e</span>
 

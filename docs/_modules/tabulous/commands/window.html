@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.window &mdash; tabulous 0.5.0rc1 documentation</title>
+  <title>tabulous.commands.window &mdash; tabulous 0.5.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.5.0rc1
+                0.5.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -170,6 +170,23 @@
         <span class="n">viewer</span><span class="o">.</span><span class="n">add_dock_widget</span><span class="p">(</span><span class="n">txt_edit</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Note&quot;</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">TableViewerWidget</span><span class="p">):</span>
         <span class="n">viewer</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">txt_edit</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Note&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot add widget to </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="add_file_explorer"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.add_file_explorer">[docs]</a><span class="k">def</span> <span class="nf">add_file_explorer</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add a file explorer dock widget.&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">TableViewer</span><span class="p">,</span> <span class="n">TableViewerWidget</span>
+    <span class="kn">from</span> <span class="nn">tabulous._qt._filetree</span> <span class="kn">import</span> <span class="n">QFileExplorer</span>
+
+    <span class="n">tree_view</span> <span class="o">=</span> <span class="n">QFileExplorer</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">TableViewer</span><span class="p">):</span>
+        <span class="n">viewer</span><span class="o">.</span><span class="n">add_dock_widget</span><span class="p">(</span>
+            <span class="n">tree_view</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;File Explorer&quot;</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">allowed_areas</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;left&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">TableViewerWidget</span><span class="p">):</span>
+        <span class="n">viewer</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">tree_view</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;File Explorer&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot add widget to </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">None</span></div>

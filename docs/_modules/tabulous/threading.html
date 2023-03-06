@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tabulous.threading &mdash; tabulous 0.5.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/font.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> tabulous
+          </a>
+              <div class="version">
+                0.5.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../main/quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/user_interface.html">User Interface</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../main/selections.html">Table Selections and Highlights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/sort_filter.html">Sort/Filter Table Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/columnwise_settings.html">Column-wise Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/table_fields.html">Field Attributes of Tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/table_view_mode.html">View Tables in Different Modes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../main/integrate_custom_widgets.html">Integrate Custom Widgets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/non_mainwindow.html">Use Non-main Window Table Viewers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../main/customize.html">Customize Viewer Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/register_action.html">Register Custom Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main/cheat_sheet.html">Cheat Sheet for Napari Users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../apidoc/modules.html">tabulous</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">tabulous</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>tabulous.threading</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for tabulous.threading</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">overload</span><span class="p">,</span> <span class="n">TypeVar</span>
+<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">ParamSpec</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">from</span> <span class="nn">superqt.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">thread_worker</span> <span class="k">as</span> <span class="n">_thread_worker</span><span class="p">,</span>
+    <span class="n">GeneratorWorker</span><span class="p">,</span>
+    <span class="n">FunctionWorker</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;thread_worker&quot;</span><span class="p">]</span>
+
+<span class="n">_Y</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_Y&quot;</span><span class="p">)</span>
+<span class="n">_S</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_S&quot;</span><span class="p">)</span>
+<span class="n">_R</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_R&quot;</span><span class="p">)</span>
+<span class="n">_P</span> <span class="o">=</span> <span class="n">ParamSpec</span><span class="p">(</span><span class="s2">&quot;_P&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">thread_worker</span><span class="p">(</span>
+    <span class="n">function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="n">_P</span><span class="p">,</span> <span class="n">Generator</span><span class="p">[</span><span class="n">_Y</span><span class="p">,</span> <span class="n">_S</span><span class="p">,</span> <span class="n">_R</span><span class="p">]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="n">_P</span><span class="p">,</span> <span class="n">GeneratorWorker</span><span class="p">[</span><span class="n">_Y</span><span class="p">,</span> <span class="n">_S</span><span class="p">,</span> <span class="n">_R</span><span class="p">]]:</span>
+    <span class="o">...</span>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">thread_worker</span><span class="p">(</span>
+    <span class="n">function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="n">_P</span><span class="p">,</span> <span class="n">_R</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="n">_P</span><span class="p">,</span> <span class="n">FunctionWorker</span><span class="p">[</span><span class="n">_R</span><span class="p">]]:</span>
+    <span class="o">...</span>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">thread_worker</span><span class="p">(</span>
+    <span class="n">function</span><span class="p">:</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span>
+    <span class="p">[</span><span class="n">Callable</span><span class="p">[</span><span class="n">_P</span><span class="p">,</span> <span class="n">_R</span><span class="p">]],</span> <span class="n">Callable</span><span class="p">[</span><span class="n">_P</span><span class="p">,</span> <span class="n">FunctionWorker</span><span class="p">[</span><span class="n">_R</span><span class="p">]</span> <span class="o">|</span> <span class="n">GeneratorWorker</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">_R</span><span class="p">]]</span>
+<span class="p">]:</span>
+    <span class="o">...</span>
+
+
+<div class="viewcode-block" id="thread_worker"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.threading.thread_worker">[docs]</a><span class="k">def</span> <span class="nf">thread_worker</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert the returned value of a function into a worker.</span>
+
+<span class="sd">    &gt;&gt;&gt; from tabulous.threading import thread_worker</span>
+<span class="sd">    &gt;&gt;&gt; @thread_worker</span>
+<span class="sd">    &gt;&gt;&gt; def func():</span>
+<span class="sd">    ...     time.sleep(1)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    function : callable</span>
+<span class="sd">        Function to be called in another thread.</span>
+<span class="sd">    desc : str, optional</span>
+<span class="sd">        Label that will shown beside the progress indicator. The function name</span>
+<span class="sd">        will be used if not provided.</span>
+<span class="sd">    total : int, default is 0</span>
+<span class="sd">        Total number of steps for the progress indicator.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_inner</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">create_worker</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_inner</span> <span class="k">if</span> <span class="n">function</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_inner</span><span class="p">(</span><span class="n">function</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">create_worker</span><span class="p">(</span>
+    <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">worker_constructor</span> <span class="o">=</span> <span class="n">_thread_worker</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_worker</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">tabulous._qt._mainwindow</span> <span class="kn">import</span> <span class="n">QMainWindow</span>
+
+        <span class="k">nonlocal</span> <span class="n">desc</span><span class="p">,</span> <span class="n">total</span>
+
+        <span class="n">bound</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="n">bind_partial</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_desc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s2">&quot;__name__&quot;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">callable</span><span class="p">(</span><span class="n">desc</span><span class="p">):</span>
+            <span class="n">_desc</span> <span class="o">=</span> <span class="n">_call_with_filtered</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">bound</span><span class="o">.</span><span class="n">arguments</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_desc</span> <span class="o">=</span> <span class="n">desc</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_desc</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;`desc` did not return a str.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">total</span><span class="p">):</span>
+            <span class="n">_total</span> <span class="o">=</span> <span class="n">_call_with_filtered</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">bound</span><span class="o">.</span><span class="n">arguments</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_total</span> <span class="o">=</span> <span class="n">total</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_total</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;`total` did not return an int.&quot;</span><span class="p">)</span>
+        <span class="n">viewer</span> <span class="o">=</span> <span class="n">QMainWindow</span><span class="o">.</span><span class="n">currentViewer</span><span class="p">()</span>
+        <span class="n">worker</span> <span class="o">=</span> <span class="n">worker_constructor</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">_tablestack</span><span class="o">.</span><span class="n">_info_stack</span><span class="o">.</span><span class="n">addWorker</span><span class="p">(</span>
+            <span class="n">worker</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">_desc</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="n">_total</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">worker</span>
+
+    <span class="k">return</span> <span class="n">_create_worker</span>
+
+
+<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_make_filter</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">_R</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="n">arg_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">POSITIONAL_ONLY</span><span class="p">,</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">POSITIONAL_OR_KEYWORD</span><span class="p">,</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">KEYWORD_ONLY</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">arg_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">param</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">param</span><span class="o">.</span><span class="n">VAR_POSITIONAL</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Cannot use *args or **kwargs&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">param</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">param</span><span class="o">.</span><span class="n">VAR_KEYWORD</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Cannot use *args or **kwargs&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_filter</span><span class="p">(</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">arg_names</span><span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">_filter</span>
+
+
+<span class="k">def</span> <span class="nf">_call_with_filtered</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">_R</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">_R</span><span class="p">:</span>
+    <span class="n">filt</span> <span class="o">=</span> <span class="n">_make_filter</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="o">**</span><span class="n">filt</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Hanjin Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

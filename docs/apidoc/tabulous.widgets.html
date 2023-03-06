@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets package &mdash; tabulous 0.5.0 documentation</title>
+  <title>tabulous.widgets package &mdash; tabulous 0.5.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.5.0
+                0.5.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -72,6 +72,7 @@
 <li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.core">tabulous.core module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.exceptions">tabulous.exceptions module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.post_init">tabulous.post_init module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.threading">tabulous.threading module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous.types">tabulous.types module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tabulous.html#module-tabulous">Module contents</a></li>
 </ul>
@@ -827,7 +828,7 @@ Typed spreadsheet is safer for data recovery but less flexible for editing.</p><
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tabulous.widgets.TableViewerBase.open_sample">
-<span class="sig-name descname"><span class="pre">open_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plugin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'seaborn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableType</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">TableType.table</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabulous.widgets.Table" title="tabulous.widgets.Table"><span class="pre">Table</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/_mainwindow.html#TableViewerBase.open_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableViewerBase.open_sample" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">open_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plugin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'seaborn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TableType</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">TableType.table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asynchronous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabulous.widgets.Table" title="tabulous.widgets.Table"><span class="pre">Table</span></a></span></span><a class="reference internal" href="../_modules/tabulous/widgets/_mainwindow.html#TableViewerBase.open_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.widgets.TableViewerBase.open_sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Open a sample table.</p>
 </dd></dl>
 

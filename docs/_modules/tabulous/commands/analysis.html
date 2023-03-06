@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.analysis &mdash; tabulous 0.5.0rc1 documentation</title>
+  <title>tabulous.commands.analysis &mdash; tabulous 0.5.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.5.0rc1
+                0.5.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -93,6 +93,7 @@
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">tabulous.widgets._mainwindow</span> <span class="kn">import</span> <span class="n">TableViewerBase</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="n">SUMMARY_CHOICES</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
@@ -125,6 +126,22 @@
             <span class="n">qtable</span> <span class="o">=</span> <span class="n">QTableLayer</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">)</span>
             <span class="n">qtable</span><span class="o">.</span><span class="n">setZoom</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>
             <span class="n">table</span><span class="o">.</span><span class="n">add_side_widget</span><span class="p">(</span><span class="n">qtable</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;summary&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="polynomial_fit"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.analysis.polynomial_fit">[docs]</a><span class="k">def</span> <span class="nf">polynomial_fit</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Polynomial fitting of 1D data&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">._regression</span> <span class="kn">import</span> <span class="n">PolynomialFitWidget</span>
+    <span class="kn">from</span> <span class="nn">tabulous.widgets</span> <span class="kn">import</span> <span class="n">Table</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="n">wdt</span> <span class="o">=</span> <span class="n">PolynomialFitWidget</span><span class="p">()</span>
+
+    <span class="nd">@wdt</span><span class="o">.</span><span class="n">called</span><span class="o">.</span><span class="n">connect</span>
+    <span class="k">def</span> <span class="nf">_on_called</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_side_widget</span><span class="p">(</span><span class="n">Table</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Polynomial fit&quot;</span><span class="p">)</span>
+
+    <span class="n">wdt</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setParent</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">,</span> <span class="n">wdt</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">windowFlags</span><span class="p">())</span>
+    <span class="n">wdt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="show_filter_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.analysis.show_filter_widget">[docs]</a><span class="k">def</span> <span class="nf">show_filter_widget</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>

@@ -46,6 +46,14 @@ tabulous.post\_init module
    :undoc-members:
    :show-inheritance:
 
+tabulous.threading module
+-------------------------
+
+.. automodule:: tabulous.threading
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tabulous.types module
 ---------------------
 

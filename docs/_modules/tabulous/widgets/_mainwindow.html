@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.widgets._mainwindow &mdash; tabulous 0.5.0rc1 documentation</title>
+  <title>tabulous.widgets._mainwindow &mdash; tabulous 0.5.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../../index.html" class="icon icon-home"> tabulous
           </a>
               <div class="version">
-                0.5.0rc1
+                0.5.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -88,6 +88,7 @@
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractproperty</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">MappingProxyType</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
@@ -95,6 +96,7 @@
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">psygnal</span> <span class="kn">import</span> <span class="n">Signal</span><span class="p">,</span> <span class="n">SignalGroup</span>
+<span class="kn">from</span> <span class="nn">superqt.utils</span> <span class="kn">import</span> <span class="n">thread_worker</span>
 
 <span class="kn">from</span> <span class="nn">._table</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">SpreadSheet</span><span class="p">,</span> <span class="n">GroupBy</span><span class="p">,</span> <span class="n">TableDisplay</span>
 <span class="kn">from</span> <span class="nn">._tablelist</span> <span class="kn">import</span> <span class="n">TableList</span>
@@ -499,17 +501,26 @@
         <span class="o">*</span><span class="p">,</span>
         <span class="n">plugin</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;seaborn&quot;</span><span class="p">,</span>
         <span class="nb">type</span><span class="p">:</span> <span class="n">TableType</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">TableType</span><span class="o">.</span><span class="n">table</span><span class="p">,</span>
+        <span class="n">asynchronous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Table</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Open a sample table.&quot;&quot;&quot;</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">open_sample</span><span class="p">(</span><span class="n">sample_name</span><span class="p">,</span> <span class="n">plugin</span><span class="p">)</span>
         <span class="nb">type</span> <span class="o">=</span> <span class="n">TableType</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">type</span> <span class="ow">is</span> <span class="n">TableType</span><span class="o">.</span><span class="n">table</span><span class="p">:</span>
-            <span class="n">fopen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_table</span>
+            <span class="n">fopen</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">add_table</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">sample_name</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">type</span> <span class="ow">is</span> <span class="n">TableType</span><span class="o">.</span><span class="n">spreadsheet</span><span class="p">:</span>
-            <span class="n">fopen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_spreadsheet</span>
+            <span class="n">fopen</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">add_spreadsheet</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">sample_name</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">UnreachableError</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">fopen</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">sample_name</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">asynchronous</span><span class="p">:</span>
+            <span class="n">worker</span> <span class="o">=</span> <span class="n">thread_worker</span><span class="p">(</span><span class="n">open_sample</span><span class="p">)(</span><span class="n">sample_name</span><span class="p">,</span> <span class="n">plugin</span><span class="p">)</span>
+            <span class="n">worker</span><span class="o">.</span><span class="n">returned</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">fopen</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">_tablestack</span><span class="o">.</span><span class="n">_info_stack</span><span class="o">.</span><span class="n">addWorker</span><span class="p">(</span>
+                <span class="n">worker</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Fetching </span><span class="si">{</span><span class="n">sample_name</span><span class="si">!r}</span><span class="s2"> data.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">worker</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">open_sample</span><span class="p">(</span><span class="n">sample_name</span><span class="p">,</span> <span class="n">plugin</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">fopen</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TableViewerBase.copy_data"><a class="viewcode-back" href="../../../apidoc/tabulous.widgets.html#tabulous.TableViewerBase.copy_data">[docs]</a>    <span class="k">def</span> <span class="nf">copy_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
