@@ -495,6 +495,12 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
 
         determined = None
         for rloc, cloc in array_sels:
+            if (
+                rloc.stop - rloc.start == 1
+                and cloc.stop - cloc.start == 1
+                and determined is not None
+            ):
+                continue
             in_r_range = rloc.start <= r < rloc.stop
             in_c_range = cloc.start <= c < cloc.stop
             r_len = rloc.stop - rloc.start
