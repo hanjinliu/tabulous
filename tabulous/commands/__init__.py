@@ -2,9 +2,19 @@ from __future__ import annotations
 
 from typing import Any, Callable, Iterator, TYPE_CHECKING
 
-from . import file, plot, column, selection, tab, table, view, analysis, window
+from . import (
+    file,
+    plot,
+    column,
+    selection,
+    tab,
+    table as table_,
+    view,
+    analysis,
+    window,
+)
 from types import FunctionType, ModuleType
-from qt_command_palette import get_palette
+from qt_command_palette import get_palette, get_storage
 
 if TYPE_CHECKING:
     from tabulous._qt._mainwindow import _QtMainWidgetBase
@@ -16,7 +26,7 @@ _SUB_MODULES: list[ModuleType] = [
     column,
     selection,
     tab,
-    table,
+    table_,
     view,
     analysis,
     window,
@@ -26,6 +36,18 @@ __all__ = [mod.__name__.split(".")[-1] for mod in _SUB_MODULES] + [
     "iter_commands",
     "register_command",
 ]
+
+storage = get_storage("tabulous")
+
+
+@storage.mark_getter
+def viewer(self: _QtMainWidgetBase):
+    return self._table_viewer
+
+
+@storage.mark_getter
+def table(viewer: TableViewerBase):
+    return viewer.current_table
 
 
 def iter_commands() -> Iterator[tuple[str, FunctionType]]:
@@ -52,12 +74,7 @@ def register_command(
         else:
             _desc = desc
 
-        def fn(self: _QtMainWidgetBase):
-            return f(self._table_viewer)
-
-        fn.__doc__ = f.__doc__
-        fn.__name__ = f.__name__
-        palette.register(fn, title=title, desc=_desc)
+        palette.register(f, title=title, desc=_desc)
         palette.update()
         return f
 
@@ -86,14 +103,14 @@ DEFAULT_KEYBINDING_SETTING: list[tuple[FunctionType, str]] = [
     (view.set_dual_v_mode, "Ctrl+K, V"),
     (view.set_dual_h_mode, "Ctrl+K, H"),
     (view.reset_view_mode, "Ctrl+K, N"),
-    (table.toggle_editability, "Ctrl+K, E"),
-    (table.new_spreadsheet, "Ctrl+N"),
-    (table.show_finder_widget, "Ctrl+F"),
-    (table.show_undo_stack_view, "Ctrl+H"),
-    (table.undo_table, "Ctrl+Z"),
-    (table.redo_table, "Ctrl+Y"),
-    (table.zoom_in, "Ctrl+Shift+>"),
-    (table.zoom_out, "Ctrl+Shift+<"),
+    (table_.toggle_editability, "Ctrl+K, E"),
+    (table_.new_spreadsheet, "Ctrl+N"),
+    (table_.show_finder_widget, "Ctrl+F"),
+    (table_.show_undo_stack_view, "Ctrl+H"),
+    (table_.undo_table, "Ctrl+Z"),
+    (table_.redo_table, "Ctrl+Y"),
+    (table_.zoom_in, "Ctrl+Shift+>"),
+    (table_.zoom_out, "Ctrl+Shift+<"),
     (file.open_table, "Ctrl+O"),
     (file.open_spreadsheet, "Ctrl+K, Ctrl+O"),
     (file.save_table, "Ctrl+S"),

@@ -32,7 +32,7 @@ setup(
         "collections-undo>=0.0.7",
         "appdirs>=1.4.4",
         "qtconsole",
-        "qt-command-palette>=0.0.5",
+        "qt-command-palette>=0.0.6",
         "toml",
         "matplotlib>=3.1",
         "tabulate",
