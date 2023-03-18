@@ -1,13 +1,27 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Iterator, TYPE_CHECKING
-
-from . import file, plot, column, selection, tab, table, view, analysis, window
 from types import FunctionType, ModuleType
 from qt_command_palette import get_palette
 
+from . import (
+    file,
+    plot,
+    column,
+    selection,
+    tab,
+    table,
+    view,
+    analysis,
+    window,
+)
+
+from ._storage import register_storage_vars
+
+register_storage_vars()
+del register_storage_vars
+
 if TYPE_CHECKING:
-    from tabulous._qt._mainwindow import _QtMainWidgetBase
     from tabulous.widgets import TableViewerBase
 
 _SUB_MODULES: list[ModuleType] = [
@@ -52,12 +66,7 @@ def register_command(
         else:
             _desc = desc
 
-        def fn(self: _QtMainWidgetBase):
-            return f(self._table_viewer)
-
-        fn.__doc__ = f.__doc__
-        fn.__name__ = f.__name__
-        palette.register(fn, title=title, desc=_desc)
+        palette.register(f, title=title, desc=_desc)
         palette.update()
         return f
 

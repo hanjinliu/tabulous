@@ -26,7 +26,7 @@ def _command_to_viewer_function(
 
 
 def load_all_commands():
-
+    """Load all the pre-defined commands into the command palette."""
     palette = get_palette("tabulous")
 
     window_group = palette.add_group("Window")
@@ -55,7 +55,7 @@ def load_all_commands():
 
     for mod, cmd in cmds.iter_commands():
         group = _groups[mod]
-        group.register(_command_to_viewer_function(cmd), desc=cmd.__doc__)
+        group.register(cmd, desc=cmd.__doc__)
         if seq := kb.pop(f"{mod}.{cmd.__name__}", None):
             # register to main widgets
             f = _command_to_viewer_function(cmd)
