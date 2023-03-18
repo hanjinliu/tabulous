@@ -97,3 +97,13 @@ def show_sklearn_widget(viewer: TableViewerBase):
 
     ol.addWidget(SkLearnContainer.new().native)
     ol.setTitle("scikit-learn analysis")
+
+
+def fit_distribution(viewer: TableViewerBase):
+    """Fit data to a distribution"""
+    from ._stats_fit import fit
+
+    gui = fit(table={"bind": _utils.get_table(viewer)})
+    gui.native.setParent(viewer._qwidget, gui.native.windowFlags())
+    gui.called.connect(lambda: gui.close())
+    gui.show()
