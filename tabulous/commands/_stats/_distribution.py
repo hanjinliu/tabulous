@@ -26,7 +26,7 @@ class Distributions(Enum):
     @property
     def dist(self) -> stats.rv_continuous | stats.rv_discrete:
         """Get the distribution"""
-        return getattr(stats, self.value)
+        return getattr(stats, self.name)
 
     @property
     def params(self) -> tuple[str, ...]:

@@ -1,11 +1,13 @@
-from typing import Iterable
+from typing import Callable, Iterable
 
 from qtpy import QtWidgets as QtW, QtGui
 from superqt import QEnumComboBox
 
-
+from magicgui import magic_factory
 from ._distribution import Distributions
 from ._latex import QLatexLabel
+from tabulous._selection_op import SelectionOperator
+from tabulous._magicgui import find_table_viewer_ancestor
 
 
 class QScipyStatsWidget(QtW.QWidget):
@@ -23,6 +25,10 @@ class QScipyStatsWidget(QtW.QWidget):
         _layout.addWidget(self._dist)
         _layout.addWidget(self._latex_label)
         _layout.addWidget(self._params)
+        _layout.addWidget(_button("Fit", self.fit))
+        _layout.addWidget(_button("Random sampling", self.sample))
+        _layout.addWidget(_button("Calculate PDF", self.pdf))
+        _layout.addWidget(_button("Calculate CDF", self.cdf))
 
         self.setLayout(_layout)
         self._dist.currentEnumChanged.connect(self._dist_changed)
@@ -31,6 +37,79 @@ class QScipyStatsWidget(QtW.QWidget):
         self._latex_label.setLatex(dist.latex)
         self._params.set_labels(dist.params)
         self.adjustSize()
+
+    def get_instance(self, frozen: bool = True):
+        dist: Distributions = self._dist.currentEnum()
+        if frozen:
+            return dist.dist(*self._params.get_params())
+        return dist.dist
+
+    def get_viewer(self):
+        return find_table_viewer_ancestor(self)
+
+    def fit(self):
+        viewer = self.get_viewer()
+        mgui = get_selection()
+        mgui.native.setParent(self, mgui.native.windowFlags())
+        mgui.show()
+
+        @mgui.called.connect
+        def _on_called(sel: SelectionOperator):
+            dist = self.get_instance(frozen=False)
+            df = sel.operate(viewer.current_table.data_shown)
+            params_fit = dist.fit(df.values)
+            self._params.set_params(params_fit)
+            mgui.close()
+
+    def sample(self):
+        """Generate random samples from the distribution."""
+        viewer = self.get_viewer()
+        mgui = get_selection(selection={"allow_out_of_bounds": True})
+        mgui.native.setParent(self, mgui.native.windowFlags())
+        mgui.show()
+
+        @mgui.called.connect
+        def _on_called(sel: SelectionOperator):
+            dist = self.get_instance()
+            df = viewer.current_table.data_shown
+            shape = sel.shape(df)
+            out = dist.rvs(shape[0] * shape[1]).reshape(shape)
+            viewer.current_table.cell[sel.as_iloc(df)] = out
+            mgui.close()
+
+    def cdf(self):
+        """Calculate the Cumulative Distribution Function (CDF)."""
+        viewer = self.get_viewer()
+        df = viewer.current_table.data_shown
+        mgui = get_xy_selections(y={"allow_out_of_bounds": True})
+        mgui.native.setParent(self, mgui.native.windowFlags())
+        mgui.show()
+
+        @mgui.called.connect
+        def _on_called(xy: tuple[SelectionOperator, SelectionOperator]):
+            xsel, ysel = xy
+            dist = self.get_instance()
+            ds = xsel.operate(df)
+            out = dist.cdf(ds.values.ravel())
+            viewer.current_table.cell[ysel.as_iloc(df)] = out
+            mgui.close()
+
+    def pdf(self):
+        """Calculate the Probability Density Function (PDF)."""
+        viewer = self.get_viewer()
+        df = viewer.current_table.data_shown
+        mgui = get_xy_selections(y={"allow_out_of_bounds": True})
+        mgui.native.setParent(self, mgui.native.windowFlags())
+        mgui.show()
+
+        @mgui.called.connect
+        def _on_called(xy: tuple[SelectionOperator, SelectionOperator]):
+            xsel, ysel = xy
+            dist = self.get_instance()
+            ds = xsel.operate(df)
+            out = dist.pdf(ds.values.ravel())
+            viewer.current_table.cell[ysel.as_iloc(df)] = out
+            mgui.close()
 
 
 class QStatsParameterWidget(QtW.QWidget):
@@ -59,6 +138,26 @@ class QStatsParameterWidget(QtW.QWidget):
             wdt = QtW.QLineEdit()
             self._widgets.append(wdt)
             layout.addRow(label, wdt)
+
+
+def _button(text: str, slot: Callable) -> QtW.QPushButton:
+    btn = QtW.QPushButton(text)
+    btn.clicked.connect(slot)
+    btn.setToolTip(slot.__doc__)
+    return btn
+
+
+@magic_factory
+def get_selection(selection: SelectionOperator):
+    return selection
+
+
+@magic_factory
+def get_xy_selections(
+    x: SelectionOperator,
+    y: SelectionOperator,
+):
+    return x, y
 
 
 # @magic_factory

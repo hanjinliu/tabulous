@@ -79,8 +79,8 @@ def show_optimizer_widget(viewer: TableViewerBase):
 
 
 def show_stats_widget(viewer: TableViewerBase):
-    """Open scipy.stats widget"""
-    from ._statistics import StatsTestDialog
+    """Statistical test with scipy.stats"""
+    from ._stats import StatsTestDialog
 
     dlg = StatsTestDialog()
     dlg.native.setParent(viewer._qwidget, dlg.native.windowFlags())
