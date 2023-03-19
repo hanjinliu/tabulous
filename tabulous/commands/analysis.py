@@ -99,11 +99,13 @@ def show_sklearn_widget(viewer: TableViewerBase):
     ol.setTitle("scikit-learn analysis")
 
 
-def fit_distribution(viewer: TableViewerBase):
-    """Fit data to a distribution"""
-    from ._stats_fit import fit
+def show_scipy_stats_widget(viewer: TableViewerBase):
+    """Analyze data distribution with scipy.stats"""
+    from ._stats import QScipyStatsWidget
 
-    gui = fit(table={"bind": _utils.get_table(viewer)})
-    gui.native.setParent(viewer._qwidget, gui.native.windowFlags())
-    gui.called.connect(lambda: gui.close())
-    gui.show()
+    tablestack = viewer._qwidget._tablestack
+    ol = tablestack._overlay
+    ol.show()
+
+    ol.addWidget(QScipyStatsWidget(ol))
+    ol.setTitle("scipy.stats analysis")
