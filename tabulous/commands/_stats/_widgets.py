@@ -71,10 +71,18 @@ class QScipyStatsWidget(QtW.QWidget):
         @mgui.called.connect
         def _on_called(sel: SelectionOperator):
             dist = self.get_instance()
-            df = viewer.current_table.data_shown
-            shape = sel.shape(df)
-            out = dist.rvs(shape[0] * shape[1]).reshape(shape)
-            viewer.current_table.cell[sel.as_iloc(df)] = out
+            rsel, csel = sel.as_iloc(None)
+            if rsel.stop is None or csel.stop is None:
+                raise ValueError(
+                    "Unknown shape of selection. You must specify the stop values "
+                    "of the slices."
+                )
+            if rsel.step is not None or csel.step is not None:
+                raise ValueError("Step values are not allowed.")
+            rsize = rsel.stop - (rsel.start or 0)
+            csize = csel.stop - (csel.start or 0)
+            out = dist.rvs(rsize * csize).reshape((rsize, csize))
+            viewer.current_table.cell[rsel, csel] = out
             mgui.close()
 
     def cdf(self):
