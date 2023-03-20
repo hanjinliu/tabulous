@@ -24,7 +24,11 @@ class QScipyStatsWidget(QtW.QWidget):
         self._params = QStatsParameterWidget(Distributions.norm.params)
         _layout.addWidget(self._dist)
         _layout.addWidget(self._latex_label)
-        _layout.addWidget(self._params)
+        _area = QtW.QScrollArea()
+        _area.setContentsMargins(0, 0, 0, 0)
+        _area.setWidget(self._params)
+        _area.setFixedHeight(68)
+        _layout.addWidget(_area)
         _layout.addWidget(_button("Fit", self.fit))
         _layout.addWidget(_button("Random sampling", self.sample))
         _layout.addWidget(_button("Calculate PDF", self.pdf))
@@ -36,7 +40,6 @@ class QScipyStatsWidget(QtW.QWidget):
     def _dist_changed(self, dist: Distributions):
         self._latex_label.setLatex(dist.latex)
         self._params.set_labels(dist.params)
-        self.adjustSize()
 
     def get_instance(self, frozen: bool = True):
         dist: Distributions = self._dist.currentEnum()
