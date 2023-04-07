@@ -139,19 +139,18 @@ def get_tb_formatter() -> Callable[[Exception, bool, str], str]:
                 exc,
                 exc.__traceback__,
             )
-            try:
-                import numpy as np
+            import numpy as np
 
-                np.set_string_function(
-                    lambda arr: f"{type(arr)} {arr.shape} {arr.dtype}"
-                )
-                np_imported = True
-            except ImportError:
-                np_imported = False
+            np.set_string_function(lambda arr: f"{type(arr)} {arr.shape} {arr.dtype}")
 
             vbtb = IPython.core.ultratb.VerboseTB(color_scheme=color)
             if as_html:
-                ansi_string = vbtb.text(*info).replace(" ", "&nbsp;")
+                ansi_string = (
+                    vbtb.text(*info)
+                    .replace(" ", "&nbsp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                )
                 html = "".join(ansi2html(ansi_string))
                 html = html.replace("\n", "<br>")
                 html = (
@@ -163,8 +162,7 @@ def get_tb_formatter() -> Callable[[Exception, bool, str], str]:
                 tb_text = vbtb.text(*info)
 
             # resets to default behavior
-            if np_imported:
-                np.set_string_function(None)
+            np.set_string_function(None)
             return tb_text
 
     except ModuleNotFoundError:
