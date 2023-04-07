@@ -169,33 +169,3 @@ def get_xy_selections(
     y: SelectionOperator,
 ):
     return x, y
-
-
-# @magic_factory
-# def fit(
-#     table: TableBase,
-#     sel: SelectionOperator,
-#     distribution: Distributions = Distributions.norm,
-#     floc: str = "",
-#     fscale: str = "",
-# ):
-#     import pandas as pd
-
-#     df = sel.operate(table.data)
-#     out: dict[str, tuple] = {}
-#     dist = distribution.dist
-
-#     kwargs = {}
-#     if floc:
-#         kwargs["floc"] = float(floc)
-#     if fscale:
-#         kwargs["fscale"] = float(fscale)
-
-#     for col in df.columns:
-#         d = dist.fit(df[col].values, **kwargs)
-#         out[col] = d
-
-#     df = pd.DataFrame(out, index=distribution.params)
-#     table.add_side_widget(
-#         Table(df, editable=False), name="Distribution Fitting Results"
-#     )
