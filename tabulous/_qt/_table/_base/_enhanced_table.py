@@ -222,6 +222,8 @@ class _QTableViewEnhanced(QtW.QTableView):
                 _need_update_all = True
             else:
                 self._current_drawing_slot_ranges = None
+        else:
+            self._current_drawing_slot_ranges = None
 
         if qviewer := self.parentViewer():
             qviewer._table_viewer.status = new_status_tip
