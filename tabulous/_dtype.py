@@ -352,6 +352,8 @@ class DTypeMap(MutableMapping[_K, _V]):
                     k: get_converter(v) for k, v in self._need_parsing_dict.items()
                 },
             )
+        if pd.__version__[0] > "1":
+            kwargs.pop("infer_datetime_format", None)
         return kwargs
 
     def try_convert(self, key: _K, value: Any) -> Any:

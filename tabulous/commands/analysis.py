@@ -79,8 +79,8 @@ def show_optimizer_widget(viewer: TableViewerBase):
 
 
 def show_stats_widget(viewer: TableViewerBase):
-    """Open scipy.stats widget"""
-    from ._statistics import StatsTestDialog
+    """Statistical test with scipy.stats"""
+    from ._stats import StatsTestDialog
 
     dlg = StatsTestDialog()
     dlg.native.setParent(viewer._qwidget, dlg.native.windowFlags())
@@ -97,3 +97,15 @@ def show_sklearn_widget(viewer: TableViewerBase):
 
     ol.addWidget(SkLearnContainer.new().native)
     ol.setTitle("scikit-learn analysis")
+
+
+def show_scipy_stats_widget(viewer: TableViewerBase):
+    """Analyze data distribution with scipy.stats"""
+    from ._stats import QScipyStatsWidget
+
+    tablestack = viewer._qwidget._tablestack
+    ol = tablestack._overlay
+    ol.show()
+
+    ol.addWidget(QScipyStatsWidget(ol))
+    ol.setTitle("scipy.stats analysis")
