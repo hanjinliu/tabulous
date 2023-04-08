@@ -79,10 +79,11 @@ def main():
     from . import TableViewer
 
     viewer = TableViewer()
-    viewer.show()
 
     if args.open_file:
         viewer.open(args.open_file)
+
+    viewer.show()
     return
 
 
