@@ -3,6 +3,8 @@ from typing import Any
 import pandas as pd
 from collections_undo import arguments
 
+from tabulous.types import ItemInfo
+
 from ._base import QMutableSimpleTable, DataFrameModel
 from tabulous._dtype import get_converter
 
@@ -41,6 +43,7 @@ class QTableLayer(QMutableSimpleTable):
                 to_delete.add(k)
             else:
                 to_assign[k] = v
+        old_value = self._data_raw
         self._data_raw: pd.DataFrame = self._data_raw.assign(**to_assign).drop(
             to_delete, axis=1
         )
@@ -49,6 +52,16 @@ class QTableLayer(QMutableSimpleTable):
         self.model().setShape(nr, nc)
         self._set_proxy(None)
         self.refreshTable()
+
+        # NOTE: ItemInfo cannot have list indices.
+        self.itemChangedSignal.emit(
+            ItemInfo(
+                slice(None),
+                slice(None),
+                self._data_raw,
+                old_value,
+            )
+        )
         return None
 
     @assignColumns.server

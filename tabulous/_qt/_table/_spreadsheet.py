@@ -316,6 +316,7 @@ class QSpreadSheet(QMutableSimpleTable):
                 to_delete.add(k)
             else:
                 to_assign[k] = v.astype(_STRING_DTYPE)
+        old_value = self._data_raw
         self._data_raw: pd.DataFrame = self._data_raw.assign(**to_assign).drop(
             to_delete, axis=1, inplace=False
         )
@@ -328,6 +329,15 @@ class QSpreadSheet(QMutableSimpleTable):
         )
         self.setProxy(None)
         self.refreshTable()
+        # NOTE: ItemInfo cannot have list indices.
+        self.itemChangedSignal.emit(
+            ItemInfo(
+                slice(None),
+                slice(None),
+                self._data_raw,
+                old_value,
+            )
+        )
         self._data_cache = None
         self._edited = True
         return None
