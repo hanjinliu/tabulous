@@ -150,7 +150,7 @@ class TableSubset(TableComponent):
         if not isinstance(val, pd.DataFrame):
             val = pd.DataFrame(val, columns=df.columns)
         for k, v in df.items():
-            v[self._row_slice] = val[k]
+            v.values[self._row_slice] = val[k]
             to_assign[k] = v
         table.assign(to_assign)
         return None
