@@ -166,3 +166,12 @@ def test_ranged_index_extension():
     assert list(sheet.columns) == ["A", "E", "C", "D", "E_0"]
     sheet.cell[0, 6] = "0"
     assert list(sheet.columns) == ["A", "E", "C", "D", "E_0", "F", "G"]
+
+def test_assign():
+    viewer = TableViewer(show=False)
+    sheet = viewer.add_spreadsheet(np.zeros((3, 3)))
+    assert sheet.native.model().df.dtypes[0] == "string"
+    sheet.assign({"A": np.arange(3)})
+    assert sheet.native.model().df.dtypes[0] == "string"
+    sheet.undo_manager.undo()
+    assert sheet.native.model().df.dtypes[0] == "string"

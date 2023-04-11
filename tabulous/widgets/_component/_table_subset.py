@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Sequence, TypeVar, Union, overload, Callable
 
 import numpy as np
+from tabulous.exceptions import TableImmutableError
 
 from tabulous.types import ColorMapping
 from ._base import TableComponent
@@ -11,7 +12,7 @@ from ._column_setting import _Void
 if TYPE_CHECKING:
     from numpy.typing import NDArray
     import pandas as pd
-    from tabulous.widgets import TableBase
+    from tabulous.widgets import TableBase, Table, SpreadSheet
     from ._column_setting import (
         _Interpolatable,
         _ColormapInterface,
@@ -114,16 +115,15 @@ class TableILocIndexer(TableComponent):
 
         if isinstance(ckey, int):
             return TableSeries(table, rkey, table.columns[ckey])
-        elif isinstance(ckey, slice):
-            columns = table.columns[ckey]
-            return TableSubset(table, rkey, columns)
-        elif isinstance(ckey, Sequence):
+        elif isinstance(ckey, (slice, Sequence)):
             return TableSubset(table, rkey, list(table.columns[ckey]))
         else:
             raise TypeError(f"Cannot iloc-slice by {type(ckey)}")
 
 
 class TableSubset(TableComponent):
+    """Object representing a subset of a Table widget."""
+
     def __init__(
         self, parent: TableBase, row_slice: slice | list[int], columns: list[str]
     ):
@@ -133,23 +133,59 @@ class TableSubset(TableComponent):
 
     @property
     def data(self) -> pd.DataFrame:
+        """Data of the subset as a pandas DataFrame."""
         table = self.parent
         return table.native._get_sub_frame(self._columns).iloc[self._row_slice]
 
+    @data.setter
+    def data(self, val) -> None:
+        import pandas as pd
+
+        table = self.parent
+        if not table.mutable:
+            raise TableImmutableError(f"Cannot set data on {type(table)}")
+        table: Table | SpreadSheet
+        df = table.native._get_sub_frame(self._columns)
+        to_assign = {}
+        if not isinstance(val, pd.DataFrame):
+            val = pd.DataFrame(val, columns=df.columns)
+        for k, v in df.items():
+            v.values[self._row_slice] = val[k]
+            to_assign[k] = v
+        table.assign(to_assign)
+        return None
+
+    def __repr__(self) -> str:
+        return f"<TableSubset of {self.parent!r}> with data:\n{self.data!r}"
+
 
 class TableSeries(TableComponent):
+    """Object representing a column series of a Table widget."""
+
     def __init__(self, parent: TableBase, row_slice: slice | list[int], column: str):
         super().__init__(parent)
         self._row_slice = row_slice
         self._column = column
 
     def __repr__(self) -> str:
-        return f"<TableSeries<{self._column!r}> of {self.parent!r}>"
+        return f"<TableSeries of {self.parent!r}> with data:\n{self.data!r}"
 
     @property
     def data(self) -> pd.Series:
+        """Data of the column as a pandas Series."""
         table = self.parent
         return table.native._get_sub_frame(self._column).iloc[self._row_slice]
+
+    @data.setter
+    def data(self, val) -> None:
+        table = self.parent
+        if not table.mutable:
+            raise TableImmutableError(f"Cannot set data on {type(table)}")
+        table: Table | SpreadSheet
+        ds = table.native._get_sub_frame(self._column)
+        ds[self._row_slice] = val
+        table.assign({ds.name: ds})
+        return None
 
     @property
     def text_color(self):
