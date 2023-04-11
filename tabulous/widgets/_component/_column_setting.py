@@ -368,7 +368,9 @@ class ColumnDtypeInterface(Component["SpreadSheet"], MutableMapping[str, "_Dtype
     def __repr__(self) -> str:
         clsname = type(self).__name__
         _args = ",\n\t".join(f"{k!r}: {v}" for k, v in self._get_dtype_map().items())
-        return f"{clsname}(\n\t{_args}\n)"
+        if _args:
+            return f"{clsname}(\n\t{_args}\n)"
+        return f"{clsname}()"
 
     def __len__(self) -> str:
         return len(self._get_dtype_map())
