@@ -272,8 +272,10 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
             data = _copy_dataframe(data)
         table = SpreadSheet(data, name=name, editable=editable, metadata=metadata)
         if dtyped:
-            for col, dtype in data.dtypes.items():
+            for icol, dtype in enumerate(data.dtypes):
+                col = table.columns[icol]
                 table.dtypes.set(col, dtype)
+            table.undo_manager.clear()
         return self.add_layer(table, update=update)
 
     def add_groupby(
