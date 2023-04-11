@@ -355,7 +355,7 @@ class QSpreadSheet(QMutableSimpleTable):
 
     @assignColumns.set_formatter
     def _assignColumns_fmt(self, serieses: dict[str, pd.Series]):
-        keys = set(serieses.keys())
+        keys = list(serieses.keys())
         return f"assign new data to {keys}"
 
     def createModel(self) -> None:
