@@ -27,7 +27,7 @@ DATA = pd.DataFrame(np.arange(50).reshape(10, 5), columns=list("ABCDE"))
         ([1, 3, 6], "B"),
     ]
 )
-def test_loc_data_equal(sl):
+def test_loc_data_equal(sl: slice | tuple):
     table = Table(DATA)
     assert_obj_equal(table.loc[sl].data, table.data.loc[sl])
 
@@ -46,7 +46,7 @@ def test_loc_data_equal(sl):
         ([1, 3, 6], 1),
     ]
 )
-def test_iloc_data_equal(sl):
+def test_iloc_data_equal(sl: slice | tuple):
     table = Table(DATA)
     assert_obj_equal(table.iloc[sl].data, table.data.iloc[sl])
 
@@ -97,3 +97,21 @@ def test_partial_validator():
 
     table["B"].validator.reset()
     table.cell[0, 1] = "6"
+
+def test_set_data_on_series():
+    table = Table(DATA, editable=True)
+    table["A"].data = -np.ones(10, dtype=np.int32)
+    assert_series_equal(table["A"].data, pd.Series(-np.ones(10), name="A", dtype=np.int32))
+
+def test_set_data_on_subset():
+    table = Table(DATA, editable=True)
+    table.iloc[3:6, 1:3].data = -np.ones((3, 2), dtype=np.int32)
+    assert_frame_equal(
+        table.iloc[3:6, 1:3].data,
+        pd.DataFrame(
+            -np.ones((3, 2)),
+            index=range(3, 6),
+            columns=["B", "C"],
+            dtype=np.int32
+        )
+    )
