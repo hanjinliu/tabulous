@@ -353,6 +353,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         # fmt: off
         with _sel_model.blocked(), \
             qtable_view._table_map.lock_pos(self.pos), \
+            table.undo_manager.merging(lambda _: f"{self.as_literal(dest=True)}"), \
             table.proxy.released(keep_widgets=True):
             qtable.setDataFrameValue(_row, _col, _out)
         # fmt: on
