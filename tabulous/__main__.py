@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 
 class TabulousArgs(argparse.Namespace):
@@ -41,7 +42,11 @@ class TabulousParser(argparse.ArgumentParser):
         if not unknown:
             args.open_file = None
         elif len(unknown) == 1:
-            args.open_file = unknown[0]
+            path = unknown[0]
+            if Path(path).suffix:
+                args.open_file = path
+            else:
+                args.open_file = None
         else:
             raise argparse.ArgumentError("Too many arguments.")
         return args, unknown
