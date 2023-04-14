@@ -319,6 +319,10 @@ QToolButton:hover {
     color: #[foreground];
 }
 
+QCommandList {
+    qproperty-matchColor: #[inv_color];
+}
+
 QCommandList:item:selected {
     background-color: #[highlight1];
     color: #[foreground];
