@@ -3,78 +3,91 @@
         "background": "#F0F0F0",
         "foreground": "#000000",
         "base_color": "#2065F2",
-        "cell_highlight": "#FF6060"
+        "cell_highlight": "#FF6060",
+        "inv_color": "#7C006A"
     },
     "light-green": {
         "background": "#F0F0F0",
         "foreground": "#000000",
         "base_color": "#44B58E",
-        "cell_highlight": "#FF6060"
+        "cell_highlight": "#FF6060",
+        "inv_color": "#6618C5"
     },
     "light-orange": {
         "background": "#F0F0F0",
         "foreground": "#000000",
         "base_color": "#F2A675",
-        "cell_highlight": "#FF6060"
+        "cell_highlight": "#FF6060",
+        "inv_color": "#222ED9"
     },
     "light-red": {
         "background": "#F0F0F0",
         "foreground": "#000000",
         "base_color": "#F20909",
-        "cell_highlight": "#FF6060"
+        "cell_highlight": "#FF6060",
+        "inv_color": "#605B00"
     },
     "light-purple": {
         "background": "#F0F0F0",
         "foreground": "#000000",
         "base_color": "#A675F2",
-        "cell_highlight": "#FF6060"
+        "cell_highlight": "#FF6060",
+        "inv_color": "#005806"
     },
     "light-gray": {
         "background": "#F0F0F0",
         "foreground": "#000000",
         "base_color": "#777777",
-        "cell_highlight": "#323232"
+        "cell_highlight": "#323232",
+        "inv_color": "#831515"
     },
     "dark-blue": {
         "background": "#242424",
         "foreground": "#F0F0F0",
         "base_color": "#4780F3",
-        "cell_highlight": "#FF1010"
+        "cell_highlight": "#FF1010",
+        "inv_color": "#FF93EF"
     },
     "dark-green": {
         "background": "#242424",
         "foreground": "#F0F0F0",
         "base_color": "#6AF2C3",
-        "cell_highlight": "#FF1010"
+        "cell_highlight": "#FF1010",
+        "inv_color": "#FD7EFF"
     },
     "dark-yellow": {
         "background": "#242424",
         "foreground": "#F0F0F0",
         "base_color": "#FFFF00",
-        "cell_highlight": "#FF1010"
+        "cell_highlight": "#FF1010",
+        "inv_color": "#EBA9D1"
     },
     "dark-orange": {
         "background": "#242424",
         "foreground": "#F0F0F0",
         "base_color": "#FE8206",
-        "cell_highlight": "#FF1010"
+        "cell_highlight": "#FF1010",
+        "inv_color": "#C29DEF"
     },
     "dark-red": {
         "background": "#242424",
         "foreground": "#F0F0F0",
         "base_color": "#D91B1B",
-        "cell_highlight": "#FF1010"
+        "cell_highlight": "#FF1010",
+        "inv_color": "#C9A9FC"
     },
     "dark-purple": {
         "background": "#242424",
         "foreground": "#F0F0F0",
         "base_color": "#D049EE",
-        "cell_highlight": "#FF1010"
+        "cell_highlight": "#FF1010",
+        "inv_color": "#8EB0F4"
     },
     "dark-gray": {
         "background": "#242424",
         "foreground": "#F0F0F0",
         "base_color": "#CBCACA",
-        "cell_highlight": "#B3B3B3"
+        "cell_highlight": "#B3B3B3",
+        "inv_color": "#FF9090"
     }
 }

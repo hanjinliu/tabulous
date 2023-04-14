@@ -18,6 +18,7 @@ class Style:
     background1: str
     cell_highlight: str
     cell_selection: str
+    inv_color: str
 
     @lru_cache(maxsize=12)
     def format_text(self, text: str) -> str:
