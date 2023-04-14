@@ -298,26 +298,6 @@ class TableBase(SupportKeyMap):
         """The backend widget."""
         return self._qwidget
 
-    @property
-    def filter(self):
-        """Filter applied to the table."""
-        warnings.warn(
-            "'filter' is deprecated. Please use `table.proxy.filter` API instead",
-            DeprecationWarning,
-        )
-        prx = self.proxy._get_proxy_object()
-        if prx.proxy_type == "filter":
-            return prx._obj
-        return None
-
-    @filter.setter
-    def filter(self, val):
-        warnings.warn(
-            "'filter' is deprecated. Please use `table.proxy.filter` API instead",
-            DeprecationWarning,
-        )
-        return self.proxy.filter(val)
-
     def refresh(self) -> None:
         """Refresh the table view and force table to update."""
         return self._qwidget.refreshTable(process=True)
