@@ -671,8 +671,8 @@ class QCellLiteralEdit(_QTableLineEdit):
             self.eval_and_close()
             return True
         elif keys == "Esc":
-            qtable._selection_model.move_to(*self._pos)
             self.close()
+            qtable._selection_model.move_to(*self._pos)
             return True
         elif keys == "F2":  # editing fails
             return True
