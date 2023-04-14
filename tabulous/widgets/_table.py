@@ -6,12 +6,13 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Hashable, TYPE_CHECKING, overload
 import warnings
+import weakref
 from psygnal import SignalGroup, Signal
 
 from tabulous.widgets import _doc, _component as _comp
 from tabulous.widgets._keymap_abc import SupportKeyMap
 from tabulous.widgets._source import Source
-from tabulous.types import ItemInfo, HeaderInfo, EvalInfo
+from tabulous.types import ItemInfo, EvalInfo
 from tabulous._psygnal import SignalArray, InCellRangedSlot
 
 if TYPE_CHECKING:
@@ -35,11 +36,30 @@ class TableSignals(SignalGroup):
     """Signal group for a Table."""
 
     data = SignalArray(ItemInfo)
-    index = Signal(HeaderInfo)
-    columns = Signal(HeaderInfo)
     evaluated = Signal(EvalInfo)
     selections = Signal(_comp.SelectionRanges)
     renamed = Signal(str)
+    _table: weakref.ReferenceType[TableBase]
+
+    @property
+    def index(self):
+        warnings.warn(
+            "`table.events.index` is deprecated. Please use `table.index.events."
+            "renamed` instead.",
+            DeprecationWarning,
+        )
+        table = self._table()
+        return table.index.events.renamed
+
+    @property
+    def columns(self):
+        warnings.warn(
+            "`table.events.columns` is deprecated. Please use `table.columns.events."
+            "renamed` instead.",
+            DeprecationWarning,
+        )
+        table = self._table()
+        return table.columns.events.renamed
 
 
 class ViewMode(Enum):
@@ -100,6 +120,7 @@ class TableBase(SupportKeyMap):
         if name is None:
             name = self._Default_Name
         self.events = TableSignals()
+        self.events._table = weakref.ref(self)
         self._name = str(name)
         self._qwidget = self._create_backend(_data)
         self._install_actions()
@@ -115,8 +136,8 @@ class TableBase(SupportKeyMap):
                 self._qwidget.setEditable(editable)
             self.native.connectItemChangedSignal(
                 self._emit_data_changed_signal,
-                self.events.index.emit,
-                self.events.columns.emit,
+                self.index.events.renamed.emit,
+                self.columns.events.renamed.emit,
                 self.events.evaluated.emit,
             )
 
@@ -477,6 +498,12 @@ class TableBase(SupportKeyMap):
         with self.selections.blocked():
             # Block selection to avoid recursive update.
             self.events.selections.emit(self.selections)
+            _smodel = self.native._qtable_view._selection_model
+            if sel := list(_smodel.iter_row_selections()):
+                self.index.events.selected.emit(sel)
+            if sel := list(_smodel.iter_col_selections()):
+                self.columns.events.selected.emit(sel)
+
         return None
 
     def _emit_evaluated(self, info: EvalInfo):

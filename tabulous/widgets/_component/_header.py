@@ -9,7 +9,9 @@ from typing import (
 )
 
 import numpy as np
+from psygnal import Signal, SignalGroup
 from tabulous.exceptions import TableImmutableError
+from tabulous.types import HeaderInfo
 from ._base import Component, TableComponent
 from tabulous.widgets._registry import SupportActionRegistration
 
@@ -17,6 +19,11 @@ if TYPE_CHECKING:
     import pandas as pd
     from tabulous.widgets import TableBase  # noqa: F401
     from tabulous._qt._table._base._header_view import QDataFrameHeaderView
+
+
+class HeaderEvents(SignalGroup):
+    selected = Signal(list[slice])
+    renamed = Signal(HeaderInfo)
 
 
 class HeaderSectionSpan(Component["_HeaderInterface"]):
@@ -90,6 +97,10 @@ class _HeaderInterface(TableComponent, SupportActionRegistration["TableBase", in
     """
 
     _AXIS_NUMBER: int
+
+    def __init__(self, parent: TableBase = TableComponent._no_ref):
+        super().__init__(parent)
+        self.events = HeaderEvents()
 
     def _get_axis(self) -> pd.Index:
         raise NotImplementedError()

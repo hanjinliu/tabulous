@@ -23,8 +23,8 @@ if __name__ == "__main__":
     table = table_viewer.add_table(layer.features, name=layer.name, editable=True)
 
     @table.events.data.connect
-    @table.events.index.connect
-    @table.events.columns.connect
+    @table.index.events.renamed.connect
+    @table.columns.events.renamed.connect
     def _on_data_change(*args):
         # update features when any components of the data frame changed
         layer.features = table.data

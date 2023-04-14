@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Iterator, cast
 from qtpy import QtWidgets as QtW, QtCore, QtGui
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt
 
 import numpy as np
 
@@ -16,7 +16,6 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
     """The header view for the tabulous tables."""
 
     _Orientation: Qt.Orientation
-    selectionChangedSignal = Signal(int, int)
 
     def __init__(self, parent: QtW.QWidget | None = None) -> None:
         QtW.QHeaderView.__init__(self, self._Orientation, parent)
