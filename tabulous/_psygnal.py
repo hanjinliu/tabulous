@@ -1365,9 +1365,7 @@ class SignalArrayInstance(SignalInstance, TableAnchorBase):
                     try:
                         cb(*args[:max_args])
                     except Exception as e:
-                        raise EmitLoopError(
-                            slot=slot, args=args[:max_args], exc=e
-                        ) from e
+                        raise EmitLoopError(repr(slot), args[:max_args], e) from e
 
             for slot in rem:
                 self.disconnect(slot)

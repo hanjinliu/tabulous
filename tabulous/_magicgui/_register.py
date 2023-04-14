@@ -29,10 +29,12 @@ if TYPE_CHECKING:
 _DEFAULT_NAME = "Result"
 
 
-def find_table_viewer_ancestor(widget: Widget | QtW.QWidget) -> TableViewerBase | None:
+def find_table_viewer_ancestor(
+    widget: Widget | QtW.QWidget | TableBase,
+) -> TableViewerBase | None:
     from tabulous._qt._mainwindow import _QtMainWidgetBase
 
-    if isinstance(widget, Widget):
+    if isinstance(widget, (Widget, TableBase)):
         qwidget = widget.native
     elif isinstance(widget, QtW.QWidget):
         qwidget = widget
