@@ -67,14 +67,14 @@
         "foreground": "#F0F0F0",
         "base_color": "#FE8206",
         "cell_highlight": "#FF1010",
-        "inv_color": "#AB73F0"
+        "inv_color": "#C29DEF"
     },
     "dark-red": {
         "background": "#242424",
         "foreground": "#F0F0F0",
         "base_color": "#D91B1B",
         "cell_highlight": "#FF1010",
-        "inv_color": "#FF81EC"
+        "inv_color": "#C9A9FC"
     },
     "dark-purple": {
         "background": "#242424",
