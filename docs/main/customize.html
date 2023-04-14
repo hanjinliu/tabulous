@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Customize Viewer Actions &mdash; tabulous 0.5.1 documentation</title>
+  <title>Customize Viewer Actions &mdash; tabulous 0.5.2 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -28,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> tabulous
+
+
+
+          <a href="../index.html" class="icon icon-home">
+            tabulous
           </a>
               <div class="version">
-                0.5.1
+                0.5.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -84,8 +88,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Customize Viewer Actions</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Customize Viewer Actions</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/main/customize.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -102,40 +106,40 @@ Configuration files will be created automatically when the viewer is launched
 for the first time.</p>
 <p>You can check the location of the user directory by running the following
 command.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ tabulous --user-dir
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tabulous<span class="w"> </span>--user-dir
 </pre></div>
 </div>
 <section id="edit-config-toml">
 <h2>Edit config.toml<a class="headerlink" href="#edit-config-toml" title="Permalink to this headline">¶</a></h2>
 <p>The “config.toml” file describes the basic settings of the viewer.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[console_namespace]</span>
-<span class="n">tabulous</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># default identifier of the tabulous module</span>
-<span class="n">viewer</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># default identifier of the viewer instance</span>
-<span class="n">pandas</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># default identifier of the pandas module</span>
-<span class="n">numpy</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># default identifier of the numpy module</span>
-<span class="n">load_startup_file</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># load IPython startup file or not</span>
+<span class="n">tabulous</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># default identifier of the tabulous module</span>
+<span class="n">viewer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># default identifier of the viewer instance</span>
+<span class="n">pandas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># default identifier of the pandas module</span>
+<span class="n">numpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># default identifier of the numpy module</span>
+<span class="n">load_startup_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># load IPython startup file or not</span>
 
 <span class="k">[table]</span>
-<span class="n">max_row_count</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># maximum number of rows allowed to be added</span>
-<span class="n">max_column_count</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># maximum number of rows allowed to be added</span>
-<span class="n">font</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># font family name</span>
-<span class="n">font_size</span> <span class="o">=</span> <span class="p">...</span>   <span class="c1"># font size in points</span>
-<span class="n">row_size</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># row height in pixels</span>
-<span class="n">column_size</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># column width in pixels</span>
+<span class="n">max_row_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># maximum number of rows allowed to be added</span>
+<span class="n">max_column_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># maximum number of rows allowed to be added</span>
+<span class="n">font</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># font family name</span>
+<span class="n">font_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">   </span><span class="c1"># font size in points</span>
+<span class="n">row_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># row height in pixels</span>
+<span class="n">column_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># column width in pixels</span>
 
 <span class="k">[cell]</span>
-<span class="n">eval_prefix</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># prefix of for in-cell evaluation</span>
-<span class="n">ref_prefix</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># prefix of for in-cell evaluation with cell references</span>
+<span class="n">eval_prefix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># prefix of for in-cell evaluation</span>
+<span class="n">ref_prefix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># prefix of for in-cell evaluation with cell references</span>
 
 <span class="k">[window]</span>
-<span class="n">ask_on_close</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># ask before closing the window or not</span>
-<span class="n">show_console</span> <span class="o">=</span> <span class="p">...</span>  <span class="c1"># show console on startup or not</span>
+<span class="n">ask_on_close</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># ask before closing the window or not</span>
+<span class="n">show_console</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># show console on startup or not</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>To reset the configuration file to the default, run the following command.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ tabulous --init-config
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tabulous<span class="w"> </span>--init-config
 </pre></div>
 </div>
 </div>

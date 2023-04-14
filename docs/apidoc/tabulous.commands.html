@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands package &mdash; tabulous 0.5.1 documentation</title>
+  <title>tabulous.commands package &mdash; tabulous 0.5.2 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -28,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> tabulous
+
+
+
+          <a href="../index.html" class="icon icon-home">
+            tabulous
           </a>
               <div class="version">
-                0.5.1
+                0.5.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -95,10 +99,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="modules.html">tabulous</a> &raquo;</li>
-          <li><a href="tabulous.html">tabulous package</a> &raquo;</li>
-      <li>tabulous.commands package</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">tabulous</a></li>
+          <li class="breadcrumb-item"><a href="tabulous.html">tabulous package</a></li>
+      <li class="breadcrumb-item active">tabulous.commands package</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/apidoc/tabulous.commands.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -140,6 +144,12 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.analysis.show_scipy_stats_widget">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.analysis.</span></span><span class="sig-name descname"><span class="pre">show_scipy_stats_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/analysis.html#show_scipy_stats_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.analysis.show_scipy_stats_widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analyze data distribution with scipy.stats</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="tabulous.commands.analysis.show_sklearn_widget">
 <span class="sig-prename descclassname"><span class="pre">tabulous.commands.analysis.</span></span><span class="sig-name descname"><span class="pre">show_sklearn_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/analysis.html#show_sklearn_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.analysis.show_sklearn_widget" title="Permalink to this definition">¶</a></dt>
 <dd><p>Open scikit-learn widget</p>
@@ -148,7 +158,7 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="tabulous.commands.analysis.show_stats_widget">
 <span class="sig-prename descclassname"><span class="pre">tabulous.commands.analysis.</span></span><span class="sig-name descname"><span class="pre">show_stats_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/analysis.html#show_stats_widget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.analysis.show_stats_widget" title="Permalink to this definition">¶</a></dt>
-<dd><p>Open scipy.stats widget</p>
+<dd><p>Statistical test with scipy.stats</p>
 </dd></dl>
 
 <dl class="py function">
@@ -266,9 +276,21 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.file.save_as_xlsx">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.file.</span></span><span class="sig-name descname"><span class="pre">save_as_xlsx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/file.html#save_as_xlsx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.file.save_as_xlsx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save all tables to an Excel book</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="tabulous.commands.file.save_table">
 <span class="sig-prename descclassname"><span class="pre">tabulous.commands.file.</span></span><span class="sig-name descname"><span class="pre">save_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/file.html#save_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.file.save_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save current table data</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tabulous.commands.file.save_table_to_source">
+<span class="sig-prename descclassname"><span class="pre">tabulous.commands.file.</span></span><span class="sig-name descname"><span class="pre">save_table_to_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tabulous.widgets.html#tabulous.widgets.TableViewerBase" title="tabulous.widgets.TableViewerBase"><span class="pre">TableViewerBase</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tabulous/commands/file.html#save_table_to_source"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabulous.commands.file.save_table_to_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save current table data to the source file if exists</p>
 </dd></dl>
 
 </section>

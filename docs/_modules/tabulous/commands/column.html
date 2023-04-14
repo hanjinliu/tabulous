@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.column &mdash; tabulous 0.5.1 documentation</title>
+  <title>tabulous.commands.column &mdash; tabulous 0.5.2 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -25,14 +25,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../../index.html" class="icon icon-home"> tabulous
+
+
+
+          <a href="../../../index.html" class="icon icon-home">
+            tabulous
           </a>
               <div class="version">
-                0.5.1
+                0.5.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -73,10 +77,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-          <li><a href="../commands.html">tabulous.commands</a> &raquo;</li>
-      <li>tabulous.commands.column</li>
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../commands.html">tabulous.commands</a></li>
+      <li class="breadcrumb-item active">tabulous.commands.column</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -115,7 +119,7 @@
 
 
 <div class="viewcode-block" id="set_text_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.set_text_colormap">[docs]</a><span class="k">def</span> <span class="nf">set_text_colormap</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Set text colormap to a column&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set text colormap to a column&quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">tabulous._colormap</span> <span class="kn">import</span> <span class="n">exec_colormap_dialog</span>
 
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
@@ -128,33 +132,33 @@
 
 
 <div class="viewcode-block" id="reset_text_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.reset_text_colormap">[docs]</a><span class="k">def</span> <span class="nf">reset_text_colormap</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Reset text colormap&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset text colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="k">del</span> <span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="set_text_colormap_opacity"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.set_text_colormap_opacity">[docs]</a><span class="k">def</span> <span class="nf">set_text_colormap_opacity</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Set opacity to the text colormap&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set opacity to the text colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_OPACITY_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
         <span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">set_opacity</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="invert_text_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.invert_text_colormap">[docs]</a><span class="k">def</span> <span class="nf">invert_text_colormap</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Invert text colormap&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Invert text colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">column_name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="adjust_brightness_text_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.adjust_brightness_text_colormap">[docs]</a><span class="k">def</span> <span class="nf">adjust_brightness_text_colormap</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Adjust brightness of the text colormap&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adjust brightness of the text colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_BRIGHTNESS_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
         <span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="o">.</span><span class="n">adjust_brightness</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="set_background_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.set_background_colormap">[docs]</a><span class="k">def</span> <span class="nf">set_background_colormap</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Set background colormap to a column&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set background colormap to a column&quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">tabulous._colormap</span> <span class="kn">import</span> <span class="n">exec_colormap_dialog</span>
 
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
@@ -167,33 +171,33 @@
 
 
 <div class="viewcode-block" id="reset_background_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.reset_background_colormap">[docs]</a><span class="k">def</span> <span class="nf">reset_background_colormap</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Reset background colormap&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset background colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="k">del</span> <span class="n">table</span><span class="o">.</span><span class="n">background_color</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="set_background_colormap_opacity"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.set_background_colormap_opacity">[docs]</a><span class="k">def</span> <span class="nf">set_background_colormap_opacity</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Set opacity to the background colormap&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set opacity to the background colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_OPACITY_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
         <span class="n">table</span><span class="o">.</span><span class="n">background_color</span><span class="o">.</span><span class="n">set_opacity</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="invert_background_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.invert_background_colormap">[docs]</a><span class="k">def</span> <span class="nf">invert_background_colormap</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Invert background colormap&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Invert background colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="n">table</span><span class="o">.</span><span class="n">background_color</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">column_name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="adjust_brightness_background_colormap"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.adjust_brightness_background_colormap">[docs]</a><span class="k">def</span> <span class="nf">adjust_brightness_background_colormap</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Adjust brightness of the background colormap&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adjust brightness of the background colormap&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">val</span> <span class="o">:=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">_BRIGHTNESS_CONFIG</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">):</span>
         <span class="n">table</span><span class="o">.</span><span class="n">background_color</span><span class="o">.</span><span class="n">adjust_brightness</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="set_text_formatter"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.set_text_formatter">[docs]</a><span class="k">def</span> <span class="nf">set_text_formatter</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Set text formatter&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set text formatter&quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">tabulous._text_formatter</span> <span class="kn">import</span> <span class="n">exec_formatter_dialog</span>
 
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
@@ -207,13 +211,13 @@
 
 
 <div class="viewcode-block" id="reset_text_formatter"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.reset_text_formatter">[docs]</a><span class="k">def</span> <span class="nf">reset_text_formatter</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Reset text formatter&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset text formatter&quot;&quot;&quot;</span>
     <span class="n">table</span><span class="p">,</span> <span class="n">column_name</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table_and_column_name</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="k">del</span> <span class="n">table</span><span class="o">.</span><span class="n">formatter</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="run_groupby"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.run_groupby">[docs]</a><span class="k">def</span> <span class="nf">run_groupby</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Group table by its columns (pd.groupby)&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Group table by its columns (pd.groupby)&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_mutable_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
 
     <span class="n">cols</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_selected_columns</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
@@ -226,7 +230,7 @@
 
 
 <div class="viewcode-block" id="run_cut"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.column.run_cut">[docs]</a><span class="k">def</span> <span class="nf">run_cut</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Cut a table column into bins (pd.cut)&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cut a table column into bins (pd.cut)&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_mutable_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_selected_column</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>

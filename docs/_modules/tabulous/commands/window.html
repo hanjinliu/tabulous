@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.window &mdash; tabulous 0.5.1 documentation</title>
+  <title>tabulous.commands.window &mdash; tabulous 0.5.2 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -25,14 +25,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../../index.html" class="icon icon-home"> tabulous
+
+
+
+          <a href="../../../index.html" class="icon icon-home">
+            tabulous
           </a>
               <div class="version">
-                0.5.1
+                0.5.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -73,10 +77,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-          <li><a href="../commands.html">tabulous.commands</a> &raquo;</li>
-      <li>tabulous.commands.window</li>
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../commands.html">tabulous.commands</a></li>
+      <li class="breadcrumb-item active">tabulous.commands.window</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -94,17 +98,17 @@
 
 
 <div class="viewcode-block" id="show_keymap"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.show_keymap">[docs]</a><span class="k">def</span> <span class="nf">show_keymap</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Show key map widget&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Show key map widget&quot;&quot;&quot;</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">showKeyMap</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="close_window"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.close_window">[docs]</a><span class="k">def</span> <span class="nf">close_window</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Close window&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Close window&quot;&quot;&quot;</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="new_window"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.new_window">[docs]</a><span class="k">def</span> <span class="nf">new_window</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a new window&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new window&quot;&quot;&quot;</span>
     <span class="n">new</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="vm">__class__</span><span class="p">()</span>
     <span class="n">pos</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">pos</span><span class="p">()</span>
     <span class="n">pos</span><span class="o">.</span><span class="n">setX</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">x</span><span class="p">()</span> <span class="o">+</span> <span class="mi">20</span><span class="p">)</span>
@@ -114,32 +118,32 @@
 
 
 <div class="viewcode-block" id="toggle_toolbar"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.toggle_toolbar">[docs]</a><span class="k">def</span> <span class="nf">toggle_toolbar</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Toggle toolbar visibility&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Toggle toolbar visibility&quot;&quot;&quot;</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">toggleToolBarVisibility</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="toggle_console"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.toggle_console">[docs]</a><span class="k">def</span> <span class="nf">toggle_console</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Toggle QtConsole visibility&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Toggle QtConsole visibility&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">toggleConsoleVisibility</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="toggle_fullscreen"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.toggle_fullscreen">[docs]</a><span class="k">def</span> <span class="nf">toggle_fullscreen</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Toggle fullscreen&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Toggle fullscreen&quot;&quot;&quot;</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">toggleWindowState</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="show_command_palette"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.show_command_palette">[docs]</a><span class="k">def</span> <span class="nf">show_command_palette</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Show the command palette.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Show the command palette.&quot;&quot;&quot;</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">showCommandPalette</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="focus_table"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.focus_table">[docs]</a><span class="k">def</span> <span class="nf">focus_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Move focus to the table.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Move focus to the table.&quot;&quot;&quot;</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">setCellFocus</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="toggle_focus"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.toggle_focus">[docs]</a><span class="k">def</span> <span class="nf">toggle_focus</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Toggle focus between table and command palette.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Toggle focus between table and command palette.&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">current_table</span>
     <span class="n">qviewer</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span>
     <span class="k">if</span> <span class="n">table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -154,7 +158,7 @@
 
 
 <div class="viewcode-block" id="add_text_edit"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.add_text_edit">[docs]</a><span class="k">def</span> <span class="nf">add_text_edit</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Add a note (text edit) dock widget.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a note (text edit) dock widget.&quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">TableViewer</span><span class="p">,</span> <span class="n">TableViewerWidget</span>
     <span class="kn">from</span> <span class="nn">tabulous._qt._qt_const</span> <span class="kn">import</span> <span class="n">MonospaceFontFamily</span>
     <span class="kn">from</span> <span class="nn">qtpy</span> <span class="kn">import</span> <span class="n">QtWidgets</span> <span class="k">as</span> <span class="n">QtW</span><span class="p">,</span> <span class="n">QtGui</span>
@@ -176,7 +180,7 @@
 
 
 <div class="viewcode-block" id="add_file_explorer"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.add_file_explorer">[docs]</a><span class="k">def</span> <span class="nf">add_file_explorer</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Add a file explorer dock widget.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a file explorer dock widget.&quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">TableViewer</span><span class="p">,</span> <span class="n">TableViewerWidget</span>
     <span class="kn">from</span> <span class="nn">tabulous._qt._filetree</span> <span class="kn">import</span> <span class="n">QFileExplorer</span>
 
@@ -193,7 +197,7 @@
 
 
 <div class="viewcode-block" id="show_preference"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.show_preference">[docs]</a><span class="k">def</span> <span class="nf">show_preference</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Show preference dialog&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Show preference dialog&quot;&quot;&quot;</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">showPreferenceDialog</span><span class="p">()</span></div>
 </pre></div>
 

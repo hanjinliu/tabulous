@@ -1,12 +1,6 @@
 from __future__ import annotations
 
-from typing import (
-    TYPE_CHECKING,
-    Sequence,
-    overload,
-    Any,
-    Iterator,
-)
+from typing import TYPE_CHECKING, Sequence, overload, Any, Iterator, List
 
 import numpy as np
 from psygnal import Signal, SignalGroup
@@ -22,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class HeaderEvents(SignalGroup):
-    selected = Signal(list[slice])
+    selected = Signal(List[slice])
     renamed = Signal(HeaderInfo)
 
 

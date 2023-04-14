@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.plot &mdash; tabulous 0.5.1 documentation</title>
+  <title>tabulous.commands.plot &mdash; tabulous 0.5.2 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -25,14 +25,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../../index.html" class="icon icon-home"> tabulous
+
+
+
+          <a href="../../../index.html" class="icon icon-home">
+            tabulous
           </a>
               <div class="version">
-                0.5.1
+                0.5.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -73,10 +77,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-          <li><a href="../commands.html">tabulous.commands</a> &raquo;</li>
-      <li>tabulous.commands.plot</li>
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../commands.html">tabulous.commands</a></li>
+      <li class="breadcrumb-item active">tabulous.commands.plot</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -97,22 +101,22 @@
 
 
 <div class="viewcode-block" id="plot"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.plot">[docs]</a><span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run plt.plot&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run plt.plot&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_plot_xy</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">plot</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="bar"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.bar">[docs]</a><span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run plt.bar&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run plt.bar&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_plot_xy</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">bar</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="scatter"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.scatter">[docs]</a><span class="k">def</span> <span class="nf">scatter</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run plt.scatter&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run plt.scatter&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_plot_xy</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">scatter</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="fill_between"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.fill_between">[docs]</a><span class="k">def</span> <span class="nf">fill_between</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run plt.fill_between&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run plt.fill_between&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">current_table</span>
     <span class="k">if</span> <span class="n">table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
@@ -126,7 +130,7 @@
 
 
 <div class="viewcode-block" id="fill_betweenx"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.fill_betweenx">[docs]</a><span class="k">def</span> <span class="nf">fill_betweenx</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run plt.fill_betweenx&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run plt.fill_betweenx&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">current_table</span>
     <span class="k">if</span> <span class="n">table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
@@ -140,7 +144,7 @@
 
 
 <div class="viewcode-block" id="errorbar"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.errorbar">[docs]</a><span class="k">def</span> <span class="nf">errorbar</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run plt.errorbar&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run plt.errorbar&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">current_table</span>
     <span class="k">if</span> <span class="n">table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
@@ -154,7 +158,7 @@
 
 
 <div class="viewcode-block" id="hist"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.hist">[docs]</a><span class="k">def</span> <span class="nf">hist</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run plt.hist&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run plt.hist&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">current_table</span>
     <span class="k">if</span> <span class="n">table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
@@ -172,37 +176,37 @@
 
 
 <div class="viewcode-block" id="swarmplot"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.swarmplot">[docs]</a><span class="k">def</span> <span class="nf">swarmplot</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run sns.swarmplot&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run sns.swarmplot&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_plot_sns</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">swarmplot</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="barplot"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.barplot">[docs]</a><span class="k">def</span> <span class="nf">barplot</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run sns.barplot&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run sns.barplot&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_plot_sns</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">barplot</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="boxplot"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.boxplot">[docs]</a><span class="k">def</span> <span class="nf">boxplot</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run sns.boxplot&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run sns.boxplot&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_plot_sns</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">boxplot</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="boxenplot"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.boxenplot">[docs]</a><span class="k">def</span> <span class="nf">boxenplot</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run sns.boxenplot&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run sns.boxenplot&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_plot_sns</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">boxenplot</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="violinplot"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.violinplot">[docs]</a><span class="k">def</span> <span class="nf">violinplot</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run sns.violinplot&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run sns.violinplot&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_plot_sns</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">violinplot</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="stripplot"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.stripplot">[docs]</a><span class="k">def</span> <span class="nf">stripplot</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run sns.stripplot&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run sns.stripplot&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_plot_sns</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">stripplot</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="new_figure"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.plot.new_figure">[docs]</a><span class="k">def</span> <span class="nf">new_figure</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;New figure canvas&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;New figure canvas&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">current_table</span>
     <span class="k">if</span> <span class="n">table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>

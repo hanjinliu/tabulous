@@ -27,7 +27,7 @@ DATA = pd.DataFrame(np.arange(50).reshape(10, 5), columns=list("ABCDE"))
         ([1, 3, 6], "B"),
     ]
 )
-def test_loc_data_equal(sl: slice | tuple):
+def test_loc_data_equal(sl: "slice | tuple"):
     table = Table(DATA)
     assert_obj_equal(table.loc[sl].data, table.data.loc[sl])
 
@@ -46,7 +46,7 @@ def test_loc_data_equal(sl: slice | tuple):
         ([1, 3, 6], 1),
     ]
 )
-def test_iloc_data_equal(sl: slice | tuple):
+def test_iloc_data_equal(sl: "slice | tuple"):
     table = Table(DATA)
     assert_obj_equal(table.iloc[sl].data, table.data.iloc[sl])
 

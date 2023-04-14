@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.file &mdash; tabulous 0.5.1 documentation</title>
+  <title>tabulous.commands.file &mdash; tabulous 0.5.2 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -25,14 +25,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../../index.html" class="icon icon-home"> tabulous
+
+
+
+          <a href="../../../index.html" class="icon icon-home">
+            tabulous
           </a>
               <div class="version">
-                0.5.1
+                0.5.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -73,10 +77,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-          <li><a href="../commands.html">tabulous.commands</a> &raquo;</li>
-      <li>tabulous.commands.file</li>
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../commands.html">tabulous.commands</a></li>
+      <li class="breadcrumb-item active">tabulous.commands.file</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -93,7 +97,6 @@
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">tabulous.widgets._mainwindow</span> <span class="kn">import</span> <span class="n">TableViewerBase</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;open_table&quot;</span><span class="p">,</span> <span class="s2">&quot;open_spreadsheet&quot;</span><span class="p">,</span> <span class="s2">&quot;save_table&quot;</span><span class="p">,</span> <span class="s2">&quot;open_sample&quot;</span><span class="p">]</span>
 
 <span class="c1"># fmt: off</span>
 <span class="n">SAMPLE_CHOICES</span> <span class="o">=</span> <span class="p">[</span>
@@ -105,7 +108,7 @@
 
 
 <div class="viewcode-block" id="open_table"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.file.open_table">[docs]</a><span class="k">def</span> <span class="nf">open_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Open a file as a table&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Open a file as a table&quot;&quot;&quot;</span>
     <span class="n">paths</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">history_manager</span><span class="o">.</span><span class="n">openFileDialog</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rm&quot;</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Open file(s)&quot;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
         <span class="n">viewer</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;table&quot;</span><span class="p">)</span>
@@ -113,7 +116,7 @@
 
 
 <div class="viewcode-block" id="open_spreadsheet"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.file.open_spreadsheet">[docs]</a><span class="k">def</span> <span class="nf">open_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Open a file as a spreadsheet&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Open a file as a spreadsheet&quot;&quot;&quot;</span>
     <span class="n">paths</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">history_manager</span><span class="o">.</span><span class="n">openFileDialog</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rm&quot;</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Open file(s)&quot;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
         <span class="n">viewer</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;spreadsheet&quot;</span><span class="p">)</span>
@@ -121,7 +124,7 @@
 
 
 <div class="viewcode-block" id="save_table"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.file.save_table">[docs]</a><span class="k">def</span> <span class="nf">save_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Save current table data&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save current table data&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">table</span> <span class="o">:=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">current_table</span><span class="p">:</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">history_manager</span><span class="o">.</span><span class="n">openFileDialog</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Save table&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
@@ -129,18 +132,18 @@
     <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<span class="k">def</span> <span class="nf">save_table_to_source</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Save current table data to the source file if exists&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="save_table_to_source"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.file.save_table_to_source">[docs]</a><span class="k">def</span> <span class="nf">save_table_to_source</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save current table data to the source file if exists&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">table</span> <span class="o">:=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">current_table</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">path</span> <span class="o">:=</span> <span class="n">table</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
             <span class="n">table</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">save_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
 
 
 <div class="viewcode-block" id="open_sample"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.file.open_sample">[docs]</a><span class="k">def</span> <span class="nf">open_sample</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Open sample data&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Open sample data&quot;&quot;&quot;</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">choose_one</span><span class="p">(</span>
         <span class="n">choice</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;choices&quot;</span><span class="p">:</span> <span class="n">SAMPLE_CHOICES</span><span class="p">,</span> <span class="s2">&quot;nullable&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span>
     <span class="p">)</span>
@@ -148,14 +151,14 @@
         <span class="n">viewer</span><span class="o">.</span><span class="n">open_sample</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">asynchronous</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">save_as_xlsx</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Save all tables to an Excel book&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="save_as_xlsx"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.file.save_as_xlsx">[docs]</a><span class="k">def</span> <span class="nf">save_as_xlsx</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save all tables to an Excel book&quot;&quot;&quot;</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">history_manager</span><span class="o">.</span><span class="n">openFileDialog</span><span class="p">(</span>
         <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Save table&quot;</span><span class="p">,</span> <span class="nb">filter</span><span class="o">=</span><span class="s2">&quot;Excel book (*.xlsx; *.xls)&quot;</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
         <span class="n">viewer</span><span class="o">.</span><span class="n">save_all</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
 </pre></div>
 
            </div>

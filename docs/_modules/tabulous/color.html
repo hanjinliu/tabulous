@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.color &mdash; tabulous 0.5.1 documentation</title>
+  <title>tabulous.color &mdash; tabulous 0.5.2 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/font.css" type="text/css" />
@@ -25,14 +25,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> tabulous
+
+
+
+          <a href="../../index.html" class="icon icon-home">
+            tabulous
           </a>
               <div class="version">
-                0.5.1
+                0.5.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -73,9 +77,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>tabulous.color</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">tabulous.color</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -95,7 +99,7 @@
 
 
 <div class="viewcode-block" id="ColorTuple"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.ColorTuple">[docs]</a><span class="k">class</span> <span class="nc">ColorTuple</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;8-bit color tuple.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;8-bit color tuple.&quot;&quot;&quot;</span>
 
     <span class="n">r</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">g</span><span class="p">:</span> <span class="nb">int</span>
@@ -104,19 +108,19 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">opacity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the opacity as a float between 0 and 1.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the opacity as a float between 0 and 1.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">/</span> <span class="mf">255.0</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">html</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return a HTML color string.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a HTML color string.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">==</span> <span class="mi">255</span><span class="p">:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="si">:</span><span class="s2">02X</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="si">:</span><span class="s2">02X</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="si">:</span><span class="s2">02X</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="si">:</span><span class="s2">02X</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="si">:</span><span class="s2">02X</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="si">:</span><span class="s2">02X</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="si">:</span><span class="s2">02X</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hlsa</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Return the color as HSLA.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the color as HSLA.&quot;&quot;&quot;</span>
         <span class="n">hlsa_float</span> <span class="o">=</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">rgb_to_hls</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">/</span> <span class="mf">255.0</span>
         <span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opacity</span><span class="p">,)</span>
@@ -124,7 +128,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hsva</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Return the color as HSVA.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the color as HSVA.&quot;&quot;&quot;</span>
         <span class="n">hsva_float</span> <span class="o">=</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">rgb_to_hsv</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">/</span> <span class="mf">255.0</span>
         <span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opacity</span><span class="p">,)</span>
@@ -132,7 +136,7 @@
 
 <div class="viewcode-block" id="ColorTuple.from_html"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.ColorTuple.from_html">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_html</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">html</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorTuple</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a ColorTuple from a HTML color string.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a ColorTuple from a HTML color string.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">html</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
             <span class="n">html</span> <span class="o">=</span> <span class="n">html</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">html</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
@@ -141,7 +145,7 @@
 
 <div class="viewcode-block" id="ColorTuple.from_hlsa"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.ColorTuple.from_hlsa">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_hlsa</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">hlsa</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorTuple</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a ColorTuple from HSLA.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a ColorTuple from HSLA.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hlsa</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">hlsa</span> <span class="o">=</span> <span class="n">hlsa</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hlsa</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
@@ -152,7 +156,7 @@
 
 <div class="viewcode-block" id="ColorTuple.from_hsva"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.ColorTuple.from_hsva">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_hsva</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">hsva</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorTuple</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a ColorTuple from HSVA.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a ColorTuple from HSVA.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hsva</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">hsva</span> <span class="o">=</span> <span class="n">hsva</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hsva</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
@@ -168,7 +172,7 @@
         <span class="k">return</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span></div>
 
 <div class="viewcode-block" id="ColorTuple.brighten"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.ColorTuple.brighten">[docs]</a>    <span class="k">def</span> <span class="nf">brighten</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorTuple</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Set the saturation of the color.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the saturation of the color.&quot;&quot;&quot;</span>
         <span class="n">hsv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsva</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
         <span class="n">val</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">hsv</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">ratio</span><span class="p">))</span>
         <span class="n">val</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
@@ -176,7 +180,7 @@
         <span class="k">return</span> <span class="n">ColorTuple</span><span class="o">.</span><span class="n">from_hsva</span><span class="p">(</span><span class="n">hsv</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ColorTuple.mix"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.ColorTuple.mix">[docs]</a>    <span class="k">def</span> <span class="nf">mix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorTuple</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Mix the color with another color.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Mix the color with another color.&quot;&quot;&quot;</span>
         <span class="n">other</span> <span class="o">=</span> <span class="n">normalize_color</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">alpha</span><span class="p">:</span>
             <span class="n">_alpha</span> <span class="o">=</span> <span class="n">_8bit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ratio</span><span class="p">)</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">)</span>
@@ -195,7 +199,7 @@
 
 
 <div class="viewcode-block" id="normalize_color"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.normalize_color">[docs]</a><span class="k">def</span> <span class="nf">normalize_color</span><span class="p">(</span><span class="n">color</span><span class="p">:</span> <span class="n">ColorType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorTuple</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Normalize a color-like object to a ColorTuple.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize a color-like object to a ColorTuple.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">ColorTuple</span><span class="p">(</span><span class="o">*</span><span class="n">_str_color_to_tuple</span><span class="p">(</span><span class="n">color</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">):</span>
@@ -233,7 +237,7 @@
 <div class="viewcode-block" id="InvertedColormap"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.InvertedColormap">[docs]</a><span class="k">class</span> <span class="nc">InvertedColormap</span><span class="p">(</span><span class="n">ConvertedColormap</span><span class="p">):</span>
 <div class="viewcode-block" id="InvertedColormap.from_colormap"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.InvertedColormap.from_colormap">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_colormap</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cmap</span><span class="p">:</span> <span class="n">ColorMapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorMapping</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Convert a colormap into return an inverted one.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a colormap into return an inverted one.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">cmap</span><span class="o">.</span><span class="n">func</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span></div>
@@ -256,7 +260,7 @@
 
 <div class="viewcode-block" id="OpacityColormap.from_colormap"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.OpacityColormap.from_colormap">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_colormap</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cmap</span><span class="p">:</span> <span class="n">ColorMapping</span><span class="p">,</span> <span class="n">opacity</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorMapping</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Convert a colormap into an new one with given alpha channel.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a colormap into an new one with given alpha channel.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">cmap</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="n">opacity</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="n">opacity</span><span class="p">)</span></div>
@@ -281,7 +285,7 @@
 
 <div class="viewcode-block" id="BrightenedColormap.from_colormap"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.color.BrightenedColormap.from_colormap">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_colormap</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cmap</span><span class="p">:</span> <span class="n">ColorMapping</span><span class="p">,</span> <span class="n">factor</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ColorMapping</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Convert a colormap into an new one with given brightening factor.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a colormap into an new one with given brightening factor.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">cmap</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="n">cmap</span><span class="o">.</span><span class="n">_factor</span> <span class="o">+</span> <span class="n">factor</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="n">factor</span><span class="p">)</span></div>

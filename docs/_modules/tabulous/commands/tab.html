@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.tab &mdash; tabulous 0.5.1 documentation</title>
+  <title>tabulous.commands.tab &mdash; tabulous 0.5.2 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -25,14 +25,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../../index.html" class="icon icon-home"> tabulous
+
+
+
+          <a href="../../../index.html" class="icon icon-home">
+            tabulous
           </a>
               <div class="version">
-                0.5.1
+                0.5.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -73,10 +77,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-          <li><a href="../commands.html">tabulous.commands</a> &raquo;</li>
-      <li>tabulous.commands.tab</li>
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../commands.html">tabulous.commands</a></li>
+      <li class="breadcrumb-item active">tabulous.commands.tab</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -96,7 +100,7 @@
 
 
 <div class="viewcode-block" id="activate_left"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.tab.activate_left">[docs]</a><span class="k">def</span> <span class="nf">activate_left</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Activate left table.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate left table.&quot;&quot;&quot;</span>
     <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -108,7 +112,7 @@
 
 
 <div class="viewcode-block" id="activate_right"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.tab.activate_right">[docs]</a><span class="k">def</span> <span class="nf">activate_right</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Activate right table.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate right table.&quot;&quot;&quot;</span>
     <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -120,7 +124,7 @@
 
 
 <div class="viewcode-block" id="swap_tab_with_left"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.tab.swap_tab_with_left">[docs]</a><span class="k">def</span> <span class="nf">swap_tab_with_left</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Swap the current tab with the left one&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Swap the current tab with the left one&quot;&quot;&quot;</span>
     <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -131,7 +135,7 @@
 
 
 <div class="viewcode-block" id="swap_tab_with_right"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.tab.swap_tab_with_right">[docs]</a><span class="k">def</span> <span class="nf">swap_tab_with_right</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Swap the current tab with the right one&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Swap the current tab with the right one&quot;&quot;&quot;</span>
     <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -142,7 +146,7 @@
 
 
 <div class="viewcode-block" id="tile_tables"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.tab.tile_tables">[docs]</a><span class="k">def</span> <span class="nf">tile_tables</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Tile tabs&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tile tabs&quot;&quot;&quot;</span>
     <span class="n">choices</span> <span class="o">=</span> <span class="p">[(</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">)]</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">choose_multiple</span><span class="p">(</span>
         <span class="n">choices</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;choices&quot;</span><span class="p">:</span> <span class="n">choices</span><span class="p">,</span> <span class="s2">&quot;widget_type&quot;</span><span class="p">:</span> <span class="n">ToggleSwitchSelect</span><span class="p">},</span>
@@ -153,7 +157,7 @@
 
 
 <div class="viewcode-block" id="tile_with_adjacent_table"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.tab.tile_with_adjacent_table">[docs]</a><span class="k">def</span> <span class="nf">tile_with_adjacent_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Tile adjacent tabs&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tile adjacent tabs&quot;&quot;&quot;</span>
     <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -171,12 +175,12 @@
 
 
 <div class="viewcode-block" id="untile_table"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.tab.untile_table">[docs]</a><span class="k">def</span> <span class="nf">untile_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Untile current tab&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Untile current tab&quot;&quot;&quot;</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="o">.</span><span class="n">untile</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">current_index</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="rename_tab"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.tab.rename_tab">[docs]</a><span class="k">def</span> <span class="nf">rename_tab</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Rename tab.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rename tab.&quot;&quot;&quot;</span>
     <span class="n">idx</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">current_index</span>
     <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No tab found.&quot;</span><span class="p">)</span>
@@ -184,7 +188,7 @@
 
 
 <div class="viewcode-block" id="delete_tab"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.tab.delete_tab">[docs]</a><span class="k">def</span> <span class="nf">delete_tab</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Delete current tab.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Delete current tab.&quot;&quot;&quot;</span>
     <span class="n">idx</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">current_index</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">tables</span><span class="o">.</span><span class="n">del_checked</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
 </pre></div>

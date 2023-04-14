@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.types &mdash; tabulous 0.5.1 documentation</title>
+  <title>tabulous.types &mdash; tabulous 0.5.2 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/font.css" type="text/css" />
@@ -25,14 +25,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> tabulous
+
+
+
+          <a href="../../index.html" class="icon icon-home">
+            tabulous
           </a>
               <div class="version">
-                0.5.1
+                0.5.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -73,9 +77,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>tabulous.types</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">tabulous.types</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -153,7 +157,7 @@
 
 
 <div class="viewcode-block" id="TableInfo"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.types.TableInfo">[docs]</a><span class="k">class</span> <span class="nc">TableInfo</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">TableInfoAlias</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A generic type to describe a DataFrame and its column names.</span>
 
 <span class="sd">    ``TableInfo[&quot;x&quot;, &quot;y&quot;]`` is equivalent to ``tuple[pd.DataFrame, str, str]``</span>
@@ -176,7 +180,7 @@
 
 
 <span class="k">class</span> <span class="nc">TabPosition</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Enum for tab position.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enum for tab position.&quot;&quot;&quot;</span>
 
     <span class="n">top</span> <span class="o">=</span> <span class="s2">&quot;top&quot;</span>
     <span class="n">left</span> <span class="o">=</span> <span class="s2">&quot;left&quot;</span>
@@ -198,7 +202,7 @@
 
 
 <div class="viewcode-block" id="ItemInfo"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.types.ItemInfo">[docs]</a><span class="k">class</span> <span class="nc">ItemInfo</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A named tuple for item update.</span>
 
 <span class="sd">    Value takes (row, column, value, old_value) where</span>
@@ -227,12 +231,12 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">col</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">slice</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Alias of `column`.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias of `column`.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span></div>
 
 
 <div class="viewcode-block" id="HeaderInfo"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.types.HeaderInfo">[docs]</a><span class="k">class</span> <span class="nc">HeaderInfo</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A named tuple for header update.</span>
 
 <span class="sd">    Value takes (index, value, old_value) where</span>
@@ -251,7 +255,7 @@
 
 
 <span class="k">class</span> <span class="nc">EvalInfo</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A named tuple for evaluation.</span>
 
 <span class="sd">    Value takes (row, column, expr, old_value, is_ref) where</span>
@@ -273,7 +277,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">col</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Alias of `column`.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias of `column`.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">column</span>
 
 

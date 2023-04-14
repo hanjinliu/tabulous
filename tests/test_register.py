@@ -6,7 +6,7 @@ from qtpy.QtCore import Qt
 from unittest.mock import MagicMock
 
 @pytest.mark.parametrize("cls", [TableViewer, TableViewerWidget, MagicTableViewer])
-def test_register_table_keymap(qtbot: QtBot, cls: type[TableViewerBase]):
+def test_register_table_keymap(qtbot: QtBot, cls: "type[TableViewerBase]"):
     viewer = cls(show=False)
     mock = MagicMock()
 
@@ -25,7 +25,7 @@ def test_register_table_keymap(qtbot: QtBot, cls: type[TableViewerBase]):
     mock.assert_not_called()
 
 @pytest.mark.parametrize("cls", [TableViewer, TableViewerWidget, MagicTableViewer])
-def test_register_viewer_keymap(qtbot: QtBot, cls: type[TableViewerBase]):
+def test_register_viewer_keymap(qtbot: QtBot, cls: "type[TableViewerBase]"):
     viewer = TableViewer(show=False)
     mock = MagicMock()
 

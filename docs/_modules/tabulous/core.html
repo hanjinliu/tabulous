@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.core &mdash; tabulous 0.5.1 documentation</title>
+  <title>tabulous.core &mdash; tabulous 0.5.2 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/font.css" type="text/css" />
@@ -25,14 +25,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> tabulous
+
+
+
+          <a href="../../index.html" class="icon icon-home">
+            tabulous
           </a>
               <div class="version">
-                0.5.1
+                0.5.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -73,9 +77,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>tabulous.core</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">tabulous.core</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -97,7 +101,7 @@
 
 
 <div class="viewcode-block" id="current_viewer"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.core.current_viewer">[docs]</a><span class="k">def</span> <span class="nf">current_viewer</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TableViewerBase</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Get the current table viewer widget.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the current table viewer widget.&quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">CURRENT_VIEWER</span>
     <span class="k">if</span> <span class="n">CURRENT_VIEWER</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">CURRENT_VIEWER</span> <span class="o">=</span> <span class="n">TableViewer</span><span class="p">()</span>
@@ -105,7 +109,7 @@
 
 
 <div class="viewcode-block" id="set_current_viewer"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.core.set_current_viewer">[docs]</a><span class="k">def</span> <span class="nf">set_current_viewer</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableViewerBase</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Set a table viewer as the current one.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set a table viewer as the current one.&quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">CURRENT_VIEWER</span>
     <span class="kn">from</span> <span class="nn">.widgets._mainwindow</span> <span class="kn">import</span> <span class="n">TableViewerBase</span>
 
@@ -116,7 +120,7 @@
 
 
 <div class="viewcode-block" id="read_csv"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.core.read_csv">[docs]</a><span class="k">def</span> <span class="nf">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableViewerBase</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Read CSV file and add it to the current viewer.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read CSV file and add it to the current viewer.&quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -127,7 +131,7 @@
 
 
 <div class="viewcode-block" id="read_excel"><a class="viewcode-back" href="../../apidoc/tabulous.html#tabulous.core.read_excel">[docs]</a><span class="k">def</span> <span class="nf">read_excel</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableViewerBase</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Read Excel file and add all the sheets to the current viewer.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read Excel file and add all the sheets to the current viewer.&quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
     <span class="n">df_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span>
@@ -147,7 +151,7 @@
     <span class="n">editable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">copy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableViewerBase</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;View a table in the current viewer.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;View a table in the current viewer.&quot;&quot;&quot;</span>
     <span class="n">viewer</span> <span class="o">=</span> <span class="n">current_viewer</span><span class="p">()</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="n">editable</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">viewer</span></div>
@@ -160,7 +164,7 @@
     <span class="n">editable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">copy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableViewerBase</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;View a table as a spreadsheet in the current viewer.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;View a table as a spreadsheet in the current viewer.&quot;&quot;&quot;</span>
     <span class="n">viewer</span> <span class="o">=</span> <span class="n">current_viewer</span><span class="p">()</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">add_spreadsheet</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="n">editable</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">viewer</span></div>
@@ -170,7 +174,7 @@
     <span class="n">sample_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">plugin_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;seaborn&quot;</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TableViewerBase</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Open a sample data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Open a sample data.&quot;&quot;&quot;</span>
     <span class="n">viewer</span> <span class="o">=</span> <span class="n">current_viewer</span><span class="p">()</span>
     <span class="n">viewer</span><span class="o">.</span><span class="n">open_sample</span><span class="p">(</span><span class="n">sample_name</span><span class="p">,</span> <span class="n">plugin_name</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">viewer</span></div>
