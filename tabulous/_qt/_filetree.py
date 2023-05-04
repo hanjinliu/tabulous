@@ -83,6 +83,7 @@ class QFileExplorer(QtW.QWidget):
         self._layout.addWidget(self._file_edit.native)
         self._layout.addWidget(self._file_tree)
         self._file_edit.changed.connect(self._update_root)
+        self._update_root(curpath)
 
     def _update_root(self, path: str):
         if Path(path).exists():
