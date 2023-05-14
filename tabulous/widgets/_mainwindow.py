@@ -7,7 +7,7 @@ from types import MappingProxyType
 import warnings
 import weakref
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Union
+from typing import TYPE_CHECKING, Any, Callable, Generic, Union, TypeVar
 from psygnal import Signal, SignalGroup
 from superqt.utils import thread_worker
 
@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     import pandas as pd
 
 PathLike = Union[str, Path, bytes]
+_T = TypeVar("_T")
 
 
 class TableType(Enum):
@@ -99,6 +100,28 @@ class _AbstractViewer(ABC):
         return self.current_table._qwidget.pasteFromClipBoard()
 
 
+class IPyProperty(Generic[_T]):
+    """
+    Essentially identical to the getter-only property.
+
+    IPython runtime auto-completion checks if the evaluation has any side effects.
+    If an attribute is a property, it immediately skips the auto-completion check.
+    """
+
+    def __init__(self, fget: Callable[[Any], _T]):
+        self.fget = fget
+        self._instances = {}
+
+    def __get__(self, instance, owner=None) -> _T:
+        if instance is None:
+            raise AttributeError("Can only be accessed via an instance.")
+        _id = id(instance)
+        obj = self._instances.get(_id)
+        if obj is None:
+            self._instances[_id] = obj = self.fget(instance)
+        return obj
+
+
 class TableViewerBase(_AbstractViewer, SupportKeyMap):
     """The base class of a table viewer widget."""
 
@@ -137,12 +160,7 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
     def __repr__(self) -> str:
         return f"<{type(self).__name__} widget at {hex(id(self))}>"
 
-    @property
-    def tables(self) -> TableList:
-        """Return the table list object."""
-        return self._tablist
-
-    @property
+    @IPyProperty
     def current_table(self) -> TableBase | None:
         """Return the currently visible table."""
         if len(self.tables) > 0:
@@ -164,6 +182,11 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         elif index < 0:
             index += len(self.tables)
         return self._qwidget._tablestack.setCurrentIndex(index)
+
+    @IPyProperty
+    def tables(self) -> TableList:
+        """Return the table list object."""
+        return self._tablist
 
     @property
     def native(self) -> _QtMainWidgetBase:
@@ -495,7 +518,7 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         return self._qwidget.resize(int(w), int(h))
 
     def _link_events(self):
-        _tablist = self._tablist
+        _tablist = self.tables
         _qtablist = self._qwidget._tablestack
 
         @_tablist.events.inserted.connect
@@ -530,17 +553,17 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
             """Move evented list when list is moved in GUI."""
             if src < dst:
                 dst += 1
-            with self._tablist.events.blocked():
-                self._tablist.move(src, dst)
+            with self.tables.events.blocked():
+                self.tables.move(src, dst)
 
         @_qtablist.tableRenamed.connect
         def _rename_pytable(index: int, name: str):
-            self._tablist.rename(index, name)
+            self.tables.rename(index, name)
 
         @_qtablist.tableRemoved.connect
         def _remove_pytable(index: int):
-            with self._tablist.events.blocked():
-                del self._tablist[index]
+            with self.tables.events.blocked():
+                del self.tables[index]
 
         @_qtablist.tablePassed.connect
         def _pass_pytable(src, index: int, dst):

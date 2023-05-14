@@ -146,6 +146,9 @@ class TableBase(SupportKeyMap):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}<{self.name!r}>"
 
+    def _ipython_key_completions_(self):
+        return [name for name in self.columns]
+
     # fmt: off
     @overload
     def __getitem__(self, key: str) -> _comp.TableSeries: ...

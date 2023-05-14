@@ -62,6 +62,9 @@ include = [
     "/tabulous",
 ]
 
+[tool.hatch.envs.test]
+features = ["testing"]
+
 [tool.hatch.envs.test.scripts]
 run = "pytest -v"
 
@@ -79,7 +82,7 @@ matrix.backend.features = [
 ]
 
 [tool.ruff]
-line-length = 79
+line-length = 88
 target-version = "py38"
 fix = true
 
@@ -87,3 +90,17 @@ fix = true
 "tests/*.py" = ["D", "E501"]
 "examples/*.py" = ["D", "B"]
 "setup.py" = ["F821"]
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning:qtpy",
+    "ignore::DeprecationWarning:ipykernel",
+    "ignore::DeprecationWarning:pkg_resources",
+    "ignore:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",
+    "ignore::DeprecationWarning:qtconsole",
+    "ignore:distutils Version classes are deprecated",
+    "ignore:path is deprecated:DeprecationWarning",
+    "ignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
+]

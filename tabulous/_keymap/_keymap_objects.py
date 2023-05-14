@@ -14,7 +14,7 @@ from typing import (
     overload,
 )
 
-from qtpy import QtGui
+from qtpy import QtGui, QT6
 from qtpy.QtCore import Qt
 from functools import reduce
 from operator import or_
@@ -146,6 +146,14 @@ OMEGA = QtGui.QKeySequence("ω")[0]
 
 CYR_A = QtGui.QKeySequence("а")[0]
 CYR_YA = QtGui.QKeySequence("я")[0]
+
+if QT6:
+    # Since Qt6, indexing QKeySequence returns a QKeyCombination object, which
+    # does not support comparison with Qt.Key(int).
+    ALPHA = ALPHA.key()
+    OMEGA = OMEGA.key()
+    CYR_A = CYR_A.key()
+    CYR_YA = CYR_YA.key()
 
 
 class QtKeys:

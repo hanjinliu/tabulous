@@ -1,3 +1,4 @@
+import sys
 import pytest
 from tabulous import TableViewer
 import numpy as np
@@ -17,6 +18,8 @@ def test_add_spreadsheet_and_move(qtbot: QtBot):
     assert sheet.cell[0, 0] == "0"
 
 def test_movements_in_popup(qtbot: QtBot):
+    if sys.platform == "darwin":
+        pytest.skip("Skipping test on macOS because it has a different focus policy.")
     viewer = TableViewer()
     qtbot.addWidget(viewer._qwidget)
     sheet = viewer.add_spreadsheet(np.zeros((10, 10)))

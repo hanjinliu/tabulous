@@ -126,7 +126,10 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def setOrientation(self, a0: Qt.Orientation) -> None:
         """Set table orientation and the side area orientation."""
-        a1 = 1 - a0  # opposite orientation
+        if a0 == Qt.Orientation.Horizontal:
+            a1 = Qt.Orientation.Vertical
+        else:
+            a1 = Qt.Orientation.Horizontal
         super().setOrientation(a0)
         if self._side_area is not None:
             self._side_area.setOrientation(a1)
