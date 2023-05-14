@@ -10,7 +10,7 @@ def assert_obj_equal(a, b):
     else:
         assert_series_equal(a, b)
 
-DATA = pd.DataFrame(np.arange(50).reshape(10, 5), columns=list("ABCDE"))
+DATA = pd.DataFrame(np.arange(50, dtype=np.int32).reshape(10, 5), columns=list("ABCDE"))
 
 @pytest.mark.parametrize(
     "sl",
