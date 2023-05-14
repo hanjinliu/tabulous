@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Sequence, TypeVar, Union, overload, Callable
+from typing import TYPE_CHECKING, Any, Sequence, TypeVar, Union, overload, Callable
 
 import numpy as np
 from tabulous.exceptions import TableImmutableError
@@ -121,6 +121,35 @@ class TableILocIndexer(TableComponent):
             raise TypeError(f"Cannot iloc-slice by {type(ckey)}")
 
 
+class DataProperty:
+    """Internal subset data of the table."""
+
+    def __get__(self, instance: TableSubset, owner) -> pd.DataFrame:
+        if instance is None:
+            raise AttributeError("Cannot access property without instance.")
+        table = instance.parent
+        return table.native._get_sub_frame(instance._columns).iloc[instance._row_slice]
+
+    def __set__(self, instance: TableSubset, val: Any):
+        if instance is None:
+            raise AttributeError("Cannot access property without instance.")
+        import pandas as pd
+
+        table = instance.parent
+        if not table.mutable:
+            raise TableImmutableError(f"Cannot set data on {type(table)}")
+        table: Table | SpreadSheet
+        df = table.native._get_sub_frame(instance._columns)
+        to_assign = {}
+        if not isinstance(val, pd.DataFrame):
+            val = pd.DataFrame(val, columns=df.columns)
+        for k, v in df.items():
+            v.values[instance._row_slice] = val[k]
+            to_assign[k] = v
+        table.assign(to_assign)
+        return None
+
+
 class TableSubset(TableComponent):
     """Object representing a subset of a Table widget."""
 
@@ -131,32 +160,13 @@ class TableSubset(TableComponent):
         self._row_slice = row_slice
         self._columns = columns
 
-    @property
-    def data(self) -> pd.DataFrame:
-        """Data of the subset as a pandas DataFrame."""
-        table = self.parent
-        return table.native._get_sub_frame(self._columns).iloc[self._row_slice]
-
-    @data.setter
-    def data(self, val) -> None:
-        import pandas as pd
-
-        table = self.parent
-        if not table.mutable:
-            raise TableImmutableError(f"Cannot set data on {type(table)}")
-        table: Table | SpreadSheet
-        df = table.native._get_sub_frame(self._columns)
-        to_assign = {}
-        if not isinstance(val, pd.DataFrame):
-            val = pd.DataFrame(val, columns=df.columns)
-        for k, v in df.items():
-            v.values[self._row_slice] = val[k]
-            to_assign[k] = v
-        table.assign(to_assign)
-        return None
+    data = DataProperty()
 
     def __repr__(self) -> str:
         return f"<TableSubset of {self.parent!r}> with data:\n{self.data!r}"
+
+    def _ipython_key_completions_(self):
+        return self._columns
 
 
 class TableSeries(TableComponent):

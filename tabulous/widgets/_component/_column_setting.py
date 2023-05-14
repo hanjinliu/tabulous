@@ -56,6 +56,9 @@ class _DictPropertyInterface(TableComponent, MutableMapping[str, _F]):
     def _set_value(self, key: str, func: _F):
         """Set colormap at key."""
 
+    def _ipython_key_completions_(self):
+        return list(self._get_dict().keys())
+
     def __getitem__(self, key: str) -> _F:
         return self._get_dict()[key]
 
@@ -352,6 +355,9 @@ class ColumnDtypeInterface(Component["SpreadSheet"], MutableMapping[str, "_Dtype
 
     def _get_dtype_map(self):
         return self.parent._qwidget._columns_dtype
+
+    def _ipython_key_completions_(self):
+        return list(self._get_dtype_map().keys())
 
     def __getitem__(self, key: str) -> _DtypeLike | None:
         """Get the dtype of the given column name."""

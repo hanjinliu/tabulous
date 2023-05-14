@@ -80,6 +80,42 @@ class ViewMode(Enum):
 
 
 # #####################################################################
+#   Property-like
+# #####################################################################
+
+
+class DataProperty:
+    """Internal data of the table."""
+
+    def __get__(self, instance: TableBase, owner) -> pd.DataFrame:
+        if instance is None:
+            raise AttributeError("Cannot access property without instance.")
+        return instance._qwidget.getDataFrame()
+
+    def __set__(self, instance: TableBase, value: Any):
+        if instance is None:
+            raise AttributeError("Cannot access property without instance.")
+        _data = instance._normalize_data(value)
+        instance._qwidget.setDataFrame(_data)
+
+
+class MetadataProperty:
+    """Metadata dictionary of the table."""
+
+    def __get__(self, instance: TableBase, owner) -> dict[str, Any]:
+        if instance is None:
+            raise AttributeError("Cannot access property without instance.")
+        return instance._metadata
+
+    def __set__(self, instance: TableBase, value: dict[str, Any]):
+        if instance is None:
+            raise AttributeError("Cannot access property without instance.")
+        if not isinstance(value, dict):
+            raise TypeError("metadata must be a dict")
+        instance._metadata = value
+
+
+# #####################################################################
 #   The abstract base class of tables.
 # #####################################################################
 
@@ -219,16 +255,7 @@ class TableBase(SupportKeyMap):
         """Return the table type in string."""
         return type(self).__name__
 
-    @property
-    def data(self) -> pd.DataFrame:
-        """Table data."""
-        return self._qwidget.getDataFrame()
-
-    @data.setter
-    def data(self, value: Any):
-        """Set table data."""
-        _data = self._normalize_data(value)
-        self._qwidget.setDataFrame(_data)
+    data = DataProperty()
 
     @property
     def data_shown(self) -> pd.DataFrame:
@@ -258,6 +285,8 @@ class TableBase(SupportKeyMap):
         if not isinstance(value, dict):
             raise TypeError("metadata must be a dict")
         self._metadata = value
+
+    metadata = MetadataProperty()
 
     @property
     def zoom(self) -> float:
