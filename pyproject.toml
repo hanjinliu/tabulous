@@ -62,6 +62,9 @@ include = [
     "/tabulous",
 ]
 
+[tool.hatch.envs.test]
+features = ["testing"]
+
 [tool.hatch.envs.test.scripts]
 run = "pytest -v"
 
