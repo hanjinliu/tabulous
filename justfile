@@ -1,12 +1,8 @@
+set shell := ["powershell.exe", "-c"]
+
 doc:
 	sphinx-apidoc -f -o ./rst/apidoc ./tabulous
 	sphinx-build -b html ./rst ./docs
-
-release:
-	python setup.py sdist
-	python setup.py bdist_wheel
-	twine upload --repository testpypi dist/*
-	twine upload --repository pypi dist/*
 
 images:
 	python ./image/generate_figs.py
@@ -23,3 +19,6 @@ installer:
 	--add-data ".\tabulous\_qt\_icons;.\tabulous\_qt\_icons"  \
 	--add-data ".\tabulous\style\_style.qss;.\tabulous\style"  \
 	--add-data ".\tabulous\style\defaults.json;.\tabulous\style"
+
+test:
+    hatch -v run test:run
