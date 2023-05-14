@@ -110,7 +110,7 @@ class QtConsole(RichJupyterWidget):
                 _globals = {}
                 for startup in profile_dir.glob("*.py"):
                     with suppress(Exception):
-                        _globals.update(runpy.run_path(startup))
+                        _globals.update(runpy.run_path(str(startup)))
 
                 self.shell.push(_globals)
 
