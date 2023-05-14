@@ -79,7 +79,7 @@ matrix.backend.features = [
 ]
 
 [tool.ruff]
-line-length = 79
+line-length = 88
 target-version = "py38"
 fix = true
 

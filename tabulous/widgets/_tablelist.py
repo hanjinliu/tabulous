@@ -69,6 +69,9 @@ class TableList(EventedList[TableBase], SupportActionRegistration["TableViewer",
         """The QContextMenu widget."""
         return self.parent.native._tablestack._qt_context_menu
 
+    def _ipython_key_completions_(self):
+        return [table.name for table in self]
+
     def insert(self, index: int, table: TableBase):
         """Insert a table at index `index`."""
         if not isinstance(table, TableBase):
