@@ -1,6 +1,8 @@
 from __future__ import annotations
+from functools import lru_cache
 
 from pathlib import Path
+from io import StringIO
 import weakref
 from typing import TYPE_CHECKING, cast
 from contextlib import suppress
@@ -18,6 +20,10 @@ if TYPE_CHECKING:
     class RichJupyterWidget(RichJupyterWidget, QtW.QWidget):
         """To fix typing problem"""
 
+
+# This identifier is inaccessible from the console because it contains dots.
+# It is only used from the local namespace dict.
+_VIEWER_IDENTIFIER = "__ipython.tabulous.viewer__"
 
 # Modified from napari_console https://github.com/napari/napari-console
 class QtConsole(RichJupyterWidget):
@@ -102,6 +108,10 @@ class QtConsole(RichJupyterWidget):
             config = get_config()
             _ns = config.console_namespace
 
+            _exit = _get_exit_auto_call()
+            _exit.set_viewer(widget)
+            self.shell.push({"exit": _exit})  # update the "exit"
+
             # run IPython startup files
             profile_dir = Path(get_ipython_dir()) / "profile_default" / "startup"
             if profile_dir.exists() and _ns.load_startup_file:
@@ -120,12 +130,14 @@ class QtConsole(RichJupyterWidget):
             import pandas as pd
 
             ns = {
+                _VIEWER_IDENTIFIER: widget,
                 _ns.viewer: widget,
                 _ns.numpy: np,
                 _ns.pandas: pd,
                 _ns.tabulous: tbl,
             }
             self.shell.push(ns)
+            _install_ipy_magics()
 
     def setFocus(self):
         """Set focus to the text edit."""
@@ -289,3 +301,102 @@ class QtConsole(RichJupyterWidget):
             self.syntax_style = "vim"
         bracket_color = QtGui.QColor(*normalize_color(style.highlight0))
         self._bracket_matcher.format.setBackground(bracket_color)
+
+
+@lru_cache(maxsize=1)
+def _get_exit_auto_call():
+    from IPython.core.autocall import IPyAutocall
+
+    class ExitAutocall(IPyAutocall):
+        """Overwrite the default 'exit' autocall to close the viewer."""
+
+        def __init__(self, ip=None):
+            super().__init__(ip)
+            self._viewer = None
+
+        def set_viewer(self, viewer: TableViewerBase):
+            self._viewer = viewer
+
+        def __call__(self, *args, **kwargs):
+            self._viewer.close()
+
+    return ExitAutocall()
+
+
+def _get_viewer(ns: dict) -> TableViewerBase:
+    """Return the viewer from the namespace."""
+    viewer = ns.get(_VIEWER_IDENTIFIER, None)
+    if viewer is None:
+        raise RuntimeError("Viewer not found in namespace")
+    return viewer
+
+
+@lru_cache(maxsize=1)
+def _install_ipy_magics():
+    # magic commands can only be registered within a score where `get_ipython` is
+    # available.
+    from IPython import get_ipython  # noqa: F401
+    from IPython.core.magic import (
+        register_line_magic,
+        register_cell_magic,
+        needs_local_scope,
+    )
+
+    def _get_viewer_and_table(line: str, local_ns: dict):
+        if line == "":
+            raise ValueError("No input object provided")
+        viewer = _get_viewer(local_ns)
+        ns = local_ns.copy()
+        ns["__builtins__"] = {}
+        table = eval(line, ns, {})
+        return viewer, table
+
+    @register_line_magic
+    @needs_local_scope
+    def add_table(line: str, local_ns: dict = {}):
+        viewer, table = _get_viewer_and_table(line, local_ns)
+        return viewer.add_table(table)
+
+    @register_line_magic
+    @needs_local_scope
+    def add_spreadsheet(line: str, local_ns: dict = {}):
+        viewer, table = _get_viewer_and_table(line, local_ns)
+        return viewer.add_spreadsheet(table)
+
+    @register_cell_magic
+    @needs_local_scope
+    def csv(line: str | None, cell: str | None = None, local_ns: dict = {}):
+        """
+        Convert a CSV string to a spreadsheet.
+
+        Examples
+        --------
+        >>> viewer.add_spreadsheet(
+        ...     {"a": [1, 4], "b": [2, 5], "c": [3, 6]},
+        ...     name="my_table"
+        ... )
+
+        is identical to
+
+        >>> %%csv my_table
+        >>> a,b,c
+        >>> 1,2,3
+        >>> 4,5,6
+
+        """
+        import pandas as pd
+
+        buf = StringIO(cell)
+        df = pd.read_csv(buf)
+        viewer = _get_viewer(local_ns)
+        return viewer.add_spreadsheet(df, name=line)
+
+    @register_line_magic
+    @needs_local_scope
+    def filter(line: str, local_ns: dict = {}):
+        viewer = _get_viewer(local_ns)
+        if line == "":
+            return viewer.current_table.proxy.filter(None)
+        return viewer.current_table.proxy.filter(line, local_ns)
+
+    del add_table, add_spreadsheet, csv, filter
