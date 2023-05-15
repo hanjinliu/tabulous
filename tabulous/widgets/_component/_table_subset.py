@@ -311,12 +311,15 @@ class _PartialColormapInterface(_PartialInterface):
         raise NotImplementedError()
 
     def invert(self):
+        """Invert the colormap of the column."""
         return self._get_field().invert(self._column)
 
     def set_opacity(self, opacity: float):
+        """Set the opacity of the colormap of the column."""
         return self._get_field().set_opacity(self._column, opacity)
 
     def adjust_brightness(self, factor: float):
+        """Change the brightness of the colormap of the column."""
         return self._get_field().adjust_brightness(self._column, factor)
 
     def set(
