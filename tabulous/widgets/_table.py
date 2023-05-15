@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from abc import abstractmethod, abstractstaticmethod
+import ast
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Hashable, TYPE_CHECKING, overload
@@ -699,6 +700,20 @@ class _DataFrameTableLayer(TableBase):
 
             self._qwidget.assignColumns(serieses)
         return self
+
+    def query(self, text: str):
+        df = self.data.eval(text, inplace=False, global_dict={"df": self.data})
+        parsed = ast.parse(text.replace("@", "")).body[0]
+        if type(parsed) is not ast.Assign:
+            self._qwidget.parentViewer()._table_viewer.add_table(df, name=self.name)
+        else:
+            obj = parsed.targets[0]
+            if type(obj) is not ast.Name:
+                raise ValueError("Only simple assignment is supported.")
+            name = obj.id
+            new_ds = df[name]
+            self.assign({name: new_ds})
+        return None
 
 
 @_doc.update_doc

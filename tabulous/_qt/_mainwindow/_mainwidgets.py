@@ -246,6 +246,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         worker.start()
 
     def close(self, ask: bool | None = False) -> bool:
+        """Close the window. If `ask` is True, ask if it is OK to close."""
         if ask is not None:
             self._ask_on_close = ask
         return super().close()

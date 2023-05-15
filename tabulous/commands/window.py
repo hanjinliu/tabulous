@@ -12,7 +12,7 @@ def show_keymap(viewer: TableViewerBase):
 
 def close_window(viewer: TableViewerBase):
     """Close window"""
-    viewer._qwidget.close()
+    viewer._qwidget.close(ask=None)
 
 
 def new_window(viewer: TableViewerBase):
