@@ -314,3 +314,13 @@ def zoom_out(viewer: TableViewerBase):
     """Zoom in"""
     table = _utils.get_table(viewer)
     table.native._qtable_view.zoomIn(-1)
+
+
+def jump_to_cell(viewer: TableViewerBase):
+    """Jump to a cell."""
+    from tabulous._qt._jump import QJumpWidget
+
+    if viewer.current_table is None:
+        return
+    jw = QJumpWidget(viewer.native)
+    jw.show()

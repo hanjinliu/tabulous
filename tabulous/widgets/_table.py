@@ -213,6 +213,16 @@ class TableBase(SupportKeyMap):
         """The source of the table."""
         return self._source
 
+    @property
+    def current_index(self) -> tuple[int, int]:
+        """The current index of the table."""
+        return self._qwidget._qtable_view._selection_model.current_index
+
+    @current_index.setter
+    def current_index(self, index: tuple[int, int]) -> None:
+        r, c = index
+        return self.move_iloc(r, c)
+
     def _emit_data_changed_signal(self, info: ItemInfo) -> None:
         r, c = info.row, info.column
         if info.value is info.DELETED or info.old_value is info.INSERTED:

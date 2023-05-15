@@ -50,6 +50,7 @@ class QIntOrNoneEdit(QtW.QLineEdit):
             elif key == Qt.Key.Key_Down:
                 self.decrement()
                 return True
+
         return super().event(event)
 
     def wheelEvent(self, a0: QtGui.QWheelEvent) -> None:
