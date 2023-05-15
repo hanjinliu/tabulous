@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import lru_cache
 
 from pathlib import Path
 import weakref
@@ -102,6 +103,10 @@ class QtConsole(RichJupyterWidget):
             config = get_config()
             _ns = config.console_namespace
 
+            _exit = _get_exit_auto_call()
+            _exit.set_viewer(widget)
+            self.shell.push({"exit": _exit})  # update the "exit"
+
             # run IPython startup files
             profile_dir = Path(get_ipython_dir()) / "profile_default" / "startup"
             if profile_dir.exists() and _ns.load_startup_file:
@@ -110,7 +115,7 @@ class QtConsole(RichJupyterWidget):
                 _globals = {}
                 for startup in profile_dir.glob("*.py"):
                     with suppress(Exception):
-                        _globals.update(runpy.run_path(startup))
+                        _globals.update(runpy.run_path(str(startup)))
 
                 self.shell.push(_globals)
 
@@ -118,14 +123,17 @@ class QtConsole(RichJupyterWidget):
             import tabulous as tbl
             import numpy as np
             import pandas as pd
+            from tabulous._ipython import install_magics, VIEWER_IDENTIFIER
 
             ns = {
+                VIEWER_IDENTIFIER: widget,
                 _ns.viewer: widget,
                 _ns.numpy: np,
                 _ns.pandas: pd,
                 _ns.tabulous: tbl,
             }
             self.shell.push(ns)
+            install_magics()
 
     def setFocus(self):
         """Set focus to the text edit."""
@@ -289,3 +297,23 @@ class QtConsole(RichJupyterWidget):
             self.syntax_style = "vim"
         bracket_color = QtGui.QColor(*normalize_color(style.highlight0))
         self._bracket_matcher.format.setBackground(bracket_color)
+
+
+@lru_cache(maxsize=1)
+def _get_exit_auto_call():
+    from IPython.core.autocall import IPyAutocall
+
+    class ExitAutocall(IPyAutocall):
+        """Overwrite the default 'exit' autocall to close the viewer."""
+
+        def __init__(self, ip=None):
+            super().__init__(ip)
+            self._viewer = None
+
+        def set_viewer(self, viewer: TableViewerBase):
+            self._viewer = viewer
+
+        def __call__(self, *args, **kwargs):
+            self._viewer.close()
+
+    return ExitAutocall()

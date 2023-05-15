@@ -242,3 +242,8 @@ class _QtMainWidgetBase(QtW.QWidget):
             sel[-1] = sl
             table.selections = sel
             self._toolbar.blockSignals(False)
+
+    # subclasses will override this method. Just for signature compatibility.
+    def close(self, ask: bool | None = False) -> bool:
+        """Close the window."""
+        return super().close()
