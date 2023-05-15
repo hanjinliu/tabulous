@@ -16,6 +16,7 @@ from tabulous._keymap import QtKeys, QtKeyMap
 if TYPE_CHECKING:
     from tabulous._qt._dockwidget import QtDockWidget
     from tabulous.widgets._mainwindow import TableViewerBase
+    from tabulous.widgets._table import _DataFrameTableLayer
 
     class RichJupyterWidget(RichJupyterWidget, QtW.QWidget):
         """To fix typing problem"""
@@ -339,33 +340,47 @@ def _install_ipy_magics():
     from IPython.core.magic import (
         register_line_magic,
         register_cell_magic,
+        register_line_cell_magic,
         needs_local_scope,
     )
 
-    def _get_viewer_and_table(line: str, local_ns: dict):
-        if line == "":
-            raise ValueError("No input object provided")
+    @register_line_magic
+    @needs_local_scope
+    def add(line: str, local_ns: dict = {}):
+        """
+        Add an object to the table viewer.
+
+        Examples
+        --------
+        >>> %add df
+        >>> %add df as table
+        """
         viewer = _get_viewer(local_ns)
+        if " as " in line:
+            obj, typ = line.rsplit(" as ", maxsplit=1)
+        else:
+            obj = line.strip()
+            typ = "table"
+        if typ == "table":
+            _add_fn = viewer.add_table
+        elif typ == "spreadsheet":
+            _add_fn = viewer.add_spreadsheet
+        elif typ == "groupby":
+            _add_fn = viewer.add_groupby
+        elif typ == "loader":
+            _add_fn = viewer.add_loader
+        else:
+            raise ValueError(
+                f"Unknown type {typ}. Must be one of 'table', "
+                "'spreadsheet', 'groupby', or 'loader'."
+            )
         ns = local_ns.copy()
         ns["__builtins__"] = {}
-        table = eval(line, ns, {})
-        return viewer, table
-
-    @register_line_magic
-    @needs_local_scope
-    def add_table(line: str, local_ns: dict = {}):
-        viewer, table = _get_viewer_and_table(line, local_ns)
-        return viewer.add_table(table)
-
-    @register_line_magic
-    @needs_local_scope
-    def add_spreadsheet(line: str, local_ns: dict = {}):
-        viewer, table = _get_viewer_and_table(line, local_ns)
-        return viewer.add_spreadsheet(table)
+        return _add_fn(eval(obj, ns, {}))
 
     @register_cell_magic
     @needs_local_scope
-    def csv(line: str | None, cell: str | None = None, local_ns: dict = {}):
+    def csv(line: str, cell: str | None = None, local_ns: dict = {}):
         """
         Convert a CSV string to a spreadsheet.
 
@@ -378,14 +393,16 @@ def _install_ipy_magics():
 
         is identical to
 
-        >>> %%csv my_table
-        >>> a,b,c
-        >>> 1,2,3
-        >>> 4,5,6
+        >>> %%table my_table
+        >>> a b c
+        >>> 1 2 3
+        >>> 4 5 6
 
         """
         import pandas as pd
 
+        if cell is None:
+            raise ValueError("No input object provided")
         buf = StringIO(cell)
         df = pd.read_csv(buf)
         viewer = _get_viewer(local_ns)
@@ -399,4 +416,33 @@ def _install_ipy_magics():
             return viewer.current_table.proxy.filter(None)
         return viewer.current_table.proxy.filter(line, local_ns)
 
-    del add_table, add_spreadsheet, csv, filter
+    @register_line_cell_magic
+    @needs_local_scope
+    def query(line: str, cell: str | None = None, local_ns: dict = {}):
+        """
+        Query-style evaluation on a table
+
+        Examples
+        --------
+        >>> %query b = a + 1
+
+        >>> %%query
+        >>> b = a + 1
+        >>> c = b > 3
+        """
+        viewer = _get_viewer(local_ns)
+        table = viewer.current_table
+        if table.table_type not in ("Table", "SpreadSheet"):
+            raise ValueError("Querying is only supported for Tables and SpreadSheets")
+        table: _DataFrameTableLayer
+        if cell is not None:
+            lines = cell.splitlines()
+        else:
+            lines = [line]
+        for line in lines:
+            line = line.strip()
+            if line == "":
+                continue
+            table.query(line)
+
+    del add, csv, filter, query

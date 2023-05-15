@@ -1,7 +1,5 @@
 from __future__ import annotations
-import ast
 from qtpy import QtWidgets as QtW
-import pandas as pd
 from . import _utils
 
 
@@ -50,14 +48,7 @@ class QLiteralEvalWidget(QAbstractEval):
         if text == "":
             return
         table = self._line.currentPyTable(assert_mutable=True)
-        df = table.data.eval(text, inplace=False, global_dict={"df": table.data})
-        parsed = ast.parse(text.replace("@", "")).body[0]
-        if type(parsed) is not ast.Assign:
-            self._line._qtable_viewer._table_viewer.add_table(df, name=table.name)
-        else:
-            name = parsed.targets[0].id
-            new_ds = df[name]
-            table.assign({name: new_ds})
+        table.query(text)
         self._line.toHistory()
 
 
