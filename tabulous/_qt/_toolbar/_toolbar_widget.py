@@ -116,6 +116,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
             corner.sliceChanged.connect(self.sliceChanged.emit)
 
             self._tab.setCornerWidget(corner)
+            corner.editingFinished.connect(lambda: self.parent().setCellFocus())
             corner.hide()
         return self._tab.cornerWidget()
 

@@ -67,6 +67,7 @@ class QIntOrNoneEdit(QtW.QLineEdit):
 
 class QSelectionRangeEdit(QtW.QWidget):
     sliceChanged = Signal(object)
+    editingFinished = Signal()
 
     def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
@@ -99,6 +100,11 @@ class QSelectionRangeEdit(QtW.QWidget):
         layout.addWidget(self._c_start)
         layout.addWidget(self._c_colon)
         layout.addWidget(self._c_stop)
+
+        self._r_start.editingFinished.connect(self.editingFinished.emit)
+        self._r_stop.editingFinished.connect(self.editingFinished.emit)
+        self._c_start.editingFinished.connect(self.editingFinished.emit)
+        self._c_stop.editingFinished.connect(self.editingFinished.emit)
 
     def slice(self) -> tuple[slice, slice]:
         rsl = slice(self._r_start.value(), self._r_stop.value())

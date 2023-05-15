@@ -109,7 +109,20 @@ class SelectionRanges(_TableRanges):
 
     def update(self, value: SelectionRanges):
         """Update the selection ranges."""
-        return self.parent._qwidget.setSelections(value)
+        self.parent._qwidget.setSelections(value)
+        if len(value) > 0:
+            # update current index
+            rsl, csl = value[-1]
+            if (
+                rsl.stop is not None
+                and rsl.start is not None
+                and (rsl.stop - rsl.start) == 1
+                and csl.stop is not None
+                and csl.start is not None
+                and (csl.stop - csl.start) == 1
+            ):
+                self.parent._qwidget._qtable_view._selection_model.current_index
+                self.parent.move_iloc(rsl.start, csl.start)
 
 
 class HighlightRanges(_TableRanges):
