@@ -45,10 +45,7 @@ class QtErrorMessageBox(QtW.QMessageBox):
             text = text_or_exception
             exc = None
         else:
-            if len(text_or_exception.args) == 0:
-                text = ""
-            else:
-                text = text_or_exception.args[0]
+            text = str(text_or_exception)
             exc = text_or_exception
         MBox = QtW.QMessageBox
         super().__init__(
