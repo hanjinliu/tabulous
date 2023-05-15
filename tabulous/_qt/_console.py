@@ -2,7 +2,6 @@ from __future__ import annotations
 from functools import lru_cache
 
 from pathlib import Path
-from io import StringIO
 import weakref
 from typing import TYPE_CHECKING, cast
 from contextlib import suppress
@@ -16,15 +15,10 @@ from tabulous._keymap import QtKeys, QtKeyMap
 if TYPE_CHECKING:
     from tabulous._qt._dockwidget import QtDockWidget
     from tabulous.widgets._mainwindow import TableViewerBase
-    from tabulous.widgets._table import _DataFrameTableLayer
 
     class RichJupyterWidget(RichJupyterWidget, QtW.QWidget):
         """To fix typing problem"""
 
-
-# This identifier is inaccessible from the console because it contains dots.
-# It is only used from the local namespace dict.
-_VIEWER_IDENTIFIER = "__ipython.tabulous.viewer__"
 
 # Modified from napari_console https://github.com/napari/napari-console
 class QtConsole(RichJupyterWidget):
@@ -129,16 +123,17 @@ class QtConsole(RichJupyterWidget):
             import tabulous as tbl
             import numpy as np
             import pandas as pd
+            from tabulous._ipython import install_magics, VIEWER_IDENTIFIER
 
             ns = {
-                _VIEWER_IDENTIFIER: widget,
+                VIEWER_IDENTIFIER: widget,
                 _ns.viewer: widget,
                 _ns.numpy: np,
                 _ns.pandas: pd,
                 _ns.tabulous: tbl,
             }
             self.shell.push(ns)
-            _install_ipy_magics()
+            install_magics()
 
     def setFocus(self):
         """Set focus to the text edit."""
@@ -322,127 +317,3 @@ def _get_exit_auto_call():
             self._viewer.close()
 
     return ExitAutocall()
-
-
-def _get_viewer(ns: dict) -> TableViewerBase:
-    """Return the viewer from the namespace."""
-    viewer = ns.get(_VIEWER_IDENTIFIER, None)
-    if viewer is None:
-        raise RuntimeError("Viewer not found in namespace")
-    return viewer
-
-
-@lru_cache(maxsize=1)
-def _install_ipy_magics():
-    # magic commands can only be registered within a score where `get_ipython` is
-    # available.
-    from IPython import get_ipython  # noqa: F401
-    from IPython.core.magic import (
-        register_line_magic,
-        register_cell_magic,
-        register_line_cell_magic,
-        needs_local_scope,
-    )
-
-    @register_line_magic
-    @needs_local_scope
-    def add(line: str, local_ns: dict = {}):
-        """
-        Add an object to the table viewer.
-
-        Examples
-        --------
-        >>> %add df
-        >>> %add df as table
-        """
-        viewer = _get_viewer(local_ns)
-        if " as " in line:
-            obj, typ = line.rsplit(" as ", maxsplit=1)
-        else:
-            obj = line.strip()
-            typ = "table"
-        if typ == "table":
-            _add_fn = viewer.add_table
-        elif typ == "spreadsheet":
-            _add_fn = viewer.add_spreadsheet
-        elif typ == "groupby":
-            _add_fn = viewer.add_groupby
-        elif typ == "loader":
-            _add_fn = viewer.add_loader
-        else:
-            raise ValueError(
-                f"Unknown type {typ}. Must be one of 'table', "
-                "'spreadsheet', 'groupby', or 'loader'."
-            )
-        ns = local_ns.copy()
-        ns["__builtins__"] = {}
-        return _add_fn(eval(obj, ns, {}))
-
-    @register_cell_magic
-    @needs_local_scope
-    def csv(line: str, cell: str | None = None, local_ns: dict = {}):
-        """
-        Convert a CSV string to a spreadsheet.
-
-        Examples
-        --------
-        >>> viewer.add_spreadsheet(
-        ...     {"a": [1, 4], "b": [2, 5], "c": [3, 6]},
-        ...     name="my_table"
-        ... )
-
-        is identical to
-
-        >>> %%table my_table
-        >>> a b c
-        >>> 1 2 3
-        >>> 4 5 6
-
-        """
-        import pandas as pd
-
-        if cell is None:
-            raise ValueError("No input object provided")
-        buf = StringIO(cell)
-        df = pd.read_csv(buf)
-        viewer = _get_viewer(local_ns)
-        return viewer.add_spreadsheet(df, name=line)
-
-    @register_line_magic
-    @needs_local_scope
-    def filter(line: str, local_ns: dict = {}):
-        viewer = _get_viewer(local_ns)
-        if line == "":
-            return viewer.current_table.proxy.filter(None)
-        return viewer.current_table.proxy.filter(line, local_ns)
-
-    @register_line_cell_magic
-    @needs_local_scope
-    def query(line: str, cell: str | None = None, local_ns: dict = {}):
-        """
-        Query-style evaluation on a table
-
-        Examples
-        --------
-        >>> %query b = a + 1
-
-        >>> %%query
-        >>> b = a + 1
-        >>> c = b > 3
-        """
-        viewer = _get_viewer(local_ns)
-        table = viewer.current_table
-        if table.table_type not in ("Table", "SpreadSheet"):
-            raise ValueError("Querying is only supported for Tables and SpreadSheets")
-        table: _DataFrameTableLayer
-        if cell is not None:
-            lines = cell.splitlines()
-        else:
-            lines = [line]
-        for line in lines:
-            line = line.strip()
-            if line == "":
-                continue
-            table.query(line)
-
-    del add, csv, filter, query

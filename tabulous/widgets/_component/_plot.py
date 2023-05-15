@@ -42,6 +42,16 @@ class PlotInterface(TableComponent):
             self.new_widget()
         return self._current_widget
 
+    def clf(self):
+        """Clear the current figure."""
+        self.gcf().clf()
+        return self.draw()
+
+    def cla(self):
+        """Clear the current axis."""
+        self.gca().cla()
+        return self.draw()
+
     def new_widget(self, nrows: int = 1, ncols: int = 1, style: str | None = None):
         """Create a new plot widget and add it to the table."""
         from tabulous._qt._plot import QtMplPlotCanvas
