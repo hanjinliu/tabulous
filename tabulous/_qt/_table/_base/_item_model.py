@@ -302,14 +302,19 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return None
 
     def insertColumns(
-        self, column: int, count: int, parent: QtCore.QModelIndex = None
+        self,
+        column: int,
+        count: int,
+        parent: QtCore.QModelIndex = None,
+        span: int | None = None,
     ) -> bool:
         self._decorations.insert_columns(column, count)
-        span = self.data(self.index(0, column - 1), Qt.ItemDataRole.SizeHintRole)
-        if isinstance(span, QtCore.QSize):
-            span = cast(QtCore.QSize, span).width()
-        else:
-            span = get_config().table.column_size
+        if span is None:
+            span = self.data(self.index(0, column - 1), Qt.ItemDataRole.SizeHintRole)
+            if isinstance(span, QtCore.QSize):
+                span = cast(QtCore.QSize, span).width()
+            else:
+                span = get_config().table.column_size
         self.parent()._qtable_view.horizontalHeader().insertSection(column, count, span)
         return super().insertColumns(column, count, parent)
 
@@ -321,14 +326,19 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return super().removeColumns(column, count, parent)
 
     def insertRows(
-        self, row: int, count: int, parent: QtCore.QModelIndex = None
+        self,
+        row: int,
+        count: int,
+        parent: QtCore.QModelIndex = None,
+        span: int | None = None,
     ) -> bool:
         self._decorations.insert_rows(row, count)
-        span = self.data(self.index(0, row - 1), Qt.ItemDataRole.SizeHintRole)
-        if isinstance(span, QtCore.QSize):
-            span = cast(QtCore.QSize, span).height()
-        else:
-            span = get_config().table.row_size
+        if span is None:
+            span = self.data(self.index(0, row - 1), Qt.ItemDataRole.SizeHintRole)
+            if isinstance(span, QtCore.QSize):
+                span = cast(QtCore.QSize, span).height()
+            else:
+                span = get_config().table.row_size
         self.parent()._qtable_view.verticalHeader().insertSection(row, count, span)
         return super().insertRows(row, count, parent)
 

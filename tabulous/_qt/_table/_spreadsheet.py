@@ -516,23 +516,27 @@ class QSpreadSheet(QMutableSimpleTable):
         )
         if _pd_index.is_ranged(index_existing):
             self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
-        self.model().insertRows(row, count, QtCore.QModelIndex())
-        self._set_proxy(self._proxy)
-        self._data_cache = None
-        self._edited = True
+        self.model().insertRows(row, count, QtCore.QModelIndex(), span=0)
 
-        # update indices
-        self._process_insert_rows(row, count)
+        @self._anim_row.connect
+        def _on_finish():
+            self._set_proxy(self._proxy)
+            self._data_cache = None
+            self._edited = True
 
-        info = ItemInfo(
-            slice(row, row + count),
-            slice(None),
-            value,
-            ItemInfo.INSERTED,
-        )
-        self._qtable_view.setZoom(self._qtable_view.zoom())
-        self.itemChangedSignal.emit(info)
-        return None
+            # update indices
+            self._process_insert_rows(row, count)
+
+            info = ItemInfo(
+                slice(row, row + count),
+                slice(None),
+                value,
+                ItemInfo.INSERTED,
+            )
+            self._qtable_view.setZoom(self._qtable_view.zoom())
+            self.itemChangedSignal.emit(info)
+
+        return self._anim_row.run_insert(row, count)
 
     @insertRows.undo_def
     def insertRows(self, row: int, count: int, value: Any = _EMPTY):
@@ -591,22 +595,26 @@ class QSpreadSheet(QMutableSimpleTable):
             ]:
                 _inserte_in_dict(d, col, count)
 
-        self.model().insertColumns(col, count, QtCore.QModelIndex())
-        self._data_cache = None
-        self._edited = True
+        self.model().insertColumns(col, count, QtCore.QModelIndex(), span=0)
 
-        # update indices
-        self._process_insert_columns(col, count)
+        @self._anim_col.connect
+        def _on_finish():
+            self._data_cache = None
+            self._edited = True
 
-        info = ItemInfo(
-            slice(None),
-            slice(col, col + count),
-            value,
-            ItemInfo.INSERTED,
-        )
-        self._qtable_view.setZoom(self._qtable_view.zoom())
-        self.itemChangedSignal.emit(info)
-        return None
+            # update indices
+            self._process_insert_columns(col, count)
+
+            info = ItemInfo(
+                slice(None),
+                slice(col, col + count),
+                value,
+                ItemInfo.INSERTED,
+            )
+            self._qtable_view.setZoom(self._qtable_view.zoom())
+            self.itemChangedSignal.emit(info)
+
+        return self._anim_col.run_insert(col, count)
 
     @_insert_columns.undo_def
     def _insert_columns(self, col: int, count: int, value: Any = _EMPTY):
@@ -632,24 +640,32 @@ class QSpreadSheet(QMutableSimpleTable):
     @QMutableSimpleTable._mgr.undoable
     def _remove_rows(self, row: int, count: int, old_values: pd.DataFrame):
         _r_ranged = isinstance(self._data_raw.index, pd.RangeIndex)
-        self._data_raw = pd.concat(
+        _new_data_raw = pd.concat(
             [self._data_raw.iloc[:row, :], self._data_raw.iloc[row + count :, :]],
             axis=0,
         )
         if _r_ranged:
-            self._data_raw.index = pd.RangeIndex(0, self._data_raw.index.size)
-        self.model().removeRows(row, count, QtCore.QModelIndex())
-        self._set_proxy(self._proxy)
-        self.setSelections([(slice(row, row + 1), slice(0, self._data_raw.shape[1]))])
-        self._data_cache = None
-        self._edited = True
+            _new_data_raw.index = pd.RangeIndex(0, _new_data_raw.index.size)
 
-        self._process_remove_rows(row, count)
-        info = ItemInfo(
-            slice(row, row + count), slice(None), ItemInfo.DELETED, old_values
-        )
-        self._qtable_view.setZoom(self._qtable_view.zoom())
-        self.itemChangedSignal.emit(info)
+        @self._anim_row.connect
+        def _on_finish():
+            self._data_raw = _new_data_raw
+            self.model().removeRows(row, count, QtCore.QModelIndex())
+            self._set_proxy(self._proxy)
+            self.setSelections(
+                [(slice(row, row + 1), slice(0, self._data_raw.shape[1]))]
+            )
+            self._data_cache = None
+            self._edited = True
+
+            self._process_remove_rows(row, count)
+            info = ItemInfo(
+                slice(row, row + count), slice(None), ItemInfo.DELETED, old_values
+            )
+            self._qtable_view.setZoom(self._qtable_view.zoom())
+            self.itemChangedSignal.emit(info)
+
+        self._anim_row.run_remove(row, count)
         return None
 
     @_remove_rows.undo_def
@@ -728,7 +744,7 @@ class QSpreadSheet(QMutableSimpleTable):
             self._set_proxy(self._proxy)
             return
 
-        self._anim_col.start(col, count)
+        self._anim_col.run_remove(col, count)
         return None
 
     @_remove_columns.undo_def
