@@ -44,6 +44,14 @@ class HeaderSectionSpan(Component["_HeaderInterface"]):
         else:
             header.resizeSection(index, span)
 
+    def __iter__(self) -> Iterator[int]:
+        return iter(int(a) for a in self.parent._get_header()._section_sizes)
+
+    def __eq__(self, other: Any) -> bool:
+        return np.all(
+            self.parent._get_header()._section_sizes.astype(np.uint16) == other
+        )
+
     def resize_to_content(self):
         from qtpy.QtWidgets import QHeaderView
 
