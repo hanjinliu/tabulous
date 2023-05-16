@@ -42,6 +42,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             Qt.ItemDataRole.ToolTipRole: self._data_tooltip,
             Qt.ItemDataRole.BackgroundColorRole: self._data_background_color,
             Qt.ItemDataRole.DecorationRole: self._data_decoration,
+            Qt.ItemDataRole.SizeHintRole: self._data_size_hint,
         }
 
         self._decorations: TableMapping[tuple[QtGui.QPixmap, str]] = TableMapping()
@@ -173,6 +174,21 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         if content := self._decorations.get((r, c), None):
             return content[0]
         return QtCore.QVariant()
+
+    def _data_size_hint(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        tv = self.parent()._qtable_view
+        vsize = tv.verticalHeader()._section_sizes
+        hsize = tv.horizontalHeader()._section_sizes
+        if r < len(vsize):
+            lr = tv.verticalHeader()._section_sizes[r]
+        else:
+            lr = get_config().table.row_size
+        if c < len(hsize):
+            lc = tv.horizontalHeader()._section_sizes[c]
+        else:
+            lc = get_config().table.column_size
+        return QtCore.QSize(int(lc), int(lr))
 
     def set_cell_label(self, index: QtCore.QModelIndex, text: str | None):
         if text is None or text == "":
