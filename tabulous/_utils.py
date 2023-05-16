@@ -232,9 +232,7 @@ class TabulousConfig:
         table = dict_.get("table", {})
         cell = dict_.get("cell", {})
         window = dict_.get("window", {})
-        # kb = set_default_keybindings(dict_.get("keybindings", {}))
-        if not (kb := dict_.get("keybindings", {})):
-            kb = prep_default_keybindings()
+        kb = set_default_keybindings(dict_.get("keybindings", {}))
         return cls(
             ConsoleNamespace(**_as_fields(console_namespace, ConsoleNamespace)),
             Table(**_as_fields(table, Table)),
