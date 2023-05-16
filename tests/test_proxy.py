@@ -1,4 +1,4 @@
-from tabulous import TableViewerWidget
+from tabulous import TableViewer
 from tabulous.widgets import Table
 import numpy as np
 from numpy.testing import assert_equal
@@ -17,8 +17,8 @@ def shuffled_arange(n: int, seed=0) -> np.ndarray:
     return arr
 
 @pytest.mark.parametrize("n", [0, 7, 14, 20])
-def test_simple_filter(n):
-    viewer = TableViewerWidget(show=False)
+def test_simple_filter(n, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table({"a": shuffled_arange(20), "b": np.zeros(20)})
     assert table.table_shape == (20, 2)
     table.proxy.set(table.data["a"] < n)
@@ -26,8 +26,8 @@ def test_simple_filter(n):
     table.proxy.reset()
     assert table.table_shape == (20, 2)
 
-def test_function_filter():
-    viewer = TableViewerWidget(show=False)
+def test_function_filter(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table({"a": shuffled_arange(20), "b": np.zeros(20)})
     filter_func = lambda df: df["a"] < np.median(df["a"])
     table.proxy.set(filter_func)
@@ -44,8 +44,8 @@ def test_function_filter():
     assert_table_proxy(table, table.data)
 
 
-def test_expr_filter():
-    viewer = TableViewerWidget(show=False)
+def test_expr_filter(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     df = pd.DataFrame({"a": shuffled_arange(20), "b": shuffled_arange(20)**2})
     table = viewer.add_table(df)
     repr(table.proxy)  # check that it works
@@ -71,8 +71,8 @@ def test_expr_filter():
     table.proxy.filter("(5<a)&(b<100)")
     assert_table_proxy(table, df[(5 < df["a"]) & (df["b"] < 100)])
 
-def test_simple_sort():
-    viewer = TableViewerWidget(show=False)
+def test_simple_sort(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table({"a": shuffled_arange(20), "b": np.zeros(20)})
     assert table.table_shape == (20, 2)
     table.proxy.set(table.data["a"].argsort())
@@ -81,8 +81,8 @@ def test_simple_sort():
     table.proxy.reset()
     assert table.table_shape == (20, 2)
 
-def test_function_sort():
-    viewer = TableViewerWidget(show=False)
+def test_function_sort(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table({"a": shuffled_arange(20), "b": np.zeros(20)})
     sort_func = lambda df: df["a"].argsort()
     table.proxy.set(sort_func)
@@ -98,8 +98,8 @@ def test_function_sort():
     assert table.table_shape == (30, 3)
     assert np.all(table.data_shown["a"] == shuffled_arange(30))
 
-def test_sort_function():
-    viewer = TableViewerWidget(show=False)
+def test_sort_function(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     df = pd.DataFrame(
         {"a": shuffled_arange(20), "b": shuffled_arange(20, seed=1)**2}
     )
@@ -109,8 +109,8 @@ def test_sort_function():
     table.proxy.sort("b")
     assert np.all(table.data_shown["b"] == np.arange(20)**2)
 
-def test_header_update():
-    viewer = TableViewerWidget(show=False)
+def test_header_update(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table({"a": np.arange(10), "b": np.zeros(10)}, editable=True)
     table.proxy.filter("a % 2 == 0")
     table.index[2] = "x"
@@ -126,8 +126,8 @@ def test_header_update():
     assert list(table.index)== [0, 1, 2, 3, "x", 5, 6, 7, 8, 9]
     assert list(table.data.index)== [0, 1, 2, 3, "x", 5, 6, 7, 8, 9]
 
-def test_header_buttons():
-    viewer = TableViewerWidget(show=False)
+def test_header_buttons(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table({"a": shuffled_arange(10), "b": np.arange(10)}, editable=True)
     table.proxy.sort(by="a")
     assert {0} == set(table._qwidget._header_widgets().keys())
@@ -142,8 +142,8 @@ def test_header_buttons():
     table.undo_manager.redo()
     assert {1} == set(table._qwidget._header_widgets().keys())
 
-def test_header_buttons_with_insert():
-    viewer = TableViewerWidget(show=False)
+def test_header_buttons_with_insert(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_spreadsheet(
         {"a": np.arange(10), "b": shuffled_arange(10), "c": np.arange(10), "d": np.arange(10)},
     )
@@ -166,8 +166,8 @@ def test_header_buttons_with_insert():
     assert sorted_index == list(table.index)
 
 
-def test_header_buttons_with_remove():
-    viewer = TableViewerWidget(show=False)
+def test_header_buttons_with_remove(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_spreadsheet(
         {"a": shuffled_arange(10), "b": np.arange(10), "c": np.arange(10)[::-1], "d": np.arange(10)},
     )
@@ -189,8 +189,8 @@ def test_header_buttons_with_remove():
     assert {0} == set(table._qwidget._header_widgets().keys())
     assert list(range(10))[::-1] == list(table.index)
 
-def test_sort_and_filter_switched():
-    viewer = TableViewerWidget(show=False)
+def test_sort_and_filter_switched(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_spreadsheet(
         {"a": shuffled_arange(10), "b": np.arange(10), "c": np.arange(10)[::-1], "d": np.arange(10)},
     )
@@ -203,8 +203,8 @@ def test_sort_and_filter_switched():
     table.undo_manager.redo()
     assert {2} == set(table._qwidget._header_widgets().keys())
 
-def test_composing_sort():
-    viewer = TableViewerWidget(show=False)
+def test_composing_sort(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_spreadsheet(
         {"a": [3, 2, 1, 3, 2, 1], "b": [2, 2, 2, 1, 1, 1]},
     )

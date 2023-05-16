@@ -3,8 +3,8 @@ from tabulous import commands as cmds
 import pandas as pd
 from ._utils import selection_equal
 
-def test_find_by_value():
-    viewer = TableViewer(show=False)
+def test_find_by_value(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     layer = viewer.add_table(
         pd.DataFrame({'a': [1, 2, 3], 'b': [2, 3, 2], 'c': ["a", "2", "2"]})
     )
@@ -24,8 +24,8 @@ def test_find_by_value():
     finder.findPrevious()
     selection_equal(layer.selections, [(0, 1)])
 
-def test_find_by_text():
-    viewer = TableViewer(show=False)
+def test_find_by_text(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     layer = viewer.add_spreadsheet(
         pd.DataFrame({'a': ["aa", "bb", "cc"], 'b': ["bc", "cc", "cc"]})
     )
@@ -45,8 +45,8 @@ def test_find_by_text():
     finder.findPrevious()
     selection_equal(layer.selections, [(1, 1)])
 
-def test_find_by_partial_text():
-    viewer = TableViewer(show=False)
+def test_find_by_partial_text(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     layer = viewer.add_spreadsheet(
         pd.DataFrame({'a': ["aa", "bb", "cc"], 'b': ["bc", "cc", "cb"]})
     )
@@ -68,8 +68,8 @@ def test_find_by_partial_text():
     selection_equal(layer.selections, [(0, 1)])
 
 
-def test_find_by_regex():
-    viewer = TableViewer(show=False)
+def test_find_by_regex(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     layer = viewer.add_spreadsheet(
         pd.DataFrame({'a': ["a123a", "b321b", "c2h2c"], 'b': ["a442a", "1cc2", "a12a"]})
     )
@@ -91,8 +91,8 @@ def test_find_by_regex():
     selection_equal(layer.selections, [(0, 1)])
 
 
-def test_find_by_eval():
-    viewer = TableViewer(show=False)
+def test_find_by_eval(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     layer = viewer.add_spreadsheet(
         pd.DataFrame({'a': ["0.13", "a", "2.5"], 'b': ["0.32", "-1.2", "0.54"]})
     )

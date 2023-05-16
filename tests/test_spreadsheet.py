@@ -18,8 +18,8 @@ def assert_data_equal(a, b):
 
 data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 
-def test_insert():
-    viewer = TableViewer(show=False)
+def test_insert(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet(data)
 
     sheet.columns.insert(1, 1)
@@ -37,8 +37,8 @@ def test_insert():
     sheet.undo_manager.redo()
     assert_data_equal(sheet.native._data_raw, [["1", "2", "3"], ["", "", ""], ["4", "5", "6"], ["7", "8", "9"]])
 
-def test_remove():
-    viewer = TableViewer(show=False)
+def test_remove(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet(data)
 
     sheet.columns.remove(1, 1)
@@ -56,8 +56,8 @@ def test_remove():
     sheet.undo_manager.redo()
     assert_data_equal(sheet.native._data_raw, [["1", "2", "3"], ["7", "8", "9"]])
 
-def test_setting_cell_out_of_bound():
-    viewer = TableViewer(show=False)
+def test_setting_cell_out_of_bound(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet()
     qtable = cast(QSpreadSheet, viewer.tables[0].native)
 
@@ -75,8 +75,8 @@ def test_setting_cell_out_of_bound():
     qtable.undo()
     assert sheet.data.shape == (0, 0)
 
-def test_setting_header_out_of_bound():
-    viewer = TableViewer(show=False)
+def test_setting_header_out_of_bound(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet()
     qtable = cast(QSpreadSheet, viewer.tables[0].native)
 
@@ -100,16 +100,16 @@ def test_setting_header_out_of_bound():
     assert sheet.data.shape == (0, 0)
 
 @pytest.mark.parametrize("dtype", ["string", "int", "float"])
-def test_column_dtype(dtype: str):
-    viewer = TableViewer(show=False)
+def test_column_dtype(dtype: str, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
     with pytest.raises(ValueError):
         sheet.dtypes["b"] = dtype
     sheet.dtypes["a"] = dtype
     assert sheet.data.dtypes["a"] == dtype
 
-def test_column_dtype_validation():
-    viewer = TableViewer(show=False)
+def test_column_dtype_validation(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet({"a": [1, 2, 3]})
     sheet.dtypes.set("a", "int")
     sheet.cell[0, 0] = 1
@@ -120,8 +120,8 @@ def test_column_dtype_validation():
     del sheet.dtypes["a"]
     sheet.cell[0, 0] = "a"
 
-def test_table_signal():
-    viewer = TableViewer(show=False)
+def test_table_signal(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_spreadsheet(np.zeros((6, 6)))
     mock = MagicMock()
     table.events.data.connect(mock)
@@ -152,8 +152,8 @@ def test_table_signal():
     mock.call_args.args[0].column == slice(2, 3)
     mock.call_args.args[0].old_value == ItemInfo.INSERTED
 
-def test_ranged_index_extension():
-    viewer = TableViewer(show=False)
+def test_ranged_index_extension(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet(np.zeros((3, 3)))
     assert list(sheet.columns) == ["A", "B", "C"]
     sheet.cell[0, 3] = "0"
@@ -165,8 +165,8 @@ def test_ranged_index_extension():
     sheet.cell[0, 6] = "0"
     assert list(sheet.columns) == ["A", "E", "C", "D", "E_0", "F", "G"]
 
-def test_assign():
-    viewer = TableViewer(show=False)
+def test_assign(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet(np.zeros((3, 3)))
     assert sheet.native.model().df.dtypes[0] == "string"
     sheet.assign({"A": np.arange(3)})

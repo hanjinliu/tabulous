@@ -1,7 +1,7 @@
 from tabulous import TableViewer
 
-def test_text_formatter():
-    viewer = TableViewer(show=False)
+def test_text_formatter(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table({"number": [1, 2, 3], "char": ["a", "b", "c"]})
     assert table.cell.text[0, 0] == "1"
 
@@ -14,8 +14,8 @@ def test_text_formatter():
     table.text_formatter("number", None)
     assert table.cell.text[0, 0] == "1"
 
-def test_spreadsheet_default_formatter():
-    viewer = TableViewer(show=False)
+def test_spreadsheet_default_formatter(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet({"number": ["1.2", "1.23456789"]})
     assert sheet.cell.text[0, 0] == "1.2"
     assert sheet.cell.text[1, 0] == "1.23456789"

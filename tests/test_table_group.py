@@ -12,8 +12,8 @@ def _is_group(viewer: TableViewer, index: int) -> bool:
     return isinstance(viewer._qwidget._tablestack.widget(index), QTableGroup)
 
 @pytest.mark.parametrize("indices", [[0, 1], [2, 0], [0, 1, 2], [0, 2, 3]])
-def test_merge(indices):
-    viewer = TableViewer(show=False)
+def test_merge(indices, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     viewer.add_table(df0)
     viewer.add_table(df1)
     viewer.add_table(df2)
@@ -27,8 +27,8 @@ def test_merge(indices):
         qtable = viewer._qwidget._tablestack.tableAtIndex(i)
         assert table._qwidget is qtable
 
-def test_merge_error():
-    viewer = TableViewer(show=False)
+def test_merge_error(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     viewer.add_table(df0)
     viewer.add_table(df1)
     viewer.add_table(df2)
@@ -44,8 +44,8 @@ def test_merge_error():
         viewer.tables.tile([1])
 
 @pytest.mark.parametrize("indices", [[0, 1], [2, 0]])
-def test_unmerge_2(indices):
-    viewer = TableViewer(show=False)
+def test_unmerge_2(indices, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     viewer.add_table(df0)
     viewer.add_table(df1)
     viewer.add_table(df2)
@@ -63,8 +63,8 @@ def test_unmerge_2(indices):
     viewer.tables.tile(indices)  # test merging again just works
 
 @pytest.mark.parametrize("indices", [[0, 1, 2], [0, 1, 3], [2, 0, 3]])
-def test_unmerge_3(indices):
-    viewer = TableViewer(show=False)
+def test_unmerge_3(indices, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     viewer.add_table(df0)
     viewer.add_table(df1)
     viewer.add_table(df2)

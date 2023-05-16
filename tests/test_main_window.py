@@ -21,6 +21,7 @@ def test_add_layers(viewer_cls: type[TableViewerWidget]):
     assert viewer.tables[1].name == "Data-0"
     assert np.all(df == viewer.tables[0].data)
     assert np.all(agg == viewer.tables[1].data)
+    viewer.close()
 
 @pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
 @pytest.mark.parametrize("pos", ["top", "left"])
@@ -55,12 +56,14 @@ def test_renaming(viewer_cls: type[TableViewerWidget], pos):
     assert table1.name == name
     assert get_tabwidget_tab_name(viewer, 0) == name
 
+    viewer.close()
+
 @pytest.mark.parametrize(
     "src, dst",
     [(0, 1), (1, 0), (0, 2), (2, 0)]
 )
-def test_move(src: int, dst: int):
-    viewer = TableViewer(show=False)
+def test_move(src: int, dst: int, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     names = ["0", "1", "2"]
     for name in names:
         viewer.add_spreadsheet(name=name)
@@ -81,6 +84,8 @@ def test_register_action(viewer_cls: type[TableViewerWidget]):
     @viewer.tables.register("Tests > name")
     def h(viewrer, i):
         pass
+
+    viewer.close()
 
 @pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
 def test_components(viewer_cls: type[TableViewerWidget]):
