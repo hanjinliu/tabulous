@@ -28,16 +28,21 @@ class _Animation(ABC):
         """Get the header object."""
 
     @abstractmethod
-    def _get_span(self) -> int:
+    def _get_span(self, count: int) -> list[int]:
         """Get the span of the section."""
 
-    def run_insert(self, idx: int, count: int):
+    def run_insert(self, idx: int, count: int, span: int | list[int] | None = None):
         if self._should_run_immediately():
             return None
         self._is_running = True
         self._index = idx
         self._count = count
-        self._init_spans = [self._get_span()] * self._count
+        if span is None:
+            span = self._get_span(self._count)
+        elif not hasattr(span, "__iter__"):
+            span = [span] * self._count
+
+        self._init_spans = span
         self._anim.setStartValue(0.0)
         self._anim.setEndValue(1.0)
         self._anim.start()
@@ -99,13 +104,13 @@ class ColumnAnimation(_Animation):
     def _get_header(self):
         return self._parent._qtable_view.horizontalHeader()
 
-    def _get_span(self) -> int:
-        return get_config().table.column_size
+    def _get_span(self, count: int) -> list[int]:
+        return [get_config().table.column_size] * count
 
 
 class RowAnimation(_Animation):
     def _get_header(self):
         return self._parent._qtable_view.verticalHeader()
 
-    def _get_span(self) -> int:
-        return get_config().table.row_size
+    def _get_span(self, count: int) -> list[int]:
+        return [get_config().table.row_size] * count

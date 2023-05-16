@@ -272,7 +272,7 @@ def insert_row_above(viewer: TableViewerBase):
     if not sheet.editable:
         return _notify_editability()
     row, _ = sheet.current_index
-    return sheet.index.insert(row, 1)
+    return sheet.native.insertRows(row, 1)
 
 
 def insert_row_below(viewer: TableViewerBase):
@@ -281,7 +281,7 @@ def insert_row_below(viewer: TableViewerBase):
     if not sheet.editable:
         return _notify_editability()
     row, _ = sheet.current_index
-    return sheet.index.insert(row + 1, 1)
+    return sheet.native.insertRows(row + 1, 1)
 
 
 def insert_column_left(viewer: TableViewerBase):
@@ -290,7 +290,7 @@ def insert_column_left(viewer: TableViewerBase):
     if not sheet.editable:
         return _notify_editability()
     _, col = sheet.current_index
-    return sheet.columns.insert(col, 1)
+    return sheet.native.insertColumns(col, 1)
 
 
 def insert_column_right(viewer: TableViewerBase):
@@ -299,7 +299,7 @@ def insert_column_right(viewer: TableViewerBase):
     if not sheet.editable:
         return _notify_editability()
     _, col = sheet.current_index
-    return sheet.columns.insert(col + 1, 1)
+    return sheet.native.insertColumns(col + 1, 1)
 
 
 def remove_selected_rows(viewer: TableViewerBase):
@@ -311,7 +311,7 @@ def remove_selected_rows(viewer: TableViewerBase):
     _, rng = sheet.native._qtable_view._selection_model.range_under_index(row, col)
     if rng is not None:
         row_range = rng[0]
-        sheet.index.remove(row_range.start, row_range.stop - row_range.start)
+        sheet.native.removeRows(row_range.start, row_range.stop - row_range.start)
         return None
     raise ValueError("No selection under cursor.")
 
@@ -325,7 +325,7 @@ def remove_selected_columns(viewer: TableViewerBase):
     _, rng = sheet.native._qtable_view._selection_model.range_under_index(row, col)
     if rng is not None:
         col_range = rng[1]
-        sheet.columns.remove(col_range.start, col_range.stop - col_range.start)
+        sheet.native.removeColumns(col_range.start, col_range.stop - col_range.start)
         return None
     raise ValueError("No selection under cursor.")
 

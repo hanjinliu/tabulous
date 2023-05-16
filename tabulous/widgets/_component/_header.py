@@ -213,12 +213,14 @@ class VerticalHeaderInterface(_HeaderInterface):
     def insert(self, at: int, count: int = 1):
         """Insert `count` rows at the given position."""
         sheet = self._assert_spreadsheet()
-        sheet._qwidget.insertRows(at, count)
+        with sheet._qwidget._anim_row.using_animation(False):
+            sheet._qwidget.insertRows(at, count)
 
     def remove(self, at: int, count: int = 1):
         """Remove `count` rows at the given position."""
         sheet = self._assert_spreadsheet()
-        sheet._qwidget.removeRows(at, count)
+        with sheet._qwidget._anim_row.using_animation(False):
+            sheet._qwidget.removeRows(at, count)
 
     @_HeaderInterface.selected.setter
     def selected(self, slices: int | slice | list[int | slice]):
@@ -251,12 +253,14 @@ class HorizontalHeaderInterface(_HeaderInterface):
     def insert(self, at: int, count: int = 1):
         """Insert `count` columns at the given position."""
         sheet = self._assert_spreadsheet()
-        sheet._qwidget.insertColumns(at, count)
+        with sheet._qwidget._anim_col.using_animation(False):
+            sheet._qwidget.insertColumns(at, count)
 
     def remove(self, at: int, count: int = 1):
         """Remove `count` columns at the given position."""
         sheet = self._assert_spreadsheet()
-        sheet._qwidget.removeColumns(at, count)
+        with sheet._qwidget._anim_col.using_animation(False):
+            sheet._qwidget.removeColumns(at, count)
 
     @_HeaderInterface.selected.setter
     def selected(self, slices: int | slice | list[int | slice]):

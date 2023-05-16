@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable, Hashable, TYPE_CHECKING, cast
+from typing import Any, Callable, Hashable, TYPE_CHECKING, Iterable, cast
 import warnings
 from qtpy import QtCore, QtGui, QtWidgets as QtW
 from qtpy.QtCore import Qt, Signal
@@ -306,7 +306,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         column: int,
         count: int,
         parent: QtCore.QModelIndex = None,
-        span: int | None = None,
+        span: int | Iterable[int] | None = None,
     ) -> bool:
         self._decorations.insert_columns(column, count)
         if span is None:
@@ -315,7 +315,12 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 span = cast(QtCore.QSize, span).width()
             else:
                 span = get_config().table.column_size
-        self.parent()._qtable_view.horizontalHeader().insertSection(column, count, span)
+        header = self.parent()._qtable_view.horizontalHeader()
+        if hasattr(span, "__iter__"):
+            for s, r in zip(span, range(column, column + count)):
+                header.insertSection(r, 1, s)
+        else:
+            header.insertSection(column, count, span)
         return super().insertColumns(column, count, parent)
 
     def removeColumns(
@@ -330,7 +335,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         row: int,
         count: int,
         parent: QtCore.QModelIndex = None,
-        span: int | None = None,
+        span: int | Iterable[int] | None = None,
     ) -> bool:
         self._decorations.insert_rows(row, count)
         if span is None:
@@ -339,7 +344,12 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 span = cast(QtCore.QSize, span).height()
             else:
                 span = get_config().table.row_size
-        self.parent()._qtable_view.verticalHeader().insertSection(row, count, span)
+        header = self.parent()._qtable_view.verticalHeader()
+        if hasattr(span, "__iter__"):
+            for s, r in zip(span, range(row, row + count)):
+                header.insertSection(r, 1, s)
+        else:
+            header.insertSection(row, count, span)
         return super().insertRows(row, count, parent)
 
     def removeRows(
