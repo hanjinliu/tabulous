@@ -229,9 +229,10 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
 
         super().show()
 
-        if _NOTIFIED:
+        if _NOTIFIED or not get_config().window.notify_latest:
             return
         _NOTIFIED = True
+
         from tabulous._fetch_and_install import get_worker
 
         worker = get_worker()

@@ -25,8 +25,12 @@ def session():
 
     with init_config():
         cfg = get_config()
+        # disable animations
         cfg.window.animate = False
+        # disable "Are you sure you want to quit?" dialog
         cfg.window.ask_on_close = False
+        # disable latest version notification
+        cfg.window.notify_latest = False
         update_config(cfg, save=True)
         yield
 
