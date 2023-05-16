@@ -210,12 +210,12 @@ class VerticalHeaderInterface(_HeaderInterface):
     def _get_header(self) -> QDataFrameHeaderView:
         return self.parent._qwidget._qtable_view.verticalHeader()
 
-    def insert(self, at: int, count: int):
+    def insert(self, at: int, count: int = 1):
         """Insert `count` rows at the given position."""
         sheet = self._assert_spreadsheet()
         sheet._qwidget.insertRows(at, count)
 
-    def remove(self, at: int, count: int):
+    def remove(self, at: int, count: int = 1):
         """Remove `count` rows at the given position."""
         sheet = self._assert_spreadsheet()
         sheet._qwidget.removeRows(at, count)
@@ -248,12 +248,12 @@ class HorizontalHeaderInterface(_HeaderInterface):
     def _get_header(self) -> QDataFrameHeaderView:
         return self.parent._qwidget._qtable_view.horizontalHeader()
 
-    def insert(self, at: int, count: int):
+    def insert(self, at: int, count: int = 1):
         """Insert `count` columns at the given position."""
         sheet = self._assert_spreadsheet()
         sheet._qwidget.insertColumns(at, count)
 
-    def remove(self, at: int, count: int):
+    def remove(self, at: int, count: int = 1):
         """Remove `count` columns at the given position."""
         sheet = self._assert_spreadsheet()
         sheet._qwidget.removeColumns(at, count)

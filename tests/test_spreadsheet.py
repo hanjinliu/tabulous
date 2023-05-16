@@ -20,43 +20,41 @@ data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 
 def test_insert():
     viewer = TableViewer(show=False)
-    viewer.add_spreadsheet(data)
-    qtable = cast(QSpreadSheet, viewer.tables[0].native)
+    sheet = viewer.add_spreadsheet(data)
 
-    qtable.insertColumns(1, 1)
-    assert_data_equal(qtable._data_raw, [["1", "", "2", "3"], ["4", "", "5", "6"], ["7", "", "8", "9"]])
-    qtable.undo()
-    assert_data_equal(qtable._data_raw, [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]])
-    qtable.redo()
-    assert_data_equal(qtable._data_raw, [["1", "", "2", "3"], ["4", "", "5", "6"], ["7", "", "8", "9"]])
-    qtable.undo()
+    sheet.columns.insert(1, 1)
+    assert_data_equal(sheet.native._data_raw, [["1", "", "2", "3"], ["4", "", "5", "6"], ["7", "", "8", "9"]])
+    sheet.undo_manager.undo()
+    assert_data_equal(sheet.native._data_raw, [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]])
+    sheet.undo_manager.redo()
+    assert_data_equal(sheet.native._data_raw, [["1", "", "2", "3"], ["4", "", "5", "6"], ["7", "", "8", "9"]])
+    sheet.undo_manager.undo()
 
-    qtable.insertRows(1, 1)
-    assert_data_equal(qtable._data_raw, [["1", "2", "3"], ["", "", ""], ["4", "5", "6"], ["7", "8", "9"]])
-    qtable.undo()
-    assert_data_equal(qtable._data_raw, [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]])
-    qtable.redo()
-    assert_data_equal(qtable._data_raw, [["1", "2", "3"], ["", "", ""], ["4", "5", "6"], ["7", "8", "9"]])
+    sheet.index.insert(1, 1)
+    assert_data_equal(sheet.native._data_raw, [["1", "2", "3"], ["", "", ""], ["4", "5", "6"], ["7", "8", "9"]])
+    sheet.undo_manager.undo()
+    assert_data_equal(sheet.native._data_raw, [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]])
+    sheet.undo_manager.redo()
+    assert_data_equal(sheet.native._data_raw, [["1", "2", "3"], ["", "", ""], ["4", "5", "6"], ["7", "8", "9"]])
 
 def test_remove():
     viewer = TableViewer(show=False)
-    viewer.add_spreadsheet(data)
-    qtable = cast(QSpreadSheet, viewer.tables[0].native)
+    sheet = viewer.add_spreadsheet(data)
 
-    qtable.removeColumns(1, 1)
-    assert_data_equal(qtable._data_raw, [["1", "3"], ["4", "6"], ["7", "9"]])
-    qtable.undo()
-    assert_data_equal(qtable._data_raw, [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]])
-    qtable.redo()
-    assert_data_equal(qtable._data_raw, [["1", "3"], ["4", "6"], ["7", "9"]])
-    qtable.undo()
+    sheet.columns.remove(1, 1)
+    assert_data_equal(sheet.native._data_raw, [["1", "3"], ["4", "6"], ["7", "9"]])
+    sheet.undo_manager.undo()
+    assert_data_equal(sheet.native._data_raw, [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]])
+    sheet.undo_manager.redo()
+    assert_data_equal(sheet.native._data_raw, [["1", "3"], ["4", "6"], ["7", "9"]])
+    sheet.undo_manager.undo()
 
-    qtable.removeRows(1, 1)
-    assert_data_equal(qtable._data_raw, [["1", "2", "3"], ["7", "8", "9"]])
-    qtable.undo()
-    assert_data_equal(qtable._data_raw, [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]])
-    qtable.redo()
-    assert_data_equal(qtable._data_raw, [["1", "2", "3"], ["7", "8", "9"]])
+    sheet.index.remove(1, 1)
+    assert_data_equal(sheet.native._data_raw, [["1", "2", "3"], ["7", "8", "9"]])
+    sheet.undo_manager.undo()
+    assert_data_equal(sheet.native._data_raw, [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]])
+    sheet.undo_manager.redo()
+    assert_data_equal(sheet.native._data_raw, [["1", "2", "3"], ["7", "8", "9"]])
 
 def test_setting_cell_out_of_bound():
     viewer = TableViewer(show=False)
@@ -136,7 +134,7 @@ def test_table_signal():
     mock.call_args.args[0].row == 1
     mock.call_args.args[0].column == slice(None)
 
-    table._qwidget.removeRows(2, 1)
+    table.index.remove(2)
     mock.call_args.args[0].row == slice(2, 3)
     mock.call_args.args[0].column == slice(None)
     mock.call_args.args[0].value == ItemInfo.DELETED
@@ -145,7 +143,7 @@ def test_table_signal():
     mock.call_args.args[0].column == slice(None)
     mock.call_args.args[0].old_value == ItemInfo.INSERTED
 
-    table._qwidget.removeColumns(2, 1)
+    table.columns.remove(2)
     mock.call_args.args[0].row == slice(None)
     mock.call_args.args[0].column == slice(2, 3)
     mock.call_args.args[0].value == ItemInfo.DELETED

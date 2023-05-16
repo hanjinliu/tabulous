@@ -61,7 +61,7 @@ def test_deleting_column_name():
 
     assert sheet.dtypes == {"number": "float32", "char": "category"}
 
-    sheet.native.removeColumns(0, 1)
+    sheet.columns.remove(0)
 
     assert sheet.dtypes == {"char": "category"}
 

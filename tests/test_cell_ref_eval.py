@@ -156,7 +156,7 @@ def test_ref_after_insert(make_tabulous_viewer):
     sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
     sheet.cell[1, 3] = "&=np.sum(df.iloc[0:2, 0:1]) + 1"
     assert sheet.cell[1, 3] == "1.0"
-    sheet._qwidget.insertColumns(2, 1)  # insert a column
+    sheet.columns.insert(2, 1)  # insert a column
     assert sheet.cell[1, 3] == "0.0"
     assert sheet.cell[1, 4] == "1.0"
     assert (1, 3) not in sheet.cell.ref
@@ -176,7 +176,7 @@ def test_ref_after_removal(make_tabulous_viewer):
     sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
     sheet.cell[1, 3] = "&=np.sum(df.iloc[0:2, 0:1]) + 1"
     assert sheet.cell[1, 3] == "1.0"
-    sheet._qwidget.removeColumns(2, 1)  # insert a column
+    sheet.columns.remove(2, 1)  # insert a column
     assert sheet.cell[1, 3] == "0.0"
     assert sheet.cell[1, 2] == "1.0"
     assert (1, 3) not in sheet.cell.ref
@@ -197,7 +197,7 @@ def test_ref_after_removal_of_column(make_tabulous_viewer):
     sheet = viewer.add_spreadsheet(np.zeros((3, 5), dtype=np.float32))
     sheet.cell[1, 3] = "&=np.sum(df.iloc[0:2, 0:1]) + 1"
     assert sheet.cell[1, 3] == "1.0"
-    sheet._qwidget.removeColumns(3, 1)  # remove a column
+    sheet.columns.remove(3, 1)  # remove a column
     assert sheet.cell[1, 3] == "0.0"
     assert len(sheet.cell.ref) == 0
     sheet.undo_manager.undo()
@@ -212,7 +212,7 @@ def test_removing_source(make_tabulous_viewer):
     sheet = viewer.add_spreadsheet(np.zeros((3, 1), dtype=np.float32))
     sheet.cell[0, 1] = "&=np.sum(df.iloc[:, 0])"
     assert len(sheet.cell.ref) == 1
-    sheet._qwidget.removeColumns(0, 1)  # remove a column
+    sheet.columns.remove(0, 1)  # remove a column
     assert sheet.data.shape == (3, 1), "wrong shape"
     assert len(sheet.cell.ref) == 0, "slot not removed"
 
@@ -222,7 +222,7 @@ def test_removing_one_of_two_sources(make_tabulous_viewer):
     sheet = viewer.add_spreadsheet(np.zeros((3, 2), dtype=np.float32))
     sheet.cell[0, 2] = "&=np.sum(df.iloc[:, 0]) + np.sum(df.iloc[:, 1])"
     assert len(sheet.cell.ref) == 1
-    sheet._qwidget.removeColumns(0, 1)  # remove a column
+    sheet.columns.remove(0, 1)  # remove a column
     assert sheet.data.shape == (3, 2), "wrong shape"
     assert len(sheet.cell.ref) == 0, "slot not removed"
 
@@ -235,12 +235,12 @@ def test_removing_or_inserting_left_column(make_tabulous_viewer):
     sheet = viewer.add_spreadsheet([[0., 1.], [1., 2.], [3., 5.]])
     sheet.cell[0, 2] = "&=np.sum(df.iloc[:, 1])"
     assert sheet.cell[0, 2] == "8.0"
-    sheet._qwidget.removeColumns(0, 1)  # remove a column
+    sheet.columns.remove(0, 1)  # remove a column
     assert sheet.data.shape == (3, 2)
     assert sheet.cell[0, 1] == "8.0"
     sheet.cell[1, 0] = 4
     assert sheet.cell[0, 1] == "10.0"
-    sheet._qwidget.insertColumns(0, 1)  # insert a column
+    sheet.columns.insert(0, 1)  # insert a column
     assert sheet.data.shape == (3, 3)
     assert sheet.cell[0, 2] == "10.0"
     sheet.cell[1, 0] = 5
