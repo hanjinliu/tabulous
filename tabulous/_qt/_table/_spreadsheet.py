@@ -176,11 +176,15 @@ class QSpreadSheet(QMutableSimpleTable):
     NaN = ""
 
     def __init__(self, parent=None, data: pd.DataFrame | None = None):
+        from tabulous._utils import get_config
+
+        animate = get_config().window.animate
+
         self._columns_dtype = DTypeMap()
         super().__init__(parent, data)
         self._qtable_view.verticalHeader().setMinimumWidth(20)
-        self._anim_row = RowAnimation(self)
-        self._anim_col = ColumnAnimation(self)
+        self._anim_row = RowAnimation(self).set_animate(animate)
+        self._anim_col = ColumnAnimation(self).set_animate(animate)
 
     if TYPE_CHECKING:
 

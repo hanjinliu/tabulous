@@ -37,6 +37,10 @@ class _Animation(ABC):
         self._anim.setEndValue(0.0)
         self._anim.start()
 
+    def set_animate(self, animate: bool):
+        self._use_anim = animate
+        return self
+
     @contextmanager
     def using_animation(self, use_anim: bool = True):
         """Context manager to enable/disable animation."""
