@@ -2,9 +2,8 @@ import pytest
 from weakref import WeakSet
 
 @pytest.fixture
-def make_tabulous_viewer():
+def make_tabulous_viewer(qtbot):
     from tabulous import TableViewer
-    from tabulous._qt._mainwindow import QMainWindow
 
     viewers: WeakSet[TableViewer] = WeakSet()
 
@@ -17,9 +16,6 @@ def make_tabulous_viewer():
 
     for viewer in viewers:
         viewer.close()
-    for instance in QMainWindow._instances:
-        instance.close()
-    QMainWindow._instances.clear()
 
 
 @pytest.fixture(scope="session", autouse=True)
