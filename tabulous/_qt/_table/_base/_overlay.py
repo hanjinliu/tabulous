@@ -5,8 +5,8 @@ from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt
 
 if TYPE_CHECKING:
-    from ..._table_stack import QTabbedTableStack
-    from .._base import QBaseTable
+    from tabulous._qt._table_stack import QTabbedTableStack
+    from tabulous._qt._table._base import QBaseTable
 
 
 class QOverlayFrame(QtW.QDialog):
