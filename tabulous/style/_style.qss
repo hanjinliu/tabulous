@@ -540,6 +540,20 @@ QOverlayFrame {
     background-color: #[background];
 }
 
+QJumpWidget {
+    border: 1px solid #[highlight0];
+    border-radius: 5px;
+    background-color: #[background];
+}
+
+QJumpWidget > QWidget {
+    font-size: 16px;
+}
+
+QJumpWidget > QWidget > QWidget {
+    font-size: 18px;
+}
+
 QCornerButtons {
     background-color: #[background0];
 }

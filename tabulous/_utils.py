@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from types import MappingProxyType
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from dataclasses import asdict, dataclass, field
 from functools import wraps
 from pathlib import Path
 from contextlib import contextmanager
 from appdirs import user_config_dir
 
+if TYPE_CHECKING:
+    KeyBinding = dict[str, str | list[str]]
 
 TXT_PATH = Path(user_config_dir("tabulous", "tabulous", "history.txt"))
 CONFIG_PATH = Path(user_config_dir("tabulous", "tabulous", "config.toml"))
@@ -119,7 +121,7 @@ def get_post_initializers():
     return viewer_initializer, table_initializer
 
 
-def prep_default_keybindings() -> dict[str, str | list[str]]:
+def prep_default_keybindings() -> KeyBinding:
     from tabulous.commands import DEFAULT_KEYBINDING_SETTING
 
     kb = {}
@@ -127,6 +129,34 @@ def prep_default_keybindings() -> dict[str, str | list[str]]:
         mod = cmd.__module__.split(".")[-1]
         name = cmd.__name__
         kb[f"{mod}.{name}"] = seq
+    return kb
+
+
+def set_default_keybindings(kb: KeyBinding) -> KeyBinding:
+    from tabulous.commands import DEFAULT_KEYBINDING_SETTING
+
+    existing = set()
+    for seq in kb.values():
+        if isinstance(seq, str):
+            existing.add(seq)
+        elif isinstance(seq, list):
+            existing.update(seq)
+        else:
+            raise RuntimeError(f"Invalid keybinding sequence: {seq}")
+
+    for cmd, seq in DEFAULT_KEYBINDING_SETTING:
+        if isinstance(seq, str):
+            if seq not in existing:
+                mod = cmd.__module__.split(".")[-1]
+                name = cmd.__name__
+                kb[f"{mod}.{name}"] = seq
+
+        else:
+            if not existing.intersection(seq):
+                mod = cmd.__module__.split(".")[-1]
+                name = cmd.__name__
+                kb[f"{mod}.{name}"] = seq
+
     return kb
 
 
@@ -182,9 +212,7 @@ class TabulousConfig:
     table: Table = field(default_factory=Table)
     cell: Cell = field(default_factory=Cell)
     window: Window = field(default_factory=Window)
-    keybindings: dict[str, str | list[str]] = field(
-        default_factory=prep_default_keybindings
-    )
+    keybindings: KeyBinding = field(default_factory=prep_default_keybindings)
 
     @classmethod
     def from_toml(cls, path: Path = CONFIG_PATH) -> TabulousConfig:
@@ -204,8 +232,7 @@ class TabulousConfig:
         table = dict_.get("table", {})
         cell = dict_.get("cell", {})
         window = dict_.get("window", {})
-        if not (kb := dict_.get("keybindings", {})):
-            kb = prep_default_keybindings()
+        kb = set_default_keybindings(dict_.get("keybindings", {}))
         return cls(
             ConsoleNamespace(**_as_fields(console_namespace, ConsoleNamespace)),
             Table(**_as_fields(table, Table)),

@@ -110,16 +110,11 @@ class IPyProperty(Generic[_T]):
 
     def __init__(self, fget: Callable[[Any], _T]):
         self.fget = fget
-        self._instances = {}
 
     def __get__(self, instance, owner=None) -> _T:
         if instance is None:
             raise AttributeError("Can only be accessed via an instance.")
-        _id = id(instance)
-        obj = self._instances.get(_id)
-        if obj is None:
-            self._instances[_id] = obj = self.fget(instance)
-        return obj
+        return self.fget(instance)
 
 
 class TableViewerBase(_AbstractViewer, SupportKeyMap):
@@ -362,9 +357,9 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         self.tables.append(input)
         self.current_index = -1  # activate the last table
 
-        self._qwidget.setCellFocus()
         if self._table_initializer is not None:
             self._table_initializer.initialize_table(input)
+        self._qwidget.setCellFocus()
         return input
 
     def open(self, path: PathLike, *, type: TableType | str = TableType.table) -> None:
