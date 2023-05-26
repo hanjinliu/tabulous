@@ -22,6 +22,7 @@ def make_tabulous_viewer(qtbot):
 def session():
     from tabulous._utils import init_config, update_config, get_config
     from tabulous._qt._mainwindow import QMainWindow
+    import gc
 
     with init_config():
         cfg = get_config()
@@ -38,4 +39,9 @@ def session():
 
     for instance in QMainWindow._instances:
         instance.close()
+        instance.deleteLater()
+
+    gc.collect()
+    if QMainWindow._instances:
+        raise RuntimeError("QMainWindow instances not cleaned up!")
     QMainWindow._instances.clear()

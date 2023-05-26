@@ -82,7 +82,7 @@ def test_register_action(viewer_cls: type[TableViewerWidget]):
         pass
 
     @viewer.tables.register("Tests > name")
-    def h(viewrer, i):
+    def h(viewer, i):
         pass
 
     viewer.close()
