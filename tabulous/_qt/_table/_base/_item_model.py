@@ -10,6 +10,7 @@ from tabulous.color import normalize_color, ColorType
 from tabulous._text_formatter import DefaultFormatter
 from tabulous._map_model import TableMapping
 from tabulous._utils import get_config
+from tabulous._qt._table._animation import CellColorAnimation
 
 if TYPE_CHECKING:
     from ._table_base import QBaseTable
@@ -40,12 +41,13 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             Qt.ItemDataRole.EditRole: self._data_edit,
             Qt.ItemDataRole.TextColorRole: self._data_text_color,
             Qt.ItemDataRole.ToolTipRole: self._data_tooltip,
-            Qt.ItemDataRole.BackgroundColorRole: self._data_background_color,
+            Qt.ItemDataRole.BackgroundColorRole: self._data_background_color_rendered,
             Qt.ItemDataRole.DecorationRole: self._data_decoration,
             Qt.ItemDataRole.SizeHintRole: self._data_size_hint,
         }
 
         self._decorations: TableMapping[tuple[QtGui.QPixmap, str]] = TableMapping()
+        self._background_color_anim = CellColorAnimation(self)
 
     @property
     def df(self) -> pd.DataFrame:
@@ -168,6 +170,18 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                     raise e
                 return QtGui.QColor(*rgba)
         return QtCore.QVariant()
+
+    def _data_background_color_rendered(self, index: QtCore.QModelIndex):
+        col = self._data_background_color(index)
+        anim = self._background_color_anim
+        if not anim.contains(index):
+            return col
+        if not isinstance(col, QtGui.QColor):
+            bg = self.parent().palette().color(QtGui.QPalette.ColorRole.Background)
+        else:
+            bg = col
+        col = self.parent()._qtable_view.selectionColor
+        return get_brush(self._data_size_hint(index), anim.value, bg, col)
 
     def _data_decoration(self, index: QtCore.QModelIndex):
         r, c = index.row(), index.column()
@@ -384,3 +398,16 @@ class DataFrameModel(AbstractDataFrameModel):
 
     def columnCount(self, parent=None):
         return self.df.shape[1]
+
+
+def get_brush(size: QtCore.QSize, time: float, c0: QtGui.QColor, c1: QtGui.QColor):
+    length = max(size.width(), size.height())
+    dh = 6 / length
+    c1.setAlpha(96)
+    grad = QtGui.QLinearGradient(0, 0, length, length)
+    grad.setColorAt(0.0, c0)
+    grad.setColorAt(max(time - dh, 0.0), c0)
+    grad.setColorAt(time, c1)
+    grad.setColorAt(min(time + dh, 1.0), c0)
+    grad.setColorAt(1.0, c0)
+    return QtGui.QBrush(grad)

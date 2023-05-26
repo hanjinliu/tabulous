@@ -60,6 +60,22 @@ class RectRange(TableAnchorBase):
         cupper = c < csl.stop if csl.stop is not None else True
         return rlower and rupper and clower and cupper
 
+    def intersection(self, other: RectRange) -> RectRange:
+        """Return the intersection of two ranges."""
+        r0_s, r1_s = self._rsl.start, self._rsl.stop
+        c0_s, c1_s = self._csl.start, self._csl.stop
+        r0_o, r1_o = other._rsl.start, other._rsl.stop
+        c0_o, c1_o = other._csl.start, other._csl.stop
+        r0 = _max(r0_s, r0_o)
+        r1 = _min(r1_s, r1_o)
+        if r0 >= r1:
+            return NoRange()
+        c0 = _max(c0_s, c0_o)
+        c1 = _min(c1_s, c1_o)
+        if c0 >= c1:
+            return NoRange()
+        return RectRange(slice(r0, r1), slice(c0, c1))
+
     def includes(self, other: RectRange) -> bool:
         if isinstance(other, MultiRectRange):
             return all(self.includes(rng) for rng in other)
@@ -192,6 +208,19 @@ class MultiRectRange(RectRange):
         """Construct from list of slices."""
         return cls([RectRange(rsl, csl) for rsl, csl in slices])
 
+    def with_slices(self, rsl: slice, csl: slice) -> MultiRectRange:
+        """Create a new MultiRectRange with the given slices added."""
+        return self.__class__(self._ranges + [RectRange(rsl, csl)])
+
+    def intersection(self, other: RectRange) -> MultiRectRange:
+        slices: list[RectRange] = []
+        for rng in self:
+            x = rng.intersection(other)
+            if isinstance(x, NoRange):
+                continue
+            slices.append(x)
+        return self.__class__(slices)
+
     def __repr__(self):
         s = ", ".join(repr(rng) for rng in self)
         return f"MultiRectRange[{s}]"
@@ -280,6 +309,18 @@ def _ge(r1_s, r1_o):
             return r1_o <= r1_s
     else:
         return True
+
+
+def _max(a, b):
+    if _le(a, b):
+        return b
+    return a
+
+
+def _min(a, b):
+    if _le(a, b):
+        return a
+    return b
 
 
 INF = float("inf")
