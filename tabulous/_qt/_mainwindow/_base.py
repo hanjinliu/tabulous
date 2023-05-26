@@ -74,10 +74,15 @@ class _QtMainWidgetBase(QtW.QWidget):
 
         # install command palette
         self._command_palette = get_palette("tabulous")
-        self._command_palette.install(self)
-        qcommand_palette = self._command_palette.get_widget(self)
-        qcommand_palette.hidden.connect(self._on_hidden)
-        qcommand_palette.setFont(QtGui.QFont("Arial", 10))
+        try:
+            self._command_palette.install(self)
+        except RuntimeError:
+            # During test, main window might have been destroyed
+            pass
+        else:
+            qcommand_palette = self._command_palette.get_widget(self)
+            qcommand_palette.hidden.connect(self._on_hidden)
+            qcommand_palette.setFont(QtGui.QFont("Arial", 10))
 
     def _on_hidden(self):
         try:

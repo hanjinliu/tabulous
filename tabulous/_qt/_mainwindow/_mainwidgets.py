@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from pathlib import Path
-import weakref
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, QEvent, QTimer
 
@@ -13,7 +12,6 @@ from tabulous._utils import get_config
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewer
     from tabulous._qt._table_stack import QTabbedTableStack
-    from tabulous._qt._dockwidget import QtDockWidget
 
 ICON_DIR = Path(__file__).parent.parent / "_icons"
 
@@ -120,7 +118,6 @@ _NOTIFIED = False
 class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     _instances: list[QMainWindow] = []
     _keymap = QtKeyMap()
-    _dock_widgets: weakref.WeakValueDictionary[str, QtDockWidget]
     _is_mainwindow = True
 
     def __init__(
@@ -138,7 +135,6 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
         self.setWindowIcon(QtGui.QIcon(str(ICON_DIR / "window_icon.png")))
 
         self._console_dock_widget = None
-        self._dock_widgets = weakref.WeakValueDictionary()
 
         # ask if it is OK to close
         self._ask_on_close = cfg.window.ask_on_close

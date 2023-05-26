@@ -311,9 +311,9 @@ def _get_exit_auto_call():
             self._viewer = None
 
         def set_viewer(self, viewer: TableViewerBase):
-            self._viewer = viewer
+            self._viewer = weakref.ref(viewer)
 
         def __call__(self, *args, **kwargs):
-            self._viewer.close()
+            self._viewer().close()
 
     return ExitAutocall()
