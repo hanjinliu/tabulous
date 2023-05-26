@@ -23,6 +23,7 @@ def test_register_table_keymap(qtbot: QtBot, cls: "type[TableViewerBase]"):
     mock.reset_mock()
     sheet.keymap.unregister("Ctrl+U")
     mock.assert_not_called()
+    viewer.close()
 
 @pytest.mark.parametrize("cls", [TableViewer, TableViewerWidget, MagicTableViewer])
 def test_register_viewer_keymap(qtbot: QtBot, cls: "type[TableViewerBase]"):

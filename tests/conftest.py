@@ -31,6 +31,8 @@ def session():
         cfg.window.ask_on_close = False
         # disable latest version notification
         cfg.window.notify_latest = False
+        # do not launch qtconsole
+        cfg.window.show_console = False
         update_config(cfg, save=True)
         yield
 
