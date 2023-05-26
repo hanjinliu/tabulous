@@ -91,11 +91,12 @@ def test_register_action(viewer_cls: type[TableViewerWidget]):
 def test_components(viewer_cls: type[TableViewerWidget]):
     viewer = viewer_cls(show=True)
 
-    assert not viewer.console.visible
-    viewer.console.visible = True
-    assert viewer.console.visible
-    viewer.console.visible = False
-    assert not viewer.console.visible
+    # BUG: using qtconsole causes segfault on exit...
+    # assert not viewer.console.visible
+    # viewer.console.visible = True
+    # assert viewer.console.visible
+    # viewer.console.visible = False
+    # assert not viewer.console.visible
 
     viewer.toolbar.visible = True
     assert viewer.toolbar.visible
@@ -103,6 +104,7 @@ def test_components(viewer_cls: type[TableViewerWidget]):
     assert not viewer.toolbar.visible
 
     viewer.close()
+
 
 @pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
 def test_bind_keycombo(viewer_cls: type[TableViewerWidget]):
