@@ -10,8 +10,8 @@ from ._utils import selection_equal, slice_equal
 df0 = pd.DataFrame({"a": [10, 20, 30], "b": [1.0, 1.1, 1.2]})
 
 
-def test_selection():
-    viewer = TableViewer(show=False)
+def test_selection(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(df0)
     table.selections = [(0, 0), (slice(1, 3), slice(1, 2))]
 
@@ -23,8 +23,8 @@ def test_selection():
     assert_frame_equal(table.selections.values[0], table.data.iloc[sl0])
     assert_frame_equal(table.selections.values[1], table.data.iloc[sl1])
 
-def test_highlight():
-    viewer = TableViewer(show=False)
+def test_highlight(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(df0)
     table.highlights = [(0, 0), (slice(1, 3), slice(1, 2))]
 
@@ -36,8 +36,8 @@ def test_highlight():
     assert_frame_equal(table.highlights.values[0], table.data.iloc[sl0])
     assert_frame_equal(table.highlights.values[1], table.data.iloc[sl1])
 
-def test_selection_signal():
-    viewer = TableViewer(show=False)
+def test_selection_signal(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(df0)
     mock = MagicMock()
 
@@ -54,8 +54,8 @@ def test_selection_signal():
     mock.assert_called_once()
 
 
-def test_selection_signal_recursive():
-    viewer = TableViewer(show=False)
+def test_selection_signal_recursive(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(df0)
     mock = MagicMock()
 
@@ -70,8 +70,8 @@ def test_selection_signal_recursive():
     table.selections = [(1, 1)]
     mock.assert_called_once()
 
-def test_list_like_methods():
-    viewer = TableViewer(show=False)
+def test_list_like_methods(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(df0)
     table.selections.clear()
     table.selections.append((0, 0))
@@ -83,30 +83,30 @@ def test_list_like_methods():
     table.selections.clear()
     assert selection_equal(table.selections, [])
 
-def test_highlight_translation():
-    viewer = TableViewer(show=False)
+def test_highlight_translation(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet(np.zeros((10, 10)))
     sheet.highlights.append((slice(2, 5), slice(2, 5)))
     assert selection_equal(sheet.highlights, [(slice(2, 5), slice(2, 5))])
-    sheet._qwidget.removeColumns(0, 1)
+    sheet.columns.remove(0, 1)
     assert selection_equal(sheet.highlights, [(slice(2, 5), slice(1, 4))])
-    sheet._qwidget.insertColumns(0, 2)
+    sheet.columns.insert(0, 2)
     assert selection_equal(sheet.highlights, [(slice(2, 5), slice(3, 6))])
-    sheet._qwidget.insertColumns(6, 1)
+    sheet.columns.insert(6, 1)
     assert selection_equal(sheet.highlights, [(slice(2, 5), slice(3, 6))])
-    sheet._qwidget.removeColumns(2, 1)
+    sheet.columns.remove(2, 1)
     assert selection_equal(sheet.highlights, [(slice(2, 5), slice(2, 5))])
-    sheet._qwidget.removeColumns(2, 1)
+    sheet.columns.remove(2, 1)
     assert selection_equal(sheet.highlights, [(slice(2, 5), slice(2, 4))])
-    sheet._qwidget.removeColumns(4, 1)
+    sheet.columns.remove(4, 1)
     assert selection_equal(sheet.highlights, [(slice(2, 5), slice(2, 4))])
-    sheet._qwidget.removeColumns(3, 1)
+    sheet.columns.remove(3, 1)
     assert selection_equal(sheet.highlights, [(slice(2, 5), slice(2, 3))])
-    sheet._qwidget.removeColumns(2, 1)
+    sheet.columns.remove(2, 1)
     assert selection_equal(sheet.highlights, [])
 
-def test_highlight_with_proxy():
-    viewer = TableViewer(show=False)
+def test_highlight_with_proxy(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet(np.zeros((5, 5)))
     sheet.proxy.set([1, 3, 2, 4, 0])  # index is in this order
     sheet.selections = [((slice(1, 2), slice(0, 5)))]

@@ -201,6 +201,7 @@ class Window:
     notify_latest: bool = True
     selection_editor: bool = True
     nonmain_style: bool = False
+    animate: bool = True
     title_bar: str = "native"
 
 

@@ -1,4 +1,4 @@
-from tabulous import TableViewerWidget
+from tabulous import TableViewer
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
@@ -17,8 +17,8 @@ df1 = pd.DataFrame({
     "d": ["X", "X", "Y", "Y", "X", "X", "Y", "Y", "Y", "Y"],
 })
 
-def test_add_groupby_single():
-    viewer = TableViewerWidget(show=False)
+def test_add_groupby_single(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     grouped = df0.groupby("c")
     table = viewer.add_groupby(grouped, name="test")
     each_df = [x[1] for x in grouped]
@@ -28,21 +28,21 @@ def test_add_groupby_single():
     assert table.current_group == "B"
     assert_frame_equal(each_df[1], table._qwidget.dataShown())
 
-def test_add_groupby_double():
-    viewer = TableViewerWidget(show=False)
+def test_add_groupby_double(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_groupby(df1.groupby(["c", "d"]))
     assert table.current_group == ("A", "X")
 
-def test_add_list():
-    viewer = TableViewerWidget(show=False)
+def test_add_list(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_groupby(
         [{"C0": [0, 0], "C1": [1, 1]},
          {"C0": [5, 0], "C1": [6, 1]},]
     )
     assert table.current_group == 0
 
-def test_add_dict():
-    viewer = TableViewerWidget(show=False)
+def test_add_dict(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_groupby(
         {"a": {"C0": [0, 0], "C1": [1, 1]},
          "b": {"C0": [5, 0], "C1": [6, 1]},}

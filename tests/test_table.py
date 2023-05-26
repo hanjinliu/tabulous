@@ -14,8 +14,8 @@ df0 = pd.DataFrame({"a": [10, 20, 30], "b": [1.0, 1.1, 1.2]})
 df1 = pd.DataFrame({"label": ["one", "two", "one"], "value": [1.0, 1.1, 1.2]})
 
 @pytest.mark.parametrize("df", [df0, df1])
-def test_display(df: pd.DataFrame):
-    viewer = TableViewer(show=False)
+def test_display(df: pd.DataFrame, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = Table(df)
     viewer.add_layer(table)
     assert table.data is df
@@ -25,8 +25,8 @@ def test_display(df: pd.DataFrame):
     assert table.cell.text[0, 0] == str(df.iloc[0, 0])
 
 @pytest.mark.parametrize("df", [df0, df1])
-def test_editing_data(df: pd.DataFrame):
-    viewer = TableViewer(show=False)
+def test_editing_data(df: pd.DataFrame, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = Table(df)
     viewer.add_layer(table)
     edit_cell(table._qwidget, 0, 0, "11")
@@ -39,8 +39,8 @@ def test_editing_data(df: pd.DataFrame):
      (pd.timedelta_range("00:00:00", periods=3, freq="10s"), "0 days 00:00:10", "xyz"),
      (pd.period_range("2020-01-01", periods=3, freq="3d"), "2020-01-04", "xyz"),]
 )
-def test_editing_object_type(data, works: str, errors: str):
-    viewer = TableViewer(show=False)
+def test_editing_object_type(data, works: str, errors: str, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     df = {"a": data}
     works, errors = str(works), str(errors)
     table = viewer.add_table(df, editable=True)
@@ -60,8 +60,8 @@ def test_editing_object_type(data, works: str, errors: str):
      ([td(0), td(1), td(0)], "1 days 00:00:00", "2 days 00:00:00"),
      ]
 )
-def test_edit_category_type(data, works: str, errors: str):
-    viewer = TableViewer(show=False)
+def test_edit_category_type(data, works: str, errors: str, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     df = {"a": pd.Series(data, dtype="category")}
     works, errors = str(works), str(errors)
     table = viewer.add_table(df, editable=True)
@@ -72,8 +72,8 @@ def test_edit_category_type(data, works: str, errors: str):
     assert table.cell.text[0, 0] == works
 
 
-def test_copy():
-    viewer = TableViewer(show=False)
+def test_copy(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     df = pd.DataFrame({"a": [1, 2, 3], "b": [0, 0, 0]})
     table = viewer.add_table(df, copy=True, editable=True)
     table.cell[0, 0] = "11"
@@ -84,8 +84,8 @@ def test_copy():
     table.cell[0, 0] = "11"
     assert df.iloc[0, 0] == 11
 
-def test_cell_interface():
-    viewer = TableViewer(show=False)
+def test_cell_interface(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     df = pd.DataFrame({"a": [1, 2, 3], "b": [0, 0, 0]})
     table = viewer.add_table(df, copy=True, editable=True)
 
@@ -96,15 +96,15 @@ def test_cell_interface():
     mock.assert_called_once()
 
 @pytest.mark.parametrize("df", [df0, df1])
-def test_updating_data(df: pd.DataFrame):
-    viewer = TableViewer(show=False)
+def test_updating_data(df: pd.DataFrame, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(np.zeros((3, 3)))
     table.data = df
     assert str(table.data.iloc[0, 0]) == str(df.iloc[0, 0])
 
 @pytest.mark.parametrize("df", [df0, df1])
-def test_editing_original_data(df: pd.DataFrame):
-    viewer = TableViewer(show=False)
+def test_editing_original_data(df: pd.DataFrame, make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     df = df.copy()
     table = viewer.add_table(df, copy=False, editable=True)
     table.data.iloc[0, 1] = -1.
@@ -113,8 +113,8 @@ def test_editing_original_data(df: pd.DataFrame):
     assert df.iloc[1, 1] == 100.
 
 
-def test_size_change():
-    viewer = TableViewer(show=False)
+def test_size_change(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = Table(np.zeros((30, 30)))
     viewer.add_layer(table)
 
@@ -124,8 +124,8 @@ def test_size_change():
     assert table.table_shape == (40, 40)
 
 
-def test_move_location():
-    viewer = TableViewer(show=False)
+def test_move_location(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(df0)
 
     table.move_loc(1, "a")
@@ -137,8 +137,8 @@ def test_move_location():
     with pytest.raises(IndexError):
         table.move_iloc(5, 2)
 
-def test_assign():
-    viewer = TableViewer(show=False)
+def test_assign(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(df0)
     table.assign(c=[1, 2, 3])
     assert all(table.columns == ["a", "b", "c"])
@@ -149,8 +149,8 @@ def test_assign():
     assert all(table.data["b"] == [True, False, True])
     assert table.data.dtypes[1] == bool
 
-def test_dual_view():
-    viewer = TableViewer(show=False)
+def test_dual_view(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(df0)
 
     table.view_mode = "horizontal"
@@ -162,8 +162,8 @@ def test_dual_view():
     table.selections = [(slice(1, 2), slice(0, 2))]
     selection_equal(table.selections, [(slice(1, 2), slice(0, 2))])
 
-def test_popup_view():
-    viewer = TableViewer(show=False)
+def test_popup_view(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(df0)
 
     table.view_mode = "popup"
@@ -172,8 +172,8 @@ def test_popup_view():
     selection_equal(table.selections, [(slice(1, 2), slice(0, 2))])
     table.view_mode = "normal"
 
-def test_color_mapper():
-    viewer = TableViewer(show=False)
+def test_color_mapper(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(df0)
 
     @table.text_color.set("a")
@@ -184,8 +184,8 @@ def test_color_mapper():
     def _(val):
         return "green" if val < 20 else None
 
-def test_set_scalar_via_cell_interface():
-    viewer = TableViewer(show=False)
+def test_set_scalar_via_cell_interface(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(np.zeros((6, 6)), editable=True)
     table.cell[2:4, 2:4] = 1
     assert np.all(table.data.iloc[2:4, 2:4].values == 1)
@@ -194,8 +194,8 @@ def test_set_scalar_via_cell_interface():
     table.cell[:, 5] = 3
     assert np.all(table.data.iloc[:, 5].values == 3)
 
-def test_set_list_via_cell_interface():
-    viewer = TableViewer(show=False)
+def test_set_list_via_cell_interface(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(np.zeros((6, 6)), editable=True)
     table.cell[2:4, 2:4] = [[1, 1], [1, 1]]
     assert np.all(table.data.iloc[2:4, 2:4].values == 1)
@@ -204,8 +204,8 @@ def test_set_list_via_cell_interface():
     table.cell[:, 5] = [3] * 6
     assert np.all(table.data.iloc[:, 5].values == 3)
 
-def test_header_interface():
-    viewer = TableViewer(show=False)
+def test_header_interface(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(np.zeros((6, 6)), editable=True)
 
     assert table.index[0] == 0
@@ -219,16 +219,16 @@ def test_header_interface():
     assert table.data.columns[0] == "x"
 
 
-def test_cell_interface_in_spreadsheet():
-    viewer = TableViewer(show=False)
+def test_cell_interface_in_spreadsheet(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_spreadsheet(np.zeros((6, 6)))
     assert table.data.shape == (6, 6)
     table.cell[0:8, 0] = np.arange(8)
     assert table.data.shape == (8, 6)
     assert np.all(table.data.iloc[0:8, 0].values == np.arange(8))
 
-def test_cell_labels():
-    viewer = TableViewer(show=False)
+def test_cell_labels(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_spreadsheet(np.zeros((6, 6)))
     assert table.data.shape == (6, 6)
     table.cell.label[0, 0] = "a ="
@@ -238,8 +238,8 @@ def test_cell_labels():
     table.undo_manager.redo()
     assert table.cell.label[0, 0] == "a ="
 
-def test_cell_labeled_data():
-    viewer = TableViewer(show=False)
+def test_cell_labeled_data(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_spreadsheet(np.zeros((6, 6)))
     table.cell.set_labeled_data(0, 0, {"a:": 10, "b:": 20})
     assert table.cell.label[0, 0] == "a:"
@@ -258,8 +258,8 @@ def test_cell_labeled_data():
     assert table.cell[1, 0] == "20"
 
 
-def test_side_area():
-    viewer = TableViewer(show=False)
+def test_side_area(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_spreadsheet(np.zeros((6, 6)))
     @magicgui
     def f(x: int):
@@ -270,8 +270,8 @@ def test_side_area():
     line = QtW.QLineEdit()
     table.add_side_widget(line)
 
-def test_overlay_widget():
-    viewer = TableViewer(show=False)
+def test_overlay_widget(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_spreadsheet(np.zeros((6, 6)))
     @magicgui
     def f(x: int):

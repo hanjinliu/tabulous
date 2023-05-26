@@ -350,13 +350,14 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             raise UnreachableError(type(_row), type(_col))
 
         _sel_model = qtable_view._selection_model
-        # fmt: off
-        with _sel_model.blocked(), \
-            qtable_view._table_map.lock_pos(self.pos), \
-            table.undo_manager.merging(lambda _: f"{self.as_literal(dest=True)}"), \
-            table.proxy.released(keep_widgets=True):
+        with (
+            _sel_model.blocked(),
+            qtable_view._table_map.lock_pos(self.pos),
+            table.undo_manager.merging(lambda _: f"{self.as_literal(dest=True)}"),
+            table.proxy.released(keep_widgets=True),
+        ):
             qtable.setDataFrameValue(_row, _col, _out)
-        # fmt: on
+            qtable.model()._background_color_anim.start(_row, _col)
         self.last_destination = (_row, _col)
         return EvalResult(out, (_row, _col))
 
@@ -381,13 +382,15 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
                 err_repr,
                 dtype=object,
             )
-            # fmt: off
-            with qtable_view._selection_model.blocked(), \
-                qtable_view._table_map.lock_pos(self.pos), \
-                table.events.data.blocked(), \
-                table.proxy.released(keep_widgets=True):
-                table._qwidget.setDataFrameValue(rsl, csl, pd.DataFrame(val))
-            # fmt: on
+            # insert error values
+            with (
+                qtable_view._selection_model.blocked(),
+                qtable_view._table_map.lock_pos(self.pos),
+                table.events.data.blocked(),
+                table.proxy.released(keep_widgets=True),
+            ):
+                qtable.setDataFrameValue(rsl, csl, pd.DataFrame(val))
+                qtable.model()._background_color_anim.start(rsl, csl)
         return None
 
     def call(self):

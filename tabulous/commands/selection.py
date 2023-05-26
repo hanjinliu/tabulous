@@ -268,64 +268,64 @@ def set_column_dtype(viewer: TableViewerBase):
 
 def insert_row_above(viewer: TableViewerBase):
     """Insert a row above"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    if not sheet.isEditable():
+    sheet = _utils.get_spreadsheet(viewer)
+    if not sheet.editable:
         return _notify_editability()
-    row, _ = sheet._qtable_view._selection_model.current_index
-    return sheet.insertRows(row, 1)
+    row, _ = sheet.current_index
+    return sheet.native.insertRows(row, 1)
 
 
 def insert_row_below(viewer: TableViewerBase):
     """Insert a row below"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    if not sheet.isEditable():
+    sheet = _utils.get_spreadsheet(viewer)
+    if not sheet.editable:
         return _notify_editability()
-    row, _ = sheet._qtable_view._selection_model.current_index
-    return sheet.insertRows(row + 1, 1)
+    row, _ = sheet.current_index
+    return sheet.native.insertRows(row + 1, 1)
 
 
 def insert_column_left(viewer: TableViewerBase):
     """Insert a column left"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    if not sheet.isEditable():
+    sheet = _utils.get_spreadsheet(viewer)
+    if not sheet.editable:
         return _notify_editability()
-    _, col = sheet._qtable_view._selection_model.current_index
-    return sheet.insertColumns(col, 1)
+    _, col = sheet.current_index
+    return sheet.native.insertColumns(col, 1)
 
 
 def insert_column_right(viewer: TableViewerBase):
     """Insert a column right"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    if not sheet.isEditable():
+    sheet = _utils.get_spreadsheet(viewer)
+    if not sheet.editable:
         return _notify_editability()
-    _, col = sheet._qtable_view._selection_model.current_index
-    return sheet.insertColumns(col + 1, 1)
+    _, col = sheet.current_index
+    return sheet.native.insertColumns(col + 1, 1)
 
 
 def remove_selected_rows(viewer: TableViewerBase):
     """Remove selected rows"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    if not sheet.isEditable():
+    sheet = _utils.get_spreadsheet(viewer)
+    if not sheet.editable:
         return _notify_editability()
-    row, col = sheet._qtable_view._selection_model.current_index
-    _, rng = sheet._qtable_view._selection_model.range_under_index(row, col)
+    row, col = sheet.current_index
+    _, rng = sheet.native._qtable_view._selection_model.range_under_index(row, col)
     if rng is not None:
         row_range = rng[0]
-        sheet.removeRows(row_range.start, row_range.stop - row_range.start)
+        sheet.native.removeRows(row_range.start, row_range.stop - row_range.start)
         return None
     raise ValueError("No selection under cursor.")
 
 
 def remove_selected_columns(viewer: TableViewerBase):
     """Remove selected columns"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    if not sheet.isEditable():
+    sheet = _utils.get_spreadsheet(viewer)
+    if not sheet.editable:
         return _notify_editability()
-    row, col = sheet._qtable_view._selection_model.current_index
-    _, rng = sheet._qtable_view._selection_model.range_under_index(row, col)
+    row, col = sheet.current_index
+    _, rng = sheet.native._qtable_view._selection_model.range_under_index(row, col)
     if rng is not None:
         col_range = rng[1]
-        sheet.removeColumns(col_range.start, col_range.stop - col_range.start)
+        sheet.native.removeColumns(col_range.start, col_range.stop - col_range.start)
         return None
     raise ValueError("No selection under cursor.")
 

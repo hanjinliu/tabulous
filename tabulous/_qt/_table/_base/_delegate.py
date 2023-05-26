@@ -136,5 +136,10 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
         if option.state & QtW.QStyle.StateFlag.State_HasFocus:
             option.state = option.state & ~QtW.QStyle.StateFlag.State_HasFocus
 
+    # fmt: off
+    if TYPE_CHECKING:
+        def parent(self) -> _QTableViewEnhanced: ...
+    # fmt: on
+
     def parentTable(self) -> QBaseTable:
         return self.parent().parent()

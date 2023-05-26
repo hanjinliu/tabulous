@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable, Hashable, TYPE_CHECKING, cast
+from typing import Any, Callable, Hashable, TYPE_CHECKING, Iterable, cast
 import warnings
 from qtpy import QtCore, QtGui, QtWidgets as QtW
 from qtpy.QtCore import Qt, Signal
@@ -10,6 +10,7 @@ from tabulous.color import normalize_color, ColorType
 from tabulous._text_formatter import DefaultFormatter
 from tabulous._map_model import TableMapping
 from tabulous._utils import get_config
+from tabulous._qt._table._animation import CellColorAnimation
 
 if TYPE_CHECKING:
     from ._table_base import QBaseTable
@@ -40,11 +41,13 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             Qt.ItemDataRole.EditRole: self._data_edit,
             Qt.ItemDataRole.TextColorRole: self._data_text_color,
             Qt.ItemDataRole.ToolTipRole: self._data_tooltip,
-            Qt.ItemDataRole.BackgroundColorRole: self._data_background_color,
+            Qt.ItemDataRole.BackgroundColorRole: self._data_background_color_rendered,
             Qt.ItemDataRole.DecorationRole: self._data_decoration,
+            Qt.ItemDataRole.SizeHintRole: self._data_size_hint,
         }
 
         self._decorations: TableMapping[tuple[QtGui.QPixmap, str]] = TableMapping()
+        self._background_color_anim = CellColorAnimation(self)
 
     @property
     def df(self) -> pd.DataFrame:
@@ -168,11 +171,38 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
                 return QtGui.QColor(*rgba)
         return QtCore.QVariant()
 
+    def _data_background_color_rendered(self, index: QtCore.QModelIndex):
+        col = self._data_background_color(index)
+        anim = self._background_color_anim
+        if not anim.contains(index):
+            return col
+        if not isinstance(col, QtGui.QColor):
+            bg = self.parent().palette().color(QtGui.QPalette.ColorRole.Background)
+        else:
+            bg = col
+        col = self.parent()._qtable_view.selectionColor
+        return get_brush(self._data_size_hint(index), anim.value, bg, col)
+
     def _data_decoration(self, index: QtCore.QModelIndex):
         r, c = index.row(), index.column()
         if content := self._decorations.get((r, c), None):
             return content[0]
         return QtCore.QVariant()
+
+    def _data_size_hint(self, index: QtCore.QModelIndex):
+        r, c = index.row(), index.column()
+        tv = self.parent()._qtable_view
+        vsize = tv.verticalHeader()._section_sizes
+        hsize = tv.horizontalHeader()._section_sizes
+        if r < len(vsize):
+            lr = tv.verticalHeader()._section_sizes[r]
+        else:
+            lr = get_config().table.row_size
+        if c < len(hsize):
+            lc = tv.horizontalHeader()._section_sizes[c]
+        else:
+            lc = get_config().table.column_size
+        return QtCore.QSize(int(lc), int(lr))
 
     def set_cell_label(self, index: QtCore.QModelIndex, text: str | None):
         if text is None or text == "":
@@ -286,15 +316,25 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return None
 
     def insertColumns(
-        self, column: int, count: int, parent: QtCore.QModelIndex = None
+        self,
+        column: int,
+        count: int,
+        parent: QtCore.QModelIndex = None,
+        span: int | Iterable[int] | None = None,
     ) -> bool:
         self._decorations.insert_columns(column, count)
-        span = self.data(self.index(0, column - 1), Qt.ItemDataRole.SizeHintRole)
-        if isinstance(span, QtCore.QSize):
-            span = cast(QtCore.QSize, span).width()
+        if span is None:
+            span = self.data(self.index(0, column - 1), Qt.ItemDataRole.SizeHintRole)
+            if isinstance(span, QtCore.QSize):
+                span = cast(QtCore.QSize, span).width()
+            else:
+                span = get_config().table.column_size
+        header = self.parent()._qtable_view.horizontalHeader()
+        if hasattr(span, "__iter__"):
+            for s, r in zip(span, range(column, column + count)):
+                header.insertSection(r, 1, s)
         else:
-            span = get_config().table.column_size
-        self.parent()._qtable_view.horizontalHeader().insertSection(column, count, span)
+            header.insertSection(column, count, span)
         return super().insertColumns(column, count, parent)
 
     def removeColumns(
@@ -305,15 +345,25 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         return super().removeColumns(column, count, parent)
 
     def insertRows(
-        self, row: int, count: int, parent: QtCore.QModelIndex = None
+        self,
+        row: int,
+        count: int,
+        parent: QtCore.QModelIndex = None,
+        span: int | Iterable[int] | None = None,
     ) -> bool:
         self._decorations.insert_rows(row, count)
-        span = self.data(self.index(0, row - 1), Qt.ItemDataRole.SizeHintRole)
-        if isinstance(span, QtCore.QSize):
-            span = cast(QtCore.QSize, span).height()
+        if span is None:
+            span = self.data(self.index(0, row - 1), Qt.ItemDataRole.SizeHintRole)
+            if isinstance(span, QtCore.QSize):
+                span = cast(QtCore.QSize, span).height()
+            else:
+                span = get_config().table.row_size
+        header = self.parent()._qtable_view.verticalHeader()
+        if hasattr(span, "__iter__"):
+            for s, r in zip(span, range(row, row + count)):
+                header.insertSection(r, 1, s)
         else:
-            span = get_config().table.row_size
-        self.parent()._qtable_view.verticalHeader().insertSection(row, count, span)
+            header.insertSection(row, count, span)
         return super().insertRows(row, count, parent)
 
     def removeRows(
@@ -348,3 +398,16 @@ class DataFrameModel(AbstractDataFrameModel):
 
     def columnCount(self, parent=None):
         return self.df.shape[1]
+
+
+def get_brush(size: QtCore.QSize, time: float, c0: QtGui.QColor, c1: QtGui.QColor):
+    length = max(size.width(), size.height())
+    dh = 6 / length
+    c1.setAlpha(96)
+    grad = QtGui.QLinearGradient(0, 0, length, length)
+    grad.setColorAt(0.0, c0)
+    grad.setColorAt(max(time - dh, 0.0), c0)
+    grad.setColorAt(time, c1)
+    grad.setColorAt(min(time + dh, 1.0), c0)
+    grad.setColorAt(1.0, c0)
+    return QtGui.QBrush(grad)

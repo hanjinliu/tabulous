@@ -3,8 +3,8 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 import pytest
 
-def test_validator():
-    viewer = TableViewer(show=False)
+def test_validator(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(
         {"number": [1, 2, 3], "char": ["a", "b", "c"]},
         editable=True,
@@ -22,8 +22,8 @@ def test_validator():
         table.cell[0, 0] = -1
     assert table.cell[0, 0] == 2
 
-def test_validator_on_paste():
-    viewer = TableViewer(show=False)
+def test_validator_on_paste(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table(
         {"a": [1, 2, 3], "b": [1, 2, 3]},
         editable=True,

@@ -4,8 +4,8 @@ import pandas as pd
 import pytest
 from typing import Callable
 
-def test_setting_column_dtype():
-    viewer = TableViewer(show=False)
+def test_setting_column_dtype(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet({"number": [1, 2, 3], "char": ["a", "b", "a"]})
     assert sheet.dtypes == {}
 
@@ -23,24 +23,24 @@ def test_setting_column_dtype():
     sheet.undo_manager.undo()
     assert sheet.dtypes == {}
 
-def test_datetime():
-    viewer = TableViewer(show=False)
+def test_datetime(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet({"datetime": ["2020-01-01", "2020-01-02", "2020-01-03"]})
     assert sheet.data.dtypes[0] == "object"
 
     sheet.dtypes["datetime"] = "datetime64[ns]"
     assert sheet.data.dtypes[0] == "datetime64[ns]"
 
-def test_timedelta():
-    viewer = TableViewer(show=False)
+def test_timedelta(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet({"timedelta": ["1d", "2d", "3d"]})
     assert sheet.data.dtypes[0] == "object"
 
     sheet.dtypes["timedelta"] = "timedelta64[ns]"
     assert sheet.data.dtypes[0] == "timedelta64[ns]"
 
-def test_updating_column_name():
-    viewer = TableViewer(show=False)
+def test_updating_column_name(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet({"number": [1, 2, 3], "char": ["a", "b", "a"]})
 
     sheet.dtypes["number"] = "float32"
@@ -52,8 +52,8 @@ def test_updating_column_name():
 
     assert sheet.dtypes == {"new_name": "float32", "char": "category"}
 
-def test_deleting_column_name():
-    viewer = TableViewer(show=False)
+def test_deleting_column_name(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet({"number": [1, 2, 3], "char": ["a", "b", "a"]})
 
     sheet.dtypes["number"] = "float32"
@@ -61,7 +61,7 @@ def test_deleting_column_name():
 
     assert sheet.dtypes == {"number": "float32", "char": "category"}
 
-    sheet.native.removeColumns(0, 1)
+    sheet.columns.remove(0)
 
     assert sheet.dtypes == {"char": "category"}
 
@@ -74,8 +74,8 @@ def test_deleting_column_name():
      ("interval", lambda n: pd.interval_range(0, periods=n, freq=1)),
      ],
 )
-def test_can_parse(dtype, fn: Callable[[int], pd.Series]):
-    viewer = TableViewer(show=False)
+def test_can_parse(dtype, fn: Callable[[int], pd.Series], make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     data = fn(5)
     sheet = viewer.add_spreadsheet({"c": data})
     sheet.dtypes["c"] = dtype

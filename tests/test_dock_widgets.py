@@ -10,8 +10,8 @@ def dataframe_equal(a, b):
         return all(dataframe_equal(a0, b0) for a0, b0 in zip(a, b))
     return a.equals(b)
 
-def test_add_and_remove():
-    viewer = TableViewer(show=False)
+def test_add_and_remove(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     name = "NAME"
     btn = PushButton(text="test_button", name=name)
     dock = viewer.add_dock_widget(btn)
@@ -20,9 +20,9 @@ def test_add_and_remove():
     viewer.remove_dock_widget(name)
     assert name not in list(viewer._dock_widgets.keys())
 
-def test_table_choice():
+def test_table_choice(make_tabulous_viewer):
     from tabulous.types import TableData
-    viewer = TableViewer(show=False)
+    viewer: TableViewer = make_tabulous_viewer()
 
     @magicgui
     def f(df: TableData):
@@ -46,9 +46,9 @@ def test_table_choice():
     viewer.tables.pop()
     assert dataframe_equal(f["df"].choices, ())
 
-def test_layer_update():
+def test_layer_update(make_tabulous_viewer):
     from tabulous.types import TableData
-    viewer = TableViewer(show=False)
+    viewer: TableViewer = make_tabulous_viewer()
 
     @magicgui
     def f(df: TableData) -> TableData:
@@ -67,9 +67,10 @@ def test_layer_update():
     f.call_button.clicked()
     assert len(viewer.tables) == 2
 
-def test_table_column_choice():
+def test_table_column_choice(make_tabulous_viewer):
     from tabulous.types import TableColumn
-    viewer = TableViewer(show=False)
+
+    viewer: TableViewer = make_tabulous_viewer()
 
     @magicgui
     def f(df: TableColumn):

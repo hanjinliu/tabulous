@@ -1,12 +1,12 @@
-from tabulous import TableViewerWidget
+from tabulous import TableViewer
 import numpy as np
 from numpy import testing
 
 def assert_equal(a, b):
     return testing.assert_equal(np.asarray(a), np.asarray(b))
 
-def test_copy_and_paste_1x1():
-    viewer = TableViewerWidget(show=False)
+def test_copy_and_paste_1x1(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table({
         "a": [0, 1, 2, 3, 4],
         "b": [2, 4, 6, 8, 10],
@@ -24,8 +24,8 @@ def test_copy_and_paste_1x1():
     assert table.data.iloc[sl_dst] == old_value
 
 
-def test_copy_and_paste_same_shape():
-    viewer = TableViewerWidget(show=False)
+def test_copy_and_paste_same_shape(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table({
         "a": [0, 1, 2, 3, 4],
         "b": [2, 4, 6, 8, 10],
@@ -44,8 +44,8 @@ def test_copy_and_paste_same_shape():
     assert_equal(table.data.iloc[sl_dst], old_value)
 
 
-def test_copy_array_and_paste_single():
-    viewer = TableViewerWidget(show=False)
+def test_copy_array_and_paste_single(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_table({
         "a": [0, 1, 2, 3, 4],
         "b": [2, 4, 6, 8, 10],
@@ -63,8 +63,8 @@ def test_copy_array_and_paste_single():
     table.undo_manager.undo()
     assert_equal(table.data.iloc[sl_dst], old_value)
 
-def test_paste_with_column_selected():
-    viewer = TableViewerWidget(show=False)
+def test_paste_with_column_selected(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     table = viewer.add_spreadsheet({
         "a": [0, 1, 2, 3, 4],
         "b": [2, 4, 6, 8, 10],
@@ -76,8 +76,8 @@ def test_paste_with_column_selected():
     viewer.paste_data()
     assert_equal(table.data.iloc[:, 0], np.full(5, -1))
 
-def test_paste_with_filter():
-    viewer = TableViewerWidget(show=False)
+def test_paste_with_filter(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet({
         "a": [0, 1, 2, 3, 4],
         "b": ["a", "b", "c", "d", "e"],

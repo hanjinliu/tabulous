@@ -122,10 +122,8 @@ class SelectionRanges(_TableRanges):
                 and csl.start is not None
                 and (csl.stop - csl.start) == 1
             ):
-                self.parent._qwidget._qtable_view._selection_model.current_index = (
-                    rsl.start,
-                    csl.start,
-                )
+                _smodel = self.parent._qwidget._qtable_view._selection_model
+                _smodel.current_index = (rsl.start, csl.start)
 
 
 class HighlightRanges(_TableRanges):

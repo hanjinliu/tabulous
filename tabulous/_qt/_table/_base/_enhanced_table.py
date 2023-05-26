@@ -128,14 +128,6 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._selection_color = QtGui.QColor(120, 120, 170, 255)
         self._highlight_color = QtGui.QColor(255, 0, 0, 86)
 
-    # fmt: off
-    if TYPE_CHECKING:
-        def model(self) -> AbstractDataFrameModel: ...
-        def itemDelegate(self) -> TableItemDelegate: ...
-        def verticalHeader(self) -> QVerticalHeaderView: ...
-        def horizontalHeader(self) -> QHorizontalHeaderView: ...
-    # fmt: on
-
     def load_config(self, cfg: TabulousConfig | None = None) -> None:
         from tabulous._utils import get_config
 
@@ -602,8 +594,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         # draw selections
         s_color = self._get_selection_color()
         for i, rect in enumerate(self._rect_from_ranges(self._selection_model._ranges)):
-            last_one = nsel == i + 1
-            pen = QtGui.QPen(s_color, 2 + int(last_one) * focused)
+            if nsel == i + 1:
+                pen = QtGui.QPen(s_color, 2 + focused)
+            else:
+                pen = QtGui.QPen(s_color, 2)
             painter.setPen(pen)
             painter.drawRect(rect)
 
@@ -690,6 +684,22 @@ class _QTableViewEnhanced(QtW.QTableView):
         line.show()
         line.setFocus()
         return line
+
+    # fmt: off
+    if TYPE_CHECKING:
+        def model(self) -> AbstractDataFrameModel: ...
+        def itemDelegate(self) -> TableItemDelegate: ...
+        def verticalHeader(self) -> QVerticalHeaderView: ...
+        def horizontalHeader(self) -> QHorizontalHeaderView: ...
+        @property
+        def highlightColor(self) -> QtGui.QColor: ...
+        @highlightColor.setter
+        def highlightColor(self, color: QtGui.QColor): ...
+        @property
+        def selectionColor(self) -> QtGui.QColor: ...
+        @selectionColor.setter
+        def selectionColor(self, color: QtGui.QColor): ...
+    # fmt: on
 
 
 def _color_cycle() -> Iterator[QtGui.QColor]:
