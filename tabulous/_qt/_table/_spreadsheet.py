@@ -15,6 +15,7 @@ from collections_undo import arguments
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from ._animation import RowAnimation, ColumnAnimation
 from tabulous._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
+from tabulous._utils import TabulousConfig
 from tabulous.color import normalize_color
 from tabulous.types import ItemInfo
 from tabulous._text_formatter import DefaultFormatter
@@ -258,6 +259,12 @@ class QSpreadSheet(QMutableSimpleTable):
             return self._proxy.apply(df)
         else:
             return self.model().df
+
+    def load_config(self, cfg: TabulousConfig | None = None):
+        """Load new config."""
+        self._anim_row.set_animate(cfg.window.animate)
+        self._anim_col.set_animate(cfg.window.animate)
+        return super().load_config(cfg)
 
     @QMutableSimpleTable._mgr.interface
     def setDataFrame(self, data: pd.DataFrame) -> None:

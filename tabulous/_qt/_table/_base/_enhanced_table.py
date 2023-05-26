@@ -602,8 +602,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         # draw selections
         s_color = self._get_selection_color()
         for i, rect in enumerate(self._rect_from_ranges(self._selection_model._ranges)):
-            last_one = nsel == i + 1
-            pen = QtGui.QPen(s_color, 2 + int(last_one) * focused)
+            if nsel == i + 1:
+                pen = QtGui.QPen(s_color, 2 + focused)
+            else:
+                pen = QtGui.QPen(s_color, 2)
             painter.setPen(pen)
             painter.drawRect(rect)
 

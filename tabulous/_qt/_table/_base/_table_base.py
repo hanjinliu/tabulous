@@ -23,6 +23,7 @@ from tabulous._dtype import isna
 from tabulous._qt._undo import QtUndoManager, fmt_slice
 from tabulous._qt._svg import QColoredSVGIcon
 from tabulous._keymap import QtKeys, QtKeyMap
+from tabulous._utils import TabulousConfig
 from tabulous._qt._action_registry import QActionRegistry
 from tabulous.types import ProxyType, ItemInfo, HeaderInfo, EvalInfo
 from tabulous.exceptions import (
@@ -225,6 +226,10 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def zoom(self) -> float:
         """Get current zoom factor."""
         return self._qtable_view.zoom()
+
+    def load_config(self, cfg: TabulousConfig | None = None):
+        """Load new config."""
+        return self._qtable_view.load_config(cfg)
 
     def setZoom(self, value: float) -> None:
         """Set zoom factor."""

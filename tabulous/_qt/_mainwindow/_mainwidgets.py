@@ -315,7 +315,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                         toolbar._corner_widget.hide()
 
             for table in self._table_viewer.tables:
-                table._qwidget._qtable_view.load_config(cfg)
+                table._qwidget.load_config(cfg)
         return None
 
 
