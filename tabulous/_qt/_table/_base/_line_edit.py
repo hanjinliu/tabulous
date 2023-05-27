@@ -569,6 +569,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         if selop.area(_df_ori) > 1:
             to_be_added = selop.fmt("df")
         else:
+            # TODO: not working with 1x1
             to_be_added = selop.resolve_indices(_df_ori, (1, 1)).fmt_scalar("df")
 
         # add the representation to the text at the proper position

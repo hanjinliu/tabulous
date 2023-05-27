@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Generic, TypeVar
+from typing import TYPE_CHECKING, Callable, Generic, SupportsIndex, TypeVar
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from tabulous._utils import get_config
@@ -77,13 +77,18 @@ class CellColorAnimation(_CellAnimation):
     DURATION = 240
 
     def start(self, r: slice, c: slice):
-        if not (isinstance(r, slice) and isinstance(c, slice)):
-            return
+        if not isinstance(r, slice):
+            if not isinstance(r, SupportsIndex):
+                return
+            r = slice(r, r + 1)
+        if not isinstance(c, slice):
+            if not isinstance(c, SupportsIndex):
+                return
+            c = slice(c, c + 1)
         if self._use_anim:
             self._ranges = self._ranges.with_slices(r, c)
-            self._draw_region = self._draw_region.united(
-                self._get_rect(self._ranges[-1])
-            )
+            new_rect = self._get_rect(self._ranges[-1])
+            self._draw_region = self._draw_region.united(new_rect)
             self._is_running = True
             self._anim.setStartValue(0.0)
             self._anim.setEndValue(1.0)
