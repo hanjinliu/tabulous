@@ -202,7 +202,8 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             lc = tv.horizontalHeader()._section_sizes[c]
         else:
             lc = get_config().table.column_size
-        return QtCore.QSize(int(lc), int(lr))
+        zoom = self.parent().zoom()
+        return QtCore.QSize(int(lc * zoom), int(lr * zoom))
 
     def set_cell_label(self, index: QtCore.QModelIndex, text: str | None):
         if text is None or text == "":
