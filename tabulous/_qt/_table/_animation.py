@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from tabulous._utils import get_config
 from tabulous._range import MultiRectRange, RectRange
 
-from qtpy import QtCore, QtWidgets as QtW
+from qtpy import QtCore, QtWidgets as QtW, QtGui
 
 if TYPE_CHECKING:
     from ._base import QBaseTable
@@ -61,11 +61,15 @@ class _Animation(ABC, Generic[_Q]):
 class _CellAnimation(_Animation["AbstractDataFrameModel"]):
     def __init__(self, parent: AbstractDataFrameModel):
         super().__init__(parent)
-        self._ranges: MultiRectRange = MultiRectRange([])
+        self._ranges = MultiRectRange([])
+        self._draw_rects: list[QtCore.QRect] = []
         self._anim.finished.connect(self._finished)
+        self._cache = {}
 
     def _on_animate(self, ratio: float):
-        self._parent.parent().update()
+        qtable = self._parent.parent()
+        for rect in self._draw_rects:
+            qtable.update(rect)
 
     def _finished(self):
         pass
@@ -79,20 +83,61 @@ class CellColorAnimation(_CellAnimation):
             return
         if self._use_anim:
             self._ranges = self._ranges.with_slices(r, c)
+            self._draw_rects.append(self._get_rect(self._ranges[-1]))
             self._is_running = True
             self._anim.setStartValue(0.0)
             self._anim.setEndValue(1.0)
             self._anim.start()
         return None
 
+    def _get_rect(self, rng: RectRange) -> QtCore.QRect:
+        """Convert a RectRange into a QRect."""
+        rsl, csl = rng.as_iloc()
+        r0: int = rsl.start if rsl.start is None else 0
+        r1: int = rsl.stop if rsl.stop is None else self._parent.df.shape[0]
+        c0: int = csl.start if csl.start is None else 0
+        c1: int = csl.stop if csl.stop is None else self._parent.df.shape[1]
+        qtable_view = self._parent.parent()._qtable_view
+        rect0 = qtable_view.model().index(r0, c0)
+        rect1 = qtable_view.model().index(r1, c1)
+        return qtable_view.visualRect(rect0) | qtable_view.visualRect(rect1)
+
     def _finished(self):
         self._is_running = False
         self._ranges = MultiRectRange([])
+        self._cache.clear()
+        self._draw_rects.clear()
 
     def contains(self, index: QtCore.QModelIndex) -> bool:
+        """True if the index is in the current animation range."""
         nr, nc = self._parent.df.shape
         rng = self._ranges.intersection(RectRange(slice(0, nr), slice(0, nc)))
         return (index.row(), index.column()) in rng
+
+    def get_brush(self, size: QtCore.QSize, time: float, bg) -> QtGui.QBrush:
+        """Return the brush for the given size and time, with cache support."""
+        key = (size.width(), size.height(), time)
+        if val := self._cache.get(key, None):
+            return val
+        qtable = self._parent.parent()
+
+        is_qvariant = not isinstance(bg, QtGui.QColor)
+        if is_qvariant:
+            bg = qtable.palette().color(QtGui.QPalette.ColorRole.Background)
+        col = qtable._qtable_view.selectionColor
+        length = max(size.width(), size.height())
+        dh = 4 / length
+        col.setAlpha(96)
+        grad = QtGui.QLinearGradient(0, 0, length, length)
+        grad.setColorAt(0.0, bg)
+        grad.setColorAt(max(time - dh, 0.0), bg)
+        grad.setColorAt(time, col)
+        grad.setColorAt(min(time + dh, 1.0), bg)
+        grad.setColorAt(1.0, bg)
+        brush = QtGui.QBrush(grad)
+        if is_qvariant:
+            self._cache[key] = brush
+        return brush
 
 
 class _RowColumnAnimation(_Animation["QBaseTable"]):

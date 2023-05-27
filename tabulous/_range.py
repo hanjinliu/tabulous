@@ -231,6 +231,9 @@ class MultiRectRange(RectRange):
     def __iter__(self) -> Iterator[RectRange]:
         return iter(self._ranges)
 
+    def __getitem__(self, idx: int) -> RectRange:
+        return self._ranges[idx]
+
     def includes(self, other: RectRange) -> bool:
         if isinstance(other, MultiRectRange):
             return all(self.includes(rng) for rng in other)

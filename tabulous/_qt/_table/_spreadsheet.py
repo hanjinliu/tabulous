@@ -325,12 +325,6 @@ class QSpreadSheet(QMutableSimpleTable):
             return self.tableSlice()
         return self._proxy.apply(self.tableSlice(), ref=self.getDataFrame)
 
-    def _scroll_bar_sizehint(self) -> tuple[int, int]:
-        # TODO: cache the sum values
-        len_v = np.sum(self._qtable_view.verticalHeader()._section_sizes)
-        len_h = np.sum(self._qtable_view.horizontalHeader()._section_sizes)
-        return (int(len_v), int(len_h))
-
     __delete = object()
 
     @QMutableSimpleTable._mgr.interface

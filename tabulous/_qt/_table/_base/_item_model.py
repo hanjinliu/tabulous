@@ -176,12 +176,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         anim = self._background_color_anim
         if not anim.contains(index):
             return col
-        if not isinstance(col, QtGui.QColor):
-            bg = self.parent().palette().color(QtGui.QPalette.ColorRole.Background)
-        else:
-            bg = col
-        col = self.parent()._qtable_view.selectionColor
-        return get_brush(self._data_size_hint(index), anim.value, bg, col)
+        return anim.get_brush(self._data_size_hint(index), anim.value, col)
 
     def _data_decoration(self, index: QtCore.QModelIndex):
         r, c = index.row(), index.column()
@@ -399,16 +394,3 @@ class DataFrameModel(AbstractDataFrameModel):
 
     def columnCount(self, parent=None):
         return self.df.shape[1]
-
-
-def get_brush(size: QtCore.QSize, time: float, c0: QtGui.QColor, c1: QtGui.QColor):
-    length = max(size.width(), size.height())
-    dh = 6 / length
-    c1.setAlpha(96)
-    grad = QtGui.QLinearGradient(0, 0, length, length)
-    grad.setColorAt(0.0, c0)
-    grad.setColorAt(max(time - dh, 0.0), c0)
-    grad.setColorAt(time, c1)
-    grad.setColorAt(min(time + dh, 1.0), c0)
-    grad.setColorAt(1.0, c0)
-    return QtGui.QBrush(grad)
