@@ -96,6 +96,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.setHorizontalHeader(hheader)
 
         vheader.resize(36, vheader.height())
+        _valign = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+        vheader.setDefaultAlignment(_valign)
         vheader.setMinimumSectionSize(5)
         hheader.setMinimumSectionSize(5)
 

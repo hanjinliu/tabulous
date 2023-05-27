@@ -253,7 +253,7 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             if role == Qt.ItemDataRole.DisplayRole:
                 if section >= self.df.index.size:
                     return None
-                text = str(self.df.index[section])
+                text = str(self.df.index[section]) + " "
                 return text
             elif role == Qt.ItemDataRole.ToolTipRole:
                 if section < self.df.index.size:
