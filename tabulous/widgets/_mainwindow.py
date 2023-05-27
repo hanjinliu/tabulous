@@ -347,6 +347,11 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         return self.add_layer(table, update=update)
 
     def add_layer(self, input: TableBase, *, update: bool = False):
+        """Add any table object to the viewer."""
+        if table := self.current_table:
+            table_has_focus = table.native._qtable_view.hasFocus()
+        else:
+            table_has_focus = False
         if (
             update
             and (table := self.tables.get(input.name, None))
@@ -359,7 +364,8 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
 
         if self._table_initializer is not None:
             self._table_initializer.initialize_table(input)
-        self._qwidget.setCellFocus()
+        if table_has_focus:
+            self._qwidget.setCellFocus()
         return input
 
     def open(self, path: PathLike, *, type: TableType | str = TableType.table) -> None:

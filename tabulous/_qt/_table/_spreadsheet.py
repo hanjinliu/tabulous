@@ -15,7 +15,7 @@ from collections_undo import arguments
 from ._base import AbstractDataFrameModel, QMutableSimpleTable
 from ._animation import RowAnimation, ColumnAnimation
 from tabulous._dtype import get_converter, get_dtype, DTypeMap, DefaultValidator
-from tabulous._utils import TabulousConfig
+from tabulous._utils import TabulousConfig, get_config
 from tabulous.color import normalize_color
 from tabulous.types import ItemInfo
 from tabulous._text_formatter import DefaultFormatter
@@ -25,8 +25,6 @@ if TYPE_CHECKING:
     from magicgui.widgets._bases import ValueWidget
 
 # More rows/columns will be displayed
-_OUT_OF_BOUND_R = 60
-_OUT_OF_BOUND_C = 10
 _STRING_DTYPE = get_dtype("string")
 _EMPTY = object()
 _EXP_FLOAT = re.compile(r"[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)")
@@ -69,16 +67,10 @@ class SpreadSheetModel(AbstractDataFrameModel):
         self._df = data
 
     def rowCount(self, parent=None):
-        return min(
-            self._df.shape[0] + _OUT_OF_BOUND_R,
-            self._table_config.max_row_count,
-        )
+        return self._table_config.max_row_count
 
     def columnCount(self, parent=None):
-        return min(
-            self._df.shape[1] + _OUT_OF_BOUND_C,
-            self._table_config.max_column_count,
-        )
+        return self._table_config.max_column_count
 
     def _data_display(self, index: QtCore.QModelIndex):
         """Display role."""
@@ -179,13 +171,31 @@ class QSpreadSheet(QMutableSimpleTable):
     def __init__(self, parent=None, data: pd.DataFrame | None = None):
         from tabulous._utils import get_config
 
-        animate = get_config().window.animate
+        cfg = get_config()
+
+        if data is not None:
+            if (
+                cfg.table.max_row_count < data.shape[0]
+                or cfg.table.max_column_count < data.shape[1]
+            ):
+                _max_size = (cfg.table.max_row_count, cfg.table.max_column_count)
+                raise ValueError(
+                    f"Input table data size {data.shape} exceeds the maximum "
+                    f"size {_max_size}."
+                )
 
         self._columns_dtype = DTypeMap()
         super().__init__(parent, data)
         self._qtable_view.verticalHeader().setMinimumWidth(20)
+        animate = cfg.window.animate
         self._anim_row = RowAnimation(self).set_animate(animate)
         self._anim_col = ColumnAnimation(self).set_animate(animate)
+
+        # initialize section spans
+        rspan, cspan = cfg.table.row_size, cfg.table.column_size
+        nr, nc = self._data_raw.shape
+        self._qtable_view.verticalHeader().insertSection(0, nr, rspan)
+        self._qtable_view.horizontalHeader().insertSection(0, nc, cspan)
 
     if TYPE_CHECKING:
 
@@ -277,10 +287,6 @@ class QSpreadSheet(QMutableSimpleTable):
         elif self._data_raw.columns.dtype.kind in "iuf":
             self._data_raw.columns = self._data_raw.columns.astype(str)
 
-        self.model().setShape(
-            data.index.size + _OUT_OF_BOUND_R,
-            data.columns.size + _OUT_OF_BOUND_C,
-        )
         self._data_cache = None
         self.setProxy(None)
         self.refreshTable()
@@ -319,6 +325,12 @@ class QSpreadSheet(QMutableSimpleTable):
             return self.tableSlice()
         return self._proxy.apply(self.tableSlice(), ref=self.getDataFrame)
 
+    def _scroll_bar_sizehint(self) -> tuple[int, int]:
+        # TODO: cache the sum values
+        len_v = np.sum(self._qtable_view.verticalHeader()._section_sizes)
+        len_h = np.sum(self._qtable_view.horizontalHeader()._section_sizes)
+        return (int(len_v), int(len_h))
+
     __delete = object()
 
     @QMutableSimpleTable._mgr.interface
@@ -335,12 +347,7 @@ class QSpreadSheet(QMutableSimpleTable):
             to_delete, axis=1, inplace=False
         )
 
-        nr, nc = self._data_raw.shape
         self.model().df = self._data_raw
-        self.model().setShape(
-            nr + _OUT_OF_BOUND_R,
-            nc + _OUT_OF_BOUND_C,
-        )
         self.setProxy(None)
         self.refreshTable()
         # NOTE: ItemInfo cannot have list indices.
@@ -416,9 +423,6 @@ class QSpreadSheet(QMutableSimpleTable):
             super().setDataFrameValue(r, c, value)
             self._set_proxy(self._proxy)
 
-        self._qtable_view.verticalHeader().resize(
-            self._qtable_view.verticalHeader().sizeHint()
-        )
         return None
 
     def setLabeledData(self, r: slice, c: slice, value: pd.Series):
@@ -436,9 +440,6 @@ class QSpreadSheet(QMutableSimpleTable):
             super().setLabeledData(r, c, value)
             self._set_proxy(self._proxy)
 
-        self._qtable_view.verticalHeader().resize(
-            self._qtable_view.verticalHeader().sizeHint()
-        )
         return None
 
     def _pre_set_array(self, r: slice, c: slice, _value: pd.DataFrame):
@@ -463,26 +464,25 @@ class QSpreadSheet(QMutableSimpleTable):
         """Expand the data frame by adding empty rows and columns."""
         if not self.isEditable():
             return None
+        nr, nc = self._data_raw.shape
         self._data_raw = _pad_dataframe(self._data_raw, nrows, ncols)
         if self._proxy.proxy_type != "none":
             self._set_proxy(self._proxy)  # need update!
-        new_shape = self._data_raw.shape
-        self.model().setShape(
-            new_shape[0] + _OUT_OF_BOUND_R,
-            new_shape[1] + _OUT_OF_BOUND_C,
-        )
+        cfg = get_config()
+
+        rspan, cspan = cfg.table.row_size, cfg.table.column_size
+        self._qtable_view.verticalHeader().insertSection(nr, nrows, rspan)
+        self._qtable_view.horizontalHeader().insertSection(nc, ncols, cspan)
         return None
 
     @expandDataFrame.undo_def
     def expandDataFrame(self, nrows: int, ncols: int):
         nr, nc = self._data_raw.shape
-        model = self.model()
         self._data_raw = self._data_raw.iloc[: nr - nrows, : nc - ncols]
-        model.setShape(
-            self._data_raw.shape[0] + _OUT_OF_BOUND_R,
-            self._data_raw.shape[1] + _OUT_OF_BOUND_C,
-        )
         self._set_proxy(self._proxy)
+
+        self._qtable_view.verticalHeader().removeSection(nr, nrows)
+        self._qtable_view.horizontalHeader().insertSection(nc, ncols)
         self._data_cache = None
         return None
 

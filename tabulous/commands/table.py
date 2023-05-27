@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 def new_spreadsheet(viewer: TableViewerBase):
     """Add an empty spreadsheet."""
     viewer.add_spreadsheet()
+    viewer.native.setCellFocus()
 
 
 def copy_as_table(viewer: TableViewerBase):
