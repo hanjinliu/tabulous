@@ -62,28 +62,28 @@ class _CellAnimation(_Animation["AbstractDataFrameModel"]):
     def __init__(self, parent: AbstractDataFrameModel):
         super().__init__(parent)
         self._ranges = MultiRectRange([])
-        self._draw_rects: list[QtCore.QRect] = []
+        self._draw_region = QtGui.QRegion()
         self._anim.finished.connect(self._finished)
-        self._cache = {}
 
     def _on_animate(self, ratio: float):
         qtable = self._parent.parent()
-        for rect in self._draw_rects:
-            qtable.update(rect)
+        qtable.update(self._draw_region)
 
     def _finished(self):
         pass
 
 
 class CellColorAnimation(_CellAnimation):
-    DURATION = 300
+    DURATION = 240
 
     def start(self, r: slice, c: slice):
         if not (isinstance(r, slice) and isinstance(c, slice)):
             return
         if self._use_anim:
             self._ranges = self._ranges.with_slices(r, c)
-            self._draw_rects.append(self._get_rect(self._ranges[-1]))
+            self._draw_region = self._draw_region.united(
+                self._get_rect(self._ranges[-1])
+            )
             self._is_running = True
             self._anim.setStartValue(0.0)
             self._anim.setEndValue(1.0)
@@ -105,8 +105,7 @@ class CellColorAnimation(_CellAnimation):
     def _finished(self):
         self._is_running = False
         self._ranges = MultiRectRange([])
-        self._cache.clear()
-        self._draw_rects.clear()
+        self._draw_region = QtGui.QRegion()
 
     def contains(self, index: QtCore.QModelIndex) -> bool:
         """True if the index is in the current animation range."""
@@ -116,11 +115,7 @@ class CellColorAnimation(_CellAnimation):
 
     def get_brush(self, size: QtCore.QSize, time: float, bg) -> QtGui.QBrush:
         """Return the brush for the given size and time, with cache support."""
-        key = (size.width(), size.height(), time)
-        if val := self._cache.get(key, None):
-            return val
         qtable = self._parent.parent()
-
         is_qvariant = not isinstance(bg, QtGui.QColor)
         if is_qvariant:
             bg = qtable.palette().color(QtGui.QPalette.ColorRole.Background)
@@ -135,8 +130,6 @@ class CellColorAnimation(_CellAnimation):
         grad.setColorAt(min(time + dh, 1.0), bg)
         grad.setColorAt(1.0, bg)
         brush = QtGui.QBrush(grad)
-        if is_qvariant:
-            self._cache[key] = brush
         return brush
 
 
