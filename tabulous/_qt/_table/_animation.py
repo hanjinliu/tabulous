@@ -66,8 +66,8 @@ class _CellAnimation(_Animation["AbstractDataFrameModel"]):
         self._anim.finished.connect(self._finished)
 
     def _on_animate(self, ratio: float):
-        qtable = self._parent.parent()
-        qtable.update(self._draw_region)
+        qtable = self._parent.parent()._qtable_view
+        qtable.viewport().update(self._draw_region)
 
     def _finished(self):
         pass
