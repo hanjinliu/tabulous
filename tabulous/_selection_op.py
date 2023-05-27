@@ -250,11 +250,11 @@ class ILocSelOp(SelectionOperator):
         rsel, csel = self.args
         if isinstance(rsel, slice):
             if _has_none(rsel) or rsel.start != rsel.stop - 1:
-                raise ValueError("Cannot format as a scalar value.")
+                raise ValueError(f"Cannot format {(rsel, csel)} as a scalar value.")
             rsel = rsel.start
         if isinstance(csel, slice):
             if _has_none(csel) or csel.start != csel.stop - 1:
-                raise ValueError("Cannot format as a scalar value.")
+                raise ValueError(f"Cannot format {(rsel, csel)} as a scalar value.")
             csel = csel.start
         return f"{df_expr}.iloc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
 

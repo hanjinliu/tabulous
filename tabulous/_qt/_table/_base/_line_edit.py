@@ -566,11 +566,13 @@ class QCellLiteralEdit(_QTableLineEdit):
             return None
 
         # get string that represents the selection
-        if selop.area(_df_ori) > 1:
+        if selop.area(_df_ori) > 1 or column_selected:
             to_be_added = selop.fmt("df")
         else:
-            # TODO: not working with 1x1
-            to_be_added = selop.resolve_indices(_df_ori, (1, 1)).fmt_scalar("df")
+            # NOTE: Selecting an entire column with a single cell is not allowed
+            # by fmt_scalar.
+            resolved = selop.resolve_indices(_df_ori, (1, 1))
+            to_be_added = resolved.fmt_scalar("df")
 
         # add the representation to the text at the proper position
         if cursor_pos == 0:
