@@ -126,6 +126,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         table.selectionChangedSignal.connect(
             lambda: self.updateSelectionEdit(table.selections())
         )
+        table.setSelections([(slice(0, 1), slice(0, 1))])
         return None
 
     def takeTable(self, index: int) -> QBaseTable:
