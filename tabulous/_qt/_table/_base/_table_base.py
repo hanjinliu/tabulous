@@ -31,7 +31,12 @@ from tabulous.exceptions import (
     TableImmutableError,
     UnreachableError,
 )
-from tabulous._pd_index import as_not_ranged, as_constructor, is_ranged
+from tabulous._pd_index import (
+    as_not_ranged,
+    as_constructor,
+    is_ranged,
+    char_range_index,
+)
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
@@ -851,7 +856,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         bits = img.constBits()
         h, w, c = img.height(), img.width(), 4
         if qtpy.API_NAME.startswith("PySide"):
-            arr = np.array(bits).reshape(h, w, c)
+            arr = np.asarray(bits).reshape(h, w, c)
         else:
             bits.setsize(h * w * c)
             arr: np.ndarray = np.frombuffer(bits, np.uint8)
@@ -861,42 +866,43 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def _switch_head_and_index(self, axis: int = 1) -> None:
         """Switch the first row/column data and the index object."""
-        self.setProxy(None)  # reset filter to avoid unexpected errors
         df = self.getDataFrame()
+        index_was_range = is_ranged(df.index)
+        col_was_range = is_ranged(df.columns)
         if axis == 0:
-            was_range = is_ranged(df.columns)
-            if is_ranged(df.index):  # df[0] to index
+            if index_was_range:  # df[0] to index
                 df_new = df.set_index(df.columns[0])
+                df_new.index.name = None
             else:  # index to df[0]
                 df_new = df.reset_index()
-            if was_range:
+            if col_was_range:
                 _index = as_constructor(df.columns)(df_new.columns.size)
                 df_new = df_new.set_axis(_index, axis=1)
 
         elif axis == 1:
-            was_range = is_ranged(df.index)
-            if is_ranged(df.columns):  # df[0] to column
+            index_was_range = is_ranged(df.index)
+            col_was_range = is_ranged(df.columns)
+            if col_was_range:  # df[0] to column
                 top_row = df.iloc[0, :].astype(str)
+                if len(set(top_row)) != len(top_row):  # if duplicated, raise
+                    raise ValueError(
+                        "Top row has duplication. Cannot convert to column."
+                    )
                 df_new = df.iloc[1:, :]
                 df_new = df_new.set_axis(top_row, axis=1)
             else:  # column to df[0]
-                columns = range(len(df.columns))
-                head = pd.DataFrame(
-                    [
-                        pd.Series([x], dtype=dtype)
-                        for x, dtype in zip(df.columns, df.dtypes)
-                    ],
-                    columns=columns,
-                )
-                df = df.set_axis(columns, axis=1)
-                df_new = pd.concat([head, df], axis=0)
-            if was_range:
+                columns = char_range_index(len(df.columns))
+                head = pd.DataFrame({x: [x] for x in df.columns})
+                df_new = pd.concat([head, df], axis=0, ignore_index=True)
+                df_new.columns = columns
+            if index_was_range:
                 df_new = df_new.set_axis(pd.RangeIndex(len(df_new)), axis=0)
         else:
             raise ValueError("axis must be 0 or 1.")
+
+        self.setProxy(None)  # reset filter to avoid unexpected errors
         self.setDataFrame(df_new)
         if axis == 0:
-            self._qtable_view.resizeRowsToContents()
             if df.columns.size < df_new.columns.size:  # index to df[0]
                 self._process_insert_columns(0, 1)
             elif df.columns.size > df_new.columns.size:  # df[0] to index

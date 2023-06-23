@@ -81,6 +81,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         self._line: QtW.QLineEdit | None = None
 
         self._entering_tab_index: int | None = None
+        self._moving_tab_index = -1
 
         # "new tab" button
         tb = QtW.QToolButton()

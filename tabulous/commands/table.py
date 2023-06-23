@@ -298,13 +298,6 @@ def switch_layout(viewer: TableViewerBase):
         table.layout = "vertical"
 
 
-def resize_cells_to_contents(viewer: TableViewerBase):
-    """Resize cells to contents"""
-    table = _utils.get_table(viewer)
-    table.native._qtable_view.resizeColumnsToContents()
-    table.native._qtable_view.resizeRowsToContents()
-
-
 def zoom_in(viewer: TableViewerBase):
     """Zoom in"""
     table = _utils.get_table(viewer)

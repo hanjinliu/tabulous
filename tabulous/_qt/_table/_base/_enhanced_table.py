@@ -490,6 +490,13 @@ class _QTableViewEnhanced(QtW.QTableView):
             # FIXME: Cannot send the pre-edit text to the editor.
             # editor.inputMethodQuery(Qt.InputMethodQuery.ImSurroundingText)
 
+    # TODO: something's wrong with these methods. Pass for now.
+    def resizeColumnsToContents(self) -> None:
+        pass
+
+    def resizeRowsToContents(self) -> None:
+        pass
+
     def zoom(self) -> float:
         """Get current zoom factor."""
         return self._zoom
