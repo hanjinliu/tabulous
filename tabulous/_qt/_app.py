@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from qtpy.QtWidgets import QApplication
 from qtpy.QtCore import Qt
@@ -10,17 +11,18 @@ ICON_PATH = Path(__file__).parent / "_icons"
 APPLICATION = None
 
 
+def _get_ipython_shell():
+    # check if IPython is imported
+    if "IPython" in sys.modules:
+        from IPython import get_ipython
+
+        return get_ipython()
+    return None
+
+
 def gui_qt():
     """Call "%gui qt" magic."""
-    try:
-        from IPython import get_ipython
-    except ImportError:
-
-        def get_ipython():
-            return False
-
-    shell = get_ipython()
-
+    shell = _get_ipython_shell()
     if shell and shell.active_eventloop != "qt":
         shell.enable_gui("qt")
     return None
@@ -28,15 +30,7 @@ def gui_qt():
 
 def gui_qt_is_active() -> bool:
     """True only if "%gui qt" magic is called in ipython kernel."""
-    try:
-        from IPython import get_ipython
-    except ImportError:
-
-        def get_ipython():
-            return False
-
-    shell = get_ipython()
-
+    shell = _get_ipython_shell()
     return shell and shell.active_eventloop == "qt"
 
 

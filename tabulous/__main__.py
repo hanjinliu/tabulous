@@ -82,12 +82,14 @@ def main():
         TXT_PATH.write_text("")
 
     from . import TableViewer
+    from ._qt._console import import_qtconsole_threading
 
     viewer = TableViewer()
 
     if args.open_file:
         viewer.open(args.open_file)
 
+    import_qtconsole_threading()
     viewer.show()
     return
 

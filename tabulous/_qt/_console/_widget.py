@@ -31,6 +31,7 @@ class QtConsole(RichJupyterWidget):
         self.setMinimumSize(100, 0)
         self.resize(100, 40)
         self._dock_parent = None
+        self._parent_connected = False
         self.codeExecuted.connect(self.setFocus)
 
     def connect_parent(self, widget: TableViewerBase):
@@ -42,6 +43,9 @@ class QtConsole(RichJupyterWidget):
         from qtconsole.client import QtKernelClient
         from qtconsole.inprocess import QtInProcessKernelManager
 
+        if self._parent_connected:
+            raise RuntimeError("Console already connected to a window.")
+        self._parent_connected = True
         shell = get_ipython()
 
         if shell is None:
