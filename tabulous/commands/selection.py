@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+import re
 from magicgui import widgets as mwdg
 from . import _utils, _dialogs
 from tabulous._magicgui import ToggleSwitchSelect
@@ -97,31 +99,45 @@ def paste_data_comma_separated(viewer: TableViewerBase):
     _utils.get_mutable_table(viewer)._qwidget.pasteFromClipBoard(sep=",")
 
 
+def paste_data_space_separated(viewer: TableViewerBase):
+    """Paste from space separated text"""
+    _utils.get_mutable_table(viewer)._qwidget.pasteFromClipBoard(sep=r"\s+")
+
+
 def paste_data_from_numpy_string(viewer: TableViewerBase):
     """Paste from numpy-style text"""
-    # import re
     import numpy as np
     import pandas as pd
-
-    # TODO: use regex
-    # repr_pattern = re.compile(r"array\(.*\)")
-    # str_pattern = re.compile(r"\[.*\]")
 
     table = _utils.get_mutable_table(viewer)._qwidget
     s = _utils.get_clipboard_text().strip()
 
+    # TODO: use regex
     _is_repr = s.startswith("array(") and s.endswith(")")
     _is_str = s.startswith("[") and s.endswith("]")
 
     if _is_repr:
-        arr = eval(f"np.{s}", {"np": np, "__builtins__": {}}, {})
+        if s.endswith("dtype=object)"):
+            raise ValueError("Cannot paste object type array.")
+        glb = np.__dict__.copy()
+        glb["__builtins__"] = {}
+        arr = eval(s, glb, {})
         if not isinstance(arr, np.ndarray):
             raise ValueError("Invalid numpy array representation.")
         if arr.ndim > 2:
             raise ValueError("Cannot paste array with dimension > 2.")
         return table._paste_data(pd.DataFrame(arr))
     elif _is_str:
-        arr = np.asarray(eval(s.replace(" ", ", "), {"__builtins__": {}}, {}))
+        lit = r"('|\"|\.|\w|-|\+)"
+        ptn = rf"{lit}(\s+){lit}"
+
+        def repl(m: re.Match):
+            g = m.groups()
+            return f"{g[0]}, {g[2]}"
+
+        text = re.sub(ptn, repl, s).replace("]\n", "],\n")
+        list_ = eval(text, {"__builtins__": {}}, {})
+        arr = np.asarray(list_)
         if arr.ndim > 2:
             raise ValueError("Cannot paste array with dimension > 2.")
         return table._paste_data(pd.DataFrame(arr))
@@ -131,7 +147,6 @@ def paste_data_from_numpy_string(viewer: TableViewerBase):
 
 def paste_data_from_markdown(viewer: TableViewerBase):
     """Paste from Markdown text"""
-    import re
     import pandas as pd
 
     table = _utils.get_mutable_table(viewer)
