@@ -67,6 +67,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled)
         if isinstance(parent, QBaseTable):
             self._parent_table = parent
         else:
@@ -485,10 +486,10 @@ class _QTableViewEnhanced(QtW.QTableView):
     def inputMethodEvent(self, event: QtGui.QInputMethodEvent) -> None:
         """Catch Japanese/Chinese edit event."""
         # NOTE: super().inputMethodEvent(event) is buggy!!
-        if event.preeditString():
-            self._edit_current()
-            # FIXME: Cannot send the pre-edit text to the editor.
-            # editor.inputMethodQuery(Qt.InputMethodQuery.ImSurroundingText)
+        if s := event.commitString():
+            editor = self._edit_current()
+            if editor is not None:
+                editor.setText(s)
 
     # TODO: something's wrong with these methods. Pass for now.
     def resizeColumnsToContents(self) -> None:

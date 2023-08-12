@@ -1313,13 +1313,14 @@ class QMutableTable(QBaseTable):
             nr = rstop - rstart
             nc = cstop - cstart
             dtypes = list(self._data_raw.dtypes.values[csel])
-            df = pd.DataFrame(
-                {
-                    c: pd.Series(np.full(nr, self.NaN), dtype=dtypes[c])
-                    for c in range(nc)
-                },
-            )
-            self.setDataFrameValue(rsel, csel, df)
+            if nc <= len(dtypes):
+                df = pd.DataFrame(
+                    {
+                        c: pd.Series(np.full(nr, self.NaN), dtype=dtypes[c])
+                        for c in range(nc)
+                    },
+                )
+                self.setDataFrameValue(rsel, csel, df)
         return None
 
     def editHorizontalHeader(self, index: int) -> QHorizontalHeaderLineEdit:
