@@ -772,6 +772,11 @@ class SpreadSheet(_DataFrameTableLayer):
 
     def add_item_widget(self, row: int, column: int, widget):
         """Add a widget to a cell."""
+        warnings.warn(
+            "`add_item_widget` is deprecated because its behavior is not stable. "
+            "Will be removed in the future. Use side area or dock widget instead.",
+            DeprecationWarning,
+        )
         return self._qwidget._set_widget_at_index(row, column, widget)
 
     def _install_actions(self):

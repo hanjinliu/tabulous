@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 import re
-from magicgui import widgets as mwdg
 from . import _utils, _dialogs
 from tabulous._magicgui import ToggleSwitchSelect
 
@@ -462,84 +461,6 @@ def write_data_reference_in_console(viewer: TableViewerBase) -> None:
         console.setFocus()
 
     QtCore.QTimer.singleShot(delay, _update_console)
-    return None
-
-
-def add_spinbox(viewer: TableViewerBase) -> None:
-    """Add Spinbox"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    kwargs = _dialogs.spinbox(parent=viewer.native)
-    with sheet._mgr.merging():
-        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
-            sheet._set_widget_at_index(r, c, mwdg.SpinBox(**kwargs))
-    return None
-
-
-def add_float_spinbox(viewer: TableViewerBase) -> None:
-    """Add FloatSpinBox"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    kwargs = _dialogs.float_spinbox(parent=viewer.native)
-    with sheet._mgr.merging():
-        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
-            sheet._set_widget_at_index(r, c, mwdg.FloatSpinBox(**kwargs))
-    return None
-
-
-def add_slider(viewer: TableViewerBase) -> None:
-    """Add Slider"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    kwargs = _dialogs.slider(parent=viewer.native)
-    with sheet._mgr.merging():
-        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
-            sheet._set_widget_at_index(r, c, mwdg.Slider(**kwargs))
-    return None
-
-
-def add_float_slider(viewer: TableViewerBase) -> None:
-    """Add FloatSlider"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    kwargs = _dialogs.float_slider(parent=viewer.native)
-    with sheet._mgr.merging():
-        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
-            sheet._set_widget_at_index(r, c, mwdg.FloatSlider(**kwargs))
-    return None
-
-
-def add_checkbox(viewer: TableViewerBase) -> None:
-    """Add CheckBox"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    kwargs = _dialogs.checkbox(parent=viewer.native)
-    with sheet._mgr.merging():
-        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
-            sheet._set_widget_at_index(r, c, mwdg.CheckBox(**kwargs))
-    return None
-
-
-def add_radio_button(viewer: TableViewerBase) -> None:
-    """Add RadioButton"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    kwargs = _dialogs.radio_button(parent=viewer.native)
-    with sheet._mgr.merging():
-        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
-            sheet._set_widget_at_index(r, c, mwdg.RadioButton(**kwargs))
-    return None
-
-
-def add_line_edit(viewer: TableViewerBase) -> None:
-    """Add LineEdit"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    with sheet._mgr.merging():
-        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
-            sheet._set_widget_at_index(r, c, mwdg.LineEdit())
-    return None
-
-
-def remove_cell_widgets(viewer: TableViewerBase) -> None:
-    """Remove cell widgets"""
-    sheet = _utils.get_spreadsheet(viewer)._qwidget
-    with sheet._mgr.merging():
-        for r, c in sheet._qtable_view._selection_model.iter_all_indices():
-            sheet._set_widget_at_index(r, c, None)
     return None
 
 

@@ -12,7 +12,6 @@ import warnings
 
 from qtpy import QtGui
 from qtpy.QtCore import Qt
-from magicgui.widgets import Widget
 
 from tabulous.exceptions import TableImmutableError
 from tabulous.types import EvalInfo
@@ -143,14 +142,6 @@ class CellInterface(TableComponent, SupportActionRegistration["TableBase", int])
         table = self.parent
         if not table.editable:
             raise TableImmutableError("Table is not editable.")
-
-        if isinstance(value, Widget):
-            # add item widget
-            r, c = key
-            if isinstance(r, int) and isinstance(c, int):
-                sheet = self._assert_spreadsheet()
-                return sheet._qwidget._set_widget_at_index(*key, value)
-            raise TypeError("Cannot set widget at slices.")
 
         import pandas as pd
         from tabulous._qt._table._base._line_edit import QCellLiteralEdit
