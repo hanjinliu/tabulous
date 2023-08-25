@@ -286,6 +286,7 @@ class QtConsole(RichJupyterWidget):
                 break
 
     def update_theme(self, theme: str):
+        """Update the console theme."""
         from tabulous.style import Style
         from tabulous.color import normalize_color
 
@@ -298,7 +299,7 @@ class QtConsole(RichJupyterWidget):
         if light_theme:
             self.syntax_style = "default"
         else:
-            self.syntax_style = "vim"
+            self.syntax_style = "native"
         bracket_color = QtGui.QColor(*normalize_color(style.highlight0))
         self._bracket_matcher.format.setBackground(bracket_color)
 

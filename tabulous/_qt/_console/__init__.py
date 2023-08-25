@@ -1,13 +1,12 @@
 from typing import TYPE_CHECKING
-import threading
+from tabulous._async_importer import AsyncImporter
 
 if TYPE_CHECKING:
     from ._widget import QtConsole
     from tabulous.widgets._mainwindow import TableViewerBase
 
-THREAD: "threading.Thread | None" = None
 
-
+@AsyncImporter
 def _import_qtconsole() -> "type[QtConsole]":
     from ._widget import QtConsole
 
@@ -15,17 +14,10 @@ def _import_qtconsole() -> "type[QtConsole]":
 
 
 def import_qtconsole_threading() -> None:
-    global THREAD
-
-    if THREAD is None:
-        THREAD = threading.Thread(target=_import_qtconsole, daemon=True)
-        THREAD.start()
-    else:
-        THREAD.join()
+    return _import_qtconsole.run()
 
 
 def get_qtconsole(parent: "TableViewerBase") -> "QtConsole":
-    import_qtconsole_threading()
-    qtconsole = _import_qtconsole()()
+    qtconsole = _import_qtconsole.get()()
     qtconsole.connect_parent(parent)
     return qtconsole

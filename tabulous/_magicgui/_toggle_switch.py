@@ -145,13 +145,23 @@ class QToggleSwitch(QtW.QWidget):
             return self._height // 2
 
 
+class _QLabel(QtW.QLabel):
+    clicked = Signal()
+
+    def mousePressEvent(self, ev: QtGui.QMouseEvent) -> None:
+        if ev.button() & Qt.MouseButton.LeftButton:
+            self.clicked.emit()
+        return None
+
+
 class QLabeledToggleSwitch(QtW.QWidget):
     def __init__(self, parent: QtW.QWidget | None = None):
         super().__init__(parent)
         layout = QtW.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self._switch = QToggleSwitch(self)
-        self._text = QtW.QLabel(self)
+        self._text = _QLabel(self)
+        self._text.clicked.connect(self._switch.toggle)
         layout.addWidget(self._switch)
         layout.addWidget(self._text)
         self.setLayout(layout)
