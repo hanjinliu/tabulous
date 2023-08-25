@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Use Non-main Window Table Viewers &mdash; tabulous 0.5.2 documentation</title>
+  <title>Use Non-main Window Table Viewers &mdash; tabulous 0.5.4 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -13,9 +13,8 @@
   <![endif]-->
 
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -35,7 +34,7 @@
             tabulous
           </a>
               <div class="version">
-                0.5.2
+                0.5.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -97,19 +96,19 @@
            <div itemprop="articleBody">
 
   <section id="use-non-main-window-table-viewers">
-<h1>Use Non-main Window Table Viewers<a class="headerlink" href="#use-non-main-window-table-viewers" title="Permalink to this headline">¶</a></h1>
+<h1>Use Non-main Window Table Viewers<a class="headerlink" href="#use-non-main-window-table-viewers" title="Permalink to this heading">¶</a></h1>
 <p>Aiming at better extensibility, <a class="reference internal" href="../apidoc/tabulous.html#module-tabulous" title="tabulous"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tabulous</span></code></a> is designed to allow many different types of
 integration to external packages.</p>
-<div class="contents local topic" id="contents">
+<nav class="contents local" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#use-tableviewer-in-your-qt-widget" id="id1">Use TableViewer in Your Qt Widget</a></p></li>
 <li><p><a class="reference internal" href="#use-tableviewer-with-magicgui" id="id2">Use TableViewer with magicgui</a></p></li>
 <li><p><a class="reference internal" href="#use-tables-in-your-widget" id="id3">Use Tables in Your Widget</a></p></li>
 </ul>
-</div>
+</nav>
 <section id="use-tableviewer-in-your-qt-widget">
-<h2><a class="toc-backref" href="#id1">Use TableViewer in Your Qt Widget</a><a class="headerlink" href="#use-tableviewer-in-your-qt-widget" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Use TableViewer in Your Qt Widget</a><a class="headerlink" href="#use-tableviewer-in-your-qt-widget" title="Permalink to this heading">¶</a></h2>
 <p>If you plan to use a table viewer as a child of another <code class="xref py py-class docutils literal notranslate"><span class="pre">QWidget</span></code>, you can use a non-main
 window version of it. The <code class="xref py py-attr docutils literal notranslate"><span class="pre">native</span></code> property returns the Qt backend widget.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tabulous</span> <span class="kn">import</span> <span class="n">TableViewerWidget</span>
@@ -136,7 +135,7 @@ so you have to programmatically open it by <code class="docutils literal notrans
 </div>
 </section>
 <section id="use-tableviewer-with-magicgui">
-<h2><a class="toc-backref" href="#id2">Use TableViewer with magicgui</a><a class="headerlink" href="#use-tableviewer-with-magicgui" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Use TableViewer with magicgui</a><a class="headerlink" href="#use-tableviewer-with-magicgui" title="Permalink to this heading">¶</a></h2>
 <p>If you want to use a <a class="reference external" href="https://github.com/pyapp-kit/magicgui">magicgui</a> version of it,
 you can use <code class="xref py py-class docutils literal notranslate"><span class="pre">MagicTableViewer</span></code>. <code class="xref py py-class docutils literal notranslate"><span class="pre">MagicTableViewer`</span></code> is a subclass of
 <code class="xref py py-class docutils literal notranslate"><span class="pre">TableViewerWidget</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">magicgui.widgets.Widget</span></code> so it is compatible with
@@ -175,7 +174,7 @@ Following example does similar thing as the one above.</p>
 </div>
 </section>
 <section id="use-tables-in-your-widget">
-<h2><a class="toc-backref" href="#id3">Use Tables in Your Widget</a><a class="headerlink" href="#use-tables-in-your-widget" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Use Tables in Your Widget</a><a class="headerlink" href="#use-tables-in-your-widget" title="Permalink to this heading">¶</a></h2>
 <p>All the tables can also be used in other widgets. For instance, following example shows how to
 use a spreadsheet in your widget.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tabulous.widgets</span> <span class="kn">import</span> <span class="n">SpreadSheet</span>

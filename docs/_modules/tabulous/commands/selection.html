@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.selection &mdash; tabulous 0.5.2 documentation</title>
+  <title>tabulous.commands.selection &mdash; tabulous 0.5.3 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -12,9 +12,8 @@
   <![endif]-->
 
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -32,7 +31,7 @@
             tabulous
           </a>
               <div class="version">
-                0.5.2
+                0.5.3
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -91,8 +90,9 @@
 
   <h1>Source code for tabulous.commands.selection</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
-<span class="kn">from</span> <span class="nn">magicgui</span> <span class="kn">import</span> <span class="n">widgets</span> <span class="k">as</span> <span class="n">mwdg</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_utils</span><span class="p">,</span> <span class="n">_dialogs</span>
 <span class="kn">from</span> <span class="nn">tabulous._magicgui</span> <span class="kn">import</span> <span class="n">ToggleSwitchSelect</span>
 
@@ -189,31 +189,45 @@
     <span class="n">_utils</span><span class="o">.</span><span class="n">get_mutable_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">pasteFromClipBoard</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="paste_data_space_separated"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_space_separated">[docs]</a><span class="k">def</span> <span class="nf">paste_data_space_separated</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Paste from space separated text&quot;&quot;&quot;</span>
+    <span class="n">_utils</span><span class="o">.</span><span class="n">get_mutable_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">pasteFromClipBoard</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;\s+&quot;</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="paste_data_from_numpy_string"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_from_numpy_string">[docs]</a><span class="k">def</span> <span class="nf">paste_data_from_numpy_string</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Paste from numpy-style text&quot;&quot;&quot;</span>
-    <span class="c1"># import re</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-
-    <span class="c1"># TODO: use regex</span>
-    <span class="c1"># repr_pattern = re.compile(r&quot;array\(.*\)&quot;)</span>
-    <span class="c1"># str_pattern = re.compile(r&quot;\[.*\]&quot;)</span>
 
     <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_mutable_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_clipboard_text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
+    <span class="c1"># TODO: use regex</span>
     <span class="n">_is_repr</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;array(&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
     <span class="n">_is_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;[&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;]&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">_is_repr</span><span class="p">:</span>
-        <span class="n">arr</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;np.</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;np&quot;</span><span class="p">:</span> <span class="n">np</span><span class="p">,</span> <span class="s2">&quot;__builtins__&quot;</span><span class="p">:</span> <span class="p">{}},</span> <span class="p">{})</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;dtype=object)&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot paste object type array.&quot;</span><span class="p">)</span>
+        <span class="n">glb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">glb</span><span class="p">[</span><span class="s2">&quot;__builtins__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">glb</span><span class="p">,</span> <span class="p">{})</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid numpy array representation.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot paste array with dimension &gt; 2.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">table</span><span class="o">.</span><span class="n">_paste_data</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">arr</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">_is_str</span><span class="p">:</span>
-        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="p">),</span> <span class="p">{</span><span class="s2">&quot;__builtins__&quot;</span><span class="p">:</span> <span class="p">{}},</span> <span class="p">{}))</span>
+        <span class="n">lit</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;(&#39;|</span><span class="se">\&quot;</span><span class="s2">|\.|\w|-|\+)&quot;</span>
+        <span class="n">ptn</span> <span class="o">=</span> <span class="sa">rf</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">lit</span><span class="si">}</span><span class="s2">(\s+)</span><span class="si">{</span><span class="n">lit</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">def</span> <span class="nf">repl</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">Match</span><span class="p">):</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">ptn</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;]</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;],</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">list_</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;__builtins__&quot;</span><span class="p">:</span> <span class="p">{}},</span> <span class="p">{})</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot paste array with dimension &gt; 2.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">table</span><span class="o">.</span><span class="n">_paste_data</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">arr</span><span class="p">))</span>
@@ -223,7 +237,6 @@
 
 <div class="viewcode-block" id="paste_data_from_markdown"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_from_markdown">[docs]</a><span class="k">def</span> <span class="nf">paste_data_from_markdown</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Paste from Markdown text&quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">re</span>
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
     <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_mutable_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
@@ -360,64 +373,64 @@
 
 <div class="viewcode-block" id="insert_row_above"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.insert_row_above">[docs]</a><span class="k">def</span> <span class="nf">insert_row_above</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Insert a row above&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">isEditable</span><span class="p">():</span>
+    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">editable</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_notify_editability</span><span class="p">()</span>
-    <span class="n">row</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">current_index</span>
-    <span class="k">return</span> <span class="n">sheet</span><span class="o">.</span><span class="n">insertRows</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+    <span class="n">row</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">current_index</span>
+    <span class="k">return</span> <span class="n">sheet</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">insertRows</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="insert_row_below"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.insert_row_below">[docs]</a><span class="k">def</span> <span class="nf">insert_row_below</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Insert a row below&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">isEditable</span><span class="p">():</span>
+    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">editable</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_notify_editability</span><span class="p">()</span>
-    <span class="n">row</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">current_index</span>
-    <span class="k">return</span> <span class="n">sheet</span><span class="o">.</span><span class="n">insertRows</span><span class="p">(</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+    <span class="n">row</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">current_index</span>
+    <span class="k">return</span> <span class="n">sheet</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">insertRows</span><span class="p">(</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="insert_column_left"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.insert_column_left">[docs]</a><span class="k">def</span> <span class="nf">insert_column_left</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Insert a column left&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">isEditable</span><span class="p">():</span>
+    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">editable</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_notify_editability</span><span class="p">()</span>
-    <span class="n">_</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">current_index</span>
-    <span class="k">return</span> <span class="n">sheet</span><span class="o">.</span><span class="n">insertColumns</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+    <span class="n">_</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">current_index</span>
+    <span class="k">return</span> <span class="n">sheet</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">insertColumns</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="insert_column_right"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.insert_column_right">[docs]</a><span class="k">def</span> <span class="nf">insert_column_right</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Insert a column right&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">isEditable</span><span class="p">():</span>
+    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">editable</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_notify_editability</span><span class="p">()</span>
-    <span class="n">_</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">current_index</span>
-    <span class="k">return</span> <span class="n">sheet</span><span class="o">.</span><span class="n">insertColumns</span><span class="p">(</span><span class="n">col</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+    <span class="n">_</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">current_index</span>
+    <span class="k">return</span> <span class="n">sheet</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">insertColumns</span><span class="p">(</span><span class="n">col</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="remove_selected_rows"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.remove_selected_rows">[docs]</a><span class="k">def</span> <span class="nf">remove_selected_rows</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove selected rows&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">isEditable</span><span class="p">():</span>
+    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">editable</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_notify_editability</span><span class="p">()</span>
-    <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">current_index</span>
-    <span class="n">_</span><span class="p">,</span> <span class="n">rng</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">range_under_index</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+    <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">current_index</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">rng</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">range_under_index</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">rng</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">row_range</span> <span class="o">=</span> <span class="n">rng</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">sheet</span><span class="o">.</span><span class="n">removeRows</span><span class="p">(</span><span class="n">row_range</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">row_range</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">row_range</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+        <span class="n">sheet</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">removeRows</span><span class="p">(</span><span class="n">row_range</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">row_range</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">row_range</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No selection under cursor.&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="remove_selected_columns"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.remove_selected_columns">[docs]</a><span class="k">def</span> <span class="nf">remove_selected_columns</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove selected columns&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">isEditable</span><span class="p">():</span>
+    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sheet</span><span class="o">.</span><span class="n">editable</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_notify_editability</span><span class="p">()</span>
-    <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">current_index</span>
-    <span class="n">_</span><span class="p">,</span> <span class="n">rng</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">range_under_index</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+    <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">current_index</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">rng</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">range_under_index</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">rng</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">col_range</span> <span class="o">=</span> <span class="n">rng</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">sheet</span><span class="o">.</span><span class="n">removeColumns</span><span class="p">(</span><span class="n">col_range</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">col_range</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">col_range</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+        <span class="n">sheet</span><span class="o">.</span><span class="n">native</span><span class="o">.</span><span class="n">removeColumns</span><span class="p">(</span><span class="n">col_range</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">col_range</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">col_range</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No selection under cursor.&quot;</span><span class="p">)</span></div>
 
@@ -539,84 +552,6 @@
         <span class="n">console</span><span class="o">.</span><span class="n">setFocus</span><span class="p">()</span>
 
     <span class="n">QtCore</span><span class="o">.</span><span class="n">QTimer</span><span class="o">.</span><span class="n">singleShot</span><span class="p">(</span><span class="n">delay</span><span class="p">,</span> <span class="n">_update_console</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
-
-
-<div class="viewcode-block" id="add_spinbox"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.add_spinbox">[docs]</a><span class="k">def</span> <span class="nf">add_spinbox</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add Spinbox&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">spinbox</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">merging</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">iter_all_indices</span><span class="p">():</span>
-            <span class="n">sheet</span><span class="o">.</span><span class="n">_set_widget_at_index</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mwdg</span><span class="o">.</span><span class="n">SpinBox</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
-
-
-<div class="viewcode-block" id="add_float_spinbox"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.add_float_spinbox">[docs]</a><span class="k">def</span> <span class="nf">add_float_spinbox</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add FloatSpinBox&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">float_spinbox</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">merging</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">iter_all_indices</span><span class="p">():</span>
-            <span class="n">sheet</span><span class="o">.</span><span class="n">_set_widget_at_index</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mwdg</span><span class="o">.</span><span class="n">FloatSpinBox</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
-
-
-<div class="viewcode-block" id="add_slider"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.add_slider">[docs]</a><span class="k">def</span> <span class="nf">add_slider</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add Slider&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">slider</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">merging</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">iter_all_indices</span><span class="p">():</span>
-            <span class="n">sheet</span><span class="o">.</span><span class="n">_set_widget_at_index</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mwdg</span><span class="o">.</span><span class="n">Slider</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
-
-
-<div class="viewcode-block" id="add_float_slider"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.add_float_slider">[docs]</a><span class="k">def</span> <span class="nf">add_float_slider</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add FloatSlider&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">float_slider</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">merging</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">iter_all_indices</span><span class="p">():</span>
-            <span class="n">sheet</span><span class="o">.</span><span class="n">_set_widget_at_index</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mwdg</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
-
-
-<div class="viewcode-block" id="add_checkbox"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.add_checkbox">[docs]</a><span class="k">def</span> <span class="nf">add_checkbox</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add CheckBox&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">checkbox</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">merging</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">iter_all_indices</span><span class="p">():</span>
-            <span class="n">sheet</span><span class="o">.</span><span class="n">_set_widget_at_index</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mwdg</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
-
-
-<div class="viewcode-block" id="add_radio_button"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.add_radio_button">[docs]</a><span class="k">def</span> <span class="nf">add_radio_button</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add RadioButton&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_dialogs</span><span class="o">.</span><span class="n">radio_button</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">native</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">merging</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">iter_all_indices</span><span class="p">():</span>
-            <span class="n">sheet</span><span class="o">.</span><span class="n">_set_widget_at_index</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mwdg</span><span class="o">.</span><span class="n">RadioButton</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
-
-
-<div class="viewcode-block" id="add_line_edit"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.add_line_edit">[docs]</a><span class="k">def</span> <span class="nf">add_line_edit</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add LineEdit&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="k">with</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">merging</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">iter_all_indices</span><span class="p">():</span>
-            <span class="n">sheet</span><span class="o">.</span><span class="n">_set_widget_at_index</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mwdg</span><span class="o">.</span><span class="n">LineEdit</span><span class="p">())</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
-
-
-<div class="viewcode-block" id="remove_cell_widgets"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.selection.remove_cell_widgets">[docs]</a><span class="k">def</span> <span class="nf">remove_cell_widgets</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove cell widgets&quot;&quot;&quot;</span>
-    <span class="n">sheet</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_spreadsheet</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span><span class="o">.</span><span class="n">_qwidget</span>
-    <span class="k">with</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_mgr</span><span class="o">.</span><span class="n">merging</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sheet</span><span class="o">.</span><span class="n">_qtable_view</span><span class="o">.</span><span class="n">_selection_model</span><span class="o">.</span><span class="n">iter_all_indices</span><span class="p">():</span>
-            <span class="n">sheet</span><span class="o">.</span><span class="n">_set_widget_at_index</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">None</span></div>
 
 

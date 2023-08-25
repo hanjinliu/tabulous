@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.window &mdash; tabulous 0.5.2 documentation</title>
+  <title>tabulous.commands.window &mdash; tabulous 0.5.3 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -12,9 +12,8 @@
   <![endif]-->
 
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -32,7 +31,7 @@
             tabulous
           </a>
               <div class="version">
-                0.5.2
+                0.5.3
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -104,7 +103,7 @@
 
 <div class="viewcode-block" id="close_window"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.close_window">[docs]</a><span class="k">def</span> <span class="nf">close_window</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Close window&quot;&quot;&quot;</span>
-    <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+    <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">ask</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="new_window"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.window.new_window">[docs]</a><span class="k">def</span> <span class="nf">new_window</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>

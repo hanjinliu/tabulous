@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Customize Viewer Actions &mdash; tabulous 0.5.2 documentation</title>
+  <title>Customize Viewer Actions &mdash; tabulous 0.5.4 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -13,9 +13,8 @@
   <![endif]-->
 
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -35,7 +34,7 @@
             tabulous
           </a>
               <div class="version">
-                0.5.2
+                0.5.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -100,7 +99,7 @@
            <div itemprop="articleBody">
 
   <section id="customize-viewer-actions">
-<h1>Customize Viewer Actions<a class="headerlink" href="#customize-viewer-actions" title="Permalink to this headline">¶</a></h1>
+<h1>Customize Viewer Actions<a class="headerlink" href="#customize-viewer-actions" title="Permalink to this heading">¶</a></h1>
 <p><a class="reference internal" href="../apidoc/tabulous.html#module-tabulous" title="tabulous"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tabulous</span></code></a> settings and configuration are stored in the user directory.
 Configuration files will be created automatically when the viewer is launched
 for the first time.</p>
@@ -110,7 +109,7 @@ command.</p>
 </pre></div>
 </div>
 <section id="edit-config-toml">
-<h2>Edit config.toml<a class="headerlink" href="#edit-config-toml" title="Permalink to this headline">¶</a></h2>
+<h2>Edit config.toml<a class="headerlink" href="#edit-config-toml" title="Permalink to this heading">¶</a></h2>
 <p>The “config.toml” file describes the basic settings of the viewer.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[console_namespace]</span>
 <span class="n">tabulous</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">  </span><span class="c1"># default identifier of the tabulous module</span>
@@ -145,7 +144,7 @@ command.</p>
 </div>
 </section>
 <section id="edit-post-init-py">
-<h2>Edit post_init.py<a class="headerlink" href="#edit-post-init-py" title="Permalink to this headline">¶</a></h2>
+<h2>Edit post_init.py<a class="headerlink" href="#edit-post-init-py" title="Permalink to this heading">¶</a></h2>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 0.4.1.</span></p>
 </div>
@@ -187,7 +186,7 @@ registration.</p>
 </li>
 </ol>
 <section id="register-actions-using-register-method">
-<h3>Register actions using <code class="xref py py-meth docutils literal notranslate"><span class="pre">register()</span></code> method<a class="headerlink" href="#register-actions-using-register-method" title="Permalink to this headline">¶</a></h3>
+<h3>Register actions using <code class="xref py py-meth docutils literal notranslate"><span class="pre">register()</span></code> method<a class="headerlink" href="#register-actions-using-register-method" title="Permalink to this heading">¶</a></h3>
 <p>Contextmenu, keybindings and commands can be registered using the <code class="xref py py-meth docutils literal notranslate"><span class="pre">register()</span></code>
 method are also available for initialization.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># post_init.py</span>
@@ -208,7 +207,7 @@ method are also available for initialization.</p>
 </div>
 </section>
 <section id="update-namespaces">
-<h3>Update namespaces<a class="headerlink" href="#update-namespaces" title="Permalink to this headline">¶</a></h3>
+<h3>Update namespaces<a class="headerlink" href="#update-namespaces" title="Permalink to this heading">¶</a></h3>
 <p><code class="xref py py-attr docutils literal notranslate"><span class="pre">viewer.cell_namespace</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">viewer.console</span></code> supports <code class="xref py py-meth docutils literal notranslate"><span class="pre">update()</span></code> and
 <code class="xref py py-meth docutils literal notranslate"><span class="pre">add()</span></code> methods to update the namespace.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># post_init.py</span>

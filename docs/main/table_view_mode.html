@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>View Tables in Different Modes &mdash; tabulous 0.5.2 documentation</title>
+  <title>View Tables in Different Modes &mdash; tabulous 0.5.4 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -13,9 +13,8 @@
   <![endif]-->
 
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -35,7 +34,7 @@
             tabulous
           </a>
               <div class="version">
-                0.5.2
+                0.5.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -101,18 +100,18 @@
            <div itemprop="articleBody">
 
   <section id="view-tables-in-different-modes">
-<h1>View Tables in Different Modes<a class="headerlink" href="#view-tables-in-different-modes" title="Permalink to this headline">¶</a></h1>
-<div class="contents local topic" id="contents">
+<h1>View Tables in Different Modes<a class="headerlink" href="#view-tables-in-different-modes" title="Permalink to this heading">¶</a></h1>
+<nav class="contents local" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#dual-view" id="id1">Dual View</a></p></li>
 <li><p><a class="reference internal" href="#popup-view" id="id2">Popup View</a></p></li>
 <li><p><a class="reference internal" href="#tile-view" id="id3">Tile View</a></p></li>
 </ul>
-</div>
+</nav>
 <p>To efficiently inspect table data, it is very useful to change table view modes.</p>
 <section id="dual-view">
-<h2><a class="toc-backref" href="#id1">Dual View</a><a class="headerlink" href="#dual-view" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Dual View</a><a class="headerlink" href="#dual-view" title="Permalink to this heading">¶</a></h2>
 <p>In dual view mode, table is split into two part and each part can be scrolled
 and zoomed independently. This mode is useful to inspect large data.</p>
 <p>Dual view is enabled by setting <code class="docutils literal notranslate"><span class="pre">table.view_mode</span> <span class="pre">=</span> <span class="pre">&quot;horizontal&quot;</span></code> for horizontal
@@ -129,7 +128,7 @@ view, and <code class="docutils literal notranslate"><span class="pre">table.vie
 <span class="kbd">Ctrl</span> <span class="kbd">K</span> ⇒ <span class="kbd">V</span> (vertical). Reset it by key combo <span class="kbd">Ctrl</span> <span class="kbd">K</span> ⇒ <span class="kbd">N</span>.</p>
 </section>
 <section id="popup-view">
-<h2><a class="toc-backref" href="#id2">Popup View</a><a class="headerlink" href="#popup-view" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Popup View</a><a class="headerlink" href="#popup-view" title="Permalink to this heading">¶</a></h2>
 <p>In popup view mode, a large popup window appears and the table data is shown
 inside it. This mode is useful when you want to focus on seeing or editing one
 table, or the table viewer widget is docked in other widget so it is very small.</p>
@@ -142,11 +141,11 @@ similar to dual view by <code class="docutils literal notranslate"><span class="
 <p>Dual view can also be turned on by key combo <span class="kbd">Ctrl</span> <span class="kbd">K</span> ⇒ <span class="kbd">P</span>.</p>
 </section>
 <section id="tile-view">
-<h2><a class="toc-backref" href="#id3">Tile View</a><a class="headerlink" href="#tile-view" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Tile View</a><a class="headerlink" href="#tile-view" title="Permalink to this heading">¶</a></h2>
 <p>Tile view is a mode that shows different tables in a same window, while the
 structure of table list and tabs are not affected.</p>
 <section id="how-tiling-works">
-<h3>How tiling works<a class="headerlink" href="#how-tiling-works" title="Permalink to this headline">¶</a></h3>
+<h3>How tiling works<a class="headerlink" href="#how-tiling-works" title="Permalink to this heading">¶</a></h3>
 <p>For instance, if you tiled tables “A” and “B”, they will appear in the same
 window, but tabs named “A” and “B” still exist in the tab bar. <code class="docutils literal notranslate"><span class="pre">viewer.tables[i]</span></code>
 also returns the same table as before. When tab “A” or “B” is clicked, the tiled
@@ -160,7 +159,7 @@ You can also programmatically tile tables by calling <code class="xref py py-met
 <img alt="../_images/tile_tables.png" src="../_images/tile_tables.png" />
 </section>
 <section id="untiling">
-<h3>Untiling<a class="headerlink" href="#untiling" title="Permalink to this headline">¶</a></h3>
+<h3>Untiling<a class="headerlink" href="#untiling" title="Permalink to this heading">¶</a></h3>
 <p>Untiling is also well-defined operation. Let’s say tabs “A”, “B” and “C” is tiled so
 these tabs show tiled view <code class="docutils literal notranslate"><span class="pre">A|B|C</span></code>. If you untiled “B”, “A” and “C” are re-tiled
 while “B” returns the original state. Therefore, tabs “A” and “C” shows <code class="docutils literal notranslate"><span class="pre">A|C</span></code> and

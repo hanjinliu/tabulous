@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Interface &mdash; tabulous 0.5.2 documentation</title>
+  <title>User Interface &mdash; tabulous 0.5.4 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/font.css" type="text/css" />
@@ -13,9 +13,8 @@
   <![endif]-->
 
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -35,7 +34,7 @@
             tabulous
           </a>
               <div class="version">
-                0.5.2
+                0.5.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -120,8 +119,8 @@
            <div itemprop="articleBody">
 
   <section id="user-interface">
-<h1>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h1>
-<div class="contents local topic" id="contents">
+<h1>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this heading">¶</a></h1>
+<nav class="contents local" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#tables" id="id1">Tables</a></p>
@@ -146,11 +145,11 @@
 </ul>
 </li>
 </ul>
-</div>
+</nav>
 <section id="tables">
-<h2><a class="toc-backref" href="#id1">Tables</a><a class="headerlink" href="#tables" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Tables</a><a class="headerlink" href="#tables" title="Permalink to this heading">¶</a></h2>
 <section id="move-and-scroll">
-<h3><a class="toc-backref" href="#id2">Move and scroll</a><a class="headerlink" href="#move-and-scroll" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Move and scroll</a><a class="headerlink" href="#move-and-scroll" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Arrow keys (<span class="kbd">→</span> <span class="kbd">←</span> <span class="kbd">↑</span> <span class="kbd">↓</span>) with <span class="kbd">Ctrl</span> (or <span class="kbd">⌘</span> in Mac),
 <span class="kbd">Shift</span> modifier work as you expects in most of table data editors.</p></li>
@@ -160,7 +159,7 @@ right-dragging.</p></li>
 </ul>
 </section>
 <section id="zoom">
-<h3><a class="toc-backref" href="#id3">Zoom</a><a class="headerlink" href="#zoom" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Zoom</a><a class="headerlink" href="#zoom" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><span class="kbd">Ctrl</span> + <code class="docutils literal notranslate"><span class="pre">mouse</span> <span class="pre">wheel</span></code> zooms in/out the table.</p></li>
 <li><p>You can also use keybindings
@@ -168,11 +167,11 @@ right-dragging.</p></li>
 </ul>
 </section>
 <section id="resize">
-<h3><a class="toc-backref" href="#id4">Resize</a><a class="headerlink" href="#resize" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Resize</a><a class="headerlink" href="#resize" title="Permalink to this heading">¶</a></h3>
 <p>Cells and headers can be resized by dragging the borders of header sections.</p>
 </section>
 <section id="edit-cells-and-headers">
-<h3><a class="toc-backref" href="#id5">Edit cells and headers</a><a class="headerlink" href="#edit-cells-and-headers" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Edit cells and headers</a><a class="headerlink" href="#edit-cells-and-headers" title="Permalink to this heading">¶</a></h3>
 <p>If a table is editable, you can edit the values of cells and headers. Double-clicking, <span class="kbd">F2</span>
 or typing any characters will create an editor for the value.</p>
 <img alt="../_images/edit_cell.png" src="../_images/edit_cell.png" />
@@ -181,7 +180,7 @@ table cells, you can set any validation rules (see <a class="reference internal"
 the table headers, duplicated names are not allowed and considered to be invalid.</p>
 </section>
 <section id="excel-style-data-evaluation">
-<h3><a class="toc-backref" href="#id6">Excel-style data evaluation</a><a class="headerlink" href="#excel-style-data-evaluation" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Excel-style data evaluation</a><a class="headerlink" href="#excel-style-data-evaluation" title="Permalink to this heading">¶</a></h3>
 <p>Simple analysis should be done inside the table cells, especially when you are using
 SpreadSheet. In Excel and Google Spreadsheet, you can do it by typing, say, <code class="docutils literal notranslate"><span class="pre">=SUM(A1:A4)</span></code>,
 to calculate the sum of the values in the range <code class="docutils literal notranslate"><span class="pre">A1:A4</span></code>.</p>
@@ -200,14 +199,9 @@ of the destinations.</p>
 <code class="docutils literal notranslate"><span class="pre">=&quot;=a&quot;</span></code>.</p>
 </div>
 <section id="scalar-value">
-<h4>Scalar value<a class="headerlink" href="#scalar-value" title="Permalink to this headline">¶</a></h4>
+<h4>Scalar value<a class="headerlink" href="#scalar-value" title="Permalink to this heading">¶</a></h4>
 <p>If the evaluation result is a scalar value,</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 9%" />
-<col style="width: 16%" />
-<col style="width: 74%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
 <th class="head"><p>col-0</p></th>
@@ -231,11 +225,6 @@ of the destinations.</p>
 </table>
 <p>it will simply update the current cell.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 44%" />
-<col style="width: 31%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
 <th class="head"><p>col-0</p></th>
@@ -259,14 +248,9 @@ of the destinations.</p>
 </table>
 </section>
 <section id="column-vector">
-<h4>Column vector<a class="headerlink" href="#column-vector" title="Permalink to this headline">¶</a></h4>
+<h4>Column vector<a class="headerlink" href="#column-vector" title="Permalink to this heading">¶</a></h4>
 <p>If the evaluation result is an array such as <code class="docutils literal notranslate"><span class="pre">pd.Series</span></code>,</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 9%" />
-<col style="width: 15%" />
-<col style="width: 76%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
 <th class="head"><p>col-0</p></th>
@@ -290,11 +274,6 @@ of the destinations.</p>
 </table>
 <p>it will update the relevant cells.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 44%" />
-<col style="width: 31%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
 <th class="head"><p>col-0</p></th>
@@ -319,11 +298,6 @@ of the destinations.</p>
 <p>You don’t have to edit the top cell. As long as the editing cell will be one of the
 destinations, result will be the same.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 9%" />
-<col style="width: 15%" />
-<col style="width: 76%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
 <th class="head"><p>col-0</p></th>
@@ -347,14 +321,9 @@ destinations, result will be the same.</p>
 </table>
 </section>
 <section id="row-vector">
-<h4>Row vector<a class="headerlink" href="#row-vector" title="Permalink to this headline">¶</a></h4>
+<h4>Row vector<a class="headerlink" href="#row-vector" title="Permalink to this heading">¶</a></h4>
 <p>An row will be updated if the result should be interpreted as a row vector.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 7%" />
-<col style="width: 13%" />
-<col style="width: 80%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
 <th class="head"><p>col-0</p></th>
@@ -382,11 +351,6 @@ destinations, result will be the same.</p>
 </table>
 <p>will return <code class="docutils literal notranslate"><span class="pre">pd.Series([20,</span> <span class="pre">40])</span></code>, which will update the table to</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 44%" />
-<col style="width: 31%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
 <th class="head"><p>col-0</p></th>
@@ -414,14 +378,9 @@ destinations, result will be the same.</p>
 </table>
 </section>
 <section id="evaluate-with-references">
-<h4>Evaluate with references<a class="headerlink" href="#evaluate-with-references" title="Permalink to this headline">¶</a></h4>
+<h4>Evaluate with references<a class="headerlink" href="#evaluate-with-references" title="Permalink to this heading">¶</a></h4>
 <p>To use cell references like Excel, use “&amp;=” instead of “=”.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 9%" />
-<col style="width: 16%" />
-<col style="width: 76%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
 <th class="head"><p>col-0</p></th>
@@ -444,11 +403,6 @@ destinations, result will be the same.</p>
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 44%" />
-<col style="width: 31%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
 <th class="head"><p>col-0</p></th>
@@ -474,7 +428,7 @@ destinations, result will be the same.</p>
 editing 10 → 40 will cause the value of <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">&quot;col-1&quot;)</span></code> to be updated to 30.</p>
 </section>
 <section id="user-defined-namespace">
-<h4>User-defined namespace<a class="headerlink" href="#user-defined-namespace" title="Permalink to this headline">¶</a></h4>
+<h4>User-defined namespace<a class="headerlink" href="#user-defined-namespace" title="Permalink to this heading">¶</a></h4>
 <p>As stated above, the default namespace of cell evaluation is <code class="docutils literal notranslate"><span class="pre">df</span></code>, <code class="docutils literal notranslate"><span class="pre">np</span></code> and <code class="docutils literal notranslate"><span class="pre">pd</span></code>. If you
 want to add more variables or functions, there are two ways to do it.</p>
 <ol class="arabic">
@@ -519,15 +473,11 @@ restrict the variables to be added by setting <code class="docutils literal notr
 </section>
 </section>
 <section id="add-cell-labels">
-<h3><a class="toc-backref" href="#id7">Add cell labels</a><a class="headerlink" href="#add-cell-labels" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Add cell labels</a><a class="headerlink" href="#add-cell-labels" title="Permalink to this heading">¶</a></h3>
 <p>People using spreadsheets usually want to name some of the cells. For instance, when you
 calculated the mean of a column, you want to name the cell as “mean”. Usually, it is done
 by editing one of the adjacent cells.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 43%" />
-<col style="width: 57%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>A</p></th>
 <th class="head"><p>B</p></th>
@@ -554,7 +504,7 @@ cell labels by <span class="kbd">F3</span> key.</p>
 </section>
 </section>
 <section id="table-tabs">
-<h2><a class="toc-backref" href="#id8">Table Tabs</a><a class="headerlink" href="#table-tabs" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Table Tabs</a><a class="headerlink" href="#table-tabs" title="Permalink to this heading">¶</a></h2>
 <p>All the tables are managed by the table tabs.</p>
 <ul class="simple">
 <li><p>You can double-click to rename the tab. The <code class="docutils literal notranslate"><span class="pre">name</span></code> property of the table will also be
@@ -564,7 +514,7 @@ updated.</p></li>
 </ul>
 </section>
 <section id="toolbar">
-<h2><a class="toc-backref" href="#id9">Toolbar</a><a class="headerlink" href="#toolbar" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Toolbar</a><a class="headerlink" href="#toolbar" title="Permalink to this heading">¶</a></h2>
 <p>Toolbar contains many functions that help you with analyzing the table data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -574,7 +524,7 @@ labels to find the appropriate key combo to get to the button you want
 (similar to Microsoft Office).</p>
 </div>
 <section id="home-menu">
-<h3><a class="toc-backref" href="#id10">Home menu</a><a class="headerlink" href="#home-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Home menu</a><a class="headerlink" href="#home-menu" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/open_table.svg"><img alt="open_table" src="../_images/open_table.svg" width="20em" /></a> … Open a table data as a <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> from a file using a
 file dialog.</p></li>
@@ -587,7 +537,7 @@ file using a file dialog.</p></li>
 </ul>
 </section>
 <section id="edit-menu">
-<h3><a class="toc-backref" href="#id11">Edit menu</a><a class="headerlink" href="#edit-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Edit menu</a><a class="headerlink" href="#edit-menu" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/copy.svg"><img alt="copy" src="../_images/copy.svg" width="20em" /></a> … Copy the selected cells to the clipboard.</p></li>
 <li><p><a class="reference internal" href="../_images/paste.svg"><img alt="paste" src="../_images/paste.svg" width="20em" /></a> … Paste the clipboard data to the selected cells.</p></li>
@@ -597,7 +547,7 @@ file using a file dialog.</p></li>
 </ul>
 </section>
 <section id="table-menu">
-<h3><a class="toc-backref" href="#id12">Table menu</a><a class="headerlink" href="#table-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Table menu</a><a class="headerlink" href="#table-menu" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/copy_as_table.svg"><img alt="copy_as_table" src="../_images/copy_as_table.svg" width="20em" /></a> … Make a copy of the active table as a <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code>.</p></li>
 <li><p><a class="reference internal" href="../_images/copy_as_spreadsheet.svg"><img alt="copy_as_spreadsheet" src="../_images/copy_as_spreadsheet.svg" width="20em" /></a> … Make a copy of the active table as a <code class="xref py py-class docutils literal notranslate"><span class="pre">SpreadSheet</span></code>.</p></li>
@@ -608,7 +558,7 @@ file using a file dialog.</p></li>
 </ul>
 </section>
 <section id="analyze-menu">
-<h3><a class="toc-backref" href="#id13">Analyze menu</a><a class="headerlink" href="#analyze-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Analyze menu</a><a class="headerlink" href="#analyze-menu" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/summarize_table.svg"><img alt="summarize_table" src="../_images/summarize_table.svg" width="20em" /></a> … Summarize table data by mean, standard deviation etc.</p></li>
 <li><p><a class="reference internal" href="../_images/eval.svg"><img alt="eval" src="../_images/eval.svg" width="20em" /></a> … Evaluate a string expression on the table data. Essentially equivalent
@@ -623,7 +573,7 @@ match by value, partial match and regular expression) are available.</p></li>
 </ul>
 </section>
 <section id="view-menu">
-<h3><a class="toc-backref" href="#id14">View menu</a><a class="headerlink" href="#view-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">View menu</a><a class="headerlink" href="#view-menu" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/view_popup.svg"><img alt="view_popup" src="../_images/view_popup.svg" width="20em" /></a> … Popup current active table.</p></li>
 <li><p><a class="reference internal" href="../_images/view_dual_h.svg"><img alt="view_dual_h" src="../_images/view_dual_h.svg" width="20em" /></a> … Activate dual view mode (horizontal).</p></li>
@@ -635,7 +585,7 @@ match by value, partial match and regular expression) are available.</p></li>
 </ul>
 </section>
 <section id="plot-menu">
-<h3><a class="toc-backref" href="#id15">Plot menu</a><a class="headerlink" href="#plot-menu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Plot menu</a><a class="headerlink" href="#plot-menu" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference internal" href="../_images/plot.svg"><img alt="plot" src="../_images/plot.svg" width="20em" /></a> … Plot table data by <code class="xref py py-meth docutils literal notranslate"><span class="pre">plt.plot()</span></code>.</p></li>
 <li><p><a class="reference internal" href="../_images/scatter.svg"><img alt="scatter" src="../_images/scatter.svg" width="20em" /></a> … Plot table data by <code class="xref py py-meth docutils literal notranslate"><span class="pre">plt.scatter()</span></code>.</p></li>

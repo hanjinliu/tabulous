@@ -713,8 +713,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             index_br = self._qtable_view.model().index(bottom_int, right_int)
 
             rect_br = self._qtable_view.visualRect(index_br)
-            _w = rect_br.width() * right_res
-            _h = rect_br.height() * bottom_res
+            _w = int(rect_br.width() * right_res)
+            _h = int(rect_br.height() * bottom_res)
             rect_br.setBottom(rect_br.bottom() + _h)
             rect_br.setRight(rect_br.right() + _w)
             rect = rect_tl.united(rect_br)

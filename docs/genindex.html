@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; tabulous 0.5.2 documentation</title>
+  <title>Index &mdash; tabulous 0.5.4 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/font.css" type="text/css" />
@@ -12,9 +12,8 @@
   <![endif]-->
 
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
@@ -32,7 +31,7 @@
             tabulous
           </a>
               <div class="version">
-                0.5.2
+                0.5.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -125,8 +124,6 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.tab.activate_right">activate_right() (in module tabulous.commands.tab)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_checkbox">add_checkbox() (in module tabulous.commands.selection)</a>
-</li>
       <li><a href="apidoc/tabulous.html#tabulous.TableViewer.add_dock_widget">add_dock_widget() (tabulous.TableViewer method)</a>
 
       <ul>
@@ -134,10 +131,6 @@
 </li>
       </ul></li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.window.add_file_explorer">add_file_explorer() (in module tabulous.commands.window)</a>
-</li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_float_slider">add_float_slider() (in module tabulous.commands.selection)</a>
-</li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_float_spinbox">add_float_spinbox() (in module tabulous.commands.selection)</a>
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewerBase.add_groupby">add_groupby() (tabulous.widgets.TableViewerBase method)</a>
 </li>
@@ -149,19 +142,11 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_line_edit">add_line_edit() (in module tabulous.commands.selection)</a>
-</li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewerBase.add_loader">add_loader() (tabulous.widgets.TableViewerBase method)</a>
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.add_overlay_widget">add_overlay_widget() (tabulous.widgets.TableBase method)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_radio_button">add_radio_button() (in module tabulous.commands.selection)</a>
-</li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.add_side_widget">add_side_widget() (tabulous.widgets.TableBase method)</a>
-</li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_slider">add_slider() (in module tabulous.commands.selection)</a>
-</li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.add_spinbox">add_spinbox() (in module tabulous.commands.selection)</a>
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewerBase.add_spreadsheet">add_spreadsheet() (tabulous.widgets.TableViewerBase method)</a>
 </li>
@@ -279,10 +264,10 @@
         <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewerBase.console">(tabulous.widgets.TableViewerBase attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.html#tabulous.post_init.ConsoleMock">ConsoleMock (class in tabulous.post_init)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidoc/tabulous.html#tabulous.post_init.ContextRegisterable">ContextRegisterable (class in tabulous.post_init)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.color.ConvertedColormap">ConvertedColormap (class in tabulous.color)</a>
@@ -321,9 +306,13 @@
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.GroupBy.current_group">current_group (tabulous.widgets.GroupBy property)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewerBase.current_index">current_index (tabulous.widgets.TableViewerBase property)</a>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.current_index">current_index (tabulous.widgets.TableBase property)</a>
+
+      <ul>
+        <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewerBase.current_index">(tabulous.widgets.TableViewerBase property)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewerBase.current_table">current_table (tabulous.widgets.TableViewerBase property)</a>
+      </ul></li>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewerBase.current_table">current_table (tabulous.widgets.TableViewerBase attribute)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.current_viewer">current_viewer() (in module tabulous)</a>
 
@@ -339,7 +328,7 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.data">data (tabulous.widgets.TableBase property)</a>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.data">data (tabulous.widgets.TableBase attribute)</a>
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.data_shown">data_shown (tabulous.widgets.TableBase property)</a>
 </li>
@@ -532,6 +521,10 @@
       <li><a href="apidoc/tabulous.html#tabulous.post_init.Initializer.join">join() (tabulous.post_init.Initializer method)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.jump_to_cell">jump_to_cell() (in module tabulous.commands.table)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="K">K</h2>
@@ -577,7 +570,7 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.merge">merge() (in module tabulous.commands.table)</a>
 </li>
-      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.metadata">metadata (tabulous.widgets.TableBase property)</a>
+      <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableBase.metadata">metadata (tabulous.widgets.TableBase attribute)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.color.ColorTuple.mix">mix() (tabulous.color.ColorTuple method)</a>
 </li>
@@ -714,6 +707,8 @@
 </li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_from_rst">paste_data_from_rst() (in module tabulous.commands.selection)</a>
 </li>
+      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_space_separated">paste_data_space_separated() (in module tabulous.commands.selection)</a>
+</li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.paste_data_tab_separated">paste_data_tab_separated() (in module tabulous.commands.selection)</a>
 </li>
   </ul></td>
@@ -770,8 +765,6 @@
       </ul></li>
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.register_command">register_command() (in module tabulous.commands)</a>
 </li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.selection.remove_cell_widgets">remove_cell_widgets() (in module tabulous.commands.selection)</a>
-</li>
       <li><a href="apidoc/tabulous.html#tabulous.TableViewer.remove_dock_widget">remove_dock_widget() (tabulous.TableViewer method)</a>
 
       <ul>
@@ -803,8 +796,6 @@
       <li><a href="apidoc/tabulous.commands.html#tabulous.commands.view.reset_view_mode">reset_view_mode() (in module tabulous.commands.view)</a>
 </li>
       <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewerBase.resize">resize() (tabulous.widgets.TableViewerBase method)</a>
-</li>
-      <li><a href="apidoc/tabulous.commands.html#tabulous.commands.table.resize_cells_to_contents">resize_cells_to_contents() (in module tabulous.commands.table)</a>
 </li>
       <li><a href="apidoc/tabulous.html#tabulous.color.rgba_to_str">rgba_to_str() (in module tabulous.color)</a>
 </li>
@@ -961,7 +952,7 @@
       <li><a href="apidoc/tabulous.html#tabulous.post_init.ViewerInitializer.tables">tables (tabulous.post_init.ViewerInitializer attribute)</a>
 
       <ul>
-        <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewerBase.tables">(tabulous.widgets.TableViewerBase property)</a>
+        <li><a href="apidoc/tabulous.widgets.html#tabulous.widgets.TableViewerBase.tables">(tabulous.widgets.TableViewerBase attribute)</a>
 </li>
       </ul></li>
       <li><a href="apidoc/tabulous.html#tabulous.TableViewer">TableViewer (class in tabulous)</a>
