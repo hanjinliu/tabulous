@@ -167,6 +167,10 @@ class _HeaderInterface(TableComponent, SupportActionRegistration["TableBase", in
         """Size of the axis."""
         return self._get_axis().size
 
+    @property
+    def data(self) -> pd.Index:
+        return self._get_axis()
+
     def get_loc(self, key: str) -> int:
         """Get the location of a label."""
         return self._get_axis().get_loc(key)

@@ -5,7 +5,7 @@ from abc import abstractmethod, abstractstaticmethod
 import ast
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Hashable, TYPE_CHECKING, overload
+from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, overload
 import warnings
 import weakref
 from psygnal import SignalGroup, Signal
@@ -659,26 +659,14 @@ class _DataFrameTableLayer(TableBase):
         import pandas as pd
 
         if not isinstance(data, pd.DataFrame):
-            try:
-                mod = type(data).__module__.split(".", 1)[0]
-            except AttributeError:
-                mod = ""
-            if mod == "polars":
-                import polars as pl
-
-                if isinstance(data, pl.DataFrame):
-                    data = data.to_pandas()
-                elif isinstance(data, pl.Series):
-                    data = pd.DataFrame(data.to_pandas())
-                else:
-                    raise TypeError(f"{type(data)} cannot be converted.")
-            elif mod == "xarray" and hasattr(data, "to_dataframe"):
-                import xarray as xr
-
-                if isinstance(data, xr.DataArray):
-                    data = data.to_dataframe("val").reset_index()
-                else:
-                    raise TypeError(f"{type(data)} cannot be converted.")
+            if isinstance(data, (Mapping, pd.Series, list)):
+                data = pd.DataFrame(data)
+            if is_polars_data_frame(data):
+                data = data.to_pandas()
+            elif is_polars_series(data):
+                data = pd.DataFrame(data.to_pandas())
+            elif is_xarray_data_array(data):
+                data = data.to_dataframe("val").reset_index()
             else:
                 data = pd.DataFrame(data)
         return data
@@ -724,6 +712,45 @@ class _DataFrameTableLayer(TableBase):
             new_ds = df[name]
             self.assign({name: new_ds})
         return None
+
+    def append(self, row: Any) -> Self:
+        """Append a row to the table."""
+        import pandas as pd
+        from tabulous._pd_index import is_ranged
+
+        columns = self.columns.data
+        if isinstance(row, pd.Series):
+            _df = row.to_frame().T
+        elif isinstance(row, (Mapping, pd.DataFrame)):
+            _df = pd.DataFrame(row, copy=False, index=[0])
+        elif is_polars_data_frame(row):
+            _df = pd.DataFrame(row)
+        else:
+            _df = pd.DataFrame([list(row)])
+        if is_ranged(_df.columns):
+            if _df.columns.size < columns.size:
+                n_more = columns.size - _df.columns.size
+                _df = pd.concat(
+                    [_df, pd.DataFrame([[self.native.NaN] * n_more])],
+                    axis=1,
+                    columns=columns,
+                    ignore_index=True,
+                )
+            elif _df.columns.size == columns.size:
+                _df = _df.rename(columns=dict(zip(_df.columns, columns)))
+            else:
+                raise ValueError("Too many columns.")
+
+        else:
+            not_exist = _df.columns.difference(self.columns.data)
+            if not_exist.size > 0:
+                raise ValueError(f"Columns {list(not_exist)} does not exist.")
+        if self.table_type == "SpreadSheet":
+            with self._qwidget._anim_row.using_animation(False):
+                self.native.insertRows(self.table_shape[0], 1, row)
+        else:
+            self.data = pd.concat([self.data, _df], axis=0)
+        return self
 
 
 @_doc.update_doc
@@ -809,16 +836,6 @@ class SpreadSheet(_DataFrameTableLayer):
         self._qwidget.addSeparator()
 
         super()._install_actions()
-
-        _cell_register("Cell widget > SpinBox", _wrap(cmds.selection.add_spinbox))
-        _cell_register("Cell widget > Slider", _wrap(cmds.selection.add_slider))
-        _cell_register("Cell widget > FloatSpinBox", _wrap(cmds.selection.add_float_spinbox))  # noqa: E501
-        _cell_register("Cell widget > FloatSlider", _wrap(cmds.selection.add_float_slider))  # noqa: E501
-        _cell_register("Cell widget > CheckBox", _wrap(cmds.selection.add_checkbox))
-        _cell_register("Cell widget > RadioButton", _wrap(cmds.selection.add_radio_button))  # noqa: E501
-        _cell_register("Cell widget > LineEdit", _wrap(cmds.selection.add_line_edit))
-        self._qwidget.addSeparator("Cell widget ")
-        _cell_register("Cell widget > Remove", _wrap(cmds.selection.remove_cell_widgets))  # noqa: E501
 
         # fmt: on
         return None
@@ -962,3 +979,35 @@ def background_colormap(self: TableBase, *args, **kwargs):
 
 TableBase.foreground_colormap = foreground_colormap
 TableBase.background_colormap = background_colormap
+
+
+def is_polars_data_frame(data):
+    if _get_module(data) == "polars":
+        import polars as pl
+
+        return isinstance(data, pl.DataFrame)
+    return False
+
+
+def is_polars_series(data):
+    if _get_module(data) == "polars":
+        import polars as pl
+
+        return isinstance(data, pl.Series)
+    return False
+
+
+def is_xarray_data_array(data):
+    if _get_module(data) == "xarray":
+        import xarray as xr
+
+        return isinstance(data, xr.DataArray)
+    return False
+
+
+def _get_module(data) -> str:
+    try:
+        mod = type(data).__module__.split(".", 1)[0]
+    except AttributeError:
+        mod = ""
+    return mod
