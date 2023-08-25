@@ -413,7 +413,7 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         if path.is_dir():
             paths = [path / f"{table.name}.csv" for table in self.tables]
         elif path.name.count("*") == 1:
-            paths = [path.replace("*", table.name) for table in self.tables]
+            paths = [str(path).replace("*", table.name) for table in self.tables]
         elif path.suffix in (".xlsx", ".xls"):
             import pandas as pd
             from tabulous._pd_index import is_ranged

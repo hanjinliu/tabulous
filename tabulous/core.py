@@ -36,7 +36,7 @@ def read_csv(path: str | Path, *args, **kwargs) -> TableViewerBase:
     name = Path(path).stem
     viewer = current_viewer()
     viewer.add_table(df, name=name)
-    viewer.show()
+    viewer.show(run=False)
     return viewer
 
 
@@ -51,7 +51,7 @@ def read_excel(path: str | Path, *args, **kwargs) -> TableViewerBase:
     viewer = current_viewer()
     for sheet_name, df in df_dict.items():
         viewer.add_table(df, name=sheet_name)
-    viewer.show()
+    viewer.show(run=False)
     return viewer
 
 
@@ -65,7 +65,7 @@ def view_table(
     """View a table in the current viewer."""
     viewer = current_viewer()
     viewer.add_table(data, name=name, editable=editable, copy=copy)
-    viewer.show()
+    viewer.show(run=False)
     return viewer
 
 
@@ -79,7 +79,7 @@ def view_spreadsheet(
     """View a table as a spreadsheet in the current viewer."""
     viewer = current_viewer()
     viewer.add_spreadsheet(data, name=name, editable=editable, copy=copy)
-    viewer.show()
+    viewer.show(run=False)
     return viewer
 
 
@@ -90,5 +90,5 @@ def open_sample(
     """Open a sample data."""
     viewer = current_viewer()
     viewer.open_sample(sample_name, plugin_name)
-    viewer.show()
+    viewer.show(run=False)
     return viewer
