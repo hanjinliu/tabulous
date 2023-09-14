@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Literal, TYPE_CHECKING, cast
 import weakref
+from pathlib import Path
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Qt, Signal
 
@@ -10,6 +11,8 @@ from tabulous._qt._table_stack._utils import create_temporal_line_edit
 from tabulous._qt._table._base._table_group import QTableGroup
 from tabulous._qt._clickable_label import QClickableLabel
 from tabulous._qt._action_registry import QActionRegistry
+from tabulous._qt._toolbar._toolbutton import QColoredToolButton
+from tabulous.style import Style
 
 from tabulous._utils import get_config
 
@@ -82,6 +85,8 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
 
         self._entering_tab_index: int | None = None
         self._moving_tab_index = -1
+        self._trash_bin_label = QTrashBinLabel(self)
+        self._trash_bin_label.hide()
 
         # "new tab" button
         tb = QtW.QToolButton()
@@ -192,13 +197,26 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         source = e.source()
         if source is None:
             return
-        if source.parent() is not self:
-            return
-
-        self._entering_tab_index = self.indexOf(self.widget(self._moving_tab_index))
+        if source.parent() is self:
+            self._entering_tab_index = self.indexOf(self.widget(self._moving_tab_index))
         return None
 
+    def dragLeaveEvent(self, e: QtGui.QDragLeaveEvent) -> None:
+        e.accept()
+        return None
+
+    def dragMoveEvent(self, e: QtGui.QDragMoveEvent) -> None:
+        rect = self._trash_bin_label.rect()
+        pos = self.mapToGlobal(e.pos())
+        if self._trash_bin_label.isVisible():
+            if rect.contains(self._trash_bin_label.mapFromGlobal(pos)):
+                self._trash_bin_label._dragEnter(self)
+            else:
+                self._trash_bin_label._dragLeave()
+        return super().dragMoveEvent(e)
+
     def dropEvent(self, e: QtGui.QDropEvent) -> None:
+        self._hideTrashBin(trash=True)
         mime = e.mimeData()
         text = mime.text()
         if text:
@@ -219,6 +237,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         source_widget: QTabbedTableStack = source.parent()
         if not isinstance(source_widget, QTabbedTableStack):
             return
+        source_widget._hideTrashBin()
         tab_id = source_widget._entering_tab_index
         if source_widget is self:
             return super().dropEvent(e)
@@ -243,6 +262,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         self._moving_tab_index = tabbar.tabAt(pos)
         if self._moving_tab_index < 0:
             return
+        self._showTrashBin()
 
         tabrect = self.tabRect(self._moving_tab_index)
 
@@ -257,6 +277,18 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         drag.setDragCursor(cursor.pixmap(), Qt.DropAction.MoveAction)
         drag.exec_(Qt.DropAction.MoveAction)
 
+    def _showTrashBin(self):
+        self._trash_bin_label.show()
+        self._trash_bin_label.move(
+            self.rect().center() - self._trash_bin_label.rect().center()
+        )
+
+    def _hideTrashBin(self, trash: bool = False):
+        self._trash_bin_label.hide()
+        if trash and self._trash_bin_label._to_be_trashed >= 0:
+            idx = self._trash_bin_label._to_be_trashed
+            del self.parentWidget()._table_viewer.tables[idx]
+
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         if self._line is not None:
             self._line.setHidden(True)
@@ -266,10 +298,6 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         if e.button() != Qt.MouseButton.LeftButton:
             return
         return super().mouseDoubleClickEvent(e)
-
-    def dragLeaveEvent(self, e: QtGui.QDragLeaveEvent):
-        e.accept()
-        return None
 
     def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
         self.resizedSignal.emit()
@@ -665,3 +693,37 @@ def _label(text: str) -> QtW.QLabel:
     w.setFont(QtGui.QFont("Arial", 11))
     w.setContentsMargins(0, 0, 0, 8)
     return w
+
+
+class QTrashBinLabel(QColoredToolButton):
+    ICON_CLOSED = Path(__file__).parent.parent / "_icons/trash_bin.svg"
+    ICON_OPENED = Path(__file__).parent.parent / "_icons/trash_bin_opened.svg"
+    assert ICON_CLOSED.exists()
+    assert ICON_OPENED.exists()
+
+    def __init__(self, parent: QtW.QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setMouseTracking(True)
+        self.setAcceptDrops(True)
+        self.setWindowFlags(Qt.WindowType.Widget | Qt.WindowType.FramelessWindowHint)
+        self.setIcon(self.ICON_CLOSED)
+        self.updateColor(Style.from_global(get_config().window.theme).highlight1)
+        size = QtCore.QSize(160, 160)
+        self.setFixedSize(size)
+        self.setIconSize(size)
+
+        effect = QtW.QGraphicsOpacityEffect()
+        effect.setOpacity(0.5)
+        self.setGraphicsEffect(effect)
+
+        self._to_be_trashed = -1
+
+    def _dragEnter(self, parent: QTabbedTableStack) -> None:
+        self.setIcon(self.ICON_OPENED)
+        self.updateColor(Style.from_global(get_config().window.theme).highlight1)
+        self._to_be_trashed = parent._moving_tab_index
+
+    def _dragLeave(self) -> None:
+        self.setIcon(self.ICON_CLOSED)
+        self.updateColor(Style.from_global(get_config().window.theme).highlight1)
+        self._to_be_trashed = -1

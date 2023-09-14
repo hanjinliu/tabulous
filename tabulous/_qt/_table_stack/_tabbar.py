@@ -15,10 +15,10 @@ class QTabulousTabBar(QtW.QTabBar):
         self.setMouseTracking(True)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
 
+    # fmt: off
     if TYPE_CHECKING:
-
-        def parentWidget(self) -> QTabbedTableStack:
-            ...
+        def parentWidget(self) -> QTabbedTableStack: ...
+    # fmt: on
 
 
 class _QSideBar(QTabulousTabBar):
