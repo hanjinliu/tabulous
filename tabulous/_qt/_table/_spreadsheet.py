@@ -131,6 +131,7 @@ class SpreadSheetModel(AbstractDataFrameModel):
             name = self.df.columns[c]
             qtable = self.parent()
             r = qtable._proxy.get_source_index(r)
+            c = qtable._proxy.get_source_index(c)
             if slot := qtable._qtable_view._table_map.get_by_dest((r, c), None):
                 ref = f"\nExpr: {slot.as_literal(dest=True)}"
                 if slot._current_error is not None:
@@ -322,8 +323,10 @@ class QSpreadSheet(QMutableSimpleTable):
 
     def _apply_proxy(self):
         if self._proxy.proxy_type == "none":
-            return self.tableSlice()
-        return self._proxy.apply(self.tableSlice(), ref=self.getDataFrame)
+            row_filtered = self.tableSlice()
+        else:
+            row_filtered = self._proxy.apply(self.tableSlice(), ref=self.getDataFrame)
+        return self._column_filter.apply(row_filtered)
 
     __delete = object()
 

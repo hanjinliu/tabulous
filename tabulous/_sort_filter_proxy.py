@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 import ast
-from typing import TYPE_CHECKING, Any, Callable, NamedTuple, overload
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Sequence, overload
 import numpy as np
 from enum import Enum
 from functools import reduce
@@ -316,7 +316,7 @@ class FilterInfo(NamedTuple):
     arg: Any
 
 
-class Composable:
+class Composable(ABC):
     @abstractmethod
     def __call__(self, df: pd.DataFrame) -> np.ndarray:
         """Apply the mapping to the dataframe."""
@@ -452,3 +452,113 @@ class ComposableSorter(Composable):
     def is_identity(self) -> bool:
         """True if the sorter is the identity sorter."""
         return len(self._columns) == 0
+
+
+class ColumnFilter:
+    def __init__(
+        self,
+        fn: Callable[[pd.Index, Sequence[np.dtype]], pd.Index],
+        name: str = "generic filter",
+    ):
+        self._fn = fn
+        self._name = name
+        self._last_indexer = None
+
+    def __repr__(self) -> str:
+        return f"ColumnFilter<{self._name}>"
+
+    @property
+    def last_indexer(self) -> _IntArray | None:
+        return self._last_indexer
+
+    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
+        if self.is_identity():
+            return df
+        cols = self._fn(df.columns, df.dtypes)
+        self._last_indexer = np.array([df.columns.get_loc(c) for c in cols])
+        return df[cols]
+
+    # fmt: off
+    @overload
+    def get_source_index(self, c: int) -> int: ...
+    @overload
+    def get_source_index(self, c: slice) -> slice | _IntArray: ...
+    @overload
+    def get_source_index(self, c: list[int]) -> _IntArray: ...
+    # fmt: on
+
+    def get_source_index(self, c):
+        """Get the source index of the row in the dataframe."""
+        if self._last_indexer is None:
+            return c
+        return self._last_indexer[c]
+
+    @classmethod
+    def startswith(cls, prefix: str) -> ColumnFilter:
+        return cls(
+            lambda x, y: x[x.str.startswith(prefix)],
+            name=f"startswith {prefix!r}",
+        )
+
+    @classmethod
+    def endswith(cls, suffix: str) -> ColumnFilter:
+        return cls(
+            lambda x, y: x[x.str.endswith(suffix)],
+            name=f"endswith {suffix!r}",
+        )
+
+    @classmethod
+    def contains(cls, substr: str) -> ColumnFilter:
+        return cls(
+            lambda x, y: x[x.str.contains(substr)],
+            name=f"contains {substr!r}",
+        )
+
+    @classmethod
+    def regex(cls, pattern: str) -> ColumnFilter:
+        return cls(
+            lambda x, y: x[x.str.match(pattern)],
+            name=f"regex {pattern!r}",
+        )
+
+    @classmethod
+    def isin(cls, items: list[str]) -> ColumnFilter:
+        items = list(items)
+        for n in items:
+            if not isinstance(n, str):
+                raise TypeError(f"Invalid item type of {n!r}: {type(n)}")
+        return cls(
+            lambda x, y: x[x.isin(items)],
+            name=f"isin {items!r}",
+        )
+
+    @classmethod
+    def by_dtype(cls, dtype: str) -> ColumnFilter:
+        return cls(lambda x, y: x[x.astype(dtype)])
+
+    @classmethod
+    def is_numeric(cls) -> ColumnFilter:
+        return cls(lambda x, y: x[[[y0.kind in "uifc" for y0 in y]]])
+
+    @classmethod
+    def is_temporal(cls) -> ColumnFilter:
+        return cls(lambda x, y: x[[[y0.kind in "Mm" for y0 in y]]])
+
+    @classmethod
+    def is_bool(cls) -> ColumnFilter:
+        return cls(lambda x, y: x[[[y0.kind == "b" for y0 in y]]])
+
+    @classmethod
+    def is_categorical(cls) -> ColumnFilter:
+        return cls(lambda x, y: x[[[y0.kind == "O" for y0 in y]]])
+
+    @classmethod
+    def identity(cls) -> ColumnFilter:
+        return cls(_identity, name="identity")
+
+    def is_identity(self) -> bool:
+        return self._fn is _identity
+
+
+def _identity(x, y):
+    return x

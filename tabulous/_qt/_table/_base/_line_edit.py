@@ -316,7 +316,10 @@ class QCellLiteralEdit(_QTableLineEdit):
     ):
         super().__init__(parent, table, pos)
         if table is not None:
-            self._source_pos = table._proxy.get_source_index(pos[0]), pos[1]
+            self._source_pos = (
+                table._proxy.get_source_index(pos[0]),
+                table._column_filter.get_source_index(pos[1]),
+            )
         else:
             self._source_pos = pos
         self._old_range: RectRange | None = None
@@ -347,7 +350,6 @@ class QCellLiteralEdit(_QTableLineEdit):
             qtable.model().index(*qtable._selection_model.current_index)
         )
         cr, cc = qtable._selection_model.current_index
-        # cr = table._proxy.get_source_index(cr)
         line = cls(parent, table, (cr, cc))
         line.setMinimumSize(1, 1)
         geometry = line.geometry()

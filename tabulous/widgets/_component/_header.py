@@ -8,6 +8,7 @@ from tabulous.exceptions import TableImmutableError
 from tabulous.types import HeaderInfo
 from ._base import Component, TableComponent
 from tabulous.widgets._registry import SupportActionRegistration
+from tabulous._sort_filter_proxy import ColumnFilter
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -249,9 +250,46 @@ class VerticalHeaderInterface(_HeaderInterface):
         self.parent.refresh()
 
 
+class ColumnFilterInterface(TableComponent):
+    def _qtable(self):
+        return self.parent._qwidget
+
+    def _get_filter(self):
+        return self._qtable()._column_filter
+
+    def _set_filter(self, cfil):
+        self._qtable().setCollumnFilter(cfil)
+
+    def startswith(self, prefix: str):
+        self._set_filter(ColumnFilter.startswith(prefix))
+        self.parent.refresh()
+
+    def endswith(self, suffix: str):
+        self._set_filter(ColumnFilter.endswith(suffix))
+        self.parent.refresh()
+
+    def contains(self, substr: str):
+        self._set_filter(ColumnFilter.contains(substr))
+        self.parent.refresh()
+
+    def regex(self, regex: str):
+        self._set_filter(ColumnFilter.regex(regex))
+        self.parent.refresh()
+
+    def isin(self, values: list[str]):
+        self._set_filter(ColumnFilter.isin(values))
+        self.parent.refresh()
+
+    def clear(self):
+        self._set_filter(ColumnFilter.identity())
+        self.parent.refresh()
+
+
 class HorizontalHeaderInterface(_HeaderInterface):
     __doc__ = _HeaderInterface.__doc__.replace("{index/columns}", "columns")
     _AXIS_NUMBER = 1
+
+    filter = ColumnFilterInterface()
 
     def _get_axis(self) -> pd.Index:
         return self.parent._qwidget.model().df.columns
