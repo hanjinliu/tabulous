@@ -37,10 +37,10 @@ class HeaderAnchorMixin:
         return self
 
     def on_installed(self, table: QBaseTable, index: int):
-        pass
+        """Callback when this widget is installed to table header."""
 
     def on_uninstalled(self, table: QBaseTable, index: int):
-        pass
+        """Callback when this widget is uninstalled"""
 
 
 class _QHeaderSectionButton(QColoredToolButton, HeaderAnchorMixin):

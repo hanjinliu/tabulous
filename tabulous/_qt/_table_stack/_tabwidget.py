@@ -536,6 +536,20 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         _evaluator._line.setFocus()
         return _evaluator
 
+    def openColumnFilterDialog(self, index: int | None = None):
+        if index is not None:
+            self.setCurrentIndex(index)
+        ol = self._overlay
+        ol.show()
+        from ._column_filter_widget import QColumnFilterWidget
+
+        _widget = QColumnFilterWidget(ol)
+
+        ol.addWidget(_widget)
+        ol.setTitle("Filter")
+        _widget._cbox.setFocus()
+        return _widget
+
     def openEvalDialog(self, index: int | None = None):
         if index is not None:
             self.setCurrentIndex(index)

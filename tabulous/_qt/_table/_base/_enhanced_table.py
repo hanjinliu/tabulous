@@ -213,7 +213,9 @@ class _QTableViewEnhanced(QtW.QTableView):
         _r0, _c0 = dst
         new_status_tip = ""
         if _r0 < _nr and _c0 < _nc:
-            _r0 = self.parentTable()._proxy.get_source_index(_r0)
+            qtable = self.parentTable()
+            _r0 = qtable._proxy.get_source_index(_r0)
+            _c0 = qtable._column_filter.get_source_index(_c0)
             if slot := self._table_map.get_by_dest((_r0, _c0), None):
                 self._current_drawing_slot_ranges = slot.range
                 new_status_tip = f"<b><code>{slot.as_literal(dest=True)}</code></b>"

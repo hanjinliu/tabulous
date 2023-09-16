@@ -18,7 +18,7 @@ from ._line_edit import (
     QVerticalHeaderLineEdit,
     QCellLiteralEdit,
 )
-from tabulous._sort_filter_proxy import SortFilterProxy
+from tabulous._sort_filter_proxy import SortFilterProxy, ColumnFilter
 from tabulous._dtype import isna
 from tabulous._qt._undo import QtUndoManager, fmt_slice
 from tabulous._qt._svg import QColoredSVGIcon
@@ -107,6 +107,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         QActionRegistry.__init__(self)
 
         self._proxy = SortFilterProxy()
+        self._column_filter = ColumnFilter.identity()
         self._filtered_index: pd.Index | None = None
         self._filtered_columns: pd.Index | None = None
         self.setContentsMargins(0, 0, 0, 0)
@@ -453,8 +454,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             self._set_proxy(None)
             raise e
 
-        prx = self._proxy
-        proxy_type = prx.proxy_type
+        # update data
+        self.model().df = df_filt
+        self._filtered_index = df_filt.index
+        self._filtered_columns = df_filt.columns
+
+        # update filter icon
+        proxy_type = self._proxy.proxy_type
         if proxy_type == "none":
             icon = QtGui.QIcon()
         elif proxy_type == "filter":
@@ -463,13 +469,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             icon = QColoredSVGIcon.fromfile(ICON_DIR / "sort_table.svg")
         else:
             raise RuntimeError(f"Unknown proxy type: {proxy_type!r}")
-
-        # update data
-        self.model().df = df_filt
-        self._filtered_index = df_filt.index
-        self._filtered_columns = df_filt.columns
-
-        # update filter icon
         if stack := self.tableStack():
             idx = stack.tableIndex(self)
             bg = self.palette().color(self.backgroundRole())
@@ -479,10 +478,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
                     icon = icon.colored("#CCCCCC")
                 else:
                     icon = icon.colored("#1E1E1E")
-
-            stack.setTabIcon(idx, icon)
-            if not icon.isNull():
                 stack.setIconSize(QtCore.QSize(12, 12))
+            stack.setTabIcon(idx, icon)
 
         return self.refreshTable()
 
@@ -497,6 +494,39 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     @_set_proxy.set_formatter
     def _set_proxy_fmt(self, proxy: ProxyType):
         return f"table.proxy.set({proxy!r})"
+
+    @_mgr.interface
+    def setColumnFilter(self, cfil: ColumnFilter):
+        """Set column filter to the table view."""
+        self._set_column_filter(cfil)
+        self._set_proxy(self.proxy())
+        return None
+
+    @setColumnFilter.server
+    def setColumnFilter(self, cfil: ColumnFilter):
+        return arguments(self._column_filter)
+
+    @_mgr.interface
+    def _set_column_filter(self, cfil: ColumnFilter):
+        self._column_filter = cfil
+        df_filt = self._column_filter.apply(self.model().df)
+
+        # update data
+        self.model().df = df_filt
+        self._filtered_index = df_filt.index
+        self._filtered_columns = df_filt.columns
+
+        # update header widgets based on the column filter
+        if self._column_filter.last_indexer is not None:
+            indexer: list[int] | None = self._column_filter.last_indexer.tolist()
+        else:
+            indexer = None
+        hheader = self._qtable_view.horizontalHeader()
+        hheader.reindexSectionWidgets(indexer)
+
+    @_set_column_filter.server
+    def _set_column_filter(self, cfil: ColumnFilter):
+        return arguments(self._column_filter)
 
     @_mgr.interface
     def setHorizontalHeaderWidget(self, idx: int, widget: QtW.QWidget | None):
@@ -913,6 +943,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _get_ref_expr(self, r: int, c: int) -> str | None:
         """Try to get a reference expression for the cell at (r, c)."""
         r = self._proxy.get_source_index(r)
+        c = self._column_filter.get_source_index(c)
         if slot := self._qtable_view._table_map.get((r, c), None):
             return slot.as_literal()
         return None
@@ -920,6 +951,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _get_ref_expr_by_dest(self, r: int, c: int) -> str | None:
         """Try to get a reference expression for the cell at (r, c)."""
         r = self._proxy.get_source_index(r)
+        c = self._column_filter.get_source_index(c)
         if slot := self._qtable_view._table_map.get_by_dest((r, c), None):
             return slot.as_literal()
         return None
@@ -1022,21 +1054,24 @@ class QMutableTable(QBaseTable):
                 _is_scalar = True
 
             # if table has proxy, indices must be adjusted
-            r0 = self._get_proxy_source_index(r)
+            r0, c0 = self._get_proxy_source_index(r, c)
 
-            _old_value = data.iloc[r0, c]
+            _old_value = data.iloc[r0, c0]
             if not _is_scalar:
                 _old_value: pd.DataFrame
                 _old_value = _old_value.copy()  # this is needed for undo
 
-            if self._proxy.proxy_type != "none":
+            if (
+                self._proxy.proxy_type != "none"
+                or not self._column_filter.is_identity()
+            ):
                 # If table is filtered, the dataframe to be displayed is a different
                 # object so we have to update it as well.
                 self.model().updateValue(r, c, _value)
 
             # emit item changed signal if value changed
             if _was_changed(_value, _old_value) and self.isEditable():
-                self._set_value(r0, c, r, c, value=_value, old_value=_old_value)
+                self._set_value(r0, c0, r, c, value=_value, old_value=_old_value)
 
         return None
 
@@ -1069,11 +1104,11 @@ class QMutableTable(QBaseTable):
             _value = self._pre_set_array(r, c, pd.DataFrame(value))
 
             # if table has proxy, indices must be adjusted
-            r0 = self._get_proxy_source_index(r)
+            r0, c0 = self._get_proxy_source_index(r, c)
 
-            _old_value = data.iloc[r0, c].copy()  # this is needed for undo
+            _old_value = data.iloc[r0, c0].copy()  # this is needed for undo
 
-            if self._proxy is not None:
+            if self._proxy is not None or not self._column_filter.is_identity():
                 # If table is filtered, the dataframe to be displayed is a different
                 # object so we have to update it as well.
                 self.model().updateValue(r, c, _value)
@@ -1091,8 +1126,10 @@ class QMutableTable(QBaseTable):
                     self.setItemLabel(_r, c.start, value.index[_i])
         return None
 
-    def _get_proxy_source_index(self, r: int | slice):
-        return self._proxy.get_source_index(r)
+    def _get_proxy_source_index(self, r: int | slice, c: int | slice):
+        r0 = self._proxy.get_source_index(r)
+        c0 = self._column_filter.get_source_index(c)
+        return r0, c0
 
     def _pre_set_array(self, r: slice, c: slice, _value: pd.DataFrame):
         """Convert input dataframe for setting to data[r, c]."""
@@ -1362,9 +1399,10 @@ class QMutableTable(QBaseTable):
             model.rename_column(colname, value)
 
             _rename_column(model.df, index, value)
-            self._filtered_columns = _rename_index(self._filtered_columns, index, value)
+            c0 = self._column_filter.get_source_index(index)
+            self._filtered_columns = _rename_index(self._filtered_columns, c0, value)
             if constructor is None:
-                _rename_column(self._data_raw, index, value)
+                _rename_column(self._data_raw, c0, value)
             else:
                 self._data_raw.columns = constructor(self._data_raw.columns.size)
 
@@ -1405,7 +1443,7 @@ class QMutableTable(QBaseTable):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             _rename_row(self.model().df, index, value)
-            r0 = self._get_proxy_source_index(index)
+            r0 = self._proxy.get_source_index(index)
             self._filtered_index = _rename_index(self._filtered_index, r0, value)
             if constructor is None:
                 _rename_row(self._data_raw, r0, value)

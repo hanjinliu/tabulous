@@ -21,6 +21,7 @@ class QAbstractEval(QtW.QWidget):
         _layout.addWidget(self._line)
         _layout.addWidget(self._btn)
         self.setLayout(_layout)
+        self._btn.setFixedHeight(self._line.sizeHint().height())
 
         self.setToolTip(self.__class__.__doc__.replace("\n    ", "\n").strip())
 

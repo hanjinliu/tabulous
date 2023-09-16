@@ -168,8 +168,8 @@ def test_ranged_index_extension(make_tabulous_viewer):
 def test_assign(make_tabulous_viewer):
     viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet(np.zeros((3, 3)))
-    assert sheet.native.model().df.dtypes[0] == "string"
+    assert sheet.native.model().df.dtypes.iloc[0] == "string"
     sheet.assign({"A": np.arange(3)})
-    assert sheet.native.model().df.dtypes[0] == "string"
+    assert sheet.native.model().df.dtypes.iloc[0] == "string"
     sheet.undo_manager.undo()
-    assert sheet.native.model().df.dtypes[0] == "string"
+    assert sheet.native.model().df.dtypes.iloc[0] == "string"

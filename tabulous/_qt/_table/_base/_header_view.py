@@ -154,16 +154,20 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
             self.removeSectionWidget(idx)
         self._header_widgets[idx] = widget
         widget.setParent(self.viewport())
+        self._place_section_widget(idx, widget)
+        if isinstance(widget, HeaderAnchorMixin):
+            _widget = cast(HeaderAnchorMixin, widget)
+            _widget.on_installed(self.parentWidget().parentTable(), idx)
+        widget.show()
+        return None
+
+    def _place_section_widget(self, idx: int, widget: QtW.QWidget) -> None:
         w, h = widget.width(), widget.height()
         rect = self.visualRectAtIndex(idx)
         rect.adjust(2, 2, -2, -2)
         rect.setLeft(rect.left() + rect.width() - w)
         rect.setTop(rect.top() + rect.height() - h)
         widget.setGeometry(rect)
-        if isinstance(widget, HeaderAnchorMixin):
-            _widget = cast(HeaderAnchorMixin, widget)
-            _widget.on_installed(self.parentWidget().parentTable(), idx)
-        widget.show()
         return None
 
     def removeSectionWidget(self, idx: int | None = None):
@@ -185,6 +189,23 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
                 _widget.on_uninstalled(table, idx)
             widget.setParent(None)
         return None
+
+    def reindexSectionWidgets(self, indexer: list[int] | None):
+        """Move, hide and show the section widgets according to the indexer."""
+        if indexer is None:
+            for idx, widget in self._header_widgets.items():
+                self._place_section_widget(idx, widget)
+                widget.show()
+            return
+        for idx, widget in self._header_widgets.items():
+            try:
+                idx_transformed = indexer.index(idx)
+            except ValueError:
+                widget.hide()
+            else:
+                self._place_section_widget(idx_transformed, widget)
+                widget.show()
+        return
 
 
 class QHorizontalHeaderView(QDataFrameHeaderView):

@@ -237,6 +237,7 @@ class QTableStackToolBar(QtW.QToolBar, QHasToolTip):
         self.registerAction("Analyze", cmds.table.show_finder_widget, ICON_DIR / "find_item.svg")  # noqa: E501
         self.registerAction("Analyze", cmds.selection.sort_by_columns, ICON_DIR / "sort_table.svg")  # noqa: E501
         self.registerAction("Analyze", cmds.analysis.show_filter_widget, ICON_DIR / "filter.svg")  # noqa: E501
+        self.registerAction("Analyze", cmds.analysis.show_column_filter_widget, ICON_DIR / "column_filter.svg")  # noqa: E501
         self.addSeparatorToChild("Analyze")
         self.registerAction("Analyze", cmds.analysis.show_optimizer_widget, ICON_DIR / "optimize.svg")  # noqa: E501
         self.registerAction("Analyze", cmds.analysis.show_stats_widget, ICON_DIR / "stats_test.svg")  # noqa: E501

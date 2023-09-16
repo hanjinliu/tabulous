@@ -61,6 +61,11 @@ def show_filter_widget(viewer: TableViewerBase):
     return viewer._qwidget._tablestack.openFilterDialog()
 
 
+def show_column_filter_widget(viewer: TableViewerBase):
+    """Show column filter widget."""
+    return viewer._qwidget._tablestack.openColumnFilterDialog()
+
+
 def show_eval_widget(viewer: TableViewerBase):
     """Evaluate a Python expression"""
     return viewer._qwidget._tablestack.openEvalDialog()

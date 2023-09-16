@@ -94,7 +94,7 @@ class ProxyInterface(TableComponent):
             if not (compose and isinstance(table.proxy.obj, ComposableSorter)):
                 table.proxy.reset()
             for x in by:
-                index = table.columns.get_loc(x)
+                index = table.columns._get_raw_axis().get_loc(x)
                 QHeaderSortButton.install_to_table(
                     table.native, index, ascending=ascending
                 )

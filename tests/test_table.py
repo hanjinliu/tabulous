@@ -147,7 +147,7 @@ def test_assign(make_tabulous_viewer):
     table.assign(b=[True, False, True])
     assert all(table.columns == ["a", "b", "c"])
     assert all(table.data["b"] == [True, False, True])
-    assert table.data.dtypes[1] == bool
+    assert table.data.dtypes.iloc[1] == bool
 
 def test_dual_view(make_tabulous_viewer):
     viewer: TableViewer = make_tabulous_viewer()
