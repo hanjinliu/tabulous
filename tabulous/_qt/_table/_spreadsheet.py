@@ -267,7 +267,10 @@ class QSpreadSheet(QMutableSimpleTable):
         """Return the shown dataframe (consider filter)."""
         if parse:
             df = self.getDataFrame()
-            return self._proxy.apply(df)
+            df_filt = self._proxy.apply(df)
+            if self._column_filter is not None:
+                df_filt = self._column_filter.apply(df_filt)
+            return df_filt
         else:
             return self.model().df
 

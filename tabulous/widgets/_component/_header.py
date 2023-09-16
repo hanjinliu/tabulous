@@ -217,6 +217,9 @@ class VerticalHeaderInterface(_HeaderInterface):
     def _get_axis(self) -> pd.Index:
         return self.parent._qwidget.model().df.index
 
+    def _get_raw_axis(self) -> pd.Index:
+        return self.parent._qwidget._data_raw.index
+
     def _set_value(self, idx: int, val: Any):
         return self.parent._qwidget.setVerticalHeaderValue(idx, val)
 
@@ -258,7 +261,7 @@ class ColumnFilterInterface(TableComponent):
         return self._qtable()._column_filter
 
     def _set_filter(self, cfil):
-        self._qtable().setCollumnFilter(cfil)
+        self._qtable().setColumnFilter(cfil)
 
     def startswith(self, prefix: str):
         self._set_filter(ColumnFilter.startswith(prefix))
@@ -293,6 +296,9 @@ class HorizontalHeaderInterface(_HeaderInterface):
 
     def _get_axis(self) -> pd.Index:
         return self.parent._qwidget.model().df.columns
+
+    def _get_raw_axis(self) -> pd.Index:
+        return self.parent._qwidget._data_raw.columns
 
     def _set_value(self, idx: int, val: Any):
         return self.parent._qwidget.setHorizontalHeaderValue(idx, val)

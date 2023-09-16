@@ -454,8 +454,13 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             self._set_proxy(None)
             raise e
 
-        prx = self._proxy
-        proxy_type = prx.proxy_type
+        # update data
+        self.model().df = df_filt
+        self._filtered_index = df_filt.index
+        self._filtered_columns = df_filt.columns
+
+        # update filter icon
+        proxy_type = self._proxy.proxy_type
         if proxy_type == "none":
             icon = QtGui.QIcon()
         elif proxy_type == "filter":
@@ -464,13 +469,6 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             icon = QColoredSVGIcon.fromfile(ICON_DIR / "sort_table.svg")
         else:
             raise RuntimeError(f"Unknown proxy type: {proxy_type!r}")
-
-        # update data
-        self.model().df = df_filt
-        self._filtered_index = df_filt.index
-        self._filtered_columns = df_filt.columns
-
-        # update filter icon
         if stack := self.tableStack():
             idx = stack.tableIndex(self)
             bg = self.palette().color(self.backgroundRole())
@@ -480,17 +478,14 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
                     icon = icon.colored("#CCCCCC")
                 else:
                     icon = icon.colored("#1E1E1E")
-
-            stack.setTabIcon(idx, icon)
-            if not icon.isNull():
                 stack.setIconSize(QtCore.QSize(12, 12))
+            stack.setTabIcon(idx, icon)
 
         return self.refreshTable()
 
     def _apply_proxy(self):
         data_sliced = self.tableSlice()
-        row_filtered = self._proxy.apply(data_sliced)
-        return self._column_filter.apply(row_filtered)
+        return self._proxy.apply(data_sliced)
 
     @_set_proxy.server
     def _set_proxy(self, proxy: ProxyType):
@@ -500,16 +495,34 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _set_proxy_fmt(self, proxy: ProxyType):
         return f"table.proxy.set({proxy!r})"
 
-    def setCollumnFilter(self, cfil: ColumnFilter):
+    @_mgr.interface
+    def setColumnFilter(self, cfil: ColumnFilter):
         """Set column filter to the table view."""
-        with self._mgr.merging(lambda cmds: f"table.column_filter = {cfil!r}"):
-            self._set_column_filter(cfil)
-            self._set_proxy(self.proxy())
+        self._set_column_filter(cfil)
+        self._set_proxy(self.proxy())
         return None
+
+    @setColumnFilter.server
+    def setColumnFilter(self, cfil: ColumnFilter):
+        return arguments(self._column_filter)
 
     @_mgr.interface
     def _set_column_filter(self, cfil: ColumnFilter):
         self._column_filter = cfil
+        df_filt = self._column_filter.apply(self.model().df)
+
+        # update data
+        self.model().df = df_filt
+        self._filtered_index = df_filt.index
+        self._filtered_columns = df_filt.columns
+
+        # update header widgets based on the column filter
+        if self._column_filter.last_indexer is not None:
+            indexer: list[int] | None = self._column_filter.last_indexer.tolist()
+        else:
+            indexer = None
+        hheader = self._qtable_view.horizontalHeader()
+        hheader.reindexSectionWidgets(indexer)
 
     @_set_column_filter.server
     def _set_column_filter(self, cfil: ColumnFilter):

@@ -469,6 +469,14 @@ class ColumnFilter:
 
     @property
     def last_indexer(self) -> _IntArray | None:
+        """If not None, columns[last_indexer] gives the filtered columns."""
+        return self._last_indexer
+
+    def prep_indexer(self, df: pd.DataFrame) -> _IntArray:
+        """Prepare the indexer for the dataframe."""
+        if self._last_indexer is None:
+            cols = self._fn(df.columns, df.dtypes)
+            self._last_indexer = np.array([df.columns.get_loc(c) for c in cols])
         return self._last_indexer
 
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
