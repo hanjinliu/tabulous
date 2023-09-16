@@ -416,7 +416,7 @@ class ComposableSorter(Composable):
     def __call__(self, df: pd.DataFrame) -> pd.Series:
         by: list[str] = [df.columns[i] for i in self._columns]
         if len(by) == 1:
-            out = np.asarray(df[by[0]].argsort())
+            out = np.asarray(df[by[0]]).argsort()
             if not self._ascending:
                 out = out[::-1]
         else:

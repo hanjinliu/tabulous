@@ -82,5 +82,5 @@ class QTableLayer(QMutableSimpleTable):
 
     def convertValue(self, c: int, value: Any) -> Any:
         """Convert value to the type of the table."""
-        dtype = self._data_raw.dtypes[c]
+        dtype = self._data_raw.dtypes.iloc[c]
         return get_converter(dtype)(value)

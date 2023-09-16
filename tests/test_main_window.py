@@ -14,7 +14,7 @@ def test_add_layers(viewer_cls: type[TableViewerWidget]):
     viewer.add_table(test_data, name="Data")
     df = viewer.tables[0].data
     assert viewer.current_index == 0
-    agg = df.agg([np.mean, np.std])
+    agg = df.agg(["mean", "std"])
     viewer.add_table(agg, name="Data")
     assert viewer.current_index == 1
     assert viewer.tables[0].name == "Data"

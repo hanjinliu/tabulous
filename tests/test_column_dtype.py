@@ -14,8 +14,8 @@ def test_setting_column_dtype(make_tabulous_viewer):
     assert sheet.dtypes == {"number": "float32", "char": "category"}
 
     df = sheet.data
-    assert df.dtypes[0] == "float32"
-    assert df.dtypes[1] == "category"
+    assert df.dtypes.iloc[0] == "float32"
+    assert df.dtypes.iloc[1] == "category"
 
     sheet.undo_manager.undo()
     assert sheet.dtypes == {"number": "float32"}
@@ -26,18 +26,18 @@ def test_setting_column_dtype(make_tabulous_viewer):
 def test_datetime(make_tabulous_viewer):
     viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet({"datetime": ["2020-01-01", "2020-01-02", "2020-01-03"]})
-    assert sheet.data.dtypes[0] == "object"
+    assert sheet.data.dtypes.iloc[0] == "object"
 
     sheet.dtypes["datetime"] = "datetime64[ns]"
-    assert sheet.data.dtypes[0] == "datetime64[ns]"
+    assert sheet.data.dtypes.iloc[0] == "datetime64[ns]"
 
 def test_timedelta(make_tabulous_viewer):
     viewer: TableViewer = make_tabulous_viewer()
     sheet = viewer.add_spreadsheet({"timedelta": ["1d", "2d", "3d"]})
-    assert sheet.data.dtypes[0] == "object"
+    assert sheet.data.dtypes.iloc[0] == "object"
 
     sheet.dtypes["timedelta"] = "timedelta64[ns]"
-    assert sheet.data.dtypes[0] == "timedelta64[ns]"
+    assert sheet.data.dtypes.iloc[0] == "timedelta64[ns]"
 
 def test_updating_column_name(make_tabulous_viewer):
     viewer: TableViewer = make_tabulous_viewer()

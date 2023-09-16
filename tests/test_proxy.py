@@ -238,9 +238,9 @@ def test_column_filter_with_sort(make_tabulous_viewer):
     )
     table.proxy.sort(by="a")
     table.columns.filter.startswith("b")
-    assert_equal(table.data_shown["ba"], [3, 4])
+    assert_equal(table.data_shown["ba"].values, [3, 4])
     table.undo_manager.undo()
     assert list(table.data_shown.columns) == ["a", "b", "ba"]
-    assert_equal(table.data_shown["ba"], [3, 4])
+    assert_equal(table.data_shown["ba"].values, [3, 4])
     table.undo_manager.undo()
-    assert_equal(table.data_shown["ba"], [4, 3])
+    assert_equal(table.data_shown["ba"].values, [4, 3])
