@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from typing import Hashable, Iterator, TYPE_CHECKING, Literal, Union, SupportsIndex
-from functools import singledispatch
 import re
 
 from tabulous.exceptions import UnreachableError
+from tabulous import _slice_op as _sl
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -27,7 +27,7 @@ class SelectionOperator:
     def fmt_iloc(self, df: pd.DataFrame, df_expr: str = "df") -> str:
         """Format selection literal as iloc indices."""
         rsel, csel = self.as_iloc(df)
-        return f"{df_expr}.iloc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+        return f"{df_expr}.iloc[{_sl.fmt(rsel)}, {_sl.fmt(csel)}]"
 
     def fmt_scalar(self, df_expr: str = "df") -> str:
         """Format 1x1 selection literal as a scalar reference."""
@@ -57,18 +57,20 @@ class SelectionOperator:
         """Return selection literal as iloc indices."""
         raise NotImplementedError()
 
-    def as_iloc_slices(self, df: pd.DataFrame) -> tuple[slice, slice]:
+    def as_iloc_slices(
+        self, df: pd.DataFrame, fit_shape: bool = True
+    ) -> tuple[slice, slice]:
         """Return selection literal as iloc indices, forcing slices."""
         rsl, csl = self.as_iloc(df)
         if isinstance(rsl, SupportsIndex):
             r = rsl.__index__()
             rsl = slice(r, r + 1)
-        elif rsl == slice(None):
+        elif rsl == slice(None) and fit_shape:
             rsl = slice(0, df.index.size)
         if isinstance(csl, SupportsIndex):
             c = csl.__index__()
             csl = slice(c, c + 1)
-        elif csl == slice(None):
+        elif csl == slice(None) and fit_shape:
             csl = slice(0, df.columns.size)
         return rsl, csl
 
@@ -120,14 +122,14 @@ class ColumnSelOp(SelectionOperator):
 
     def fmt(self, df_expr: str = "df") -> str:
         col, rows = self.args
-        return f"{df_expr}[{_fmt_slice(col)}][{_fmt_slice(rows)}]"
+        return f"{df_expr}[{_sl.fmt(col)}][{_sl.fmt(rows)}]"
 
     def fmt_scalar(self, df_expr: str = "df") -> str:
         col, rows = self.args
         start, stop = rows.start, rows.stop
         if stop - start != 1:
             raise ValueError("Cannot format as a scalar value.")
-        return f"{df_expr}[{_fmt_slice(col)}][{_fmt_slice(start)}]"
+        return f"{df_expr}[{_sl.fmt(col)}][{_sl.fmt(start)}]"
 
     def operate(self, df: pd.DataFrame) -> pd.DataFrame:
         col, rows = self.args
@@ -159,19 +161,19 @@ class LocSelOp(SelectionOperator):
 
     def fmt(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
-        return f"{df_expr}.loc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+        return f"{df_expr}.loc[{_sl.fmt(rsel)}, {_sl.fmt(csel)}]"
 
     def fmt_scalar(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
         if isinstance(rsel, slice):
-            if _has_none(rsel) or rsel.start != rsel.stop:
+            if _sl.has_none(rsel) or rsel.start != rsel.stop:
                 raise ValueError("Cannot format as a scalar value.")
             rsel = rsel.start
         if isinstance(csel, slice):
-            if _has_none(csel) or csel.start != csel.stop:
+            if _sl.has_none(csel) or csel.start != csel.stop:
                 raise ValueError("Cannot format as a scalar value.")
             csel = csel.start
-        return f"{df_expr}.loc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+        return f"{df_expr}.loc[{_sl.fmt(rsel)}, {_sl.fmt(csel)}]"
 
     def operate(self, df: pd.DataFrame) -> pd.DataFrame:
         rsel, csel = self.args
@@ -244,19 +246,19 @@ class ILocSelOp(SelectionOperator):
 
     def fmt(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
-        return f"{df_expr}.iloc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+        return f"{df_expr}.iloc[{_sl.fmt(rsel)}, {_sl.fmt(csel)}]"
 
     def fmt_scalar(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
         if isinstance(rsel, slice):
-            if _has_none(rsel) or rsel.start != rsel.stop - 1:
+            if _sl.has_none(rsel) or rsel.start != rsel.stop - 1:
                 raise ValueError(f"Cannot format {(rsel, csel)} as a scalar value.")
             rsel = rsel.start
         if isinstance(csel, slice):
-            if _has_none(csel) or csel.start != csel.stop - 1:
+            if _sl.has_none(csel) or csel.start != csel.stop - 1:
                 raise ValueError(f"Cannot format {(rsel, csel)} as a scalar value.")
             csel = csel.start
-        return f"{df_expr}.iloc[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+        return f"{df_expr}.iloc[{_sl.fmt(rsel)}, {_sl.fmt(csel)}]"
 
     def operate(self, df: pd.DataFrame) -> pd.DataFrame | pd.Series:
         rsel, csel = self.args
@@ -265,8 +267,12 @@ class ILocSelOp(SelectionOperator):
     def as_iloc(self, df: pd.DataFrame = None) -> tuple[_Slice, _Slice]:
         return self.args
 
-    def as_iloc_slices(self, df: pd.DataFrame | None = None) -> tuple[slice, slice]:
-        return super().as_iloc_slices(df)
+    def as_iloc_slices(
+        self,
+        df: pd.DataFrame | None = None,
+        fit_shape: bool = True,
+    ) -> tuple[slice, slice]:
+        return super().as_iloc_slices(df, fit_shape=fit_shape)
 
     @classmethod
     def from_iloc(cls, r: _Slice, c: _Slice, df: pd.DataFrame = None) -> Self:
@@ -284,19 +290,19 @@ class ValueSelOp(SelectionOperator):
 
     def fmt(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
-        return f"{df_expr}.values[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+        return f"{df_expr}.values[{_sl.fmt(rsel)}, {_sl.fmt(csel)}]"
 
     def fmt_scalar(self, df_expr: str = "df") -> str:
         rsel, csel = self.args
         if isinstance(rsel, slice):
-            if _has_none(rsel) or rsel.start != rsel.stop - 1:
+            if _sl.has_none(rsel) or rsel.start != rsel.stop - 1:
                 raise ValueError("Cannot format as a scalar value.")
             rsel = rsel.start
         if isinstance(csel, slice):
-            if _has_none(csel) or csel.start != csel.stop - 1:
+            if _sl.has_none(csel) or csel.start != csel.stop - 1:
                 raise ValueError("Cannot format as a scalar value.")
             csel = csel.start
-        return f"{df_expr}.values[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+        return f"{df_expr}.values[{_sl.fmt(rsel)}, {_sl.fmt(csel)}]"
 
     def operate(self, df: pd.DataFrame) -> pd.DataFrame:
         rsel, csel = self.args
@@ -451,34 +457,6 @@ def _parse_slice(s: str) -> Hashable | slice:
         if s == "":
             return slice(None)
         return _eval(s)
-
-
-def _has_none(sl: slice):
-    return sl.start is None or sl.stop is None
-
-
-@singledispatch
-def _fmt_slice(s) -> str:
-    return str(s)
-
-
-@_fmt_slice.register
-def _(s: int) -> str:
-    return str(s)
-
-
-@_fmt_slice.register
-def _(s: str) -> str:
-    return repr(s)
-
-
-@_fmt_slice.register
-def _(s: slice) -> str:
-    if s == slice(None):
-        return ":"
-    start = "" if s.start is None else s.start
-    stop = "" if s.stop is None else s.stop
-    return f"{start!r}:{stop!r}"
 
 
 def _split_or(s: str, sep: str, default: str = ":") -> tuple[str, str]:

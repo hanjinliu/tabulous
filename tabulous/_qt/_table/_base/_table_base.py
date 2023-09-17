@@ -24,6 +24,7 @@ from tabulous._qt._undo import QtUndoManager, fmt_slice
 from tabulous._qt._svg import QColoredSVGIcon
 from tabulous._keymap import QtKeys, QtKeyMap
 from tabulous._utils import TabulousConfig
+from tabulous import _slice_op as _sl
 from tabulous._qt._action_registry import QActionRegistry
 from tabulous.types import ProxyType, ItemInfo, HeaderInfo, EvalInfo
 from tabulous.exceptions import (
@@ -1581,10 +1582,6 @@ def _rename_index(di: pd.Index | None, idx: int, new_name: str) -> pd.Index:
     return pd.Index(di_list)
 
 
-def _fmt_slice(sl: slice) -> str:
-    return f"{sl.start}:{sl.stop}"
-
-
 def _selection_to_literal(sel: tuple[slice, slice]) -> str:
     rsel, csel = sel
     rsize = rsel.stop - rsel.start
@@ -1592,11 +1589,11 @@ def _selection_to_literal(sel: tuple[slice, slice]) -> str:
     if rsize == 1 and csize == 1:
         txt = f"[{rsel.start}, {csel.start}]"
     elif rsize == 1:
-        txt = f"[{rsel.start}, {_fmt_slice(csel)}]"
+        txt = f"[{rsel.start}, {_sl.fmt(csel)}]"
     elif csize == 1:
-        txt = f"[{_fmt_slice(rsel)}, {csel.start}]"
+        txt = f"[{_sl.fmt(rsel)}, {csel.start}]"
     else:
-        txt = f"[{_fmt_slice(rsel)}, {_fmt_slice(csel)}]"
+        txt = f"[{_sl.fmt(rsel)}, {_sl.fmt(csel)}]"
     return txt
 
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Iterable, Iterator, Sequence, SupportsIndex
+from tabulous import _slice_op as _sl
 
 
 class TableAnchorBase(ABC):
@@ -48,7 +49,7 @@ class RectRange(TableAnchorBase):
         return cls(slice(0, shape[0]), slice(0, shape[1]))
 
     def __repr__(self):
-        return f"RectRange[{_fmt_slice(self._rsl)}, {_fmt_slice(self._csl)}]"
+        return f"RectRange[{_sl.fmt(self._rsl)}, {_sl.fmt(self._csl)}]"
 
     def __contains__(self, other: tuple[int, int]):
         r, c = other
@@ -274,12 +275,6 @@ class MultiRectRange(RectRange):
 
     def as_iloc(self):
         raise TypeError("Cannot convert MultiRectRange to iloc")
-
-
-def _fmt_slice(sl: slice) -> str:
-    s0 = sl.start if sl.start is not None else ""
-    s1 = sl.stop if sl.stop is not None else ""
-    return f"{s0}:{s1}"
 
 
 def _parse_slice(sl: slice) -> str:

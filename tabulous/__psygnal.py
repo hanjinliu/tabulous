@@ -1,4 +1,5 @@
 from __future__ import annotations
+import ast
 
 from types import MethodType
 import builtins
@@ -33,6 +34,7 @@ from psygnal import EmitLoopError
 
 from tabulous._range import RectRange, AnyRange, MultiRectRange, TableAnchorBase
 from tabulous._selection_op import iter_extract_with_range
+from tabulous import _slice_op as _sl
 from tabulous.exceptions import UnreachableError
 
 __all__ = ["SignalArray"]
@@ -43,6 +45,7 @@ _R = TypeVar("_R")
 
 if TYPE_CHECKING:
     from tabulous.widgets._table import _DataFrameTableLayer
+    from tabulous._qt._table import QMutableTable
     import pandas as pd
 
     MethodRef = tuple[weakref.ReferenceType[object], str, Union[Callable, None]]
@@ -161,12 +164,15 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         pos: tuple[int, int],
         table: _DataFrameTableLayer,
         range: RectRange = AnyRange(),
+        unlimited: tuple[bool, bool] = (False, False),
     ):
         self._expr = expr
         super().__init__(lambda: self.call(), range)
         self._table = weakref.ref(table)
         self._last_destination: tuple[slice, slice] | None = None
+        self._last_destination_native: tuple[slice, slice] | None = None
         self._current_error: Exception | None = None
+        self._unlimited = unlimited
         self.set_pos(pos)
 
     def __repr__(self) -> str:
@@ -179,7 +185,11 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         if dest:
             if sl := self.last_destination:
                 rsl, csl = sl
-                _expr = f"df.iloc[{_fmt_slice(rsl)}, {_fmt_slice(csl)}] = {_expr}"
+                if self._unlimited[0]:
+                    rsl = slice(None)
+                if self._unlimited[1]:
+                    csl = slice(None)
+                _expr = f"df.iloc[{_sl.fmt(rsl)}, {_sl.fmt(csl)}] = {_expr}"
             else:
                 _expr = f"out = {_expr}"
         return _expr
@@ -248,16 +258,35 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         current_end = 0
         output: list[str] = []
         ranges: list[tuple[slice, slice]] = []
+        row_unlimited = False
+        col_unlimited = False
         for (start, end), op in iter_extract_with_range(expr):
             output.append(expr[current_end:start])
             output.append(InCellExpr.SELECT)
-            ranges.append(op.as_iloc_slices(df_ref))
+            cur_sl = op.as_iloc_slices(df_ref, fit_shape=False)
+            if cur_sl[0] == slice(None):
+                row_unlimited = True
+            if cur_sl[1] == slice(None):
+                col_unlimited = True
+            ranges.append(cur_sl)
             current_end = end
         output.append(expr[current_end:])
         expr_obj = InCellExpr(output)
-
+        # check if the expression contains `N`
+        for ast_obj in ast.walk(ast.parse(expr)):
+            if isinstance(ast_obj, ast.Name) and ast_obj.id == "N":
+                # By this, this slot will be evaluated when the number of
+                # columns changed.
+                big = 99999999
+                ranges.append((slice(big, big + 1), slice(None)))
+                break
         # func pos range
-        return cls(expr_obj, pos, table, MultiRectRange.from_slices(ranges))
+        rng_obj = MultiRectRange.from_slices(ranges)
+        unlimited = (row_unlimited, col_unlimited)
+        return cls(expr_obj, pos, table, rng_obj, unlimited)
+
+    def exception(self, msg: str):
+        raise CellEvaluationError(msg, self.source_pos)
 
     def evaluate(self) -> EvalResult:
         """Evaluate expression, update cells and return the result."""
@@ -274,7 +303,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             ns = dict(qviewer._namespace)
         else:
             ns = {"np": np, "pd": pd}
-        ns.update(df=df)
+        ns.update(df=df, N=RowCountGetter(qtable))
         try:
             out, _expr = self._expr.eval_and_format(ns, self.range)
             logger.debug(f"Evaluated at {self.pos!r}")
@@ -299,6 +328,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
                 slice(_row, _row + len(out)),
                 slice(_col, _col + 1),
             )
+            self._unlimited = (False, False)
             return EvalResult(out, (_row, _col))
 
         if isinstance(out, pd.DataFrame):
@@ -309,7 +339,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
                 _out = out.iloc[0, 0]
                 _row, _col = self._infer_indices()
             else:
-                raise NotImplementedError("Cannot assign a DataFrame now.")
+                return self.exception("Cannot assign a DataFrame now.")
 
         elif isinstance(out, (pd.Series, pd.Index)):
             if out.shape == (1,):  # scalar
@@ -322,9 +352,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         elif isinstance(out, np.ndarray):
             _out = np.squeeze(out)
             if _out.size == 0:
-                raise CellEvaluationError(
-                    "Evaluation returned 0-sized array.", self.source_pos
-                )
+                return self.exception("Evaluation returned 0-sized array.")
             if _out.ndim == 0:  # scalar
                 _out = qtable.convertValue(_col, _out.item())
                 _row, _col = self._infer_indices()
@@ -334,19 +362,19 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
                 _row = slice(_row, _row + _out.shape[0])
                 _col = slice(_col, _col + _out.shape[1])
             else:
-                raise CellEvaluationError("Cannot assign a >3D array.", self.source_pos)
+                self.exception("Cannot assign a >3D array.")
 
         else:
             _out = qtable.convertValue(_col, out)
 
         if isinstance(_row, slice) and isinstance(_col, slice):  # set 1D array
             _out = pd.DataFrame(out).astype(str)
-            if _row.start == _row.stop - 1:  # row vector
+            if _sl.len_1(_row):
                 _out = _out.T
 
         elif isinstance(_row, int) and isinstance(_col, int):  # set scalar
             _out = str(_out)
-
+            self._unlimited = (False, False)
         else:
             raise UnreachableError(type(_row), type(_col))
 
@@ -357,6 +385,17 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             table.undo_manager.merging(lambda _: f"{self.as_literal(dest=True)}"),
             table.proxy.released(keep_widgets=True),
         ):
+            shape = qtable.dataShapeRaw()
+            if isinstance(_row, slice):
+                nr = max(shape[0], self.source_pos[0] + 1)
+                _row = _sl.as_sized(_row, nr)
+            if isinstance(_col, slice):
+                nc = max(shape[1], self.source_pos[1] + 1)
+                _col = _sl.as_sized(_col, nc)
+            if _sl.len_of(_row) > _out.shape[0]:
+                _row = slice(_row.start, shape[0])
+            if _col.stop > shape[1]:
+                _col = slice(_col.start, shape[1])
             qtable.setDataFrameValue(_row, _col, _out)
             qtable.model()._background_color_anim.start(_row, _col)
         self.last_destination = (_row, _col)
@@ -366,6 +405,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         table = self.table
         qtable = table._qwidget
         qtable_view = qtable._qtable_view
+        shape = qtable.dataShapeRaw()
 
         err = out.get_err()
 
@@ -378,8 +418,9 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
                 err_repr = "#ERROR"
             else:
                 err_repr = pd.NA
+
             val = np.full(
-                (rsl.stop - rsl.start, csl.stop - csl.start),
+                (_sl.len_of(rsl, shape[0]), _sl.len_of(csl, shape[1])),
                 err_repr,
                 dtype=object,
             )
@@ -471,10 +512,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             return r, c
 
         for rloc, cloc in array_sels:
-            in_r_range = rloc.start <= r < rloc.stop
-            in_c_range = cloc.start <= c < cloc.stop
-
-            if in_r_range and in_c_range:
+            if _sl.in_range(r, rloc) and _sl.in_range(c, cloc):
                 raise CellEvaluationError(
                     "Cell evaluation result overlaps with an array selection.",
                     pos=(r, c),
@@ -499,36 +537,39 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             return slice(r, r + len_out), slice(c, c + 1)
 
         determined = None
+        shape = self.table.native.dataShapeRaw()
         for rloc, cloc in array_sels:
-            if (
-                rloc.stop - rloc.start == 1
-                and cloc.stop - cloc.start == 1
-                and determined is not None
-            ):
+            if _sl.len_1(rloc) and _sl.len_1(cloc) and determined is not None:
                 continue
-            in_r_range = rloc.start <= r < rloc.stop
-            in_c_range = cloc.start <= c < cloc.stop
-            r_len = rloc.stop - rloc.start
-            c_len = cloc.stop - cloc.start
 
-            if in_r_range:
-                if in_c_range:
+            if _sl.in_range(r, rloc):
+                if _sl.in_range(c, cloc):
                     raise CellEvaluationError(
                         "Cell evaluation result overlaps with an array selection.",
                         pos=(r, c),
                     )
                 else:
-                    if determined is None and len_out <= r_len:
-                        determined = (
-                            slice(rloc.start, rloc.start + len_out),
-                            slice(c, c + 1),
-                        )  # column vector
+                    _r_len = _sl.len_of(rloc, shape[0])
+                    if determined is None and len_out <= _r_len:
+                        # column vector
+                        if rloc.start is None and len_out == _r_len:
+                            determined = (
+                                slice(None),
+                                slice(c, c + 1),
+                            )
+                        else:
+                            rstart = 0 if rloc.start is None else rloc.start
+                            determined = (
+                                slice(rstart, rstart + len_out),
+                                slice(c, c + 1),
+                            )
 
-            elif in_c_range:
-                if determined is None and len_out <= c_len:
+            elif _sl.in_range(c, cloc):
+                if determined is None and len_out <= _sl.len_of(cloc, shape[1]):
+                    cstart: int = 0 if cloc.start is None else cloc.start
                     determined = (
                         slice(r, r + 1),
-                        slice(cloc.start, cloc.start + len_out),
+                        slice(cstart, cstart + len_out),
                     )  # row vector
             else:
                 # cannot determine output positions, try next selection.
@@ -1463,12 +1504,6 @@ def _parse_key(key):
     return key
 
 
-def _fmt_slice(sl: slice) -> str:
-    s0 = sl.start if sl.start is not None else ""
-    s1 = sl.stop if sl.stop is not None else ""
-    return f"{s0}:{s1}"
-
-
 _T = TypeVar("_T")
 
 
@@ -1858,3 +1893,62 @@ def _ridiculously_call_emit(emitter: Any) -> str | None:
         if "only accepts" in str(e):
             return str(e).split("only accepts")[0].strip()
     return None  # pragma: no cover
+
+
+class RowCountGetter:
+    def __init__(self, qtable: QMutableTable):
+        self._qtable = weakref.ref(qtable)
+
+    def __int__(self) -> int:
+        return len(self._qtable().getDataFrame())
+
+    def __float__(self) -> float:
+        return float(self.__int__())
+
+    def __add__(self, other: Any):
+        return self.__int__() + other
+
+    def __sub__(self, other: Any):
+        return self.__int__() - other
+
+    def __mul__(self, other: Any):
+        return self.__int__() * other
+
+    def __truediv__(self, other: Any):
+        return self.__int__() / other
+
+    def __floordiv__(self, other: Any):
+        return self.__int__() // other
+
+    def __mod__(self, other: Any):
+        return self.__int__() % other
+
+    def __pow__(self, other: Any):
+        return self.__int__() ** other
+
+    def __radd__(self, other: Any):
+        return other + self.__int__()
+
+    def __rsub__(self, other: Any):
+        return other - self.__int__()
+
+    def __rmul__(self, other: Any):
+        return other * self.__int__()
+
+    def __rtruediv__(self, other: Any):
+        return other / self.__int__()
+
+    def __rfloordiv__(self, other: Any):
+        return other // self.__int__()
+
+    def __rmod__(self, other: Any):
+        return other % self.__int__()
+
+    def __rpow__(self, other: Any):
+        return other ** self.__int__()
+
+    def __repr__(self) -> str:
+        return str(int(self))
+
+    def __index__(self) -> int:
+        return self.__int__()

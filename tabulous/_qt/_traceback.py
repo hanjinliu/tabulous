@@ -2,7 +2,7 @@ from __future__ import annotations
 import re
 from typing import Callable, Generator
 
-from qtpy import QtWidgets as QtW, QtGui
+from qtpy import QtWidgets as QtW, QtGui, QtCore
 from psygnal import EmitLoopError
 from ._qt_const import MonospaceFontFamily
 from tabulous._keymap import QtKeys
@@ -47,6 +47,7 @@ class QtErrorMessageBox(QtW.QMessageBox):
         else:
             text = str(text_or_exception)
             exc = text_or_exception
+        self._old_focus = QtW.QApplication.focusWidget()
         MBox = QtW.QMessageBox
         super().__init__(
             MBox.Icon.Critical,
@@ -59,12 +60,15 @@ class QtErrorMessageBox(QtW.QMessageBox):
         self._exc = exc
 
         self.traceback_button = self.button(MBox.StandardButton.Help)
-        self.traceback_button.setText("Show trackback")
+        self.traceback_button.setText("Show trackback (T)")
+        self.traceback_button.setShortcut("T")
 
     def exec_(self):
         returned = super().exec_()
         if returned == QtW.QMessageBox.StandardButton.Help:
             self.exec_traceback()
+        if self._old_focus is not None:
+            QtCore.QTimer.singleShot(0, self._old_focus.setFocus)
         return returned
 
     def exec_traceback(self):

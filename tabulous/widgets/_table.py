@@ -282,7 +282,7 @@ class TableBase(SupportKeyMap):
 
     @property
     def table_shape(self) -> tuple[int, int]:
-        """Shape of table."""
+        """Shape of table (filter considered)."""
         return self._qwidget.tableShape()
 
     @property
