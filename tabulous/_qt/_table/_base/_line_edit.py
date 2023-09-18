@@ -422,7 +422,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         _table = self._table
         ranges: list[tuple[slice, slice]] = []
         for op in iter_extract(text):
-            ranges.append(op.as_iloc_slices(_table.model().df))
+            ranges.append(op.as_iloc_slices(_table.model().df, fit_shape=False))
 
         if ranges:
             new_range = MultiRectRange.from_slices(ranges)

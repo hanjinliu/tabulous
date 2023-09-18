@@ -52,3 +52,9 @@ class QTitleBar(QtW.QWidget):
         else:
             self._title_label.setVisible(True)
             self._title_label.setText(f"  {text}  ")
+
+    def setBold(self, bold: bool):
+        """Set the title text bold."""
+        font = self._title_label.font()
+        font.setBold(bold)
+        self._title_label.setFont(font)
