@@ -124,11 +124,11 @@ class RectRange(TableAnchorBase):
 
     def is_empty(self) -> bool:
         """True if the range is empty."""
-        r0_s, r1_s = self._rsl.start, self._rsl.stop
-        c0_s, c1_s = self._csl.start, self._csl.stop
-        if r0_s is None or r1_s is None or c0_s is None or c1_s is None:
-            return False
-        return self._rsl.start >= self._rsl.stop or self._csl.start >= self._csl.stop
+        r0, r1 = self._rsl.start, self._rsl.stop
+        c0, c1 = self._csl.start, self._csl.stop
+        r_empty = r0 is not None and r1 is not None and r0 >= r1
+        c_empty = c0 is not None and c1 is not None and c0 >= c1
+        return r_empty or c_empty
 
     def iter_ranges(self) -> Iterator[tuple[slice, slice]]:
         return iter([(self._rsl, self._csl)])
