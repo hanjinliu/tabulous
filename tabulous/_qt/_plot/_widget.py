@@ -1,15 +1,14 @@
 from __future__ import annotations
 from functools import wraps
 from typing import TYPE_CHECKING
-from qtpy import QtWidgets as QtW, QtGui
+from qtpy import QtWidgets as QtW
 
 try:
     import matplotlib as mpl
-except ImportError as e:
+except ImportError:
     raise ImportError(
         "Module 'matplotlib' is not installed. Please install it to use plot canvas."
     )
-import matplotlib.pyplot as plt
 from ._mpl_canvas import InteractiveFigureCanvas
 
 if TYPE_CHECKING:
@@ -18,7 +17,6 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
     from matplotlib.artist import Artist
 
-    import seaborn as sns
     from seaborn.axisgrid import Grid
 
 
@@ -32,6 +30,7 @@ class QtMplPlotCanvas(QtW.QWidget):
         nrows=1,
         ncols=1,
         style=None,
+        pickable: bool = True,
     ):
         backend = mpl.get_backend()
         try:
@@ -60,7 +59,8 @@ class QtMplPlotCanvas(QtW.QWidget):
         self._editor = QMplEditor()
         self._editor.setParent(self, self._editor.windowFlags())
 
-        canvas.itemPicked.connect(self._edit_artist)
+        if pickable:
+            canvas.itemPicked.connect(self._edit_artist)
         canvas.clicked.connect(self.as_current_widget)
         canvas.doubleClicked.connect(self._editor.clear)
 
@@ -106,6 +106,7 @@ class QtMplPlotCanvas(QtW.QWidget):
             self.draw()
 
     def _edit_artist(self, artist: Artist):
+        """Open the artist editor."""
         from ._artist_editors import pick_container
 
         cnt = pick_container(artist)

@@ -36,6 +36,10 @@ class RectRange(TableAnchorBase):
     def __iter__(self):
         yield self
 
+    def as_keys(self) -> list[tuple[slice, slice]]:
+        """As a list of (row, column) keys."""
+        return [(self._rsl, self._csl)]
+
     @classmethod
     def new(cls, r: slice | SupportsIndex, c: slice | SupportsIndex):
         if isinstance(r, SupportsIndex):
@@ -180,6 +184,12 @@ class NoRange(RectRange):
     def __contains__(self, item) -> bool:
         return False
 
+    def as_keys(self) -> list[tuple[slice, slice]]:
+        return []
+
+    def __iter__(self):
+        yield from ()
+
     def __repr__(self):
         return "NoRange[...]"
 
@@ -212,6 +222,9 @@ class MultiRectRange(RectRange):
     def with_slices(self, rsl: slice, csl: slice) -> MultiRectRange:
         """Create a new MultiRectRange with the given slices added."""
         return self.__class__(self._ranges + [RectRange(rsl, csl)])
+
+    def as_keys(self) -> list[tuple[slice, slice]]:
+        return sum((rng.as_keys() for rng in self._ranges), start=[])
 
     def intersection(self, other: RectRange) -> MultiRectRange:
         slices: list[RectRange] = []

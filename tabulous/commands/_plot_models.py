@@ -167,8 +167,10 @@ class XYDataModel(AbstractDataModel[_T]):
             return
 
         _artist_refs: list[weakref.ReferenceType[_T]] = []
+        reactive_ranges = self._get_reactive_ranges()
         for artist in _artists:
             _artist_refs.append(weakref.ref(artist))
+            artist._tabulous_slot_range = reactive_ranges
 
         plot_ref = PlotRef(_mpl_widget, _artist_refs)
 
@@ -184,7 +186,6 @@ class XYDataModel(AbstractDataModel[_T]):
                 self.table.events.data.disconnect(_on_data_updated)
                 logger.debug("Disconnecting scatter plot.")
 
-        reactive_ranges = self._get_reactive_ranges()
         self.table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
         return None
 
