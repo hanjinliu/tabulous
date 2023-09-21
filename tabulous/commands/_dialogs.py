@@ -122,7 +122,7 @@ def plot(
     from ._plot_models import PlotModel
 
     model = PlotModel(ax, x, y, table=table, alpha=alpha, ref=retain_reference)
-    model.add_data()
+    model.add_data(table)
     table.plt.draw()
     return True
 
@@ -139,7 +139,7 @@ def bar(
     from ._plot_models import BarModel
 
     model = BarModel(ax, x, y, table=table, alpha=alpha, ref=retain_reference)
-    model.add_data()
+    model.add_data(table)
     table.plt.draw()
     return True
 
@@ -159,7 +159,7 @@ def scatter(
     model = ScatterModel(
         ax, x, y, table=table, label_selection=label, alpha=alpha, ref=retain_reference
     )
-    model.add_data()
+    model.add_data(table)
     table.plt.draw()
     return True
 
@@ -233,7 +233,7 @@ def fill_between(
     model = FillBetweenModel(
         ax, x, y0, y1, table=table, alpha=alpha, ref=retain_reference
     )
-    model.add_data()
+    model.add_data(table)
     table.plt.draw()
     return True
 
@@ -253,7 +253,7 @@ def fill_betweenx(
     model = FillBetweenXModel(
         ax, y, x0, x1, table=table, alpha=alpha, ref=retain_reference
     )
-    model.add_data()
+    model.add_data(table)
     table.plt.draw()
     return True
 
@@ -288,7 +288,7 @@ def hist(
         density=density,
         histtype=histtype,
     )
-    model.add_data()
+    model.add_data(table)
     ax.axhline(0, color="gray", lw=0.5, alpha=0.5, zorder=-1)
     table.plt.draw()
     return True

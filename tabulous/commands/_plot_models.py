@@ -5,7 +5,6 @@ import logging
 from dataclasses import dataclass
 
 import numpy as np
-import pandas as pd
 
 # NOTE: Axes should be imported here!
 from tabulous.widgets import TableBase
@@ -19,6 +18,7 @@ if TYPE_CHECKING:
     from matplotlib.patches import Polygon
     from matplotlib.container import BarContainer
     from tabulous._qt._plot import QtMplPlotCanvas
+    import pandas as pd
 
 logger = logging.getLogger(__name__)
 _T = TypeVar("_T", bound="Artist")
@@ -50,7 +50,7 @@ class AbstractDataModel(Generic[_T]):
     def update_artist(self, artist: _T, *args: pd.Series):
         raise NotImplementedError()
 
-    def add_data(self):
+    def add_data(self, table: TableBase):
         raise NotImplementedError()
 
     def update_data(self, artists: list[_T], mpl_widget: QtMplPlotCanvas) -> bool:
@@ -85,7 +85,7 @@ class YDataModel(AbstractDataModel[_T]):
     label_selection = None  # default
     ref = False
 
-    def add_data(self):
+    def add_data(self, table=None):
         _mpl_widget = weakref.ref(self.table.plt.gcw())
         _artist_refs: list[weakref.ReferenceType[_T]] = []
         for (y,) in self._iter_data():
@@ -154,7 +154,7 @@ class XYDataModel(AbstractDataModel[_T]):
     label_selection = None  # default
     ref = False
 
-    def add_data(self):
+    def add_data(self, table):
         _mpl_widget = weakref.ref(self.table.plt.gcw())
         _artists: list[_T] = []
         for x, y in self._iter_data():
@@ -170,7 +170,7 @@ class XYDataModel(AbstractDataModel[_T]):
         reactive_ranges = self._get_reactive_ranges()
         for artist in _artists:
             _artist_refs.append(weakref.ref(artist))
-            artist._tabulous_slot_range = reactive_ranges
+            artist._tabulous_ranges = reactive_ranges
 
         plot_ref = PlotRef(_mpl_widget, _artist_refs)
 
@@ -238,13 +238,15 @@ class XYYDataModel(AbstractDataModel[_T]):
     label_selection = None  # default
     ref = False
 
-    def add_data(self):
+    def add_data(self, table):
         _mpl_widget = weakref.ref(self.table.plt.gcw())
+        reactive_ranges = self._get_reactive_ranges()
         _artists: list[_T] = []
         for x, y0, y1 in self._iter_data():
             label_name = y0.name
             artist = self.update_ax(x, y0, y1, label=label_name)
             _artists.append(artist)
+            artist._tabulous_ranges = reactive_ranges
 
         if not self.ref:
             # if plot does not refer the table data, there's nothing to be done
@@ -268,7 +270,6 @@ class XYYDataModel(AbstractDataModel[_T]):
                 self.table.events.data.disconnect(_on_data_updated)
                 logger.debug("Disconnecting scatter plot.")
 
-        reactive_ranges = self._get_reactive_ranges()
         self.table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
         return None
 
@@ -286,6 +287,8 @@ class XYYDataModel(AbstractDataModel[_T]):
 
     def _iter_data(self) -> Iterator[tuple[pd.Series, pd.Series, pd.Series]]:
         """Iterate over the data to be plotted."""
+        import pandas as pd
+
         data = self.table.data
         if self.y0_selection is None or self.y1_selection is None:
             raise ValueError("Y0 and Y1 must be set.")

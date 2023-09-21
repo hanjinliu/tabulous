@@ -1,8 +1,7 @@
-import threading
 from types import ModuleType
 from typing import Callable, Generic, TypeVar
+import concurrent.futures
 
-THREAD: "threading.Thread | None" = None
 
 _T = TypeVar("_T")
 
@@ -22,26 +21,15 @@ class AsyncImporter(Generic[_T]):
 
     def __init__(self, import_func: Callable[[], _T]) -> None:
         self._target = import_func
-        self._thread: "threading.Thread | None" = None
+        self._future: "concurrent.futures.Future[_T] | None" = None
 
     def run(self) -> None:
-        with threading.Lock():
-            if self._thread is None:
-                self._thread = threading.Thread(target=self._target, daemon=True)
-                self._thread.start()
-            else:
-                self._thread.join()
+        if self._future is None or self._future.done():
+            self._future = concurrent.futures.ThreadPoolExecutor().submit(self._target)
 
-    def get(self, ignore_error: bool = True) -> _T:
-        try:
-            self.run()
-        except Exception as e:
-            if ignore_error:
-                return None
-            else:
-                raise e
-        else:
-            return self._target()
+    def get(self, timeout: float = None) -> _T:
+        self.run()
+        return self._future.result(timeout)
 
     __call__ = get
 

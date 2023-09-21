@@ -92,7 +92,6 @@ def main():
 
     import_qtconsole_threading()
     import_plt()
-
     import_scipy()
     viewer.show()
     return

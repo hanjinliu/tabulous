@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 from scipy import optimize as sp_opt
 import numpy as np
-import pandas as pd
 from magicgui.widgets import Container, ComboBox, PushButton, SpinBox
 
 from tabulous._magicgui import find_current_table, SelectionWidget
@@ -78,6 +77,8 @@ class OptimizerWidget(Container):
 def _get_minimize_target(
     table: "QMutableSimpleTable", dst: tuple[int, int], params: tuple[slice, slice]
 ):
+    import pandas as pd
+
     def cost_func(p):
         table.setDataFrameValue(*params, pd.DataFrame(p))
         val = table.dataShown().iat[dst]
@@ -89,6 +90,8 @@ def _get_minimize_target(
 def _get_maximize_target(
     table: "QMutableSimpleTable", dst: tuple[int, int], params: tuple[slice, slice]
 ):
+    import pandas as pd
+
     def cost_func(p):
         table.setDataFrameValue(*params, pd.DataFrame(p))
         val = table.dataShown().iat[dst]

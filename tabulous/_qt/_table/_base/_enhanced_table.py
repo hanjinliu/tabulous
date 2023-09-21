@@ -208,6 +208,7 @@ class _QTableViewEnhanced(QtW.QTableView):
         return None
 
     def _on_moving(self, src: Index, dst: Index) -> None:
+        self._additional_ranges = []
         _need_update_all = len(self._current_drawing_slot_ranges) > 0
 
         _nr, _nc = self.parentTable().dataShape()
@@ -633,7 +634,10 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # additional ranges to be drawn, such as the plotted regions
         for rect in self._rect_from_ranges(self._additional_ranges, map=True):
-            pass
+            rect.adjust(1, 1, -1, -1)
+            pen = QtGui.QPen(next(color_cycle), 3)
+            painter.setPen(pen)
+            painter.drawRect(rect)
 
         return None
 

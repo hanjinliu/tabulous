@@ -1,7 +1,7 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 import numpy as np
-from matplotlib.backends.backend_qt5agg import FigureCanvas
 from matplotlib.backend_bases import MouseEvent, MouseButton
 
 from qtpy import QtWidgets as QtW, QtGui
@@ -12,13 +12,20 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
     from matplotlib.legend import Legend
 
+    class FigureCanvas(QtW.QWidget):
+        ...
+
+else:
+    from matplotlib.backends.backend_qt5agg import FigureCanvas
+
 
 class InteractiveFigureCanvas(FigureCanvas):
     """A figure canvas implemented with mouse callbacks."""
 
     figure: Figure
     deleteRequested = Signal()
-    itemPicked = Signal(object)
+    itemClicked = Signal(object)
+    itemDoubleClicked = Signal(object)
     clicked = Signal(object)
     doubleClicked = Signal()  # emitted *before* itemPicked event
 
@@ -41,15 +48,17 @@ class InteractiveFigureCanvas(FigureCanvas):
                 for container in ax.containers:
                     # if an artist is in a container, emit the container instead
                     if artist in container:
-                        self.itemPicked.emit(container)
+                        artist = container
                         break
+            if event.mouseevent.dblclick:
+                self.itemDoubleClicked.emit(artist)
             else:
-                self.itemPicked.emit(artist)
+                self.itemClicked.emit(artist)
 
-    def wheelEvent(self, event):
+    def wheelEvent(self, event: QtGui.QWheelEvent):
         """
-        Resize figure by changing axes xlim and ylim. If there are subplots, only the subplot
-        in which cursor exists will be resized.
+        Resize figure by changing axes xlim and ylim. If there are subplots,
+        only the subplot in which cursor exists will be resized.
         """
         ax = self.last_axis
         if not self._interactive or not ax:
@@ -71,13 +80,12 @@ class InteractiveFigureCanvas(FigureCanvas):
         if mouse_event.inaxes:
             self.pressed = mouse_event.button
             self.last_axis = mouse_event.inaxes
-        # self.clicked.emit(mouse_event)
-        return None
+        return super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         """
-        Translate axes focus while dragging. If there are subplots, only the subplot in which
-        cursor exists will be translated.
+        Translate axes focus while dragging. If there are subplots, only the
+        subplot in which cursor exists will be translated.
         """
         ax = self.last_axis
         if (
@@ -86,7 +94,7 @@ class InteractiveFigureCanvas(FigureCanvas):
             or not self._interactive
             or not ax
         ):
-            return
+            return None
 
         event = self.get_mouse_event(event)
         x, y = event.xdata, event.ydata
@@ -121,7 +129,7 @@ class InteractiveFigureCanvas(FigureCanvas):
 
         self.pressed = None
 
-        return None
+        return super().mouseReleaseEvent(event)
 
     def mouseDoubleClickEvent(self, event: QtGui.QMouseEvent):
         """Adjust layout upon dougle click."""
@@ -138,7 +146,7 @@ class InteractiveFigureCanvas(FigureCanvas):
 
         self.figure.tight_layout()
         self.figure.canvas.draw()
-        return None
+        return super().mouseDoubleClickEvent(event)
 
     def resizeEvent(self, event):
         """Adjust layout upon canvas resized."""

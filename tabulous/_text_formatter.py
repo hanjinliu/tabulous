@@ -1,14 +1,16 @@
 from __future__ import annotations
-from typing import Callable, Any
+from typing import Callable, Any, TYPE_CHECKING
 from enum import Enum, auto
 from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Qt
 import numpy as np
-import pandas as pd
 
 from tabulous.widgets import Table
 from tabulous._dtype import get_dtype, isna
 from tabulous._magicgui import ToggleSwitches
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 __all__ = ["exec_formatter_dialog"]
 
