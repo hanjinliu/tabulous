@@ -84,32 +84,29 @@ class InteractiveFigureCanvas(FigureCanvas):
 
     def mouseMoveEvent(self, event):
         """
-        Translate axes focus while dragging. If there are subplots, only the
-        subplot in which cursor exists will be translated.
+        Translate axes focus while dragging. If there are subplots, only
+        the subplot in which cursor exists will be translated.
         """
         ax = self.last_axis
-        if (
-            self.pressed not in (MouseButton.LEFT, MouseButton.RIGHT)
-            or self.lastx_pressed is None
-            or not self._interactive
-            or not ax
-        ):
-            return None
-
+        if self.lastx_pressed is None or not self._interactive or not ax:
+            return
         event = self.get_mouse_event(event)
-        x, y = event.xdata, event.ydata
+        xdata, ydata = _get_xy_data(ax, event)
 
-        if x is None or y is None:
+        if xdata is None or ydata is None:
             return None
 
         if self.pressed == MouseButton.LEFT:
-            _translate_x(ax, self.lastx_pressed, x)
-            _translate_y(ax, self.lasty_pressed, y)
+            _translate_x(ax, self.lastx_pressed, xdata)
+            _translate_y(ax, self.lasty_pressed, ydata)
         elif self.pressed == MouseButton.RIGHT:
-            _zoom_x(ax, self.lastx, x)
-            _zoom_y(ax, self.lasty, y)
+            _zoom_x(ax, self.lastx, xdata)
+            _zoom_y(ax, self.lasty, ydata)
+            xdata, ydata = _get_xy_data(ax, event)  # ticks changed!
+        else:
+            return None
 
-        self.lastx, self.lasty = x, y
+        self.lastx, self.lasty = xdata, ydata
         self.figure.canvas.draw()
         return None
 
@@ -242,10 +239,8 @@ def _zoom_x(ax: Axes, xstart: float, xstop: float):
     xscale = ax.get_xscale()
     x0, x1 = ax.get_xlim()
     if xscale == "linear":
-        _u = x1 + x0
-        _v = x1 - x0
         dx = xstop - xstart
-        ax.set_xlim([_u / 2 - _v / 2 + dx, _u / 2 + _v / 2 - dx])
+        ax.set_xlim([x0 + dx, x1 - dx])
     elif xscale == "log":
         if xstart <= 0 or xstop <= 0:
             ax.autoscale(axis="x")
@@ -257,10 +252,8 @@ def _zoom_y(ax: Axes, ystart: float, ystop: float):
     yscale = ax.get_yscale()
     y0, y1 = ax.get_ylim()
     if yscale == "linear":
-        _u = y1 + y0
-        _v = y1 - y0
         dy = ystop - ystart
-        ax.set_ylim([_u / 2 - _v / 2 + dy, _u / 2 + _v / 2 - dy])
+        ax.set_ylim([y0 + dy, y1 - dy])
     elif yscale == "log":
         if ystart <= 0 or ystop <= 0:
             ax.autoscale(axis="y")
@@ -301,3 +294,12 @@ def _zoom_y_wheel(ax: Axes, factor: float):
             y0_t = (y0 / yc) ** factor
             y1_t = (y1 / yc) ** factor
             ax.set_ylim([y0_t * yc, y1_t * yc])
+
+
+def _get_xy_data(ax: Axes, event: MouseEvent) -> tuple[float, float]:
+    try:
+        trans = ax.transData.inverted()
+        xdata, ydata = trans.transform((event.x, event.y))
+    except Exception:
+        xdata, ydata = event.xdata, event.ydata
+    return xdata, ydata
