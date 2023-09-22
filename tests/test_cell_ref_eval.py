@@ -357,3 +357,5 @@ def test_N(make_tabulous_viewer):
     assert sheet.data.iloc[1, 2] == 2
     sheet.cell[3, 1] = "4"
     assert sheet.data.iloc[1, 2] == 2.5
+    sheet.cell[1, 3] = "&=np.zeros(N)"
+    assert sheet.data.iloc[1, 3] == 0

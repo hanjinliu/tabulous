@@ -130,6 +130,9 @@ class InCellExpr:
         return "".join(out)
 
 
+BIG = 99999999
+
+
 class InCellRangedSlot(RangedSlot[_P, _R]):
     """A slot object with a reference to the table and position."""
 
@@ -253,8 +256,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             if isinstance(ast_obj, ast.Name) and ast_obj.id == "N":
                 # By this, this slot will be evaluated when the number of
                 # columns changed.
-                big = 99999999
-                ranges.append((slice(big, big + 1), slice(None)))
+                ranges.append((slice(BIG, BIG + 1), slice(None)))
                 break
         # func pos range
         rng_obj = MultiRectRange.from_slices(ranges)
@@ -491,6 +493,9 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
 
         if len(array_sels) == 0:
             # if no array selection is found, return as a column vector.
+            return slice(r, r + len_out), slice(c, c + 1)
+        elif len(array_sels) == 1 and array_sels[0][0].start == BIG:
+            # This is needed for e.g. `=np.zeros(N)`
             return slice(r, r + len_out), slice(c, c + 1)
 
         determined = None
