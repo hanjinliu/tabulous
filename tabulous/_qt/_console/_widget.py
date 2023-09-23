@@ -139,6 +139,9 @@ class QtConsole(RichJupyterWidget):
             self.shell.push(ns)
             install_magics()
 
+            # Programmatically run `%matplotlib inline` magic
+            self.shell.run_line_magic("matplotlib", "inline")
+
     def setFocus(self):
         """Set focus to the text edit."""
         self._control.setFocus()

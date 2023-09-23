@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Iterable, Iterator, Sequence, SupportsIndex
+from tabulous import _slice_op as _sl
 
 
 class TableAnchorBase(ABC):
@@ -35,6 +36,10 @@ class RectRange(TableAnchorBase):
     def __iter__(self):
         yield self
 
+    def as_keys(self) -> list[tuple[slice, slice]]:
+        """As a list of (row, column) keys."""
+        return [(self._rsl, self._csl)]
+
     @classmethod
     def new(cls, r: slice | SupportsIndex, c: slice | SupportsIndex):
         if isinstance(r, SupportsIndex):
@@ -48,7 +53,7 @@ class RectRange(TableAnchorBase):
         return cls(slice(0, shape[0]), slice(0, shape[1]))
 
     def __repr__(self):
-        return f"RectRange[{_fmt_slice(self._rsl)}, {_fmt_slice(self._csl)}]"
+        return f"RectRange[{_sl.fmt(self._rsl)}, {_sl.fmt(self._csl)}]"
 
     def __contains__(self, other: tuple[int, int]):
         r, c = other
@@ -123,11 +128,11 @@ class RectRange(TableAnchorBase):
 
     def is_empty(self) -> bool:
         """True if the range is empty."""
-        r0_s, r1_s = self._rsl.start, self._rsl.stop
-        c0_s, c1_s = self._csl.start, self._csl.stop
-        if r0_s is None or r1_s is None or c0_s is None or c1_s is None:
-            return False
-        return self._rsl.start >= self._rsl.stop or self._csl.start >= self._csl.stop
+        r0, r1 = self._rsl.start, self._rsl.stop
+        c0, c1 = self._csl.start, self._csl.stop
+        r_empty = r0 is not None and r1 is not None and r0 >= r1
+        c_empty = c0 is not None and c1 is not None and c0 >= c1
+        return r_empty or c_empty
 
     def iter_ranges(self) -> Iterator[tuple[slice, slice]]:
         return iter([(self._rsl, self._csl)])
@@ -179,6 +184,12 @@ class NoRange(RectRange):
     def __contains__(self, item) -> bool:
         return False
 
+    def as_keys(self) -> list[tuple[slice, slice]]:
+        return []
+
+    def __iter__(self):
+        yield from ()
+
     def __repr__(self):
         return "NoRange[...]"
 
@@ -211,6 +222,9 @@ class MultiRectRange(RectRange):
     def with_slices(self, rsl: slice, csl: slice) -> MultiRectRange:
         """Create a new MultiRectRange with the given slices added."""
         return self.__class__(self._ranges + [RectRange(rsl, csl)])
+
+    def as_keys(self) -> list[tuple[slice, slice]]:
+        return sum((rng.as_keys() for rng in self._ranges), start=[])
 
     def intersection(self, other: RectRange) -> MultiRectRange:
         slices: list[RectRange] = []
@@ -274,12 +288,6 @@ class MultiRectRange(RectRange):
 
     def as_iloc(self):
         raise TypeError("Cannot convert MultiRectRange to iloc")
-
-
-def _fmt_slice(sl: slice) -> str:
-    s0 = sl.start if sl.start is not None else ""
-    s1 = sl.stop if sl.stop is not None else ""
-    return f"{s0}:{s1}"
 
 
 def _parse_slice(sl: slice) -> str:

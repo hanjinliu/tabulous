@@ -77,16 +77,6 @@ class SelectionWidget(Container):
     def format(self) -> str:
         return self._format
 
-    def as_iloc(self) -> tuple[slice, slice]:
-        """Return current value as a indexer for ``iloc`` method."""
-        df = self._find_table().data_shown
-        return self.value.as_iloc(df)
-
-    def as_iloc_slices(self) -> tuple[slice, slice]:
-        """Return current value as slices for ``iloc`` method."""
-        df = self._find_table().data_shown
-        return self.value.as_iloc_slices(df)
-
     def _find_table(self) -> TableBase:
         table = find_current_table(self)
         if table is None:

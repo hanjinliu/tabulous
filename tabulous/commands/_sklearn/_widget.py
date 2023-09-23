@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from typing import NamedTuple, Protocol
+from typing import NamedTuple, Protocol, TYPE_CHECKING
 import numpy as np
-import pandas as pd
 
 from magicgui import magicgui
 from magicgui.widgets import (
@@ -17,6 +16,9 @@ from magicgui.widgets import (
 from tabulous._magicgui import find_current_table, SelectionWidget, ToggleSwitch
 from ._models import MODELS, ADVANCED
 from tabulous._qt._qt_const import MonospaceFontFamily
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class SkLearnInput(NamedTuple):

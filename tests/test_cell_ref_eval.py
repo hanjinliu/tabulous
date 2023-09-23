@@ -305,15 +305,15 @@ def test_status_tip(make_tabulous_viewer):
     sheet.move_iloc(0, 0)
     _assert_status_equal(viewer.status, "")
     sheet.move_iloc(0, 1)
-    _assert_status_equal(viewer.status, "df.iloc[0:1, 1:2] = np.sum(df.iloc[0:3, 0])")
+    _assert_status_equal(viewer.status, "df.iloc[0:1, 1:2] = np.sum(df.iloc[:, 0])")
     sheet.move_iloc(1, 1)
     _assert_status_equal(viewer.status, "")
     sheet.move_iloc(0, 2)
-    _assert_status_equal(viewer.status, "df.iloc[0:3, 2:3] = np.sin(df.iloc[0:3, 0])")
+    _assert_status_equal(viewer.status, "df.iloc[:, 2:3] = np.sin(df.iloc[:, 0])")
     sheet.move_iloc(1, 2)
-    _assert_status_equal(viewer.status, "df.iloc[0:3, 2:3] = np.sin(df.iloc[0:3, 0])")
+    _assert_status_equal(viewer.status, "df.iloc[:, 2:3] = np.sin(df.iloc[:, 0])")
     sheet.move_iloc(2, 2)
-    _assert_status_equal(viewer.status, "df.iloc[0:3, 2:3] = np.sin(df.iloc[0:3, 0])")
+    _assert_status_equal(viewer.status, "df.iloc[:, 2:3] = np.sin(df.iloc[:, 0])")
 
 def test_status_tip_with_proxy(make_tabulous_viewer):
     viewer: TableViewer = make_tabulous_viewer()
@@ -324,12 +324,38 @@ def test_status_tip_with_proxy(make_tabulous_viewer):
     sheet.move_iloc(0, 0)
     _assert_status_equal(viewer.status, "")
     sheet.move_iloc(0, 1)
-    _assert_status_equal(viewer.status, "df.iloc[1:2, 1:2] = np.sum(df.iloc[0:5, 0])")
+    _assert_status_equal(viewer.status, "df.iloc[1:2, 1:2] = np.sum(df.iloc[:, 0])")
     sheet.move_iloc(1, 1)
     _assert_status_equal(viewer.status, "")
     sheet.move_iloc(0, 2)
-    _assert_status_equal(viewer.status, "df.iloc[0:5, 2:3] = np.sin(df.iloc[0:5, 0])")
+    _assert_status_equal(viewer.status, "df.iloc[:, 2:3] = np.sin(df.iloc[:, 0])")
     sheet.move_iloc(1, 2)
-    _assert_status_equal(viewer.status, "df.iloc[0:5, 2:3] = np.sin(df.iloc[0:5, 0])")
+    _assert_status_equal(viewer.status, "df.iloc[:, 2:3] = np.sin(df.iloc[:, 0])")
     sheet.move_iloc(2, 2)
-    _assert_status_equal(viewer.status, "df.iloc[0:5, 2:3] = np.sin(df.iloc[0:5, 0])")
+    _assert_status_equal(viewer.status, "df.iloc[:, 2:3] = np.sin(df.iloc[:, 0])")
+
+def test_called_when_expanded(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
+    # check scalar output
+    sheet = viewer.add_spreadsheet([[0, 1], [0, 2], [0, 3]])
+    sheet.cell[1, 2] = "&=np.sum(df.iloc[:, 1])"
+    assert sheet.data.iloc[1, 2] == 6
+    sheet.cell[3, 1] = "4"
+    assert sheet.data.iloc[1, 2] == 10
+
+    # check vector output
+    sheet = viewer.add_spreadsheet([[0, 1], [0, 2], [0, 3]])
+    sheet.cell[1, 2] = "&=np.cumsum(df.iloc[:, 1])"
+    assert_equal(sheet.data.iloc[:, 2].values, [1, 3, 6])
+    sheet.cell[3, 1] = "4"
+    assert_equal(sheet.data.iloc[:, 2].values, [1, 3, 6, 10])
+
+def test_N(make_tabulous_viewer):
+    viewer: TableViewer = make_tabulous_viewer()
+    sheet = viewer.add_spreadsheet([[0, 1], [0, 2], [0, 3]])
+    sheet.cell[1, 2] = "&=np.sum(df.iloc[:, 1])/N"
+    assert sheet.data.iloc[1, 2] == 2
+    sheet.cell[3, 1] = "4"
+    assert sheet.data.iloc[1, 2] == 2.5
+    sheet.cell[1, 3] = "&=np.zeros(N)"
+    assert sheet.data.iloc[1, 3] == 0

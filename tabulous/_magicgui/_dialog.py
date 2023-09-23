@@ -107,7 +107,7 @@ def dialog_factory_mpl(function: _F) -> _F:
                     style = "dark_background"
                 bg = viewer._qwidget.backgroundColor().name()
 
-        plt = QtMplPlotCanvas(style=style)
+        plt = QtMplPlotCanvas(style=style, pickable=False)
         if bg:
             plt.set_background_color(bg)
 

@@ -13,6 +13,7 @@ from typing import (
 
 from tabulous.types import _SingleSelection, SelectionType
 from ._base import TableComponent
+from tabulous import _slice_op as _sl
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -39,7 +40,7 @@ class _TableRanges(TableComponent, MutableSequence[_Range]):
         rng_str: list[str] = []
         for rng in self:
             r, c = rng
-            rng_str.append(f"[{_fmt_slice(r)}, {_fmt_slice(c)}]")
+            rng_str.append(f"[{_sl.fmt(r)}, {_sl.fmt(c)}]")
         return f"{self.__class__.__name__}({', '.join(rng_str)})"
 
     def __getitem__(self, index: int) -> _Range:
@@ -167,9 +168,3 @@ class SelectedData(Sequence["pd.DataFrame"]):
                 else:
                     all_data[col] = data[col]
         return iter(all_data.items())
-
-
-def _fmt_slice(sl: slice) -> str:
-    s0 = sl.start if sl.start is not None else ""
-    s1 = sl.stop if sl.stop is not None else ""
-    return f"{s0}:{s1}"

@@ -88,7 +88,7 @@ class ViewMode(Enum):
 class DataProperty:
     """Internal data of the table."""
 
-    def __get__(self, instance: TableBase, owner) -> pd.DataFrame:
+    def __get__(self, instance: TableBase, owner=None) -> pd.DataFrame:
         if instance is None:
             raise AttributeError("Cannot access property without instance.")
         return instance._qwidget.getDataFrame()
@@ -103,7 +103,7 @@ class DataProperty:
 class MetadataProperty:
     """Metadata dictionary of the table."""
 
-    def __get__(self, instance: TableBase, owner) -> dict[str, Any]:
+    def __get__(self, instance: TableBase, owner=None) -> dict[str, Any]:
         if instance is None:
             raise AttributeError("Cannot access property without instance.")
         return instance._metadata
@@ -267,6 +267,7 @@ class TableBase(SupportKeyMap):
         return type(self).__name__
 
     data = DataProperty()
+    metadata = MetadataProperty()
 
     @property
     def data_shown(self) -> pd.DataFrame:
@@ -282,22 +283,8 @@ class TableBase(SupportKeyMap):
 
     @property
     def table_shape(self) -> tuple[int, int]:
-        """Shape of table."""
+        """Shape of table (filter considered)."""
         return self._qwidget.tableShape()
-
-    @property
-    def metadata(self) -> dict[str, Any]:
-        """Metadata of the table."""
-        return self._metadata
-
-    @metadata.setter
-    def metadata(self, value: dict[str, Any]) -> None:
-        """Set metadata of the table."""
-        if not isinstance(value, dict):
-            raise TypeError("metadata must be a dict")
-        self._metadata = value
-
-    metadata = MetadataProperty()
 
     @property
     def zoom(self) -> float:
@@ -749,7 +736,7 @@ class _DataFrameTableLayer(TableBase):
             with self._qwidget._anim_row.using_animation(False):
                 self.native.insertRows(self.table_shape[0], 1, row)
         else:
-            self.data = pd.concat([self.data, _df], axis=0)
+            self._qwidget.setDataFrame(pd.concat([self.data, _df], axis=0))
         return self
 
 

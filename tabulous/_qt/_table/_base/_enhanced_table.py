@@ -120,7 +120,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         self.installEventFilter(self._event_filter)
 
         # the source ranges of in-cell slot are drawed or not
-        self._current_drawing_slot_ranges = None
+        self._current_drawing_slot_ranges: list[tuple[slice, slice]] = []
+        self._additional_ranges: list[tuple[slice, slice]] = []
 
         # initialize with dummy mapping
         from tabulous._map_model import DummySlotRefMapping
@@ -207,7 +208,8 @@ class _QTableViewEnhanced(QtW.QTableView):
         return None
 
     def _on_moving(self, src: Index, dst: Index) -> None:
-        _need_update_all = self._current_drawing_slot_ranges is not None
+        self._additional_ranges = []
+        _need_update_all = len(self._current_drawing_slot_ranges) > 0
 
         _nr, _nc = self.parentTable().dataShape()
         _r0, _c0 = dst
@@ -217,13 +219,13 @@ class _QTableViewEnhanced(QtW.QTableView):
             _r0 = qtable._proxy.get_source_index(_r0)
             _c0 = qtable._column_filter.get_source_index(_c0)
             if slot := self._table_map.get_by_dest((_r0, _c0), None):
-                self._current_drawing_slot_ranges = slot.range
+                self._current_drawing_slot_ranges = slot.range.as_keys()
                 new_status_tip = f"<b><code>{slot.as_literal(dest=True)}</code></b>"
                 _need_update_all = True
             else:
-                self._current_drawing_slot_ranges = None
+                self._current_drawing_slot_ranges = []
         else:
-            self._current_drawing_slot_ranges = None
+            self._current_drawing_slot_ranges = []
 
         if qviewer := self.parentViewer():
             qviewer._table_viewer.status = new_status_tip
@@ -624,12 +626,18 @@ class _QTableViewEnhanced(QtW.QTableView):
 
         # in-cell slot source ranges of the current index
         color_cycle = _color_cycle()
-        if rng := self._current_drawing_slot_ranges:
-            for rect in self._rect_from_ranges(rng.iter_ranges(), map=True):
-                rect.adjust(1, 1, -1, -1)
-                pen = QtGui.QPen(next(color_cycle), 3)
-                painter.setPen(pen)
-                painter.drawRect(rect)
+        for rect in self._rect_from_ranges(self._current_drawing_slot_ranges, map=True):
+            rect.adjust(1, 1, -1, -1)
+            pen = QtGui.QPen(next(color_cycle), 3)
+            painter.setPen(pen)
+            painter.drawRect(rect)
+
+        # additional ranges to be drawn, such as the plotted regions
+        for rect in self._rect_from_ranges(self._additional_ranges, map=True):
+            rect.adjust(1, 1, -1, -1)
+            pen = QtGui.QPen(next(color_cycle), 3)
+            painter.setPen(pen)
+            painter.drawRect(rect)
 
         return None
 

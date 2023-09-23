@@ -62,7 +62,7 @@ class PlotInterface(TableComponent):
         if not qviewer._white_background and style is None:
             style = "dark_background"
 
-        wdt = QtMplPlotCanvas(nrows=nrows, ncols=ncols, style=style)
+        wdt = QtMplPlotCanvas(nrows=nrows, ncols=ncols, style=style, table=table)
         wdt.set_background_color(qviewer.backgroundColor().name())
         wdt.canvas.deleteRequested.connect(self.delete_widget)
         table.add_side_widget(wdt, name="Plot")

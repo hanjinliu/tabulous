@@ -5,7 +5,6 @@ import logging
 from dataclasses import dataclass
 
 import numpy as np
-import pandas as pd
 
 # NOTE: Axes should be imported here!
 from tabulous.widgets import TableBase
@@ -19,6 +18,7 @@ if TYPE_CHECKING:
     from matplotlib.patches import Polygon
     from matplotlib.container import BarContainer
     from tabulous._qt._plot import QtMplPlotCanvas
+    import pandas as pd
 
 logger = logging.getLogger(__name__)
 _T = TypeVar("_T", bound="Artist")
@@ -50,7 +50,7 @@ class AbstractDataModel(Generic[_T]):
     def update_artist(self, artist: _T, *args: pd.Series):
         raise NotImplementedError()
 
-    def add_data(self):
+    def add_data(self, table: TableBase):
         raise NotImplementedError()
 
     def update_data(self, artists: list[_T], mpl_widget: QtMplPlotCanvas) -> bool:
@@ -85,13 +85,14 @@ class YDataModel(AbstractDataModel[_T]):
     label_selection = None  # default
     ref = False
 
-    def add_data(self):
+    def add_data(self, table=None):
         _mpl_widget = weakref.ref(self.table.plt.gcw())
         _artist_refs: list[weakref.ReferenceType[_T]] = []
         for (y,) in self._iter_data():
             label_name = y.name
-            artist = self.update_ax(y, label=label_name)
-            # _artist_refs.append(weakref.ref(artist))  TODO: cannot weakref BarContainer
+            artist = self.update_ax(y, label=label_name)  # noqa: F841
+            # TODO: cannot weakref BarContainer
+            # _artist_refs.append(weakref.ref(artist))
 
         if not self.ref:
             # if plot does not refer the table data, there's nothing to be done
@@ -118,7 +119,7 @@ class YDataModel(AbstractDataModel[_T]):
 
     def _get_reactive_ranges(self) -> list[tuple[slice, slice]]:
         data = self.table.data
-        yslice = self.y_selection.as_iloc_slices(data)
+        yslice = self.y_selection.as_iloc_slices(data, fit_shape=False)
         reactive_ranges = [yslice]
         return reactive_ranges
 
@@ -128,7 +129,7 @@ class YDataModel(AbstractDataModel[_T]):
         if self.y_selection is None:
             raise ValueError("Y must be set.")
 
-        yslice = self.y_selection.as_iloc_slices(data)
+        yslice = self.y_selection.as_iloc_slices(data, fit_shape=False)
         ydata_all = data.iloc[yslice]
 
         if self.label_selection is None:
@@ -138,8 +139,8 @@ class YDataModel(AbstractDataModel[_T]):
             ldata = get_column(self.label_selection, data)
             lable_unique = ldata.unique()
 
-            for l in lable_unique:
-                spec = ldata == l
+            for lbl in lable_unique:
+                spec = ldata == lbl
                 for _, ydata in ydata_all[spec].items():
                     yield (ydata,)
 
@@ -153,7 +154,7 @@ class XYDataModel(AbstractDataModel[_T]):
     label_selection = None  # default
     ref = False
 
-    def add_data(self):
+    def add_data(self, table):
         _mpl_widget = weakref.ref(self.table.plt.gcw())
         _artists: list[_T] = []
         for x, y in self._iter_data():
@@ -166,8 +167,10 @@ class XYDataModel(AbstractDataModel[_T]):
             return
 
         _artist_refs: list[weakref.ReferenceType[_T]] = []
+        reactive_ranges = self._get_reactive_ranges()
         for artist in _artists:
             _artist_refs.append(weakref.ref(artist))
+            artist._tabulous_ranges = reactive_ranges
 
         plot_ref = PlotRef(_mpl_widget, _artist_refs)
 
@@ -183,17 +186,16 @@ class XYDataModel(AbstractDataModel[_T]):
                 self.table.events.data.disconnect(_on_data_updated)
                 logger.debug("Disconnecting scatter plot.")
 
-        reactive_ranges = self._get_reactive_ranges()
         self.table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
         return None
 
     def _get_reactive_ranges(self) -> list[tuple[slice, slice]]:
         data = self.table.data
-        yslice = self.y_selection.as_iloc_slices(data)
+        yslice = self.y_selection.as_iloc_slices(data, fit_shape=False)
         reactive_ranges = [yslice]
 
         if self.x_selection is not None:
-            xslice = self.x_selection.as_iloc_slices(data)
+            xslice = self.x_selection.as_iloc_slices(data, fit_shape=False)
             reactive_ranges.append(xslice)
 
         return reactive_ranges
@@ -204,7 +206,7 @@ class XYDataModel(AbstractDataModel[_T]):
         if self.y_selection is None:
             raise ValueError("Y must be set.")
 
-        yslice = self.y_selection.as_iloc_slices(data)
+        yslice = self.y_selection.as_iloc_slices(data, fit_shape=False)
         ydata_all = data.iloc[yslice]
         # TODO: support row vector
         if self.x_selection is None:
@@ -219,8 +221,8 @@ class XYDataModel(AbstractDataModel[_T]):
             ldata = get_column(self.label_selection, data)
             lable_unique = ldata.unique()
 
-            for l in lable_unique:
-                spec = ldata == l
+            for lbl in lable_unique:
+                spec = ldata == lbl
                 xdata_subset = xdata[spec]
                 for _, ydata in ydata_all[spec].items():
                     yield xdata_subset, ydata
@@ -236,13 +238,15 @@ class XYYDataModel(AbstractDataModel[_T]):
     label_selection = None  # default
     ref = False
 
-    def add_data(self):
+    def add_data(self, table):
         _mpl_widget = weakref.ref(self.table.plt.gcw())
+        reactive_ranges = self._get_reactive_ranges()
         _artists: list[_T] = []
         for x, y0, y1 in self._iter_data():
             label_name = y0.name
             artist = self.update_ax(x, y0, y1, label=label_name)
             _artists.append(artist)
+            artist._tabulous_ranges = reactive_ranges
 
         if not self.ref:
             # if plot does not refer the table data, there's nothing to be done
@@ -266,24 +270,25 @@ class XYYDataModel(AbstractDataModel[_T]):
                 self.table.events.data.disconnect(_on_data_updated)
                 logger.debug("Disconnecting scatter plot.")
 
-        reactive_ranges = self._get_reactive_ranges()
         self.table.events.data.mloc(reactive_ranges).connect(_on_data_updated)
         return None
 
     def _get_reactive_ranges(self) -> list[tuple[slice, slice]]:
         data = self.table.data
-        y0slice = self.y0_selection.as_iloc_slices(data)
-        y1slice = self.y1_selection.as_iloc_slices(data)
+        y0slice = self.y0_selection.as_iloc_slices(data, fit_shape=False)
+        y1slice = self.y1_selection.as_iloc_slices(data, fit_shape=False)
         reactive_ranges = [y0slice, y1slice]
 
         if self.x_selection is not None:
-            xslice = self.x_selection.as_iloc_slices(data)
+            xslice = self.x_selection.as_iloc_slices(data, fit_shape=False)
             reactive_ranges.append(xslice)
 
         return reactive_ranges
 
     def _iter_data(self) -> Iterator[tuple[pd.Series, pd.Series, pd.Series]]:
         """Iterate over the data to be plotted."""
+        import pandas as pd
+
         data = self.table.data
         if self.y0_selection is None or self.y1_selection is None:
             raise ValueError("Y0 and Y1 must be set.")
@@ -303,8 +308,8 @@ class XYYDataModel(AbstractDataModel[_T]):
             ldata = get_column(self.label_selection, data)
             lable_unique = ldata.unique()
 
-            for l in lable_unique:
-                spec = ldata == l
+            for lbl in lable_unique:
+                spec = ldata == lbl
                 xdata_subset = xdata[spec]
                 yield xdata_subset, y0data[spec], y1data[spec]
 
@@ -440,7 +445,7 @@ class HistModel(YDataModel[Union["BarContainer", "Polygon"]]):
 
 
 def get_column(selection: SelectionOperator, df: pd.DataFrame) -> pd.Series:
-    sl = selection.as_iloc_slices(df)
+    sl = selection.as_iloc_slices(df, fit_shape=False)
     data = df.iloc[sl]
     if data.shape[1] != 1:
         raise ValueError("Label must be a single column.")

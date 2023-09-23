@@ -12,7 +12,7 @@ from tabulous._qt._qt_const import MonospaceFontFamily
 from tabulous._keymap import QtKeys
 from tabulous.exceptions import UnreachableError
 from tabulous.types import HeaderInfo, EvalInfo
-from tabulous._range import RectRange, MultiRectRange
+from tabulous._range import RectRange
 from tabulous._utils import get_config
 from tabulous._selection_op import (
     find_last_dataframe_expr,
@@ -422,12 +422,12 @@ class QCellLiteralEdit(_QTableLineEdit):
         _table = self._table
         ranges: list[tuple[slice, slice]] = []
         for op in iter_extract(text):
-            ranges.append(op.as_iloc_slices(_table.model().df))
+            ranges.append(op.as_iloc_slices(_table.model().df, fit_shape=False))
 
         if ranges:
-            new_range = MultiRectRange.from_slices(ranges)
+            new_range = ranges
         else:
-            new_range = None
+            new_range = []
         if self._old_range or new_range:
             _table._qtable_view._current_drawing_slot_ranges = new_range
             _table._qtable_view._update_all()

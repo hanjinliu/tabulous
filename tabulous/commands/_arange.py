@@ -12,7 +12,7 @@ from magicgui.widgets import (
     ComboBox,
 )
 from tabulous._magicgui import SelectionWidget, TimeDeltaEdit
-
+from tabulous import _slice_op as _sl
 import pandas as pd
 
 if TYPE_CHECKING:
@@ -105,7 +105,7 @@ class _RangeDialog(Container):
 
     def get_value(self, df: pd.DataFrame) -> tuple[slice, slice, pd.Index]:
         rsl, csl = self._selection.value.as_iloc_slices(df)
-        if csl.start != csl.stop - 1:
+        if not _sl.len_1(csl):
             raise ValueError("Selection must be a single column")
         periods = rsl.stop - rsl.start
         start, end, freq = self._get_params()

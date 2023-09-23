@@ -82,7 +82,6 @@ def main():
         TXT_PATH.write_text("")
 
     from . import TableViewer
-    from ._async_importer import import_plt, import_scipy
     from ._qt._console import import_qtconsole_threading
 
     viewer = TableViewer()
@@ -91,9 +90,6 @@ def main():
         viewer.open(args.open_file)
 
     import_qtconsole_threading()
-    import_plt()
-
-    import_scipy()
     viewer.show()
     return
 
