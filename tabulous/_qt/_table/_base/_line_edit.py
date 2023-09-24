@@ -19,6 +19,7 @@ from tabulous._selection_op import (
     construct,
     iter_extract,
 )
+from tabulous import _slice_op as _sl
 
 if TYPE_CHECKING:
     from types import ModuleType
@@ -540,7 +541,8 @@ class QCellLiteralEdit(_QTableLineEdit):
         _df_filt = qtable_view.model().df
         _df_ori = qtable._data_raw
         rsl, csl = qtable_view._selection_model.ranges[-1]
-        if not qtable._proxy.is_ordered and not _is_size_one(rsl):
+        col_selected = len(qtable_view._selection_model._col_selection_indices) > 0
+        if not (qtable._proxy.is_ordered or _sl.len_1(rsl) or col_selected):
             self.attachToolTip(
                 "Table proxy is not ordered.\nCannot create cell "
                 "references from table selection."

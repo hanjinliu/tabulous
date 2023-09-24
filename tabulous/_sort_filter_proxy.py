@@ -413,6 +413,10 @@ class ComposableSorter(Composable):
             self._columns = columns
         self._ascending = ascending
 
+    def __repr__(self) -> str:
+        cname = type(self).__name__
+        return f"{cname}<{self._columns!r}, ascending={self._ascending}>"
+
     def __call__(self, df: pd.DataFrame) -> pd.Series:
         by: list[str] = [df.columns[i] for i in self._columns]
         if len(by) == 1:
