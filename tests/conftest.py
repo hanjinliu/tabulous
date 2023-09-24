@@ -16,10 +16,10 @@ def make_tabulous_viewer(qtbot):
     yield factory
 
     for viewer in viewers:
+        viewer._unlink_events()
         viewer.close()
         viewer.native.deleteLater()
 
-    gc.collect()
 
 @pytest.fixture(scope="session", autouse=True)
 def session():
