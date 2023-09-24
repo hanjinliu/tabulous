@@ -18,6 +18,8 @@ def make_tabulous_viewer(qtbot):
             viewer = TableViewerWidget(show=show)
         elif cls == "magic":
             viewer = MagicTableViewer(show=show)
+        else:
+            raise ValueError(f"Invalid input {cls!r}")
         viewers.add(viewer)
         return viewer
 
