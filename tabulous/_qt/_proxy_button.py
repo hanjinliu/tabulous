@@ -117,10 +117,10 @@ class QHeaderSortButton(_QHeaderSectionButton):
         def _reset():
             if isinstance(f, ComposableSorter):
                 with table._mgr.merging(
-                    lambda cmds: f"Remove filter button at index {index}"
+                    lambda cmds: f"Remove sort button at index {index}"
                 ):
                     table.setHorizontalHeaderWidget(index, None)
-                    table._set_proxy(f.decompose(index))
+                    # table._set_proxy(f.decompose(index))
             else:
                 raise RuntimeError("Sort function is not a ComposableSorter.")
 
@@ -137,6 +137,7 @@ class QHeaderSortButton(_QHeaderSectionButton):
     def on_uninstalled(self, table: QBaseTable, index: int):
         logger.debug(f"Uninstalling sort button at index {index}")
         self.sortSignal.disconnect()
+        self.resetSignal.disconnect()
         f = table._proxy._obj
         if isinstance(f, ComposableSorter):
             table._set_proxy(f.decompose(index))
