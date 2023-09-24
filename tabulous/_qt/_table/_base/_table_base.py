@@ -230,6 +230,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def dataShapeRaw(self) -> tuple[int, int]:
         return self.getDataFrame().shape
 
+    def connectItemChangedSignal(self, *args, **kwargs) -> None:
+        pass
+
+    def disconnectItemChangedSignal(self):
+        pass
+
     def zoom(self) -> float:
         """Get current zoom factor."""
         return self._qtable_view.zoom()
@@ -1220,6 +1226,13 @@ class QMutableTable(QBaseTable):
         self.rowChangedSignal.connect(slot_row)
         self.columnChangedSignal.connect(slot_col)
         self.evaluatedSignal.connect(slot_eval)
+        return None
+
+    def disconnectItemChangedSignal(self):
+        self.itemChangedSignal.disconnect()
+        self.rowChangedSignal.disconnect()
+        self.columnChangedSignal.disconnect()
+        self.evaluatedSignal.disconnect()
         return None
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):

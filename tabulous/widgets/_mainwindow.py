@@ -485,6 +485,9 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
 
     def close(self):
         """Close the viewer."""
+        for table in self.tables:
+            table.native.disconnectItemChangedSignal()
+        self.tables.clear()
         return self._qwidget.close()
 
     @property
