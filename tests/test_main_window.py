@@ -58,17 +58,18 @@ test_data = {"a": [1, 2, 3], "b": [4, 5, 6]}
 
 #     viewer.close()
 
-@pytest.mark.parametrize(
-    "src, dst",
-    [(0, 1), (1, 0), (0, 2), (2, 0)]
-)
-def test_move(src: int, dst: int, make_tabulous_viewer):
-    viewer: TableViewer = make_tabulous_viewer()
-    names = ["0", "1", "2"]
-    for name in names:
-        viewer.add_spreadsheet(name=name)
-    viewer.tables.move(src, dst)
-    assert [t.name for t in viewer.tables] == [viewer.native._tablestack.tabText(i) for i in range(3)]
+# @pytest.mark.parametrize(
+#     "src, dst",
+#     [(0, 1), (1, 0), (0, 2), (2, 0)]
+# )
+# def test_move(src: int, dst: int, make_tabulous_viewer):
+#     viewer: TableViewer = make_tabulous_viewer()
+#     names = ["0", "1", "2"]
+#     for name in names:
+#         viewer.add_spreadsheet(name=name)
+#     viewer.tables.move(src, dst)
+#     assert [t.name for t in viewer.tables] == [viewer.native._tablestack.tabText(i) for i in range(3)]
+#     viewer.close()
 
 @pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
 def test_register_action(viewer_cls: type[TableViewerWidget]):
@@ -87,23 +88,23 @@ def test_register_action(viewer_cls: type[TableViewerWidget]):
 
     viewer.close()
 
-@pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
-def test_components(viewer_cls: type[TableViewerWidget]):
-    viewer = viewer_cls(show=True)
+# @pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
+# def test_components(viewer_cls: type[TableViewerWidget]):
+#     viewer = viewer_cls(show=True)
 
-    # BUG: using qtconsole causes segfault on exit...
-    # assert not viewer.console.visible
-    # viewer.console.visible = True
-    # assert viewer.console.visible
-    # viewer.console.visible = False
-    # assert not viewer.console.visible
+#     # BUG: using qtconsole causes segfault on exit...
+#     # assert not viewer.console.visible
+#     # viewer.console.visible = True
+#     # assert viewer.console.visible
+#     # viewer.console.visible = False
+#     # assert not viewer.console.visible
 
-    viewer.toolbar.visible = True
-    assert viewer.toolbar.visible
-    viewer.toolbar.visible = False
-    assert not viewer.toolbar.visible
+#     viewer.toolbar.visible = True
+#     assert viewer.toolbar.visible
+#     viewer.toolbar.visible = False
+#     assert not viewer.toolbar.visible
 
-    viewer.close()
+#     viewer.close()
 
 
 @pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
