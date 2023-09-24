@@ -1,14 +1,23 @@
 import pytest
 from weakref import WeakSet
+from typing import Literal
 
 @pytest.fixture
 def make_tabulous_viewer(qtbot):
-    from tabulous import TableViewer
+    from tabulous import TableViewer, TableViewerWidget, MagicTableViewer
+    from tabulous.widgets import TableViewerBase
 
-    viewers: WeakSet[TableViewer] = WeakSet()
-
-    def factory(show=False):
-        viewer = TableViewer(show=show)
+    viewers: WeakSet[TableViewerBase] = WeakSet()
+    def factory(
+        cls: Literal["main", "widget", "magic"] = "main",
+        show: bool = False,
+    ):
+        if cls == "main":
+            viewer = TableViewer(show=show)
+        elif cls == "widget":
+            viewer = TableViewerWidget(show=show)
+        elif cls == "magic":
+            viewer = MagicTableViewer(show=show)
         viewers.add(viewer)
         return viewer
 

@@ -8,9 +8,9 @@ import pytest
 
 test_data = {"a": [1, 2, 3], "b": [4, 5, 6]}
 
-@pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
-def test_add_layers(viewer_cls: type[TableViewerWidget]):
-    viewer = viewer_cls(show=False)
+@pytest.mark.parametrize("viewer_cls", ["main", "widget"])
+def test_add_layers(make_tabulous_viewer, viewer_cls: str):
+    viewer = make_tabulous_viewer(viewer_cls, show=False)
     viewer.add_table(test_data, name="Data")
     df = viewer.tables[0].data
     assert viewer.current_index == 0
@@ -23,10 +23,9 @@ def test_add_layers(viewer_cls: type[TableViewerWidget]):
     assert np.all(agg == viewer.tables[1].data)
     viewer.close()
 
-@pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
-@pytest.mark.parametrize("pos", ["top", "left"])
-def test_renaming(viewer_cls: type[TableViewerWidget], pos):
-    viewer = viewer_cls(tab_position=pos, show=False)
+@pytest.mark.parametrize("viewer_cls", ["main", "widget"])
+def test_renaming(make_tabulous_viewer, viewer_cls: type[TableViewerWidget]):
+    viewer = make_tabulous_viewer(viewer_cls, show=False)
     table0 = viewer.add_table(test_data, name="Data")
     assert table0.name == "Data"
     assert get_tabwidget_tab_name(viewer, 0) == "Data"
@@ -70,9 +69,9 @@ def test_move(src: int, dst: int, make_tabulous_viewer):
     viewer.tables.move(src, dst)
     assert [t.name for t in viewer.tables] == [viewer.native._tablestack.tabText(i) for i in range(3)]
 
-@pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
-def test_register_action(viewer_cls: type[TableViewerWidget]):
-    viewer = viewer_cls(show=False)
+@pytest.mark.parametrize("viewer_cls", ["main", "widget"])
+def test_register_action(make_tabulous_viewer, viewer_cls):
+    viewer = make_tabulous_viewer(viewer_cls, show=False)
     @viewer.tables.register
     def f(viewer, i):
         pass
@@ -87,9 +86,9 @@ def test_register_action(viewer_cls: type[TableViewerWidget]):
 
     viewer.close()
 
-@pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
-def test_components(viewer_cls: type[TableViewerWidget]):
-    viewer = viewer_cls(show=True)
+@pytest.mark.parametrize("viewer_cls", ["main", "widget"])
+def test_components(make_tabulous_viewer, viewer_cls: str):
+    viewer = make_tabulous_viewer(viewer_cls, show=True)
 
     # BUG: using qtconsole causes segfault on exit...
     # assert not viewer.console.visible
@@ -106,9 +105,9 @@ def test_components(viewer_cls: type[TableViewerWidget]):
     viewer.close()
 
 
-@pytest.mark.parametrize("viewer_cls", [TableViewer, TableViewerWidget])
-def test_bind_keycombo(viewer_cls: type[TableViewerWidget]):
-    viewer = viewer_cls(show=False)
+@pytest.mark.parametrize("viewer_cls", ["main", "widget"])
+def test_bind_keycombo(make_tabulous_viewer, viewer_cls: str):
+    viewer = make_tabulous_viewer(viewer_cls, show=False)
 
     mock = MagicMock()
 
