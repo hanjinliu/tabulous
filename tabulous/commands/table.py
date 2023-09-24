@@ -109,14 +109,36 @@ def pivot(viewer: TableViewerBase):
 
 
 def melt(viewer: TableViewerBase):
-    """Melt (unpivot) current table data (pd.melt)"""
+    """Melt (unpivot) current table data on selected columns if any (pd.melt)"""
     table = _utils.get_table(viewer)
-    cols = _utils.get_selected_columns(viewer)
+    cols = _utils.get_selected_columns(viewer, assert_exists=False)
     df = table.data
     out = df.melt(id_vars=[df.columns[i] for i in cols])
+    table_out = viewer.add_table(out, name=f"{table.name}-melt")
+    table_out._source = Source.from_table(table)
+
+
+def map_values(viewer: TableViewerBase):
+    """Map values of selected column (pd.Series.map)"""
+    from magicgui.widgets import request_values
+
+    table = _utils.get_mutable_table(viewer)
+    col = _utils.get_selected_column(viewer)
+    df = table.data
+    colname = df.columns[col]
+    if table.table_type == "Table" and df.dtypes[colname] == "object":
+        raise ValueError("Cannot map values of object type.")
+    ser = df[colname].astype(str)
+    unique_values = ser.unique()
+    if unique_values.size > 48:
+        raise ValueError(f"Too many unique values ({unique_values}).")
+    out = request_values(
+        {k: {"widget_type": "LineEdit", "value": k} for k in unique_values},
+        parent=viewer._qwidget,
+    )
     if out is not None:
-        table_out = viewer.add_table(out, name=f"{table.name}-melt")
-        table_out._source = Source.from_table(table)
+        ser_mapped = ser.map(out).astype(df.dtypes[colname])
+        table.assign({colname: ser_mapped})
 
 
 def transpose(viewer: TableViewerBase):
