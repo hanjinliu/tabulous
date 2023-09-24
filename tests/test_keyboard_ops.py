@@ -1,6 +1,5 @@
 import sys
 import pytest
-from tabulous import TableViewer
 import numpy as np
 from pytestqt.qtbot import QtBot
 from qtpy import QtWidgets as QtW
