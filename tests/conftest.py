@@ -27,12 +27,13 @@ def make_tabulous_viewer(qtbot):
 
     for viewer in viewers:
         viewer.close()
-
+        viewer.native.deleteLater()
 
 @pytest.fixture(scope="session", autouse=True)
 def session():
     from tabulous._utils import init_config, update_config, get_config
     from tabulous._qt._mainwindow import QMainWindow
+    from qtpy.QtWidgets import QApplication
     import gc
 
     with init_config():
@@ -52,6 +53,11 @@ def session():
         instance.close()
         instance.deleteLater()
 
+    QApplication.closeAllWindows()
+    QMainWindow._instances.clear()
+    N_PROCESS_EVENTS = 50
+    for _ in range(N_PROCESS_EVENTS):
+        QApplication.processEvents()
     gc.collect()
     if QMainWindow._instances:
         raise RuntimeError("QMainWindow instances not cleaned up!")
