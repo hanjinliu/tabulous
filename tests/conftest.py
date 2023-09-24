@@ -19,7 +19,7 @@ def make_tabulous_viewer(qtbot):
         viewer.close()
         viewer.native.deleteLater()
 
-    gc.collect(1)
+    gc.collect()
 
 @pytest.fixture(scope="session", autouse=True)
 def session():
@@ -46,7 +46,7 @@ def session():
 
     QApplication.closeAllWindows()
     QMainWindow._instances.clear()
-    N_PROCESS_EVENTS = 10
+    N_PROCESS_EVENTS = 50
     for _ in range(N_PROCESS_EVENTS):
         QApplication.processEvents()
     gc.collect()
