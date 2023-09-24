@@ -485,6 +485,9 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
 
     def close(self):
         """Close the viewer."""
+        for table in self.tables:
+            table.native.disconnectItemChangedSignal()
+        self.tables.clear()
         return self._qwidget.close()
 
     @property
@@ -580,6 +583,21 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         _tablist.events.moved.connect(self.reset_choices)
         _tablist.events.changed.connect(self.reset_choices)
         _tablist.events.renamed.connect(self.reset_choices)
+
+    def _unlink_events(self):
+        _tablist = self.tables
+        _qtablist = self._qwidget._tablestack
+
+        _tablist.events.inserted.disconnect()
+        _tablist.events.removed.disconnect()
+        _tablist.events.moved.disconnect()
+        _tablist.events.renamed.disconnect()
+
+        _qtablist.itemMoved.disconnect()
+        _qtablist.tableRenamed.disconnect()
+        _qtablist.tableRemoved.disconnect()
+        _qtablist.tablePassed.disconnect()
+        _qtablist.itemDropped.disconnect()
 
 
 class TableViewerWidget(TableViewerBase):

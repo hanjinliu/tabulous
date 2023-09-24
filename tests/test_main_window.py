@@ -8,7 +8,7 @@ from ._utils import get_tabwidget_tab_name
 import pytest
 
 test_data = {"a": [1, 2, 3], "b": [4, 5, 6]}
-classes_to_test = ["main"]
+classes_to_test = ["main", "widget"]
 
 @pytest.mark.parametrize("viewer_cls", classes_to_test)
 def test_add_layers(make_tabulous_viewer, viewer_cls: str):
