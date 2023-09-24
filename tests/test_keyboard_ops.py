@@ -6,8 +6,8 @@ from pytestqt.qtbot import QtBot
 from qtpy import QtWidgets as QtW
 from qtpy.QtCore import Qt
 
-def test_add_spreadsheet_and_move(qtbot: QtBot):
-    viewer = TableViewer()
+def test_add_spreadsheet_and_move(make_tabulous_viewer, qtbot: QtBot):
+    viewer: TableViewer = make_tabulous_viewer()
     qtbot.addWidget(viewer._qwidget)
     qtbot.keyClick(viewer._qwidget, Qt.Key.Key_N, Qt.KeyboardModifier.ControlModifier)
     assert len(viewer.tables) == 1
@@ -17,10 +17,10 @@ def test_add_spreadsheet_and_move(qtbot: QtBot):
     assert sheet.data.shape == (1, 1)
     assert sheet.cell[0, 0] == "0"
 
-def test_movements_in_popup(qtbot: QtBot):
+def test_movements_in_popup(make_tabulous_viewer, qtbot: QtBot):
     if sys.platform == "darwin":
         pytest.skip("Skipping test on macOS because it has a different focus policy.")
-    viewer = TableViewer()
+    viewer: TableViewer = make_tabulous_viewer()
     qtbot.addWidget(viewer._qwidget)
     sheet = viewer.add_spreadsheet(np.zeros((10, 10)))
 
@@ -39,8 +39,8 @@ def test_movements_in_popup(qtbot: QtBot):
     "mode, key",
     [("popup", Qt.Key.Key_P), ("vertical", Qt.Key.Key_V), ("horizontal", Qt.Key.Key_H)]
 )
-def test_changing_view_mode(qtbot: QtBot, mode, key):
-    viewer = TableViewer()
+def test_changing_view_mode(make_tabulous_viewer, qtbot: QtBot, mode, key):
+    viewer: TableViewer = make_tabulous_viewer()
     qtbot.addWidget(viewer._qwidget)
     sheet = viewer.add_spreadsheet(np.zeros((10, 10)))
 

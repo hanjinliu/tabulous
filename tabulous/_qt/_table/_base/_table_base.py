@@ -275,6 +275,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def assignColumns(self, serieses: list[pd.Series]) -> None:
         raise TableImmutableError("Table is immutable.")
 
+    def connectItemChangedSignal(self, *args, **kwargs) -> None:
+        pass
+
+    def disconnectItemChangedSignal(self):
+        pass
+
     def convertValue(self, c: int, value: Any) -> Any:
         """Convert value before updating DataFrame."""
         return value
@@ -1220,6 +1226,19 @@ class QMutableTable(QBaseTable):
         self.rowChangedSignal.connect(slot_row)
         self.columnChangedSignal.connect(slot_col)
         self.evaluatedSignal.connect(slot_eval)
+        return None
+
+    def disconnectItemChangedSignal(self):
+        for signal in [
+            self.itemChangedSignal,
+            self.rowChangedSignal,
+            self.columnChangedSignal,
+            self.evaluatedSignal,
+        ]:
+            try:
+                signal.disconnect()
+            except TypeError:
+                pass
         return None
 
     def keyPressEvent(self, e: QtGui.QKeyEvent):
