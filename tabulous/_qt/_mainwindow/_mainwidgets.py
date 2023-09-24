@@ -249,32 +249,31 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
     def event(self, e: QEvent):
         type = e.type()
         if type == QEvent.Type.Close:
-            # if self._ask_on_close and not self._tablestack.isEmpty():
-            #     msgbox = QtW.QMessageBox(self)
-            #     msgbox.setWindowTitle("tabulous")
-            #     msgbox.setIcon(QtW.QMessageBox.Icon.Question)
-            #     msgbox.setText("Are you sure to close this window?")
-            #     btn_y = msgbox.addButton(QtW.QMessageBox.StandardButton.Yes)
-            #     btn_n = msgbox.addButton(QtW.QMessageBox.StandardButton.No)
-            #     btn_y.setText("Close")
-            #     btn_n.setText("Cancel")
-            #     btn_y.setShortcut(QtGui.QKeySequence("Ctrl+W"))
+            if self._ask_on_close and not self._tablestack.isEmpty():
+                msgbox = QtW.QMessageBox(self)
+                msgbox.setWindowTitle("tabulous")
+                msgbox.setIcon(QtW.QMessageBox.Icon.Question)
+                msgbox.setText("Are you sure to close this window?")
+                btn_y = msgbox.addButton(QtW.QMessageBox.StandardButton.Yes)
+                btn_n = msgbox.addButton(QtW.QMessageBox.StandardButton.No)
+                btn_y.setText("Close")
+                btn_n.setText("Cancel")
+                btn_y.setShortcut(QtGui.QKeySequence("Ctrl+W"))
 
-            #     cbox = QtW.QCheckBox("Don't ask again")
-            #     msgbox.setCheckBox(cbox)
-            #     yes = msgbox.exec()
-            #     if cbox.isChecked():
-            #         get_config().window.ask_on_close = False
-            #     if yes == QtW.QMessageBox.StandardButton.No:
-            #         e.ignore()
-            #         return True
-            # # when we close the MainWindow, remove it from the instances list
-            # try:
-            #     QMainWindow._instances.remove(self)
-            # except ValueError:
-            #     pass
-            # get_config().as_toml()  # save config
-            pass
+                cbox = QtW.QCheckBox("Don't ask again")
+                msgbox.setCheckBox(cbox)
+                yes = msgbox.exec()
+                if cbox.isChecked():
+                    get_config().window.ask_on_close = False
+                if yes == QtW.QMessageBox.StandardButton.No:
+                    e.ignore()
+                    return True
+            # when we close the MainWindow, remove it from the instances list
+            try:
+                QMainWindow._instances.remove(self)
+            except ValueError:
+                pass
+            get_config().as_toml()  # save config
 
         elif type in _REORDER_INSTANCES:
             # upon activation or raise_, put window at the end of _instances
