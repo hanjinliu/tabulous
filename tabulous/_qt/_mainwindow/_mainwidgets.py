@@ -273,7 +273,7 @@ class QMainWindow(QtW.QMainWindow, _QtMainWidgetBase):
                 QMainWindow._instances.remove(self)
             except ValueError:
                 pass
-            get_config().as_toml()  # save config
+            # get_config().as_toml()  # save config
 
         elif type in _REORDER_INSTANCES:
             # upon activation or raise_, put window at the end of _instances
