@@ -815,7 +815,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Move current index."""
         selection_model = self._qtable_view._selection_model
         df_shape = self.model().df.shape
-        table_shape = self.model().rowCount(), self.model().columnCount()
+        table_shape = self.tableShape()
 
         if row is None:
             row = selection_model.current_index.row
