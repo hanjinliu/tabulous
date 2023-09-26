@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 _STRING_DTYPE = get_dtype("string")
 _EMPTY = object()
 _EXP_FLOAT = re.compile(r"[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)")
+_FETCH_SIZE = 20
 
 
 class SpreadSheetModel(AbstractDataFrameModel):
@@ -39,7 +40,8 @@ class SpreadSheetModel(AbstractDataFrameModel):
 
         self._table_config = get_config().table
         self._columns_dtype = self.parent()._columns_dtype
-        self._out_of_bound_color_cache = None
+        self._out_of_bound_color_cache: QtGui.QColor | None = None
+        self._nrows, self._ncols = _FETCH_SIZE * 10, _FETCH_SIZE * 3
 
     @property
     def _out_of_bound_color(self) -> QtGui.QColor:
@@ -67,10 +69,20 @@ class SpreadSheetModel(AbstractDataFrameModel):
         self._df = data
 
     def rowCount(self, parent=None):
-        return self._table_config.max_row_count
+        return self._nrows
 
     def columnCount(self, parent=None):
-        return self._table_config.max_column_count
+        return self._ncols
+
+    def _set_row_count(self, nrows: int):
+        _nrows = min(nrows, self._table_config.max_row_count)
+        self.setShape(_nrows, self._ncols)
+        self._nrows = _nrows
+
+    def _set_column_count(self, ncols: int):
+        _ncols = min(ncols, self._table_config.max_column_count)
+        self.setShape(self._nrows, _ncols)
+        self._ncols = _ncols
 
     def _data_display(self, index: QtCore.QModelIndex):
         """Display role."""
@@ -198,6 +210,9 @@ class QSpreadSheet(QMutableSimpleTable):
         self._qtable_view.verticalHeader().insertSection(0, nr, rspan)
         self._qtable_view.horizontalHeader().insertSection(0, nc, cspan)
 
+        self._qtable_view.verticalScrollBar().valueChanged.connect(self._on_v_scroll)
+        self._qtable_view.horizontalScrollBar().valueChanged.connect(self._on_h_scroll)
+
     if TYPE_CHECKING:
 
         def model(self) -> SpreadSheetModel:
@@ -296,6 +311,38 @@ class QSpreadSheet(QMutableSimpleTable):
         self.refreshTable()
         return
 
+    def moveToItem(
+        self,
+        row: int | None = None,
+        column: int | None = None,
+        clear_selection: bool = True,
+    ) -> None:
+        """Move current index."""
+        model = self.model()
+        _need_reset_nrows = False
+        _need_reset_ncols = False
+        if row is None:
+            pass
+        elif row < 0:
+            _need_reset_nrows = True
+            model._set_row_count(model._table_config.max_row_count)
+        elif row > model.rowCount():
+            model._set_row_count(row + _FETCH_SIZE)
+        if column is None:
+            pass
+        elif column < 0:
+            _need_reset_ncols = True
+            model._set_column_count(model._table_config.max_column_count)
+        elif column > model.columnCount():
+            model._set_column_count(column + _FETCH_SIZE)
+        super().moveToItem(row, column, clear_selection)
+        idx = self._qtable_view._selection_model.current_index
+        if _need_reset_nrows:
+            model._set_row_count(idx.row + _FETCH_SIZE)
+        if _need_reset_ncols:
+            model._set_column_count(idx.column + _FETCH_SIZE)
+        return None
+
     def updateValue(self, r, c, val):
         index = self._data_raw.index[r]
         columns = self._data_raw.columns[c]
@@ -378,6 +425,30 @@ class QSpreadSheet(QMutableSimpleTable):
     def _assignColumns_fmt(self, serieses: dict[str, pd.Series]):
         keys = list(serieses.keys())
         return f"assign new data to {keys}"
+
+    def _on_v_scroll(self, value: int):
+        model = self.model()
+        nr = model.rowCount()
+        irow = self._qtable_view.rowAt(value + self._qtable_view.height())
+
+        if irow < 0:
+            irow = nr - 1
+        dr = nr - irow
+        if dr < _FETCH_SIZE or dr > _FETCH_SIZE * 2:
+            if irow > _FETCH_SIZE * 9:
+                model._set_row_count(irow + _FETCH_SIZE)
+
+    def _on_h_scroll(self, value: int):
+        model = self.model()
+        nc = model.columnCount()
+        icol = self._qtable_view.columnAt(value + self._qtable_view.width())
+
+        if icol < 0:
+            icol = nc - 1
+        dc = nc - icol
+        if dc < _FETCH_SIZE or dc > _FETCH_SIZE * 2:
+            if icol > _FETCH_SIZE * 2:
+                model._set_column_count(icol + _FETCH_SIZE)
 
     def createModel(self) -> None:
         """Create spreadsheet model."""
