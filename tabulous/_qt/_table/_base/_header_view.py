@@ -6,7 +6,7 @@ from qtpy.QtCore import Qt
 import numpy as np
 
 from tabulous._qt._action_registry import QActionRegistry
-from tabulous._qt._proxy_button import HeaderAnchorMixin
+from tabulous._qt._proxy_button import HeaderAnchorMixin, QColumnFilterButton
 
 if TYPE_CHECKING:
     from ._enhanced_table import _QTableViewEnhanced
@@ -211,6 +211,10 @@ class QDataFrameHeaderView(QtW.QHeaderView, QActionRegistry[int]):
 class QHorizontalHeaderView(QDataFrameHeaderView):
     _Orientation = Qt.Orientation.Horizontal
 
+    def __init__(self, parent: QtW.QWidget | None = None) -> None:
+        super().__init__(parent)
+        self._column_filter_btn: QColumnFilterButton | None = None
+
     def visualRectAtIndex(self, index: int) -> QtCore.QRect:
         x = self.sectionViewportPosition(index)
         y = self.rect().top()
@@ -243,6 +247,19 @@ class QHorizontalHeaderView(QDataFrameHeaderView):
 
     def _index_for_selection_model(self, logicalIndex):
         return -1, logicalIndex
+
+    def show_column_filter_button(self):
+        if self._column_filter_btn:
+            return
+        self._column_filter_btn = QColumnFilterButton(self)
+        self._column_filter_btn.show()
+
+    def hide_column_filter_button(self):
+        if btn := self._column_filter_btn:
+            btn.setParent(None)
+            btn.close()
+            btn.deleteLater()
+        self._column_filter_btn = None
 
 
 class QVerticalHeaderView(QDataFrameHeaderView):

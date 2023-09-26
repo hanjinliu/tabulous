@@ -546,7 +546,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         _widget = QColumnFilterWidget(ol)
 
         ol.addWidget(_widget)
-        ol.setTitle("Filter")
+        ol.setTitle("Column Filter")
         _widget._cbox.setFocus()
         return _widget
 

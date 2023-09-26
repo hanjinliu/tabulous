@@ -530,6 +530,11 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         hheader = self._qtable_view.horizontalHeader()
         hheader.reindexSectionWidgets(indexer)
 
+        if self._column_filter.is_identity():
+            hheader.hide_column_filter_button()
+        else:
+            hheader.show_column_filter_button()
+
     @_set_column_filter.server
     def _set_column_filter(self, cfil: ColumnFilter):
         return arguments(self._column_filter)

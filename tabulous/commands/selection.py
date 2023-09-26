@@ -480,7 +480,7 @@ def sort_by_columns(viewer: TableViewerBase) -> None:
 
 
 def filter_by_columns(viewer: TableViewerBase) -> None:
-    """Filter by a column"""
+    """Filter by selected columns"""
     table = _utils.get_table(viewer)
     indices = _utils.get_selected_columns(viewer)
     by = [table.columns[index] for index in indices]

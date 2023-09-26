@@ -12,6 +12,7 @@ from tabulous._sort_filter_proxy import (
     FilterInfo,
     ComposableFilter,
     ComposableSorter,
+    ColumnFilter,
 )
 from superqt import QEnumComboBox
 
@@ -21,6 +22,7 @@ from ._qt_const import ICON_DIR
 if TYPE_CHECKING:
     from typing_extensions import Self
     from tabulous._qt._table import QBaseTable
+    from tabulous._qt._table._base._header_view import QDataFrameHeaderView
     import pandas as pd
 
 logger = logging.getLogger("tabulous")
@@ -42,7 +44,7 @@ class HeaderAnchorMixin:
         """Callback when this widget is uninstalled"""
 
 
-class _QHeaderSectionButton(QColoredToolButton, HeaderAnchorMixin):
+class _QTransparentToolButton(QColoredToolButton):
     def __init__(self, parent: QtW.QWidget = None):
         super().__init__(parent)
         self.setFixedSize(16, 16)
@@ -66,6 +68,10 @@ class _QHeaderSectionButton(QColoredToolButton, HeaderAnchorMixin):
             self.updateColor("#1E1E1E")
         else:
             self.updateColor("#CCCCCC")
+
+
+class _QHeaderSectionButton(_QTransparentToolButton, HeaderAnchorMixin):
+    pass
 
 
 class QHeaderSortButton(_QHeaderSectionButton):
@@ -347,3 +353,24 @@ class QMultiCheckBoxes(QtW.QListWidget):
 
         def itemWidget(self, item: QtW.QListWidgetItem) -> QtW.QCheckBox:
             ...
+
+
+class QColumnFilterButton(_QTransparentToolButton):
+    def __init__(self, parent: QDataFrameHeaderView):
+        super().__init__(parent)
+        self.setPopupMode(QtW.QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.setIcon(ICON_DIR / "restore_columns.svg")
+        self.setToolTip("Clear column filter")
+        self.clicked.connect(self._on_clicked)
+        _viewer = parent.parentWidget().parentViewer()
+        self.updateColorByBackground(_viewer.backgroundColor())
+        self.setFixedHeight(parent.height() - 2)
+
+    if TYPE_CHECKING:
+
+        def parentWidget(self) -> QDataFrameHeaderView:
+            ...
+
+    def _on_clicked(self):
+        qtable = self.parentWidget().parentWidget().parentTable()
+        qtable.setColumnFilter(ColumnFilter.identity())
