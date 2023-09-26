@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Literal, TYPE_CHECKING, cast
 import weakref
-from pathlib import Path
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from qtpy.QtCore import Qt, Signal
 
@@ -12,6 +11,7 @@ from tabulous._qt._table._base._table_group import QTableGroup
 from tabulous._qt._clickable_label import QClickableLabel
 from tabulous._qt._action_registry import QActionRegistry
 from tabulous._qt._toolbar._toolbutton import QColoredToolButton
+from tabulous._qt._qt_const import ICON_DIR
 from tabulous.style import Style
 
 from tabulous._utils import get_config
@@ -710,10 +710,8 @@ def _label(text: str) -> QtW.QLabel:
 
 
 class QTrashBinLabel(QColoredToolButton):
-    ICON_CLOSED = Path(__file__).parent.parent / "_icons/trash_bin.svg"
-    ICON_OPENED = Path(__file__).parent.parent / "_icons/trash_bin_opened.svg"
-    assert ICON_CLOSED.exists()
-    assert ICON_OPENED.exists()
+    ICON_CLOSED = ICON_DIR / "trash_bin.svg"
+    ICON_OPENED = ICON_DIR / "trash_bin_opened.svg"
 
     def __init__(self, parent: QtW.QWidget | None = None) -> None:
         super().__init__(parent)

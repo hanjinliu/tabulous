@@ -4,9 +4,7 @@ from qtpy import QtWidgets as QtW, QtGui
 
 from tabulous.color import normalize_color
 from tabulous._qt._svg import QColoredSVGIcon
-
-
-ICON_DIR = Path(__file__).parent.parent / "_icons"
+from tabulous._qt._qt_const import ICON_DIR
 
 
 class QColoredToolButton(QtW.QToolButton):

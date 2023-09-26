@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 from qtpy.QtWidgets import QApplication
 from qtpy.QtCore import Qt
 from qtpy import PYQT5, QtGui
 
-ICON_PATH = Path(__file__).parent / "_icons"
+from ._qt_const import ICON_DIR
 
 APPLICATION = None
 
@@ -46,7 +45,7 @@ def get_app():
         app = QApplication([])
 
     if app.windowIcon().isNull():
-        app.setWindowIcon(QtGui.QIcon(str(ICON_PATH / "window_icon.png")))
+        app.setWindowIcon(QtGui.QIcon(str(ICON_DIR / "window_icon.png")))
     app.setApplicationName("tabulous")
     APPLICATION = app
     return app

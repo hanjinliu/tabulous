@@ -10,6 +10,7 @@ from qtpy.QtWidgets import QAction
 from tabulous._qt._svg import QColoredSVGIcon
 from tabulous._qt._multitips import QHasToolTip
 from tabulous import commands as cmds
+from tabulous._qt._qt_const import ICON_DIR
 
 from ._toolbutton import QColoredToolButton, QMoreToolButton
 from ._corner import QSelectionRangeEdit
@@ -17,8 +18,6 @@ from ._corner import QSelectionRangeEdit
 if TYPE_CHECKING:
     from tabulous._qt._mainwindow import _QtMainWidgetBase
     from tabulous.widgets._mainwindow import TableViewerBase
-
-ICON_DIR = Path(__file__).parent.parent / "_icons"
 
 
 class QSubToolBar(QtW.QToolBar, QHasToolTip):

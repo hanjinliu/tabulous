@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from functools import partial
-from pathlib import Path
 from typing import Any, Callable, TYPE_CHECKING, Iterable, Tuple, TypeVar, overload
 import warnings
 from qtpy import QtWidgets as QtW, QtGui, QtCore
@@ -38,6 +37,7 @@ from tabulous._pd_index import (
     is_ranged,
     char_range_index,
 )
+from tabulous._qt._qt_const import ICON_DIR
 
 if TYPE_CHECKING:
     from ._delegate import TableItemDelegate
@@ -49,7 +49,6 @@ if TYPE_CHECKING:
     from tabulous._psygnal import InCellRangedSlot
 
 logger = logging.getLogger("tabulous")
-ICON_DIR = Path(__file__).parent.parent.parent / "_icons"
 
 _SplitterStyle = """
 QSplitter::handle {

@@ -1,14 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from pathlib import Path
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, Signal
 from tabulous._qt._svg import QColoredSVGIcon
+from tabulous._qt._qt_const import ICON_DIR
 
 if TYPE_CHECKING:
     from tabulous._qt._mainwindow._base import _QtMainWidgetBase
-
-ICON_DIR = Path(__file__).parent.parent / "_icons"
 
 
 class QMainWindowTitleBar(QtW.QMenuBar):

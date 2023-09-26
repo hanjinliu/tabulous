@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
 import logging
 import ast
 from typing import TYPE_CHECKING, Sequence
@@ -17,13 +16,13 @@ from tabulous._sort_filter_proxy import (
 from superqt import QEnumComboBox
 
 from tabulous.exceptions import UnreachableError
+from ._qt_const import ICON_DIR
 
 if TYPE_CHECKING:
     from typing_extensions import Self
     from tabulous._qt._table import QBaseTable
     import pandas as pd
 
-ICON_DIR = Path(__file__).parent / "_icons"
 logger = logging.getLogger("tabulous")
 
 

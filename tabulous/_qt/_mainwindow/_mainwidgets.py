@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from pathlib import Path
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, QEvent, QTimer
 
@@ -8,12 +7,11 @@ from ._base import _QtMainWidgetBase
 from tabulous._keymap import QtKeyMap
 from tabulous.types import TabPosition
 from tabulous._utils import get_config
+from tabulous._qt._qt_const import ICON_DIR
 
 if TYPE_CHECKING:
     from tabulous.widgets import TableViewer
     from tabulous._qt._table_stack import QTabbedTableStack
-
-ICON_DIR = Path(__file__).parent.parent / "_icons"
 
 
 class QMainWidget(QtW.QSplitter, _QtMainWidgetBase):
