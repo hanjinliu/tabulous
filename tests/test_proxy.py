@@ -221,15 +221,15 @@ def test_column_filter(make_tabulous_viewer):
     table = viewer.add_spreadsheet(
         {"a": [3, 2], "b": [2, 2], "ab": [4, 3]},
     )
-    table.columns.filter.startswith("a")
+    table.columns.filter(lambda s: s.startswith("a"))
     assert_equal(table.data_shown["a"].values, [3, 2])
     assert_equal(table.data_shown["ab"].values, [4, 3])
     assert "b" not in table.data_shown.columns
-    table.columns.filter.isin(["a", "b"])
+    table.columns.filter(lambda s: s in ["a", "b"])
     assert_equal(table.data_shown["a"].values, [3, 2])
     assert_equal(table.data_shown["b"].values, [2, 2])
     assert "ab" not in table.data_shown.columns
-    table.columns.filter.clear()
+    table.columns.reset_proxy()
     assert list(table.data_shown.columns) == ["a", "b", "ab"]
 
 def test_column_filter_with_sort(make_tabulous_viewer):
@@ -238,7 +238,7 @@ def test_column_filter_with_sort(make_tabulous_viewer):
         {"a": [3, 2], "b": [2, 2], "ba": [4, 3]},
     )
     table.proxy.sort(by="a")
-    table.columns.filter.startswith("b")
+    table.columns.filter(lambda s: s.startswith("b"))
     assert_equal(table.data_shown["ba"].values, [3, 4])
     table.undo_manager.undo()
     assert list(table.data_shown.columns) == ["a", "b", "ba"]

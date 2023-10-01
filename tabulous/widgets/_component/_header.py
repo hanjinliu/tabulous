@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Sequence, overload, Any, Iterator, List
+from typing import TYPE_CHECKING, Callable, Sequence, overload, Any, Iterator, List
 
 import numpy as np
 from psygnal import Signal, SignalGroup
@@ -253,46 +253,9 @@ class VerticalHeaderInterface(_HeaderInterface):
         self.parent.refresh()
 
 
-class ColumnFilterInterface(TableComponent):
-    def _qtable(self):
-        return self.parent._qwidget
-
-    def _get_filter(self):
-        return self._qtable()._column_filter
-
-    def _set_filter(self, cfil):
-        self._qtable().setColumnFilter(cfil)
-
-    def startswith(self, prefix: str):
-        self._set_filter(ColumnFilter.startswith(prefix))
-        self.parent.refresh()
-
-    def endswith(self, suffix: str):
-        self._set_filter(ColumnFilter.endswith(suffix))
-        self.parent.refresh()
-
-    def contains(self, substr: str):
-        self._set_filter(ColumnFilter.contains(substr))
-        self.parent.refresh()
-
-    def regex(self, regex: str):
-        self._set_filter(ColumnFilter.regex(regex))
-        self.parent.refresh()
-
-    def isin(self, values: list[str]):
-        self._set_filter(ColumnFilter.isin(values))
-        self.parent.refresh()
-
-    def clear(self):
-        self._set_filter(ColumnFilter.identity())
-        self.parent.refresh()
-
-
 class HorizontalHeaderInterface(_HeaderInterface):
     __doc__ = _HeaderInterface.__doc__.replace("{index/columns}", "columns")
     _AXIS_NUMBER = 1
-
-    filter = ColumnFilterInterface()
 
     def _get_axis(self) -> pd.Index:
         return self.parent._qwidget.model().df.columns
@@ -330,7 +293,26 @@ class HorizontalHeaderInterface(_HeaderInterface):
             ((rsl, _as_slice(sl)) for sl in slices),
             column=True,
         )
-        self.parent.refresh()
+        return self.parent.refresh()
+
+    def filter(self, filter_func: Callable[[str], bool]):
+        """Set the column filter."""
+        if not callable(filter_func):
+            raise TypeError("Cannot set non-callable object to column filter.")
+        cfil = ColumnFilter(lambda x, y: list(filter(filter_func, x)))
+        self.parent._qwidget.setColumnFilter(cfil)
+        return filter_func
+
+    def sort(self, key: Callable[[str], Any] | None = None, ascending: bool = True):
+        """Sort the columns."""
+        proxy = ColumnFilter(lambda x, y: sorted(x, key=key, reverse=not ascending))
+        self.parent._qwidget.setColumnFilter(proxy)
+        return None
+
+    def reset_proxy(self) -> None:
+        """Reset the column proxy."""
+        self.parent._qwidget.setColumnFilter(ColumnFilter.identity())
+        return None
 
 
 def _as_slice(x: int | slice) -> slice:

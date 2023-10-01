@@ -202,7 +202,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         """Set the position of the cell that this slot is attached to."""
         self._pos = pos
         prx = self.table.proxy._get_proxy_object()
-        cfil = self.table.columns.filter._get_filter()
+        cfil = self.table.native._column_proxy
         self._source_pos = (prx.get_source_index(pos[0]), cfil.get_source_index(pos[1]))
         return self
 

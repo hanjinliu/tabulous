@@ -319,7 +319,7 @@ class QCellLiteralEdit(_QTableLineEdit):
         if table is not None:
             self._source_pos = (
                 table._proxy.get_source_index(pos[0]),
-                table._column_filter.get_source_index(pos[1]),
+                table._column_proxy.get_source_index(pos[1]),
             )
         else:
             self._source_pos = pos

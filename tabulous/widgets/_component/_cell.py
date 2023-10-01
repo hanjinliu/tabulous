@@ -153,7 +153,7 @@ class CellInterface(TableComponent, SupportActionRegistration["TableBase", int])
                 expr, is_ref = QCellLiteralEdit._parse_ref(value)
                 _r0, _c0 = row.start, col.start
                 _r1 = table.proxy._get_proxy_object().get_source_index(_r0)
-                _c1 = table.columns.filter._get_filter().get_source_index(_c0)
+                _c1 = table.native._column_proxy.get_source_index(_c0)
                 info = EvalInfo(
                     pos=(_r0, _c0),
                     source_pos=(_r1, _c1),

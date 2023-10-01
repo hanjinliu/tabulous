@@ -107,7 +107,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         QActionRegistry.__init__(self)
 
         self._proxy = SortFilterProxy()
-        self._column_filter = ColumnFilter.identity()
+        self._column_proxy = ColumnFilter.identity()
         self._filtered_index: pd.Index | None = None
         self._filtered_columns: pd.Index | None = None
         self.setContentsMargins(0, 0, 0, 0)
@@ -510,12 +510,12 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     @setColumnFilter.server
     def setColumnFilter(self, cfil: ColumnFilter):
-        return arguments(self._column_filter)
+        return arguments(self._column_proxy)
 
     @_mgr.interface
     def _set_column_filter(self, cfil: ColumnFilter):
-        self._column_filter = cfil
-        df_filt = self._column_filter.apply(self.model().df)
+        self._column_proxy = cfil
+        df_filt = self._column_proxy.apply(self.model().df)
 
         # update data
         self.model().df = df_filt
@@ -523,21 +523,21 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         self._filtered_columns = df_filt.columns
 
         # update header widgets based on the column filter
-        if self._column_filter.last_indexer is not None:
-            indexer: list[int] | None = self._column_filter.last_indexer.tolist()
+        if self._column_proxy.last_indexer is not None:
+            indexer: list[int] | None = self._column_proxy.last_indexer.tolist()
         else:
             indexer = None
         hheader = self._qtable_view.horizontalHeader()
         hheader.reindexSectionWidgets(indexer)
 
-        if self._column_filter.is_identity():
+        if self._column_proxy.is_identity():
             hheader.hide_column_filter_button()
         else:
             hheader.show_column_filter_button()
 
     @_set_column_filter.server
     def _set_column_filter(self, cfil: ColumnFilter):
-        return arguments(self._column_filter)
+        return arguments(self._column_proxy)
 
     @_mgr.interface
     def setHorizontalHeaderWidget(self, idx: int, widget: QtW.QWidget | None):
@@ -954,7 +954,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _get_ref_expr(self, r: int, c: int) -> str | None:
         """Try to get a reference expression for the cell at (r, c)."""
         r = self._proxy.get_source_index(r)
-        c = self._column_filter.get_source_index(c)
+        c = self._column_proxy.get_source_index(c)
         if slot := self._qtable_view._table_map.get((r, c), None):
             return slot.as_literal()
         return None
@@ -962,7 +962,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _get_ref_expr_by_dest(self, r: int, c: int) -> str | None:
         """Try to get a reference expression for the cell at (r, c)."""
         r = self._proxy.get_source_index(r)
-        c = self._column_filter.get_source_index(c)
+        c = self._column_proxy.get_source_index(c)
         if slot := self._qtable_view._table_map.get_by_dest((r, c), None):
             return slot.as_literal()
         return None
@@ -1072,10 +1072,7 @@ class QMutableTable(QBaseTable):
                 _old_value: pd.DataFrame
                 _old_value = _old_value.copy()  # this is needed for undo
 
-            if (
-                self._proxy.proxy_type != "none"
-                or not self._column_filter.is_identity()
-            ):
+            if self._proxy.proxy_type != "none" or not self._column_proxy.is_identity():
                 # If table is filtered, the dataframe to be displayed is a different
                 # object so we have to update it as well.
                 self.model().updateValue(r, c, _value)
@@ -1119,7 +1116,7 @@ class QMutableTable(QBaseTable):
 
             _old_value = data.iloc[r0, c0].copy()  # this is needed for undo
 
-            if self._proxy is not None or not self._column_filter.is_identity():
+            if self._proxy is not None or not self._column_proxy.is_identity():
                 # If table is filtered, the dataframe to be displayed is a different
                 # object so we have to update it as well.
                 self.model().updateValue(r, c, _value)
@@ -1139,7 +1136,7 @@ class QMutableTable(QBaseTable):
 
     def _get_proxy_source_index(self, r: int | slice, c: int | slice):
         r0 = self._proxy.get_source_index(r)
-        c0 = self._column_filter.get_source_index(c)
+        c0 = self._column_proxy.get_source_index(c)
         return r0, c0
 
     def _pre_set_array(self, r: slice, c: slice, _value: pd.DataFrame):
@@ -1423,7 +1420,7 @@ class QMutableTable(QBaseTable):
             model.rename_column(colname, value)
 
             _rename_column(model.df, index, value)
-            c0 = self._column_filter.get_source_index(index)
+            c0 = self._column_proxy.get_source_index(index)
             self._filtered_columns = _rename_index(self._filtered_columns, c0, value)
             if constructor is None:
                 _rename_column(self._data_raw, c0, value)
