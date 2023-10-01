@@ -18,6 +18,9 @@ Filtering
 .. |filter| image:: ../../tabulous/_qt/_icons/filter.svg
   :width: 20em
 
+.. |reset_columns| image:: ../../tabulous/_qt/_icons/reset_columns.svg
+  :width: 20em
+
 Use filter functions
 --------------------
 
@@ -237,3 +240,25 @@ are properly edited.
   8  row-8
   9  row-9
 ===  ==========
+
+
+Column Proxy
+============
+
+.. versionadded:: 0.5.5
+
+Another way to sort/filter table data is the column proxy.
+
+.. code-block:: python
+
+    def filter_func(s: str):
+        return "_mean" in s
+
+    table.columns.filter(filter_func)
+
+    # or equivalently, use decorator
+    @table.columns.filter
+    def filter_func(s: str):
+        return "_mean" in s
+
+    table.columns.sort(ascending=True)

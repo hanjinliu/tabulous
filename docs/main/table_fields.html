@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Field Attributes of Tables &mdash; tabulous 0.5.4 documentation</title>
@@ -13,8 +13,9 @@
   <![endif]-->
 
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -107,8 +108,8 @@
            <div itemprop="articleBody">
 
   <section id="field-attributes-of-tables">
-<h1>Field Attributes of Tables<a class="headerlink" href="#field-attributes-of-tables" title="Permalink to this heading">¶</a></h1>
-<nav class="contents local" id="contents">
+<h1>Field Attributes of Tables<a class="headerlink" href="#field-attributes-of-tables" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#cell-field" id="id1"><code class="docutils literal notranslate"><span class="pre">cell</span></code> field</a></p></li>
@@ -119,7 +120,7 @@
 <li><p><a class="reference internal" href="#formatter-validator-field" id="id6"><code class="docutils literal notranslate"><span class="pre">formatter</span></code> / <code class="docutils literal notranslate"><span class="pre">validator</span></code> field</a></p></li>
 <li><p><a class="reference internal" href="#dtypes-field" id="id7"><code class="docutils literal notranslate"><span class="pre">dtypes</span></code> field</a></p></li>
 </ul>
-</nav>
+</div>
 <p>Table operations are very complicated. Providing all the programmatic operations
 to interact with table state and data as table methods is confusing. Thus, in
 <a class="reference internal" href="../apidoc/tabulous.html#module-tabulous" title="tabulous"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tabulous</span></code></a>, these operations are well organized with fields and sub-fields
@@ -127,7 +128,7 @@ to interact with table state and data as table methods is confusing. Thus, in
 field).</p>
 <p>Followings are all the fields that are available in table widgets.</p>
 <section id="cell-field">
-<h2><a class="toc-backref" href="#id1" role="doc-backlink"><code class="docutils literal notranslate"><span class="pre">cell</span></code> field</a><a class="headerlink" href="#cell-field" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id1"><code class="docutils literal notranslate"><span class="pre">cell</span></code> field</a><a class="headerlink" href="#cell-field" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="xref py py-attr docutils literal notranslate"><span class="pre">cell</span></code> field provides several methods to get access to table cells.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 <span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
@@ -151,7 +152,7 @@ the returned data is a copy.</p></li>
 </div>
 <p>The <code class="xref py py-attr docutils literal notranslate"><span class="pre">cell</span></code> field has several sub-fields.</p>
 <section id="cell-ref">
-<h3><code class="docutils literal notranslate"><span class="pre">cell.ref</span></code><a class="headerlink" href="#cell-ref" title="Permalink to this heading">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">cell.ref</span></code><a class="headerlink" href="#cell-ref" title="Permalink to this headline">¶</a></h3>
 <p>All the in-cell functions with cell references are accessible via <code class="xref py py-attr docutils literal notranslate"><span class="pre">ref</span></code> sub-field.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_spreadsheet</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&amp;=np.mean(df.iloc[:, 0])&quot;</span>
@@ -161,7 +162,7 @@ the returned data is a copy.</p></li>
 </div>
 </section>
 <section id="cell-label">
-<h3><code class="docutils literal notranslate"><span class="pre">cell.label</span></code><a class="headerlink" href="#cell-label" title="Permalink to this heading">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">cell.label</span></code><a class="headerlink" href="#cell-label" title="Permalink to this headline">¶</a></h3>
 <p>Cell labels can be edited programmatically using this sub-field.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">label</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
 <span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">label</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mean:&quot;</span>
@@ -169,21 +170,21 @@ the returned data is a copy.</p></li>
 </div>
 </section>
 <section id="cell-text">
-<h3><code class="docutils literal notranslate"><span class="pre">cell.text</span></code><a class="headerlink" href="#cell-text" title="Permalink to this heading">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">cell.text</span></code><a class="headerlink" href="#cell-text" title="Permalink to this headline">¶</a></h3>
 <p>Displayed (formatted) text in cells can be obtained using this sub-field.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
 </pre></div>
 </div>
 </section>
 <section id="cell-text-color">
-<h3><code class="docutils literal notranslate"><span class="pre">cell.text_color</span></code><a class="headerlink" href="#cell-text-color" title="Permalink to this heading">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">cell.text_color</span></code><a class="headerlink" href="#cell-text-color" title="Permalink to this headline">¶</a></h3>
 <p>Displayed text color (8-bit RGBA) in cells can be obtained using this sub-field.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
 </pre></div>
 </div>
 </section>
 <section id="cell-background-color">
-<h3><code class="docutils literal notranslate"><span class="pre">cell.background_color</span></code><a class="headerlink" href="#cell-background-color" title="Permalink to this heading">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">cell.background_color</span></code><a class="headerlink" href="#cell-background-color" title="Permalink to this headline">¶</a></h3>
 <p>Displayed background color (8-bit RGBA) in cells can be obtained using this sub-field.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
 </pre></div>
@@ -191,7 +192,7 @@ the returned data is a copy.</p></li>
 </section>
 </section>
 <section id="plt-field">
-<h2><a class="toc-backref" href="#id2" role="doc-backlink"><code class="docutils literal notranslate"><span class="pre">plt</span></code> field</a><a class="headerlink" href="#plt-field" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id2"><code class="docutils literal notranslate"><span class="pre">plt</span></code> field</a><a class="headerlink" href="#plt-field" title="Permalink to this headline">¶</a></h2>
 <p>Since plotting is a common use case for table data analysis, plot canvases are implemented
 by default. The basic plot functions are available in <code class="xref py py-attr docutils literal notranslate"><span class="pre">plt</span></code> field with the
 similar API as <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib.pyplot</span></code> module.</p>
@@ -207,7 +208,7 @@ similar API as <code class="xref py py-mod docutils literal notranslate"><span c
 </div>
 </section>
 <section id="index-columns-field">
-<h2><a class="toc-backref" href="#id3" role="doc-backlink"><code class="docutils literal notranslate"><span class="pre">index</span></code> / <code class="docutils literal notranslate"><span class="pre">columns</span></code> field</a><a class="headerlink" href="#index-columns-field" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id3"><code class="docutils literal notranslate"><span class="pre">index</span></code> / <code class="docutils literal notranslate"><span class="pre">columns</span></code> field</a><a class="headerlink" href="#index-columns-field" title="Permalink to this headline">¶</a></h2>
 <p><code class="xref py py-attr docutils literal notranslate"><span class="pre">index</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">column</span></code> behaves very similar to <code class="xref py py-attr docutils literal notranslate"><span class="pre">index</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">column</span></code>
 of <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># get header data</span>
@@ -227,7 +228,7 @@ of <code class="xref py py-class docutils literal notranslate"><span class="pre"
 <a class="reference internal" href="register_action.html"><span class="doc">Register Custom Actions</span></a> for more detail.</p>
 </section>
 <section id="proxy-field">
-<h2><a class="toc-backref" href="#id4" role="doc-backlink"><code class="docutils literal notranslate"><span class="pre">proxy</span></code> field</a><a class="headerlink" href="#proxy-field" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id4"><code class="docutils literal notranslate"><span class="pre">proxy</span></code> field</a><a class="headerlink" href="#proxy-field" title="Permalink to this headline">¶</a></h2>
 <p>Proxy includes sorting and filtering, that is, deciding which rows to be shown and
 which not to be.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;label == &#39;A&#39;&quot;</span><span class="p">)</span>  <span class="c1"># filter by &#39;label&#39; column</span>
@@ -238,7 +239,7 @@ which not to be.</p>
 <p>See <a class="reference internal" href="sort_filter.html"><span class="doc">Sort/Filter Table Data</span></a> for more details.</p>
 </section>
 <section id="text-color-background-color-field">
-<h2><a class="toc-backref" href="#id5" role="doc-backlink"><code class="docutils literal notranslate"><span class="pre">text_color</span></code> / <code class="docutils literal notranslate"><span class="pre">background_color</span></code> field</a><a class="headerlink" href="#text-color-background-color-field" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id5"><code class="docutils literal notranslate"><span class="pre">text_color</span></code> / <code class="docutils literal notranslate"><span class="pre">background_color</span></code> field</a><a class="headerlink" href="#text-color-background-color-field" title="Permalink to this headline">¶</a></h2>
 <p><code class="xref py py-attr docutils literal notranslate"><span class="pre">text_color</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">background_color</span></code> stores all the column-specific colormaps.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span>  <span class="c1"># get the colormap of column &quot;A&quot;</span>
 <span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmap</span>  <span class="c1"># set a colormap to column &quot;A&quot;</span>
@@ -254,7 +255,7 @@ which not to be.</p>
 <p>See <a class="reference internal" href="columnwise_settings.html"><span class="doc">Column-wise Settings</span></a> for more details.</p>
 </section>
 <section id="formatter-validator-field">
-<h2><a class="toc-backref" href="#id6" role="doc-backlink"><code class="docutils literal notranslate"><span class="pre">formatter</span></code> / <code class="docutils literal notranslate"><span class="pre">validator</span></code> field</a><a class="headerlink" href="#formatter-validator-field" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id6"><code class="docutils literal notranslate"><span class="pre">formatter</span></code> / <code class="docutils literal notranslate"><span class="pre">validator</span></code> field</a><a class="headerlink" href="#formatter-validator-field" title="Permalink to this headline">¶</a></h2>
 <p><code class="xref py py-attr docutils literal notranslate"><span class="pre">formatter</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">validator</span></code> stores all the column-specific text formatter
 and data validator functions.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">formatter</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span>  <span class="c1"># get the formatter of column &quot;A&quot;</span>
@@ -271,7 +272,7 @@ and data validator functions.</p>
 <p>See <a class="reference internal" href="columnwise_settings.html"><span class="doc">Column-wise Settings</span></a> for more details.</p>
 </section>
 <section id="dtypes-field">
-<h2><a class="toc-backref" href="#id7" role="doc-backlink"><code class="docutils literal notranslate"><span class="pre">dtypes</span></code> field</a><a class="headerlink" href="#dtypes-field" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id7"><code class="docutils literal notranslate"><span class="pre">dtypes</span></code> field</a><a class="headerlink" href="#dtypes-field" title="Permalink to this headline">¶</a></h2>
 <p><code class="xref py py-attr docutils literal notranslate"><span class="pre">dtypes</span></code> is a <code class="xref py py-class docutils literal notranslate"><span class="pre">SpreadSheet</span></code>-specific field. Since a spreadsheet has to
 determine the data type of each column, you may occasionally want to tell which
 data type it should be. This is especially important when a column should be

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.table &mdash; tabulous 0.5.3 documentation</title>
+  <title>tabulous.commands.table &mdash; tabulous 0.5.4 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -12,8 +12,9 @@
   <![endif]-->
 
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -31,7 +32,7 @@
             tabulous
           </a>
               <div class="version">
-                0.5.3
+                0.5.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -200,14 +201,36 @@
 
 
 <div class="viewcode-block" id="melt"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.melt">[docs]</a><span class="k">def</span> <span class="nf">melt</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Melt (unpivot) current table data (pd.melt)&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Melt (unpivot) current table data on selected columns if any (pd.melt)&quot;&quot;&quot;</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
-    <span class="n">cols</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_selected_columns</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_selected_columns</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">assert_exists</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])</span>
+    <span class="n">table_out</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-melt&quot;</span><span class="p">)</span>
+    <span class="n">table_out</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="map_values"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.map_values">[docs]</a><span class="k">def</span> <span class="nf">map_values</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map values of selected column (pd.Series.map)&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">magicgui.widgets</span> <span class="kn">import</span> <span class="n">request_values</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_mutable_table</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="n">_utils</span><span class="o">.</span><span class="n">get_selected_column</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">colname</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">table_type</span> <span class="o">==</span> <span class="s2">&quot;Table&quot;</span> <span class="ow">and</span> <span class="n">df</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot map values of object type.&quot;</span><span class="p">)</span>
+    <span class="n">ser</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">unique_values</span> <span class="o">=</span> <span class="n">ser</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">unique_values</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">48</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Too many unique values (</span><span class="si">{</span><span class="n">unique_values</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">request_values</span><span class="p">(</span>
+        <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;widget_type&quot;</span><span class="p">:</span> <span class="s2">&quot;LineEdit&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">}</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">unique_values</span><span class="p">},</span>
+        <span class="n">parent</span><span class="o">=</span><span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">table_out</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-melt&quot;</span><span class="p">)</span>
-        <span class="n">table_out</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">from_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
+        <span class="n">ser_mapped</span> <span class="o">=</span> <span class="n">ser</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">colname</span><span class="p">])</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">assign</span><span class="p">({</span><span class="n">colname</span><span class="p">:</span> <span class="n">ser_mapped</span><span class="p">})</span></div>
 
 
 <div class="viewcode-block" id="transpose"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.table.transpose">[docs]</a><span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>

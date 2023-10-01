@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabulous.commands.analysis &mdash; tabulous 0.5.2 documentation</title>
+  <title>tabulous.commands.analysis &mdash; tabulous 0.5.4 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/font.css" type="text/css" />
@@ -32,7 +32,7 @@
             tabulous
           </a>
               <div class="version">
-                0.5.2
+                0.5.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -151,6 +151,11 @@
 <div class="viewcode-block" id="show_filter_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.analysis.show_filter_widget">[docs]</a><span class="k">def</span> <span class="nf">show_filter_widget</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Show filter widget.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_tablestack</span><span class="o">.</span><span class="n">openFilterDialog</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="show_column_filter_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.analysis.show_column_filter_widget">[docs]</a><span class="k">def</span> <span class="nf">show_column_filter_widget</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Show column filter widget.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_qwidget</span><span class="o">.</span><span class="n">_tablestack</span><span class="o">.</span><span class="n">openColumnFilterDialog</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="show_eval_widget"><a class="viewcode-back" href="../../../apidoc/tabulous.commands.html#tabulous.commands.analysis.show_eval_widget">[docs]</a><span class="k">def</span> <span class="nf">show_eval_widget</span><span class="p">(</span><span class="n">viewer</span><span class="p">:</span> <span class="n">TableViewerBase</span><span class="p">):</span>

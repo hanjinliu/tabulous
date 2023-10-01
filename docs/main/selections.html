@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Table Selections and Highlights &mdash; tabulous 0.5.4 documentation</title>
@@ -13,8 +13,9 @@
   <![endif]-->
 
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -96,17 +97,17 @@
            <div itemprop="articleBody">
 
   <section id="table-selections-and-highlights">
-<h1>Table Selections and Highlights<a class="headerlink" href="#table-selections-and-highlights" title="Permalink to this heading">¶</a></h1>
-<nav class="contents local" id="contents">
+<h1>Table Selections and Highlights<a class="headerlink" href="#table-selections-and-highlights" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#data-type-of-table-selections" id="id1">Data Type of Table Selections</a></p></li>
 <li><p><a class="reference internal" href="#catch-changes-in-table-selections" id="id2">Catch Changes in Table Selections</a></p></li>
 <li><p><a class="reference internal" href="#set-highlights" id="id3">Set Highlights</a></p></li>
 </ul>
-</nav>
+</div>
 <section id="data-type-of-table-selections">
-<h2><a class="toc-backref" href="#id1" role="doc-backlink">Data Type of Table Selections</a><a class="headerlink" href="#data-type-of-table-selections" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id1">Data Type of Table Selections</a><a class="headerlink" href="#data-type-of-table-selections" title="Permalink to this headline">¶</a></h2>
 <p>You’ll get table selections using <code class="xref py py-attr docutils literal notranslate"><span class="pre">selections</span></code> property as a <code class="xref py py-class docutils literal notranslate"><span class="pre">SelectionRanges</span></code>
 object. For instance, you opened a sample data</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viewer</span><span class="o">.</span><span class="n">open_sample</span><span class="p">(</span><span class="s2">&quot;iris&quot;</span><span class="p">)</span>
@@ -163,7 +164,7 @@ you’ll get following selection ranges.</p>
 </div>
 </section>
 <section id="catch-changes-in-table-selections">
-<h2><a class="toc-backref" href="#id2" role="doc-backlink">Catch Changes in Table Selections</a><a class="headerlink" href="#catch-changes-in-table-selections" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id2">Catch Changes in Table Selections</a><a class="headerlink" href="#catch-changes-in-table-selections" title="Permalink to this headline">¶</a></h2>
 <p>You can bind a callback function that will get called on every selection change event.
 The <code class="xref py py-attr docutils literal notranslate"><span class="pre">events</span></code> attribute is a <code class="xref py py-class docutils literal notranslate"><span class="pre">SignalGroup</span></code> object of
 <a class="reference external" href="https://github.com/tlambert03/psygnal">psygnal</a>.
@@ -175,7 +176,7 @@ The <code class="xref py py-attr docutils literal notranslate"><span class="pre"
 </div>
 </section>
 <section id="set-highlights">
-<h2><a class="toc-backref" href="#id3" role="doc-backlink">Set Highlights</a><a class="headerlink" href="#set-highlights" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id3">Set Highlights</a><a class="headerlink" href="#set-highlights" title="Permalink to this headline">¶</a></h2>
 <p>“Highlight” is another feature of a table. Similar to a selection, a highlight is also
 represented as a tuple of slices. Highlightened cells in a table are always painted.</p>
 <p>Differences between a selection and a highlight are:</p>

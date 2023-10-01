@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>tabulous &mdash; tabulous 0.5.4 documentation</title>
@@ -13,8 +13,9 @@
   <![endif]-->
 
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -94,7 +95,7 @@
            <div itemprop="articleBody">
 
   <section id="tabulous">
-<h1>tabulous<a class="headerlink" href="#tabulous" title="Permalink to this heading">¶</a></h1>
+<h1>tabulous<a class="headerlink" href="#tabulous" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tabulous.html">tabulous package</a><ul>
@@ -124,145 +125,13 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="tabulous.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.color">tabulous.color module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.color.BrightenedColormap"><code class="docutils literal notranslate"><span class="pre">BrightenedColormap</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.BrightenedColormap.from_colormap"><code class="docutils literal notranslate"><span class="pre">BrightenedColormap.from_colormap()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple"><code class="docutils literal notranslate"><span class="pre">ColorTuple</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.a"><code class="docutils literal notranslate"><span class="pre">ColorTuple.a</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.b"><code class="docutils literal notranslate"><span class="pre">ColorTuple.b</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.brighten"><code class="docutils literal notranslate"><span class="pre">ColorTuple.brighten()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.equals"><code class="docutils literal notranslate"><span class="pre">ColorTuple.equals()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.from_hlsa"><code class="docutils literal notranslate"><span class="pre">ColorTuple.from_hlsa()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.from_hsva"><code class="docutils literal notranslate"><span class="pre">ColorTuple.from_hsva()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.from_html"><code class="docutils literal notranslate"><span class="pre">ColorTuple.from_html()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.g"><code class="docutils literal notranslate"><span class="pre">ColorTuple.g</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.hlsa"><code class="docutils literal notranslate"><span class="pre">ColorTuple.hlsa</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.hsva"><code class="docutils literal notranslate"><span class="pre">ColorTuple.hsva</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.html"><code class="docutils literal notranslate"><span class="pre">ColorTuple.html</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.mix"><code class="docutils literal notranslate"><span class="pre">ColorTuple.mix()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.opacity"><code class="docutils literal notranslate"><span class="pre">ColorTuple.opacity</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.ColorTuple.r"><code class="docutils literal notranslate"><span class="pre">ColorTuple.r</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.color.ConvertedColormap"><code class="docutils literal notranslate"><span class="pre">ConvertedColormap</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.color.InvertedColormap"><code class="docutils literal notranslate"><span class="pre">InvertedColormap</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.InvertedColormap.from_colormap"><code class="docutils literal notranslate"><span class="pre">InvertedColormap.from_colormap()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.color.OpacityColormap"><code class="docutils literal notranslate"><span class="pre">OpacityColormap</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.color.OpacityColormap.from_colormap"><code class="docutils literal notranslate"><span class="pre">OpacityColormap.from_colormap()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.color.normalize_color"><code class="docutils literal notranslate"><span class="pre">normalize_color()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.color.rgba_to_str"><code class="docutils literal notranslate"><span class="pre">rgba_to_str()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.core">tabulous.core module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.core.current_viewer"><code class="docutils literal notranslate"><span class="pre">current_viewer()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.core.open_sample"><code class="docutils literal notranslate"><span class="pre">open_sample()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.core.read_csv"><code class="docutils literal notranslate"><span class="pre">read_csv()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.core.read_excel"><code class="docutils literal notranslate"><span class="pre">read_excel()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.core.set_current_viewer"><code class="docutils literal notranslate"><span class="pre">set_current_viewer()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.core.view_spreadsheet"><code class="docutils literal notranslate"><span class="pre">view_spreadsheet()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.core.view_table"><code class="docutils literal notranslate"><span class="pre">view_table()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.exceptions">tabulous.exceptions module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.exceptions.ExceptionHandler"><code class="docutils literal notranslate"><span class="pre">ExceptionHandler</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.exceptions.SelectionRangeError"><code class="docutils literal notranslate"><span class="pre">SelectionRangeError</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.post_init">tabulous.post_init module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.post_init.CellNamespaceMock"><code class="docutils literal notranslate"><span class="pre">CellNamespaceMock</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.post_init.CommandPaletteMock"><code class="docutils literal notranslate"><span class="pre">CommandPaletteMock</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.CommandPaletteMock.register"><code class="docutils literal notranslate"><span class="pre">CommandPaletteMock.register()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.post_init.ConsoleMock"><code class="docutils literal notranslate"><span class="pre">ConsoleMock</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.post_init.ContextRegisterable"><code class="docutils literal notranslate"><span class="pre">ContextRegisterable</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.ContextRegisterable.register"><code class="docutils literal notranslate"><span class="pre">ContextRegisterable.register()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.post_init.Initializer"><code class="docutils literal notranslate"><span class="pre">Initializer</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.Initializer.join"><code class="docutils literal notranslate"><span class="pre">Initializer.join()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.post_init.KeyMapMock"><code class="docutils literal notranslate"><span class="pre">KeyMapMock</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.KeyMapMock.register"><code class="docutils literal notranslate"><span class="pre">KeyMapMock.register()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.post_init.TableInitializer"><code class="docutils literal notranslate"><span class="pre">TableInitializer</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.TableInitializer.cell"><code class="docutils literal notranslate"><span class="pre">TableInitializer.cell</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.TableInitializer.columns"><code class="docutils literal notranslate"><span class="pre">TableInitializer.columns</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.TableInitializer.index"><code class="docutils literal notranslate"><span class="pre">TableInitializer.index</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.TableInitializer.initialize_table"><code class="docutils literal notranslate"><span class="pre">TableInitializer.initialize_table()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.TableInitializer.keymap"><code class="docutils literal notranslate"><span class="pre">TableInitializer.keymap</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.post_init.ViewerInitializer"><code class="docutils literal notranslate"><span class="pre">ViewerInitializer</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.ViewerInitializer.cell_namespace"><code class="docutils literal notranslate"><span class="pre">ViewerInitializer.cell_namespace</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.ViewerInitializer.command_palette"><code class="docutils literal notranslate"><span class="pre">ViewerInitializer.command_palette</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.ViewerInitializer.console"><code class="docutils literal notranslate"><span class="pre">ViewerInitializer.console</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.ViewerInitializer.initialize_viewer"><code class="docutils literal notranslate"><span class="pre">ViewerInitializer.initialize_viewer()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.ViewerInitializer.keymap"><code class="docutils literal notranslate"><span class="pre">ViewerInitializer.keymap</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.post_init.ViewerInitializer.tables"><code class="docutils literal notranslate"><span class="pre">ViewerInitializer.tables</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.post_init.get_initializers"><code class="docutils literal notranslate"><span class="pre">get_initializers()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.threading">tabulous.threading module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.threading.thread_worker"><code class="docutils literal notranslate"><span class="pre">thread_worker()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.types">tabulous.types module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.types.HeaderInfo"><code class="docutils literal notranslate"><span class="pre">HeaderInfo</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.types.HeaderInfo.index"><code class="docutils literal notranslate"><span class="pre">HeaderInfo.index</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.types.HeaderInfo.old_value"><code class="docutils literal notranslate"><span class="pre">HeaderInfo.old_value</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.types.HeaderInfo.value"><code class="docutils literal notranslate"><span class="pre">HeaderInfo.value</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.types.ItemInfo"><code class="docutils literal notranslate"><span class="pre">ItemInfo</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.types.ItemInfo.DELETED"><code class="docutils literal notranslate"><span class="pre">ItemInfo.DELETED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.types.ItemInfo.INSERTED"><code class="docutils literal notranslate"><span class="pre">ItemInfo.INSERTED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.types.ItemInfo.col"><code class="docutils literal notranslate"><span class="pre">ItemInfo.col</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.types.ItemInfo.column"><code class="docutils literal notranslate"><span class="pre">ItemInfo.column</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.types.ItemInfo.old_value"><code class="docutils literal notranslate"><span class="pre">ItemInfo.old_value</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.types.ItemInfo.row"><code class="docutils literal notranslate"><span class="pre">ItemInfo.row</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.types.ItemInfo.value"><code class="docutils literal notranslate"><span class="pre">ItemInfo.value</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.types.TableInfo"><code class="docutils literal notranslate"><span class="pre">TableInfo</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous">Module contents</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.MagicTableViewer"><code class="docutils literal notranslate"><span class="pre">MagicTableViewer</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.MagicTableViewer.native"><code class="docutils literal notranslate"><span class="pre">MagicTableViewer.native</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.TableViewer"><code class="docutils literal notranslate"><span class="pre">TableViewer</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.TableViewer.add_dock_widget"><code class="docutils literal notranslate"><span class="pre">TableViewer.add_dock_widget()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.TableViewer.config"><code class="docutils literal notranslate"><span class="pre">TableViewer.config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.TableViewer.events"><code class="docutils literal notranslate"><span class="pre">TableViewer.events</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.TableViewer.remove_dock_widget"><code class="docutils literal notranslate"><span class="pre">TableViewer.remove_dock_widget()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.TableViewer.reset_choices"><code class="docutils literal notranslate"><span class="pre">TableViewer.reset_choices()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.TableViewerWidget"><code class="docutils literal notranslate"><span class="pre">TableViewerWidget</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.TableViewerWidget.add_widget"><code class="docutils literal notranslate"><span class="pre">TableViewerWidget.add_widget()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tabulous.html#tabulous.TableViewerWidget.events"><code class="docutils literal notranslate"><span class="pre">TableViewerWidget.events</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.current_viewer"><code class="docutils literal notranslate"><span class="pre">current_viewer()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.open_sample"><code class="docutils literal notranslate"><span class="pre">open_sample()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.read_csv"><code class="docutils literal notranslate"><span class="pre">read_csv()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.read_excel"><code class="docutils literal notranslate"><span class="pre">read_excel()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.view_spreadsheet"><code class="docutils literal notranslate"><span class="pre">view_spreadsheet()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="tabulous.html#tabulous.view_table"><code class="docutils literal notranslate"><span class="pre">view_table()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.color">tabulous.color module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.core">tabulous.core module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.exceptions">tabulous.exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.post_init">tabulous.post_init module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.threading">tabulous.threading module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous.types">tabulous.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tabulous.html#module-tabulous">Module contents</a></li>
 </ul>
 </li>
 </ul>

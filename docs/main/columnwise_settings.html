@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Column-wise Settings &mdash; tabulous 0.5.4 documentation</title>
@@ -13,8 +13,9 @@
   <![endif]-->
 
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -114,11 +115,11 @@
            <div itemprop="articleBody">
 
   <section id="column-wise-settings">
-<h1>Column-wise Settings<a class="headerlink" href="#column-wise-settings" title="Permalink to this heading">¶</a></h1>
+<h1>Column-wise Settings<a class="headerlink" href="#column-wise-settings" title="Permalink to this headline">¶</a></h1>
 <p>Tables are composed of several columns with different data types. There are some settings
 that can be applied to each column individually, for better visualizing the data and safely
 editing the data.</p>
-<nav class="contents local" id="contents">
+<div class="contents local topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#colormap" id="id1">Colormap</a></p>
@@ -146,14 +147,14 @@ editing the data.</p>
 <li><p><a class="reference internal" href="#typing-spreadsheet" id="id14">Typing Spreadsheet</a></p></li>
 <li><p><a class="reference internal" href="#use-syntax-of-table-subset" id="id15">Use Syntax of Table Subset</a></p></li>
 </ul>
-</nav>
+</div>
 <p>Each column-specific setting is stored as a <code class="docutils literal notranslate"><span class="pre">dict</span></code> like field.</p>
 <section id="colormap">
-<h2><a class="toc-backref" href="#id1" role="doc-backlink">Colormap</a><a class="headerlink" href="#colormap" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id1">Colormap</a><a class="headerlink" href="#colormap" title="Permalink to this headline">¶</a></h2>
 <p>A “colormap” is a function that maps a value to a color. All the colormaps are stored in
 <code class="xref py py-attr docutils literal notranslate"><span class="pre">text_color</span></code> / <code class="xref py py-attr docutils literal notranslate"><span class="pre">background_color</span></code> fields.</p>
 <section id="use-colormap-functions">
-<h3><a class="toc-backref" href="#id2" role="doc-backlink">Use Colormap Functions</a><a class="headerlink" href="#use-colormap-functions" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id2">Use Colormap Functions</a><a class="headerlink" href="#use-colormap-functions" title="Permalink to this headline">¶</a></h3>
 <p>The text color and the background color can be set for each column.
 You can provide a custom colormap function to do this by <code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code> method of fields.
 A colormap function must return a RGBA array (0-255) or a standard color name.</p>
@@ -187,7 +188,7 @@ A colormap function must return a RGBA array (0-255) or a standard color name.</
 </div>
 </section>
 <section id="use-dictionaries">
-<h3><a class="toc-backref" href="#id3" role="doc-backlink">Use Dictionaries</a><a class="headerlink" href="#use-dictionaries" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id3">Use Dictionaries</a><a class="headerlink" href="#use-dictionaries" title="Permalink to this headline">¶</a></h3>
 <p>For categorical data, you can also use dictionaries to set the colors.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cmap</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;setosa&quot;</span><span class="p">:</span> <span class="s2">&quot;red&quot;</span><span class="p">,</span>
@@ -202,7 +203,7 @@ A colormap function must return a RGBA array (0-255) or a standard color name.</
 </div>
 </section>
 <section id="use-matplotlib-colormaps">
-<h3><a class="toc-backref" href="#id4" role="doc-backlink">Use <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code> Colormaps</a><a class="headerlink" href="#use-matplotlib-colormaps" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id4">Use <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code> Colormaps</a><a class="headerlink" href="#use-matplotlib-colormaps" title="Permalink to this headline">¶</a></h3>
 <p>The colormap names defined in <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code> are available. Limits of the contrast
 will be defined by the mininum/maximum values of the column.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">text_color</span><span class="p">[</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;inferno&quot;</span>
@@ -215,7 +216,7 @@ datetime or timedelta.</p>
 </div>
 </section>
 <section id="interpolate-colors-to-define-colormaps">
-<h3><a class="toc-backref" href="#id5" role="doc-backlink">Interpolate Colors to Define Colormaps</a><a class="headerlink" href="#interpolate-colors-to-define-colormaps" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id5">Interpolate Colors to Define Colormaps</a><a class="headerlink" href="#interpolate-colors-to-define-colormaps" title="Permalink to this headline">¶</a></h3>
 <p>In many cases, you’ll want to define your own colormap by supplying colors that
 represent the minimum/maximum values, or several colors with their corresponding
 values.</p>
@@ -245,12 +246,12 @@ colormap will be defined .</p>
 </div>
 </section>
 <section id="set-colormaps-in-gui">
-<h3><a class="toc-backref" href="#id6" role="doc-backlink">Set Colormaps in GUI</a><a class="headerlink" href="#set-colormaps-in-gui" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">Set Colormaps in GUI</a><a class="headerlink" href="#set-colormaps-in-gui" title="Permalink to this headline">¶</a></h3>
 <p>Some basic colormaps are available in the right-click context menu of the columns,
 such as <span class="menu">Color &gt; Set background colormap</span>.</p>
 </section>
 <section id="update-colormaps">
-<h3><a class="toc-backref" href="#id7" role="doc-backlink">Update Colormaps</a><a class="headerlink" href="#update-colormaps" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id7">Update Colormaps</a><a class="headerlink" href="#update-colormaps" title="Permalink to this headline">¶</a></h3>
 <p>There are several ways to update the existing colormap.</p>
 <ol class="arabic">
 <li><p>Update opacity</p>
@@ -284,11 +285,11 @@ of the current colormap.</p>
 </section>
 </section>
 <section id="validator">
-<h2><a class="toc-backref" href="#id8" role="doc-backlink">Validator</a><a class="headerlink" href="#validator" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id8">Validator</a><a class="headerlink" href="#validator" title="Permalink to this headline">¶</a></h2>
 <p>Simple data type conversion is sometimes not enough. To make editing data safer, you can
 customize the validator for each column.</p>
 <section id="set-validator-functions">
-<h3><a class="toc-backref" href="#id9" role="doc-backlink">Set validator Functions</a><a class="headerlink" href="#set-validator-functions" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id9">Set validator Functions</a><a class="headerlink" href="#set-validator-functions" title="Permalink to this headline">¶</a></h3>
 <p>A validator function doesn’t care about the returned value. It should raise an exception
 if the input value is invalid. In following example, negative value is interpreted as
 invalid and the editor becomes red.</p>
@@ -318,7 +319,7 @@ changing data validation rule might break the safety of the table data.</p>
 </section>
 </section>
 <section id="text-formatter">
-<h2><a class="toc-backref" href="#id10" role="doc-backlink">Text Formatter</a><a class="headerlink" href="#text-formatter" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id10">Text Formatter</a><a class="headerlink" href="#text-formatter" title="Permalink to this headline">¶</a></h2>
 <p>Text formatters are used to convert the values to strings without changing the data
 itself. This is useful for displaying data in a more readable format.</p>
 <div class="admonition note">
@@ -327,7 +328,7 @@ itself. This is useful for displaying data in a more readable format.</p>
 take too much time to run.</p>
 </div>
 <section id="set-formatter-function">
-<h3><a class="toc-backref" href="#id11" role="doc-backlink">Set formatter function</a><a class="headerlink" href="#set-formatter-function" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id11">Set formatter function</a><a class="headerlink" href="#set-formatter-function" title="Permalink to this headline">¶</a></h3>
 <p>As usual in this chapter, you can use functions that convert a value into a string
 as formatter function.</p>
 <ul class="simple">
@@ -346,7 +347,7 @@ including data type conversion.</p></li>
 <img alt="../_images/formatter.png" src="../_images/formatter.png" />
 </section>
 <section id="set-formatter-string">
-<h3><a class="toc-backref" href="#id12" role="doc-backlink">Set formatter string</a><a class="headerlink" href="#set-formatter-string" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id12">Set formatter string</a><a class="headerlink" href="#set-formatter-string" title="Permalink to this headline">¶</a></h3>
 <p>Instead of passing a function, you can also use a ready-to-be-formatted strings.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;sepal_length&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:.2f}</span><span class="s2"> cm&quot;</span><span class="p">)</span>
 
@@ -357,14 +358,14 @@ including data type conversion.</p></li>
 <p>Example above is identical to passing <code class="docutils literal notranslate"><span class="pre">&quot;{:.2f}</span> <span class="pre">cm&quot;.format</span></code>.</p>
 </section>
 <section id="set-formatter-in-gui">
-<h3><a class="toc-backref" href="#id13" role="doc-backlink">Set Formatter in GUI</a><a class="headerlink" href="#set-formatter-in-gui" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id13">Set Formatter in GUI</a><a class="headerlink" href="#set-formatter-in-gui" title="Permalink to this headline">¶</a></h3>
 <p>Some basic formatters are available in the right-click context menu of the columns,
 such as <span class="menu">Formatter &gt; Set text formatter</span>. You’ll see a preview of the column in
 the dialog.</p>
 </section>
 </section>
 <section id="typing-spreadsheet">
-<h2><a class="toc-backref" href="#id14" role="doc-backlink">Typing Spreadsheet</a><a class="headerlink" href="#typing-spreadsheet" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id14">Typing Spreadsheet</a><a class="headerlink" href="#typing-spreadsheet" title="Permalink to this headline">¶</a></h2>
 <p>In a spreadsheet, data types are determined for each column based on its content
 because a spreadsheet is a string-based table data in general. This characteristic
 raises a problem of data type. This drawback is especially important when you want
@@ -399,7 +400,7 @@ set validator functions appropriate for the data types.</p>
 <span class="menu">Column dtype</span>.</p>
 </section>
 <section id="use-syntax-of-table-subset">
-<h2><a class="toc-backref" href="#id15" role="doc-backlink">Use Syntax of Table Subset</a><a class="headerlink" href="#use-syntax-of-table-subset" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id15">Use Syntax of Table Subset</a><a class="headerlink" href="#use-syntax-of-table-subset" title="Permalink to this headline">¶</a></h2>
 <p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">pd.Series</span></code>-like table subset, <code class="xref py py-class docutils literal notranslate"><span class="pre">TableSeries</span></code> can be obtained by
 indexing a table.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sheet</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">open_sample</span><span class="p">(</span><span class="s2">&quot;iris&quot;</span><span class="p">)</span>
