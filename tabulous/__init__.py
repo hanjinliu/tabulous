@@ -1,4 +1,4 @@
-__version__ = "0.5.5"
+__version__ = "0.5.6.dev0"
 
 from tabulous.widgets import TableViewer, TableViewerWidget
 from tabulous.core import (

@@ -34,7 +34,16 @@ def open_spreadsheet(viewer: TableViewerBase):
 def save_table(viewer: TableViewerBase):
     """Save current table data"""
     if table := viewer.current_table:
-        path = viewer.history_manager.openFileDialog(mode="w", caption="Save table")
+        path = viewer.history_manager.openFileDialog(
+            mode="w",
+            caption="Save table",
+            filter=(
+                "Text (*.csv; *.tsv; *.txt);;"
+                "Excel (*.xlsx; *.xls);;"
+                "HTML (*.html; *.htm);;"
+                "All files (*.*)"
+            ),
+        )
         if path:
             table.save(path)
     return None
