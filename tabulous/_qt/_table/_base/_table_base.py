@@ -131,6 +131,16 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Return True if the table is edited."""
         return self._edited
 
+    @property
+    def _selection_model(self):
+        """The table selection model."""
+        return self._qtable_view._selection_model
+
+    @property
+    def _highlight_model(self):
+        """The table highlight model."""
+        return self._qtable_view._highlight_model
+
     def setOrientation(self, a0: Qt.Orientation) -> None:
         """Set table orientation and the side area orientation."""
         if a0 == Qt.Orientation.Horizontal:
@@ -153,8 +163,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             return None
 
         row, col = index.row(), index.column()
-        sel_model = self._qtable_view._selection_model
-        highlight_model = self._qtable_view._highlight_model
+        sel_model = self._selection_model
+        highlight_model = self._highlight_model
 
         if sel_model._ctrl_on:
             # if Ctrl is on, select the highlight under the cursor.
@@ -303,7 +313,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def selections(self, map: bool = False) -> SelectionType:
         """Get list of selections as slicable tuples"""
-        ranges = self._qtable_view._selection_model.as_ranges()
+        ranges = self._selection_model.as_ranges()
         if not map:
             return ranges
         return [
@@ -322,7 +332,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def highlights(self) -> SelectionType:
         """Get list of selections as slicable tuples"""
-        return self._qtable_view._highlight_model.as_ranges()
+        return self._highlight_model.as_ranges()
 
     @_mgr.interface
     def setHighlights(self, selections: SelectionType):
@@ -384,13 +394,19 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
     def _copy_as_formated(self, format: str = "markdown"):
         """Copy the selected cells as markdown format."""
         ref = self._selected_dataframe()
+        if is_ranged(ref.columns):
+            # remove the name "header"
+            column_index = ref.columns.copy()
+            column_index.name = None
+            ref.columns = column_index
+        include_header = len(self._selection_model._col_selection_indices) > 0
         index = not is_ranged(ref.index)
         if format == "markdown":
             s = _tabulate(ref, tablefmt="github", index=index)
         elif format == "latex":
-            s = ref.to_latex(index=index)
+            s = ref.to_latex(index=index, header=include_header)
         elif format == "html":
-            s = ref.to_html(index=index)
+            s = ref.to_html(index=index, header=include_header)
         elif format == "rst":
             s = _tabulate(ref, tablefmt="rst", index=index)
         elif format == "grid":
@@ -667,7 +683,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         else:
             self._qtable_view._table_map[pos] = slot
             if dest := slot.last_destination:
-                self._qtable_view._selection_model.set_ranges([dest])
+                self._selection_model.set_ranges([dest])
         return None
 
     @_set_incell_slot.server
@@ -677,6 +693,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     @_set_incell_slot.set_formatter
     def _set_incell_slot_fmt(self, pos, slot: InCellRangedSlot):
+        if slot is None:  # is None in Jedi for some reason
+            return ""
         return f"table.cell[{pos[0]}, {pos[1]}] = '&={slot.as_literal()}'"
 
     def refreshTable(self, process: bool = False) -> None:
@@ -817,7 +835,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         clear_selection: bool = True,
     ) -> None:
         """Move current index."""
-        selection_model = self._qtable_view._selection_model
+        selection_model = self._selection_model
         df_shape = self.model().df.shape
         table_shape = self.tableShape()
 
@@ -848,7 +866,7 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def showContextMenuAtIndex(self):
         """Programmatically show context menu at index (r, c)."""
-        r, c = self._qtable_view._selection_model.current_index
+        r, c = self._selection_model.current_index
         if r >= 0 and c >= 0:
             index = self._qtable_view.model().index(r, c)
             rect = self._qtable_view.visualRect(index)
@@ -969,8 +987,8 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def _delete_selected_highlights(self) -> None:
         """Delete the selected highlight."""
-        self._qtable_view._highlight_model.delete_selected()
-        self._qtable_view._selection_model.set_ctrl(False)
+        self._highlight_model.delete_selected()
+        self._selection_model.set_ctrl(False)
         return None
 
     def _header_widgets(self) -> dict[int, QtW.QWidget]:
@@ -979,23 +997,23 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
 
     def _process_remove_rows(self, row: int, count: int):
         self._qtable_view._table_map.remove_rows(row, count)
-        self._qtable_view._highlight_model.remove_rows(row, count)
-        self._qtable_view._selection_model.remove_rows(row, count)
+        self._highlight_model.remove_rows(row, count)
+        self._selection_model.remove_rows(row, count)
 
     def _process_insert_rows(self, row: int, count: int):
         self._qtable_view._table_map.insert_rows(row, count)
-        self._qtable_view._selection_model.insert_rows(row, count)
-        self._qtable_view._highlight_model.insert_rows(row, count)
+        self._selection_model.insert_rows(row, count)
+        self._highlight_model.insert_rows(row, count)
 
     def _process_remove_columns(self, col: int, count: int):
         self._qtable_view._table_map.remove_columns(col, count)
-        self._qtable_view._highlight_model.remove_columns(col, count)
-        self._qtable_view._selection_model.remove_columns(col, count)
+        self._highlight_model.remove_columns(col, count)
+        self._selection_model.remove_columns(col, count)
 
     def _process_insert_columns(self, col: int, count: int):
         self._qtable_view._table_map.insert_columns(col, count)
-        self._qtable_view._selection_model.insert_columns(col, count)
-        self._qtable_view._highlight_model.insert_columns(col, count)
+        self._selection_model.insert_columns(col, count)
+        self._highlight_model.insert_columns(col, count)
 
 
 class QMutableTable(QBaseTable):
@@ -1430,7 +1448,7 @@ class QMutableTable(QBaseTable):
         self._edited = True
 
         # set selection
-        self._qtable_view._selection_model.move_to(-1, index)
+        self._selection_model.move_to(-1, index)
 
         # update
         self.refreshTable()
@@ -1474,7 +1492,7 @@ class QMutableTable(QBaseTable):
         self._edited = True
 
         # set selection
-        self._qtable_view._selection_model.move_to(index, -1)
+        self._selection_model.move_to(index, -1)
 
         # update
         self.refreshTable()
