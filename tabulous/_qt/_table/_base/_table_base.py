@@ -942,7 +942,14 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
             index_was_range = is_ranged(df.index)
             col_was_range = is_ranged(df.columns)
             if col_was_range:  # df[0] to column
-                top_row = df.iloc[0, :].astype(str)
+                top_row = df.iloc[0, :].astype(str).tolist()
+                for i in range(len(top_row)):
+                    # replace empty string with a unique string
+                    if top_row[i] == "":
+                        _new_name = f"column-{i}"
+                        while _new_name in top_row:
+                            _new_name += "_"
+                        top_row[i] = _new_name
                 if len(set(top_row)) != len(top_row):  # if duplicated, raise
                     raise ValueError(
                         "Top row has duplication. Cannot convert to column."

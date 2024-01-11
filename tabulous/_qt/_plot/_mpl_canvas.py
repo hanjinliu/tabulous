@@ -134,12 +134,6 @@ class InteractiveFigureCanvas(FigureCanvas):
             return
 
         self.doubleClicked.emit()
-        x, y = self.mouseEventCoords(event.pos())
-        button = self.buttond.get(event.button())
-
-        if button is not None:
-            # native button press event to pick artists
-            self.button_press_event(x, y, button, guiEvent=event)
 
         self.figure.tight_layout()
         self.figure.canvas.draw()
