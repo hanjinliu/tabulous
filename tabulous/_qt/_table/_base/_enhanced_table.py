@@ -584,6 +584,7 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def _set_highlight_color(self, value: QtGui.QColor):
         self._highlight_color = value
+        self._highlight_color.setAlpha(86)
         self.update()
 
     highlightColor = Property(QtGui.QColor, _get_highlight_color, _set_highlight_color)
