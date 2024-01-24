@@ -110,7 +110,6 @@ def dialog_factory_mpl(function: _F) -> _F:
         plt = QtMplPlotCanvas(style=style, pickable=False)
         if bg:
             plt.set_background_color(bg)
-
         dlg.native.layout().addWidget(plt)
         dlg.height = 400
         dlg.width = 280

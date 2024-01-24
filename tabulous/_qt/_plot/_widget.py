@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import wraps
 from typing import TYPE_CHECKING
 import weakref
 from qtpy import QtWidgets as QtW, QtGui, QtCore
@@ -11,7 +10,6 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
     from matplotlib.artist import Artist
 
-    from seaborn.axisgrid import Grid
     from tabulous.widgets import TableBase
 
 
@@ -44,8 +42,10 @@ class QtMplPlotCanvas(QtW.QWidget):
             mpl.use(backend)
 
         fig: Figure
+        mgr = fig.canvas.manager
         canvas = InteractiveFigureCanvas(fig)
         self.canvas = canvas
+        canvas.manager = mgr
         self.figure = fig
 
         super().__init__()
@@ -80,6 +80,17 @@ class QtMplPlotCanvas(QtW.QWidget):
         if self._style:
             with plt.style.context(self._style):
                 self.ax.cla()
+                # NOTE: for some reason, the color of the ticks and tick labels will
+                # be initialized.
+                color = self.ax.spines["bottom"].get_edgecolor()
+                for line in self.ax.get_xticklines():
+                    line.set_color(color)
+                for line in self.ax.get_yticklines():
+                    line.set_color(color)
+                for text in self.ax.get_xticklabels():
+                    text.set_color(color)
+                for text in self.ax.get_yticklabels():
+                    text.set_color(color)
         else:
             self.ax.cla()
         return None
@@ -162,29 +173,6 @@ class QtMplPlotCanvas(QtW.QWidget):
         for ax in self.axes:
             ax.set_facecolor(color)
         self.canvas.draw()
-
-
-def _use_seaborn_grid(f):
-    """
-    Some seaborn plot functions will create a new figure.
-    This decorator provides a common way to update figure canvas in the widget.
-    """
-
-    @wraps(f)
-    def func(self: QtMplPlotCanvas, *args, **kwargs):
-        import matplotlib as mpl
-
-        backend = mpl.get_backend()
-        try:
-            mpl.use("Agg")
-            grid: Grid = f(self, *args, **kwargs)
-        finally:
-            mpl.use(backend)
-
-        self._reset_canvas(grid.figure)
-        return grid
-
-    return func
 
 
 class QMplEditor(QtW.QTabWidget):

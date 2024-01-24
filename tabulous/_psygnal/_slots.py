@@ -109,6 +109,7 @@ class InCellExpr:
         self._objs = objs
 
     def eval(self, ns: dict[str, Any], ranges: MultiRectRange):
+        """Evaluate this expression."""
         return self.eval_and_format(ns, ranges)[0]
 
     def eval_and_format(self, ns: dict[str, Any], ranges: MultiRectRange):
@@ -254,8 +255,8 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
         # check if the expression contains `N`
         for ast_obj in ast.walk(ast.parse(expr)):
             if isinstance(ast_obj, ast.Name) and ast_obj.id == "N":
-                # By this, this slot will be evaluated when the number of
-                # columns changed.
+                # By this, this slot will be evaluated when the number of columns
+                # changed.
                 ranges.append((slice(BIG, BIG + 1), slice(None)))
                 break
         # func pos range
@@ -280,7 +281,7 @@ class InCellRangedSlot(RangedSlot[_P, _R]):
             ns = dict(qviewer._namespace)
         else:
             ns = {"np": np, "pd": pd}
-        ns.update(df=df, N=RowCountGetter(qtable))
+        ns.update(df=df, N=RowCountGetter(qtable), DF=df.iloc)
         try:
             out, _expr = self._expr.eval_and_format(ns, self.range)
             logger.debug(f"Evaluated at {self.pos!r}")

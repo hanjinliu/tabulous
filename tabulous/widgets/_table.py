@@ -784,15 +784,6 @@ class SpreadSheet(_DataFrameTableLayer):
 
         return QSpreadSheet(data=data)
 
-    def add_item_widget(self, row: int, column: int, widget):
-        """Add a widget to a cell."""
-        warnings.warn(
-            "`add_item_widget` is deprecated because its behavior is not stable. "
-            "Will be removed in the future. Use side area or dock widget instead.",
-            DeprecationWarning,
-        )
-        return self._qwidget._set_widget_at_index(row, column, widget)
-
     def _install_actions(self):
         from tabulous import commands as cmds
 
@@ -939,33 +930,6 @@ class TableDisplay(TableBase):
     @running.setter
     def running(self, value: bool) -> None:
         return self._qwidget.setRunning(value)
-
-
-# deprecations
-
-
-def foreground_colormap(self: TableBase, *args, **kwargs):
-    """Deprecated method."""
-    warnings.warn(
-        "Method `table.foreground_colormap` is deprecated. "
-        "Use `table.text_color.set` instead.",
-        DeprecationWarning,
-    )
-    return self.text_color.set(*args, **kwargs)
-
-
-def background_colormap(self: TableBase, *args, **kwargs):
-    """Deprecated method."""
-    warnings.warn(
-        "Method `table.background_colormap` is deprecated. "
-        "Use `table.background_color.set` instead.",
-        DeprecationWarning,
-    )
-    return self.background_color.set(*args, **kwargs)
-
-
-TableBase.foreground_colormap = foreground_colormap
-TableBase.background_colormap = background_colormap
 
 
 def is_polars_data_frame(data):

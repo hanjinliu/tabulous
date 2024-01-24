@@ -21,8 +21,6 @@ from tabulous.types import ItemInfo
 from tabulous._text_formatter import DefaultFormatter
 from tabulous import _pd_index
 
-if TYPE_CHECKING:
-    from magicgui.widgets._bases import ValueWidget
 
 # More rows/columns will be displayed
 _STRING_DTYPE = get_dtype("string")
@@ -843,54 +841,6 @@ class QSpreadSheet(QMutableSimpleTable):
         self.insertColumns(col, count, old_values, spans)
         self.setSelections([(slice(0, self._data_raw.shape[0]), slice(col, col + 1))])
         return None
-
-    @QMutableSimpleTable._mgr.interface
-    def _set_widget_at_index(self, r: int, c: int, widget: ValueWidget | None) -> None:
-        index = self.model().index(r, c)
-        if wdt := self._qtable_view.indexWidget(index):
-            try:
-                self.itemChangedSignal.disconnect(wdt._tabulous_callback)
-            except TypeError:
-                pass
-            wdt.close()
-
-        if widget is None:
-            # equivalent to delete the widget
-            return None
-
-        if widget.widget_type in ("CheckBox", "RadioButton"):
-
-            def converter(x):
-                return x != "False"
-
-        elif widget.widget_type in ("SpinBox", "Slider"):
-            converter = int
-        elif widget.widget_type in ("FloatSpinBox", "FloatSlider"):
-            converter = float
-        else:
-            converter = str
-
-        def _sig():
-            with widget.changed.blocked():
-                val = self.model().df.iat[r, c]
-                try:
-                    widget.value = converter(val)
-                except Exception:
-                    self.setDataFrameValue(r, c, str(widget.value))
-                    raise
-
-        if self.model().df.iat[r, c] != "":
-            _sig()
-        widget.native._tabulous_callback = _sig
-        self.itemChangedSignal.connect(_sig)
-        widget.changed.connect(lambda val: self.setDataFrameValue(r, c, str(val)))
-        self._qtable_view.setIndexWidget(index, widget.native)
-
-    @_set_widget_at_index.server
-    def _set_widget_at_index(self, r: int, c: int, widget: ValueWidget):
-        index = self.model().index(r, c)
-        wdt = self._qtable_view.indexWidget(index)
-        return arguments(r, c, getattr(wdt, "_magic_widget", None))
 
     def setVerticalHeaderValue(self, index: int, value: Any) -> None:
         """Set value of the table vertical header and DataFrame at the index."""
