@@ -360,6 +360,8 @@ class _QTableViewEnhanced(QtW.QTableView):
 
     def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
         """Scroll table plane when mouse is moved with right click."""
+        if e.buttons() == Qt.MouseButton.NoButton:
+            return None
         if self._mouse_track.last_button == "right":
             pos = e.pos()
             dy = pos.y() - self._mouse_track.last_rightclick_pos.y()
