@@ -96,7 +96,7 @@ class CellForegroundColorInterface(_Sequence2D):
         self._assert_integers(key)
         model = self.parent.native.model()
         idx = model.index(*key)
-        qcolor = model.data(idx, role=Qt.ItemDataRole.TextColorRole)
+        qcolor = model.data(idx, role=Qt.ItemDataRole.ForegroundRole)
         if isinstance(qcolor, QtGui.QColor):
             return ColorTuple(*qcolor.getRgb())
         return None

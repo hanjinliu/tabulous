@@ -149,10 +149,13 @@ class SpreadSheetModel(AbstractDataFrameModel):
             else:
                 ref = ""
             dtype = self._columns_dtype.get(name, None)
+            val_repr = repr(val)
+            if len(val_repr) > 64:
+                val_repr = val_repr[:60] + "..." + val_repr[-4:]
             if dtype is None:
-                return f"{val!r} (dtype: infer){ref}"
+                return f"{val_repr} (dtype: infer){ref}"
             else:
-                return f"{val!r} (dtype: {dtype}){ref}"
+                return f"{val_repr} (dtype: {dtype}){ref}"
         return QtCore.QVariant()
 
     def rename_column(self, old_name: str, new_name: str):
