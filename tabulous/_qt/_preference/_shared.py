@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from qtpy import QtWidgets as QtW, QtGui, QtCore
+from tabulous._qt._qt_const import foreground_color_role
 
 
 class QTitleLabel(QtW.QLabel):
@@ -13,7 +14,7 @@ class QTitleLabel(QtW.QLabel):
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
         painter = QtGui.QPainter(self)
-        color = self.palette().color(QtGui.QPalette.ColorRole.Foreground)
+        color = foreground_color_role(self.palette())
         painter.setPen(QtGui.QPen(color, 1))
         bottom_left = self.rect().bottomLeft()
         bottom_right = QtCore.QPoint(bottom_left.x() + 300, bottom_left.y())

@@ -71,20 +71,24 @@ class QThemeSelectionLabel(QtW.QLabel):
         painter = QtGui.QPainter(self)
         geo = self.rect()
 
-        grad = QtGui.QLinearGradient(geo.topLeft(), geo.bottomRight())
+        grad = QtGui.QLinearGradient(
+            QtCore.QPointF(geo.topLeft()), QtCore.QPointF(geo.bottomRight())
+        )
         grad.setColorAt(0, QtGui.QColor(self._style_theme.background0))
         grad.setColorAt(1, QtGui.QColor(self._style_theme.background1))
-        path = QtGui.QPainterPath(geo.topLeft())
-        path.lineTo(geo.topRight())
-        path.lineTo(geo.bottomLeft())
+        path = QtGui.QPainterPath(QtCore.QPointF(geo.topLeft()))
+        path.lineTo(QtCore.QPointF(geo.topRight()))
+        path.lineTo(QtCore.QPointF(geo.bottomLeft()))
         painter.fillPath(path, grad)
 
-        grad = QtGui.QLinearGradient(geo.topLeft(), geo.bottomRight())
+        grad = QtGui.QLinearGradient(
+            QtCore.QPointF(geo.topLeft()), QtCore.QPointF(geo.bottomRight())
+        )
         grad.setColorAt(0, QtGui.QColor(self._style_theme.highlight0))
         grad.setColorAt(1, QtGui.QColor(self._style_theme.highlight1))
-        path = QtGui.QPainterPath(geo.topRight())
-        path.lineTo(geo.bottomLeft())
-        path.lineTo(geo.bottomRight())
+        path = QtGui.QPainterPath(QtCore.QPointF(geo.topRight()))
+        path.lineTo(QtCore.QPointF(geo.bottomLeft()))
+        path.lineTo(QtCore.QPointF(geo.bottomRight()))
         painter.fillPath(path, grad)
 
         if self._checked:

@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from tabulous._utils import get_config
 from tabulous._range import MultiRectRange, RectRange
+from tabulous._qt._qt_const import background_color_role
 
 from qtpy import QtCore, QtWidgets as QtW, QtGui
 
@@ -123,7 +124,7 @@ class CellColorAnimation(_CellAnimation):
         qtable = self._parent.parent()
         is_qvariant = not isinstance(bg, QtGui.QColor)
         if is_qvariant:
-            bg = qtable.palette().color(QtGui.QPalette.ColorRole.Background)
+            bg = background_color_role(qtable.palette())
         col = qtable._qtable_view.selectionColor
         length = max(size.width(), size.height())
         dh = 4 / length
