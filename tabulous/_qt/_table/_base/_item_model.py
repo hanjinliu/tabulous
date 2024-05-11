@@ -39,9 +39,9 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
         self._data_role_map = {
             Qt.ItemDataRole.DisplayRole: self._data_display,
             Qt.ItemDataRole.EditRole: self._data_edit,
-            Qt.ItemDataRole.TextColorRole: self._data_text_color,
+            Qt.ItemDataRole.ForegroundRole: self._data_text_color,
             Qt.ItemDataRole.ToolTipRole: self._data_tooltip,
-            Qt.ItemDataRole.BackgroundColorRole: self._data_background_color_rendered,
+            Qt.ItemDataRole.BackgroundRole: self._data_background_color_rendered,
             Qt.ItemDataRole.DecorationRole: self._data_decoration,
             Qt.ItemDataRole.SizeHintRole: self._data_size_hint,
         }
@@ -146,7 +146,10 @@ class AbstractDataFrameModel(QtCore.QAbstractTableModel):
             if dtype != object:
                 return f"{val!r} (dtype: {dtype}){ref}"
             else:
-                return f"{val!r} (dtype: {dtype}; type: {type(val).__name__}){ref}"
+                val_repr = repr(val)
+                if len(val_repr) > 64:
+                    val_repr = val_repr[:60] + "..." + val_repr[-4:]
+                return f"{val_repr} (dtype: {dtype}; type: {type(val).__name__}){ref}"
         return QtCore.QVariant()
 
     def _data_background_color(self, index: QtCore.QModelIndex):
