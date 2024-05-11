@@ -299,7 +299,7 @@ class QSpreadSheet(QMutableSimpleTable):
     @QMutableSimpleTable._mgr.interface
     def setDataFrame(self, data: pd.DataFrame) -> None:
         """Set data frame as a string table."""
-        self._data_raw = data.astype(_STRING_DTYPE)
+        self._data_raw = data.astype(_STRING_DTYPE).fillna("")
 
         # SpreadSheet columns should be str if possible. Convert it.
         if isinstance(self._data_raw.columns, pd.RangeIndex):
@@ -389,7 +389,7 @@ class QSpreadSheet(QMutableSimpleTable):
             if v is self.__delete:
                 to_delete.add(k)
             else:
-                to_assign[k] = v.astype(_STRING_DTYPE)
+                to_assign[k] = v.astype(_STRING_DTYPE).fillna("")
         old_value = self._data_raw
         self._data_raw: pd.DataFrame = self._data_raw.assign(**to_assign).drop(
             to_delete, axis=1, inplace=False
@@ -487,7 +487,7 @@ class QSpreadSheet(QMutableSimpleTable):
                     return
 
         elif isinstance(value, pd.DataFrame) and any(value.dtypes != "string"):
-            value = value.astype(_STRING_DTYPE)
+            value = value.astype(_STRING_DTYPE).fillna("")
 
         with self._mgr.merging(formatter=lambda _: self._set_value_fmt(r, c, value)):
             if need_expand:
@@ -504,7 +504,7 @@ class QSpreadSheet(QMutableSimpleTable):
         need_expand = nr <= rmax or nc <= cmax
 
         if value.dtype != "string":
-            value = value.astype(_STRING_DTYPE)
+            value = value.astype(_STRING_DTYPE).fillna("")
 
         with self._mgr.merging(formatter=lambda cmds: cmds[-2].format()):
             if need_expand:
