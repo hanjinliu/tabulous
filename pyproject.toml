@@ -15,7 +15,7 @@ authors = [
 dependencies = [
     "appdirs>=1.4.4",
     "collections-undo>=0.0.7",
-    "magicgui>=0.5.1",
+    "magicgui>=0.7.0,!=0.8.3",
     "matplotlib>=3.1",
     "pandas>=1.5.2",
     "psygnal>=0.9.0",
@@ -104,3 +104,9 @@ filterwarnings = [
     "ignore:path is deprecated:DeprecationWarning",
     "ignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
 ]
+
+[tool.pyright.defineConstant]
+PYQT5 = true
+PYSIDE2 = false
+PYQT6 = false
+PYSIDE6 = false

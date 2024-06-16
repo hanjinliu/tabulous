@@ -3,12 +3,7 @@ from typing import Iterable
 from qtpy import QtWidgets as QtW, QtGui
 from qtpy.QtCore import Qt, Signal
 
-from magicgui import __version__ as MAGICGUI_VERSION
-
-if int(MAGICGUI_VERSION.split(".")[1]) >= 7:
-    from magicgui.widgets.bases import ValueWidget
-else:
-    from magicgui.widgets._bases import ValueWidget
+from magicgui.widgets.bases import ValueWidget
 from magicgui.backends._qtpy.widgets import QBaseValueWidget
 from magicgui.application import use_app
 

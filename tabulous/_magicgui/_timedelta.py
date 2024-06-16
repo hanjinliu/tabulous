@@ -5,15 +5,10 @@ from typing import TYPE_CHECKING, Union
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Signal
 
-from magicgui import __version__ as MAGICGUI_VERSION, register_type
+from magicgui import register_type
 
-if int(MAGICGUI_VERSION.split(".")[1]) >= 7:
-    from magicgui.widgets.bases import ValueWidget
-    from magicgui.types import Undefined
-else:
-    from magicgui.widgets._bases import ValueWidget
-
-    Undefined = None
+from magicgui.widgets.bases import ValueWidget
+from magicgui.types import Undefined
 
 from magicgui.backends._qtpy.widgets import QBaseValueWidget
 
