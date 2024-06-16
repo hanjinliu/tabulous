@@ -299,6 +299,9 @@ class _EventFilter(QtCore.QObject):
                 return True
         return False
 
+class QCellLineEdit(_QTableLineEdit):
+    def _is_text_valid(self) -> bool:
+        return True
 
 class QCellLiteralEdit(_QTableLineEdit):
     """Line edit used for evaluating cell text."""

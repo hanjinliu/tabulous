@@ -4,7 +4,7 @@ from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
 
 from ._table_base import QBaseTable
-from ._line_edit import QCellLiteralEdit
+from ._line_edit import QCellLiteralEdit, QCellLineEdit
 
 from tabulous._magicgui._timedelta import QTimeDeltaEdit
 
@@ -77,7 +77,9 @@ class TableItemDelegate(QtW.QStyledItemDelegate):
                 td.setValue(value)
                 return td
             elif dtype == "object":
-                raise NotImplementedError("Cannot edit cell of object dtype.")
+                line = QCellLineEdit(parent, qtable_view.parentTable(), (row, col))
+                line.setFont(font)
+                return line
             else:
                 line = qtable_view._create_eval_editor(moveto=(row, col))
                 line.setFont(font)

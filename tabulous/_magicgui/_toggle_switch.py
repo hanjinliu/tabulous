@@ -3,10 +3,7 @@ from __future__ import annotations
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt, Signal, Property
 
-try:
-    from magicgui.widgets.bases import ButtonWidget, CategoricalWidget
-except ImportError:
-    from magicgui.widgets._bases import ButtonWidget, CategoricalWidget
+from magicgui.widgets.bases import ButtonWidget, CategoricalWidget
 from magicgui.backends._qtpy.widgets import (
     QBaseButtonWidget,
     RadioButtons as RadioButtonsBase,
