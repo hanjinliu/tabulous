@@ -230,6 +230,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
                     elif path.startswith("file:"):
                         path = path.lstrip("file:")
                     self.itemDropped.emit(path)
+                    self.parentWidget().activateWindow()
 
         source = e.source()
         if source is None:
@@ -288,6 +289,7 @@ class QTabbedTableStack(QtW.QTabWidget, QActionRegistry[int]):
         if trash and self._trash_bin_label._to_be_trashed >= 0:
             idx = self._trash_bin_label._to_be_trashed
             del self.parentWidget()._table_viewer.tables[idx]
+            self._trash_bin_label._to_be_trashed = -1
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         if self._line is not None:
