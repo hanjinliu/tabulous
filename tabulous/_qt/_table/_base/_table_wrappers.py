@@ -84,7 +84,9 @@ class QPopupWidget(QtW.QWidget):
         _layout.addWidget(sizegrip, False, Qt.AlignmentFlag.AlignRight)
 
         self.setLayout(_layout)
-        _screen_rect = QtGui.QGuiApplication.primaryScreen().geometry()
+        _screen_rect = QtGui.QGuiApplication.screenAt(
+            parent.mapToGlobal(parent.geometry().topLeft())
+        ).geometry()
         _screen_center = _screen_rect.center()
         self.resize(int(_screen_rect.width() * 0.8), int(_screen_rect.height() * 0.8))
         self.move(_screen_center - self.rect().center())

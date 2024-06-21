@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import numpy as np
+
 # utility functions for working with slices
 
 
@@ -51,11 +53,17 @@ def as_sized(sl: slice, size: int, allow_negative: bool = False):
 def fmt(sl: slice) -> str:
     """Format a slice as a string."""
     if isinstance(sl, slice):
-        s0 = repr(sl.start) if sl.start is not None else ""
-        s1 = repr(sl.stop) if sl.stop is not None else ""
+        s0 = _repr(sl.start) if sl.start is not None else ""
+        s1 = _repr(sl.stop) if sl.stop is not None else ""
         return f"{s0}:{s1}"
-    return repr(sl)
+    return _repr(sl)
 
 
 def has_none(sl: slice):
     return sl.start is None or sl.stop is None
+
+
+def _repr(x) -> str:
+    if isinstance(x, np.number):
+        return str(x)
+    return repr(x)
