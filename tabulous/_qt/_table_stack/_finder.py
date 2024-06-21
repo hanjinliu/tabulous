@@ -165,6 +165,8 @@ class QFinderWidget(QtW.QWidget):
         qtable.moveToItem(r + 2, c + 2)
         qtable.moveToItem(r, c)
         qtable.setSelections([(r, c)])
+        index = qtable._qtable_view.model().index(r, c)
+        qtable._qtable_view.scrollTo(index)
         self._current_index = (r, c)
         return
 
@@ -185,6 +187,8 @@ class QFinderWidget(QtW.QWidget):
         qtable.moveToItem(r + 2, c + 2)
         qtable.moveToItem(r, c)
         qtable.setSelections([(r, c)])
+        index = qtable._qtable_view.model().index(r, c)
+        qtable._qtable_view.scrollTo(index)
         self._current_index = (r, c)
         return
 
