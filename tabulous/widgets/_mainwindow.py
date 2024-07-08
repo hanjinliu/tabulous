@@ -352,6 +352,7 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
             table_has_focus = table.native._qtable_view.hasFocus()
         else:
             table_has_focus = False
+        self.current_table._qwidget._qtable_view._close_editor()
         if (
             update
             and (table := self.tables.get(input.name, None))

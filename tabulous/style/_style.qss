@@ -622,3 +622,7 @@ QCircularProgressBar {
     qproperty-color: #[highlight0];
     qproperty-grooveColor: #[background0];
 }
+
+QtDockWidget {
+    border: 1px solid #[highlight0];
+}

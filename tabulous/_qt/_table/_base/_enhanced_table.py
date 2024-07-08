@@ -276,6 +276,11 @@ class _QTableViewEnhanced(QtW.QTableView):
         self._update_all(rect)
         return None
 
+    def _close_editor(self):
+        if isinstance(line := self._focused_widget, (QCellLiteralEdit, QCellLabelEdit)):
+            cast("QCellLiteralEdit | QCellLabelEdit", line)._hide_and_delete()
+        return None
+
     def copy(self, link: bool = True) -> _QTableViewEnhanced:
         """Make a copy of the table."""
         new = _QTableViewEnhanced(self.parentTable())
@@ -284,6 +289,7 @@ class _QTableViewEnhanced(QtW.QTableView):
             new._selection_model = self._selection_model
             new._selection_model.moving.connect(new._on_moving)
             new._selection_model.moved.connect(new._on_moved)
+            new.rightClickedSignal.connect(self.parentTable().showContextMenu)
             new._table_map = self._table_map
         new.setZoom(self.zoom())
         new._selection_model.current_index = self._selection_model.current_index
@@ -400,6 +406,10 @@ class _QTableViewEnhanced(QtW.QTableView):
         index = self.indexAt(e.pos())
         if not index.isValid():
             return None
+
+        if e.buttons() != Qt.MouseButton.LeftButton:
+            return None
+
         from ._table_base import QMutableTable
 
         table = self.parentTable()
