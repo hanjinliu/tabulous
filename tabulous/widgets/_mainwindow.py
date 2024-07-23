@@ -350,9 +350,9 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         """Add any table object to the viewer."""
         if table := self.current_table:
             table_has_focus = table.native._qtable_view.hasFocus()
+            table._qwidget._qtable_view._close_editor()
         else:
             table_has_focus = False
-        self.current_table._qwidget._qtable_view._close_editor()
         if (
             update
             and (table := self.tables.get(input.name, None))
