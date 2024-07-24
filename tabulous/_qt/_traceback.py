@@ -1,11 +1,18 @@
 from __future__ import annotations
+
 import re
-from typing import Callable, Generator
+import sys
+from typing import Callable, Generator, TYPE_CHECKING
 
 from qtpy import QtWidgets as QtW, QtGui, QtCore
 from psygnal import EmitLoopError
-from ._qt_const import MonospaceFontFamily
+from tabulous._qt._qt_const import MonospaceFontFamily
 from tabulous._keymap import QtKeys
+
+if TYPE_CHECKING:
+    from types import TracebackType
+
+    ExcInfo = tuple[type[BaseException], BaseException, TracebackType]
 
 
 class QtTracebackDialog(QtW.QDialog):
@@ -105,17 +112,22 @@ class QtErrorMessageBox(QtW.QMessageBox):
             tb = traceback.format_exc()
             print(tb)
         else:
-            tb = get_tb_formatter()(self._exc, as_html=True)
+            exc_info = (
+                self._exc.__class__,
+                self._exc,
+                self._exc.__traceback__,
+            )
+            tb = get_tb_formatter()(exc_info, as_html=True)
         return tb
 
 
 # Following functions are mostly copied from napari (BSD 3-Clause).
-# See https://github.com/napari/napari/blob/main/napari/utils/notifications.py
+# See https://github.com/napari/napari/blob/main/napari/utils/_tracebacks.py
 
 
-def get_tb_formatter() -> Callable[[Exception, bool, str], str]:
-    """
-    Return a formatter callable that uses IPython VerboseTB if available.
+def get_tb_formatter() -> Callable[[ExcInfo, bool, str], str]:
+    """Return a formatter callable that uses IPython VerboseTB if available.
+
     Imports IPython lazily if available to take advantage of ultratb.VerboseTB.
     If unavailable, cgitb is used instead, but this function overrides a lot of
     the hardcoded citgb styles and adds error chaining (for exceptions that
@@ -130,122 +142,107 @@ def get_tb_formatter() -> Callable[[Exception, bool, str], str]:
         The ``as_html`` determines whether the traceback is formatted in html
         or plain text.
     """
+    import numpy as np
+
     try:
         import IPython.core.ultratb
 
-        def format_exc_info(exc: Exception, as_html: bool, color="Neutral") -> str:
-            # avoids printing the array data
-            # some discussion related to obtaining the current string function
-            # can be found here, https://github.com/numpy/numpy/issues/11266
-            info = (
-                exc.__class__,
-                exc,
-                exc.__traceback__,
-            )
-            import numpy as np
-
-            np.set_string_function(lambda arr: f"{type(arr)} {arr.shape} {arr.dtype}")
-
-            vbtb = IPython.core.ultratb.VerboseTB(color_scheme=color)
-            if as_html:
-                ansi_string = (
-                    vbtb.text(*info)
-                    .replace(" ", "&nbsp;")
-                    .replace("<", "&lt;")
-                    .replace(">", "&gt;")
-                )
-                html = "".join(ansi2html(ansi_string))
-                html = html.replace("\n", "<br>")
-                html = (
-                    f"<span style='font-family: monaco,{MonospaceFontFamily},"
-                    "monospace;'>" + html + "</span>"
-                )
-                tb_text = html
-            else:
-                tb_text = vbtb.text(*info)
-
-            # resets to default behavior
-            np.set_string_function(None)
+        def format_exc_info(info: ExcInfo, as_html: bool, color="Neutral") -> str:
+            # avoid verbose printing of the array data
+            with np.printoptions(precision=5, threshold=10, edgeitems=2):
+                vbtb = IPython.core.ultratb.VerboseTB(color_scheme=color)
+                if as_html:
+                    ansi_string = (
+                        vbtb.text(*info)
+                        .replace(" ", "&nbsp;")
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;")
+                        .replace("\n", "<br>")
+                    )
+                    html = "".join(ansi2html(ansi_string))
+                    html = (
+                        f"<span style='font-family: monaco,{MonospaceFontFamily},"
+                        "monospace;'>" + html + "</span>"
+                    )
+                    tb_text = html
+                else:
+                    tb_text = vbtb.text(*info)
             return tb_text
 
     except ModuleNotFoundError:
-        import cgitb
         import traceback
 
-        # cgitb does not support error chaining...
-        # see https://peps.python.org/pep-3134/#enhanced-reporting
-        # this is a workaround
-        def cgitb_chain(exc: Exception) -> Generator[str, None, None]:
-            """Recurse through exception stack and chain cgitb_html calls."""
-            if exc.__cause__:
-                yield from cgitb_chain(exc.__cause__)
-                yield (
-                    '<br><br><font color="#51B432">The above exception was '
-                    "the direct cause of the following exception:</font><br>"
-                )
-            elif exc.__context__:
-                yield from cgitb_chain(exc.__context__)
-                yield (
-                    '<br><br><font color="#51B432">During handling of the '
-                    "above exception, another exception occurred:</font><br>"
-                )
-            yield cgitb_html(exc)
+        if sys.version_info < (3, 11):
+            import cgitb
 
-        def cgitb_html(exc: Exception) -> str:
-            """Format exception with cgitb.html."""
-            info = (type(exc), exc, exc.__traceback__)
-            return cgitb.html(info)
+            # cgitb does not support error chaining...
+            # see https://peps.python.org/pep-3134/#enhanced-reporting
+            # this is a workaround
+            def cgitb_chain(exc: Exception) -> Generator[str, None, None]:
+                """Recurse through exception stack and chain cgitb_html calls."""
+                if exc.__cause__:
+                    yield from cgitb_chain(exc.__cause__)
+                    yield (
+                        '<br><br><font color="#51B432">The above exception was '
+                        "the direct cause of the following exception:</font><br>"
+                    )
+                elif exc.__context__:
+                    yield from cgitb_chain(exc.__context__)
+                    yield (
+                        '<br><br><font color="#51B432">During handling of the '
+                        "above exception, another exception occurred:</font><br>"
+                    )
+                yield cgitb_html(exc)
 
-        def format_exc_info(exc: Exception, as_html: bool, color=None) -> str:
-            info = (
-                exc.__class__,
-                exc,
-                exc.__traceback__,
-            )
-            # avoids printing the array data
-            try:
-                import numpy as np
+            def cgitb_html(exc: Exception) -> str:
+                """Format exception with cgitb.html."""
+                info = (type(exc), exc, exc.__traceback__)
+                return cgitb.html(info)
 
-                np.set_string_function(
-                    lambda arr: f"{type(arr)} {arr.shape} {arr.dtype}"
-                )
-                np_imported = True
-            except ImportError:
-                np_imported = False
-            if as_html:
-                html = "\n".join(cgitb_chain(info[1]))
-                # cgitb has a lot of hardcoded colors that don't work for us
-                # remove bgcolor, and let theme handle it
-                html = re.sub('bgcolor="#.*"', "", html)
-                # remove superfluous whitespace
-                html = html.replace("<br>\n", "\n")
-                # but retain it around the <small> bits
-                html = re.sub(r"(<tr><td><small.*</tr>)", "<br>\\1<br>", html)
-                # weird 2-part syntax is a workaround for hard-to-grep text.
-                html = html.replace(
-                    "<p>A problem occurred in a Python script.  "
-                    "Here is the sequence of",
-                    "",
-                )
-                html = html.replace(
-                    "function calls leading up to the error, "
-                    "in the order they occurred.</p>",
-                    "<br>",
-                )
-                # remove hardcoded fonts
-                html = html.replace("\n", "<br>")
-                html = (
-                    f"<span style='font-family: monaco,{MonospaceFontFamily},"
-                    "monospace;'>" + html + "</span>"
-                )
-                tb_text = html
-            else:
-                # if we don't need HTML, just use traceback
-                tb_text = "".join(traceback.format_exception(*info))
-            # resets to default behavior
-            if np_imported:
-                np.set_string_function(None)
-            return tb_text
+            def format_exc_info(info: ExcInfo, as_html: bool, color=None) -> str:
+                # avoid verbose printing of the array data
+                with np.printoptions(precision=5, threshold=10, edgeitems=2):
+                    if as_html:
+                        html = "\n".join(cgitb_chain(info[1]))
+                        # cgitb has a lot of hardcoded colors that don't work for us
+                        # remove bgcolor, and let theme handle it
+                        html = re.sub('bgcolor="#.*"', "", html)
+                        # remove superfluous whitespace
+                        html = html.replace("<br>\n", "\n")
+                        # but retain it around the <small> bits
+                        html = re.sub(r"(<tr><td><small.*</tr>)", "<br>\\1<br>", html)
+                        # weird 2-part syntax is a workaround for hard-to-grep text.
+                        html = html.replace(
+                            "<p>A problem occurred in a Python script.  "
+                            "Here is the sequence of",
+                            "",
+                        )
+                        html = html.replace(
+                            "function calls leading up to the error, "
+                            "in the order they occurred.</p>",
+                            "<br>",
+                        )
+                        # remove hardcoded fonts
+                        html = html.replace('face="helvetica, arial"', "")
+                        html = (
+                            f"<span style='font-family: monaco,{MonospaceFontFamily},"
+                            "monospace;'>" + html + "</span>"
+                        )
+                        tb_text = html
+                    else:
+                        # if we don't need HTML, just use traceback
+                        tb_text = "".join(traceback.format_exception(*info))
+                return tb_text
+
+        else:
+
+            def format_exc_info(info: ExcInfo, as_html: bool, color=None) -> str:
+                # avoid verbose printing of the array data
+                with np.printoptions(precision=5, threshold=10, edgeitems=2):
+                    tb_text = "".join(traceback.format_exception(*info))
+                    if as_html:
+                        tb_text = "<pre>" + tb_text + "</pre>"
+                return tb_text
 
     return format_exc_info
 
@@ -273,8 +270,7 @@ ANSI_STYLES = {
 def ansi2html(
     ansi_string: str, styles: dict[int, dict[str, str]] = ANSI_STYLES
 ) -> Generator[str, None, None]:
-    """
-    Convert ansi string to colored HTML
+    """Convert ansi string to colored HTML
 
     Parameters
     ----------
@@ -292,7 +288,7 @@ def ansi2html(
     previous_end = 0
     in_span = False
     ansi_codes = []
-    ansi_finder = re.compile("\033\\[" "([\\d;]*)" "([a-zA-z])")
+    ansi_finder = re.compile("\033\\[([\\d;]*)([a-zA-Z])")
     for match in ansi_finder.finditer(ansi_string):
         yield ansi_string[previous_end : match.start()]
         previous_end = match.end()
@@ -329,7 +325,7 @@ def ansi2html(
             for k in ansi_codes
             if k in styles
         ]
-        yield '<span style="%s">' % "; ".join(style)
+        yield '<span style="{}">'.format("; ".join(style))
 
         in_span = True
 
