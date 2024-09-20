@@ -254,8 +254,13 @@ class _QTableViewEnhanced(QtW.QTableView):
         model = self.model()
         index_src = model.index(*src.as_uint())
         index_dst = model.index(*dst.as_uint())
-        if dst >= (0, 0) and self.hasFocus():
-            self.scrollTo(index_dst)
+        if dst >= (0, 0):
+            if self.hasFocus():
+                self.scrollTo(index_dst)
+        elif dst.row < 0:
+            self.scrollTo(model.index(0, dst.column))
+        elif dst.column < 0:
+            self.scrollTo(model.index(dst.row, 0))
 
         # rect is the region that needs to be updated
         rect: QtCore.QRect = self.visualRect(index_dst)
