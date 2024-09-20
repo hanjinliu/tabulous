@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from abc import ABC, abstractproperty
+from abc import ABC, abstractmethod
 from functools import partial
 from pathlib import Path
 from types import MappingProxyType
-import warnings
 import weakref
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Generic, Union, TypeVar
@@ -50,15 +49,18 @@ class TableViewerSignal(SignalGroup):
 
 
 class _AbstractViewer(ABC):
-    @abstractproperty
+    @property
+    @abstractmethod
     def current_table(self) -> TableBase | None:
         """Return the currently visible table."""
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def current_index(self) -> int | None:
         """Return the index of currently visible table."""
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def cell_namespace(self) -> Namespace:
         """Return the namespace of the cell editor."""
 
@@ -399,15 +401,6 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         _utils.dump_file_open_path(path)
         return None
 
-    def save(self, path: PathLike) -> None:
-        """Save current table."""
-        warnings.warn(
-            "viewer.save() is deprecated. Use table.save() instead.",
-            DeprecationWarning,
-        )
-        _io.save_file(path, self.current_table.data)
-        return None
-
     def save_all(self, path: PathLike) -> None:
         """Save all tables."""
         path = Path(path)
@@ -502,14 +495,6 @@ class TableViewerBase(_AbstractViewer, SupportKeyMap):
         self._status = tip
         statusbar = self._qwidget.statusBar()
         return statusbar.showMessage(tip)
-
-    def resize(self, width: int, height: int):
-        """Resize the table viewer."""
-        warnings.warn(
-            "viewer.resize() is deprecated. Use `viewer.size` instead.",
-            DeprecationWarning,
-        )
-        self.size = width, height
 
     @property
     def size(self) -> tuple[int, int]:

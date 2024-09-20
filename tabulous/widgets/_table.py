@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import logging
-from abc import abstractmethod, abstractstaticmethod
+from abc import abstractmethod
 import ast
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, overload
-import warnings
 import weakref
 from psygnal import SignalGroup, Signal
 
@@ -41,26 +40,6 @@ class TableSignals(SignalGroup):
     selections = Signal(_comp.SelectionRanges)
     renamed = Signal(str)
     _table: weakref.ReferenceType[TableBase]
-
-    @property
-    def index(self):
-        warnings.warn(
-            "`table.events.index` is deprecated. Please use `table.index.events."
-            "renamed` instead.",
-            DeprecationWarning,
-        )
-        table = self._table()
-        return table.index.events.renamed
-
-    @property
-    def columns(self):
-        warnings.warn(
-            "`table.events.columns` is deprecated. Please use `table.columns.events."
-            "renamed` instead.",
-            DeprecationWarning,
-        )
-        table = self._table()
-        return table.columns.events.renamed
 
 
 class ViewMode(Enum):
@@ -201,14 +180,6 @@ class TableBase(SupportKeyMap):
         raise TypeError(f"Invalid key type: {type(key)}")
 
     @property
-    def cellref(self):
-        warnings.warn(
-            "table.cellref is deprecated. Use table.cell.ref instead.",
-            DeprecationWarning,
-        )
-        return self.cell.ref
-
-    @property
     def source(self) -> Source:
         """The source of the table."""
         return self._source
@@ -257,8 +228,9 @@ class TableBase(SupportKeyMap):
     def _create_backend(self, data: pd.DataFrame) -> QBaseTable:
         """This function creates a backend widget."""
 
-    @abstractstaticmethod
-    def _normalize_data(self, data):
+    @staticmethod
+    @abstractmethod
+    def _normalize_data(data):
         """Data normalization before setting a new data."""
 
     @property

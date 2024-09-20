@@ -70,44 +70,6 @@ class SupportActionRegistration(Generic[_S, _T]):
         self._get_qregistry().unregisterAction(location)
 
 
-def register_action(self: SupportActionRegistration, *args):
-    """Register an contextmenu action."""
-    import warnings
-
-    warnings.warn(
-        "`register_action` is deprecated. Use `register` instead.",
-        DeprecationWarning,
-    )
-
-    reg = self._get_qregistry()
-    nargs = len(args)
-    if nargs == 0 or nargs > 2:
-        raise TypeError("One or two arguments are allowed.")
-    if nargs == 1:
-        arg = args[0]
-        if callable(arg):
-            loc, func = getattr(arg, "__name__", repr(arg)), arg
-        else:
-            loc, func = arg, None
-    else:
-        loc, func = args
-
-    # check type
-    if not isinstance(loc, str) or (func is not None and not callable(func)):
-        arg = type(loc).__name__
-        if func is not None:
-            arg += f", {type(func).__name__}"
-        raise TypeError(f"No overloaded method matched the input ({arg}).")
-
-    def wrapper(f: Callable[[int], Any]):
-        reg.registerAction(loc, f)
-        return f
-
-    return wrapper if func is None else wrapper(func)
-
-
-SupportActionRegistration.register_action = register_action
-
 # e.g. f() takes from 0 to 1 positional arguments but 2 were given
 _PATTERN = re.compile(r".*takes .* positional arguments? but (\d+) w.+ given")
 

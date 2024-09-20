@@ -8,7 +8,6 @@ from typing import (
     Any,
     Iterator,
 )
-import warnings
 
 from qtpy import QtGui
 from qtpy.QtCore import Qt
@@ -231,23 +230,6 @@ class CellInterface(TableComponent, SupportActionRegistration["TableBase", int])
             if rr.start <= r < rr.stop and cc.start <= c < cc.stop:
                 return True
         return False
-
-    def get_label(self, r: int, c: int) -> str | None:
-        """Get the label of a cell."""
-        warnings.warn(
-            "get_label is deprecated. Use `table.cell.label[r, c]` instead.",
-            DeprecationWarning,
-        )
-        return self.label[r, c]
-
-    def set_label(self, r: int, c: int, text: str):
-        """Set the label of a cell."""
-        warnings.warn(
-            f"set_label is deprecated. Use `table.cell.label[r, c] = {text!r}` "
-            "instead.",
-            DeprecationWarning,
-        )
-        self.label[r, c] = text
 
     def set_labeled_data(
         self,

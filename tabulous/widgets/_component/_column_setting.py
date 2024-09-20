@@ -13,7 +13,6 @@ from typing import (
     Sequence,
 )
 from functools import wraps
-import warnings
 
 import numpy as np
 
@@ -399,11 +398,3 @@ class ColumnDtypeInterface(Component["SpreadSheet"], MutableMapping[str, "_Dtype
         if formatting:
             self.parent._qwidget._set_default_text_formatter(name)
         return None
-
-    def set_dtype(self, *args, **kwargs) -> None:
-        """Deprecated alias for set()."""
-        warnings.warn(
-            "set_dtype() is deprecated, use set() instead.",
-            DeprecationWarning,
-        )
-        return self.set(*args, **kwargs)

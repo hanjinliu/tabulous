@@ -39,17 +39,3 @@ class KeyMap(Component["SupportKeyMap"]):
     def press_key(self, key: str) -> None:
         self.parent._qwidget._keymap.press_key(key)
         return None
-
-
-def bind(self: KeyMap, *args, **kwargs):
-    import warnings
-
-    warnings.warn(
-        "Keycombo registration using `keymap.bind` is deprecated. Use "
-        "`keymap.register` instead.",
-        DeprecationWarning,
-    )
-    return self.parent._qwidget._keymap.bind(*args, **kwargs)
-
-
-KeyMap.bind = bind  # backward compatibility
