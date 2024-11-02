@@ -340,3 +340,10 @@ def jump_to_cell(viewer: TableViewerBase):
         return
     jw = QJumpWidget(viewer.native)
     jw.show()
+
+
+def show_tooltip(viewer: TableViewerBase):
+    """Show tooltip"""
+    table = _utils.get_table(viewer)
+    r, c = table.current_index
+    table._qwidget.showToolTip(r, c)

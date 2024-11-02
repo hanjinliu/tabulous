@@ -156,6 +156,34 @@ class QBaseTable(QtW.QSplitter, QActionRegistry[Tuple[int, int]]):
         """Create custom handle."""
         return QTableHandle(Qt.Orientation.Horizontal, self)
 
+    def showToolTip(self, row: int, col: int) -> None:
+        """Show tooltip at the given position."""
+        if row >= 0 and col >= 0:
+            index = self.model().index(row, col)
+            qtable_view = self._qtable_view
+            pos = qtable_view.mapToGlobal(qtable_view.visualRect(index).center())
+            tooltip = self.model().data(index, Qt.ItemDataRole.ToolTipRole)
+            if isinstance(tooltip, str):
+                QtW.QToolTip.showText(pos, tooltip, qtable_view)
+        elif row < 0:
+            header = self._qtable_view.horizontalHeader()
+            pos = header.mapToGlobal(header.visualRectAtIndex(col).center())
+            tooltip = self.model().headerData(
+                col, Qt.Orientation.Horizontal, Qt.ItemDataRole.ToolTipRole
+            )
+            if isinstance(tooltip, str):
+                QtW.QToolTip.showText(pos, tooltip, header)
+        elif col < 0:
+            header = self._qtable_view.verticalHeader()
+            pos = header.mapToGlobal(header.visualRectAtIndex(row).center())
+            tooltip = self.model().headerData(
+                row, Qt.Orientation.Vertical, Qt.ItemDataRole.ToolTipRole
+            )
+            if isinstance(tooltip, str):
+                QtW.QToolTip.showText(pos, tooltip, header)
+        else:
+            return None
+
     def showContextMenu(self, pos: QtCore.QPoint) -> None:
         """Show contextmenu at the given position."""
         index = self._qtable_view.indexAt(pos)

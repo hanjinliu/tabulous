@@ -104,6 +104,7 @@ DEFAULT_KEYBINDING_SETTING: list[tuple[FunctionType, str]] = [
     (table.zoom_in, "Ctrl+Shift+>"),
     (table.zoom_out, "Ctrl+Shift+<"),
     (table.jump_to_cell, "Ctrl+G"),
+    (table.show_tooltip, "Ctrl+K, Ctrl+I"),
     (file.open_table, "Ctrl+O"),
     (file.open_spreadsheet, "Ctrl+K, Ctrl+O"),
     (file.save_table, "Ctrl+S"),

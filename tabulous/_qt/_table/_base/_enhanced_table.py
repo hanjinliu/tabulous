@@ -4,7 +4,7 @@ import weakref
 import logging
 from typing import TYPE_CHECKING, Iterable, Iterator, cast, Literal
 from qtpy import QtWidgets as QtW, QtGui, QtCore
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Signal, Property
 
 from ._item_model import AbstractDataFrameModel
 from ._header_view import QHorizontalHeaderView, QVerticalHeaderView
@@ -19,9 +19,6 @@ if TYPE_CHECKING:
     from tabulous._qt._mainwindow import _QtMainWidgetBase
     from tabulous._map_model import SlotRefMapping
     from tabulous._utils import TabulousConfig
-    from qtpy.QtCore import pyqtSignal as Signal, pyqtProperty as Property
-else:
-    from qtpy.QtCore import Signal, Property
 
 # Flags
 _SCROLL_PER_PIXEL = QtW.QAbstractItemView.ScrollMode.ScrollPerPixel

@@ -104,9 +104,3 @@ filterwarnings = [
     "ignore:path is deprecated:DeprecationWarning",
     "ignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
 ]
-
-[tool.pyright.defineConstant]
-PYQT5 = true
-PYSIDE2 = false
-PYQT6 = false
-PYSIDE6 = false

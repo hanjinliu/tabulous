@@ -5,7 +5,7 @@ from abc import abstractmethod
 import ast
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, overload
+from typing import Any, Callable, Hashable, TYPE_CHECKING, Mapping, NamedTuple, overload
 import weakref
 from psygnal import SignalGroup, Signal
 
@@ -57,6 +57,13 @@ class ViewMode(Enum):
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__}.{self.name}>"
+
+
+class TableIndex(NamedTuple):
+    """Tuple of row and column indices."""
+
+    row: int
+    col: int
 
 
 # #####################################################################
@@ -185,9 +192,9 @@ class TableBase(SupportKeyMap):
         return self._source
 
     @property
-    def current_index(self) -> tuple[int, int]:
-        """The current index of the table."""
-        return self._qwidget._qtable_view._selection_model.current_index
+    def current_index(self) -> TableIndex:
+        """The current index (row, col) of the table."""
+        return TableIndex(*self._qwidget._qtable_view._selection_model.current_index)
 
     @current_index.setter
     def current_index(self, index: tuple[int, int]) -> None:
