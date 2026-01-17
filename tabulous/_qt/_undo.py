@@ -3,12 +3,12 @@ from typing import Any
 from collections_undo import UndoManager, fmt
 from qtpy import QtWidgets as QtW, QtCore, QtGui
 from qtpy.QtCore import Qt
-from qtpy.sip import isdeleted
 
 import numpy as np
 import pandas as pd
 
 from ._qt_const import MonospaceFontFamily
+from ._qtutils import isdeleted
 
 MonospaceFont = QtGui.QFont(MonospaceFontFamily)
 

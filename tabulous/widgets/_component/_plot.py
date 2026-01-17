@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from qtpy.sip import isdeleted
 from ._base import TableComponent
 
 
@@ -38,6 +37,8 @@ class PlotInterface(TableComponent):
 
     def gcw(self):
         """Get current widget."""
+        from tabulous._qt._qtutils import isdeleted
+
         if self._current_widget is None or isdeleted(self._current_widget):
             self.new_widget()
         return self._current_widget
@@ -79,7 +80,6 @@ class PlotInterface(TableComponent):
             pass
         self._current_widget.deleteLater()
         self._current_widget = None
-        return None
 
     def figure(self, style=None):
         return self.subplots(style=style)[0]

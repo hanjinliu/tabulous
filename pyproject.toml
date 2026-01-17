@@ -10,7 +10,7 @@ readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"
 authors = [
-    { name = "Hanjin Liu", email = "liuhanjin-sc@g.ecc.u-tokyo.ac.jp" },
+    { name = "Hanjin Liu", email = "liuhanjin.sc@gmail.com" },
 ]
 dependencies = [
     "appdirs>=1.4.4",
@@ -39,6 +39,9 @@ pyqt5 = [
 ]
 pyqt6 = [
     "pyqt6>=6.3.1",
+]
+pyside6 = [
+    "pyside6>=6.2.0",
 ]
 scikit-learn = [
     "scikit-learn>=1.0",
@@ -69,7 +72,7 @@ features = ["testing"]
 run = "pytest -v"
 
 [[tool.hatch.envs.test.matrix]]
-backend = ["pyqt5", "pyqt6"]
+backend = ["pyqt5", "pyqt6", "pyside6"]
 
 [tool.hatch.envs.test.overrides]
 matrix.backend.features = [
@@ -78,6 +81,9 @@ matrix.backend.features = [
     ] },
     { value = "pyqt6", if = [
         "pyqt6",
+    ] },
+    { value = "pyside6", if = [
+        "pyside6",
     ] },
 ]
 
@@ -104,3 +110,6 @@ filterwarnings = [
     "ignore:path is deprecated:DeprecationWarning",
     "ignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
 ]
+
+[project.entry-points."himena.plugin"]
+"tabulous" = "tabulous.himena_plugins"
