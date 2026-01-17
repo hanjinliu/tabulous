@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from ._base import TableComponent
-from tabulous._qt._qtutils import isdeleted
 
 
 def _plt_function(name: str, method_name: str | None = None):
@@ -38,6 +37,8 @@ class PlotInterface(TableComponent):
 
     def gcw(self):
         """Get current widget."""
+        from tabulous._qt._qtutils import isdeleted
+
         if self._current_widget is None or isdeleted(self._current_widget):
             self.new_widget()
         return self._current_widget

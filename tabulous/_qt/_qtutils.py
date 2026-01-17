@@ -6,7 +6,7 @@ def isdeleted(qwidget: QtW.QWidget) -> bool:
     try:
         qwidget.objectName()
     except RuntimeError as e:
-        if str(e).startswith("wrapped C++ object of type"):
+        if str(e).startswith("wrapped C/C++ object of type"):
             return True
         raise
     else:
