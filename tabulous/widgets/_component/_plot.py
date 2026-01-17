@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from qtpy.sip import isdeleted
 from ._base import TableComponent
+from tabulous._qt._qtutils import isdeleted
 
 
 def _plt_function(name: str, method_name: str | None = None):
@@ -79,7 +79,6 @@ class PlotInterface(TableComponent):
             pass
         self._current_widget.deleteLater()
         self._current_widget = None
-        return None
 
     def figure(self, style=None):
         return self.subplots(style=style)[0]
